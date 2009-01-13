@@ -1,8 +1,7 @@
 package uk.ac.manchester.cs.owl;
 
-import org.semanticweb.owl.model.OWLConstant;
+import org.semanticweb.owl.model.OWLLiteral;
 import org.semanticweb.owl.model.OWLDataFactory;
-import org.semanticweb.owl.model.OWLException;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -33,12 +32,12 @@ import org.semanticweb.owl.model.OWLException;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public abstract class OWLConstantImpl extends OWLObjectImpl implements OWLConstant {
+public abstract class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
 
     private String literal;
 
 
-    public OWLConstantImpl(OWLDataFactory dataFactory, String literal) {
+    public OWLLiteralImpl(OWLDataFactory dataFactory, String literal) {
         super(dataFactory);
         this.literal = literal;
     }
@@ -51,10 +50,10 @@ public abstract class OWLConstantImpl extends OWLObjectImpl implements OWLConsta
 
     public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            if (!(obj instanceof OWLConstant)) {
+            if (!(obj instanceof OWLLiteral)) {
                 return false;
             }
-            return ((OWLConstant) obj).getLiteral().equals(getLiteral());
+            return ((OWLLiteral) obj).getLiteral().equals(getLiteral());
         }
         return false;
     }
