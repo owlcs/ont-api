@@ -1,8 +1,10 @@
 package uk.ac.manchester.cs.owl;
 
-import org.semanticweb.owl.model.OWLDataFactory;
-import org.semanticweb.owl.model.OWLPropertyExpression;
-import org.semanticweb.owl.model.OWLRestriction;
+import org.semanticweb.owl.model.*;
+import org.semanticweb.owl.util.NNF;
+
+import java.util.Collections;
+import java.util.Set;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -33,34 +35,50 @@ import org.semanticweb.owl.model.OWLRestriction;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public abstract class OWLRestrictionImpl<P extends OWLPropertyExpression> extends OWLAnonymousClassExpressionImpl implements OWLRestriction<P> {
+public abstract class OWLAnonymousClassExpressionImpl extends OWLObjectImpl implements OWLAnonymousClassExpression {
 
-    private P property;
-
-
-    public OWLRestrictionImpl(OWLDataFactory dataFactory, P property) {
+    public OWLAnonymousClassExpressionImpl(OWLDataFactory dataFactory) {
         super(dataFactory);
-        this.property = property;
     }
 
 
-    public boolean isLiteral() {
+    public boolean isAnonymous() {
+        return true;
+    }
+
+
+    public boolean isOWLThing() {
         return false;
     }
 
 
-    public P getProperty() {
-        return property;
+    public boolean isOWLNothing() {
+        return false;
     }
 
 
-    public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            if (!(obj instanceof OWLRestriction)) {
-                return false;
-            }
-            return ((OWLRestriction) obj).getProperty().equals(property);
-        }
-        return false;
+    public OWLClassExpression getNNF() {
+        NNF nnf = new NNF(getOWLDataFactory());
+        return accept(nnf);
+    }
+
+    public OWLClassExpression getComplementNNF() {
+        NNF nnf = new NNF(getOWLDataFactory());
+        return getOWLDataFactory().getOWLObjectComplementOf(this).accept(nnf);
+    }
+
+
+    public OWLClass asOWLClass() {
+        throw new OWLRuntimeException("Not an OWLClass.  This method should only be called if the isAnonymous method returns false!");
+    }
+
+
+    public Set<OWLClassExpression> asConjunctSet() {
+        return Collections.singleton((OWLClassExpression) this);
+    }
+
+
+    public Set<OWLClassExpression> asDisjunctSet() {
+        return Collections.singleton((OWLClassExpression) this);
     }
 }

@@ -1,8 +1,13 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.OWLDataFactory;
-import org.semanticweb.owl.model.OWLPropertyExpression;
-import org.semanticweb.owl.model.OWLRestriction;
+import org.semanticweb.owl.model.OWLClassExpression;
+import org.semanticweb.owl.model.OWLNaryBooleanClassExpression;
+import org.semanticweb.owl.model.OWLObject;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -33,14 +38,19 @@ import org.semanticweb.owl.model.OWLRestriction;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public abstract class OWLRestrictionImpl<P extends OWLPropertyExpression> extends OWLAnonymousClassExpressionImpl implements OWLRestriction<P> {
+public abstract class OWLNaryBooleanClassExpressionImpl extends OWLAnonymousClassExpressionImpl implements OWLNaryBooleanClassExpression {
 
-    private P property;
+    private Set<OWLClassExpression> operands;
 
 
-    public OWLRestrictionImpl(OWLDataFactory dataFactory, P property) {
+    public OWLNaryBooleanClassExpressionImpl(OWLDataFactory dataFactory, Set<? extends OWLClassExpression> operands) {
         super(dataFactory);
-        this.property = property;
+        this.operands = Collections.unmodifiableSet(new TreeSet<OWLClassExpression>(operands));
+    }
+
+
+    public Set<OWLClassExpression> getOperands() {
+        return operands;
     }
 
 
@@ -49,18 +59,18 @@ public abstract class OWLRestrictionImpl<P extends OWLPropertyExpression> extend
     }
 
 
-    public P getProperty() {
-        return property;
+    public boolean equals(Object obj) {
+        if (super.equals(obj)) {
+            if (!(obj instanceof OWLNaryBooleanClassExpression)) {
+                return false;
+            }
+            return ((OWLNaryBooleanClassExpression) obj).getOperands().equals(operands);
+        }
+        return false;
     }
 
 
-    public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            if (!(obj instanceof OWLRestriction)) {
-                return false;
-            }
-            return ((OWLRestriction) obj).getProperty().equals(property);
-        }
-        return false;
+    final protected int compareObjectOfSameType(OWLObject object) {
+        return compareSets(operands, ((OWLNaryBooleanClassExpression) object).getOperands());
     }
 }
