@@ -31,43 +31,22 @@ import org.semanticweb.owl.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLClassAssertionAxiomImpl extends OWLIndividualAxiomImpl implements OWLClassAssertionAxiom {
+public class OWLDataMinCardinalityImpl extends OWLDataCardinalityRestrictionImpl implements OWLDataMinCardinality {
 
-    private OWLIndividual individual;
-
-    private OWLClassExpression classExpression;
-
-
-    public OWLClassAssertionAxiomImpl(OWLDataFactory dataFactory, OWLIndividual individual, OWLClassExpression classExpression) {
-        super(dataFactory);
-        this.individual = individual;
-        this.classExpression = classExpression;
-    }
-
-
-    public OWLClassExpression getDescription() {
-        return classExpression;
-    }
-
-
-    public OWLIndividual getIndividual() {
-        return individual;
+    public OWLDataMinCardinalityImpl(OWLDataFactory dataFactory, OWLDataPropertyExpression property, int cardinality,
+                                     OWLDataRange filler) {
+        super(dataFactory, property, cardinality, filler);
     }
 
 
     public boolean equals(Object obj) {
-            if(super.equals(obj)) {
-                if(!(obj instanceof OWLClassAssertionAxiom)) {
-                    return false;
-                }
-                OWLClassAssertionAxiom other = (OWLClassAssertionAxiom) obj;
-                return other.getIndividual().equals(individual) &&
-                        other.getDescription().equals(classExpression);
-            }
+        if (super.equals(obj)) {
+            return obj instanceof OWLDataMinCardinality;
+        }
         return false;
     }
 
-    public void accept(OWLAxiomVisitor visitor) {
+    public void accept(OWLClassExpressionVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -75,7 +54,7 @@ public class OWLClassAssertionAxiomImpl extends OWLIndividualAxiomImpl implement
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
+    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
@@ -83,20 +62,4 @@ public class OWLClassAssertionAxiomImpl extends OWLIndividualAxiomImpl implement
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
-
-    public AxiomType getAxiomType() {
-        return AxiomType.CLASS_ASSERTION;
-    }
-
-    protected int compareObjectOfSameType(OWLObject object) {
-        OWLClassAssertionAxiom otherAx = (OWLClassAssertionAxiom) object;
-        int diff = getIndividual().compareTo(otherAx.getIndividual());
-        if(diff != 0) {
-            return diff;
-        }
-        else {
-            return getDescription().compareTo(otherAx.getDescription());
-        }
-    }
-
 }

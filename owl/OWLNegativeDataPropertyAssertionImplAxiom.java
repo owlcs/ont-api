@@ -31,22 +31,22 @@ import org.semanticweb.owl.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLDataExactCardinalityRestrictionImpl extends OWLDataCardinalityRestrictionImpl implements OWLDataExactCardinalityRestriction {
+public class OWLNegativeDataPropertyAssertionImplAxiom extends OWLIndividualRelationshipAxiomImpl<OWLDataPropertyExpression, OWLLiteral> implements OWLNegativeDataPropertyAssertionAxiom {
 
-    public OWLDataExactCardinalityRestrictionImpl(OWLDataFactory dataFactory, OWLDataPropertyExpression property, int cardinality,
-                                                  OWLDataRange filler) {
-        super(dataFactory, property, cardinality, filler);
+    public OWLNegativeDataPropertyAssertionImplAxiom(OWLDataFactory dataFactory, OWLIndividual subject, OWLDataPropertyExpression property,
+                                                     OWLLiteral object) {
+        super(dataFactory, subject, property, object);
     }
 
 
     public boolean equals(Object obj) {
-        if(super.equals(obj)) {
-            return obj instanceof OWLDataExactCardinalityRestriction;
+        if (super.equals(obj)) {
+            return obj instanceof OWLNegativeDataPropertyAssertionAxiom;
         }
         return false;
     }
 
-    public void accept(OWLDescriptionVisitor visitor) {
+    public void accept(OWLAxiomVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -54,7 +54,7 @@ public class OWLDataExactCardinalityRestrictionImpl extends OWLDataCardinalityRe
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLDescriptionVisitorEx<O> visitor) {
+    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
@@ -63,9 +63,7 @@ public class OWLDataExactCardinalityRestrictionImpl extends OWLDataCardinalityRe
         return visitor.visit(this);
     }
 
-
-    public OWLClassExpression asIntersectionOfMinMax() {
-        return getOWLDataFactory().getOWLObjectIntersectionOf(getOWLDataFactory().getOWLDataMinCardinalityRestriction(getProperty(), getCardinality(), getFiller()),
-                                                              getOWLDataFactory().getOWLDataMaxCardinalityRestriction(getProperty(), getCardinality(), getFiller()));
+    public AxiomType getAxiomType() {
+        return AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION;
     }
 }

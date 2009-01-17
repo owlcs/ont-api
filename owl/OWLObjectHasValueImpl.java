@@ -1,7 +1,6 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
-import org.semanticweb.owl.vocab.OWLRDFVocabulary;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -30,22 +29,40 @@ import org.semanticweb.owl.vocab.OWLRDFVocabulary;
  * Author: Matthew Horridge<br>
  * The University Of Manchester<br>
  * Bio-Health Informatics Group<br>
- * Date: 19-Dec-2006<br><br>
+ * Date: 26-Oct-2006<br><br>
  */
-public class OWLCommentAnnotationImpl extends OWLConstantAnnotationImpl implements OWLCommentAnnotation {
+public class OWLObjectHasValueImpl extends OWLValueRestrictionImpl<OWLObjectPropertyExpression, OWLIndividual> implements OWLObjectHasValue {
 
-    public OWLCommentAnnotationImpl(OWLDataFactory dataFactory, OWLLiteral object) {
-        super(dataFactory, OWLRDFVocabulary.RDFS_COMMENT.getURI(), object);
+    public OWLObjectHasValueImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property, OWLIndividual value) {
+        super(dataFactory, property, value);
     }
 
 
-    public boolean isComment() {
-        return true;
+    public boolean equals(Object obj) {
+        if (super.equals(obj)) {
+            return obj instanceof OWLObjectHasValue;
+        }
+        return false;
     }
 
-    public <O> O accept(OWLAnnotationVisitorEx<O> visitor) {
+
+    public OWLClassExpression asSomeValuesFrom() {
+        return getOWLDataFactory().getObjectSomeValuesFrom(getProperty(), getOWLDataFactory().getObjectOneOf(getValue()));
+    }
+
+
+    public void accept(OWLClassExpressionVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    public void accept(OWLObjectVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
+
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);

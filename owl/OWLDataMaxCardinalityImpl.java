@@ -1,8 +1,6 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
-
-import java.util.Set;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -33,63 +31,35 @@ import java.util.Set;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLDisjointUnionAxiomImpl extends OWLNaryClassAxiomImpl implements OWLDisjointUnionAxiom {
+public class OWLDataMaxCardinalityImpl extends OWLDataCardinalityRestrictionImpl implements OWLDataMaxCardinality {
 
-    private OWLClass owlClass;
-
-
-    public OWLDisjointUnionAxiomImpl(OWLDataFactory dataFactory, OWLClass owlClass,
-                                     Set<? extends OWLClassExpression> descriptions) {
-        super(dataFactory, descriptions);
-        this.owlClass = owlClass;
-    }
-
-
-    public OWLClass getOWLClass() {
-        return owlClass;
+    public OWLDataMaxCardinalityImpl(OWLDataFactory dataFactory, OWLDataPropertyExpression property, int cardinality,
+                                     OWLDataRange filler) {
+        super(dataFactory, property, cardinality, filler);
     }
 
 
     public boolean equals(Object obj) {
-            if (super.equals(obj)) {
-                if (!(obj instanceof OWLDisjointUnionAxiom)) {
-                    return false;
-                }
-                return ((OWLDisjointUnionAxiom) obj).getOWLClass().equals(owlClass);
-            }
+        if (super.equals(obj)) {
+            return obj instanceof OWLDataMaxCardinality;
+        }
         return false;
     }
 
-
-    public void accept(OWLAxiomVisitor visitor)  {
+    public void accept(OWLClassExpressionVisitor visitor) {
         visitor.visit(this);
     }
-
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
+    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
-    }
-
-    public AxiomType getAxiomType() {
-        return AxiomType.DISJOINT_UNION;
-    }
-
-
-    protected int compareObjectOfSameType(OWLObject object) {
-        OWLDisjointUnionAxiom other = (OWLDisjointUnionAxiom) object;
-        int diff = owlClass.compareTo(other.getOWLClass());
-        if(diff != 0) {
-            return diff;
-        }
-        return super.compareObjectOfSameType(object);
     }
 }

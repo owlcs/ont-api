@@ -35,16 +35,16 @@ import java.util.List;
  * Bio-Health Informatics Group<br>
  * Date: 22-Nov-2006<br><br>
  */
-public class OWLObjectPropertyChainSubPropertyAxiomImpl extends OWLPropertyAxiomImpl implements OWLObjectPropertyChainSubPropertyAxiom {
+public class OWLComplextSubPropertyAxiomImpl extends OWLPropertyAxiomImpl implements OWLComplextSubPropertyAxiom {
 
     private List<OWLObjectPropertyExpression> propertyChain;
 
     private OWLObjectPropertyExpression superProperty;
 
 
-    public OWLObjectPropertyChainSubPropertyAxiomImpl(OWLDataFactory dataFactory,
-                                                      List<? extends OWLObjectPropertyExpression> propertyChain,
-                                                      OWLObjectPropertyExpression superProperty) {
+    public OWLComplextSubPropertyAxiomImpl(OWLDataFactory dataFactory,
+                                           List<? extends OWLObjectPropertyExpression> propertyChain,
+                                           OWLObjectPropertyExpression superProperty) {
         super(dataFactory);
         this.propertyChain = new ArrayList<OWLObjectPropertyExpression>(propertyChain);
         this.superProperty = superProperty;
@@ -62,11 +62,10 @@ public class OWLObjectPropertyChainSubPropertyAxiomImpl extends OWLPropertyAxiom
 
 
     public boolean isEncodingOfTransitiveProperty() {
-        if(propertyChain.size() == 2) {
+        if (propertyChain.size() == 2) {
             return superProperty.equals(propertyChain.get(0)) &&
                     superProperty.equals(propertyChain.get(1));
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -94,10 +93,10 @@ public class OWLObjectPropertyChainSubPropertyAxiomImpl extends OWLPropertyAxiom
         if (!super.equals(obj)) {
             return false;
         }
-        if(!(obj instanceof OWLObjectPropertyChainSubPropertyAxiom)) {
+        if (!(obj instanceof OWLComplextSubPropertyAxiom)) {
             return false;
         }
-        OWLObjectPropertyChainSubPropertyAxiom other = (OWLObjectPropertyChainSubPropertyAxiom) obj;
+        OWLComplextSubPropertyAxiom other = (OWLComplextSubPropertyAxiom) obj;
         return other.getPropertyChain().equals(getPropertyChain()) && other.getSuperProperty().equals(superProperty);
     }
 
@@ -108,16 +107,16 @@ public class OWLObjectPropertyChainSubPropertyAxiomImpl extends OWLPropertyAxiom
 
 
     protected int compareObjectOfSameType(OWLObject object) {
-        OWLObjectPropertyChainSubPropertyAxiom other = (OWLObjectPropertyChainSubPropertyAxiom) object;
+        OWLComplextSubPropertyAxiom other = (OWLComplextSubPropertyAxiom) object;
         int i = 0;
-        while(i < propertyChain.size() && i < other.getPropertyChain().size()) {
+        while (i < propertyChain.size() && i < other.getPropertyChain().size()) {
             int diff = propertyChain.get(i).compareTo(other.getPropertyChain().get(i));
-            if(diff != 0) {
+            if (diff != 0) {
                 return diff;
             }
         }
         int diff = propertyChain.size() - other.getPropertyChain().size();
-        if(diff != 0) {
+        if (diff != 0) {
             return diff;
         }
         return superProperty.compareTo(other.getSuperProperty());

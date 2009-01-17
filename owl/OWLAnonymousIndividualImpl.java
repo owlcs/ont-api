@@ -1,8 +1,7 @@
 package uk.ac.manchester.cs.owl;
 
-import org.semanticweb.owl.model.*;
-/*
- * Copyright (C) 2006, University of Manchester
+import org.semanticweb.owl.model.*;/*
+ * Copyright (C) 2008, University of Manchester
  *
  * Modifications to the initial code base are copyright of their
  * respective authors, or their employers as appropriate.  Authorship
@@ -24,40 +23,39 @@ import org.semanticweb.owl.model.*;
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 /**
- * Author: Matthew Horridge<br>
- * The University Of Manchester<br>
- * Bio-Health Informatics Group<br>
- * Date: 26-Oct-2006<br><br>
+ * Author: Matthew Horridge<br> The University of Manchester<br> Information Management Group<br>
+ * Date: 15-Jan-2009
  */
-public class OWLObjectMaxCardinalityRestrictionImpl extends OWLObjectCardinalityRestrictionImpl implements OWLObjectMaxCardinalityRestriction {
+public class OWLAnonymousIndividualImpl extends OWLIndividualImpl implements OWLAnonymousIndividual {
 
-    public OWLObjectMaxCardinalityRestrictionImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property, int cardinality,
-                                                  OWLClassExpression filler) {
-        super(dataFactory, property, cardinality, filler);
+    private NodeID id;
+
+    public OWLAnonymousIndividualImpl(OWLDataFactory dataFactory, NodeID nodeID) {
+        super(dataFactory);
+        this.id = nodeID;
     }
 
-
-    public boolean equals(Object obj) {
-        if(super.equals(obj)) {
-            return obj instanceof OWLObjectMaxCardinalityRestriction;
-        }
-        return false;
+    public NodeID getID() {
+        return id;
     }
 
-    public void accept(OWLDescriptionVisitor visitor) {
-        visitor.visit(this);
+    public boolean isAnonymous() {
+        return true;
+    }
+
+    public OWLNamedIndividual asNamedIndividual() {
+        throw new OWLRuntimeException("Not a named individual! This method should only be called on named individuals");
+    }
+
+    protected int compareObjectOfSameType(OWLObject object) {
+        OWLAnonymousIndividual other = (OWLAnonymousIndividual) object;
+        return id.compareTo(other.getID());
     }
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
     }
-
-    public <O> O accept(OWLDescriptionVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);

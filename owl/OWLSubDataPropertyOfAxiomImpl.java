@@ -31,22 +31,22 @@ import org.semanticweb.owl.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLDataMaxCardinalityRestrictionImpl extends OWLDataCardinalityRestrictionImpl implements OWLDataMaxCardinalityRestriction {
+public class OWLSubDataPropertyOfAxiomImpl extends OWLSubPropertyAxiomImpl<OWLDataPropertyExpression> implements OWLSubDataPropertyOfAxiom {
 
-    public OWLDataMaxCardinalityRestrictionImpl(OWLDataFactory dataFactory, OWLDataPropertyExpression property, int cardinality,
-                                                OWLDataRange filler) {
-        super(dataFactory, property, cardinality, filler);
+    public OWLSubDataPropertyOfAxiomImpl(OWLDataFactory dataFactory, OWLDataPropertyExpression subProperty,
+                                         OWLDataPropertyExpression superProperty) {
+        super(dataFactory, subProperty, superProperty);
     }
 
 
     public boolean equals(Object obj) {
-        if(super.equals(obj)) {
-            return obj instanceof OWLDataMaxCardinalityRestriction;
+        if (super.equals(obj)) {
+            return obj instanceof OWLSubDataPropertyOfAxiom;
         }
         return false;
     }
 
-    public void accept(OWLDescriptionVisitor visitor) {
+    public void accept(OWLAxiomVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -54,8 +54,12 @@ public class OWLDataMaxCardinalityRestrictionImpl extends OWLDataCardinalityRest
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLDescriptionVisitorEx<O> visitor) {
+    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
         return visitor.visit(this);
+    }
+
+    public AxiomType getAxiomType() {
+        return AxiomType.SUB_DATA_PROPERTY;
     }
 
 

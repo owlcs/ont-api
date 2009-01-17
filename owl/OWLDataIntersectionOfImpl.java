@@ -1,8 +1,9 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
-/*
- * Copyright (C) 2006, University of Manchester
+
+import java.util.Set;/*
+ * Copyright (C) 2008, University of Manchester
  *
  * Modifications to the initial code base are copyright of their
  * respective authors, or their employers as appropriate.  Authorship
@@ -24,41 +25,34 @@ import org.semanticweb.owl.model.*;
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 /**
- * Author: Matthew Horridge<br>
- * The University Of Manchester<br>
- * Bio-Health Informatics Group<br>
- * Date: 26-Oct-2006<br><br>
+ * Author: Matthew Horridge<br> The University of Manchester<br> Information Management Group<br>
+ * Date: 17-Jan-2009
  */
-public class OWLDataAllRestrictionImpl extends OWLQuantifiedRestrictionImpl<OWLDataPropertyExpression, OWLDataRange> implements OWLDataAllRestriction {
+public class OWLDataIntersectionOfImpl extends OWLNaryDataRangeImpl implements OWLDataIntersectionOf {
 
-    public OWLDataAllRestrictionImpl(OWLDataFactory dataFactory, OWLDataPropertyExpression property, OWLDataRange filler) {
-        super(dataFactory, property, filler);
+    public OWLDataIntersectionOfImpl(OWLDataFactory dataFactory, Set<? extends OWLDataRange> operands) {
+        super(dataFactory, operands);
     }
 
-
-    public boolean equals(Object obj) {
-        if(super.equals(obj)) {
-            return obj instanceof OWLDataAllRestriction;
-        }
-        return false;
-    }
-
-    public void accept(OWLDescriptionVisitor visitor) {
-        visitor.visit(this);
+    protected int compareObjectOfSameType(OWLObject object) {
+        OWLDataIntersectionOf other = (OWLDataIntersectionOf) object;
+        return compareSets(getOperands(), other.getOperands());
     }
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLDescriptionVisitorEx<O> visitor) {
+    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
+    public void accept(OWLDataVisitor visitor) {
+        visitor.visit(this);
+    }
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
+    public <O> O accept(OWLDataVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 }

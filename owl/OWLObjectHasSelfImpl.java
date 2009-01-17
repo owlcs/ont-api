@@ -31,22 +31,21 @@ import org.semanticweb.owl.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLNegativeDataPropertyAssertionAxiomImpl extends OWLIndividualRelationshipAxiomImpl<OWLDataPropertyExpression, OWLLiteral> implements OWLNegativeDataPropertyAssertionAxiom {
+public class OWLObjectHasSelfImpl extends OWLRestrictionImpl<OWLObjectPropertyExpression> implements OWLObjectHasSelf {
 
-    public OWLNegativeDataPropertyAssertionAxiomImpl(OWLDataFactory dataFactory, OWLIndividual subject, OWLDataPropertyExpression property,
-                                                     OWLLiteral object) {
-        super(dataFactory, subject, property, object);
+    public OWLObjectHasSelfImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property) {
+        super(dataFactory, property);
     }
 
 
     public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            return obj instanceof OWLNegativeDataPropertyAssertionAxiom;
+            return obj instanceof OWLObjectHasSelf;
         }
         return false;
     }
 
-    public void accept(OWLAxiomVisitor visitor) {
+    public void accept(OWLClassExpressionVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -54,7 +53,7 @@ public class OWLNegativeDataPropertyAssertionAxiomImpl extends OWLIndividualRela
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
+    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
@@ -63,7 +62,7 @@ public class OWLNegativeDataPropertyAssertionAxiomImpl extends OWLIndividualRela
         return visitor.visit(this);
     }
 
-    public AxiomType getAxiomType() {
-        return AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION;
+    protected int compareObjectOfSameType(OWLObject object) {
+        return getProperty().compareTo(((OWLObjectHasSelf) object).getProperty());
     }
 }

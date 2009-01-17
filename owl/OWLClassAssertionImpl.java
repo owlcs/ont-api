@@ -1,9 +1,6 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
-
-import java.util.Arrays;
-import java.util.HashSet;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -34,45 +31,39 @@ import java.util.HashSet;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLSubClassAxiomImpl extends OWLNaryClassAxiomImpl implements OWLSubClassAxiom {
+public class OWLClassAssertionImpl extends OWLIndividualAxiomImpl implements OWLClassAssertionAxiom {
 
-    private OWLClassExpression subClass;
+    private OWLIndividual individual;
 
-    private OWLClassExpression superClass;
+    private OWLClassExpression classExpression;
 
 
-    public OWLSubClassAxiomImpl(OWLDataFactory dataFactory, OWLClassExpression subClass,
-                                OWLClassExpression superClass) {
-        super(dataFactory, new HashSet<OWLClassExpression>(Arrays.asList(subClass, superClass)));
-        this.subClass = subClass;
-        this.superClass = superClass;
+    public OWLClassAssertionImpl(OWLDataFactory dataFactory, OWLIndividual individual, OWLClassExpression classExpression) {
+        super(dataFactory);
+        this.individual = individual;
+        this.classExpression = classExpression;
     }
 
 
-    public OWLClassExpression getSubClass() {
-        return subClass;
+    public OWLClassExpression getDescription() {
+        return classExpression;
     }
 
 
-    public OWLClassExpression getSuperClass() {
-        return superClass;
-    }
-
-
-    public boolean isGCI() {
-        return subClass.isAnonymous();
+    public OWLIndividual getIndividual() {
+        return individual;
     }
 
 
     public boolean equals(Object obj) {
-            if (super.equals(obj)) {
-                if(!(obj instanceof OWLSubClassAxiom)) {
-                    return false;
-                }
-                OWLSubClassAxiom other = (OWLSubClassAxiom) obj;
-                return other.getSubClass().equals(subClass) &&
-                        other.getSuperClass().equals(superClass);
+        if (super.equals(obj)) {
+            if (!(obj instanceof OWLClassAssertionAxiom)) {
+                return false;
             }
+            OWLClassAssertionAxiom other = (OWLClassAssertionAxiom) obj;
+            return other.getIndividual().equals(individual) &&
+                    other.getDescription().equals(classExpression);
+        }
         return false;
     }
 
@@ -94,16 +85,17 @@ public class OWLSubClassAxiomImpl extends OWLNaryClassAxiomImpl implements OWLSu
     }
 
     public AxiomType getAxiomType() {
-        return AxiomType.SUBCLASS;
+        return AxiomType.CLASS_ASSERTION;
     }
-
 
     protected int compareObjectOfSameType(OWLObject object) {
-        OWLSubClassAxiom other = (OWLSubClassAxiom) object;
-        int diff = subClass.compareTo(other.getSubClass());
-        if(diff != 0) {
+        OWLClassAssertionAxiom otherAx = (OWLClassAssertionAxiom) object;
+        int diff = getIndividual().compareTo(otherAx.getIndividual());
+        if (diff != 0) {
             return diff;
+        } else {
+            return getDescription().compareTo(otherAx.getDescription());
         }
-        return superClass.compareTo(other.getSuperClass());
     }
+
 }

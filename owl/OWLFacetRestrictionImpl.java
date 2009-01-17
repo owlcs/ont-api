@@ -1,8 +1,9 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
+import org.semanticweb.owl.vocab.OWLFacet;
 /*
- * Copyright (C) 2006, University of Manchester
+ * Copyright (C) 2007, University of Manchester
  *
  * Modifications to the initial code base are copyright of their
  * respective authors, or their employers as appropriate.  Authorship
@@ -29,31 +30,44 @@ import org.semanticweb.owl.model.*;
  * Author: Matthew Horridge<br>
  * The University Of Manchester<br>
  * Bio-Health Informatics Group<br>
- * Date: 26-Oct-2006<br><br>
+ * Date: 11-Jan-2007<br><br>
  */
-public class OWLAntiSymmetricObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLAntiSymmetricObjectPropertyAxiom {
+public class OWLFacetRestrictionImpl extends OWLObjectImpl implements OWLFacetRestriction {
 
-    public OWLAntiSymmetricObjectPropertyAxiomImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property) {
-        super(dataFactory, property);
+    private OWLFacet facet;
+
+    private OWLLiteral facetValue;
+
+
+    public OWLFacetRestrictionImpl(OWLDataFactory dataFactory, OWLFacet facet,
+                                   OWLLiteral facetValue) {
+        super(dataFactory);
+        this.facet = facet;
+        this.facetValue = facetValue;
     }
 
 
-    public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            return obj instanceof OWLAntiSymmetricObjectPropertyAxiom;
-        }
-        return false;
+    /**
+     * Gets the restricting facet for this facet restriction
+     */
+    public OWLFacet getFacet() {
+        return facet;
     }
 
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
+
+    /**
+     * Gets the corresponding facet value for this facet restriction
+     */
+    public OWLLiteral getFacetValue() {
+        return facetValue;
     }
+
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
+    public <O> O accept(OWLDataVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
@@ -62,7 +76,12 @@ public class OWLAntiSymmetricObjectPropertyAxiomImpl extends OWLObjectPropertyCh
         return visitor.visit(this);
     }
 
-    public AxiomType getAxiomType() {
-        return AxiomType.ANTI_SYMMETRIC_OBJECT_PROPERTY;
+    protected int compareObjectOfSameType(OWLObject object) {
+        OWLFacetRestriction other = (OWLFacetRestriction) object;
+        int diff = facet.compareTo(other.getFacet());
+        if (diff != 0) {
+            return diff;
+        }
+        return facetValue.compareTo(other.getFacetValue());
     }
 }

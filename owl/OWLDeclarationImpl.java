@@ -1,9 +1,8 @@
 package uk.ac.manchester.cs.owl;
 
-import org.semanticweb.owl.model.OWLAnnotation;
-import org.semanticweb.owl.model.OWLAnnotationAxiom;
-import org.semanticweb.owl.model.OWLDataFactory;
-import org.semanticweb.owl.model.OWLObject;
+import org.semanticweb.owl.model.*;
+
+import java.util.Set;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -32,29 +31,16 @@ import org.semanticweb.owl.model.OWLObject;
  * Author: Matthew Horridge<br>
  * The University Of Manchester<br>
  * Bio-Health Informatics Group<br>
- * Date: 25-Oct-2006<br><br>
+ * Date: 26-Oct-2006<br><br>
  */
-public abstract class OWLAnnotationAxiomImpl<S extends OWLObject> extends OWLAxiomImpl implements OWLAnnotationAxiom<S> {
+public class OWLDeclarationImpl extends OWLAxiomImpl implements OWLDeclaration {
 
-    private S subject;
-
-    private OWLAnnotation annotation;
+    private OWLEntity entity;
 
 
-    public OWLAnnotationAxiomImpl(OWLDataFactory dataFactory, S subject, OWLAnnotation annotation) {
+    public OWLDeclarationImpl(OWLDataFactory dataFactory, OWLEntity entity) {
         super(dataFactory);
-        this.subject = subject;
-        this.annotation = annotation;
-    }
-
-
-    public S getSubject() {
-        return subject;
-    }
-
-
-    public OWLAnnotation getAnnotation() {
-        return annotation;
+        this.entity = entity;
     }
 
 
@@ -63,24 +49,50 @@ public abstract class OWLAnnotationAxiomImpl<S extends OWLObject> extends OWLAxi
     }
 
 
+    public OWLEntity getEntity() {
+        return entity;
+    }
+
+
+    public Set<OWLAnnotationAssertionAxiom> getEntityAnnotations(OWLOntology ontology) {
+        return ontology.getEntityAnnotationAxioms(getEntity());
+    }
+
+
     public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            if (!(obj instanceof OWLAnnotationAxiom)) {
-                return false;
+            if (obj instanceof OWLDeclaration) {
+                return ((OWLDeclaration) obj).getEntity().equals(entity);
             }
-            OWLAnnotationAxiom other = (OWLAnnotationAxiom) obj;
-            return other.getSubject().equals(subject) && other.getAnnotation().equals(annotation);
         }
         return false;
     }
 
 
-    final protected int compareObjectOfSameType(OWLObject object) {
-        OWLAnnotationAxiom other = (OWLAnnotationAxiom) object;
-        int diff = subject.compareTo(other.getSubject());
-        if(diff != 0) {
-            return diff;
-        }
-        return annotation.compareTo(other.getAnnotation());
+    public void accept(OWLAxiomVisitor visitor) {
+        visitor.visit(this);
+    }
+
+
+    public void accept(OWLObjectVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
+        return visitor.visit(this);
+    }
+
+
+    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
+        return visitor.visit(this);
+    }
+
+    public AxiomType getAxiomType() {
+        return AxiomType.DECLARATION;
+    }
+
+
+    protected int compareObjectOfSameType(OWLObject object) {
+        return entity.compareTo(((OWLDeclaration) object).getEntity());
     }
 }

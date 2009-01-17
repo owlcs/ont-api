@@ -31,21 +31,22 @@ import org.semanticweb.owl.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLAxiomAnnotationAxiomImpl extends OWLAnnotationAxiomImpl<OWLAxiom> implements OWLAxiomAnnotationAxiom {
+public class OWLObjectMaxCardinalityImpl extends OWLObjectCardinalityRestrictionImpl implements OWLObjectMaxCardinality {
 
-    public OWLAxiomAnnotationAxiomImpl(OWLDataFactory dataFactory, OWLAxiom subject, OWLAnnotation annotation) {
-        super(dataFactory, subject, annotation);
+    public OWLObjectMaxCardinalityImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property, int cardinality,
+                                       OWLClassExpression filler) {
+        super(dataFactory, property, cardinality, filler);
     }
 
 
     public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            return obj instanceof OWLAxiomAnnotationAxiom;
+            return obj instanceof OWLObjectMaxCardinality;
         }
         return false;
     }
 
-    public void accept(OWLAxiomVisitor visitor) {
+    public void accept(OWLClassExpressionVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -53,16 +54,12 @@ public class OWLAxiomAnnotationAxiomImpl extends OWLAnnotationAxiomImpl<OWLAxiom
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
+    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
-    }
-
-    public AxiomType getAxiomType() {
-        return AxiomType.AXIOM_ANNOTATION;
     }
 }

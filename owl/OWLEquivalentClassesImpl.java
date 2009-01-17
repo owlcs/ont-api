@@ -33,11 +33,11 @@ import java.util.Set;
  * Author: Matthew Horridge<br> The University Of Manchester<br> Bio-Health Informatics Group<br> Date:
  * 26-Oct-2006<br><br>
  */
-public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl implements OWLEquivalentClassesAxiom {
+public class OWLEquivalentClassesImpl extends OWLNaryClassAxiomImpl implements OWLEquivalentClassesAxiom {
 
     private Set<OWLClass> namedClasses;
 
-    public OWLEquivalentClassesAxiomImpl(OWLDataFactory dataFactory, Set<? extends OWLClassExpression> descriptions) {
+    public OWLEquivalentClassesImpl(OWLDataFactory dataFactory, Set<? extends OWLClassExpression> descriptions) {
         super(dataFactory, descriptions);
         namedClasses = null;
     }
@@ -68,7 +68,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
     }
 
     public Set<OWLClass> getNamedClasses() {
-        if(namedClasses == null) {
+        if (namedClasses == null) {
             Set<OWLClass> clses = new HashSet<OWLClass>(1);
             for (OWLClassExpression desc : getDescriptions()) {
                 if (!desc.isAnonymous() && !desc.isOWLNothing() && !desc.isOWLThing()) {
@@ -80,12 +80,12 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
         return namedClasses;
     }
 
-    public Set<OWLSubClassAxiom> asSubClassAxioms() {
-        Set<OWLSubClassAxiom> result = new HashSet<OWLSubClassAxiom>();
-        for(OWLClassExpression descA : getDescriptions()) {
-            for(OWLClassExpression descB : getDescriptions()) {
-                if(!descA.equals(descB)) {
-                    result.add(getOWLDataFactory().getOWLSubClassAxiom(descA, descB));
+    public Set<OWLSubClassOfAxiom> asSubClassAxioms() {
+        Set<OWLSubClassOfAxiom> result = new HashSet<OWLSubClassOfAxiom>();
+        for (OWLClassExpression descA : getDescriptions()) {
+            for (OWLClassExpression descB : getDescriptions()) {
+                if (!descA.equals(descB)) {
+                    result.add(getOWLDataFactory().getSubClassOf(descA, descB));
                 }
             }
         }

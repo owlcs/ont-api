@@ -2,7 +2,8 @@ package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
 
-import java.util.Set;
+import java.util.Arrays;
+import java.util.HashSet;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -33,46 +34,51 @@ import java.util.Set;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLDeclarationAxiomImpl extends OWLAxiomImpl implements OWLDeclarationAxiom {
+public class OWLSubClassOfAxiomImpl extends OWLNaryClassAxiomImpl implements OWLSubClassOfAxiom {
 
-    private OWLEntity entity;
+    private OWLClassExpression subClass;
+
+    private OWLClassExpression superClass;
 
 
-    public OWLDeclarationAxiomImpl(OWLDataFactory dataFactory, OWLEntity entity) {
-        super(dataFactory);
-        this.entity = entity;
+    public OWLSubClassOfAxiomImpl(OWLDataFactory dataFactory, OWLClassExpression subClass,
+                                  OWLClassExpression superClass) {
+        super(dataFactory, new HashSet<OWLClassExpression>(Arrays.asList(subClass, superClass)));
+        this.subClass = subClass;
+        this.superClass = superClass;
     }
 
 
-    public boolean isLogicalAxiom() {
-        return false;
+    public OWLClassExpression getSubClass() {
+        return subClass;
     }
 
 
-    public OWLEntity getEntity() {
-        return entity;
+    public OWLClassExpression getSuperClass() {
+        return superClass;
     }
 
 
-    public Set<OWLEntityAnnotationAxiom> getEntityAnnotations(OWLOntology ontology) {
-        return ontology.getEntityAnnotationAxioms(getEntity());
+    public boolean isGCI() {
+        return subClass.isAnonymous();
     }
 
 
     public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            if (obj instanceof OWLDeclarationAxiom) {
-                return ((OWLDeclarationAxiom) obj).getEntity().equals(entity);
+            if (!(obj instanceof OWLSubClassOfAxiom)) {
+                return false;
             }
+            OWLSubClassOfAxiom other = (OWLSubClassOfAxiom) obj;
+            return other.getSubClass().equals(subClass) &&
+                    other.getSuperClass().equals(superClass);
         }
         return false;
     }
 
-
     public void accept(OWLAxiomVisitor visitor) {
         visitor.visit(this);
     }
-
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
@@ -88,11 +94,16 @@ public class OWLDeclarationAxiomImpl extends OWLAxiomImpl implements OWLDeclarat
     }
 
     public AxiomType getAxiomType() {
-        return AxiomType.DECLARATION;
+        return AxiomType.SUBCLASS;
     }
 
 
     protected int compareObjectOfSameType(OWLObject object) {
-        return entity.compareTo(((OWLDeclarationAxiom) object).getEntity());
+        OWLSubClassOfAxiom other = (OWLSubClassOfAxiom) object;
+        int diff = subClass.compareTo(other.getSubClass());
+        if (diff != 0) {
+            return diff;
+        }
+        return superClass.compareTo(other.getSuperClass());
     }
 }

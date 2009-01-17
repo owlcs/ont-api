@@ -1,6 +1,8 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
+
+import java.net.URI;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -29,31 +31,64 @@ import org.semanticweb.owl.model.*;
  * Author: Matthew Horridge<br>
  * The University Of Manchester<br>
  * Bio-Health Informatics Group<br>
- * Date: 26-Oct-2006<br><br>
+ * Date: 25-Nov-2006<br><br>
  */
-public class OWLObjectSelfRestrictionImpl extends OWLRestrictionImpl<OWLObjectPropertyExpression> implements OWLObjectSelfRestriction {
+public class OWLAnnotationAssertionAxiomImpl extends OWLAxiomImpl implements OWLAnnotationAssertionAxiom {
 
-    public OWLObjectSelfRestrictionImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property) {
-        super(dataFactory, property);
+    private OWLAnnotationSubject subject;
+
+    private OWLAnnotation annotation;
+
+    private URI uri;
+
+    public OWLAnnotationAssertionAxiomImpl(OWLDataFactory dataFactory, URI uri, OWLAnnotation annotation) {
+        super(dataFactory);
+        this.subject = subject;
+        this.annotation = annotation;
+        this.uri = uri;
     }
 
+    public OWLAnnotationValue getValue() {
+        return annotation.getValue();
+    }
 
-    public boolean equals(Object obj) {
-        if(super.equals(obj)) {
-            return obj instanceof OWLObjectSelfRestriction;
-        }
+    public OWLAnnotationSubject getSubject() {
+        throw new OWLRuntimeException("TODO");
+//        return subject;
+    }
+
+    public OWLAnnotationProperty getProperty() {
+        return annotation.getProperty();
+    }
+
+    public OWLAnnotation getAnnotation() {
+        return annotation;
+    }
+
+    public boolean isLogicalAxiom() {
         return false;
     }
 
-    public void accept(OWLDescriptionVisitor visitor) {
-        visitor.visit(this);
+    protected int compareObjectOfSameType(OWLObject object) {
+        OWLAnnotationAssertionAxiom other = (OWLAnnotationAssertionAxiom) object;
+        int diff = 0;
+        diff = subject.compareTo(other.getSubject());
+        if (diff != 0) {
+            return diff;
+        }
+        return annotation.compareTo(other.getAnnotation());
     }
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLDescriptionVisitorEx<O> visitor) {
+
+    public void accept(OWLAxiomVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
@@ -62,7 +97,7 @@ public class OWLObjectSelfRestrictionImpl extends OWLRestrictionImpl<OWLObjectPr
         return visitor.visit(this);
     }
 
-    protected int compareObjectOfSameType(OWLObject object) {
-        return getProperty().compareTo(((OWLObjectSelfRestriction) object).getProperty());
+    public AxiomType getAxiomType() {
+        return AxiomType.ANNOTATION_ASSERTION;
     }
 }

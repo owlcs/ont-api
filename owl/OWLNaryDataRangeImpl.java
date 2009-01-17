@@ -1,8 +1,11 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
-/*
- * Copyright (C) 2007, University of Manchester
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;/*
+ * Copyright (C) 2008, University of Manchester
  *
  * Modifications to the initial code base are copyright of their
  * respective authors, or their employers as appropriate.  Authorship
@@ -24,47 +27,32 @@ import org.semanticweb.owl.model.*;
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 /**
- * Author: Matthew Horridge<br>
- * The University Of Manchester<br>
- * Bio-Health Informatics Group<br>
- * Date: 28-Jan-2007<br><br>
+ * Author: Matthew Horridge<br> The University of Manchester<br> Information Management Group<br>
+ * Date: 17-Jan-2009
  */
-public class OWLOntologyAnnotationAxiomImpl extends OWLAnnotationAxiomImpl<OWLOntology> implements OWLOntologyAnnotationAxiom {
+public abstract class OWLNaryDataRangeImpl extends OWLObjectImpl implements OWLNaryDataRange {
 
-    public OWLOntologyAnnotationAxiomImpl(OWLDataFactory dataFactory, OWLOntology subject, OWLAnnotation annotation) {
-        super(dataFactory, subject, annotation);
+    private Set<OWLDataRange> operands;
+
+    protected OWLNaryDataRangeImpl(OWLDataFactory dataFactory, Set<? extends OWLDataRange> operands) {
+        super(dataFactory);
+        this.operands = Collections.unmodifiableSet(new TreeSet<OWLDataRange>(operands));
     }
 
-
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
+    public Set<OWLDataRange> getOperands() {
+        return operands;
     }
 
-
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-    public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            return obj instanceof OWLOntologyAnnotationAxiom;
-        }
+    public boolean isTopDataType() {
         return false;
     }
 
+    public boolean isDataType() {
+        return false;
+    }
 
-    public AxiomType getAxiomType() {
-        return AxiomType.ONTOLOGY_ANNOTATION;
+    public OWLDatatype asOWLDataType() {
+        throw new OWLRuntimeException("Not a datatype");
     }
 }

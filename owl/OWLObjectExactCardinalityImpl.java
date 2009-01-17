@@ -31,27 +31,30 @@ import org.semanticweb.owl.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLObjectValueRestrictionImpl extends OWLValueRestrictionImpl<OWLObjectPropertyExpression, OWLIndividual> implements OWLObjectValueRestriction {
+public class OWLObjectExactCardinalityImpl extends OWLObjectCardinalityRestrictionImpl implements OWLObjectExactCardinality {
 
-    public OWLObjectValueRestrictionImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property, OWLIndividual value) {
-        super(dataFactory, property, value);
+    public OWLObjectExactCardinalityImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property, int cardinality,
+                                         OWLClassExpression filler) {
+        super(dataFactory, property, cardinality, filler);
     }
 
 
     public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            return obj instanceof OWLObjectValueRestriction;
+            return obj instanceof OWLObjectExactCardinality;
         }
         return false;
     }
 
 
-    public OWLClassExpression asSomeValuesFrom() {
-        return getOWLDataFactory().getOWLObjectSomeValuesFrom(getProperty(), getOWLDataFactory().getOWLObjectOneOf(getValue()));
+    public OWLClassExpression asIntersectionOfMinMax() {
+        OWLDataFactory df = getOWLDataFactory();
+        return df.getObjectIntersectionOf(df.getObjectMinCardinality(getProperty(), getCardinality(), getFiller()),
+                df.getObjectMaxCardinality(getProperty(), getCardinality(), getFiller()));
     }
 
 
-    public void accept(OWLDescriptionVisitor visitor) {
+    public void accept(OWLClassExpressionVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -59,7 +62,7 @@ public class OWLObjectValueRestrictionImpl extends OWLValueRestrictionImpl<OWLOb
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLDescriptionVisitorEx<O> visitor) {
+    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
@@ -67,4 +70,5 @@ public class OWLObjectValueRestrictionImpl extends OWLValueRestrictionImpl<OWLOb
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
+
 }

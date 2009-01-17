@@ -31,30 +31,22 @@ import org.semanticweb.owl.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLObjectExactCardinalityRestrictionImpl extends OWLObjectCardinalityRestrictionImpl implements OWLObjectExactCardinalityRestriction {
+public class OWLObjectMinCardinalityImpl extends OWLObjectCardinalityRestrictionImpl implements OWLObjectMinCardinality {
 
-    public OWLObjectExactCardinalityRestrictionImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property, int cardinality,
-                                                    OWLClassExpression filler) {
+    public OWLObjectMinCardinalityImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property, int cardinality,
+                                       OWLClassExpression filler) {
         super(dataFactory, property, cardinality, filler);
     }
 
 
     public boolean equals(Object obj) {
-        if(super.equals(obj)) {
-            return obj instanceof OWLObjectExactCardinalityRestriction;
+        if (super.equals(obj)) {
+            return obj instanceof OWLObjectMinCardinality;
         }
         return false;
     }
 
-
-    public OWLClassExpression asIntersectionOfMinMax() {
-        OWLDataFactory df = getOWLDataFactory();
-        return df.getOWLObjectIntersectionOf(df.getOWLObjectMinCardinalityRestriction(getProperty(), getCardinality(), getFiller()),
-                                      df.getOWLObjectMaxCardinalityRestriction(getProperty(), getCardinality(), getFiller()));
-    }
-
-
-    public void accept(OWLDescriptionVisitor visitor) {
+    public void accept(OWLClassExpressionVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -62,7 +54,7 @@ public class OWLObjectExactCardinalityRestrictionImpl extends OWLObjectCardinali
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLDescriptionVisitorEx<O> visitor) {
+    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
@@ -70,5 +62,4 @@ public class OWLObjectExactCardinalityRestrictionImpl extends OWLObjectCardinali
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
-    
 }

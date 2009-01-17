@@ -1,9 +1,8 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
-import org.semanticweb.owl.vocab.OWLRestrictedDataRangeFacetVocabulary;
 /*
- * Copyright (C) 2007, University of Manchester
+ * Copyright (C) 2006, University of Manchester
  *
  * Modifications to the initial code base are copyright of their
  * respective authors, or their employers as appropriate.  Authorship
@@ -30,58 +29,43 @@ import org.semanticweb.owl.vocab.OWLRestrictedDataRangeFacetVocabulary;
  * Author: Matthew Horridge<br>
  * The University Of Manchester<br>
  * Bio-Health Informatics Group<br>
- * Date: 11-Jan-2007<br><br>
+ * Date: 26-Oct-2006<br><br>
  */
-public class OWLDataRangeFacetRestrictionImpl extends OWLObjectImpl implements OWLDataRangeFacetRestriction  {
+public class OWLDataExactCardinalityImpl extends OWLDataCardinalityRestrictionImpl implements OWLDataExactCardinality {
 
-    private OWLRestrictedDataRangeFacetVocabulary facet;
-
-    private OWLTypedLiteral facetValue;
-
-
-    public OWLDataRangeFacetRestrictionImpl(OWLDataFactory dataFactory, OWLRestrictedDataRangeFacetVocabulary facet,
-                                            OWLTypedLiteral facetValue) {
-        super(dataFactory);
-        this.facet = facet;
-        this.facetValue = facetValue;
+    public OWLDataExactCardinalityImpl(OWLDataFactory dataFactory, OWLDataPropertyExpression property, int cardinality,
+                                       OWLDataRange filler) {
+        super(dataFactory, property, cardinality, filler);
     }
 
 
-    /**
-     * Gets the restricting facet for this facet restriction
-     */
-    public OWLRestrictedDataRangeFacetVocabulary getFacet() {
-        return facet;
+    public boolean equals(Object obj) {
+        if (super.equals(obj)) {
+            return obj instanceof OWLDataExactCardinality;
+        }
+        return false;
     }
 
-
-    /**
-     * Gets the corresponding facet value for this facet restriction
-     */
-    public OWLTypedLiteral getFacetValue() {
-        return facetValue;
+    public void accept(OWLClassExpressionVisitor visitor) {
+        visitor.visit(this);
     }
-
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLDataVisitorEx<O> visitor) {
+    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
-    
+
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
-    protected int compareObjectOfSameType(OWLObject object) {
-        OWLDataRangeFacetRestriction other = (OWLDataRangeFacetRestriction) object;
-        int diff = facet.compareTo(other.getFacet());
-        if(diff != 0) {
-            return diff;
-        }
-        return facetValue.compareTo(other.getFacetValue());
+
+    public OWLClassExpression asIntersectionOfMinMax() {
+        return getOWLDataFactory().getObjectIntersectionOf(getOWLDataFactory().getDataMinCardinality(getProperty(), getCardinality(), getFiller()),
+                getOWLDataFactory().getDataMaxCardinality(getProperty(), getCardinality(), getFiller()));
     }
 }

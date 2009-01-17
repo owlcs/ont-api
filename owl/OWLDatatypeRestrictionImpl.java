@@ -35,18 +35,18 @@ import java.util.Set;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLDataRangeRestrictionImpl extends OWLObjectImpl implements OWLDataRangeRestriction {
+public class OWLDatatypeRestrictionImpl extends OWLObjectImpl implements OWLDatatypeRestriction {
 
-    private OWLDataRange dataRange;
+    private OWLDatatype datatype;
 
-    private Set<OWLDataRangeFacetRestriction> facetRestrictions;
+    private Set<OWLFacetRestriction> facetRestrictions;
 
 
-    public OWLDataRangeRestrictionImpl(OWLDataFactory dataFactory, OWLDataRange dataRange,
-                                       Set<OWLDataRangeFacetRestriction> facetRestrictions) {
+    public OWLDatatypeRestrictionImpl(OWLDataFactory dataFactory, OWLDatatype datatype,
+                                      Set<OWLFacetRestriction> facetRestrictions) {
         super(dataFactory);
-        this.dataRange = dataRange;
-        this.facetRestrictions = new HashSet<OWLDataRangeFacetRestriction>(facetRestrictions);
+        this.datatype = datatype;
+        this.facetRestrictions = new HashSet<OWLFacetRestriction>(facetRestrictions);
     }
 
 
@@ -65,28 +65,29 @@ public class OWLDataRangeRestrictionImpl extends OWLObjectImpl implements OWLDat
     }
 
 
-    public OWLDataRange getDataRange() {
-        return dataRange;
+    public OWLDatatype getDatatype() {
+        return datatype;
     }
 
 
     /**
      * Gets the facet restrictions on this data range
+     *
      * @return A <code>Set</code> of facet restrictions that apply to
      *         this data range
      */
-    public Set<OWLDataRangeFacetRestriction> getFacetRestrictions() {
+    public Set<OWLFacetRestriction> getFacetRestrictions() {
         return Collections.unmodifiableSet(facetRestrictions);
     }
 
 
     public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            if (!(obj instanceof OWLDataRangeRestriction)) {
+            if (!(obj instanceof OWLDatatypeRestriction)) {
                 return false;
             }
-            OWLDataRangeRestriction other = (OWLDataRangeRestriction) obj;
-            return other.getDataRange().equals(dataRange) && other.getFacetRestrictions().equals(facetRestrictions);
+            OWLDatatypeRestriction other = (OWLDatatypeRestriction) obj;
+            return other.getDatatype().equals(datatype) && other.getFacetRestrictions().equals(facetRestrictions);
         }
         return false;
     }
@@ -113,8 +114,8 @@ public class OWLDataRangeRestrictionImpl extends OWLObjectImpl implements OWLDat
 
 
     protected int compareObjectOfSameType(OWLObject object) {
-        OWLDataRangeRestriction other = (OWLDataRangeRestriction) object;
-        int diff = dataRange.compareTo(other.getDataRange());
+        OWLDatatypeRestriction other = (OWLDatatypeRestriction) object;
+        int diff = datatype.compareTo(other.getDatatype());
         if (diff != 0) {
             return diff;
         }

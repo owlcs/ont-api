@@ -1,8 +1,7 @@
 package uk.ac.manchester.cs.owl;
 
-import org.semanticweb.owl.model.*;
-/*
- * Copyright (C) 2006, University of Manchester
+import org.semanticweb.owl.model.NodeID;/*
+ * Copyright (C) 2008, University of Manchester
  *
  * Modifications to the initial code base are copyright of their
  * respective authors, or their employers as appropriate.  Authorship
@@ -24,38 +23,23 @@ import org.semanticweb.owl.model.*;
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 /**
- * Author: Matthew Horridge<br>
- * The University Of Manchester<br>
- * Bio-Health Informatics Group<br>
- * Date: 25-Nov-2006<br><br>
+ * Author: Matthew Horridge<br> The University of Manchester<br> Information Management Group<br>
+ * Date: 17-Jan-2009
  */
-public class OWLEntityAnnotationAxiomImpl extends OWLAnnotationAxiomImpl<OWLEntity> implements OWLEntityAnnotationAxiom {
+public class NodeIDImpl implements NodeID {
 
-    public OWLEntityAnnotationAxiomImpl(OWLDataFactory dataFactory, OWLEntity subject, OWLAnnotation annotation) {
-        super(dataFactory, subject, annotation);
+    private String id;
+
+    public NodeIDImpl(String id) {
+        this.id = id;
     }
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
+    public String toString() {
+        return id;
     }
 
-
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-    public AxiomType getAxiomType() {
-        return AxiomType.ENTITY_ANNOTATION;
+    public int compareTo(NodeID o) {
+        return toString().compareTo(o.toString());
     }
 }

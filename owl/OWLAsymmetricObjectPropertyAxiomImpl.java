@@ -1,7 +1,6 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
-import org.semanticweb.owl.vocab.OWLRDFVocabulary;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -30,34 +29,40 @@ import org.semanticweb.owl.vocab.OWLRDFVocabulary;
  * Author: Matthew Horridge<br>
  * The University Of Manchester<br>
  * Bio-Health Informatics Group<br>
- * Date: 19-Dec-2006<br><br>
+ * Date: 26-Oct-2006<br><br>
  */
-public class OWLLabelAnnotationImpl extends OWLConstantAnnotationImpl implements OWLLabelAnnotation {
+public class OWLAsymmetricObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLAsymmetricObjectPropertyAxiom {
 
-    public OWLLabelAnnotationImpl(OWLDataFactory dataFactory, OWLLiteral object) {
-        super(dataFactory, OWLRDFVocabulary.RDFS_LABEL.getURI(), object);
+    public OWLAsymmetricObjectPropertyAxiomImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression property) {
+        super(dataFactory, property);
     }
 
 
-    public void accept(OWLAnnotationVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public boolean isComment() {
+    public boolean equals(Object obj) {
+        if (super.equals(obj)) {
+            return obj instanceof OWLAsymmetricObjectPropertyAxiom;
+        }
         return false;
     }
 
-
-    public boolean isLabel() {
-        return true;
+    public void accept(OWLAxiomVisitor visitor) {
+        visitor.visit(this);
     }
 
-    public <O> O accept(OWLAnnotationVisitorEx<O> visitor) {
+    public void accept(OWLObjectVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
+    }
+
+    public AxiomType getAxiomType() {
+        return AxiomType.ANTI_SYMMETRIC_OBJECT_PROPERTY;
     }
 }

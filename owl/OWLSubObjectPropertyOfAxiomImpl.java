@@ -1,8 +1,6 @@
 package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
-
-import java.net.URI;
 /*
  * Copyright (C) 2006, University of Manchester
  *
@@ -31,48 +29,41 @@ import java.net.URI;
  * Author: Matthew Horridge<br>
  * The University Of Manchester<br>
  * Bio-Health Informatics Group<br>
- * Date: 19-Dec-2006<br><br>
+ * Date: 26-Oct-2006<br><br>
  */
-public class OWLConstantAnnotationImpl extends OWLAnnotationImpl<OWLLiteral> implements OWLConstantAnnotation {
+public class OWLSubObjectPropertyOfAxiomImpl extends OWLSubPropertyAxiomImpl<OWLObjectPropertyExpression> implements OWLSubObjectPropertyOfAxiom {
 
-    public OWLConstantAnnotationImpl(OWLDataFactory dataFactory, URI uri, OWLLiteral object) {
-        super(dataFactory, uri, object);
+    public OWLSubObjectPropertyOfAxiomImpl(OWLDataFactory dataFactory, OWLObjectPropertyExpression subProperty,
+                                           OWLObjectPropertyExpression superProperty) {
+        super(dataFactory, subProperty, superProperty);
     }
 
 
-    public OWLLiteral getAnnotationValueAsConstant() {
-        return getAnnotationValue();
+    public boolean equals(Object obj) {
+        if (super.equals(obj)) {
+            return obj instanceof OWLSubObjectPropertyOfAxiom;
+        }
+        return false;
     }
 
-
-    public boolean isAnnotationByConstant() {
-        return true;
+    public void accept(OWLAxiomVisitor visitor) {
+        visitor.visit(this);
     }
-
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
     }
 
-    public boolean equals(Object obj) {
-        if(super.equals(obj)) {
-            return obj instanceof OWLConstantAnnotation;
-        }
-        return false;
-    }
-
-
-    public void accept(OWLAnnotationVisitor visitor) {
-        visitor.visit(this);
-    }
-
-
-    public <O> O accept(OWLAnnotationVisitorEx<O> visitor) {
+    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
+    }
+
+    public AxiomType getAxiomType() {
+        return AxiomType.SUB_OBJECT_PROPERTY;
     }
 }
