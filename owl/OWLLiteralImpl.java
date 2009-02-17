@@ -43,7 +43,7 @@ public abstract class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral
     }
 
 
-    public String getString() {
+    public String getLiteral() {
         return literal;
     }
 
@@ -53,7 +53,7 @@ public abstract class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral
             if (!(obj instanceof OWLLiteral)) {
                 return false;
             }
-            return ((OWLLiteral) obj).getString().equals(getString());
+            return ((OWLLiteral) obj).getLiteral().equals(getLiteral());
         }
         return false;
     }
