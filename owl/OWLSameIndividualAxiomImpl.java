@@ -2,8 +2,6 @@ package uk.ac.manchester.cs.owl;
 
 import org.semanticweb.owl.model.*;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 /*
  * Copyright (C) 2006, University of Manchester
@@ -35,61 +33,29 @@ import java.util.Set;
  * Bio-Health Informatics Group<br>
  * Date: 26-Oct-2006<br><br>
  */
-public class OWLObjectOneOfImpl extends OWLAnonymousClassExpressionImpl implements OWLObjectOneOf {
+public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl implements OWLSameIndividualAxiom {
 
-    private Set<OWLIndividual> values;
-
-
-    public OWLObjectOneOfImpl(OWLDataFactory dataFactory, Set<? extends OWLIndividual> values) {
-        super(dataFactory);
-        this.values = new HashSet<OWLIndividual>(values);
-    }
-
-
-    public Set<OWLIndividual> getIndividuals() {
-        return Collections.unmodifiableSet(values);
-    }
-
-
-    public boolean isClassExpressionLiteral() {
-        return false;
-    }
-
-
-    public OWLClassExpression asObjectUnionOf() {
-        if (values.size() == 1) {
-            return this;
-        } else {
-            Set<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
-            for (OWLIndividual ind : values) {
-                ops.add(getOWLDataFactory().getOWLObjectOneOf(ind));
-            }
-            return getOWLDataFactory().getOWLObjectUnionOf(ops);
-        }
+    public OWLSameIndividualAxiomImpl(OWLDataFactory dataFactory, Set<? extends OWLIndividual> individuals, Set<? extends OWLAnnotation> annotations) {
+        super(dataFactory, individuals, annotations);
     }
 
 
     public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            if (!(obj instanceof OWLObjectOneOf)) {
-                return false;
-            }
-            return ((OWLObjectOneOf) obj).getIndividuals().equals(values);
+            return obj instanceof OWLSameIndividualAxiom;
         }
         return false;
     }
 
-
-    public void accept(OWLClassExpressionVisitor visitor) {
+    public void accept(OWLAxiomVisitor visitor) {
         visitor.visit(this);
     }
-
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
     }
 
-    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
+    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
 
@@ -98,8 +64,7 @@ public class OWLObjectOneOfImpl extends OWLAnonymousClassExpressionImpl implemen
         return visitor.visit(this);
     }
 
-
-    protected int compareObjectOfSameType(OWLObject object) {
-        return compareSets(values, ((OWLObjectOneOf) object).getIndividuals());
+    public AxiomType getAxiomType() {
+        return AxiomType.SAME_INDIVIDUAL;
     }
 }
