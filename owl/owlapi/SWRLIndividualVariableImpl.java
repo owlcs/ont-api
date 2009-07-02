@@ -1,6 +1,8 @@
 package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.*;
+
+import java.net.URI;
 /*
  * Copyright (C) 2007, University of Manchester
  *
@@ -31,19 +33,19 @@ import org.semanticweb.owlapi.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 15-Jan-2007<br><br>
  */
-public class SWRLClassAtomImpl extends SWRLUnaryAtomImpl<OWLClassExpression, SWRLIArgument> implements SWRLClassAtom {
+public class SWRLIndividualVariableImpl extends SWRLVariableImpl implements SWRLIndividualVariable {
 
-    public SWRLClassAtomImpl(OWLDataFactory dataFactory, OWLClassExpression predicate, SWRLIArgument arg) {
-        super(dataFactory, predicate, arg);
-    }
-
-
-    public void accept(SWRLObjectVisitor visitor) {
-        visitor.visit(this);
+    public SWRLIndividualVariableImpl(OWLDataFactory dataFactory, IRI iri) {
+        super(dataFactory, iri);
     }
 
 
     public void accept(OWLObjectVisitor visitor) {
+        visitor.visit(this);
+    }
+
+
+    public void accept(SWRLObjectVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -57,10 +59,10 @@ public class SWRLClassAtomImpl extends SWRLUnaryAtomImpl<OWLClassExpression, SWR
     }
 
     public boolean equals(Object obj) {
-        if (!(obj instanceof SWRLClassAtom)) {
+        if (!(obj instanceof SWRLIndividualVariable)) {
             return false;
         }
-        SWRLClassAtom other = (SWRLClassAtom) obj;
-        return other.getArgument().equals(getArgument()) && other.getPredicate().equals(getPredicate());
+        SWRLIndividualVariable other = (SWRLIndividualVariable) obj;
+        return other.getIRI().equals(getIRI());
     }
 }

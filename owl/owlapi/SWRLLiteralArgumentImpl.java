@@ -31,11 +31,11 @@ import org.semanticweb.owlapi.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 15-Jan-2007<br><br>
  */
-public class SWRLAtomConstantObjectImpl extends OWLObjectImpl implements SWRLAtomConstantObject {
+public class SWRLLiteralArgumentImpl extends OWLObjectImpl implements SWRLLiteralArgument {
 
     private OWLLiteral literal;
 
-    public SWRLAtomConstantObjectImpl(OWLDataFactory dataFactory, OWLLiteral literal) {
+    public SWRLLiteralArgumentImpl(OWLDataFactory dataFactory, OWLLiteral literal) {
         super(dataFactory);
         this.literal = literal;
     }
@@ -65,15 +65,15 @@ public class SWRLAtomConstantObjectImpl extends OWLObjectImpl implements SWRLAto
     }
 
     public boolean equals(Object obj) {
-            if(!(obj instanceof SWRLAtomConstantObjectImpl)) {
+            if(!(obj instanceof SWRLLiteralArgumentImpl)) {
                 return false;
             }
-            SWRLAtomConstantObject other = (SWRLAtomConstantObject) obj;
+            SWRLLiteralArgument other = (SWRLLiteralArgument) obj;
             return other.getConstant().equals(getConstant());
     }
 
 
     protected int compareObjectOfSameType(OWLObject object) {
-        return literal.compareTo(((SWRLAtomConstantObject) object).getConstant());
+        return literal.compareTo(((SWRLLiteralArgument) object).getConstant());
     }
 }

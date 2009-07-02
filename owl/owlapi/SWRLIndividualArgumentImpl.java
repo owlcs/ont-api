@@ -31,12 +31,12 @@ import org.semanticweb.owlapi.model.*;
  * Bio-Health Informatics Group<br>
  * Date: 15-Jan-2007<br><br>
  */
-public class SWRLAtomIndividualObjectImpl extends OWLObjectImpl implements SWRLAtomIndividualObject {
+public class SWRLIndividualArgumentImpl extends OWLObjectImpl implements SWRLIndividualArgument {
 
     private OWLIndividual individual;
 
 
-    public SWRLAtomIndividualObjectImpl(OWLDataFactory dataFactory, OWLIndividual individual) {
+    public SWRLIndividualArgumentImpl(OWLDataFactory dataFactory, OWLIndividual individual) {
         super(dataFactory);
         this.individual = individual;
     }
@@ -66,15 +66,15 @@ public class SWRLAtomIndividualObjectImpl extends OWLObjectImpl implements SWRLA
     }
 
     public boolean equals(Object obj) {
-        if (!(obj instanceof SWRLAtomIndividualObject)) {
+        if (!(obj instanceof SWRLIndividualArgument)) {
             return false;
         }
-        SWRLAtomIndividualObject other = (SWRLAtomIndividualObject) obj;
+        SWRLIndividualArgument other = (SWRLIndividualArgument) obj;
         return other.getIndividual().equals(getIndividual());
     }
 
 
     protected int compareObjectOfSameType(OWLObject object) {
-        return individual.compareTo(((SWRLAtomIndividualObject) object).getIndividual());
+        return individual.compareTo(((SWRLIndividualArgument) object).getIndividual());
     }
 }
