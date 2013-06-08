@@ -39,8 +39,6 @@
 package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.OWLCardinalityRestriction;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLPropertyRange;
 
 /** Author: Matthew Horridge<br>
@@ -55,14 +53,14 @@ import org.semanticweb.owlapi.model.OWLPropertyRange;
  *            the property expression
  * @param <F>
  *            the value */
-public abstract class OWLCardinalityRestrictionImpl<R extends OWLPropertyRange, P extends OWLPropertyExpression<R, P>, F extends OWLPropertyRange>
-        extends OWLRestrictionImpl<R, P, F> implements OWLCardinalityRestriction<R, P, F> {
+public abstract class OWLCardinalityRestrictionImpl<F extends OWLPropertyRange> extends
+        OWLRestrictionImpl implements OWLCardinalityRestriction<F> {
     private static final long serialVersionUID = 40000L;
     private final int cardinality;
     private final F filler;
 
-    protected OWLCardinalityRestrictionImpl(P property, int cardinality, F filler) {
-        super(property);
+    protected OWLCardinalityRestrictionImpl( int cardinality, F filler) {
+        super();
         this.cardinality = cardinality;
         this.filler = filler;
     }
@@ -84,25 +82,11 @@ public abstract class OWLCardinalityRestrictionImpl<R extends OWLPropertyRange, 
             if (!(obj instanceof OWLCardinalityRestriction)) {
                 return false;
             }
-            OWLCardinalityRestriction<R, P, F> other = (OWLCardinalityRestriction<R, P, F>) obj;
+            OWLCardinalityRestriction<F> other = (OWLCardinalityRestriction<F>) obj;
             return other.getCardinality() == cardinality
                     && other.getFiller().equals(filler);
         }
         return false;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    final protected int compareObjectOfSameType(OWLObject object) {
-        OWLCardinalityRestriction<R, P, F> other = (OWLCardinalityRestriction<R, P, F>) object;
-        int diff = getProperty().compareTo(other.getProperty());
-        if (diff != 0) {
-            return diff;
-        }
-        diff = getCardinality() - other.getCardinality();
-        if (diff != 0) {
-            return diff;
-        }
-        return getFiller().compareTo(other.getFiller());
-    }
 }
