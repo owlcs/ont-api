@@ -38,10 +38,14 @@
  */
 package uk.ac.manchester.cs.owl.owlapi;
 
+import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyBuilder;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFactory;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -52,6 +56,14 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 public abstract class AbstractInMemOWLOntologyFactory implements
         OWLOntologyFactory {
     private static final long serialVersionUID = 40000L;
+    private OWLOntologyBuilder builder;
+
+    /** @param builder
+     *            injected ontology builder */
+    @Inject
+    public AbstractInMemOWLOntologyFactory(@Nonnull OWLOntologyBuilder builder) {
+        this.builder = checkNotNull(builder);
+    }
 
     @Override
     public boolean canCreateFromDocumentIRI(IRI documentIRI) {
@@ -60,10 +72,10 @@ public abstract class AbstractInMemOWLOntologyFactory implements
 
     @Override
     public OWLOntology createOWLOntology(@Nonnull OWLOntologyManager manager,
-            OWLOntologyID ontologyID, IRI documentIRI,
+            @Nonnull OWLOntologyID ontologyID, IRI documentIRI,
             OWLOntologyCreationHandler handler)
             throws OWLOntologyCreationException {
-        OWLOntology ont = new OWLOntologyImpl(manager, ontologyID);
+        OWLOntology ont = builder.createOWLOntology(manager, ontologyID);
         handler.ontologyCreated(ont);
         return ont;
     }
