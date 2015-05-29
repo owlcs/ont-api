@@ -14,8 +14,6 @@ package uk.ac.manchester.cs.owl.owlapi;
 
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
-
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 
@@ -24,8 +22,7 @@ import org.semanticweb.owlapi.model.OWLLogicalAxiom;
  *         Informatics Group
  * @since 2.0.0
  */
-public abstract class OWLLogicalAxiomImpl extends OWLAxiomImpl implements
-        OWLLogicalAxiom {
+public abstract class OWLLogicalAxiomImpl extends OWLAxiomImpl implements OWLLogicalAxiom {
 
     private static final long serialVersionUID = 40000L;
 
@@ -33,7 +30,7 @@ public abstract class OWLLogicalAxiomImpl extends OWLAxiomImpl implements
      * @param annotations
      *        annotations on the axiom
      */
-    protected OWLLogicalAxiomImpl(@Nonnull Collection<OWLAnnotation> annotations) {
+    protected OWLLogicalAxiomImpl(Collection<OWLAnnotation> annotations) {
         super(annotations);
     }
 }
