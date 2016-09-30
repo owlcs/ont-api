@@ -17,6 +17,8 @@ import ru.avicomp.ontapi.OntException;
 import static ru.avicomp.ontapi.NodeIRIUtils.toLiteralNode;
 
 /**
+ * utils for axiom parsers
+ *
  * Created by @szuev on 28.09.2016.
  */
 public class ParseUtils {

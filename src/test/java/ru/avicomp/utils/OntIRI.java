@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi;
+package ru.avicomp.utils;
 
 
 import javax.annotation.Nullable;
@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 import com.google.common.base.Strings;
+import ru.avicomp.ontapi.OntException;
 
 /**
  * TODO

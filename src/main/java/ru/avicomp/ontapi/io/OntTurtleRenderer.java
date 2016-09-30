@@ -16,7 +16,7 @@ import org.semanticweb.owlapi.vocab.XSDVocabulary;
 import ru.avicomp.ontapi.OntException;
 
 /**
- * OWL-API Spin Turtle Renderer
+ * ONT-API Turtle Renderer
  * it is mostly copy-past from {@link org.semanticweb.owlapi.rdf.turtle.renderer.TurtleRenderer} (5.0.2) because it is almost private.
  * <p>
  * Created by szuev on 12.05.2016.

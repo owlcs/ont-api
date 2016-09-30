@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.io.OntFormat;
+import ru.avicomp.utils.OntIRI;
 import ru.avicomp.utils.ReadWriteUtils;
 
 /**

@@ -2,6 +2,8 @@ package ru.avicomp.ontapi.parsers;
 
 import java.io.IOException;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -14,7 +16,8 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import ru.avicomp.ontapi.OntException;
 
 /**
- * TODO
+ * Parsers loader
+ *
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AxiomParserFactory {
@@ -26,16 +29,25 @@ public abstract class AxiomParserFactory {
 
     @SuppressWarnings("unchecked")
     public static AxiomParser get(OWLAxiom axiom) {
-        String parserName = String.format("%sParser", axiom.getAxiomType().getName());
-        Class<?> parserClass = getParsers().stream().filter(c -> parserName.equals(c.getSimpleName())).findFirst().
-                orElseThrow(() -> new OntException("Can't find parser " + parserName + ". Axiom: " + axiom));
+        Class<? extends OWLAxiom> actualClass = axiom.getAxiomType().getActualClass();
+        Class<? extends AxiomParser> parserClass = getParsers().stream().filter(c -> isRelatedToAxiom(c, actualClass)).
+                findFirst().orElseThrow(() -> new OntException("Can't find parser for axiom: " + axiom));
         try {
-            AxiomParser res = AxiomParser.class.cast(parserClass.newInstance());
-            res.init(axiom.getAxiomType().getActualClass().cast(axiom));
+            AxiomParser res = parserClass.newInstance();
+            res.init(axiom);
             return res;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new OntException("Can't instance parser for axiom: " + axiom, e);
         }
+    }
+
+    private static boolean isRelatedToAxiom(Class<? extends AxiomParser> parserClass, Class<? extends OWLAxiom> actualClass) {
+        ParameterizedType type = ((ParameterizedType) parserClass.getGenericSuperclass());
+        if (type == null) return false;
+        for (Type t : type.getActualTypeArguments()) {
+            if (actualClass.getName().equals(t.getTypeName())) return true;
+        }
+        return false;
     }
 
     private static class ParserHolder {
