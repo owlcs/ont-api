@@ -1,0 +1,53 @@
+# ignore .svn metadata files
+.svn
+# ignore Maven generated target folders
+~
+target
+# ignore eclipse files
+.externalToolBuilders
+RemoteSystemsTempFiles
+.project
+.classpath
+.settings
+.metadata
+maven-eclipse.xml
+# ignore m2e annotation processing files
+.factorypath
+# ignore IDEA files
+*.iml
+*.ipr
+*.iws
+.idea
+# ignore NetBeans files
+nbactions.xml
+nb-configuration.xml
+catalog.xml
+#
+maven-ant-tasks.jar
+test-output
+transaction.log
+# vim files
+*.swp
+/.gitk-tmp.*
+atlassian-ide-plugin.xml
+# temp files
+*~
+# maven versions plugin
+pom.xml.versionsBackup
+
+# ignore mac os x files
+.DS_Store
+
+#ignore logs
+*.log
+logs
+
+#ignore debug files
+.debug
+
+#ignore scala
+.cache
+nohup.out
+
+/out/
+/target/
