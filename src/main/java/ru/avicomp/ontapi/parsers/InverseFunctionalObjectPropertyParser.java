@@ -1,12 +1,11 @@
 package ru.avicomp.ontapi.parsers;
 
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
-
-import ru.avicomp.ontapi.NodeIRIUtils;
 
 /**
  * example:
@@ -15,21 +14,18 @@ import ru.avicomp.ontapi.NodeIRIUtils;
  * Created by @szuev on 28.09.2016.
  */
 class InverseFunctionalObjectPropertyParser extends SingleTripletParser<OWLInverseFunctionalObjectPropertyAxiom> {
-
-
     @Override
-    public OWLAnnotationValue getSubject() {
-        return ParseUtils.toIRI(getAxiom().getProperty());
+    public Resource getSubject() {
+        return ParseUtils.toResource(getAxiom().getProperty());
     }
 
     @Override
-    public IRI getPredicate() {
-        return NodeIRIUtils.fromResource(RDF.type);
+    public Property getPredicate() {
+        return RDF.type;
     }
 
     @Override
-    public OWLAnnotationValue getObject() {
-        return NodeIRIUtils.fromResource(OWL.InverseFunctionalProperty);
+    public RDFNode getObject() {
+        return OWL.InverseFunctionalProperty;
     }
-
 }

@@ -1,11 +1,13 @@
 package ru.avicomp.ontapi.parsers;
 
 import org.apache.jena.graph.Graph;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
-import ru.avicomp.ontapi.NodeIRIUtils;
+import ru.avicomp.ontapi.OntException;
 
 /**
  * Class for parse axiom which is related to single triplet.
@@ -14,14 +16,18 @@ import ru.avicomp.ontapi.NodeIRIUtils;
  */
 abstract class SingleTripletParser<Axiom extends OWLAxiom> extends AxiomParser<Axiom> {
 
-    public abstract OWLAnnotationValue getSubject();
+    public abstract Resource getSubject();
 
-    public abstract IRI getPredicate();
+    public abstract Property getPredicate();
 
-    public abstract OWLAnnotationValue getObject();
+    public abstract RDFNode getObject();
 
     @Override
     public void process(Graph graph) {
-        graph.add(NodeIRIUtils.toTriple(getSubject(), getPredicate(), getObject()));
+        try {
+            graph.add(Triple.create(getSubject().asNode(), getPredicate().asNode(), getObject().asNode()));
+        } catch (Exception e) {
+            throw new OntException("Axiom " + getAxiom(), e);
+        }
     }
 }

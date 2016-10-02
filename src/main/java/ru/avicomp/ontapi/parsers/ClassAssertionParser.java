@@ -7,27 +7,19 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLIndividual;
-
-import ru.avicomp.ontapi.NodeIRIUtils;
-import ru.avicomp.ontapi.OntException;
 
 /**
+ * creating individual:
+ * pizza:France rdf:type owl:NamedIndividual, pizza:Country, owl:Thing.
+ *
  * Created by @szuev on 28.09.2016.
  */
 class ClassAssertionParser extends AxiomParser<OWLClassAssertionAxiom> {
-
     @Override
     public void process(Graph graph) {
-        Resource subject;
-        OWLIndividual individual = getAxiom().getIndividual();
-        if (individual.isNamed()) {
-            subject = NodeIRIUtils.toResource(individual.asOWLNamedIndividual().getIRI());
-        } else {
-            throw new OntException("Anonymous individuals are unsupported now " + individual);
-        }
-        Resource object = NodeIRIUtils.toResource(ParseUtils.toIRI(getAxiom().getClassExpression()));
         Model model = ModelFactory.createModelForGraph(graph);
+        Resource subject = ParseUtils.toResource(getAxiom().getIndividual());
+        Resource object = ParseUtils.toResource(ParseUtils.toIRI(getAxiom().getClassExpression()));
         model.add(subject, RDF.type, OWL2.NamedIndividual);
         model.add(subject, RDF.type, object);
     }

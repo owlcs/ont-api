@@ -1,4 +1,4 @@
-package ru.avicomp.utils.external;
+package ru.avicomp.ontapi.external;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;

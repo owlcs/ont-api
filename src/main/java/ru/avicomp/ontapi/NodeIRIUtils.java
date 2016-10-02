@@ -5,19 +5,19 @@ import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLLiteral;
 
 /**
+ * utils for converting owl-api iri to jena node
+ * <p>
  * Created by @szuev on 27.09.2016.
  */
 public class NodeIRIUtils {
 
-    public static Node nextNode() {
+    public static Node toNode() {
         return NodeFactory.createBlankNode();
     }
 
@@ -56,14 +56,6 @@ public class NodeIRIUtils {
         }
         Node predicate = toNode(p);
         return Triple.create(subject, predicate, object);
-    }
-
-    public static Resource toResource(IRI iri) {
-        return ResourceFactory.createResource(iri.getIRIString());
-    }
-
-    public static Property toProperty(IRI iri) {
-        return ResourceFactory.createProperty(iri.getIRIString());
     }
 
     public static IRI fromResource(Resource resource) {

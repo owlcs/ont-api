@@ -13,10 +13,12 @@ import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntException;
 
 /**
+ * example:
+ * gr:Brand owl:disjointWith gr:BusinessEntity , gr:BusinessEntityType ,  gr:BusinessFunction .
+ * <p>
  * Created by @szuev on 28.09.2016.
  */
 class DisjointClassesParser extends AxiomParser<OWLDisjointClassesAxiom> {
-
 
     private static void process(final Graph graph, OWLDisjointClassesAxiom axiom, boolean direct) {
         List<OWLClassExpression> classExpression = axiom.classExpressions().collect(Collectors.toList());

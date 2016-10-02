@@ -3,13 +3,7 @@ package ru.avicomp.ontapi.parsers;
 import java.util.Iterator;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
@@ -22,15 +16,14 @@ import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
  * Created by @szuev on 29.09.2016.
  */
 class DifferentIndividualsParser extends AxiomParser<OWLDifferentIndividualsAxiom> {
-
     @Override
     public void process(Graph graph) {
         OWLDifferentIndividualsAxiom axiom = getAxiom();
         Model model = ModelFactory.createModelForGraph(graph);
         Iterator<? extends RDFNode> iterator = ParseUtils.toResourceIterator(model, axiom.individuals());
-        Node root = NodeFactory.createBlankNode();
-        graph.add(Triple.create(root, RDF.type.asNode(), OWL.AllDifferent.asNode()));
+        Resource root = model.createResource();
+        model.add(root, RDF.type, OWL.AllDifferent);
         RDFList list = model.createList(iterator);
-        model.add(model.getRDFNode(root).asResource(), OWL.distinctMembers, list);
+        model.add(root, OWL.distinctMembers, list);
     }
 }

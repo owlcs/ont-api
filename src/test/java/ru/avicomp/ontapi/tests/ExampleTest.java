@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi;
+package ru.avicomp.ontapi.tests;
 
 import org.apache.jena.system.JenaSystem;
 import org.apache.log4j.Logger;
@@ -8,9 +8,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
-import ru.avicomp.utils.OntIRI;
-import ru.avicomp.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.OntIRI;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
  * Created by @szuev on 27.09.2016.

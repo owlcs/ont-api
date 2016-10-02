@@ -169,7 +169,7 @@ public class OntologyModel extends OWLOntologyImpl {
                 OWLAnnotation annotation = change.getAnnotation();
                 OWLAnnotationProperty property = annotation.getProperty();
                 OWLAnnotationValue value = annotation.getValue();
-                OWLLiteral literal = value.asLiteral().orElse(null);
+                OWLAnnotationValue literal = value.isIRI() ? value : value.asLiteral().orElse(null);
                 addToGraph(getOntologyIRI(), property.getIRI(), OntException.notNull(literal, "Null literal, axiom: " + change));
                 return SUCCESSFULLY;
             }

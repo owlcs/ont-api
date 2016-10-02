@@ -4,24 +4,49 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.LiteralImpl;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
-import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntException;
 
 import static ru.avicomp.ontapi.NodeIRIUtils.toLiteralNode;
 
 /**
- * utils for axiom parsers
- *
+ * utils for axiom parsing.
+ * <p>
  * Created by @szuev on 28.09.2016.
  */
 public class ParseUtils {
+
+    public static final Logger LOGGER = Logger.getLogger(ParseUtils.class);
+
+    public static IRI toIRI(OWLObject object) {
+        if (object.isIRI()) return (IRI) object;
+        if (HasIRI.class.isInstance(object)) {
+            return ((HasIRI) object).getIRI();
+        }
+        if (OWLAnnotationObject.class.isInstance(object)) {
+            return ((OWLAnnotationObject) object).asIRI().orElseThrow(() -> new OntException("Not iri: " + object));
+        }
+        if (OWLNamedIndividual.class.isInstance(object)) {
+            return ((OWLNamedIndividual) object).getIRI();
+        }
+        if (OWLClassExpression.class.isInstance(object)) {
+            return toIRI((OWLClassExpression) object);
+        }
+        if (OWLPropertyExpression.class.isInstance(object)) {
+            return toIRI((OWLPropertyExpression) object);
+        }
+        throw new OntException("Can't get iri from " + object);
+    }
 
     public static IRI toIRI(OWLClassExpression expression) {
         HasIRI res = null;
@@ -36,6 +61,9 @@ public class ParseUtils {
             return expression.asOWLDataProperty().getIRI();
         if (expression.isOWLObjectProperty())
             return expression.asOWLObjectProperty().getIRI();
+        if (expression.isOWLAnnotationProperty()) {
+            return expression.asOWLAnnotationProperty().getIRI();
+        }
         throw new OntException("Can't parse " + expression);
     }
 
@@ -53,17 +81,16 @@ public class ParseUtils {
         OWLObjectPropertyExpression property = restriction.getProperty();
         Resource res = model.createResource();
         model.add(res, RDF.type, OWL.Restriction);
-        model.add(res, OWL.onProperty, ResourceFactory.createResource(toIRI(property).getIRIString()));
+        model.add(res, OWL.onProperty, toResource(property));
         model.add(res, type.getPredicate(), object);
         return res;
     }
-
 
     private static Resource addObjectCardinalityRestriction(Model model, OWLObjectCardinalityRestriction restriction, OWLClassExpressionRDFType type) {
         OWLObjectPropertyExpression property = restriction.getProperty();
         Resource res = model.createResource();
         model.add(res, RDF.type, OWL.Restriction);
-        model.add(res, OWL.onProperty, ResourceFactory.createResource(toIRI(property).getIRIString()));
+        model.add(res, OWL.onProperty, toResource(property));
         Node literal = toLiteralNode(String.valueOf(restriction.getCardinality()), null, XSDVocabulary.NON_NEGATIVE_INTEGER.getIRI());
         RDFNode object = model.getRDFNode(literal);
         Property predicate = type.getPredicate();
@@ -85,10 +112,6 @@ public class ParseUtils {
         return res;
     }
 
-    public static Iterator<? extends RDFNode> toResourceIterator(Model model, Stream<? extends OWLObject> stream) {
-        return stream.map(o -> toResource(model, o)).iterator();
-    }
-
     public static Resource addClassExpression(Model model, OWLClassExpression expression) {
         ClassExpressionType expressionType = expression.getClassExpressionType();
         OWLClassExpressionRDFType type = OntException.notNull(OWLClassExpressionRDFType.valueOf(expressionType), "Unsupported type " + expressionType);
@@ -108,14 +131,54 @@ public class ParseUtils {
         return null;
     }
 
+    public static Iterator<? extends RDFNode> toResourceIterator(Model model, Stream<? extends OWLObject> stream) {
+        return stream.map(o -> toResource(model, o)).iterator();
+    }
+
+    public static Resource toResource() {
+        return ResourceFactory.createResource();
+    }
+
+    public static Resource toResource(OWLAnonymousIndividual anon) {
+        return toResource(anon.getID());
+    }
+
+    public static Resource toResource(NodeID id) {
+        return new ResourceImpl(NodeFactory.createBlankNode(id.getID()), null);
+    }
+
+    public static Resource toResource(OWLObject object) {
+        return toResource(toIRI(object));
+    }
+
+    public static Resource toResource(OWLIndividual individual) {
+        return individual.isAnonymous() ? toResource(individual.asOWLAnonymousIndividual().getID()) : toResource(individual.asOWLNamedIndividual().getIRI());
+    }
+
     public static Resource toResource(Model model, OWLObject o) {
         if (HasIRI.class.isInstance(o)) {
-            return NodeIRIUtils.toResource(((HasIRI) o).getIRI());
+            return toResource(((HasIRI) o).getIRI());
         }
         if (OWLClassExpression.class.isInstance(o)) {
             return addClassExpression(model, (OWLClassExpression) o);
         }
-        throw new OntException("Unsupported owl-object type: " + o);
+        return toResource(o);
+    }
+
+    public static Resource toResource(IRI iri) {
+        return ResourceFactory.createResource(OntException.notNull(iri, "Null iri").getIRIString());
+    }
+
+    public static Property toProperty(OWLObject object) {
+        return toProperty(toIRI(object));
+    }
+
+    public static Property toProperty(IRI iri) {
+        return ResourceFactory.createProperty(OntException.notNull(iri, "Null iri").getIRIString());
+    }
+
+    public static Literal toLiteral(OWLLiteral literal) {
+        return new LiteralImpl(toLiteralNode(literal), null);
     }
 
     public enum OWLClassExpressionRDFType {
@@ -133,7 +196,6 @@ public class ParseUtils {
         private ClassExpressionType type;
         private Property predicate;
         private MethodType methodType;
-
 
         OWLClassExpressionRDFType(ClassExpressionType type, Property predicate, MethodType methodType) {
             this.type = type;

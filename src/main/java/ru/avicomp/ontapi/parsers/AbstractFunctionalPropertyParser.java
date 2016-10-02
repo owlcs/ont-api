@@ -5,15 +5,15 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
-import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.HasProperty;
+import org.semanticweb.owlapi.model.OWLAxiom;
 
 /**
- * Example:
- * gr:equal rdf:type owl:TransitiveProperty ;
+ * base class for {@link FunctionalObjectPropertyParser} and {@link FunctionalDataPropertyParser}
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @szuev on 30.09.2016.
  */
-class TransitiveObjectPropertyParser extends SingleTripletParser<OWLTransitiveObjectPropertyAxiom> {
+abstract class AbstractFunctionalPropertyParser<Axiom extends OWLAxiom & HasProperty> extends SingleTripletParser<Axiom> {
     @Override
     public Resource getSubject() {
         return ParseUtils.toResource(getAxiom().getProperty());
@@ -26,6 +26,6 @@ class TransitiveObjectPropertyParser extends SingleTripletParser<OWLTransitiveOb
 
     @Override
     public RDFNode getObject() {
-        return OWL.TransitiveProperty;
+        return OWL.FunctionalProperty;
     }
 }

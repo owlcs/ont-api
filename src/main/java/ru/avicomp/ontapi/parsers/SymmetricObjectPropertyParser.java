@@ -5,15 +5,15 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
-import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 
 /**
- * Example:
- * gr:equal rdf:type owl:TransitiveProperty ;
+ * example:
+ * gr:equal rdf:type owl:ObjectProperty ;  owl:inverseOf gr:equal ;  rdf:type owl:SymmetricProperty ,  owl:TransitiveProperty ;
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @szuev on 30.09.2016.
  */
-class TransitiveObjectPropertyParser extends SingleTripletParser<OWLTransitiveObjectPropertyAxiom> {
+class SymmetricObjectPropertyParser extends SingleTripletParser<OWLSymmetricObjectPropertyAxiom> {
     @Override
     public Resource getSubject() {
         return ParseUtils.toResource(getAxiom().getProperty());
@@ -26,6 +26,6 @@ class TransitiveObjectPropertyParser extends SingleTripletParser<OWLTransitiveOb
 
     @Override
     public RDFNode getObject() {
-        return OWL.TransitiveProperty;
+        return OWL.SymmetricProperty;
     }
 }

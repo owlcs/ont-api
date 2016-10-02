@@ -1,26 +1,37 @@
 package ru.avicomp.ontapi.parsers;
 
-import org.semanticweb.owlapi.model.IRI;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 
+import ru.avicomp.ontapi.OntException;
+
 /**
+ * Examples:
+ * foaf:LabelProperty vs:term_status "unstable" .
+ * foaf:LabelProperty rdfs:isDefinedBy <http://xmlns.com/foaf/0.1/> .
+ * pizza:UnclosedPizza rdfs:label "PizzaAberta"@pt .
+ * <p>
  * Created by @szuev on 28.09.2016.
  */
 class AnnotationAssertionParser extends SingleTripletParser<OWLAnnotationAssertionAxiom> {
-
     @Override
-    public OWLAnnotationValue getSubject() {
-        return getAxiom().getSubject().asIRI().orElse(null);
+    public Resource getSubject() {
+        return ParseUtils.toResource(getAxiom().getSubject());
     }
 
     @Override
-    public IRI getPredicate() {
-        return getAxiom().getProperty().getIRI();
+    public Property getPredicate() {
+        return ParseUtils.toProperty(getAxiom().getProperty().getIRI());
     }
 
     @Override
-    public OWLAnnotationValue getObject() {
-        return getAxiom().getValue().asLiteral().orElse(null);
+    public RDFNode getObject() {
+        OWLAnnotationValue value = getAxiom().getValue();
+        return value.isIRI() ? ParseUtils.toResource(value) :
+                ParseUtils.toLiteral(value.asLiteral().
+                        orElseThrow(() -> new OntException("Can't determine object " + getAxiom())));
     }
 }

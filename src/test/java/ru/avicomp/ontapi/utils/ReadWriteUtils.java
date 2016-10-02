@@ -1,4 +1,4 @@
-package ru.avicomp.utils;
+package ru.avicomp.ontapi.utils;
 
 import java.io.*;
 import java.net.URI;

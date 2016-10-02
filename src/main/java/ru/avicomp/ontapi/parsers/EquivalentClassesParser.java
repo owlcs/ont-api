@@ -9,7 +9,6 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 
-import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntException;
 
 /**
@@ -26,12 +25,13 @@ class EquivalentClassesParser extends AxiomParser<OWLEquivalentClassesAxiom> {
         OWLClassExpression rest = axiom.classExpressions().filter((obj) -> !clazz.equals(obj)).findFirst().orElse(null);
         if (rest == null) throw new OntException("Can't find another class expression inside " + axiom);
         Model model = ModelFactory.createModelForGraph(graph);
-        Resource subject = NodeIRIUtils.toResource(clazz.getIRI());
+        Resource subject = ParseUtils.toResource(clazz.getIRI());
         model.add(subject, OWL.equivalentClass, ParseUtils.toResource(model, rest));
     }
 
     @Override
     public void process(Graph graph) {
-        getAxiom().asPairwiseAxioms().forEach(axiom -> process(graph, axiom));
+        process(graph, getAxiom());
+        //getAxiom().asPairwiseAxioms().forEach(axiom -> process(graph, axiom));
     }
 }

@@ -17,7 +17,7 @@ import ru.avicomp.ontapi.OntException;
 
 /**
  * Parsers loader
- *
+ * <p>
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AxiomParserFactory {
@@ -55,7 +55,7 @@ public abstract class AxiomParserFactory {
 
         static {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("There are following axiom-parsers: ");
+                LOGGER.debug("There are following axiom-parsers (" + CLASS_SET.size() + "): ");
                 CLASS_SET.forEach(LOGGER::debug);
             }
         }
