@@ -3,6 +3,8 @@ package ru.avicomp.ontapi.parsers;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
+import ru.avicomp.ontapi.OntException;
+
 /**
  * Base class foe any Axiom parser.
  * <p>
@@ -20,4 +22,8 @@ public abstract class AxiomParser<Axiom extends OWLAxiom> {
     }
 
     public abstract void process(Graph graph);
+
+    public void reverse(Graph graph) {
+        throw new OntException.Unsupported(getClass(), "reverse");
+    }
 }

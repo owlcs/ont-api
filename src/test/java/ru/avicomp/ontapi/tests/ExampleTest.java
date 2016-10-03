@@ -34,7 +34,7 @@ public class ExampleTest {
 
     @Test
     public void test() throws OWLOntologyCreationException {
-        OntIRI owlURI = OntIRI.create("http://test.test/test");
+        OntIRI owlURI = OntIRI.create("http://test.test/example");
         int statementsNumber = 15;
         OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();

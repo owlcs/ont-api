@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
@@ -15,6 +16,7 @@ import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.ProfileRegistry;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -50,7 +52,9 @@ public class OntologyModel extends OWLOntologyImpl {
     public OntologyModel(@Assisted OWLOntologyManager manager, @Assisted OWLOntologyID ontologyID) {
         super(manager, ontologyID);
         spec = OntModelSpec.getDefaultSpec(ProfileRegistry.OWL_LANG);
+        spec.getDocumentManager().setProcessImports(false);
         graph = Factory.createGraphMem();
+        initOntologyTriplets();
     }
 
     @Override
@@ -77,6 +81,16 @@ public class OntologyModel extends OWLOntologyImpl {
         return filter == null ? filter = new ChangeFilter() : filter;
     }
 
+    /**
+     * package-private access,
+     * to use only inside {@link OntGraph}
+     *
+     * @return Graph
+     */
+    Graph getInnerGraph() {
+        return graph;
+    }
+
     private void addToGraph(OWLAnnotationValue s, IRI p, OWLAnnotationValue o) {
         addToGraph(toTriple(s, p, o));
     }
@@ -85,24 +99,28 @@ public class OntologyModel extends OWLOntologyImpl {
         graph.add(triple);
     }
 
+    private void deleteFromGraph(Triple triple) {
+        graph.delete(triple);
+    }
+
     public Model getModel() {
-        return ModelFactory.createModelForGraph(graph);
+        return ModelFactory.createModelForGraph(new OntGraph(this));
     }
 
     public OntModel getOntModel() {
         return ModelFactory.createOntologyModel(spec, getModel());
     }
 
-    private class ChangeFilter implements OWLOntologyChangeVisitorEx<ChangeApplied> {
+    private void initOntologyTriplets() {
+        IRI iri = ontologyID.getOntologyIRI().orElse(null);
+        if (iri == null) return;
+        addToGraph(toTriple(iri, fromResource(RDF.type), fromResource(OWL.Ontology)));
+        IRI versionIRI = ontologyID.getVersionIRI().orElse(null);
+        if (versionIRI == null) return;
+        addToGraph(toTriple(iri, fromResource(OWL2.versionIRI), versionIRI));
+    }
 
-        private void initOntologyTriplets() {
-            IRI iri = ontologyID.getOntologyIRI().orElse(null);
-            IRI versionIRI = ontologyID.getVersionIRI().orElse(null);
-            if (iri == null) return;
-            addToGraph(toTriple(iri, fromResource(RDF.type), fromResource(OWL.Ontology)));
-            if (versionIRI == null) return;
-            addToGraph(toTriple(iri, fromResource(OWL2.versionIRI), versionIRI));
-        }
+    private class ChangeFilter implements OWLOntologyChangeVisitorEx<ChangeApplied> {
 
         private IRI getOntologyIRI() {
             return ontologyID.getOntologyIRI().orElseThrow(() -> new OntException("Null ontology iri"));
@@ -119,9 +137,25 @@ public class OntologyModel extends OWLOntologyImpl {
         @Override
         public ChangeApplied visit(@Nonnull SetOntologyID change) {
             OWLOntologyID id = change.getNewOntologyID();
-            if (!id.equals(ontologyID)) {
+            if (!ontologyID.equals(id)) {
+                IRI newIRI = OntException.notNull(id.getOntologyIRI().orElse(null), "Ontology iri must not be null.");
+                IRI newVersionIRI = id.getVersionIRI().orElse(null);
+                IRI oldIRI = ontologyID.getOntologyIRI().orElse(null);
+                IRI oldVersionIRI = ontologyID.getVersionIRI().orElse(null);
+                if (oldIRI == null) {
+                    addToGraph(toTriple(newIRI, fromResource(RDF.type), fromResource(OWL.Ontology)));
+                } else {
+                    ResourceUtils.renameResource(OntException.notNull(ModelFactory.createModelForGraph(graph).getResource(oldIRI.getIRIString())), newIRI.getIRIString());
+                }
+                if (!Objects.equals(oldVersionIRI, newVersionIRI)) {
+                    if (oldVersionIRI != null) {
+                        deleteFromGraph(toTriple(newIRI, fromResource(OWL2.versionIRI), oldVersionIRI));
+                    }
+                    if (newVersionIRI != null) {
+                        addToGraph(toTriple(newIRI, fromResource(OWL2.versionIRI), newVersionIRI));
+                    }
+                }
                 ontologyID = id;
-                initOntologyTriplets();
                 return SUCCESSFULLY;
             }
             return NO_OPERATION;
@@ -147,7 +181,6 @@ public class OntologyModel extends OWLOntologyImpl {
         public ChangeApplied visit(@Nonnull AddImport change) {
             OWLImportsDeclaration importDeclaration = change.getImportDeclaration();
             if (ints.addImportsDeclaration(importDeclaration)) {
-                initOntologyTriplets();
                 addToGraph(getOntologyIRI(), fromResource(OWL.imports), importDeclaration.getIRI());
                 return SUCCESSFULLY;
             }
@@ -165,7 +198,6 @@ public class OntologyModel extends OWLOntologyImpl {
         @Override
         public ChangeApplied visit(@Nonnull AddOntologyAnnotation change) {
             if (ints.addOntologyAnnotation(change.getAnnotation())) {
-                initOntologyTriplets();
                 OWLAnnotation annotation = change.getAnnotation();
                 OWLAnnotationProperty property = annotation.getProperty();
                 OWLAnnotationValue value = annotation.getValue();

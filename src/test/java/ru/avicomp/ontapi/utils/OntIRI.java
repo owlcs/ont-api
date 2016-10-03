@@ -5,7 +5,9 @@ import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Optional;
 
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -53,6 +55,14 @@ public class OntIRI extends IRI {
 
     public OWLOntologyID toOwlOntologyID(OntIRI versionIRI) {
         return versionIRI == null ? new OWLOntologyID(this) : new OWLOntologyID(this, versionIRI);
+    }
+
+    public Resource toResource() {
+        return ResourceFactory.createResource(getIRIString());
+    }
+
+    public Property toProperty() {
+        return ResourceFactory.createProperty(getIRIString());
     }
 
     public static OntIRI create(Resource resource) {
