@@ -2,19 +2,14 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.ProfileRegistry;
-import org.apache.jena.rdf.model.Model;
+import org.apache.jena.ontology.impl.OntModelImpl;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.OWL;
@@ -39,10 +34,7 @@ import static ru.avicomp.ontapi.NodeIRIUtils.toTriple;
 public class OntologyModel extends OWLOntologyImpl {
 
     private Graph graph;
-    private Map<OWLAxiom, Node> rootAnonNodes = new HashMap<>();
-
     private ChangeFilter filter;
-    private OntModelSpec spec;
 
     /**
      * @param manager    ontology manager
@@ -51,8 +43,6 @@ public class OntologyModel extends OWLOntologyImpl {
     @Inject
     public OntologyModel(@Assisted OWLOntologyManager manager, @Assisted OWLOntologyID ontologyID) {
         super(manager, ontologyID);
-        spec = OntModelSpec.getDefaultSpec(ProfileRegistry.OWL_LANG);
-        spec.getDocumentManager().setProcessImports(false);
         graph = Factory.createGraphMem();
         initOntologyTriplets();
     }
@@ -75,6 +65,11 @@ public class OntologyModel extends OWLOntologyImpl {
             }
         }
         return appliedChanges;
+    }
+
+    @Override
+    public OntManager getOWLOntologyManager() {
+        return (OntManager) manager;
     }
 
     public OWLOntologyChangeVisitorEx<ChangeApplied> getChangeFilter() {
@@ -103,14 +98,6 @@ public class OntologyModel extends OWLOntologyImpl {
         graph.delete(triple);
     }
 
-    public Model getModel() {
-        return ModelFactory.createModelForGraph(new OntGraph(this));
-    }
-
-    public OntModel getOntModel() {
-        return ModelFactory.createOntologyModel(spec, getModel());
-    }
-
     private void initOntologyTriplets() {
         IRI iri = ontologyID.getOntologyIRI().orElse(null);
         if (iri == null) return;
@@ -118,6 +105,15 @@ public class OntologyModel extends OWLOntologyImpl {
         IRI versionIRI = ontologyID.getVersionIRI().orElse(null);
         if (versionIRI == null) return;
         addToGraph(toTriple(iri, fromResource(OWL2.versionIRI), versionIRI));
+    }
+
+    /**
+     * don't forget to call {@link OntModel#rebind()} after adding bulk axiom.
+     *
+     * @return OntModel
+     */
+    public OntModel asGraphModel() {
+        return new OntGraphModel(this);
     }
 
     private class ChangeFilter implements OWLOntologyChangeVisitorEx<ChangeApplied> {
@@ -214,6 +210,26 @@ public class OntologyModel extends OWLOntologyImpl {
                 return SUCCESSFULLY;
             }
             return NO_OPERATION;
+        }
+    }
+
+    public static class OntGraphModel extends OntModelImpl {
+        public OntGraphModel(OntologyModel ontology) {
+            super(ontology.getOWLOntologyManager().getSpec(), ModelFactory.createModelForGraph(new OntGraph(ontology)));
+        }
+
+        /**
+         * @return OntGraph
+         */
+        @Override
+        public OntGraph getBaseGraph() {
+            return (OntGraph) super.getBaseGraph();
+        }
+
+        @Override
+        public void rebind() {
+            super.rebind();
+            getBaseGraph().flush();
         }
     }
 }

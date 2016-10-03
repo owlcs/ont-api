@@ -92,6 +92,10 @@ public class ReadWriteUtils {
         return getResourceURI("", file);
     }
 
+    public static URI getOutURI(String file) {
+        return new File(DESTINATION_DIR, file).toURI();
+    }
+
     public static void save(Model model, String name, OntFormat type) {
         File dst = getFileToSave(name, type);
         LOGGER.debug("Save model to " + dst.toURI() + " (" + type.getType() + ")");

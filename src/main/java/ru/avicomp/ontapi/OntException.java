@@ -42,7 +42,7 @@ public class OntException extends RuntimeException {
         }
 
         public Unsupported(Class clazz, String method) {
-            this("Unsupported " + clazz + (method == null || method.isEmpty() ? "" : "#" + method));
+            this("Unsupported " + clazz.getName() + (method == null || method.isEmpty() ? "" : "#" + method));
         }
 
         public Unsupported(Class clazz) {

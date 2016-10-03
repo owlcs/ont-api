@@ -48,7 +48,7 @@ public abstract class BaseLoadTest {
         Assert.assertNotNull("Null ont-iri " + id, iri);
 
         Assert.assertEquals("Incorrect count of axioms", getTotalNumberOfAxioms(), ontology.getAxiomCount());
-        OntModel ontModel = ontology.getOntModel();
+        OntModel ontModel = ontology.asGraphModel();
         String ontIRI = iri.getIRIString();
         ontModel.setNsPrefix("", ontIRI + "#");
         ReadWriteUtils.print(ontModel, OntFormat.TTL_RDF);

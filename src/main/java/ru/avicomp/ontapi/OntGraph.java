@@ -6,77 +6,172 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.graph.*;
+import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.shared.AddDeniedException;
 import org.apache.jena.shared.DeleteDeniedException;
-import org.apache.jena.sparql.graph.GraphWrapper;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.NodeID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.rdf.turtle.parser.OWLRDFConsumerAdapter;
+import org.semanticweb.owlapi.rdf.turtle.parser.TripleHandler;
 
 /**
- * Pair for OntologyModel
+ * Pair for {@link OntologyModel}, wrapper for inner graph that belongs to the owl-ontology.
  * <p>
  * Created by @szuev on 02.10.2016.
  */
-public class OntGraph extends GraphWrapper implements Graph {
-    private OWLRDFConsumerAdapter owlConsumer;
-    private Map<Node, IRI> nodes = new HashMap<>();
-    private Set<OwlTriple> triples = new HashSet<>();
+public class OntGraph implements Graph {
+    private final Graph graph;
+    private final TripleHandler tripleHandler;
 
-    OntGraph(OntologyModel owlOntology) {
-        super(owlOntology.getInnerGraph());
-        this.owlConsumer = new OWLRDFConsumerAdapter(owlOntology, new OntLoaderConfiguration());
+    private transient Map<Node, IRI> nodes = new HashMap<>();
+    private transient Set<OwlTriple> triples = new HashSet<>();
+
+
+    public OntGraph(OntologyModel owlOntology) {
+        this(owlOntology.getInnerGraph(), new OWLRDFConsumerAdapter(owlOntology, new OntLoaderConfiguration()));
+    }
+
+    public OntGraph(Graph base, TripleHandler tripletHandler) {
+        this.graph = base;
+        this.tripleHandler = tripletHandler;
     }
 
     @Override
     public void add(Triple t) throws AddDeniedException {
-        //super.add(t);
+        graph.add(t);
         addOwlTriple(t.getSubject(), t.getPredicate(), t.getObject());
     }
 
     @Override
+    public boolean dependsOn(Graph other) {
+        return graph.dependsOn(other);
+    }
+
+    @Override
+    public TransactionHandler getTransactionHandler() {
+        return graph.getTransactionHandler();
+    }
+
+    @Override
+    public Capabilities getCapabilities() {
+        return graph.getCapabilities();
+    }
+
+    @Override
+    public GraphEventManager getEventManager() {
+        return graph.getEventManager();
+    }
+
+    @Override
+    public GraphStatisticsHandler getStatisticsHandler() {
+        return graph.getStatisticsHandler();
+    }
+
+    @Override
+    public PrefixMapping getPrefixMapping() {
+        return graph.getPrefixMapping();
+    }
+
+    @Override
     public void delete(Triple t) throws DeleteDeniedException {
-        throw new OntException.Unsupported(getClass(), "delete");
+        //TODO:
+        //throw new OntException.Unsupported(getClass(), "delete");
+        graph.delete(t);
+    }
+
+    @Override
+    public ExtendedIterator<Triple> find(Triple t) {
+        return graph.find(t);
+    }
+
+    @Override
+    public ExtendedIterator<Triple> find(Node s, Node p, Node o) {
+        return graph.find(s, p, o);
+    }
+
+    @Override
+    public boolean isIsomorphicWith(Graph g) {
+        return graph.isIsomorphicWith(g);
+    }
+
+    @Override
+    public boolean contains(Node s, Node p, Node o) {
+        return graph.contains(s, p, o);
+    }
+
+    @Override
+    public boolean contains(Triple t) {
+        return graph.contains(t);
+    }
+
+
+    @Override
+    public boolean isEmpty() {
+        return graph.isEmpty();
+    }
+
+    @Override
+    public int size() {
+        return graph.size();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return graph.isClosed();
     }
 
     @Override
     public void remove(Node s, Node p, Node o) {
+        //TODO:
         throw new OntException.Unsupported(getClass(), "remove");
     }
 
     @Override
     public void clear() {
-        super.clear();
-        this.nodes.clear();
-        this.triples.clear();
+        reset();
+        graph.clear();
     }
 
     @Override
     public void close() {
-        super.close();
-        finish();
+        flush();
+        reset();
+        graph.close();
     }
 
     /**
      * tell that bulk of triplets that correspond to the axiom has been completed.
      */
-    public void finish() {
-        handleTriples();
-        owlConsumer.handleEnd();
+    public void flush() {
+        handleOwlTriples();
+        handleOwlAnonRootTriples();
+        tripleHandler.handleEnd();
+        ;
+    }
+
+    public void reset() {
+        this.nodes.clear();
+        this.triples.clear();
     }
 
     private void addOwlTriple(Node subject, Node predicate, Node object) {
         OwlTriple triple = new OwlTriple(subject, predicate, object);
         triples.add(triple);
-        handleTriples();
+        handleOwlTriples();
     }
 
-    private void handleTriples() {
+    private void handleOwlTriples() {
+        triples.stream().filter(OwlTriple::isURIRoot).forEach(OwlTriple::handle);
+    }
+
+    /**
+     * OWL2 allows anon roots (owl:AllDisjointClasses, owl:AllDifferent, etc)
+     */
+    private void handleOwlAnonRootTriples() {
         triples.stream().filter(OwlTriple::isRoot).forEach(OwlTriple::handle);
     }
 
@@ -98,6 +193,24 @@ public class OntGraph extends GraphWrapper implements Graph {
         HANDLED,
     }
 
+    public static class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
+        private boolean ignoreImports;
+
+        public OntLoaderConfiguration(boolean ignoreImports) {
+            super();
+            this.ignoreImports = ignoreImports;
+        }
+
+        public OntLoaderConfiguration() {
+            this(true);
+        }
+
+        @Override
+        public boolean isIgnoredImport(@Nonnull IRI any) {
+            return ignoreImports || super.isIgnoredImport(any);
+        }
+    }
+
     private class OwlTriple {
         private final Node subject;
         private final Node predicate;
@@ -114,8 +227,12 @@ public class OntGraph extends GraphWrapper implements Graph {
         }
 
         boolean isRoot() {
+            return findParent() == null;
+        }
+
+        boolean isURIRoot() {
             // first set parent and children to make graph consistent, then decide is it root or not.
-            return findParent() == null && !subject.isBlank();
+            return isRoot() && !subject.isBlank();
         }
 
         OwlTriple findParent() {
@@ -133,11 +250,15 @@ public class OntGraph extends GraphWrapper implements Graph {
                 IRI _subject = toIRI(subject);
                 IRI _predicate = toIRI(predicate);
                 if (object.isLiteral()) {
-                    Literal literal = (Literal) object;
-                    owlConsumer.handleTriple(_subject, _predicate, literal.getLexicalForm(), IRI.create(literal.getDatatypeURI()));
+                    LiteralLabel literal = object.getLiteral();
+                    if (literal.language() != null) {
+                        tripleHandler.handleTriple(_subject, _predicate, literal.getLexicalForm(), literal.language());
+                    } else {
+                        tripleHandler.handleTriple(_subject, _predicate, literal.getLexicalForm(), IRI.create(literal.getDatatypeURI()));
+                    }
                 } else {
                     IRI _object = toIRI(object);
-                    owlConsumer.handleTriple(_subject, _predicate, _object);
+                    tripleHandler.handleTriple(_subject, _predicate, _object);
                 }
             } finally {
                 status = TripleStatus.HANDLED;
@@ -188,21 +309,4 @@ public class OntGraph extends GraphWrapper implements Graph {
         }
     }
 
-    public static class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
-        private boolean ignoreImports;
-
-        public OntLoaderConfiguration(boolean ignoreImports) {
-            super();
-            this.ignoreImports = ignoreImports;
-        }
-
-        public OntLoaderConfiguration() {
-            this(true);
-        }
-
-        @Override
-        public boolean isIgnoredImport(@Nonnull IRI any) {
-            return ignoreImports || super.isIgnoredImport(any);
-        }
-    }
 }

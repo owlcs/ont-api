@@ -73,8 +73,8 @@ public class ExampleTest {
 
         ontology.axioms().forEach(LOGGER::debug);
 
-        ReadWriteUtils.print(ontology.getOntModel(), OntFormat.TTL_RDF);
-        LOGGER.debug("All statements: " + ontology.getOntModel().listStatements().toList().size());
-        Assert.assertEquals("incorrect statements size", statementsNumber, ontology.getOntModel().getBaseModel().listStatements().toList().size());
+        ReadWriteUtils.print(ontology.asGraphModel(), OntFormat.TTL_RDF);
+        LOGGER.debug("All statements: " + ontology.asGraphModel().listStatements().toList().size());
+        Assert.assertEquals("incorrect statements size", statementsNumber, ontology.asGraphModel().getBaseModel().listStatements().toList().size());
     }
 }
