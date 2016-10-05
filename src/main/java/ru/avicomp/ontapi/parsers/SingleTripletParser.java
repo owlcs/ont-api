@@ -7,8 +7,6 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
-import ru.avicomp.ontapi.OntException;
-
 /**
  * Class for parse axiom which is related to single triplet.
  * <p>
@@ -24,10 +22,11 @@ abstract class SingleTripletParser<Axiom extends OWLAxiom> extends AxiomParser<A
 
     @Override
     public void process(Graph graph) {
-        try {
             graph.add(Triple.create(getSubject().asNode(), getPredicate().asNode(), getObject().asNode()));
-        } catch (Exception e) {
-            throw new OntException("Axiom " + getAxiom(), e);
-        }
+    }
+
+    @Override
+    public void reverse(Graph graph) {
+        graph.remove(getSubject().asNode(), getPredicate().asNode(), getObject().asNode());
     }
 }

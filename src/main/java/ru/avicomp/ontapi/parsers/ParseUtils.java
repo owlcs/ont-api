@@ -86,15 +86,25 @@ public class ParseUtils {
         return res;
     }
 
+    private static Model getModel(Resource inModel) {
+        return OntException.notNull(inModel.getModel(), "Resource is not attached to model");
+    }
+
+    private static Node getCardinalityLiteral(HasCardinality restriction) {
+        return toLiteralNode(String.valueOf(restriction.getCardinality()), null, XSDVocabulary.NON_NEGATIVE_INTEGER.getIRI());
+    }
+
+    private static boolean hasObjectCardinalityRestriction(Resource root, OWLObjectCardinalityRestriction restriction, OWLClassExpressionRDFType type) {
+        Model model = getModel(root);
+        return model.contains(root, RDF.type, OWL.Restriction) && model.contains(root, type.getPredicate(), model.getRDFNode(getCardinalityLiteral(restriction)));
+    }
+
     private static Resource addObjectCardinalityRestriction(Model model, OWLObjectCardinalityRestriction restriction, OWLClassExpressionRDFType type) {
         OWLObjectPropertyExpression property = restriction.getProperty();
         Resource res = model.createResource();
         model.add(res, RDF.type, OWL.Restriction);
         model.add(res, OWL.onProperty, toResource(property));
-        Node literal = toLiteralNode(String.valueOf(restriction.getCardinality()), null, XSDVocabulary.NON_NEGATIVE_INTEGER.getIRI());
-        RDFNode object = model.getRDFNode(literal);
-        Property predicate = type.getPredicate();
-        model.add(res, predicate, object);
+        model.add(res, type.getPredicate(), model.getRDFNode(getCardinalityLiteral(restriction)));
         return res;
     }
 
@@ -157,7 +167,7 @@ public class ParseUtils {
 
     public static Resource toResource(Model model, OWLObject o) {
         if (HasIRI.class.isInstance(o)) {
-            return toResource(((HasIRI) o).getIRI());
+            return toResource(((HasIRI) o).getIRI()).inModel(model);
         }
         if (OWLClassExpression.class.isInstance(o)) {
             return addClassExpression(model, (OWLClassExpression) o);

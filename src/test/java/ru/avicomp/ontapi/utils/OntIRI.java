@@ -65,6 +65,10 @@ public class OntIRI extends IRI {
         return ResourceFactory.createProperty(getIRIString());
     }
 
+    public static OntIRI create(URI uri) {
+        return new OntIRI(OntIRIException.notNull(uri, "Null URI"));
+    }
+
     public static OntIRI create(Resource resource) {
         // should we allow anonymous resources also?
         if (!OntIRIException.notNull(resource, "Null resource specified").isURIResource()) {

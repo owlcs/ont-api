@@ -5,13 +5,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.SomeValuesFromRestriction;
+import org.apache.jena.ontology.*;
+import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -31,33 +28,48 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
  * todo:
  * Created by @szuev on 02.10.2016.
  */
-public class GraphAddTest {
-    private static final Logger LOGGER = Logger.getLogger(GraphAddTest.class);
+public class GraphTest {
+    private static final Logger LOGGER = Logger.getLogger(GraphTest.class);
 
     @Test
-    public void addImportTest() throws OWLOntologyCreationException {
+    public void importsTest() throws OWLOntologyCreationException {
         OntIRI iri = OntIRI.create("http://test.test/add-import");
         OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
         OntologyModel owl = (OntologyModel) manager.createOntology(iri.toOwlOntologyID());
         OntModel jena = owl.asGraphModel();
-
         int importsCount = 4;
-
-        manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(IRI.create("http://dummy-imports.com/first"))));
-        jena.getOntology(iri.getIRIString()).addImport(OntIRI.create("http://dummy-imports.com/second").toResource());
-        manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(IRI.create(ReadWriteUtils.getResourceURI("foaf.rdf")))));
-        jena.getOntology(iri.getIRIString()).addImport(ResourceFactory.createResource(ReadWriteUtils.getResourceURI("pizza.ttl").toString()));
+        Ontology jenaOnt = jena.getOntology(iri.getIRIString());
+        LOGGER.info("Add imports.");
+        OntIRI import1 = OntIRI.create("http://dummy-imports.com/first");
+        OntIRI import2 = OntIRI.create("http://dummy-imports.com/second");
+        OntIRI import3 = OntIRI.create(ReadWriteUtils.getResourceURI("foaf.rdf"));
+        OntIRI import4 = OntIRI.create(ReadWriteUtils.getResourceURI("pizza.ttl"));
+        manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(import1)));
+        jenaOnt.addImport(import2.toResource());
+        manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(import3)));
+        jenaOnt.addImport(import4.toResource());
 
         debug(owl);
 
         Assert.assertEquals("OWL: incorrect imported ontology count.", 0, owl.imports().count());
         Assert.assertEquals("OWL: incorrect imports count.", importsCount, owl.importsDeclarations().count());
         Assert.assertEquals("Jena: incorrect imports count.", importsCount, jena.listStatements(iri.toResource(), OWL.imports, (RDFNode) null).toList().size());
+
+        //todo:
+        /*LOGGER.info("Remove imports.");
+        jenaOnt.removeImport(import4.toResource());
+        manager.applyChange(new RemoveImport(owl, factory.getOWLImportsDeclaration(import1)));
+        debug(owl);
+        importsCount = 2;
+        Assert.assertEquals("OWL: incorrect imports count after removing.", importsCount, owl.importsDeclarations().count());
+        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount, jenaOnt.listImports().toList().size());*/
+
+        debug(owl);
     }
 
     @Test
-    public void addClassIndividualTest() throws OWLOntologyCreationException {
+    public void individualsTest() throws OWLOntologyCreationException {
         OntIRI iri = OntIRI.create("http://test.test/add-class-individual");
         OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
@@ -73,8 +85,11 @@ public class GraphAddTest {
         int classesCount = 2;
         int individualsCount = 3;
 
+        LOGGER.info("Add classes.");
         manager.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(factory.getOWLClass(class1))));
         jena.add(class2.toResource(), RDF.type, OWL.Class);
+
+        LOGGER.info("Add individuals.");
         manager.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(factory.getOWLClass(class1), factory.getOWLNamedIndividual(individual1))));
         jena.add(individual2.toResource(), RDF.type, class1.toResource());
         jena.add(individual3.toResource(), RDF.type, class2.toResource());
@@ -85,16 +100,27 @@ public class GraphAddTest {
         Assert.assertEquals("Jena: incorrect classes count.", classesCount, jena.listClasses().toList().size());
         Assert.assertEquals("OWL: incorrect individuals count", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
         Assert.assertEquals("Jena: incorrect individuals count.", individualsCount, jena.listIndividuals().toList().size());
+
+        LOGGER.info("Remove individuals");
+        jena.removeAll(individual3.toResource(), null, null);
+        manager.applyChange(new RemoveAxiom(owl, factory.getOWLClassAssertionAxiom(factory.getOWLClass(class1), factory.getOWLNamedIndividual(individual1))));
+        individualsCount = 1;
+
+        ReadWriteUtils.print(jena, OntFormat.TTL_RDF);
+        Assert.assertEquals("OWL: incorrect individuals count after removing", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
+        Assert.assertEquals("Jena: incorrect individuals count after removing.", individualsCount, jena.listIndividuals().toList().size());
+        debug(owl);
+
     }
 
     @Test
-    public void addTest() throws OWLOntologyCreationException {
+    public void disjointClassesTest() throws OWLOntologyCreationException {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("test1.ttl"));
-        LOGGER.info("The file " + fileIRI);
-
+        LOGGER.info("Load ontology from file " + fileIRI);
         OntologyModel original = (OntologyModel) OntManagerFactory.createOWLOntologyManager().loadOntology(fileIRI);
         debug(original);
 
+        LOGGER.info("Assemble new ontology with the same content.");
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
         OntologyModel result = (OntologyModel) OntManagerFactory.createOWLOntologyManager().createOntology(iri.toOwlOntologyID());
@@ -115,22 +141,44 @@ public class GraphAddTest {
         complex2.addComment("comment1", "es");
         complex1.addDisjointWith(simple1);
 
-        //complex2.addDisjointWith(simple2);
-        //complex2.addDisjointWith(simple1);
         // bulk disjoint instead adding one by one (to have the same list of axioms):
         Resource anon = jena.createResource();
         jena.add(anon, RDF.type, OWL2.AllDisjointClasses);
         jena.add(anon, OWL2.members, jena.createList(Stream.of(complex2, simple1, simple2).iterator()));
-        LOGGER.debug("Result ontology: ");
-        ReadWriteUtils.print(jena, OntFormat.TTL_RDF);
+
         jena.rebind(); // rebind because we have several bulk axioms.
+        LOGGER.info("After rebind.");
+        ReadWriteUtils.print(jena, OntFormat.TTL_RDF);
+
+        LOGGER.info("Compare axioms.");
         result.axioms().forEach(LOGGER::debug);
         compareAxioms(original.axioms(), result.axioms());
+
+        LOGGER.info("Remove OWL:disjointWith");
+        ReadWriteUtils.print(jena, OntFormat.TTL_RDF);
+        jena.removeAll(complex1, OWL.disjointWith, null);
+        ReadWriteUtils.print(result.asGraphModel(), OntFormat.TTL_RDF);
+        Assert.assertEquals("Incorrect axiom count", original.axioms().count() - 1, result.axioms().count());
+
+        LOGGER.info("Remove OWL:AllDisjointClasses");
+        anon = jena.listResourcesWithProperty(RDF.type, OWL2.AllDisjointClasses).toList().get(0);
+        RDFList list = jena.listObjectsOfProperty(anon, OWL2.members).mapWith(n -> n.as(RDFList.class)).toList().get(0);
+        list.removeList();
+        jena.removeAll(anon, null, null);
+
+        LOGGER.info("Events");
+        result.getEventStore().getEvents().forEach(LOGGER::debug);
+
+        LOGGER.info("Compare axioms.");
+        result.axioms().forEach(LOGGER::debug);
+        compareAxioms(original.axioms().filter(axiom -> !AxiomType.DISJOINT_CLASSES.equals(axiom.getAxiomType())), result.axioms());
+        debug(result);
+
     }
 
-    private static void compareAxioms(Stream<? extends OWLAxiom> axioms1, Stream<? extends OWLAxiom> axioms2) {
-        List<OWLAxiom> list1 = axioms1.sorted().collect(Collectors.toList());
-        List<OWLAxiom> list2 = axioms2.sorted().collect(Collectors.toList());
+    private static void compareAxioms(Stream<? extends OWLAxiom> expected, Stream<? extends OWLAxiom> actual) {
+        List<OWLAxiom> list1 = expected.sorted().collect(Collectors.toList());
+        List<OWLAxiom> list2 = actual.sorted().collect(Collectors.toList());
         Assert.assertEquals("Not equal axioms streams count", list1.size(), list2.size());
         List<String> errors = new ArrayList<>();
         for (int i = 0; i < list1.size(); i++) {
@@ -148,6 +196,7 @@ public class GraphAddTest {
     }
 
     private void debug(OntologyModel ontology) {
+        LOGGER.debug("DEBUG");
         LOGGER.debug("OWL: ");
         ReadWriteUtils.print(ontology, OntFormat.TTL_RDF);
         LOGGER.debug("Axioms:");

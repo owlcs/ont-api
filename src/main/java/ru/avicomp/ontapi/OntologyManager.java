@@ -15,11 +15,11 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
  * TODO
  * Created by @szuev on 03.10.2016.
  */
-public class OntManager extends OWLOntologyManagerImpl {
+public class OntologyManager extends OWLOntologyManagerImpl {
     private OntModelSpec spec;
 
     @Inject
-    public OntManager(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
+    public OntologyManager(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
         super(dataFactory, readWriteLock);
         OntDocumentManager documentManager = new OntDocumentManager();
         documentManager.setProcessImports(false);
@@ -29,4 +29,5 @@ public class OntManager extends OWLOntologyManagerImpl {
     public OntModelSpec getSpec() {
         return spec;
     }
+
 }

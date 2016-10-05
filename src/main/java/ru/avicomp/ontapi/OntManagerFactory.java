@@ -59,8 +59,8 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
             bind(ReadWriteLock.class).to(NoOpReadWriteLock.class).asEagerSingleton();
             bind(boolean.class).annotatedWith(CompressionEnabled.class).toInstance(Boolean.FALSE);
             bind(OWLDataFactory.class).to(OWLDataFactoryImpl.class).asEagerSingleton();
-            bind(OWLOntologyManager.class).to(OntManager.class).asEagerSingleton();
-            bind(OWLOntologyManager.class).annotatedWith(NonConcurrentDelegate.class).to(OntManager.class)
+            bind(OWLOntologyManager.class).to(OntologyManager.class).asEagerSingleton();
+            bind(OWLOntologyManager.class).annotatedWith(NonConcurrentDelegate.class).to(OntologyManager.class)
                     .asEagerSingleton();
             //bind(OWLOntologyBuilder.class).to(ConcurrentOWLOntologyBuilder.class);
             bind(OWLOntologyBuilder.class).to(NonConcurrentOWLOntologyBuilder.class);

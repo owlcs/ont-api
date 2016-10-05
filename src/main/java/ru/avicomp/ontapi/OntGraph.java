@@ -8,42 +8,44 @@ import java.util.Set;
 
 import org.apache.jena.graph.*;
 import org.apache.jena.graph.impl.LiteralLabel;
-import org.apache.jena.shared.AddDeniedException;
-import org.apache.jena.shared.DeleteDeniedException;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.NodeID;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.rdf.turtle.parser.OWLRDFConsumerAdapter;
-import org.semanticweb.owlapi.rdf.turtle.parser.TripleHandler;
 
 /**
- * Pair for {@link OntologyModel}, wrapper for inner graph that belongs to the owl-ontology.
+ * Graph wrapper.
+ * There are two graphs underling.
+ * One of them is associated with this wrapper and through it with jena-model,
+ * The second one is associated with owl-ontology {@link OntologyModel} and triple-handler {@link OntTripleHandler} works with it.
+ * It's to avoid duplicating of anonymous nodes.
  * <p>
  * Created by @szuev on 02.10.2016.
  */
 public class OntGraph implements Graph {
+    // graph, that is attached to jena graph ont-model
     private final Graph graph;
-    private final TripleHandler tripleHandler;
-
-    private transient Map<Node, IRI> nodes = new HashMap<>();
-    private transient Set<OwlTriple> triples = new HashSet<>();
-
+    // graph, that is attached to owl-ontology
+    private final Graph original;
+    // triplet handler, which works original graph through owl-ontology
+    private final OntTripleHandler tripleHandler;
 
     public OntGraph(OntologyModel owlOntology) {
-        this(owlOntology.getInnerGraph(), new OWLRDFConsumerAdapter(owlOntology, new OntLoaderConfiguration()));
+        this(owlOntology.getGraph(), new OntTripleHandler(owlOntology, new OntLoaderConfiguration()));
     }
 
-    public OntGraph(Graph base, TripleHandler tripletHandler) {
-        this.graph = base;
+    public OntGraph(Graph base, OntTripleHandler tripletHandler) {
+        this.original = base;
+        this.graph = Factory.createGraphMem();
         this.tripleHandler = tripletHandler;
+        GraphUtil.addInto(graph, original);
     }
 
-    @Override
-    public void add(Triple t) throws AddDeniedException {
-        graph.add(t);
-        addOwlTriple(t.getSubject(), t.getPredicate(), t.getObject());
+    public Graph getBaseGraph() {
+        return graph;
     }
 
     @Override
@@ -77,13 +79,6 @@ public class OntGraph implements Graph {
     }
 
     @Override
-    public void delete(Triple t) throws DeleteDeniedException {
-        //TODO:
-        //throw new OntException.Unsupported(getClass(), "delete");
-        graph.delete(t);
-    }
-
-    @Override
     public ExtendedIterator<Triple> find(Triple t) {
         return graph.find(t);
     }
@@ -108,7 +103,6 @@ public class OntGraph implements Graph {
         return graph.contains(t);
     }
 
-
     @Override
     public boolean isEmpty() {
         return graph.isEmpty();
@@ -126,71 +120,57 @@ public class OntGraph implements Graph {
 
     @Override
     public void remove(Node s, Node p, Node o) {
-        //TODO:
-        throw new OntException.Unsupported(getClass(), "remove");
+        graph.remove(s, p, o);
+    }
+
+    @Override
+    public void add(Triple t) {
+        graph.add(t);
+        if (isURITriple(t)) { // could be added directly to original graph
+            original.add(t);
+        }
+        tripleHandler.addTriple(t);
+    }
+
+    @Override
+    public void delete(Triple t) {
+        graph.delete(t);
+        if (isURITriple(t)) {
+            original.delete(t);
+        }
+        tripleHandler.deleteTriple(t);
     }
 
     @Override
     public void clear() {
-        reset();
+        tripleHandler.clear();
         graph.clear();
     }
 
     @Override
     public void close() {
         flush();
-        reset();
         graph.close();
     }
 
     /**
      * tell that bulk of triplets that correspond to the axiom has been completed.
      */
-    public void flush() {
-        handleOwlTriples();
-        handleOwlAnonRootTriples();
+    void flush() {
         tripleHandler.handleEnd();
-        ;
-    }
-
-    public void reset() {
-        this.nodes.clear();
-        this.triples.clear();
-    }
-
-    private void addOwlTriple(Node subject, Node predicate, Node object) {
-        OwlTriple triple = new OwlTriple(subject, predicate, object);
-        triples.add(triple);
-        handleOwlTriples();
-    }
-
-    private void handleOwlTriples() {
-        triples.stream().filter(OwlTriple::isURIRoot).forEach(OwlTriple::handle);
+        tripleHandler.clear();
     }
 
     /**
-     * OWL2 allows anon roots (owl:AllDisjointClasses, owl:AllDifferent, etc)
+     * synchronize graphs pair
      */
-    private void handleOwlAnonRootTriples() {
-        triples.stream().filter(OwlTriple::isRoot).forEach(OwlTriple::handle);
+    void sync() {
+        graph.clear();
+        GraphUtil.addInto(graph, original);
     }
 
-    private IRI toIRI(Node rdfNode) {
-        return nodes.computeIfAbsent(rdfNode, node -> {
-            if (node.isBlank()) {
-                return IRI.create(NodeID.getNodeID().getID());
-            } else if (node.isLiteral()) {
-                return IRI.create(node.getLiteral().getDatatypeURI());
-            } else if (node.isURI()) {
-                return IRI.create(node.getURI());
-            }
-            throw new OntException("this should never happen.");
-        });
-    }
-
-    private enum TripleStatus {
-        PENDING,
-        HANDLED,
+    private static boolean isURITriple(Triple triple) {
+        return !triple.getSubject().isBlank() && !triple.getObject().isBlank();
     }
 
     public static class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
@@ -211,101 +191,185 @@ public class OntGraph implements Graph {
         }
     }
 
-    private class OwlTriple {
-        private final Node subject;
-        private final Node predicate;
-        private final Node object;
-        private TripleStatus status;
-        private Set<OwlTriple> children = new HashSet<>();
-        private OwlTriple parent;
+    public static class OntTripleHandler extends OWLRDFConsumerAdapter {
+        private Map<Node, IRI> nodes = new HashMap<>();
+        private Set<OntTriple> triples = new HashSet<>();
 
-        private OwlTriple(Node subject, Node predicate, Node object) {
-            this.subject = subject;
-            this.predicate = predicate;
-            this.object = object;
-            this.status = TripleStatus.PENDING;
+        public OntTripleHandler(OntologyModel ontology, OWLOntologyLoaderConfiguration configuration) {
+            super(ontology, configuration);
         }
 
-        boolean isRoot() {
-            return findParent() == null;
+        @Override
+        public OntologyModel getOntology() {
+            return (OntologyModel) super.getOntology();
         }
 
-        boolean isURIRoot() {
-            // first set parent and children to make graph consistent, then decide is it root or not.
-            return isRoot() && !subject.isBlank();
+        public OntGraphEventStore getStore() {
+            return getOntology().getEventStore();
         }
 
-        OwlTriple findParent() {
-            if (parent != null) return parent;
-            if (!subject.isBlank()) return null;
-            parent = triples.stream().filter(t -> subject.equals(t.object)).findFirst().orElse(null);
-            if (parent != null) {
-                parent.children.add(this);
+        @Override
+        public void handleEnd() {
+            handleTriples();
+            handleAnonRoots();
+            super.handleEnd();
+        }
+
+        public void addTriple(Triple t) {
+            OntTriple triple = new OntTriple(t);
+            triples.add(triple);
+            handleTriples();
+        }
+
+        public OntTriple find(Triple triple) {
+            return triples.stream().filter(t -> triple.equals(t.triple)).findFirst().orElse(null);
+        }
+
+        public void deleteTriple(Triple t) {
+            OntTriple res = find(t);
+            if (res != null) res.delete();
+            OntologyModel ontology = getOntology();
+            OWLAxiom axiom = ontology.getEventStore().findAxiom(t);
+            if (axiom != null && ontology.axioms().filter(axiom::equals).findFirst().isPresent()) {
+                ontology.remove(axiom);
             }
-            return parent;
         }
 
-        private void innerHandle() {
-            try {
-                IRI _subject = toIRI(subject);
-                IRI _predicate = toIRI(predicate);
-                if (object.isLiteral()) {
-                    LiteralLabel literal = object.getLiteral();
-                    if (literal.language() != null) {
-                        tripleHandler.handleTriple(_subject, _predicate, literal.getLexicalForm(), literal.language());
-                    } else {
-                        tripleHandler.handleTriple(_subject, _predicate, literal.getLexicalForm(), IRI.create(literal.getDatatypeURI()));
-                    }
-                } else {
-                    IRI _object = toIRI(object);
-                    tripleHandler.handleTriple(_subject, _predicate, _object);
+        public void clear() {
+            nodes.clear();
+            triples.clear();
+        }
+
+        public void handleTriples() {
+            triples.stream().filter(OntTriple::isURIRoot).forEach(OntTriple::handle);
+        }
+
+        /**
+         * OWL2 allows anonymous roots (owl:AllDisjointClasses, owl:AllDifferent, owl:Axiom etc)
+         */
+        public void handleAnonRoots() {
+            triples.stream().filter(OntTriple::isRoot).forEach(OntTriple::handle);
+        }
+
+        private IRI toIRI(Node node) {
+            return nodes.computeIfAbsent(node, _node -> {
+                if (_node.isBlank()) { //todo?
+                    return IRI.create(NodeID.getNodeID().getID());
+                } else if (_node.isLiteral()) {
+                    return IRI.create(_node.getLiteral().getDatatypeURI());
+                } else if (_node.isURI()) {
+                    return IRI.create(_node.getURI());
                 }
-            } finally {
-                status = TripleStatus.HANDLED;
+                throw new OntException("this should never happen.");
+            });
+        }
+
+        private enum TripleStatus {
+            PENDING,
+            HANDLED,
+            REMOVED,
+        }
+
+        private class OntTriple {
+            private final Triple triple;
+            private TripleStatus status;
+            private Set<OntTriple> children = new HashSet<>();
+            private OntTriple parent;
+
+            private OntTriple(Triple triple) {
+                this.triple = triple;
+                this.status = TripleStatus.PENDING;
             }
-        }
 
-        void handle() {
-            // first process parent (this):
-            if (isPending()) {
-                innerHandle();
+            Node subject() {
+                return triple.getSubject();
             }
-            // then process children using recursion:
-            children.stream().filter(OwlTriple::isPending).forEach(OwlTriple::handle);
-        }
 
-        private boolean isPending() {
-            return TripleStatus.PENDING.equals(status);
-        }
+            Node predicate() {
+                return triple.getPredicate();
+            }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            OwlTriple that = (OwlTriple) o;
-            return subject.equals(that.subject) && predicate.equals(that.predicate) && object.equals(that.object);
-        }
+            Node object() {
+                return triple.getObject();
+            }
 
-        @Override
-        public int hashCode() {
-            return Triple.hashCode(subject, predicate, object);
-        }
+            boolean isRoot() {
+                return findParent() == null;
+            }
 
-        private String toStringSubject() {
-            return subject.isURI() ? subject.getURI() : String.valueOf(subject);
-        }
+            boolean isURIRoot() {
+                // first set parent and children to make graph consistent, then decide is it root or not.
+                return isRoot() && !subject().isBlank();
+            }
 
-        private String toStringPredicate() {
-            return predicate.getURI();
-        }
+            OntTriple findParent() {
+                if (parent != null) return parent;
+                if (!subject().isBlank()) return null;
+                parent = triples.stream().filter(t -> subject().equals(t.object())).findFirst().orElse(null);
+                if (parent != null) {
+                    parent.children.add(this);
+                }
+                return parent;
+            }
 
-        private String toStringObject() {
-            return object.isURI() ? object.getURI() : String.valueOf(object);
-        }
+            private void innerHandle() {
+                try {
+                    IRI _subject = toIRI(subject());
+                    IRI _predicate = toIRI(predicate());
+                    if (object().isLiteral()) {
+                        LiteralLabel literal = object().getLiteral();
+                        if (literal.language() != null) {
+                            handleTriple(_subject, _predicate, literal.getLexicalForm(), literal.language());
+                        } else {
+                            handleTriple(_subject, _predicate, literal.getLexicalForm(), IRI.create(literal.getDatatypeURI()));
+                        }
+                    } else {
+                        IRI _object = toIRI(object());
+                        handleTriple(_subject, _predicate, _object);
+                    }
+                } finally {
+                    status = TripleStatus.HANDLED;
+                }
+            }
 
-        @Override
-        public String toString() {
-            return String.format("%s, %s, %s", toStringSubject(), toStringPredicate(), toStringObject());
+            private void handle() {
+                // first process parent (this):
+                if (isPending()) {
+                    innerHandle();
+                }
+                // then process children using recursion:
+                children.stream().filter(OntTriple::isPending).forEach(OntTriple::handle);
+            }
+
+            private boolean isPending() {
+                return TripleStatus.PENDING.equals(status);
+            }
+
+            private boolean isHandled() {
+                return TripleStatus.HANDLED.equals(status);
+            }
+
+            private void delete() {
+                this.status = TripleStatus.REMOVED;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                OntTriple that = (OntTriple) o;
+                return triple.equals(that.triple);
+            }
+
+            @Override
+            public int hashCode() {
+                return triple.hashCode();
+            }
+
+            @Override
+            public String toString() {
+                return String.valueOf(triple);
+            }
         }
     }
 

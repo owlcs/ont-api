@@ -33,8 +33,11 @@ import static ru.avicomp.ontapi.NodeIRIUtils.toTriple;
  */
 public class OntologyModel extends OWLOntologyImpl {
 
-    private Graph graph;
-    private ChangeFilter filter;
+    private final Graph graph;
+    private final ChangeFilter filter;
+    private final OntGraphEventStore eventStore;
+
+    private transient OntGraph wrapper;
 
     /**
      * @param manager    ontology manager
@@ -44,20 +47,30 @@ public class OntologyModel extends OWLOntologyImpl {
     public OntologyModel(@Assisted OWLOntologyManager manager, @Assisted OWLOntologyID ontologyID) {
         super(manager, ontologyID);
         graph = Factory.createGraphMem();
+        filter = new ChangeFilter();
+        eventStore = new OntGraphEventStore();
         initOntologyTriplets();
+    }
+
+    public OntGraphEventStore getEventStore() {
+        return eventStore;
     }
 
     @Override
     public ChangeApplied applyDirectChange(OWLOntologyChange change) {
-        return change.accept(getChangeFilter());
+        ChangeApplied res = change.accept(getChangeFilter());
+        if (SUCCESSFULLY.equals(res)) {
+            getOntGraph().sync();
+        }
+        return res;
     }
 
     @Override
     public ChangeApplied applyChanges(List<? extends OWLOntologyChange> changes) {
         ChangeApplied appliedChanges = SUCCESSFULLY;
         for (OWLOntologyChange change : changes) {
-            ChangeApplied result = change.accept(getChangeFilter());
-            if (appliedChanges == SUCCESSFULLY) {
+            ChangeApplied result = applyDirectChange(change);
+            if (SUCCESSFULLY.equals(appliedChanges)) {
                 // overwrite only if appliedChanges is still successful. If one
                 // change has been unsuccessful, we want to preserve that
                 // information
@@ -68,12 +81,12 @@ public class OntologyModel extends OWLOntologyImpl {
     }
 
     @Override
-    public OntManager getOWLOntologyManager() {
-        return (OntManager) manager;
+    public OntologyManager getOWLOntologyManager() {
+        return (OntologyManager) manager;
     }
 
     public OWLOntologyChangeVisitorEx<ChangeApplied> getChangeFilter() {
-        return filter == null ? filter = new ChangeFilter() : filter;
+        return filter;
     }
 
     /**
@@ -82,8 +95,16 @@ public class OntologyModel extends OWLOntologyImpl {
      *
      * @return Graph
      */
-    Graph getInnerGraph() {
+    Graph getGraph() {
         return graph;
+    }
+
+    private OntGraph getOntGraph() {
+        return wrapper == null ? wrapper = new OntGraph(this) : wrapper;
+    }
+
+    private void rebind() {
+        getOntGraph().flush();
     }
 
     private void addToGraph(OWLAnnotationValue s, IRI p, OWLAnnotationValue o) {
@@ -92,6 +113,10 @@ public class OntologyModel extends OWLOntologyImpl {
 
     private void addToGraph(Triple triple) {
         graph.add(triple);
+    }
+
+    private void deleteFromGraph(OWLAnnotationValue s, IRI p, OWLAnnotationValue o) {
+        deleteFromGraph(toTriple(s, p, o));
     }
 
     private void deleteFromGraph(Triple triple) {
@@ -116,6 +141,23 @@ public class OntologyModel extends OWLOntologyImpl {
         return new OntGraphModel(this);
     }
 
+    public static class OntGraphModel extends OntModelImpl {
+        public OntGraphModel(OntologyModel ontology) {
+            super(ontology.getOWLOntologyManager().getSpec(), ModelFactory.createModelForGraph(ontology.getOntGraph()));
+        }
+
+        @Override
+        public OntGraph getBaseGraph() {
+            return (OntGraph) super.getBaseGraph();
+        }
+
+        @Override
+        public void rebind() {
+            super.rebind();
+            getBaseGraph().flush();
+        }
+    }
+
     private class ChangeFilter implements OWLOntologyChangeVisitorEx<ChangeApplied> {
 
         private IRI getOntologyIRI() {
@@ -124,7 +166,9 @@ public class OntologyModel extends OWLOntologyImpl {
 
         @Override
         public ChangeApplied visit(@Nonnull RemoveAxiom change) {
-            if (ints.removeAxiom(change.getAxiom())) {
+            OWLAxiom axiom = change.getAxiom();
+            if (ints.removeAxiom(axiom)) {
+                AxiomParserFactory.get(axiom).reverse(eventStore, graph);
                 return SUCCESSFULLY;
             }
             return NO_OPERATION;
@@ -145,7 +189,7 @@ public class OntologyModel extends OWLOntologyImpl {
                 }
                 if (!Objects.equals(oldVersionIRI, newVersionIRI)) {
                     if (oldVersionIRI != null) {
-                        deleteFromGraph(toTriple(newIRI, fromResource(OWL2.versionIRI), oldVersionIRI));
+                        deleteFromGraph(newIRI, fromResource(OWL2.versionIRI), oldVersionIRI);
                     }
                     if (newVersionIRI != null) {
                         addToGraph(toTriple(newIRI, fromResource(OWL2.versionIRI), newVersionIRI));
@@ -167,7 +211,7 @@ public class OntologyModel extends OWLOntologyImpl {
         public ChangeApplied visit(@Nonnull AddAxiom change) {
             OWLAxiom axiom = change.getAxiom();
             if (ints.addAxiom(axiom)) {
-                AxiomParserFactory.get(axiom).process(graph);
+                AxiomParserFactory.get(axiom).process(eventStore, graph);
                 return SUCCESSFULLY;
             }
             return NO_OPERATION;
@@ -185,7 +229,9 @@ public class OntologyModel extends OWLOntologyImpl {
 
         @Override
         public ChangeApplied visit(@Nonnull RemoveImport change) {
-            if (ints.removeImportsDeclaration(change.getImportDeclaration())) {
+            OWLImportsDeclaration importDeclaration = change.getImportDeclaration();
+            if (ints.removeImportsDeclaration(importDeclaration)) {
+                deleteFromGraph(getOntologyIRI(), fromResource(OWL.imports), importDeclaration.getIRI());
                 return SUCCESSFULLY;
             }
             return NO_OPERATION;
@@ -193,8 +239,8 @@ public class OntologyModel extends OWLOntologyImpl {
 
         @Override
         public ChangeApplied visit(@Nonnull AddOntologyAnnotation change) {
-            if (ints.addOntologyAnnotation(change.getAnnotation())) {
-                OWLAnnotation annotation = change.getAnnotation();
+            OWLAnnotation annotation = change.getAnnotation();
+            if (ints.addOntologyAnnotation(annotation)) {
                 OWLAnnotationProperty property = annotation.getProperty();
                 OWLAnnotationValue value = annotation.getValue();
                 OWLAnnotationValue literal = value.isIRI() ? value : value.asLiteral().orElse(null);
@@ -207,29 +253,10 @@ public class OntologyModel extends OWLOntologyImpl {
         @Override
         public ChangeApplied visit(@Nonnull RemoveOntologyAnnotation change) {
             if (ints.removeOntologyAnnotation(change.getAnnotation())) {
+                //TODO:
                 return SUCCESSFULLY;
             }
             return NO_OPERATION;
-        }
-    }
-
-    public static class OntGraphModel extends OntModelImpl {
-        public OntGraphModel(OntologyModel ontology) {
-            super(ontology.getOWLOntologyManager().getSpec(), ModelFactory.createModelForGraph(new OntGraph(ontology)));
-        }
-
-        /**
-         * @return OntGraph
-         */
-        @Override
-        public OntGraph getBaseGraph() {
-            return (OntGraph) super.getBaseGraph();
-        }
-
-        @Override
-        public void rebind() {
-            super.rebind();
-            getBaseGraph().flush();
         }
     }
 }
