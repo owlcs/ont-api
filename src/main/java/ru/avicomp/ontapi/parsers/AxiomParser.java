@@ -31,7 +31,7 @@ public abstract class AxiomParser<Axiom extends OWLAxiom> {
     }
 
     public void process(OntGraphEventStore store, Graph graph) {
-        GraphListener listener = new OntGraphListener(store, axiom);
+        GraphListener listener = OntGraphListener.createAdd(store, axiom);
         try {
             graph.getEventManager().register(listener);
             process(graph);
@@ -43,7 +43,7 @@ public abstract class AxiomParser<Axiom extends OWLAxiom> {
     }
 
     public void reverse(OntGraphEventStore store, Graph graph) {
-        GraphListener listener = new OntGraphListener(store, axiom);
+        GraphListener listener = OntGraphListener.createRemove(store, axiom);
         try {
             graph.getEventManager().register(listener);
             reverse(graph);
@@ -53,4 +53,5 @@ public abstract class AxiomParser<Axiom extends OWLAxiom> {
             graph.getEventManager().unregister(listener);
         }
     }
+
 }

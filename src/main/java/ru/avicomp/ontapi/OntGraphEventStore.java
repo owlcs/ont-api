@@ -1,11 +1,14 @@
 package ru.avicomp.ontapi;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.apache.jena.graph.Triple;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
  * store for ontology graph events
@@ -13,62 +16,143 @@ import org.semanticweb.owlapi.model.OWLAxiom;
  * Created by @szuev on 04.10.2016.
  */
 public class OntGraphEventStore {
-    private List<Event> events = new CopyOnWriteArrayList<>();
+    private Map<OWLEvent, Set<TripleEvent>> events = new ConcurrentHashMap<>();
 
-    public void add(Action action, Object axiom, Triple triple) {
-        events.add(new Event(action, axiom, triple));
+    public void add(OWLEvent event, TripleEvent triple) {
+        events.computeIfAbsent(event, e -> new HashSet<>()).add(triple);
     }
 
     public void clear() {
         events.clear();
     }
 
-    public List<Event> getEvents() {
-        return events;
+    public void clear(OWLEvent event) {
+        events.remove(event);
     }
 
-    public Stream<Triple> triplets() {
-        return events().map(e -> e.triple);
+    public List<EventPair> getEvents() {
+        List<EventPair> res = new ArrayList<>();
+        events.forEach((owl, triplets) -> res.addAll(triplets.stream().map(t -> new EventPair(owl, t)).collect(Collectors.toList())));
+        return res;
     }
 
-    public Stream<Event> events() {
-        return events.stream();
+    public OWLEvent find(TripleEvent tripleEvent) {
+        return events.entrySet().stream().filter(p -> p.getValue().contains(tripleEvent)).map(Map.Entry::getKey).findFirst().orElse(null);
     }
 
-    public Stream<Event> events(Action action) {
-        return events().filter(event -> action.equals(event.action));
-    }
+    public static class EventPair {
+        private final OWLEvent objectEvent;
+        private final TripleEvent tripleEvent;
 
-    public OWLAxiom findAxiom(Action action, Triple triple) {
-        return events(action).filter(event -> triple.equals(event.triple)).filter(Event::hasAxiom).map(event -> event.axiom).map(OWLAxiom.class::cast).findFirst().orElse(null);
-    }
-
-    public OWLAxiom findAxiom(Triple triple) {
-        return findAxiom(Action.ADD, triple);
-    }
-
-    public enum Action {
-        ADD, DELETE,
-    }
-
-    public class Event {
-        private final Object axiom;
-        private final Action action;
-        private final Triple triple;
-
-        private Event(Action action, Object axiom, Triple triple) {
-            this.axiom = axiom;
-            this.action = action;
-            this.triple = triple;
-        }
-
-        public boolean hasAxiom() {
-            return axiom instanceof OWLAxiom;
+        private EventPair(OWLEvent objectEvent, TripleEvent tripleEvent) {
+            this.objectEvent = objectEvent;
+            this.tripleEvent = tripleEvent;
         }
 
         @Override
         public String toString() {
-            return String.format("[%s][%s]%s", action, axiom, triple);
+            return String.format("%s%s", objectEvent, tripleEvent);
+        }
+
+        public TripleEvent getTripleEvent() {
+            return tripleEvent;
+        }
+
+        public OWLEvent getOWLEvent() {
+            return objectEvent;
         }
     }
+
+    public static abstract class BaseEvent {
+        protected final Action type;
+        protected final Object eventObject;
+
+        public BaseEvent(Action type, Object eventObject) {
+            this.type = OntException.notNull(type, "Null action type");
+            this.eventObject = OntException.notNull(eventObject, "Null event object");
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            BaseEvent event = (BaseEvent) o;
+            return type == event.type && eventObject.equals(event.eventObject);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = type.hashCode();
+            result = 31 * result + eventObject.hashCode();
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("[%s][%s]", type, eventObject);
+        }
+
+        public enum Action {
+            ADD,
+            DELETE,
+            CHANGE,
+        }
+
+        public boolean isAdd() {
+            return Action.ADD.equals(type);
+        }
+
+        public boolean isDelete() {
+            return Action.DELETE.equals(type);
+        }
+    }
+
+    public static class TripleEvent extends BaseEvent {
+
+        TripleEvent(Action type, Triple triple) {
+            super(type, triple);
+        }
+
+        public static TripleEvent createAdd(Triple triple) {
+            return new TripleEvent(Action.ADD, triple);
+        }
+
+        public static TripleEvent createDelete(Triple triple) {
+            return new TripleEvent(Action.DELETE, triple);
+        }
+    }
+
+    public static class OWLEvent extends BaseEvent {
+
+        OWLEvent(Action type, Object owlObject) {
+            super(type, owlObject);
+        }
+
+        public <T> T get(Class<T> view) {
+            return is(view) ? view.cast(eventObject) : null;
+        }
+
+        public <T> boolean is(Class<T> view) {
+            return view.isInstance(eventObject);
+        }
+
+        public static OWLEvent createAdd(OWLImportsDeclaration declaration) {
+            return new OWLEvent(Action.ADD, declaration);
+        }
+
+        public static OWLEvent createAdd(OWLOntologyID id) {
+            return new OWLEvent(Action.CHANGE, id);
+        }
+
+        public static OWLEvent createAdd(OWLAnnotation annotation) {
+            return new OWLEvent(Action.ADD, annotation);
+        }
+
+        public static OWLEvent createAdd(OWLAxiom axiom) {
+            return new OWLEvent(Action.ADD, axiom);
+        }
+    }
+
+
+
 }

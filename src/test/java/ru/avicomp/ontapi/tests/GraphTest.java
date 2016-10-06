@@ -9,6 +9,7 @@ import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -56,16 +57,65 @@ public class GraphTest {
         Assert.assertEquals("OWL: incorrect imports count.", importsCount, owl.importsDeclarations().count());
         Assert.assertEquals("Jena: incorrect imports count.", importsCount, jena.listStatements(iri.toResource(), OWL.imports, (RDFNode) null).toList().size());
 
-        //todo:
-        /*LOGGER.info("Remove imports.");
+        LOGGER.info("Remove imports.");
         jenaOnt.removeImport(import4.toResource());
         manager.applyChange(new RemoveImport(owl, factory.getOWLImportsDeclaration(import1)));
         debug(owl);
         importsCount = 2;
         Assert.assertEquals("OWL: incorrect imports count after removing.", importsCount, owl.importsDeclarations().count());
-        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount, jenaOnt.listImports().toList().size());*/
+        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount, jenaOnt.listImports().toList().size());
 
         debug(owl);
+    }
+
+    @Test
+    public void changeIDTest() throws OWLOntologyCreationException {
+        OntIRI iri = OntIRI.create("http://test.test/change-id");
+        OntIRI clazz = iri.addFragment("SomeClass1");
+        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
+
+        OWLDataFactory factory = manager.getOWLDataFactory();
+        OntologyModel owl = (OntologyModel) manager.createOntology(iri.toOwlOntologyID());
+        long numOfOnt = manager.ontologies().count();
+        manager.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(factory.getOWLClass(clazz))));
+        OntModel jena = owl.asGraphModel();
+        debug(owl);
+
+        OntIRI test1 = iri.addPath("test1");
+        LOGGER.info("Change ontology iri to " + test1 + " through owl-api");
+        owl.applyChanges(new SetOntologyID(owl, test1.toOwlOntologyID()));
+        testIRIChanged(owl, jena, test1, clazz);
+
+        OntIRI test2 = iri.addPath("test2");
+        LOGGER.info("Change ontology iri to " + test2 + " through jena");
+        ResourceUtils.renameResource(jena.getOntology(test1.getIRIString()), test2.getIRIString());
+        testIRIChanged(owl, jena, test2, clazz);
+
+        OntIRI test3 = iri.addPath("test3");
+        LOGGER.info("Change ontology iri to " + test3 + " through jena");
+        ResourceUtils.renameResource(jena.getOntology(test2.getIRIString()), test3.getIRIString());
+        testIRIChanged(owl, jena, test3, clazz);
+
+        OntIRI test4 = iri.addPath("test4");
+        LOGGER.info("Change ontology iri to " + test4 + " through owl-api");
+        manager.applyChange(new SetOntologyID(owl, test4.toOwlOntologyID()));
+        testIRIChanged(owl, jena, test4, clazz);
+
+        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
+    }
+
+    private static void testIRIChanged(OntologyModel owl, OntModel jena, IRI ontologyIRI, IRI classIRI) {
+        debug(owl);
+        Assert.assertNotNull("Can't find new ontology for iri " + ontologyIRI, jena.getOntology(ontologyIRI.getIRIString()));
+        Assert.assertNotNull("Can't find new ontology in jena", owl.asGraphModel().getOntology(ontologyIRI.getIRIString()));
+        Assert.assertEquals("Incorrect owl id iri", ontologyIRI, owl.getOntologyID().getOntologyIRI().orElse(null));
+        // check class still has the same uri:
+        OWLDeclarationAxiom axiom = owl.axioms(AxiomType.DECLARATION).findFirst().orElse(null);
+        Assert.assertNotNull("Can't find any owl-class", axiom);
+        Assert.assertEquals("Incorrect owl-class uri", classIRI, axiom.getEntity().getIRI());
+        List<OntClass> classes = jena.listClasses().toList();
+        Assert.assertFalse("Can't find any jena-class", classes.isEmpty());
+        Assert.assertEquals("Incorrect jena-class uri", classIRI.getIRIString(), classes.get(0).getURI());
     }
 
     @Test
@@ -110,7 +160,6 @@ public class GraphTest {
         Assert.assertEquals("OWL: incorrect individuals count after removing", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
         Assert.assertEquals("Jena: incorrect individuals count after removing.", individualsCount, jena.listIndividuals().toList().size());
         debug(owl);
-
     }
 
     @Test
@@ -195,7 +244,7 @@ public class GraphTest {
         return a.typeIndex() == b.typeIndex() && OWLAPIStreamUtils.equalStreams(a.components(), b.components());
     }
 
-    private void debug(OntologyModel ontology) {
+    private static void debug(OntologyModel ontology) {
         LOGGER.debug("DEBUG");
         LOGGER.debug("OWL: ");
         ReadWriteUtils.print(ontology, OntFormat.TTL_RDF);

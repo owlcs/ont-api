@@ -43,6 +43,15 @@ public class OntIRI extends IRI {
         return new OntIRI(String.format("%s%s%s", getBase(), URI_RESOURCE_SEPARATOR, fragment));
     }
 
+    public OntIRI addPath(String path) {
+        String base = getIRIString();
+        if (base.contains(URI_RESOURCE_SEPARATOR)) {
+            base = getBase();
+        }
+        return new OntIRI(String.format("%s/%s", base, OntIRIException.notNull(path, "Null path specified.")));
+    }
+
+
     public String getBase() {
         if (base != null) return base;
         String iri = getIRIString();

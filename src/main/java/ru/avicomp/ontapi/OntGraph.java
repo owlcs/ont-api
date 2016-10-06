@@ -5,27 +5,32 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.jena.graph.*;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.NodeID;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.rdf.turtle.parser.OWLRDFConsumerAdapter;
 
 /**
  * Graph wrapper.
+
  * There are two graphs underling.
- * One of them is associated with this wrapper and through it with jena-model,
- * The second one is associated with owl-ontology {@link OntologyModel} and triple-handler {@link OntTripleHandler} works with it.
- * It's to avoid duplicating of anonymous nodes.
+ * One of them ({@link OntGraph#graph}) is associated with this wrapper and through it with jena-model,
+ * The second one ({@link OntGraph#original}) is associated with owl-ontology {@link OntologyModel} and triple-handler {@link OntTripleHandler} works with it.
+ * Two-graphs architecture allows to avoid duplicating of anonymous nodes.
+ * The adding of triples occurs with help of OntTripleHandler (base class {@link org.semanticweb.owlapi.rdf.rdfxml.parser.OWLRDFConsumer},
+ * which produces axioms and related with them triplets in the original graph (through {@link ru.avicomp.ontapi.parsers.AxiomParser}).
+ * The removing occurs using events recorded by {@link OntGraphListener} (base class {@link GraphListener}) during axiom parsing.
  * <p>
  * Created by @szuev on 02.10.2016.
  */
 public class OntGraph implements Graph {
+    private static final OntLoaderConfiguration ONT_LOADER_CONFIGURATION = new OntLoaderConfiguration();
     // graph, that is attached to jena graph ont-model
     private final Graph graph;
     // graph, that is attached to owl-ontology
@@ -34,7 +39,7 @@ public class OntGraph implements Graph {
     private final OntTripleHandler tripleHandler;
 
     public OntGraph(OntologyModel owlOntology) {
-        this(owlOntology.getGraph(), new OntTripleHandler(owlOntology, new OntLoaderConfiguration()));
+        this(owlOntology.getInnerGraph(), new OntTripleHandler(owlOntology, ONT_LOADER_CONFIGURATION));
     }
 
     public OntGraph(Graph base, OntTripleHandler tripletHandler) {
@@ -45,7 +50,7 @@ public class OntGraph implements Graph {
     }
 
     public Graph getBaseGraph() {
-        return graph;
+        return original;
     }
 
     @Override
@@ -126,19 +131,25 @@ public class OntGraph implements Graph {
     @Override
     public void add(Triple t) {
         graph.add(t);
-        if (isURITriple(t)) { // could be added directly to original graph
+        if (isPlainTriple(t)) { // could be added directly to the original graph
             original.add(t);
         }
         tripleHandler.addTriple(t);
     }
 
+    /**
+     * if the specified triple is included in some axiom then ALL triples which belong to that axiom will be deleted.
+     *
+     * @param t Triple
+     */
     @Override
     public void delete(Triple t) {
+        // first remove using axiom:
+        tripleHandler.deleteTriple(t);
         graph.delete(t);
-        if (isURITriple(t)) {
+        if (isPlainTriple(t)) {
             original.delete(t);
         }
-        tripleHandler.deleteTriple(t);
     }
 
     @Override
@@ -158,18 +169,25 @@ public class OntGraph implements Graph {
      */
     void flush() {
         tripleHandler.handleEnd();
-        tripleHandler.clear();
+        // removed and handled triplets may be cleaned out:
+        tripleHandler.getTriples().removeIf(t -> !t.isPending());
     }
 
     /**
-     * synchronize graphs pair
+     * synchronize graphs pair.
      */
     void sync() {
+        // remove deleted triples, we don't need them any more
+        tripleHandler.getTriples().removeIf(OntTripleHandler.OntTriple::isRemoved);
+        // overwriting graph:
         graph.clear();
+        // return back pending triples (just in case):
+        tripleHandler.triples(OntTripleHandler.TripleStatus.PENDING).forEach(t -> graph.add(t.triple()));
         GraphUtil.addInto(graph, original);
+        tripleHandler.refresh();
     }
 
-    private static boolean isURITriple(Triple triple) {
+    private static boolean isPlainTriple(Triple triple) {
         return !triple.getSubject().isBlank() && !triple.getObject().isBlank();
     }
 
@@ -195,7 +213,7 @@ public class OntGraph implements Graph {
         private Map<Node, IRI> nodes = new HashMap<>();
         private Set<OntTriple> triples = new HashSet<>();
 
-        public OntTripleHandler(OntologyModel ontology, OWLOntologyLoaderConfiguration configuration) {
+        OntTripleHandler(OntologyModel ontology, OWLOntologyLoaderConfiguration configuration) {
             super(ontology, configuration);
         }
 
@@ -210,6 +228,7 @@ public class OntGraph implements Graph {
 
         @Override
         public void handleEnd() {
+            if (triples.isEmpty()) return;
             handleTriples();
             handleAnonRoots();
             super.handleEnd();
@@ -218,21 +237,44 @@ public class OntGraph implements Graph {
         public void addTriple(Triple t) {
             OntTriple triple = new OntTriple(t);
             triples.add(triple);
+            if (triple.isOntologyIRI()) // ?
+                addOntology(toIRI(triple.subject()));
             handleTriples();
         }
 
         public OntTriple find(Triple triple) {
-            return triples.stream().filter(t -> triple.equals(t.triple)).findFirst().orElse(null);
+            return triples().filter(t -> triple.equals(t.triple)).findFirst().orElse(null);
         }
 
         public void deleteTriple(Triple t) {
             OntTriple res = find(t);
-            if (res != null) res.delete();
-            OntologyModel ontology = getOntology();
-            OWLAxiom axiom = ontology.getEventStore().findAxiom(t);
-            if (axiom != null && ontology.axioms().filter(axiom::equals).findFirst().isPresent()) {
-                ontology.remove(axiom);
+            if (res == null) { // looks ugly ?
+                triples.add(res = new OntTriple(t));
             }
+            res.remove();
+            if (res.isOntologyIRI()) {
+                getOntologies().remove(toIRI(res.subject()));
+            }
+            OntologyModel ontology = getOntology();
+            OntGraphEventStore store = getStore();
+            OntGraphEventStore.OWLEvent event = store.find(OntGraphEventStore.TripleEvent.createAdd(t));
+            if (event == null) return;
+            if (event.is(OWLAxiom.class)) {
+                OWLAxiom axiom = event.get(OWLAxiom.class);
+                if (ontology.axioms().filter(axiom::equals).findFirst().isPresent()) {
+                    ontology.remove(axiom);
+                }
+            } else if (event.is(OWLImportsDeclaration.class)) {
+                ontology.applyChange(new RemoveImport(ontology, event.get(OWLImportsDeclaration.class)));
+            } else if (event.is(OWLAnnotation.class)) {
+                ontology.applyChange(new RemoveOntologyAnnotation(ontology, event.get(OWLAnnotation.class)));
+            }
+            store.clear(event);
+        }
+
+        void refresh() { // just because of OWLRDFConsumer' behaviour during changing ontology id
+            getOntologies().clear();
+            addOntology(getOntology().getOntologyID().getOntologyIRI().orElse(null));
         }
 
         public void clear() {
@@ -241,14 +283,26 @@ public class OntGraph implements Graph {
         }
 
         public void handleTriples() {
-            triples.stream().filter(OntTriple::isURIRoot).forEach(OntTriple::handle);
+            triples().filter(OntTriple::isURIRoot).forEach(OntTriple::handle);
+        }
+
+        Stream<OntTriple> triples() {
+            return triples.stream();
+        }
+
+        Stream<OntTriple> triples(TripleStatus status) {
+            return triples.stream().filter(t -> status.equals(t.status));
+        }
+
+        Set<OntTriple> getTriples() {
+            return triples;
         }
 
         /**
          * OWL2 allows anonymous roots (owl:AllDisjointClasses, owl:AllDifferent, owl:Axiom etc)
          */
         public void handleAnonRoots() {
-            triples.stream().filter(OntTriple::isRoot).forEach(OntTriple::handle);
+            triples().filter(OntTriple::isRoot).forEach(OntTriple::handle);
         }
 
         private IRI toIRI(Node node) {
@@ -281,6 +335,10 @@ public class OntGraph implements Graph {
                 this.status = TripleStatus.PENDING;
             }
 
+            Triple triple() {
+                return triple;
+            }
+
             Node subject() {
                 return triple.getSubject();
             }
@@ -291,6 +349,26 @@ public class OntGraph implements Graph {
 
             Node object() {
                 return triple.getObject();
+            }
+
+            private boolean isPending() {
+                return TripleStatus.PENDING.equals(status);
+            }
+
+            private boolean isHandled() {
+                return TripleStatus.HANDLED.equals(status);
+            }
+
+            private boolean isRemoved() {
+                return TripleStatus.REMOVED.equals(status);
+            }
+
+            private void remove() {
+                this.status = TripleStatus.REMOVED;
+            }
+
+            private boolean isOntologyIRI() {
+                return object().isURI() && object().equals(OWL.Ontology.asNode()) && predicate().equals(RDF.type.asNode()) && subject().isURI();
             }
 
             boolean isRoot() {
@@ -339,18 +417,6 @@ public class OntGraph implements Graph {
                 }
                 // then process children using recursion:
                 children.stream().filter(OntTriple::isPending).forEach(OntTriple::handle);
-            }
-
-            private boolean isPending() {
-                return TripleStatus.PENDING.equals(status);
-            }
-
-            private boolean isHandled() {
-                return TripleStatus.HANDLED.equals(status);
-            }
-
-            private void delete() {
-                this.status = TripleStatus.REMOVED;
             }
 
             @Override
