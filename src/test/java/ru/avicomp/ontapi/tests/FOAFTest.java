@@ -7,7 +7,7 @@ import ru.avicomp.ontapi.io.OntFormat;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public class FOAFTest extends BaseLoadTest {
+public class FOAFTest extends LoadTestBase {
     @Override
     public String getFileName() {
         return "foaf.rdf";

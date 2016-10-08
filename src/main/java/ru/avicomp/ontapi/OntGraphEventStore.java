@@ -69,21 +69,21 @@ public class OntGraphEventStore {
 
         public BaseEvent(Action type, Object eventObject) {
             this.type = OntException.notNull(type, "Null action type");
-            this.eventObject = OntException.notNull(eventObject, "Null event object");
+            this.eventObject = eventObject;
         }
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            BaseEvent event = (BaseEvent) o;
-            return type == event.type && eventObject.equals(event.eventObject);
+            BaseEvent that = (BaseEvent) o;
+            return type == that.type && Objects.equals(eventObject, that.eventObject);
         }
 
         @Override
         public int hashCode() {
             int result = type.hashCode();
-            result = 31 * result + eventObject.hashCode();
+            result = 31 * result + (eventObject != null ? eventObject.hashCode() : 0);
             return result;
         }
 
@@ -140,7 +140,7 @@ public class OntGraphEventStore {
             return new OWLEvent(Action.ADD, declaration);
         }
 
-        public static OWLEvent createAdd(OWLOntologyID id) {
+        public static OWLEvent createChange(OWLOntologyID id) {
             return new OWLEvent(Action.CHANGE, id);
         }
 

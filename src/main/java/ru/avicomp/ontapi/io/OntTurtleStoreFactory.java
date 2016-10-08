@@ -17,7 +17,7 @@ import org.semanticweb.owlapi.util.OWLStorerFactoryImpl;
 
 public class OntTurtleStoreFactory extends OWLStorerFactoryImpl {
 
-    static final String ONT_TURTLE_SYNTAX_KEY = "Ont Turtle Syntax";
+    static final String ONT_TURTLE_SYNTAX_KEY = "ONT-API Turtle Syntax";
 
     private static final OntTurtleStoreFactory INSTANCE = new OntTurtleStoreFactory();
 

@@ -62,7 +62,7 @@ public class OntIRI extends IRI {
         return toOwlOntologyID(null);
     }
 
-    public OWLOntologyID toOwlOntologyID(OntIRI versionIRI) {
+    public OWLOntologyID toOwlOntologyID(IRI versionIRI) {
         return versionIRI == null ? new OWLOntologyID(this) : new OWLOntologyID(this, versionIRI);
     }
 
@@ -97,6 +97,19 @@ public class OntIRI extends IRI {
     public static OntIRI create(OWLOntology o) {
         Optional<IRI> opt = OntIRIException.notNull(o, "Null owl-ontology specified.").getOntologyID().getOntologyIRI();
         return opt.isPresent() ? create(opt.get()) : null;
+    }
+
+    public static String toStringIRI(OWLOntologyID id) {
+        return getString(id.getOntologyIRI());
+    }
+
+    public static String toStringVersionIRI(OWLOntologyID id) {
+        return getString(id.getVersionIRI());
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static String getString(Optional<IRI> optional) {
+        return optional.map(IRI::getIRIString).orElse(null);
     }
 
     private static class OntIRIException extends OntException {

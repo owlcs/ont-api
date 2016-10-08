@@ -26,64 +26,11 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
  * for testing pizza, foaf, googrelations ontologies.
- *
+ * <p>
  * Created by @szuev on 30.09.2016.
  */
-public abstract class BaseLoadTest {
-    private static final Logger LOGGER = Logger.getLogger(BaseLoadTest.class);
-
-    public abstract String getFileName();
-
-    public abstract long getTotalNumberOfAxioms();
-
-    @Test
-    public void test() {
-        IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(getFileName()));
-        LOGGER.info("The file " + fileIRI);
-
-        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
-        OntologyModel ontology = load(manager, fileIRI);
-        OWLOntologyID id = ontology.getOntologyID();
-        IRI iri = id.getOntologyIRI().orElse(null);
-        Assert.assertNotNull("Null ont-iri " + id, iri);
-
-        Assert.assertEquals("Incorrect count of axioms", getTotalNumberOfAxioms(), ontology.getAxiomCount());
-        OntModel ontModel = ontology.asGraphModel();
-        String ontIRI = iri.getIRIString();
-        ontModel.setNsPrefix("", ontIRI + "#");
-        ReadWriteUtils.print(ontModel, OntFormat.TTL_RDF);
-        Assert.assertNotNull("Null jena ontology ", ontModel.getOntology(ontIRI));
-
-        String copyOntIRI = ontIRI + ".copy";
-        OntModel copyOntModel = copyOntModel(ontModel, copyOntIRI);
-
-        OntologyModel copyOntology = putOntModelToManager(manager, copyOntModel, convertFormat());
-        long ontologiesCount = manager.ontologies().count();
-        LOGGER.debug("Number of ontologies inside manager: " + ontologiesCount);
-        Assert.assertTrue("Incorrect number of ontologies inside manager (" + ontologiesCount + ")", ontologiesCount >= 2);
-        LOGGER.debug("Total number of axioms: " + copyOntology.getAxiomCount());
-        testAxioms(ontology, copyOntology);
-    }
-
-    private void testAxioms(OntologyModel origin, OntologyModel check) {
-        long numberOfNamedIndividuals = origin.individualsInSignature().count();
-        List<String> errors = new ArrayList<>();
-        AxiomType.AXIOM_TYPES.forEach(t -> {
-            long actual = origin.axioms(t).count();
-            long expected = check.axioms(t).count();
-            if (AxiomType.DECLARATION.equals(t)) {
-                // don't know why, but sometimes (pizza.ttl) it takes into account NamedIndividuals, but sometimes not (goodrelations.rdf)
-                // perhaps it is due to different initial format.
-                if (OntFormat.XML_RDF.equals(convertFormat())) {
-                    expected -= numberOfNamedIndividuals;
-                }
-                return;
-            }
-            if (actual == expected) return;
-            errors.add(String.format("Incorrect count of axioms(%s). Expected: %d. Actual: %d\n", t, expected, actual));
-        });
-        Assert.assertTrue(String.valueOf(errors), errors.isEmpty());
-    }
+public abstract class LoadTestBase {
+    private static final Logger LOGGER = Logger.getLogger(LoadTestBase.class);
 
     public static OntologyModel load(OWLOntologyManager manager, IRI fileIRI) {
         OWLOntology owl = null;
@@ -94,10 +41,6 @@ public abstract class BaseLoadTest {
         }
         Assert.assertEquals("incorrect class " + owl.getClass(), OntologyModel.class, owl.getClass());
         return (OntologyModel) owl;
-    }
-
-    public OntFormat convertFormat() {
-        return OntFormat.TTL_RDF;
     }
 
     public static OntologyModel putOntModelToManager(OWLOntologyManager manager, OntModel model, OntFormat convertFormat) {
@@ -154,5 +97,62 @@ public abstract class BaseLoadTest {
         }
         if (ontologies.size() == 1) return ontologies.get(0);
         return null;
+    }
+
+    public abstract String getFileName();
+
+    public abstract long getTotalNumberOfAxioms();
+
+    @Test
+    public void test() {
+        IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(getFileName()));
+        LOGGER.info("The file " + fileIRI);
+
+        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
+        OntologyModel ontology = load(manager, fileIRI);
+        OWLOntologyID id = ontology.getOntologyID();
+        IRI iri = id.getOntologyIRI().orElse(null);
+        Assert.assertNotNull("Null ont-iri " + id, iri);
+
+        Assert.assertEquals("Incorrect count of axioms", getTotalNumberOfAxioms(), ontology.getAxiomCount());
+        OntModel ontModel = ontology.asGraphModel();
+        String ontIRI = iri.getIRIString();
+        ontModel.setNsPrefix("", ontIRI + "#");
+        ReadWriteUtils.print(ontModel, OntFormat.TTL_RDF);
+        Assert.assertNotNull("Null jena ontology ", ontModel.getOntology(ontIRI));
+
+        String copyOntIRI = ontIRI + ".copy";
+        OntModel copyOntModel = copyOntModel(ontModel, copyOntIRI);
+
+        OntologyModel copyOntology = putOntModelToManager(manager, copyOntModel, convertFormat());
+        long ontologiesCount = manager.ontologies().count();
+        LOGGER.debug("Number of ontologies inside manager: " + ontologiesCount);
+        Assert.assertTrue("Incorrect number of ontologies inside manager (" + ontologiesCount + ")", ontologiesCount >= 2);
+        LOGGER.debug("Total number of axioms: " + copyOntology.getAxiomCount());
+        testAxioms(ontology, copyOntology);
+    }
+
+    private void testAxioms(OntologyModel origin, OntologyModel check) {
+        long numberOfNamedIndividuals = origin.individualsInSignature().count();
+        List<String> errors = new ArrayList<>();
+        AxiomType.AXIOM_TYPES.forEach(t -> {
+            long actual = origin.axioms(t).count();
+            long expected = check.axioms(t).count();
+            if (AxiomType.DECLARATION.equals(t)) {
+                // don't know why, but sometimes (pizza.ttl) it takes into account NamedIndividuals, but sometimes not (goodrelations.rdf)
+                // perhaps it is due to different initial format.
+                if (OntFormat.XML_RDF.equals(convertFormat())) {
+                    expected -= numberOfNamedIndividuals;
+                }
+                return;
+            }
+            if (actual == expected) return;
+            errors.add(String.format("Incorrect count of axioms(%s). Expected: %d. Actual: %d\n", t, expected, actual));
+        });
+        Assert.assertTrue(String.valueOf(errors), errors.isEmpty());
+    }
+
+    public OntFormat convertFormat() {
+        return OntFormat.TTL_RDF;
     }
 }
