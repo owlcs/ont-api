@@ -10,7 +10,8 @@ import org.semanticweb.owlapi.util.OWLDocumentFormatFactoryImpl;
 import org.semanticweb.owlapi.util.OWLStorerFactoryImpl;
 
 /**
- * OWL-API Turtle Store Factory
+ * todo: might be removed from project later.
+ * ONT-API Turtle Store Factory
  * <p>
  * Created by szuev on 12.05.2016.
  */

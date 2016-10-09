@@ -1,7 +1,6 @@
 package ru.avicomp.ontapi.parsers;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -33,8 +32,4 @@ abstract class AbstractPropertyRangeParser<Axiom extends OWLAxiom & HasProperty 
         model.add(getSubject(), getPredicate(), ParseUtils.toResource(model, getAxiom().getRange()));
     }
 
-    @Override
-    public void reverse(Graph graph) {
-        graph.remove(getSubject().asNode(), getPredicate().asNode(), Node.ANY);
-    }
 }

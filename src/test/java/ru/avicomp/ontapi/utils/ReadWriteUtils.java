@@ -7,7 +7,10 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
@@ -68,7 +71,7 @@ public class ReadWriteUtils {
         return new File(dir, name + (type != null ? "." + type.getExt() : ""));
     }
 
-    private static File getResourceFile(String projectDirName, String fileName) throws URISyntaxException, FileNotFoundException {
+    public static File getResourceFile(String projectDirName, String fileName) throws URISyntaxException, FileNotFoundException {
         URL url = ReadWriteUtils.class.getResource(projectDirName.startsWith("/") ? projectDirName : "/" + projectDirName);
         if (url == null)
             throw new IllegalArgumentException("Can't find project " + projectDirName + ".");
@@ -77,6 +80,15 @@ public class ReadWriteUtils {
         File res = new File(dir, fileName);
         if (!res.exists()) throw new FileNotFoundException(fileName);
         return res;
+    }
+
+    public static File getResourceFile(String fileName) {
+        try {
+            return getResourceFile("", fileName);
+        } catch (URISyntaxException | FileNotFoundException e) {
+            LOGGER.fatal(e);
+        }
+        return null;
     }
 
     public static URI getResourceURI(String dir, String file) {
@@ -94,6 +106,18 @@ public class ReadWriteUtils {
 
     public static URI getOutURI(String file) {
         return new File(DESTINATION_DIR, file).toURI();
+    }
+
+    public static OntModel load(OntModelSpec spec, File file, OntFormat format) {
+        Model base = ModelFactory.createDefaultModel();
+        try {
+            LOGGER.debug("Load model from " + file.toURI());
+            base.read(new FileInputStream(file), null, format.getType());
+        } catch (FileNotFoundException e) {
+            LOGGER.fatal("Can't read ontology", e);
+            throw new IllegalArgumentException(e);
+        }
+        return ModelFactory.createOntologyModel(spec, base);
     }
 
     public static void save(Model model, String name, OntFormat type) {

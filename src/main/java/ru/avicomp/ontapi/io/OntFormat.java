@@ -6,7 +6,8 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLDocumentFormatImpl;
 
 /**
- * todo:
+ * todo: might be removed from project later.
+ *
  * Created by @szuev on 27.09.2016.
  */
 public enum OntFormat {

@@ -120,7 +120,9 @@ public class ChangeIDGraphTest extends GraphTestBase {
         OWLDataFactory factory = manager.getOWLDataFactory();
         OntologyModel owl = (OntologyModel) manager.createOntology(iri.toOwlOntologyID());
         createOntologyProperties(owl, imports, annotations);
-        manager.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(factory.getOWLClass(clazz))));
+        OWLAnnotationProperty ap1 = factory.getOWLAnnotationProperty(iri.addFragment("annotation-property-1"));
+        OWLAnnotation a1 = factory.getOWLAnnotation(ap1, factory.getOWLLiteral("tess-annotation-1"));
+        manager.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(factory.getOWLClass(clazz), Stream.of(a1).collect(Collectors.toList()))));
         OntModel jena = owl.asGraphModel();
         debug(owl);
 

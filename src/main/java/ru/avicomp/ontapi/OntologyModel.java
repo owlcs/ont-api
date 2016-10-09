@@ -163,7 +163,7 @@ public class OntologyModel extends OWLOntologyImpl {
         }
 
         private void initOntologyID() {
-            GraphListener listener = OntGraphListener.createChangeID(eventStore, ontologyID);
+            GraphListener listener = OntGraphListener.create(eventStore, OntGraphEventStore.createChange(ontologyID));
             try {
                 inner.getEventManager().register(listener);
                 inner.add(Triple.create(getNodeIRI(), RDF.type.asNode(), OWL.Ontology.asNode()));
@@ -183,7 +183,7 @@ public class OntologyModel extends OWLOntologyImpl {
          * @param id new OWLOntologyID
          */
         private void changeOntologyID(OWLOntologyID id) {
-            GraphListener listener = OntGraphListener.createChangeID(eventStore, ontologyID);
+            GraphListener listener = OntGraphListener.create(eventStore, OntGraphEventStore.createChange(ontologyID));
             try {
                 inner.getEventManager().register(listener);
                 Set<OWLImportsDeclaration> imports = OntologyModel.this.importsDeclarations().collect(Collectors.toSet());
@@ -198,7 +198,7 @@ public class OntologyModel extends OWLOntologyImpl {
                 if (version != null) {
                     inner.add(Triple.create(nodeIRI, OWL2.versionIRI.asNode(), toNode(version)));
                 }
-                // add new one rdf:ontology
+                // add new one owl:Ontology
                 inner.add(Triple.create(nodeIRI = createNodeIRI(id), RDF.type.asNode(), OWL.Ontology.asNode()));
                 // return back imports:
                 imports.forEach(this::addImport);
@@ -211,27 +211,32 @@ public class OntologyModel extends OWLOntologyImpl {
         }
 
         private void addImport(OWLImportsDeclaration declaration) {
-            GraphListener listener = OntGraphListener.createAdd(eventStore, declaration);
+            OntGraphEventStore.OWLEvent event = OntGraphEventStore.createAdd(declaration);
+            GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
                 inner.add(Triple.create(getNodeIRI(), OWL.imports.asNode(), toNode(declaration.getIRI())));
             } finally {
+                eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
         }
 
         private void removeImport(OWLImportsDeclaration declaration) {
-            GraphListener listener = OntGraphListener.createRemove(eventStore, declaration);
+            OntGraphEventStore.OWLEvent event = OntGraphEventStore.createRemove(declaration);
+            GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
                 inner.remove(getNodeIRI(), OWL.imports.asNode(), toNode(declaration.getIRI()));
             } finally {
+                eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
         }
 
         private void addAnnotation(OWLAnnotation annotation) {
-            GraphListener listener = OntGraphListener.createAdd(eventStore, annotation);
+            OntGraphEventStore.OWLEvent event = OntGraphEventStore.createAdd(annotation);
+            GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
                 OWLAnnotationProperty property = annotation.getProperty();
@@ -239,12 +244,14 @@ public class OntologyModel extends OWLOntologyImpl {
                 OWLAnnotationValue literal = value.isIRI() ? value : value.asLiteral().orElse(null);
                 inner.add(Triple.create(getNodeIRI(), toNode(property.getIRI()), toNode(literal)));
             } finally {
+                eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
         }
 
         private void removeAnnotation(OWLAnnotation annotation) {
-            GraphListener listener = OntGraphListener.createRemove(eventStore, annotation);
+            OntGraphEventStore.OWLEvent event = OntGraphEventStore.createRemove(annotation);
+            GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
                 OWLAnnotationProperty property = annotation.getProperty();
@@ -252,30 +259,35 @@ public class OntologyModel extends OWLOntologyImpl {
                 OWLAnnotationValue literal = value.isIRI() ? value : value.asLiteral().orElse(null);
                 inner.remove(getNodeIRI(), toNode(property.getIRI()), toNode(literal));
             } finally {
+                eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
         }
 
         private void addAxiom(OWLAxiom axiom) {
-            GraphListener listener = OntGraphListener.createAdd(eventStore, axiom);
+            OntGraphEventStore.OWLEvent event = OntGraphEventStore.createAdd(axiom);
+            GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
                 AxiomParserFactory.get(axiom).process(inner);
             } catch (Exception e) {
                 throw new OntException("Add axiom " + axiom, e);
             } finally {
+                eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
         }
 
         private void removeAxiom(OWLAxiom axiom) {
-            GraphListener listener = OntGraphListener.createRemove(eventStore, axiom);
+            OntGraphEventStore.OWLEvent event = OntGraphEventStore.createRemove(axiom);
+            GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
-                AxiomParserFactory.get(axiom).reverse(inner);
+                eventStore.triples(event.reverse()).forEach(inner::delete);
             } catch (Exception e) {
                 throw new OntException("Remove axiom " + axiom, e);
             } finally {
+                eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
         }

@@ -22,11 +22,7 @@ abstract class SingleTripletParser<Axiom extends OWLAxiom> extends AxiomParser<A
 
     @Override
     public void process(Graph graph) {
-            graph.add(Triple.create(getSubject().asNode(), getPredicate().asNode(), getObject().asNode()));
+        graph.add(Triple.create(getSubject().asNode(), getPredicate().asNode(), getObject().asNode()));
     }
 
-    @Override
-    public void reverse(Graph graph) {
-        graph.remove(getSubject().asNode(), getPredicate().asNode(), getObject().asNode());
-    }
 }

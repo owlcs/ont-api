@@ -3,10 +3,6 @@ package ru.avicomp.ontapi;
 import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
  * Graph Event listener and factory.
@@ -36,49 +32,26 @@ public class OntGraphListener extends GraphListenerBase {
         this.objectEvent = objectEvent;
     }
 
-    protected OntGraphEventStore getStore() {
+    public OntGraphEventStore getStore() {
         return store;
     }
 
-    protected OntGraphEventStore.OWLEvent getObjectEvent() {
+    public OntGraphEventStore.OWLEvent getOWLEvent() {
         return objectEvent;
     }
 
     @Override
     protected void addEvent(Triple triple) {
-        store.add(objectEvent, OntGraphEventStore.TripleEvent.createAdd(triple));
+        store.add(objectEvent, OntGraphEventStore.createAdd(triple));
     }
 
     @Override
     protected void deleteEvent(Triple triple) {
-        store.add(objectEvent, OntGraphEventStore.TripleEvent.createDelete(triple));
+        store.add(objectEvent, OntGraphEventStore.createDelete(triple));
     }
 
-    public static GraphListener createAdd(OntGraphEventStore store, OWLAxiom axiom) {
-        return new OntGraphListener(store, OntGraphEventStore.OWLEvent.createAdd(axiom));
+    public static GraphListener create(OntGraphEventStore store, OntGraphEventStore.OWLEvent event) {
+        return event.isAdd() ? new OntGraphListener(store, event) : NULL_GRAPH_LISTENER;
     }
 
-    public static GraphListener createRemove(OntGraphEventStore store, OWLAxiom axiom) {
-        return NULL_GRAPH_LISTENER;
-    }
-
-    public static GraphListener createChangeID(OntGraphEventStore store, OWLOntologyID id) {
-        return NULL_GRAPH_LISTENER;
-    }
-
-    public static GraphListener createAdd(OntGraphEventStore store, OWLImportsDeclaration declaration) {
-        return new OntGraphListener(store, OntGraphEventStore.OWLEvent.createAdd(declaration));
-    }
-
-    public static GraphListener createRemove(OntGraphEventStore store, OWLImportsDeclaration declaration) {
-        return NULL_GRAPH_LISTENER;
-    }
-
-    public static GraphListener createAdd(OntGraphEventStore store, OWLAnnotation annotation) {
-        return new OntGraphListener(store, OntGraphEventStore.OWLEvent.createAdd(annotation));
-    }
-
-    public static GraphListener createRemove(OntGraphEventStore store, OWLAnnotation annotation) {
-        return NULL_GRAPH_LISTENER;
-    }
 }

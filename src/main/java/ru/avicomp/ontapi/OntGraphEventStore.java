@@ -3,6 +3,7 @@ package ru.avicomp.ontapi;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -36,8 +37,48 @@ public class OntGraphEventStore {
         return res;
     }
 
+    public Stream<Triple> triples(OWLEvent event) {
+        return events.getOrDefault(event, Collections.emptySet()).stream().map(TripleEvent::get);
+    }
+
     public OWLEvent find(TripleEvent tripleEvent) {
         return events.entrySet().stream().filter(p -> p.getValue().contains(tripleEvent)).map(Map.Entry::getKey).findFirst().orElse(null);
+    }
+
+    public static TripleEvent createAdd(Triple triple) {
+        return new TripleEvent(BaseEvent.Action.ADD, triple);
+    }
+
+    public static TripleEvent createDelete(Triple triple) {
+        return new TripleEvent(BaseEvent.Action.DELETE, triple);
+    }
+
+    public static OWLEvent createChange(OWLOntologyID id) {
+        return new OWLEvent(BaseEvent.Action.CHANGE, id);
+    }
+
+    public static OWLEvent createAdd(OWLImportsDeclaration declaration) {
+        return new OWLEvent(BaseEvent.Action.ADD, declaration);
+    }
+
+    public static OWLEvent createRemove(OWLImportsDeclaration declaration) {
+        return new OWLEvent(BaseEvent.Action.DELETE, declaration);
+    }
+
+    public static OWLEvent createAdd(OWLAnnotation annotation) {
+        return new OWLEvent(BaseEvent.Action.ADD, annotation);
+    }
+
+    public static OWLEvent createRemove(OWLAnnotation annotation) {
+        return new OWLEvent(BaseEvent.Action.DELETE, annotation);
+    }
+
+    public static OWLEvent createAdd(OWLAxiom axiom) {
+        return new OWLEvent(BaseEvent.Action.ADD, axiom);
+    }
+
+    public static OWLEvent createRemove(OWLAxiom axiom) {
+        return new OWLEvent(BaseEvent.Action.DELETE, axiom);
     }
 
     public static class EventPair {
@@ -105,6 +146,10 @@ public class OntGraphEventStore {
         public boolean isDelete() {
             return Action.DELETE.equals(type);
         }
+
+        public Action getType() {
+            return type;
+        }
     }
 
     public static class TripleEvent extends BaseEvent {
@@ -113,12 +158,8 @@ public class OntGraphEventStore {
             super(type, triple);
         }
 
-        public static TripleEvent createAdd(Triple triple) {
-            return new TripleEvent(Action.ADD, triple);
-        }
-
-        public static TripleEvent createDelete(Triple triple) {
-            return new TripleEvent(Action.DELETE, triple);
+        public Triple get() {
+            return (Triple) eventObject;
         }
     }
 
@@ -136,23 +177,10 @@ public class OntGraphEventStore {
             return view.isInstance(eventObject);
         }
 
-        public static OWLEvent createAdd(OWLImportsDeclaration declaration) {
-            return new OWLEvent(Action.ADD, declaration);
-        }
-
-        public static OWLEvent createChange(OWLOntologyID id) {
-            return new OWLEvent(Action.CHANGE, id);
-        }
-
-        public static OWLEvent createAdd(OWLAnnotation annotation) {
-            return new OWLEvent(Action.ADD, annotation);
-        }
-
-        public static OWLEvent createAdd(OWLAxiom axiom) {
-            return new OWLEvent(Action.ADD, axiom);
+        OWLEvent reverse() {
+            return isAdd() ? new OWLEvent(Action.DELETE, eventObject) : isDelete() ? new OWLEvent(Action.ADD, eventObject) : this;
         }
     }
-
 
 
 }

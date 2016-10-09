@@ -2,7 +2,7 @@ package ru.avicomp.ontapi;
 
 /**
  * Base runtime exception.
- *
+ * <p>
  * Created by @szuev on 27.09.2016.
  */
 public class OntException extends RuntimeException {

@@ -308,7 +308,7 @@ public class OntGraph implements Graph {
             fetch(t).markRemoved();
             OntologyModel ontology = getOntology();
             OntGraphEventStore store = getStore();
-            OntGraphEventStore.OWLEvent event = store.find(OntGraphEventStore.TripleEvent.createAdd(t));
+            OntGraphEventStore.OWLEvent event = store.find(OntGraphEventStore.createAdd(t));
             if (event == null) return;
             if (event.is(OWLAxiom.class)) {
                 OWLAxiom axiom = event.get(OWLAxiom.class);
@@ -320,7 +320,6 @@ public class OntGraph implements Graph {
             } else if (event.is(OWLAnnotation.class)) {
                 ontology.applyChange(new RemoveOntologyAnnotation(ontology, event.get(OWLAnnotation.class)));
             }
-            store.clear(event);
         }
 
         public void clear() {
