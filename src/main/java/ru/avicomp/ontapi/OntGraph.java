@@ -303,23 +303,28 @@ public class OntGraph implements Graph {
             return res;
         }
 
+        /**
+         * remove all axioms which contain specified triple.
+         *
+         * @param t Triple
+         */
         public void deleteTriple(Triple t) {
             //TODO: remove only roots?
             fetch(t).markRemoved();
             OntologyModel ontology = getOntology();
             OntGraphEventStore store = getStore();
-            OntGraphEventStore.OWLEvent event = store.find(OntGraphEventStore.createAdd(t));
-            if (event == null) return;
-            if (event.is(OWLAxiom.class)) {
-                OWLAxiom axiom = event.get(OWLAxiom.class);
-                if (ontology.axioms().filter(axiom::equals).findFirst().isPresent()) {
-                    ontology.remove(axiom);
+            store.getEvents(OntGraphEventStore.createAdd(t)).forEach(event -> {
+                if (event.is(OWLAxiom.class)) {
+                    OWLAxiom axiom = event.get(OWLAxiom.class);
+                    if (ontology.axioms().filter(axiom::equals).findFirst().isPresent()) {
+                        ontology.remove(axiom);
+                    }
+                } else if (event.is(OWLImportsDeclaration.class)) {
+                    ontology.applyChange(new RemoveImport(ontology, event.get(OWLImportsDeclaration.class)));
+                } else if (event.is(OWLAnnotation.class)) {
+                    ontology.applyChange(new RemoveOntologyAnnotation(ontology, event.get(OWLAnnotation.class)));
                 }
-            } else if (event.is(OWLImportsDeclaration.class)) {
-                ontology.applyChange(new RemoveImport(ontology, event.get(OWLImportsDeclaration.class)));
-            } else if (event.is(OWLAnnotation.class)) {
-                ontology.applyChange(new RemoveOntologyAnnotation(ontology, event.get(OWLAnnotation.class)));
-            }
+            });
         }
 
         public void clear() {

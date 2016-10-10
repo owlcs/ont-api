@@ -1,7 +1,6 @@
 package ru.avicomp.ontapi;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -12,37 +11,69 @@ import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
- * store for ontology graph events
+ * Store for ontology graph events and events factory.
+ * NOTE: it is not synchronized.
  * <p>
  * Created by @szuev on 04.10.2016.
  */
 public class OntGraphEventStore {
-    private Map<OWLEvent, Set<TripleEvent>> events = new ConcurrentHashMap<>();
+    private Map<OWLEvent, Set<TripleEvent>> direct = new HashMap<>();
+    private Map<TripleEvent, Set<OWLEvent>> inverse = new HashMap<>();
 
     public void add(OWLEvent event, TripleEvent triple) {
-        events.computeIfAbsent(event, e -> new HashSet<>()).add(triple);
+        direct.computeIfAbsent(event, e -> new HashSet<>()).add(triple);
+        inverse.computeIfAbsent(triple, e -> new HashSet<>()).add(event);
     }
 
     public void clear() {
-        events.clear();
+        direct.clear();
+        inverse.clear();
     }
 
     public void clear(OWLEvent event) {
-        events.remove(event);
+        direct.remove(event);
+        inverse.values().forEach(events -> events.remove(event));
     }
 
-    public List<EventPair> getEvents() {
+    /**
+     * method for debug purposes
+     *
+     * @return List of {@link EventPair}
+     */
+    public List<EventPair> getLogs() {
         List<EventPair> res = new ArrayList<>();
-        events.forEach((owl, triplets) -> res.addAll(triplets.stream().map(t -> new EventPair(owl, t)).collect(Collectors.toList())));
+        direct.forEach((owl, triplets) -> res.addAll(triplets.stream().map(t -> new EventPair(owl, t)).collect(Collectors.toList())));
         return res;
     }
 
-    public Stream<Triple> triples(OWLEvent event) {
-        return events.getOrDefault(event, Collections.emptySet()).stream().map(TripleEvent::get);
+    public Stream<TripleEvent> triples(OWLEvent owl) {
+        return direct.getOrDefault(owl, Collections.emptySet()).stream();
     }
 
-    public OWLEvent find(TripleEvent tripleEvent) {
-        return events.entrySet().stream().filter(p -> p.getValue().contains(tripleEvent)).map(Map.Entry::getKey).findFirst().orElse(null);
+    public Stream<OWLEvent> events(TripleEvent triple) {
+        return inverse.getOrDefault(triple, Collections.emptySet()).stream();
+    }
+
+    public Set<OWLEvent> getEvents(TripleEvent tripleEvent) {
+        return Collections.unmodifiableSet(inverse.getOrDefault(tripleEvent, Collections.emptySet()));
+    }
+
+    public Set<TripleEvent> getEvents(OWLEvent owlEvent) {
+        return Collections.unmodifiableSet(direct.getOrDefault(owlEvent, Collections.emptySet()));
+    }
+
+    public int count(TripleEvent triple) {
+        Set set = inverse.get(triple);
+        return set == null ? 0 : set.size();
+    }
+
+    public int count(OWLEvent owl) {
+        Set set = direct.get(owl);
+        return set == null ? 0 : set.size();
+    }
+
+    public OWLEvent findFirst(TripleEvent tripleEvent) {
+        return direct.entrySet().stream().filter(p -> p.getValue().contains(tripleEvent)).map(Map.Entry::getKey).findFirst().orElse(null);
     }
 
     public static TripleEvent createAdd(Triple triple) {
@@ -107,6 +138,7 @@ public class OntGraphEventStore {
     public static abstract class BaseEvent {
         protected final Action type;
         protected final Object eventObject;
+        private int hashCode;
 
         public BaseEvent(Action type, Object eventObject) {
             this.type = OntException.notNull(type, "Null action type");
@@ -123,9 +155,10 @@ public class OntGraphEventStore {
 
         @Override
         public int hashCode() {
+            if (hashCode != 0) return hashCode;
             int result = type.hashCode();
             result = 31 * result + (eventObject != null ? eventObject.hashCode() : 0);
-            return result;
+            return hashCode = result;
         }
 
         @Override

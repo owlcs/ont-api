@@ -84,7 +84,7 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         jena.removeAll(anon, null, null);
 
         LOGGER.info("Events");
-        result.getEventStore().getEvents().forEach(LOGGER::debug);
+        result.getEventStore().getLogs().forEach(LOGGER::debug);
 
         LOGGER.info("Compare axioms.");
         result.axioms().forEach(LOGGER::debug);

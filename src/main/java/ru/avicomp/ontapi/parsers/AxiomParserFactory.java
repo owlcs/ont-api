@@ -9,10 +9,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.ext.com.google.common.reflect.ClassPath;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
+import com.google.common.reflect.ClassPath;
 import ru.avicomp.ontapi.OntException;
 
 /**

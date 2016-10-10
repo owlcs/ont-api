@@ -283,7 +283,9 @@ public class OntologyModel extends OWLOntologyImpl {
             GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
-                eventStore.triples(event.reverse()).forEach(inner::delete);
+                eventStore.triples(event.reverse()).
+                        filter(t -> eventStore.count(t) < 2). // skip triplets which are included in several axioms
+                        map(OntGraphEventStore.TripleEvent::get).forEach(inner::delete);
             } catch (Exception e) {
                 throw new OntException("Remove axiom " + axiom, e);
             } finally {
