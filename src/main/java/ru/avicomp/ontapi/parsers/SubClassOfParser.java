@@ -16,10 +16,10 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  */
 class SubClassOfParser extends AxiomParser<OWLSubClassOfAxiom> {
     @Override
-    public void process(Graph graph) {
+    public void translate(Graph graph) {
         Model model = ModelFactory.createModelForGraph(graph);
-        Resource subject = ParseUtils.toResource(model, getAxiom().getSubClass());
+        Resource subject = AxiomParseUtils.toResource(model, getAxiom().getSubClass());
         subject.inModel(model);
-        model.add(subject, RDFS.subClassOf, ParseUtils.toResource(model, getAxiom().getSuperClass()));
+        model.add(subject, RDFS.subClassOf, AxiomParseUtils.toResource(model, getAxiom().getSuperClass()));
     }
 }

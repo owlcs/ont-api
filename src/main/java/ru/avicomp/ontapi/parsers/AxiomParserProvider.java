@@ -16,12 +16,12 @@ import com.google.common.reflect.ClassPath;
 import ru.avicomp.ontapi.OntException;
 
 /**
- * Parsers loader
+ * Axiom Graph Translator loader.
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public abstract class AxiomParserFactory {
-    private static final Logger LOGGER = Logger.getLogger(AxiomParserFactory.class);
+public abstract class AxiomParserProvider {
+    private static final Logger LOGGER = Logger.getLogger(AxiomParserProvider.class);
 
     public static Set<Class<? extends AxiomParser>> getParsers() {
         return ParserHolder.CLASS_SET;

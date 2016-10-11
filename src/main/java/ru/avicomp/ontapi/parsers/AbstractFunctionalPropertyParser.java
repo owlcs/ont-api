@@ -16,7 +16,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 abstract class AbstractFunctionalPropertyParser<Axiom extends OWLAxiom & HasProperty> extends SingleTripletParser<Axiom> {
     @Override
     public Resource getSubject() {
-        return ParseUtils.toResource(getAxiom().getProperty());
+        return AxiomParseUtils.toResource(getAxiom().getProperty());
     }
 
     @Override

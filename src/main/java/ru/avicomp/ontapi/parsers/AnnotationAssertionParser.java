@@ -19,19 +19,19 @@ import ru.avicomp.ontapi.OntException;
 class AnnotationAssertionParser extends SingleTripletParser<OWLAnnotationAssertionAxiom> {
     @Override
     public Resource getSubject() {
-        return ParseUtils.toResource(getAxiom().getSubject());
+        return AxiomParseUtils.toResource(getAxiom().getSubject());
     }
 
     @Override
     public Property getPredicate() {
-        return ParseUtils.toProperty(getAxiom().getProperty().getIRI());
+        return AxiomParseUtils.toProperty(getAxiom().getProperty().getIRI());
     }
 
     @Override
     public RDFNode getObject() {
         OWLAnnotationValue value = getAxiom().getValue();
-        return value.isIRI() ? ParseUtils.toResource(value) :
-                ParseUtils.toLiteral(value.asLiteral().
+        return value.isIRI() ? AxiomParseUtils.toResource(value) :
+                AxiomParseUtils.toLiteral(value.asLiteral().
                         orElseThrow(() -> new OntException("Can't determine object " + getAxiom())));
     }
 }

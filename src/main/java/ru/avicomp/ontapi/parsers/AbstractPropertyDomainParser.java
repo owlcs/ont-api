@@ -18,7 +18,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
  */
 abstract class AbstractPropertyDomainParser<Axiom extends OWLAxiom & HasDomain & HasProperty> extends AxiomParser<Axiom> {
     public Resource getSubject() {
-        return ParseUtils.toResource(getAxiom().getProperty());
+        return AxiomParseUtils.toResource(getAxiom().getProperty());
     }
 
     public Property getPredicate() {
@@ -26,9 +26,9 @@ abstract class AbstractPropertyDomainParser<Axiom extends OWLAxiom & HasDomain &
     }
 
     @Override
-    public void process(Graph graph) {
+    public void translate(Graph graph) {
         Model model = ModelFactory.createModelForGraph(graph);
-        model.add(getSubject(), getPredicate(), ParseUtils.toResource(model, getAxiom().getDomain()));
+        model.add(getSubject(), getPredicate(), AxiomParseUtils.toResource(model, getAxiom().getDomain()));
     }
 
 }

@@ -27,7 +27,7 @@ import ru.avicomp.ontapi.OntException;
 class DisjointClassesParser extends AxiomParser<OWLDisjointClassesAxiom> {
 
     @Override
-    public void process(Graph graph) {
+    public void translate(Graph graph) {
         OWLDisjointClassesAxiom axiom = getAxiom();
         long count = axiom.classExpressions().count();
         if (count < 2) throw new OntException("Should be at least two classes " + axiom);
@@ -37,12 +37,12 @@ class DisjointClassesParser extends AxiomParser<OWLDisjointClassesAxiom> {
             if (clazz == null)
                 throw new OntException("Can't find a single non-anonymous class expression inside " + axiom);
             OWLClassExpression rest = axiom.classExpressions().filter((obj) -> !clazz.equals(obj)).findFirst().orElse(null);
-            Resource subject = ParseUtils.toResource(clazz.getIRI());
-            model.add(subject, OWL.disjointWith, ParseUtils.toResource(model, rest));
+            Resource subject = AxiomParseUtils.toResource(clazz.getIRI());
+            model.add(subject, OWL.disjointWith, AxiomParseUtils.toResource(model, rest));
         } else { // OWL2 (owl:AllDisjointClasses)
             Resource root = model.createResource();
             model.add(root, RDF.type, OWL2.AllDisjointClasses);
-            Iterator<? extends RDFNode> iterator = ParseUtils.toResourceIterator(model, axiom.classExpressions());
+            Iterator<? extends RDFNode> iterator = AxiomParseUtils.toResourceIterator(model, axiom.classExpressions());
             model.add(root, OWL2.members, model.createList(iterator));
         }
     }

@@ -19,7 +19,7 @@ import ru.avicomp.ontapi.OntException;
 class DeclarationParser extends SingleTripletParser<OWLDeclarationAxiom> {
     @Override
     public Resource getSubject() {
-        return ParseUtils.toResource(getAxiom().getEntity());
+        return AxiomParseUtils.toResource(getAxiom().getEntity());
     }
 
     @Override

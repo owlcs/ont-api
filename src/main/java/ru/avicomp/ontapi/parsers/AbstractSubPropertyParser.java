@@ -16,7 +16,7 @@ import org.semanticweb.owlapi.model.OWLSubPropertyAxiom;
 abstract class AbstractSubPropertyParser<Axiom extends OWLSubPropertyAxiom> extends SingleTripletParser<Axiom> {
     @Override
     public Resource getSubject() {
-        return ParseUtils.toResource(getAxiom().getSubProperty());
+        return AxiomParseUtils.toResource(getAxiom().getSubProperty());
     }
 
     @Override
@@ -26,6 +26,6 @@ abstract class AbstractSubPropertyParser<Axiom extends OWLSubPropertyAxiom> exte
 
     @Override
     public RDFNode getObject() {
-        return ParseUtils.toResource(getAxiom().getSuperProperty());
+        return AxiomParseUtils.toResource(getAxiom().getSuperProperty());
     }
 }

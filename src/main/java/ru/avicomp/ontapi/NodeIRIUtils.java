@@ -6,6 +6,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
+import org.semanticweb.owlapi.model.HasIRI;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -23,6 +24,10 @@ public class NodeIRIUtils {
 
     public static Node toNode(IRI iri) {
         return NodeFactory.createURI(OntException.notNull(iri, "Null iri specified.").getIRIString());
+    }
+
+    public static Node toNode(HasIRI hasIRI) {
+        return toNode(hasIRI.getIRI());
     }
 
     public static Node toNode(OWLAnnotationValue value) {

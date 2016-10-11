@@ -14,17 +14,17 @@ import ru.avicomp.ontapi.OntException;
  * base for {@link EquivalentObjectPropertiesParser} and {@link EquivalentDataPropertiesParser}
  * Created by @szuev on 01.10.2016.
  */
-abstract class AbstractEquivalentPropertiesAxiom<Axiom extends OWLNaryPropertyAxiom<? extends OWLPropertyExpression>> extends AxiomParser<Axiom> {
+abstract class AbstractEquivalentPropertiesParser<Axiom extends OWLNaryPropertyAxiom<? extends OWLPropertyExpression>> extends AxiomParser<Axiom> {
 
     private static void process(Graph graph, OWLPropertyExpression first, OWLPropertyExpression rest) {
-        Resource subject = ParseUtils.toResource(first);
+        Resource subject = AxiomParseUtils.toResource(first);
         Property predicate = OWL.equivalentProperty;
-        Resource object = ParseUtils.toResource(rest);
+        Resource object = AxiomParseUtils.toResource(rest);
         graph.add(Triple.create(subject.asNode(), predicate.asNode(), object.asNode()));
     }
 
     @Override
-    public void process(Graph graph) {
+    public void translate(Graph graph) {
         getAxiom().asPairwiseAxioms().forEach(axiom -> {
             OWLPropertyExpression first = axiom.operands().filter(e -> !e.isAnonymous()).findFirst().
                     orElseThrow(() -> new OntException("Can't find non-anonymous property expression."));

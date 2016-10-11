@@ -19,7 +19,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 abstract class AbstractPropertyRangeParser<Axiom extends OWLAxiom & HasProperty & HasRange> extends AxiomParser<Axiom> {
 
     public Resource getSubject() {
-        return ParseUtils.toResource(getAxiom().getProperty());
+        return AxiomParseUtils.toResource(getAxiom().getProperty());
     }
 
     public Property getPredicate() {
@@ -27,9 +27,9 @@ abstract class AbstractPropertyRangeParser<Axiom extends OWLAxiom & HasProperty 
     }
 
     @Override
-    public void process(Graph graph) {
+    public void translate(Graph graph) {
         Model model = ModelFactory.createModelForGraph(graph);
-        model.add(getSubject(), getPredicate(), ParseUtils.toResource(model, getAxiom().getRange()));
+        model.add(getSubject(), getPredicate(), AxiomParseUtils.toResource(model, getAxiom().getRange()));
     }
 
 }

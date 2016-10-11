@@ -21,7 +21,7 @@ abstract class SingleTripletParser<Axiom extends OWLAxiom> extends AxiomParser<A
     public abstract RDFNode getObject();
 
     @Override
-    public void process(Graph graph) {
+    public void translate(Graph graph) {
         graph.add(Triple.create(getSubject().asNode(), getPredicate().asNode(), getObject().asNode()));
     }
 

@@ -24,9 +24,9 @@ import static ru.avicomp.ontapi.NodeIRIUtils.toLiteralNode;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public class ParseUtils {
+public class AxiomParseUtils {
 
-    public static final Logger LOGGER = Logger.getLogger(ParseUtils.class);
+    public static final Logger LOGGER = Logger.getLogger(AxiomParseUtils.class);
 
     public static IRI toIRI(OWLObject object) {
         if (object.isIRI()) return (IRI) object;

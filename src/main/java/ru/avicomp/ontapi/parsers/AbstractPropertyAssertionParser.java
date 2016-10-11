@@ -13,12 +13,12 @@ abstract class AbstractPropertyAssertionParser<Axiom extends OWLPropertyAssertio
     @Override
     public Resource getSubject() {
         OWLIndividual individual = getAxiom().getSubject();
-        return ParseUtils.toResource(individual);
+        return AxiomParseUtils.toResource(individual);
     }
 
     @Override
     public Property getPredicate() {
-        return ParseUtils.toProperty(getAxiom().getProperty());
+        return AxiomParseUtils.toProperty(getAxiom().getProperty());
     }
 
 }

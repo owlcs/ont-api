@@ -17,7 +17,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 
 import com.google.inject.assistedinject.Assisted;
-import ru.avicomp.ontapi.parsers.AxiomParserFactory;
+import ru.avicomp.ontapi.parsers.AxiomParserProvider;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION;
@@ -269,7 +269,7 @@ public class OntologyModel extends OWLOntologyImpl {
             GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
-                AxiomParserFactory.get(axiom).process(inner);
+                AxiomParserProvider.get(axiom).process(inner);
             } catch (Exception e) {
                 throw new OntException("Add axiom " + axiom, e);
             } finally {

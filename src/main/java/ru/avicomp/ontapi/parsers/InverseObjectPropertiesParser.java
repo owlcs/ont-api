@@ -15,7 +15,7 @@ import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 class InverseObjectPropertiesParser extends SingleTripletParser<OWLInverseObjectPropertiesAxiom> {
     @Override
     public Resource getSubject() {
-        return ParseUtils.toResource(getAxiom().getFirstProperty());
+        return AxiomParseUtils.toResource(getAxiom().getFirstProperty());
     }
 
     @Override
@@ -25,6 +25,6 @@ class InverseObjectPropertiesParser extends SingleTripletParser<OWLInverseObject
 
     @Override
     public RDFNode getObject() {
-        return ParseUtils.toResource(getAxiom().getSecondProperty());
+        return AxiomParseUtils.toResource(getAxiom().getSecondProperty());
     }
 }

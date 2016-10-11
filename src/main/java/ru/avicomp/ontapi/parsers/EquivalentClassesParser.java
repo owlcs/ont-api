@@ -25,12 +25,12 @@ class EquivalentClassesParser extends AxiomParser<OWLEquivalentClassesAxiom> {
         OWLClassExpression rest = axiom.classExpressions().filter((obj) -> !clazz.equals(obj)).findFirst().orElse(null);
         if (rest == null) throw new OntException("Can't find another class expression inside " + axiom);
         Model model = ModelFactory.createModelForGraph(graph);
-        Resource subject = ParseUtils.toResource(clazz.getIRI());
-        model.add(subject, OWL.equivalentClass, ParseUtils.toResource(model, rest));
+        Resource subject = AxiomParseUtils.toResource(clazz.getIRI());
+        model.add(subject, OWL.equivalentClass, AxiomParseUtils.toResource(model, rest));
     }
 
     @Override
-    public void process(Graph graph) {
+    public void translate(Graph graph) {
         process(graph, getAxiom());
         //getAxiom().asPairwiseAxioms().forEach(axiom -> process(graph, axiom));
     }

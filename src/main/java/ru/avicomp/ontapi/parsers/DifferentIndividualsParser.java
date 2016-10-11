@@ -17,10 +17,10 @@ import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
  */
 class DifferentIndividualsParser extends AxiomParser<OWLDifferentIndividualsAxiom> {
     @Override
-    public void process(Graph graph) {
+    public void translate(Graph graph) {
         OWLDifferentIndividualsAxiom axiom = getAxiom();
         Model model = ModelFactory.createModelForGraph(graph);
-        Iterator<? extends RDFNode> iterator = ParseUtils.toResourceIterator(model, axiom.individuals());
+        Iterator<? extends RDFNode> iterator = AxiomParseUtils.toResourceIterator(model, axiom.individuals());
         Resource root = model.createResource();
         model.add(root, RDF.type, OWL.AllDifferent);
         RDFList list = model.createList(iterator);

@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 public class SubAnnotationPropertyOfParser extends SingleTripletParser<OWLSubAnnotationPropertyOfAxiom> {
     @Override
     public Resource getSubject() {
-        return ParseUtils.toResource(getAxiom().getSubProperty());
+        return AxiomParseUtils.toResource(getAxiom().getSubProperty());
     }
 
     @Override
@@ -23,6 +23,6 @@ public class SubAnnotationPropertyOfParser extends SingleTripletParser<OWLSubAnn
 
     @Override
     public RDFNode getObject() {
-        return ParseUtils.toResource(getAxiom().getSuperProperty());
+        return AxiomParseUtils.toResource(getAxiom().getSuperProperty());
     }
 }

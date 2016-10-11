@@ -16,10 +16,10 @@ import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
  */
 class ClassAssertionParser extends AxiomParser<OWLClassAssertionAxiom> {
     @Override
-    public void process(Graph graph) {
+    public void translate(Graph graph) {
         Model model = ModelFactory.createModelForGraph(graph);
-        Resource subject = ParseUtils.toResource(getAxiom().getIndividual());
-        Resource object = ParseUtils.toResource(ParseUtils.toIRI(getAxiom().getClassExpression()));
+        Resource subject = AxiomParseUtils.toResource(getAxiom().getIndividual());
+        Resource object = AxiomParseUtils.toResource(AxiomParseUtils.toIRI(getAxiom().getClassExpression()));
         model.add(subject, RDF.type, OWL2.NamedIndividual);
         model.add(subject, RDF.type, object);
     }

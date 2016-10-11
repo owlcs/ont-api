@@ -11,6 +11,6 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 class ObjectPropertyAssertionParser extends AbstractPropertyAssertionParser<OWLObjectPropertyAssertionAxiom> {
     @Override
     public RDFNode getObject() {
-        return ParseUtils.toResource(getAxiom().getObject().asOWLNamedIndividual());
+        return AxiomParseUtils.toResource(getAxiom().getObject().asOWLNamedIndividual());
     }
 }
