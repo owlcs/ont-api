@@ -26,9 +26,10 @@ abstract class AbstractPropertyDomainParser<Axiom extends OWLAxiom & HasDomain &
     }
 
     @Override
-    public void translate(Graph graph) {
+    public void process(Graph graph) {
         Model model = ModelFactory.createModelForGraph(graph);
         model.add(getSubject(), getPredicate(), AxiomParseUtils.toResource(model, getAxiom().getDomain()));
+        AnnotationsParseUtils.translate(model, getAxiom());
     }
 
 }

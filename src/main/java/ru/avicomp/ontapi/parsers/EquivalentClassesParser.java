@@ -30,8 +30,8 @@ class EquivalentClassesParser extends AxiomParser<OWLEquivalentClassesAxiom> {
     }
 
     @Override
-    public void translate(Graph graph) {
+    public void process(Graph graph) {
         process(graph, getAxiom());
-        //getAxiom().asPairwiseAxioms().forEach(axiom -> process(graph, axiom));
+        AnnotationsParseUtils.translate(graph, getAxiom());
     }
 }

@@ -158,7 +158,17 @@ public class AxiomParseUtils {
     }
 
     public static Resource toResource(OWLObject object) {
+        if (OWLIndividual.class.isInstance(object)) {
+            return toResource((OWLIndividual) object);
+        }
         return toResource(toIRI(object));
+    }
+
+    public static RDFNode toRDFNode(OWLObject object) {
+        if (object instanceof OWLLiteral) {
+            return toLiteral((OWLLiteral) object);
+        }
+        return toResource(object);
     }
 
     public static Resource toResource(OWLIndividual individual) {

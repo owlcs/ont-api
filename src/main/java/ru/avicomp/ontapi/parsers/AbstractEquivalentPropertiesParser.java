@@ -24,7 +24,7 @@ abstract class AbstractEquivalentPropertiesParser<Axiom extends OWLNaryPropertyA
     }
 
     @Override
-    public void translate(Graph graph) {
+    public void process(Graph graph) {
         getAxiom().asPairwiseAxioms().forEach(axiom -> {
             OWLPropertyExpression first = axiom.operands().filter(e -> !e.isAnonymous()).findFirst().
                     orElseThrow(() -> new OntException("Can't find non-anonymous property expression."));
@@ -32,6 +32,7 @@ abstract class AbstractEquivalentPropertiesParser<Axiom extends OWLNaryPropertyA
                     orElseThrow(() -> new OntException("Can't find the second property expression."));
             process(graph, first, rest);
         });
+        AnnotationsParseUtils.translate(graph, getAxiom());
     }
 
 }

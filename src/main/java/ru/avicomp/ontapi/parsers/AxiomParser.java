@@ -20,10 +20,6 @@ public abstract class AxiomParser<Axiom extends OWLAxiom> {
         return axiom;
     }
 
-    public abstract void translate(Graph graph);
+    public abstract void process(Graph graph);
 
-    public void process(Graph graph) {
-        translate(graph);
-        AnnotationsParseUtils.translate(graph, getAxiom());
-    }
 }

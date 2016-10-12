@@ -3,6 +3,8 @@ package ru.avicomp.ontapi.parsers;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -35,10 +37,37 @@ public class AnnotationsParseUtils {
         graph.add(Triple.create(blank, OWL2.annotatedSource.asNode(), axiomTriple.getSubject()));
         graph.add(Triple.create(blank, OWL2.annotatedProperty.asNode(), axiomTriple.getPredicate()));
         graph.add(Triple.create(blank, OWL2.annotatedTarget.asNode(), axiomTriple.getObject()));
+        translate(graph, blank, axiom);
+    }
+
+    /**
+     * see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_Represented_by_Blank_Nodes'>2.3.3 Axioms Represented by Blank Nodes </a>
+     * for following axioms with more than two entities:
+     * NegativeObjectPropertyAssertion,
+     * NegativeDataPropertyAssertion,
+     * DisjointClasses,
+     * DisjointObjectProperties,
+     * DisjointDataProperties,
+     * DifferentIndividuals
+     *
+     * @param graph Graph
+     * @param root  {@link org.apache.jena.graph.Node_Blank} anonymous node
+     * @param axiom OWLAxiom
+     */
+    public static void translate(Graph graph, Resource root, OWLAxiom axiom) {
+        translate(graph, root.asNode(), axiom);
+    }
+
+    public static void translate(Model model, OWLAxiom axiom) {
+        translate(model.getGraph(), axiom);
+    }
+
+    public static void translate(Graph graph, Node root, OWLAxiom axiom) {
+        if (!axiom.isAnnotated()) return;
         axiom.annotations().forEach(a -> {
-            graph.add(Triple.create(blank, NodeIRIUtils.toNode(a.getProperty()), NodeIRIUtils.toNode(a.getValue())));
+            graph.add(Triple.create(root, NodeIRIUtils.toNode(a.getProperty()), NodeIRIUtils.toNode(a.getValue())));
         });
-        axiom.annotations().forEach(a -> translate(graph, blank, a));
+        axiom.annotations().forEach(a -> translate(graph, root, a));
     }
 
     private static Triple toAnnotationTriple(OWLAxiom axiom) {
@@ -55,10 +84,7 @@ public class AnnotationsParseUtils {
             annotationProperty = RDF.type.asNode();
         } else if (AxiomType.CLASS_ASSERTION.equals(axiom.getAxiomType())) {
             OWLClassAssertionAxiom _axiom = (OWLClassAssertionAxiom) axiom;
-            OWLIndividual individual = _axiom.getIndividual();
-            if (individual.isNamed()) {
-                annotationSource = NodeIRIUtils.toNode(individual.asOWLNamedIndividual());
-            }
+            annotationSource = NodeIRIUtils.toNode(_axiom.getIndividual());
             OWLClassExpression expression = _axiom.getClassExpression();
             if (expression.isOWLClass()) {
                 annotationTarget = NodeIRIUtils.toNode(expression.asOWLClass());

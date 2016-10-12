@@ -27,9 +27,10 @@ abstract class AbstractPropertyRangeParser<Axiom extends OWLAxiom & HasProperty 
     }
 
     @Override
-    public void translate(Graph graph) {
+    public void process(Graph graph) {
         Model model = ModelFactory.createModelForGraph(graph);
         model.add(getSubject(), getPredicate(), AxiomParseUtils.toResource(model, getAxiom().getRange()));
+        AnnotationsParseUtils.translate(model, getAxiom());
     }
 
 }

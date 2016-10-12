@@ -6,10 +6,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.HasIRI;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.*;
 
 /**
  * utils for converting owl-api iri to jena node
@@ -26,8 +23,21 @@ public class NodeIRIUtils {
         return NodeFactory.createURI(OntException.notNull(iri, "Null iri specified.").getIRIString());
     }
 
-    public static Node toNode(HasIRI hasIRI) {
-        return toNode(hasIRI.getIRI());
+    public static Node toNode(OWLObject object) {
+        if (object.isIRI()) {
+            return toNode((IRI) object);
+        }
+        if (HasIRI.class.isInstance(object)) {
+            return toNode(((HasIRI) object).getIRI());
+        }
+        if (OWLAnonymousIndividual.class.isInstance(object)) {
+            NodeID id = ((OWLAnonymousIndividual) object).getID();
+            return NodeFactory.createBlankNode(id.getID());
+        }
+        if (OWLAnnotationValue.class.isInstance(object)) {
+            return toNode((OWLAnnotationValue) object);
+        }
+        throw new OntException("Unsupported owl-object " + object);
     }
 
     public static Node toNode(OWLAnnotationValue value) {

@@ -136,4 +136,63 @@ public class AnnotationsGraphTest extends GraphTestBase {
         LOGGER.info("Compare axioms"); // note! there is one more axiom in new ontology: Declaration(NamedIndividual(<http://test.org/annotations/2#Indi>))
         compareAxioms(owl1.axioms(), owl2.axioms().filter(OWLAxiom::isAnnotated));
     }
+
+    @Test
+    public void test3() throws OWLOntologyCreationException {
+        OntIRI iri = OntIRI.create("http://test.org/annotations/3");
+        OWLOntologyManager manager = //OWLManager.createOWLOntologyManager();
+                OntManagerFactory.createOWLOntologyManager();
+        OWLOntology owl = manager.createOntology(iri.toOwlOntologyID());
+        OWLDataFactory factory = manager.getOWLDataFactory();
+        OWLClass clazz1 = factory.getOWLClass(iri.addFragment("MyClass1"));
+        OWLClass clazz2 = factory.getOWLClass(iri.addFragment("MyClass2"));
+        OWLClass clazz3 = factory.getOWLClass(iri.addFragment("MyClass3"));
+        OWLIndividual ind1 = factory.getOWLAnonymousIndividual();
+        OWLIndividual ind2 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi1"));
+        OWLIndividual ind3 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi2"));
+        OWLObjectPropertyExpression objectProperty1 = factory.getOWLObjectProperty(iri.addFragment("objectProperty1"));
+        OWLObjectPropertyExpression objectProperty2 = factory.getOWLObjectProperty(iri.addFragment("objectProperty2"));
+        OWLObjectPropertyExpression objectProperty3 = factory.getOWLObjectProperty(iri.addFragment("objectProperty3"));
+        OWLDataPropertyExpression dataProperty1 = factory.getOWLDataProperty(iri.addFragment("dataProperty1"));
+        OWLDataPropertyExpression dataProperty2 = factory.getOWLDataProperty(iri.addFragment("dataProperty2"));
+        OWLDataPropertyExpression dataProperty3 = factory.getOWLDataProperty(iri.addFragment("dataProperty3"));
+
+        owl.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(clazz1)));
+
+        OWLAnnotation ann1 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("annotation №1"));
+        OWLAnnotation ann2 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("annotation №2"), Stream.of(ann1));
+        owl.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz1, ind1, Stream.of(ann1).collect(Collectors.toSet()))));
+        owl.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz1, ind2)));
+        owl.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz1, ind3)));
+        // different individuals:
+        owl.applyChange(new AddAxiom(owl, factory.getOWLDifferentIndividualsAxiom(
+                Stream.of(ind1, ind2, ind3).collect(Collectors.toSet()),
+                Stream.of(ann2).collect(Collectors.toSet()))));
+
+        // disjoint classes
+        OWLAnnotation ann3 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("annotation №3"));
+        OWLAnnotation ann4 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("annotation №4"), ann3);
+        OWLAnnotation ann5 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("annotation №5"));
+        owl.applyChange(new AddAxiom(owl, factory.getOWLDisjointClassesAxiom(
+                Stream.of(clazz1, clazz2, clazz3),
+                Stream.of(ann4, ann5).collect(Collectors.toSet()))));
+
+        // negative object property:
+        OWLAnnotation ann6 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("annotation №6"));
+        OWLAnnotation ann7 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("annotation №7"), ann6);
+        owl.applyChange(new AddAxiom(owl, factory.getOWLNegativeObjectPropertyAssertionAxiom(objectProperty1, ind1, ind2, Stream.of(ann6).collect(Collectors.toSet()))));
+        owl.applyChange(new AddAxiom(owl, factory.getOWLNegativeDataPropertyAssertionAxiom(dataProperty1, ind3, factory.getOWLLiteral("TEST"), Stream.of(ann7).collect(Collectors.toSet()))));
+
+        // disjoint properties
+        OWLAnnotation ann8 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("annotation №8"));
+        OWLAnnotation ann9 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("annotation №9"), ann8);
+        owl.applyChange(new AddAxiom(owl, factory.getOWLDisjointObjectPropertiesAxiom(
+                Stream.of(objectProperty1, objectProperty2, objectProperty3).collect(Collectors.toSet()),
+                Stream.of(ann8).collect(Collectors.toSet()))));
+        owl.applyChange(new AddAxiom(owl, factory.getOWLDisjointDataPropertiesAxiom(
+                Stream.of(dataProperty3, dataProperty1, dataProperty2).collect(Collectors.toSet()),
+                Stream.of(ann9).collect(Collectors.toSet()))));
+
+        debug((OntologyModel) owl);
+    }
 }

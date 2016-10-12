@@ -36,9 +36,10 @@ public class ReadWriteUtils {
         LOGGER.debug("\n" + toString(model, ext));
     }
 
-    private static String toString(OWLOntology ontology, OntFormat ext) {
+    private static String toString(OWLOntology ontology, OntFormat type) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            ontology.getOWLOntologyManager().saveOntology(ontology, ext.getOwlFormat(), out);
+            OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.getOwlFormat();
+            ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
             return out.toString(StandardCharsets.UTF_8.name());
         } catch (OWLOntologyStorageException | IOException e) {
             throw new OntException(e);

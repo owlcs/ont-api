@@ -22,7 +22,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION;
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY;
-import static ru.avicomp.ontapi.NodeIRIUtils.toNode;
 
 /**
  * TODO:
@@ -159,7 +158,7 @@ public class OntologyModel extends OWLOntologyImpl {
         }
 
         private Node createNodeIRI(OWLOntologyID id) {
-            return id.isAnonymous() ? toNode() : toNode(id.getOntologyIRI().orElse(null));
+            return id.isAnonymous() ? NodeIRIUtils.toNode() : NodeIRIUtils.toNode(id.getOntologyIRI().orElse(null));
         }
 
         private void initOntologyID() {
@@ -169,7 +168,7 @@ public class OntologyModel extends OWLOntologyImpl {
                 inner.add(Triple.create(getNodeIRI(), RDF.type.asNode(), OWL.Ontology.asNode()));
                 IRI versionIRI = ontologyID.getVersionIRI().orElse(null);
                 if (versionIRI == null) return;
-                inner.add(Triple.create(getNodeIRI(), OWL2.versionIRI.asNode(), toNode(versionIRI)));
+                inner.add(Triple.create(getNodeIRI(), OWL2.versionIRI.asNode(), NodeIRIUtils.toNode(versionIRI)));
             } finally {
                 inner.getEventManager().unregister(listener);
             }
@@ -196,7 +195,7 @@ public class OntologyModel extends OWLOntologyImpl {
                 // change version iri:
                 IRI version = id.getVersionIRI().orElse(null);
                 if (version != null) {
-                    inner.add(Triple.create(nodeIRI, OWL2.versionIRI.asNode(), toNode(version)));
+                    inner.add(Triple.create(nodeIRI, OWL2.versionIRI.asNode(), NodeIRIUtils.toNode(version)));
                 }
                 // add new one owl:Ontology
                 inner.add(Triple.create(nodeIRI = createNodeIRI(id), RDF.type.asNode(), OWL.Ontology.asNode()));
@@ -215,7 +214,7 @@ public class OntologyModel extends OWLOntologyImpl {
             GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
-                inner.add(Triple.create(getNodeIRI(), OWL.imports.asNode(), toNode(declaration.getIRI())));
+                inner.add(Triple.create(getNodeIRI(), OWL.imports.asNode(), NodeIRIUtils.toNode(declaration.getIRI())));
             } finally {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
@@ -227,7 +226,7 @@ public class OntologyModel extends OWLOntologyImpl {
             GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
-                inner.remove(getNodeIRI(), OWL.imports.asNode(), toNode(declaration.getIRI()));
+                inner.remove(getNodeIRI(), OWL.imports.asNode(), NodeIRIUtils.toNode(declaration.getIRI()));
             } finally {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
@@ -242,7 +241,7 @@ public class OntologyModel extends OWLOntologyImpl {
                 OWLAnnotationProperty property = annotation.getProperty();
                 OWLAnnotationValue value = annotation.getValue();
                 OWLAnnotationValue literal = value.isIRI() ? value : value.asLiteral().orElse(null);
-                inner.add(Triple.create(getNodeIRI(), toNode(property.getIRI()), toNode(literal)));
+                inner.add(Triple.create(getNodeIRI(), NodeIRIUtils.toNode(property.getIRI()), NodeIRIUtils.toNode(literal)));
             } finally {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
@@ -257,13 +256,18 @@ public class OntologyModel extends OWLOntologyImpl {
                 OWLAnnotationProperty property = annotation.getProperty();
                 OWLAnnotationValue value = annotation.getValue();
                 OWLAnnotationValue literal = value.isIRI() ? value : value.asLiteral().orElse(null);
-                inner.remove(getNodeIRI(), toNode(property.getIRI()), toNode(literal));
+                inner.remove(getNodeIRI(), NodeIRIUtils.toNode(property.getIRI()), NodeIRIUtils.toNode(literal));
             } finally {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
         }
 
+        /**
+         * todo: use {@link org.apache.jena.graph.compose.MultiUnion} graph wrapper
+         *
+         * @param axiom OWLAxiom
+         */
         private void addAxiom(OWLAxiom axiom) {
             OntGraphEventStore.OWLEvent event = OntGraphEventStore.createAdd(axiom);
             GraphListener listener = OntGraphListener.create(eventStore, event);
