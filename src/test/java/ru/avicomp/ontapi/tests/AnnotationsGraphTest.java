@@ -194,5 +194,44 @@ public class AnnotationsGraphTest extends GraphTestBase {
                 Stream.of(ann9).collect(Collectors.toSet()))));
 
         debug((OntologyModel) owl);
+        //TODO:
+    }
+
+    @Test
+    public void test4() throws OWLOntologyCreationException {
+        OntIRI iri = OntIRI.create("http://test.org/annotations/4");
+        OWLOntologyManager manager = //OWLManager.createOWLOntologyManager();
+                OntManagerFactory.createOWLOntologyManager();
+        OWLOntology owl = manager.createOntology(iri.toOwlOntologyID());
+        OWLDataFactory factory = manager.getOWLDataFactory();
+        OWLClass clazz1 = factory.getOWLClass(iri.addFragment("MyClass1"));
+        OWLClass clazz2 = factory.getOWLClass(iri.addFragment("MyClass2"));
+        OWLClass clazz3 = factory.getOWLClass(iri.addFragment("MyClass3"));
+        OWLIndividual ind1 = factory.getOWLAnonymousIndividual();
+        OWLIndividual ind2 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi1"));
+        OWLIndividual ind3 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi2"));
+        OWLObjectPropertyExpression objectProperty1 = factory.getOWLObjectProperty(iri.addFragment("objectProperty1"));
+        OWLObjectPropertyExpression objectProperty2 = factory.getOWLObjectProperty(iri.addFragment("objectProperty2"));
+        OWLObjectPropertyExpression objectProperty3 = factory.getOWLObjectProperty(iri.addFragment("objectProperty3"));
+        OWLDataPropertyExpression dataProperty1 = factory.getOWLDataProperty(iri.addFragment("dataProperty1"));
+        OWLDataPropertyExpression dataProperty2 = factory.getOWLDataProperty(iri.addFragment("dataProperty2"));
+        OWLDataPropertyExpression dataProperty3 = factory.getOWLDataProperty(iri.addFragment("dataProperty3"));
+
+        //todo
+
+        // equivalent classes
+        owl.applyChange(new AddAxiom(owl, factory.getOWLEquivalentClassesAxiom(Stream.of(clazz1, clazz2, clazz3))));
+
+        // equivalent data properties
+        owl.applyChange(new AddAxiom(owl, factory.getOWLEquivalentDataPropertiesAxiom(Stream.of(dataProperty1, dataProperty2, dataProperty3).collect(Collectors.toSet()))));
+
+        // equivalent object properties
+        owl.applyChange(new AddAxiom(owl, factory.getOWLEquivalentObjectPropertiesAxiom(Stream.of(objectProperty1, objectProperty2, objectProperty3).collect(Collectors.toSet()))));
+
+        // same individuals
+        owl.applyChange(new AddAxiom(owl, factory.getOWLSameIndividualAxiom(ind1, ind2, ind3)));
+
+        debug((OntologyModel) owl);
+        //TODO:
     }
 }

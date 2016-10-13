@@ -1,10 +1,10 @@
 package ru.avicomp.ontapi.parsers;
 
-import java.util.Iterator;
-
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.IsAnonymous;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
@@ -13,41 +13,35 @@ import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.OntException;
 
 /**
- * for following axioms with two or more than two entities:
- * DisjointClasses ({@link DisjointClassesParser}),
- * DisjointObjectProperties ({@link DisjointObjectPropertiesParser}),
- * DisjointDataProperties ({@link DisjointDataPropertiesParser}),
- * DifferentIndividuals ({@link DifferentIndividualsParser})
- * <p>
- * Created by szuev on 12.10.2016.
+ * Base class for following axioms:
+ *  EquivalentClasses ({@link EquivalentClassesParser}),
+ *  EquivalentObjectProperties ({@link EquivalentObjectPropertiesParser}),
+ *  EquivalentDataProperties ({@link EquivalentDataPropertiesParser}), or
+ *  SameIndividual ({@link SameIndividualParser}).
+ *
+ *  How to annotate see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>
+ *
+ * Created by szuev on 13.10.2016.
  */
 abstract class AbstractNaryParser<Axiom extends OWLAxiom & OWLNaryAxiom<? extends IsAnonymous>> extends AxiomParser<Axiom> {
+
+    private void process(Graph graph, OWLNaryAxiom<? extends IsAnonymous> axiom) {
+        OWLObject first = axiom.operands().filter(e -> !e.isAnonymous()).findFirst().
+                orElseThrow(() -> new OntException("Can't find a single non-anonymous expression inside " + axiom));
+        OWLObject rest = axiom.operands().filter((obj) -> !first.equals(obj)).findFirst().
+                orElseThrow(() -> new OntException("Should be at least two expressions inside " + axiom));
+        Model model = ModelFactory.createModelForGraph(graph);
+        Resource subject = AxiomParseUtils.addResource(model, first);
+        Property predicate = getPredicate();
+        Resource object = AxiomParseUtils.addResource(model, rest);
+        model.add(subject, predicate, object);
+        AnnotationsParseUtils.translate(model, subject, predicate, object, axiom);
+    }
+
     @Override
     public void process(Graph graph) {
-        OWLNaryAxiom<? extends IsAnonymous> axiom = getAxiom();
-        long count = axiom.operands().count();
-        if (count < 2) throw new OntException("Should be at least two entities " + axiom);
-        Model model = ModelFactory.createModelForGraph(graph);
-        if (count == 2) { // classic way
-            OWLObject entity = axiom.operands().filter(e -> !e.isAnonymous()).findFirst().orElse(null);
-            if (entity == null)
-                throw new OntException("Can't find a single non-anonymous class expression inside " + axiom);
-            OWLObject rest = axiom.operands().filter((obj) -> !entity.equals(obj)).findFirst().orElse(null);
-            Resource subject = AxiomParseUtils.toResource(entity);
-            model.add(subject, getPredicate(), AxiomParseUtils.toResource(model, rest));
-            AnnotationsParseUtils.translate(model, getAxiom());
-        } else { // OWL2
-            Resource root = model.createResource();
-            model.add(root, RDF.type, getMembersType());
-            Iterator<? extends RDFNode> iterator = AxiomParseUtils.toResourceIterator(model, axiom.operands());
-            model.add(root, getMembersPredicate(), model.createList(iterator));
-            AnnotationsParseUtils.translate(graph, root, getAxiom());
-        }
+        getAxiom().asPairwiseAxioms().forEach(axiom -> process(graph, axiom));
     }
 
     public abstract Property getPredicate();
-
-    public abstract Resource getMembersType();
-
-    public abstract Property getMembersPredicate();
 }

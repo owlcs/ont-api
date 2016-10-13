@@ -1,10 +1,7 @@
 package ru.avicomp.ontapi.parsers;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.HasProperty;
 import org.semanticweb.owlapi.model.HasRange;
@@ -29,8 +26,11 @@ abstract class AbstractPropertyRangeParser<Axiom extends OWLAxiom & HasProperty 
     @Override
     public void process(Graph graph) {
         Model model = ModelFactory.createModelForGraph(graph);
-        model.add(getSubject(), getPredicate(), AxiomParseUtils.toResource(model, getAxiom().getRange()));
-        AnnotationsParseUtils.translate(model, getAxiom());
+        Resource subject = getSubject();
+        Property predicate = getPredicate();
+        RDFNode object;
+        model.add(subject, predicate, object = AxiomParseUtils.addResource(model, getAxiom().getRange()));
+        AnnotationsParseUtils.translate(model, subject, predicate, object, getAxiom());
     }
 
 }

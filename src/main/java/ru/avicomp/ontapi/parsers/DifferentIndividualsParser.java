@@ -7,13 +7,13 @@ import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
 
 /**
  * Note! it is for an owl-expression without any root!
- * see {@link AbstractNaryParser}
+ * see {@link AbstractTwoWayNaryParser}
  * Example:
  * [ a owl:AllDifferent; owl:distinctMembers (pizza:America pizza:Italy pizza:Germany pizza:England pizza:France) ].
  * <p>
  * Created by @szuev on 29.09.2016.
  */
-class DifferentIndividualsParser extends AbstractNaryParser<OWLDifferentIndividualsAxiom> {
+class DifferentIndividualsParser extends AbstractTwoWayNaryParser<OWLDifferentIndividualsAxiom> {
     @Override
     public Property getPredicate() {
         return OWL.differentFrom;

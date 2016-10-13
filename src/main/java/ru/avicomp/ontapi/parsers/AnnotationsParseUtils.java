@@ -1,17 +1,26 @@
 package ru.avicomp.ontapi.parsers;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
-import org.semanticweb.owlapi.model.*;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAxiom;
 
 import ru.avicomp.ontapi.NodeIRIUtils;
-import ru.avicomp.ontapi.OntException;
 
 /**
  * Helper for Axiom Annotations Parsing (operator 'TANN').
@@ -21,22 +30,52 @@ import ru.avicomp.ontapi.OntException;
  */
 public class AnnotationsParseUtils {
 
+    private static final List<Node> BUILT_IN_ANNOTATION_PROPERTIES = Stream.of(
+            OWL.backwardCompatibleWith,
+            OWL2.deprecated,
+            OWL.incompatibleWith,
+            OWL2.priorVersion,
+            OWL2.versionInfo,
+            RDFS.comment,
+            RDFS.isDefinedBy,
+            RDFS.label,
+            RDFS.seeAlso
+    ).map(FrontsNode::asNode).collect(Collectors.toList());
+
     /**
      * recursive operator TANN
-     * see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_Generate_a_Main_Triple'>2.3 Translation of Axioms with Annotations</a>
-     * TODO: in case of OWLAnnotationProperty is not built-in we have to provide MultiUnion Graph to find this property in imports, if it exists. Otherwise we can create corresponding triplet.
+     * see specification:
+     *  <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_Generate_a_Main_Triple'>2.3 Translation of Axioms with Annotations</a> and
+     *  <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>
+     * <p>
+     * This is the case if ax' is of type
+     *  SubClassOf,
+     *  SubObjectPropertyOf without a property chain as the subproperty expression,
+     *  SubDataPropertyOf, ObjectPropertyDomain, DataPropertyDomain, ObjectPropertyRange, DataPropertyRange,
+     *  InverseObjectProperties, FunctionalObjectProperty, FunctionalDataProperty, InverseFunctionalObjectProperty,
+     *  ReflexiveObjectProperty, IrreflexiveObjectProperty, SymmetricObjectProperty, AsymmetricObjectProperty,
+     *  TransitiveObjectProperty, ClassAssertion, ObjectPropertyAssertion, DataPropertyAssertion, Declaration,
+     *  DisjointObjectProperties with two properties,
+     *  DisjointDataProperties with two properties,
+     *  DisjointClasses with two classes,
+     *  DifferentIndividuals with two individuals, or
+     *  AnnotationAssertion.
+     * Also for
+     *  EquivalentClasses, EquivalentObjectProperties, EquivalentDataProperties, or SameIndividual (see {@link AbstractNaryParser});
+     * in last case call this method for each of triple from inner axiom.
+     *
+     * TODO:  DisjointUnion, SubObjectPropertyOf with a subproperty chain, or HasKey
      *
      * @param graph Graph
      * @param axiom OWLAxiom
      */
-    public static void translate(Graph graph, OWLAxiom axiom) {
+    public static void translate(Graph graph, Triple triple, OWLAxiom axiom) {
         if (!axiom.isAnnotated()) return;
         Node blank = NodeIRIUtils.toNode();
         graph.add(Triple.create(blank, RDF.type.asNode(), OWL2.Axiom.asNode()));
-        Triple axiomTriple = toAnnotationTriple(axiom);
-        graph.add(Triple.create(blank, OWL2.annotatedSource.asNode(), axiomTriple.getSubject()));
-        graph.add(Triple.create(blank, OWL2.annotatedProperty.asNode(), axiomTriple.getPredicate()));
-        graph.add(Triple.create(blank, OWL2.annotatedTarget.asNode(), axiomTriple.getObject()));
+        graph.add(Triple.create(blank, OWL2.annotatedSource.asNode(), triple.getSubject()));
+        graph.add(Triple.create(blank, OWL2.annotatedProperty.asNode(), triple.getPredicate()));
+        graph.add(Triple.create(blank, OWL2.annotatedTarget.asNode(), triple.getObject()));
         translate(graph, blank, axiom);
     }
 
@@ -54,48 +93,16 @@ public class AnnotationsParseUtils {
      * @param root  {@link org.apache.jena.graph.Node_Blank} anonymous node
      * @param axiom OWLAxiom
      */
-    public static void translate(Graph graph, Resource root, OWLAxiom axiom) {
-        translate(graph, root.asNode(), axiom);
-    }
-
-    public static void translate(Model model, OWLAxiom axiom) {
-        translate(model.getGraph(), axiom);
-    }
-
     public static void translate(Graph graph, Node root, OWLAxiom axiom) {
         if (!axiom.isAnnotated()) return;
         axiom.annotations().forEach(a -> {
-            graph.add(Triple.create(root, NodeIRIUtils.toNode(a.getProperty()), NodeIRIUtils.toNode(a.getValue())));
+            graph.add(Triple.create(root, toNode(graph, a.getProperty()), NodeIRIUtils.toNode(a.getValue())));
         });
         axiom.annotations().forEach(a -> translate(graph, root, a));
     }
 
-    private static Triple toAnnotationTriple(OWLAxiom axiom) {
-        Node annotationSource = null;
-        Node annotationProperty = null;
-        Node annotationTarget = null;
-        if (AxiomType.DECLARATION.equals(axiom.getAxiomType())) {
-            OWLDeclarationAxiom _axiom = (OWLDeclarationAxiom) axiom;
-            OWLEntity source = _axiom.getEntity();
-            annotationSource = NodeIRIUtils.toNode(_axiom.getEntity());
-            if (source.isOWLClass()) {
-                annotationTarget = OWL.Class.asNode();
-            }
-            annotationProperty = RDF.type.asNode();
-        } else if (AxiomType.CLASS_ASSERTION.equals(axiom.getAxiomType())) {
-            OWLClassAssertionAxiom _axiom = (OWLClassAssertionAxiom) axiom;
-            annotationSource = NodeIRIUtils.toNode(_axiom.getIndividual());
-            OWLClassExpression expression = _axiom.getClassExpression();
-            if (expression.isOWLClass()) {
-                annotationTarget = NodeIRIUtils.toNode(expression.asOWLClass());
-            }
-            annotationProperty = RDF.type.asNode();
-        } else {
-            //todo: not ready yet
-        }
-        return Triple.create(OntException.notNull(annotationSource, "Can't determine annotation source."),
-                OntException.notNull(annotationProperty, "Can't determine annotation property."),
-                OntException.notNull(annotationTarget, "Can't determine annotation target."));
+    public static void translate(Model model, Resource subject, Property predicate, RDFNode object, OWLAxiom axiom) {
+        translate(model.getGraph(), Triple.create(subject.asNode(), predicate.asNode(), object.asNode()), axiom);
     }
 
     private static void translate(Graph graph, Node source, OWLAnnotation annotation) {
@@ -106,8 +113,16 @@ public class AnnotationsParseUtils {
         graph.add(Triple.create(blank, OWL2.annotatedProperty.asNode(), NodeIRIUtils.toNode(annotation.getProperty())));
         graph.add(Triple.create(blank, OWL2.annotatedTarget.asNode(), NodeIRIUtils.toNode(annotation.getValue())));
         annotation.annotations().forEach(child -> {
-            graph.add(Triple.create(blank, NodeIRIUtils.toNode(child.getProperty()), NodeIRIUtils.toNode(child.getValue())));
+            graph.add(Triple.create(blank, toNode(graph, child.getProperty()), NodeIRIUtils.toNode(child.getValue())));
         });
         annotation.annotations().filter(a -> a.annotations().count() != 0).forEach(a -> translate(graph, blank, a));
+    }
+
+    private static Node toNode(Graph graph, OWLAnnotationProperty property) {
+        Node res = NodeIRIUtils.toNode(property);
+        if (res.isURI() && !BUILT_IN_ANNOTATION_PROPERTIES.contains(res)) {
+            graph.add(Triple.create(res, RDF.type.asNode(), OWL.AnnotationProperty.asNode()));
+        }
+        return res;
     }
 }

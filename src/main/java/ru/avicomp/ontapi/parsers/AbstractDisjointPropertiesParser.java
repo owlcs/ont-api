@@ -7,14 +7,14 @@ import org.semanticweb.owlapi.model.OWLNaryPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 /**
- * base class {@link AbstractNaryParser}
+ * base class {@link AbstractTwoWayNaryParser}
  * for following axioms with two or more than two entities:
  * DisjointObjectProperties ({@link DisjointObjectPropertiesParser}),
  * DisjointDataProperties ({@link DisjointDataPropertiesParser}),
  * <p>
  * Created by szuev on 12.10.2016.
  */
-abstract class AbstractDisjointPropertiesParser<Axiom extends OWLNaryPropertyAxiom<? extends OWLPropertyExpression>> extends AbstractNaryParser<Axiom> {
+abstract class AbstractDisjointPropertiesParser<Axiom extends OWLNaryPropertyAxiom<? extends OWLPropertyExpression>> extends AbstractTwoWayNaryParser<Axiom> {
     @Override
     public Property getPredicate() {
         return OWL2.propertyDisjointWith;

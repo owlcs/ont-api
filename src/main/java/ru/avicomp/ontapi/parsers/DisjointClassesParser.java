@@ -7,7 +7,7 @@ import org.apache.jena.vocabulary.OWL2;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 
 /**
- * see {@link AbstractNaryParser}
+ * see {@link AbstractTwoWayNaryParser}
  * example:
  * :Complex2 owl:disjointWith  :Simple2 , :Simple1 .
  * OWL2 alternative way:
@@ -15,7 +15,7 @@ import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class DisjointClassesParser extends AbstractNaryParser<OWLDisjointClassesAxiom> {
+class DisjointClassesParser extends AbstractTwoWayNaryParser<OWLDisjointClassesAxiom> {
 
     @Override
     public Property getPredicate() {

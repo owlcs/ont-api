@@ -11,6 +11,7 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
@@ -21,6 +22,7 @@ import static ru.avicomp.ontapi.NodeIRIUtils.toLiteralNode;
 
 /**
  * utils for axiom parsing.
+ * TODO:
  * <p>
  * Created by @szuev on 28.09.2016.
  */
@@ -28,7 +30,7 @@ public class AxiomParseUtils {
 
     public static final Logger LOGGER = Logger.getLogger(AxiomParseUtils.class);
 
-    public static IRI toIRI(OWLObject object) {
+    private static IRI toIRI(OWLObject object) {
         if (object.isIRI()) return (IRI) object;
         if (HasIRI.class.isInstance(object)) {
             return ((HasIRI) object).getIRI();
@@ -48,7 +50,7 @@ public class AxiomParseUtils {
         throw new OntException("Can't get iri from " + object);
     }
 
-    public static IRI toIRI(OWLClassExpression expression) {
+    private static IRI toIRI(OWLClassExpression expression) {
         HasIRI res = null;
         if (ClassExpressionType.OWL_CLASS.equals(expression.getClassExpressionType())) {
             res = (OWLClass) expression;
@@ -56,7 +58,7 @@ public class AxiomParseUtils {
         return OntException.notNull(res, "Can't parse " + expression).getIRI();
     }
 
-    public static IRI toIRI(OWLPropertyExpression expression) {
+    private static IRI toIRI(OWLPropertyExpression expression) {
         if (expression.isOWLDataProperty())
             return expression.asOWLDataProperty().getIRI();
         if (expression.isOWLObjectProperty())
@@ -74,7 +76,7 @@ public class AxiomParseUtils {
             object = model.getRDFNode(literal);
         } else if (HasFiller.class.isInstance(restriction)) {
             OWLObject filter = ((HasFiller) restriction).getFiller();
-            object = toResource(model, filter);
+            object = addResource(model, filter);
         } else {
             throw new OntException("Unsupported restriction " + restriction);
         }
@@ -111,18 +113,25 @@ public class AxiomParseUtils {
     private static Resource addClassCollectionOf(Model model, HasOperands<? extends OWLObject> classExpression, OWLClassExpressionRDFType type) {
         Resource res = model.createResource();
         model.add(res, RDF.type, OWL.Class);
-        model.add(res, type.getPredicate(), model.createList(toResourceIterator(model, classExpression.operands())));
+        model.add(res, type.getPredicate(), addResources(model, classExpression.operands()));
         return res;
     }
 
     private static Resource addObjectComplementOf(Model model, OWLObjectComplementOf classExpression, OWLClassExpressionRDFType type) {
         Resource res = model.createResource();
         model.add(res, RDF.type, OWL.Class);
-        model.add(res, type.getPredicate(), toResource(model, classExpression.getOperand()));
+        model.add(res, type.getPredicate(), addResource(model, classExpression.getOperand()));
         return res;
     }
 
-    public static Resource addClassExpression(Model model, OWLClassExpression expression) {
+    /**
+     * Recursively add anonymous class expression.
+     *
+     * @param model      Model
+     * @param expression OWLClassExpression
+     * @return added anon resource
+     */
+    private static Resource addClassExpression(Model model, OWLClassExpression expression) {
         ClassExpressionType expressionType = expression.getClassExpressionType();
         OWLClassExpressionRDFType type = OntException.notNull(OWLClassExpressionRDFType.valueOf(expressionType), "Unsupported type " + expressionType);
         OWLClassExpressionRDFType.MethodType methodType = type.getMethodType();
@@ -141,16 +150,8 @@ public class AxiomParseUtils {
         return null;
     }
 
-    public static Iterator<? extends RDFNode> toResourceIterator(Model model, Stream<? extends OWLObject> stream) {
-        return stream.map(o -> toResource(model, o)).iterator();
-    }
-
-    public static Resource toResource() {
-        return ResourceFactory.createResource();
-    }
-
-    public static Resource toResource(OWLAnonymousIndividual anon) {
-        return toResource(anon.getID());
+    private static Iterator<? extends RDFNode> toResourceIterator(Model model, Stream<? extends OWLObject> stream) {
+        return stream.map(o -> addResource(model, o)).iterator();
     }
 
     public static Resource toResource(NodeID id) {
@@ -158,6 +159,9 @@ public class AxiomParseUtils {
     }
 
     public static Resource toResource(OWLObject object) {
+        if (HasIRI.class.isInstance(object)) {
+            return toResource(((HasIRI) object).getIRI());
+        }
         if (OWLIndividual.class.isInstance(object)) {
             return toResource((OWLIndividual) object);
         }
@@ -171,22 +175,49 @@ public class AxiomParseUtils {
         return toResource(object);
     }
 
+    public static Resource toResource(IRI iri) {
+        return ResourceFactory.createResource(OntException.notNull(iri, "Null iri").getIRIString());
+    }
+
     public static Resource toResource(OWLIndividual individual) {
         return individual.isAnonymous() ? toResource(individual.asOWLAnonymousIndividual().getID()) : toResource(individual.asOWLNamedIndividual().getIRI());
     }
 
-    public static Resource toResource(Model model, OWLObject o) {
-        if (HasIRI.class.isInstance(o)) {
-            return toResource(((HasIRI) o).getIRI()).inModel(model);
+    public static Resource getType(OWLEntity entity) {
+        if (entity.isOWLClass()) {
+            return OWL.Class;
+        } else if (entity.isOWLDataProperty()) {
+            return OWL.DatatypeProperty;
+        } else if (entity.isOWLObjectProperty()) {
+            return OWL.ObjectProperty;
+        } else if (entity.isOWLNamedIndividual()) {
+            return OWL2.NamedIndividual;
+        } else if (entity.isOWLAnnotationProperty()) {
+            return OWL.AnnotationProperty;
+        } else if (entity.isOWLDatatype()) {
+            return RDFS.Datatype;
         }
-        if (OWLClassExpression.class.isInstance(o)) {
-            return addClassExpression(model, (OWLClassExpression) o);
-        }
-        return toResource(o);
+        throw new OntException("Unsupported " + entity);
     }
 
-    public static Resource toResource(IRI iri) {
-        return ResourceFactory.createResource(OntException.notNull(iri, "Null iri").getIRIString());
+    public static RDFList addResources(Model model, Stream<? extends OWLObject> objects) {
+        return model.createList(toResourceIterator(model, objects));
+    }
+
+    public static Resource addResource(Model model, OWLObject o) {
+        if (OWLEntity.class.isInstance(o)) {
+            OWLEntity entity = (OWLEntity) o;
+            Resource res = toResource(entity);
+            if (!entity.isBuiltIn()) {
+                model.add(res, RDF.type, getType((OWLEntity) o));
+            }
+            return res;
+        }
+        // todo: literals
+        if (OWLClassExpression.class.isInstance(o) && ((OWLClassExpression) o).isAnonymous()) {
+            return addClassExpression(model, (OWLClassExpression) o);
+        }
+        return toResource(o).inModel(model);
     }
 
     public static Property toProperty(OWLObject object) {

@@ -3,7 +3,7 @@ package ru.avicomp.ontapi.parsers;
 import org.semanticweb.owlapi.model.OWLDisjointDataPropertiesAxiom;
 
 /**
- * see {@link AbstractNaryParser}, {@link AbstractDisjointPropertiesParser}
+ * see {@link AbstractTwoWayNaryParser}, {@link AbstractDisjointPropertiesParser}
  * examples:
  * :objProperty1 owl:propertyDisjointWith :objProperty2
  * [ rdf:type owl:AllDisjointProperties; owl:members ( :objProperty1 :objProperty2 :objProperty3 ) ]
