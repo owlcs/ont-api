@@ -69,95 +69,6 @@ public class AxiomParseUtils {
         throw new OntException("Can't parse " + expression);
     }
 
-    private static Resource addObjectRestriction(Model model, OWLObjectRestriction restriction, OWLClassExpressionRDFType type) {
-        RDFNode object;
-        if (OWLClassExpressionRDFType.HAS_SELF.equals(type)) {
-            Node literal = toLiteralNode(String.valueOf(Boolean.TRUE), null, XSDVocabulary.BOOLEAN.getIRI());
-            object = model.getRDFNode(literal);
-        } else if (HasFiller.class.isInstance(restriction)) {
-            OWLObject filter = ((HasFiller) restriction).getFiller();
-            object = addResource(model, filter);
-        } else {
-            throw new OntException("Unsupported restriction " + restriction);
-        }
-        OWLObjectPropertyExpression property = restriction.getProperty();
-        Resource res = model.createResource();
-        model.add(res, RDF.type, OWL.Restriction);
-        model.add(res, OWL.onProperty, toResource(property));
-        model.add(res, type.getPredicate(), object);
-        return res;
-    }
-
-    private static Model getModel(Resource inModel) {
-        return OntException.notNull(inModel.getModel(), "Resource is not attached to model");
-    }
-
-    private static Node getCardinalityLiteral(HasCardinality restriction) {
-        return toLiteralNode(String.valueOf(restriction.getCardinality()), null, XSDVocabulary.NON_NEGATIVE_INTEGER.getIRI());
-    }
-
-    private static boolean hasObjectCardinalityRestriction(Resource root, OWLObjectCardinalityRestriction restriction, OWLClassExpressionRDFType type) {
-        Model model = getModel(root);
-        return model.contains(root, RDF.type, OWL.Restriction) && model.contains(root, type.getPredicate(), model.getRDFNode(getCardinalityLiteral(restriction)));
-    }
-
-    private static Resource addObjectCardinalityRestriction(Model model, OWLObjectCardinalityRestriction restriction, OWLClassExpressionRDFType type) {
-        OWLObjectPropertyExpression property = restriction.getProperty();
-        Resource res = model.createResource();
-        model.add(res, RDF.type, OWL.Restriction);
-        model.add(res, OWL.onProperty, toResource(property));
-        model.add(res, type.getPredicate(), model.getRDFNode(getCardinalityLiteral(restriction)));
-        return res;
-    }
-
-    private static Resource addClassCollectionOf(Model model, HasOperands<? extends OWLObject> classExpression, OWLClassExpressionRDFType type) {
-        Resource res = model.createResource();
-        model.add(res, RDF.type, OWL.Class);
-        model.add(res, type.getPredicate(), addResources(model, classExpression.operands()));
-        return res;
-    }
-
-    private static Resource addObjectComplementOf(Model model, OWLObjectComplementOf classExpression, OWLClassExpressionRDFType type) {
-        Resource res = model.createResource();
-        model.add(res, RDF.type, OWL.Class);
-        model.add(res, type.getPredicate(), addResource(model, classExpression.getOperand()));
-        return res;
-    }
-
-    /**
-     * Recursively add anonymous class expression.
-     *
-     * @param model      Model
-     * @param expression OWLClassExpression
-     * @return added anon resource
-     */
-    private static Resource addClassExpression(Model model, OWLClassExpression expression) {
-        ClassExpressionType expressionType = expression.getClassExpressionType();
-        OWLClassExpressionRDFType type = OntException.notNull(OWLClassExpressionRDFType.valueOf(expressionType), "Unsupported type " + expressionType);
-        OWLClassExpressionRDFType.MethodType methodType = type.getMethodType();
-        if (OWLClassExpressionRDFType.MethodType.RESTRICTION_CARDINALITY.equals(methodType)) {
-            return addObjectCardinalityRestriction(model, (OWLObjectCardinalityRestriction) expression, type);
-        }
-        if (OWLClassExpressionRDFType.MethodType.RESTRICTION.equals(methodType)) {
-            return addObjectRestriction(model, (OWLObjectRestriction) expression, type);
-        }
-        if (OWLClassExpressionRDFType.MethodType.COLLECTION.equals(methodType)) {
-            return addClassCollectionOf(model, (HasOperands<? extends OWLObject>) expression, type);
-        }
-        if (OWLClassExpressionRDFType.MethodType.SINGLETON.equals(methodType)) {
-            return addObjectComplementOf(model, (OWLObjectComplementOf) expression, type);
-        }
-        return null;
-    }
-
-    private static Iterator<? extends RDFNode> toResourceIterator(Model model, Stream<? extends OWLObject> stream) {
-        return stream.map(o -> addResource(model, o)).iterator();
-    }
-
-    public static Resource toResource(NodeID id) {
-        return new ResourceImpl(NodeFactory.createBlankNode(id.getID()), null);
-    }
-
     public static Resource toResource(OWLObject object) {
         if (HasIRI.class.isInstance(object)) {
             return toResource(((HasIRI) object).getIRI());
@@ -175,12 +86,20 @@ public class AxiomParseUtils {
         return toResource(object);
     }
 
-    public static Resource toResource(IRI iri) {
+    private static Resource toResource(NodeID id) {
+        return new ResourceImpl(NodeFactory.createBlankNode(id.getID()), null);
+    }
+
+    private static Resource toResource(IRI iri) {
         return ResourceFactory.createResource(OntException.notNull(iri, "Null iri").getIRIString());
     }
 
     public static Resource toResource(OWLIndividual individual) {
         return individual.isAnonymous() ? toResource(individual.asOWLAnonymousIndividual().getID()) : toResource(individual.asOWLNamedIndividual().getIRI());
+    }
+
+    private static Iterator<? extends RDFNode> toResourceIterator(Model model, Stream<? extends OWLObject> stream) {
+        return stream.map(o -> addResource(model, o)).iterator();
     }
 
     public static Resource getType(OWLEntity entity) {
@@ -211,11 +130,11 @@ public class AxiomParseUtils {
             if (!entity.isBuiltIn()) {
                 model.add(res, RDF.type, getType((OWLEntity) o));
             }
-            return res;
+            return res.inModel(model);
         }
         // todo: literals
         if (OWLClassExpression.class.isInstance(o) && ((OWLClassExpression) o).isAnonymous()) {
-            return addClassExpression(model, (OWLClassExpression) o);
+            return CETranslator.addClassExpression(model, (OWLClassExpression) o);
         }
         return toResource(o).inModel(model);
     }
@@ -232,53 +151,198 @@ public class AxiomParseUtils {
         return new LiteralImpl(toLiteralNode(literal), null);
     }
 
-    public enum OWLClassExpressionRDFType {
-        MAX_CARDINALITY(ClassExpressionType.OBJECT_MAX_CARDINALITY, OWL.maxCardinality, MethodType.RESTRICTION_CARDINALITY),
-        MIN_CARDINALITY(ClassExpressionType.OBJECT_MIN_CARDINALITY, OWL.minCardinality, MethodType.RESTRICTION_CARDINALITY),
-        EXACT_CARDINALITY(ClassExpressionType.OBJECT_EXACT_CARDINALITY, OWL.cardinality, MethodType.RESTRICTION_CARDINALITY),
-        ALL_VALUES_FROM(ClassExpressionType.OBJECT_ALL_VALUES_FROM, OWL.allValuesFrom, MethodType.RESTRICTION),
-        SOME_VALUES_FROM(ClassExpressionType.OBJECT_SOME_VALUES_FROM, OWL.someValuesFrom, MethodType.RESTRICTION),
-        HAS_VALUE(ClassExpressionType.OBJECT_HAS_VALUE, OWL.hasValue, MethodType.RESTRICTION),
-        HAS_SELF(ClassExpressionType.OBJECT_HAS_SELF, OWL2.hasSelf, MethodType.RESTRICTION),
-        UNION_OF(ClassExpressionType.OBJECT_UNION_OF, OWL.unionOf, MethodType.COLLECTION),
-        INTERSECTION_OF(ClassExpressionType.OBJECT_INTERSECTION_OF, OWL.intersectionOf, MethodType.COLLECTION),
-        ONE_OF(ClassExpressionType.OBJECT_ONE_OF, OWL.oneOf, MethodType.COLLECTION),
-        COMPLEMENT_OF(ClassExpressionType.OBJECT_COMPLEMENT_OF, OWL.complementOf, MethodType.SINGLETON),;
-        private ClassExpressionType type;
-        private Property predicate;
-        private MethodType methodType;
+    private enum CETranslator {
+        OBJECT_MAX_CARDINALITY(ClassExpressionType.OBJECT_MAX_CARDINALITY, new RestrictionCardinality<OWLObjectMaxCardinality>() {
+            @Override
+            Property getPredicate() {
+                return OWL.maxCardinality;
+            }
+        }),
+        DATA_MAX_CARDINALITY(ClassExpressionType.DATA_MAX_CARDINALITY, new RestrictionCardinality<OWLDataMaxCardinality>() {
+            @Override
+            Property getPredicate() {
+                return OWL.maxCardinality;
+            }
+        }),
+        OBJECT_MIN_CARDINALITY(ClassExpressionType.OBJECT_MIN_CARDINALITY, new RestrictionCardinality<OWLObjectMinCardinality>() {
+            @Override
+            Property getPredicate() {
+                return OWL.minCardinality;
+            }
+        }),
+        DATA_MIN_CARDINALITY(ClassExpressionType.DATA_MIN_CARDINALITY, new RestrictionCardinality<OWLDataMinCardinality>() {
+            @Override
+            Property getPredicate() {
+                return OWL.minCardinality;
+            }
+        }),
+        OBJECT_EXACT_CARDINALITY(ClassExpressionType.OBJECT_EXACT_CARDINALITY, new RestrictionCardinality<OWLObjectExactCardinality>() {
+            @Override
+            Property getPredicate() {
+                return OWL.cardinality;
+            }
+        }),
+        DATA_EXACT_CARDINALITY(ClassExpressionType.DATA_EXACT_CARDINALITY, new RestrictionCardinality<OWLDataExactCardinality>() {
+            @Override
+            Property getPredicate() {
+                return OWL.cardinality;
+            }
+        }),
+        OBJECT_ALL_VALUES_FROM(ClassExpressionType.OBJECT_ALL_VALUES_FROM, new Restriction<OWLObjectAllValuesFrom>() {
+            @Override
+            Property getPredicate() {
+                return OWL.allValuesFrom;
+            }
+        }),
+        DATA_ALL_VALUES_FROM(ClassExpressionType.DATA_ALL_VALUES_FROM, new Restriction<OWLDataAllValuesFrom>() {
+            @Override
+            Property getPredicate() {
+                return OWL.allValuesFrom;
+            }
+        }),
+        OBJECT_SOME_VALUES_FROM(ClassExpressionType.OBJECT_SOME_VALUES_FROM, new Restriction<OWLObjectSomeValuesFrom>() {
+            @Override
+            Property getPredicate() {
+                return OWL.someValuesFrom;
+            }
+        }),
+        DATA_SOME_VALUES_FROM(ClassExpressionType.DATA_SOME_VALUES_FROM, new Restriction<OWLDataSomeValuesFrom>() {
+            @Override
+            Property getPredicate() {
+                return OWL.someValuesFrom;
+            }
+        }),
+        OBJECT_HAS_VALUE(ClassExpressionType.OBJECT_HAS_VALUE, new Restriction<OWLObjectHasValue>() {
+            @Override
+            Property getPredicate() {
+                return OWL.hasValue;
+            }
+        }),
+        DATA_HAS_VALUE(ClassExpressionType.DATA_HAS_VALUE, new Restriction<OWLDataHasValue>() {
+            @Override
+            Property getPredicate() {
+                return OWL.hasValue;
+            }
+        }),
+        HAS_SELF(ClassExpressionType.OBJECT_HAS_SELF, new Restriction<OWLObjectHasSelf>() {
+            @Override
+            Property getPredicate() {
+                return OWL2.hasSelf;
+            }
+        }),
+        UNION_OF(ClassExpressionType.OBJECT_UNION_OF, new CollectionOf<OWLObjectUnionOf>() {
+            @Override
+            Property getPredicate() {
+                return OWL.unionOf;
+            }
+        }),
+        INTERSECTION_OF(ClassExpressionType.OBJECT_INTERSECTION_OF, new CollectionOf<OWLObjectIntersectionOf>() {
+            @Override
+            Property getPredicate() {
+                return OWL.intersectionOf;
+            }
+        }),
+        ONE_OF(ClassExpressionType.OBJECT_ONE_OF, new CollectionOf<OWLObjectOneOf>() {
+            @Override
+            Property getPredicate() {
+                return OWL.oneOf;
+            }
+        }),
+        COMPLEMENT_OF(ClassExpressionType.OBJECT_COMPLEMENT_OF, new ComponentsOf() {
+            @Override
+            Property getPredicate() {
+                return OWL.complementOf;
+            }
+        }),;
 
-        OWLClassExpressionRDFType(ClassExpressionType type, Property predicate, MethodType methodType) {
+        private final ClassExpressionType type;
+        private final Translator<? extends OWLClassExpression> translator;
+
+        CETranslator(ClassExpressionType type, Translator<? extends OWLClassExpression> translator) {
             this.type = type;
-            this.predicate = predicate;
-            this.methodType = methodType;
+            this.translator = translator;
         }
 
-        public static OWLClassExpressionRDFType valueOf(ClassExpressionType type) {
-            for (OWLClassExpressionRDFType t : values()) {
-                if (t.getType().equals(type)) return t;
+        public static CETranslator valueOf(ClassExpressionType type) {
+            for (CETranslator t : values()) {
+                if (t.type.equals(type)) return t;
             }
             return null;
         }
 
-        public ClassExpressionType getType() {
-            return type;
+        public static Resource addClassExpression(Model model, OWLClassExpression expression) {
+            CETranslator cet = OntException.notNull(valueOf(expression.getClassExpressionType()),
+                    "Unsupported expression " + expression + "/" + expression.getClassExpressionType());
+            return cet.translator.add(model, expression);
         }
 
-        public Property getPredicate() {
-            return predicate;
+        private static abstract class Translator<CE extends OWLClassExpression> {
+            @SuppressWarnings("unchecked")
+            private Resource add(Model model, OWLClassExpression expression) {
+                return translate(model, (CE) expression);
+            }
+
+            abstract Resource translate(Model model, CE expression);
+
+            abstract Property getPredicate();
         }
 
-        public MethodType getMethodType() {
-            return methodType;
+        private static abstract class Restriction<RestrictionCE extends OWLRestriction> extends Translator<RestrictionCE> {
+            @Override
+            Resource translate(Model model, RestrictionCE expression) {
+                RDFNode object;
+                if (ClassExpressionType.OBJECT_HAS_SELF.equals(expression.getClassExpressionType())) {
+                    Node literal = toLiteralNode(String.valueOf(Boolean.TRUE), null, XSDVocabulary.BOOLEAN.getIRI());
+                    object = model.getRDFNode(literal);
+                } else if (HasFiller.class.isInstance(expression)) {
+                    OWLObject filter = ((HasFiller) expression).getFiller();
+                    object = addResource(model, filter);
+                } else {
+                    throw new OntException("Unsupported restriction " + expression);
+                }
+                OWLPropertyExpression property = expression.getProperty();
+                Resource res = model.createResource();
+                model.add(res, RDF.type, OWL.Restriction);
+                model.add(res, OWL.onProperty, toResource(property));
+                model.add(res, getPredicate(), object);
+                return res;
+            }
         }
 
-        enum MethodType {
-            RESTRICTION_CARDINALITY,
-            RESTRICTION,
-            COLLECTION,
-            SINGLETON,
+        private static abstract class RestrictionCardinality<RestrictionCardinalityCE extends OWLCardinalityRestriction> extends Restriction<RestrictionCardinalityCE> {
+            private Node getCardinalityLiteral(HasCardinality restriction) {
+                return toLiteralNode(String.valueOf(restriction.getCardinality()), null, XSDVocabulary.NON_NEGATIVE_INTEGER.getIRI());
+            }
+
+            @Override
+            Resource translate(Model model, RestrictionCardinalityCE expression) {
+                OWLPropertyExpression property = expression.getProperty();
+                Resource res = model.createResource();
+                model.add(res, RDF.type, OWL.Restriction);
+                model.add(res, OWL.onProperty, toResource(property));
+                model.add(res, getPredicate(), model.getRDFNode(getCardinalityLiteral(expression)));
+                return res;
+            }
+        }
+
+        private static abstract class CollectionOf<OperandsCE extends OWLClassExpression & HasOperands<? extends OWLObject>> extends Translator<OperandsCE> {
+            @Override
+            Resource translate(Model model, OperandsCE expression) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, OWL.Class);
+                model.add(res, getPredicate(), addResources(model, expression.operands()));
+                return res;
+            }
+        }
+
+        private static abstract class ComponentsOf extends Translator<OWLObjectComplementOf> {
+            @Override
+            Resource translate(Model model, OWLObjectComplementOf expression) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, OWL.Class);
+                model.add(res, getPredicate(), addResource(model, expression.getOperand()));
+                return res;
+            }
         }
     }
-
 }
