@@ -1,10 +1,5 @@
 package ru.avicomp.ontapi.parsers;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -15,7 +10,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -29,18 +23,6 @@ import ru.avicomp.ontapi.NodeIRIUtils;
  * Created by szuev on 11.10.2016.
  */
 public class AnnotationsParseUtils {
-
-    private static final List<Node> BUILT_IN_ANNOTATION_PROPERTIES = Stream.of(
-            OWL.backwardCompatibleWith,
-            OWL2.deprecated,
-            OWL.incompatibleWith,
-            OWL2.priorVersion,
-            OWL2.versionInfo,
-            RDFS.comment,
-            RDFS.isDefinedBy,
-            RDFS.label,
-            RDFS.seeAlso
-    ).map(FrontsNode::asNode).collect(Collectors.toList());
 
     /**
      * recursive operator TANN
@@ -69,14 +51,14 @@ public class AnnotationsParseUtils {
      * @param graph Graph
      * @param axiom OWLAxiom
      */
-    public static void translate(Graph graph, Triple triple, OWLAxiom axiom) {
+    public static void addAnnotations(Graph graph, Triple triple, OWLAxiom axiom) {
         if (!axiom.isAnnotated()) return;
         Node blank = NodeIRIUtils.toNode();
         graph.add(Triple.create(blank, RDF.type.asNode(), OWL2.Axiom.asNode()));
         graph.add(Triple.create(blank, OWL2.annotatedSource.asNode(), triple.getSubject()));
         graph.add(Triple.create(blank, OWL2.annotatedProperty.asNode(), triple.getPredicate()));
         graph.add(Triple.create(blank, OWL2.annotatedTarget.asNode(), triple.getObject()));
-        translate(graph, blank, axiom);
+        addAnnotations(graph, blank, axiom);
     }
 
     /**
@@ -93,7 +75,7 @@ public class AnnotationsParseUtils {
      * @param root  {@link org.apache.jena.graph.Node_Blank} anonymous node
      * @param axiom OWLAxiom
      */
-    public static void translate(Graph graph, Node root, OWLAxiom axiom) {
+    public static void addAnnotations(Graph graph, Node root, OWLAxiom axiom) {
         if (!axiom.isAnnotated()) return;
         axiom.annotations().forEach(a -> {
             graph.add(Triple.create(root, toNode(graph, a.getProperty()), NodeIRIUtils.toNode(a.getValue())));
@@ -101,8 +83,8 @@ public class AnnotationsParseUtils {
         axiom.annotations().forEach(a -> translate(graph, root, a));
     }
 
-    public static void translate(Model model, Resource subject, Property predicate, RDFNode object, OWLAxiom axiom) {
-        translate(model.getGraph(), Triple.create(subject.asNode(), predicate.asNode(), object.asNode()), axiom);
+    public static void addAnnotations(Model model, Resource subject, Property predicate, RDFNode object, OWLAxiom axiom) {
+        addAnnotations(model.getGraph(), Triple.create(subject.asNode(), predicate.asNode(), object.asNode()), axiom);
     }
 
     private static void translate(Graph graph, Node source, OWLAnnotation annotation) {
@@ -120,7 +102,7 @@ public class AnnotationsParseUtils {
 
     private static Node toNode(Graph graph, OWLAnnotationProperty property) {
         Node res = NodeIRIUtils.toNode(property);
-        if (res.isURI() && !BUILT_IN_ANNOTATION_PROPERTIES.contains(res)) {
+        if (res.isURI() && !property.isBuiltIn()) {
             graph.add(Triple.create(res, RDF.type.asNode(), OWL.AnnotationProperty.asNode()));
         }
         return res;

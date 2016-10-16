@@ -1,10 +1,7 @@
 package ru.avicomp.ontapi.parsers;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.IsAnonymous;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
@@ -30,12 +27,7 @@ abstract class AbstractNaryParser<Axiom extends OWLAxiom & OWLNaryAxiom<? extend
                 orElseThrow(() -> new OntException("Can't find a single non-anonymous expression inside " + axiom));
         OWLObject rest = axiom.operands().filter((obj) -> !first.equals(obj)).findFirst().
                 orElseThrow(() -> new OntException("Should be at least two expressions inside " + axiom));
-        Model model = ModelFactory.createModelForGraph(graph);
-        Resource subject = AxiomParseUtils.addResource(model, first);
-        Property predicate = getPredicate();
-        Resource object = AxiomParseUtils.addResource(model, rest);
-        model.add(subject, predicate, object);
-        AnnotationsParseUtils.translate(model, subject, predicate, object, axiom);
+        AxiomParseUtils.processAnnotatedTriple(graph, first, getPredicate(), rest, axiom);
     }
 
     @Override

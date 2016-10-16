@@ -1,10 +1,7 @@
 package ru.avicomp.ontapi.parsers;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 
@@ -18,10 +15,10 @@ class ClassAssertionParser extends AxiomParser<OWLClassAssertionAxiom> {
     @Override
     public void process(Graph graph) {
         Model model = ModelFactory.createModelForGraph(graph);
-        Resource subject = AxiomParseUtils.addResource(model, getAxiom().getIndividual());
-        Resource object = AxiomParseUtils.addResource(model, getAxiom().getClassExpression());
+        Resource subject = AxiomParseUtils.addRDFNode(model, getAxiom().getIndividual()).asResource();
+        RDFNode object = AxiomParseUtils.addRDFNode(model, getAxiom().getClassExpression());
         Property predicate = RDF.type;
         model.add(subject, predicate, object);
-        AnnotationsParseUtils.translate(model, subject, predicate, object, getAxiom());
+        AnnotationsParseUtils.addAnnotations(model, subject, predicate, object, getAxiom());
     }
 }

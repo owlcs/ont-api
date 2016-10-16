@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class InverseFunctionalObjectPropertyParser extends SingleTripletParser<OWLInverseFunctionalObjectPropertyAxiom> {
+class InverseFunctionalObjectPropertyParser extends AbstractSingleTripleParser<OWLInverseFunctionalObjectPropertyAxiom> {
     @Override
     public Resource getSubject() {
         return AxiomParseUtils.toResource(getAxiom().getProperty());

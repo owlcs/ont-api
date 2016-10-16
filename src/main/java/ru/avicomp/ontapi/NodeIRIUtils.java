@@ -5,76 +5,68 @@ import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 
 /**
- * utils for converting owl-api iri to jena node
+ * Utils for working with owl-api {@link IRI} and jena {@link Node}
  * <p>
  * Created by @szuev on 27.09.2016.
  */
 public class NodeIRIUtils {
 
+    public static IRI toIRI(OWLObject object) {
+        if (OntException.notNull(object, "Null owl-object specified.").isIRI()) return (IRI) object;
+        if (HasIRI.class.isInstance(object)) {
+            return ((HasIRI) object).getIRI();
+        }
+        if (OWLAnnotationObject.class.isInstance(object)) {
+            return ((OWLAnnotationObject) object).asIRI().orElseThrow(() -> new OntException("Not iri: " + object));
+        }
+        if (OWLClassExpression.class.isInstance(object)) {
+            return toIRI((OWLClassExpression) object);
+        }
+        if (OWLPropertyExpression.class.isInstance(object)) {
+            return toIRI((OWLPropertyExpression) object);
+        }
+        throw new OntException("Unsupported owl-object: " + object);
+    }
+
+    private static IRI toIRI(OWLClassExpression expression) {
+        HasIRI res = null;
+        if (ClassExpressionType.OWL_CLASS.equals(expression.getClassExpressionType())) {
+            res = (OWLClass) expression;
+        }
+        return OntException.notNull(res, "Unsupported class-expression: " + expression).getIRI();
+    }
+
+    private static IRI toIRI(OWLPropertyExpression expression) {
+        if (expression.isOWLDataProperty())
+            return expression.asOWLDataProperty().getIRI();
+        if (expression.isOWLObjectProperty())
+            return expression.asOWLObjectProperty().getIRI();
+        if (expression.isOWLAnnotationProperty()) {
+            return expression.asOWLAnnotationProperty().getIRI();
+        }
+        throw new OntException("Unsupported property-expression: " + expression);
+    }
+
     public static Node toNode() {
         return NodeFactory.createBlankNode();
     }
 
-    public static Node toNode(IRI iri) {
-        return NodeFactory.createURI(OntException.notNull(iri, "Null iri specified.").getIRIString());
-    }
-
     public static Node toNode(OWLObject object) {
-        if (object.isIRI()) {
-            return toNode((IRI) object);
-        }
-        if (HasIRI.class.isInstance(object)) {
-            return toNode(((HasIRI) object).getIRI());
+        if (OWLLiteral.class.isInstance(object)) {
+            return toLiteralNode((OWLLiteral) object);
         }
         if (OWLAnonymousIndividual.class.isInstance(object)) {
             NodeID id = ((OWLAnonymousIndividual) object).getID();
             return NodeFactory.createBlankNode(id.getID());
         }
-        if (OWLAnnotationValue.class.isInstance(object)) {
-            return toNode((OWLAnnotationValue) object);
-        }
-        throw new OntException("Unsupported owl-object " + object);
+        return toNode(toIRI(object));
     }
 
-    public static Node toNode(OWLAnnotationValue value) {
-        if (OntException.notNull(value, "Null value specified.").isIRI()) {
-            return toNode((IRI) value);
-        }
-        if (OWLLiteral.class.isInstance(value)) {
-            return toLiteralNode((OWLLiteral) value);
-        }
-        throw new OntException("Unsupported object type: " + value);
-    }
-
-    public static Triple toTriple(IRI s, IRI p, IRI o) {
-        return Triple.create(toNode(s), toNode(p), toNode(o));
-    }
-
-    public static Triple toTriple(OWLAnnotationValue s, IRI p, OWLAnnotationValue o) {
-        Node subject;
-        if (s.isIRI()) {
-            subject = toNode((IRI) s);
-        } else {
-            throw new OntException("Unsupported subject type: " + s);
-        }
-        Node object;
-        if (o.isIRI()) {
-            object = toNode((IRI) o);
-        } else if (OWLLiteral.class.isInstance(o)) {
-            object = toLiteralNode((OWLLiteral) o);
-        } else {
-            throw new OntException("Unsupported object type: " + s);
-        }
-        Node predicate = toNode(p);
-        return Triple.create(subject, predicate, object);
-    }
-
-    public static IRI fromResource(Resource resource) {
-        return IRI.create(resource.getURI());
+    private static Node toNode(IRI iri) {
+        return NodeFactory.createURI(OntException.notNull(iri, "Null IRI specified.").getIRIString());
     }
 
     public static Node toLiteralNode(OWLLiteral owlLiteral) {
@@ -89,4 +81,9 @@ public class NodeIRIUtils {
     public static Node toLiteralNode(String value, String lang, IRI dataTypeIRI) {
         return toLiteralNode(value, lang, dataTypeIRI.getIRIString());
     }
+
+    public static Triple toTriple(OWLObject s, IRI p, OWLObject o) {
+        return Triple.create(toNode(s), toNode(p), toNode(o));
+    }
+
 }

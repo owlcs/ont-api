@@ -1,7 +1,9 @@
 package ru.avicomp.ontapi.parsers;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.IsAnonymous;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -26,21 +28,18 @@ abstract class AbstractTwoWayNaryParser<Axiom extends OWLAxiom & OWLNaryAxiom<? 
         OWLNaryAxiom<? extends IsAnonymous> axiom = getAxiom();
         long count = axiom.operands().count();
         if (count < 2) throw new OntException("Should be at least two entities " + axiom);
-        Model model = ModelFactory.createModelForGraph(graph);
         if (count == 2) { // single triple classic way
             OWLObject entity = axiom.operands().filter(e -> !e.isAnonymous()).findFirst().orElse(null);
             if (entity == null)
                 throw new OntException("Can't find a single non-anonymous expression inside " + axiom);
             OWLObject rest = axiom.operands().filter((obj) -> !entity.equals(obj)).findFirst().orElse(null);
-            Resource subject = AxiomParseUtils.addResource(model, entity);
-            RDFNode object = AxiomParseUtils.addResource(model, rest);
-            model.add(subject, getPredicate(), object);
-            AnnotationsParseUtils.translate(model, subject, getPredicate(), object, getAxiom());
+            AxiomParseUtils.processAnnotatedTriple(graph, entity, getPredicate(), rest, axiom);
         } else { // OWL2 anonymous node
+            Model model = AxiomParseUtils.createModel(graph);
             Resource root = model.createResource();
             model.add(root, RDF.type, getMembersType());
-            model.add(root, getMembersPredicate(), AxiomParseUtils.addResources(model, axiom.operands()));
-            AnnotationsParseUtils.translate(graph, root.asNode(), getAxiom());
+            model.add(root, getMembersPredicate(), AxiomParseUtils.addRDFList(model, axiom.operands()));
+            AnnotationsParseUtils.addAnnotations(graph, root.asNode(), getAxiom());
         }
     }
 

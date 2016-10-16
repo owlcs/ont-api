@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-abstract class AbstractFunctionalPropertyParser<Axiom extends OWLAxiom & HasProperty> extends SingleTripletParser<Axiom> {
+abstract class AbstractFunctionalPropertyParser<Axiom extends OWLAxiom & HasProperty> extends AbstractSingleTripleParser<Axiom> {
     @Override
     public Resource getSubject() {
         return AxiomParseUtils.toResource(getAxiom().getProperty());

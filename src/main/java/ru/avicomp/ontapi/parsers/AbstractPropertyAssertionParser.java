@@ -1,24 +1,15 @@
 package ru.avicomp.ontapi.parsers;
 
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.OWLIndividual;
+import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.OWLPropertyAssertionAxiom;
 
 /**
  * see {@link DataPropertyAssertionParser} and {@link ObjectPropertyAssertionParser}
  * Created by @szuev on 01.10.2016.
  */
-abstract class AbstractPropertyAssertionParser<Axiom extends OWLPropertyAssertionAxiom> extends SingleTripletParser<Axiom> {
+abstract class AbstractPropertyAssertionParser<Axiom extends OWLPropertyAssertionAxiom> extends AxiomParser<Axiom> {
     @Override
-    public Resource getSubject() {
-        OWLIndividual individual = getAxiom().getSubject();
-        return AxiomParseUtils.toResource(individual);
+    public void process(Graph graph) {
+        AxiomParseUtils.processAnnotatedTriple(graph, getAxiom().getSubject(), getAxiom().getProperty(), getAxiom().getObject(), getAxiom());
     }
-
-    @Override
-    public Property getPredicate() {
-        return AxiomParseUtils.toProperty(getAxiom().getProperty());
-    }
-
 }

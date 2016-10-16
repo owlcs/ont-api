@@ -1,8 +1,6 @@
 package ru.avicomp.ontapi.parsers;
 
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 
@@ -12,19 +10,9 @@ import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-class InverseObjectPropertiesParser extends SingleTripletParser<OWLInverseObjectPropertiesAxiom> {
+class InverseObjectPropertiesParser extends AxiomParser<OWLInverseObjectPropertiesAxiom> {
     @Override
-    public Resource getSubject() {
-        return AxiomParseUtils.toResource(getAxiom().getFirstProperty());
-    }
-
-    @Override
-    public Property getPredicate() {
-        return OWL.inverseOf;
-    }
-
-    @Override
-    public RDFNode getObject() {
-        return AxiomParseUtils.toResource(getAxiom().getSecondProperty());
+    public void process(Graph graph) {
+        AxiomParseUtils.processAnnotatedTriple(graph, getAxiom().getFirstProperty(), OWL.inverseOf, getAxiom().getSecondProperty(), getAxiom());
     }
 }

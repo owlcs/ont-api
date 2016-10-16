@@ -1,12 +1,7 @@
 package ru.avicomp.ontapi.parsers;
 
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
-
-import ru.avicomp.ontapi.OntException;
 
 /**
  * Examples:
@@ -16,22 +11,9 @@ import ru.avicomp.ontapi.OntException;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class AnnotationAssertionParser extends SingleTripletParser<OWLAnnotationAssertionAxiom> {
+class AnnotationAssertionParser extends AxiomParser<OWLAnnotationAssertionAxiom> {
     @Override
-    public Resource getSubject() {
-        return AxiomParseUtils.toResource(getAxiom().getSubject());
-    }
-
-    @Override
-    public Property getPredicate() {
-        return AxiomParseUtils.toProperty(getAxiom().getProperty().getIRI());
-    }
-
-    @Override
-    public RDFNode getObject() {
-        OWLAnnotationValue value = getAxiom().getValue();
-        return value.isIRI() ? AxiomParseUtils.toResource(value) :
-                AxiomParseUtils.toLiteral(value.asLiteral().
-                        orElseThrow(() -> new OntException("Can't determine object " + getAxiom())));
+    public void process(Graph graph) {
+        AxiomParseUtils.processAnnotatedTriple(graph, getAxiom().getSubject(), getAxiom().getProperty(), getAxiom().getValue(), getAxiom());
     }
 }

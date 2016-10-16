@@ -12,7 +12,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-abstract class SingleTripletParser<Axiom extends OWLAxiom> extends AxiomParser<Axiom> {
+abstract class AbstractSingleTripleParser<Axiom extends OWLAxiom> extends AxiomParser<Axiom> {
 
     public abstract Resource getSubject();
 
@@ -28,7 +28,7 @@ abstract class SingleTripletParser<Axiom extends OWLAxiom> extends AxiomParser<A
     public void process(Graph graph) {
         Triple triple = getTriple();
         graph.add(triple);
-        AnnotationsParseUtils.translate(graph, triple, getAxiom());
+        AnnotationsParseUtils.addAnnotations(graph, triple, getAxiom());
     }
 
 }

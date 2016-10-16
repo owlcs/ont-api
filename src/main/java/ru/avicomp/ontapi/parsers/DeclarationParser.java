@@ -11,7 +11,7 @@ import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class DeclarationParser extends SingleTripletParser<OWLDeclarationAxiom> {
+class DeclarationParser extends AbstractSingleTripleParser<OWLDeclarationAxiom> {
     @Override
     public Resource getSubject() {
         return AxiomParseUtils.toResource(getAxiom().getEntity());

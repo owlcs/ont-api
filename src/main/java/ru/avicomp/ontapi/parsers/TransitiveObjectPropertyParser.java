@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class TransitiveObjectPropertyParser extends SingleTripletParser<OWLTransitiveObjectPropertyAxiom> {
+class TransitiveObjectPropertyParser extends AbstractSingleTripleParser<OWLTransitiveObjectPropertyAxiom> {
     @Override
     public Resource getSubject() {
         return AxiomParseUtils.toResource(getAxiom().getProperty());

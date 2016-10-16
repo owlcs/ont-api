@@ -12,10 +12,8 @@ import org.semanticweb.owlapi.model.OWLPropertyExpression;
  * Created by @szuev on 01.10.2016.
  */
 abstract class AbstractEquivalentPropertiesParser<Axiom extends OWLNaryPropertyAxiom<? extends OWLPropertyExpression>> extends AbstractNaryParser<Axiom> {
-
     @Override
     public Property getPredicate() {
         return OWL.equivalentProperty;
     }
-
 }
