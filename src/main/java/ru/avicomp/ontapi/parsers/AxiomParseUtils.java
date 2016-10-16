@@ -95,8 +95,12 @@ public class AxiomParseUtils {
     }
 
     public static void processAnnotatedTriple(Graph graph, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom) {
+        processAnnotatedTriple(graph, subject, predicate, object, axiom, false);
+    }
+
+    public static void processAnnotatedTriple(Graph graph, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom, boolean addSubject) {
         Model model = createModel(graph);
-        Resource _subject = toResource(subject);
+        Resource _subject = addSubject ? addRDFNode(model, subject).asResource() : toResource(subject);
         RDFNode _object = addRDFNode(model, object);
         model.add(_subject, predicate, _object);
         AnnotationsParseUtils.addAnnotations(model, _subject, predicate, _object, axiom);
@@ -117,6 +121,13 @@ public class AxiomParseUtils {
         }
         if (OWLClassExpression.class.isInstance(o)) {
             return CETranslator.addClassExpression(model, (OWLClassExpression) o);
+        }
+        if (OWLAnonymousIndividual.class.isInstance(o)) {
+            Resource res = toResource(((OWLAnonymousIndividual) o).getID());
+            if (!model.contains(res, null, (RDFNode) null)) {
+                throw new OntException("Anonymous individuals should be created first.");
+            }
+            return res.inModel(model);
         }
         return toRDFNode(o).inModel(model);
     }

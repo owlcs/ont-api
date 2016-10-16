@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.OntIRI;
+import ru.avicomp.ontapi.utils.TestUtils;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImplNotAnnotated;
 
 /**
@@ -34,9 +35,9 @@ public class ChangeIDGraphTest extends GraphTestBase {
     private static void testIRIChanged(OntologyModel owl, OntModel jena, OWLOntologyID id, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
         debug(owl);
         String iri = id.getOntologyIRI().isPresent() ? id.getOntologyIRI().orElse(null).getIRIString() : null;
-        Ontology ont = getOntology(jena);
+        Ontology ont = TestUtils.getOntology(jena);
         Assert.assertNotNull("Can't find new ontology for iri " + id, ont);
-        Assert.assertNotNull("Can't find new ontology in jena", getOntology(owl.asGraphModel()));
+        Assert.assertNotNull("Can't find new ontology in jena", TestUtils.getOntology(owl.asGraphModel()));
         Assert.assertEquals("Incorrect jena id-iri", iri, ont.getURI());
         Assert.assertTrue("Incorrect owl id-iri", (id.isAnonymous() && owl.getOntologyID().isAnonymous()) || owl.getOntologyID().equals(id));
         // check imports:
@@ -58,8 +59,8 @@ public class ChangeIDGraphTest extends GraphTestBase {
         // check jena annotations:
         for (Property property : annotations.keySet()) {
             List<RDFNode> actualList = jena.listStatements(ont, property, (RDFNode) null).mapWith(Statement::getObject).
-                    toList().stream().sorted(RDF_NODE_COMPARATOR).collect(Collectors.toList());
-            List<RDFNode> expectedList = annotations.get(property).stream().sorted(RDF_NODE_COMPARATOR).collect(Collectors.toList());
+                    toList().stream().sorted(TestUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+            List<RDFNode> expectedList = annotations.get(property).stream().sorted(TestUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
             Assert.assertEquals("Incorrect list of annotations", expectedList, actualList);
         }
     }

@@ -13,7 +13,7 @@ import ru.avicomp.ontapi.OntException;
  * Base class for following axioms:
  *  EquivalentClasses ({@link EquivalentClassesParser}),
  *  EquivalentObjectProperties ({@link EquivalentObjectPropertiesParser}),
- *  EquivalentDataProperties ({@link EquivalentDataPropertiesParser}), or
+ *  EquivalentDataProperties ({@link EquivalentDataPropertiesParser}),
  *  SameIndividual ({@link SameIndividualParser}).
  *
  *  How to annotate see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>
@@ -27,7 +27,7 @@ abstract class AbstractNaryParser<Axiom extends OWLAxiom & OWLNaryAxiom<? extend
                 orElseThrow(() -> new OntException("Can't find a single non-anonymous expression inside " + axiom));
         OWLObject rest = axiom.operands().filter((obj) -> !first.equals(obj)).findFirst().
                 orElseThrow(() -> new OntException("Should be at least two expressions inside " + axiom));
-        AxiomParseUtils.processAnnotatedTriple(graph, first, getPredicate(), rest, axiom);
+        AxiomParseUtils.processAnnotatedTriple(graph, first, getPredicate(), rest, getAxiom(), true);
     }
 
     @Override

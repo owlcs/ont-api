@@ -33,13 +33,13 @@ abstract class AbstractTwoWayNaryParser<Axiom extends OWLAxiom & OWLNaryAxiom<? 
             if (entity == null)
                 throw new OntException("Can't find a single non-anonymous expression inside " + axiom);
             OWLObject rest = axiom.operands().filter((obj) -> !entity.equals(obj)).findFirst().orElse(null);
-            AxiomParseUtils.processAnnotatedTriple(graph, entity, getPredicate(), rest, axiom);
+            AxiomParseUtils.processAnnotatedTriple(graph, entity, getPredicate(), rest, axiom, true);
         } else { // OWL2 anonymous node
             Model model = AxiomParseUtils.createModel(graph);
             Resource root = model.createResource();
             model.add(root, RDF.type, getMembersType());
             model.add(root, getMembersPredicate(), AxiomParseUtils.addRDFList(model, axiom.operands()));
-            AnnotationsParseUtils.addAnnotations(graph, root.asNode(), getAxiom());
+            AnnotationsParseUtils.addAnnotations(graph, root.asNode(), axiom);
         }
     }
 

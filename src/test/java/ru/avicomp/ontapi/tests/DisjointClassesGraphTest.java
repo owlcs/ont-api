@@ -22,6 +22,7 @@ import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
  * test owl:AllDisjointClasses and owl:disjointWith using jena and owl-api
@@ -69,7 +70,7 @@ public class DisjointClassesGraphTest extends GraphTestBase {
 
         LOGGER.info("Compare axioms.");
         result.axioms().forEach(LOGGER::debug);
-        compareAxioms(original.axioms(), result.axioms());
+        TestUtils.compareAxioms(original.axioms(), result.axioms());
 
         LOGGER.info("Remove OWL:disjointWith");
         ReadWriteUtils.print(jena, OntFormat.TTL_RDF);
@@ -88,7 +89,7 @@ public class DisjointClassesGraphTest extends GraphTestBase {
 
         LOGGER.info("Compare axioms.");
         result.axioms().forEach(LOGGER::debug);
-        compareAxioms(original.axioms().filter(axiom -> !AxiomType.DISJOINT_CLASSES.equals(axiom.getAxiomType())), result.axioms());
+        TestUtils.compareAxioms(original.axioms().filter(axiom -> !AxiomType.DISJOINT_CLASSES.equals(axiom.getAxiomType())), result.axioms());
         debug(result);
 
     }
