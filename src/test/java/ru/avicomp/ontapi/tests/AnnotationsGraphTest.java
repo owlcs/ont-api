@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.tests;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -140,17 +141,20 @@ public class AnnotationsGraphTest extends GraphTestBase {
         TestUtils.compareAxioms(owl1.axioms(), owl2.axioms().filter(OWLAxiom::isAnnotated));
     }
 
+    /**
+     * test DifferentIndividuals, DisjointClasses, NegativeObjectPropertyAssertion, DisjointObjectProperties axioms.
+     */
     @Test
-    public void test3() throws OWLOntologyCreationException {
+    public void test3() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/3");
-        OWLOntologyManager manager = //OWLManager.createOWLOntologyManager();
-                OntManagerFactory.createOWLOntologyManager();
-        OWLOntology owl = manager.createOntology(iri.toOwlOntologyID());
+        OntologyModel owl = TestUtils.createModel(iri);
+        OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
+
         OWLClass clazz1 = factory.getOWLClass(iri.addFragment("MyClass1"));
         OWLClass clazz2 = factory.getOWLClass(iri.addFragment("MyClass2"));
         OWLClass clazz3 = factory.getOWLClass(iri.addFragment("MyClass3"));
-        OWLIndividual ind1 = factory.getOWLAnonymousIndividual();
+        OWLIndividual ind1 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi0")); //factory.getOWLAnonymousIndividual();
         OWLIndividual ind2 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi1"));
         OWLIndividual ind3 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi2"));
         OWLObjectPropertyExpression objectProperty1 = factory.getOWLObjectProperty(iri.addFragment("objectProperty1"));
@@ -196,16 +200,23 @@ public class AnnotationsGraphTest extends GraphTestBase {
                 Stream.of(dataProperty3, dataProperty1, dataProperty2).collect(Collectors.toSet()),
                 Stream.of(ann9).collect(Collectors.toSet()))));
 
-        debug((OntologyModel) owl);
-        //TODO:
+        debug(owl);
+
+        owl.asGraphModel().rebind();
+
+        //checkAnnotatedAxioms(owl); //TODO
     }
 
+    /**
+     * test "nary" annotated axioms: EquivalentClasses, EquivalentDataProperties, EquivalentObjectProperties, SameIndividual
+     */
     @Test
-    public void test4() throws OWLOntologyCreationException {
+    public void test4() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/4");
-        OWLOntologyManager manager1 = OntManagerFactory.createOWLOntologyManager();
-        OntologyModel owl1 = (OntologyModel) manager1.createOntology(iri.toOwlOntologyID());
-        OWLDataFactory factory = manager1.getOWLDataFactory();
+        OntologyModel owl = TestUtils.createModel(iri);
+        OWLOntologyManager manager = owl.getOWLOntologyManager();
+        OWLDataFactory factory = manager.getOWLDataFactory();
+
         OWLClass clazz1 = factory.getOWLClass(iri.addFragment("MyClass1"));
         OWLClass clazz2 = factory.getOWLClass(iri.addFragment("MyClass2"));
         OWLClass clazz3 = factory.getOWLClass(iri.addFragment("MyClass3"));
@@ -222,9 +233,9 @@ public class AnnotationsGraphTest extends GraphTestBase {
         OWLAnnotationProperty annotationProperty2 = factory.getOWLAnnotationProperty(iri.addFragment("annotationProperty2"));
 
         // individuals should be processed first:
-        owl1.applyChanges(new AddAxiom(owl1, factory.getOWLClassAssertionAxiom(clazz1, ind1)));
-        owl1.applyChanges(new AddAxiom(owl1, factory.getOWLClassAssertionAxiom(clazz2, ind2)));
-        owl1.applyChanges(new AddAxiom(owl1, factory.getOWLClassAssertionAxiom(clazz3, ind3)));
+        owl.applyChanges(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz1, ind1)));
+        owl.applyChanges(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz2, ind2)));
+        owl.applyChanges(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz3, ind3)));
 
         List<OWLNaryAxiom> axioms = new ArrayList<>();
         // equivalent classes
@@ -253,21 +264,90 @@ public class AnnotationsGraphTest extends GraphTestBase {
                 Stream.of(ann4).collect(Collectors.toSet())));
 
         LOGGER.info("Add pairwise axioms");
-        List<OWLAxiom> expected = new ArrayList<>();
-        axioms.forEach(a -> {
-            owl1.applyChange(new AddAxiom(owl1, a));
-            //noinspection unchecked
-            expected.addAll(a.splitToAnnotatedPairs());
+
+        axioms.forEach(a -> owl.applyChange(new AddAxiom(owl, a)));
+
+        debug(owl);
+
+        checkAnnotatedAxioms(owl);
+    }
+
+    /**
+     * test axioms with a subproperty chain: DisjointUnion, SubObjectPropertyOf, HasKey
+     */
+    @Test
+    public void test5() {
+        OntIRI iri = OntIRI.create("http://test.org/annotations/5");
+        OntologyModel owl = TestUtils.createModel(iri);
+
+        OWLOntologyManager manager = owl.getOWLOntologyManager();
+        OWLDataFactory factory = manager.getOWLDataFactory();
+
+        OWLClass clazz1 = factory.getOWLClass(iri.addFragment("MyClass1"));
+        OWLClass clazz2 = factory.getOWLClass(iri.addFragment("MyClass2"));
+        OWLClass clazz3 = factory.getOWLClass(iri.addFragment("MyClass3"));
+        OWLClass clazz4 = factory.getOWLClass(iri.addFragment("MyClass4"));
+        OWLObjectProperty op1 = factory.getOWLObjectProperty(iri.addFragment("ob-prop-1"));
+        OWLObjectProperty op2 = factory.getOWLObjectProperty(iri.addFragment("ob-prop-2"));
+
+        OWLClassExpression ce1 = factory.getOWLObjectUnionOf(clazz3, clazz4);
+        OWLObjectPropertyExpression ope1 = factory.getOWLObjectInverseOf(op2);
+
+        List<OWLAxiom> axioms = new ArrayList<>();
+
+        // disjointUnion
+        OWLAnnotation ann1 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("some comment"));
+        axioms.add(factory.getOWLDisjointUnionAxiom(clazz1, Stream.of(clazz2, ce1), Stream.of(ann1).collect(Collectors.toSet())));
+
+        // subObjectPropertyOf
+        OWLAnnotation ann2 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("sub-label", "xx"));
+        axioms.add(factory.getOWLSubObjectPropertyOfAxiom(op1, ope1, Stream.of(ann2).collect(Collectors.toSet())));
+
+        // hasKey
+        OWLAnnotation ann3 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), iri.addFragment("click-me/please"));
+        OWLClassExpression ce2 = factory.getOWLObjectUnionOf(clazz2, ce1);
+        axioms.add(factory.getOWLHasKeyAxiom(ce2, Stream.of(op1, op2).collect(Collectors.toSet()), Stream.of(ann3).collect(Collectors.toSet())));
+
+        // hasKey
+        OWLAnnotation ann4 = factory.getOWLAnnotation(factory.getRDFSIsDefinedBy(), iri.addFragment("do-not-click/please"));
+        axioms.add(factory.getOWLHasKeyAxiom(clazz1, Stream.of(op1).collect(Collectors.toSet()), Stream.of(ann4).collect(Collectors.toSet())));
+
+        LOGGER.info("Add annotated axioms");
+        axioms.forEach(new Consumer<OWLAxiom>() {
+            @Override
+            public void accept(OWLAxiom axiom) {
+                owl.applyChanges(new AddAxiom(owl, axiom));
+            }
         });
 
-        debug(owl1);
+        debug(owl);
 
-        LOGGER.info("Load ontology to another manager from jena graph");
-        OWLOntologyManager manager2 = OntManagerFactory.createOWLOntologyManager();
-        OntologyModel owl2 = TestUtils.putOntModelToManager(manager2, owl1.asGraphModel(), null);
+        checkAnnotatedAxioms(owl);
+    }
+
+    private static Stream<OWLAxiom> annotatedAxioms(OWLOntology ontology) {
+        List<OWLAxiom> res = new ArrayList<>();
+        ontology.axioms().filter(OWLAxiom::isAnnotated).forEach(axiom -> {
+            if (axiom instanceof OWLNaryAxiom) {
+                //noinspection unchecked
+                res.addAll(((OWLNaryAxiom) axiom).splitToAnnotatedPairs());
+            } else {
+                res.add(axiom);
+            }
+        });
+        return res.stream();
+    }
+
+    private static void checkAnnotatedAxioms(OntologyModel original) {
+        LOGGER.info("Load ontology to another manager from jena graph.");
+        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
+        OntologyModel result = TestUtils.loadOntologyFromIOStream(manager, original.asGraphModel(), null);
         LOGGER.info("All axioms:");
-        owl2.axioms().forEach(LOGGER::info);
-
-        TestUtils.compareAxioms(expected.stream(), owl2.axioms().filter(OWLAxiom::isAnnotated));
+        result.axioms().forEach(LOGGER::info);
+        LOGGER.info("Expected axioms:");
+        annotatedAxioms(original).forEach(LOGGER::info);
+        LOGGER.info("Actual (annotated, splitted):");
+        annotatedAxioms(result).forEach(LOGGER::info);
+        TestUtils.compareAxioms(annotatedAxioms(original), annotatedAxioms(result));
     }
 }

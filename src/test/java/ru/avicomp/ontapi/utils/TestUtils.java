@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 
+import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
 
@@ -45,7 +46,25 @@ public class TestUtils {
         return (OntologyModel) owl;
     }
 
-    public static OntologyModel putOntModelToManager(OWLOntologyManager manager, OntModel model, OntFormat convertFormat) {
+    public static OntologyModel createModel(OntIRI iri) {
+        return createModel(iri.toOwlOntologyID());
+    }
+
+    public static OntologyModel createModel(OWLOntologyID id) {
+        return createModel(OntManagerFactory.createOWLOntologyManager(), id);
+    }
+
+    public static OntologyModel createModel(OWLOntologyManager manager, OWLOntologyID id) {
+        try {
+            LOGGER.info("Create ontology " + id);
+            return (OntologyModel) manager.createOntology(id);
+        } catch (OWLOntologyCreationException e) {
+            Assert.fail(e.getMessage());
+        }
+        return null;
+    }
+
+    public static OntologyModel loadOntologyFromIOStream(OWLOntologyManager manager, OntModel model, OntFormat convertFormat) {
         String uri = getURI(model);
         LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
         try (InputStream is = ReadWriteUtils.toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {

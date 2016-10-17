@@ -119,6 +119,12 @@ public class AxiomParseUtils {
             }
             return res.inModel(model);
         }
+        if (OWLObjectInverseOf.class.isInstance(o)) {
+            OWLObjectInverseOf inverseOf = (OWLObjectInverseOf) o;
+            Resource res = model.createResource();
+            model.add(res, OWL.inverseOf, addRDFNode(model, inverseOf.getInverse()));
+            return res;
+        }
         if (OWLClassExpression.class.isInstance(o)) {
             return CETranslator.addClassExpression(model, (OWLClassExpression) o);
         }
@@ -129,6 +135,7 @@ public class AxiomParseUtils {
             }
             return res.inModel(model);
         }
+
         return toRDFNode(o).inModel(model);
     }
 

@@ -51,7 +51,7 @@ public abstract class LoadTestBase {
         String copyOntIRI = ontIRI + ".copy";
         OntModel copyOntModel = TestUtils.copyOntModel(ontModel, copyOntIRI);
 
-        OntologyModel copyOntology = TestUtils.putOntModelToManager(manager, copyOntModel, convertFormat());
+        OntologyModel copyOntology = TestUtils.loadOntologyFromIOStream(manager, copyOntModel, convertFormat());
         long ontologiesCount = manager.ontologies().count();
         LOGGER.debug("Number of ontologies inside manager: " + ontologiesCount);
         Assert.assertTrue("Incorrect number of ontologies inside manager (" + ontologiesCount + ")", ontologiesCount >= 2);

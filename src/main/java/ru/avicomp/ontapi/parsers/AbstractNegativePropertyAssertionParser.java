@@ -24,7 +24,7 @@ abstract class AbstractNegativePropertyAssertionParser<Axiom extends OWLProperty
         Node root = NodeIRIUtils.toNode();
         graph.add(Triple.create(root, RDF.type.asNode(), OWL2.NegativePropertyAssertion.asNode()));
         graph.add(Triple.create(root, OWL2.sourceIndividual.asNode(), NodeIRIUtils.toNode(axiom.getSubject())));
-        graph.add(Triple.create(root, OWL2.annotatedProperty.asNode(), NodeIRIUtils.toNode(axiom.getProperty())));
+        graph.add(Triple.create(root, OWL2.assertionProperty.asNode(), NodeIRIUtils.toNode(axiom.getProperty())));
         graph.add(Triple.create(root, getTargetPredicate().asNode(), NodeIRIUtils.toNode(axiom.getObject())));
         AnnotationsParseUtils.addAnnotations(graph, root, axiom);
     }
