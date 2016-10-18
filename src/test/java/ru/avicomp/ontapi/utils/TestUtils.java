@@ -2,9 +2,7 @@ package ru.avicomp.ontapi.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +21,7 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
+import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
 
 /**
  * Test Utils.
@@ -59,9 +58,8 @@ public class TestUtils {
             LOGGER.info("Create ontology " + id);
             return (OntologyModel) manager.createOntology(id);
         } catch (OWLOntologyCreationException e) {
-            Assert.fail(e.getMessage());
+            throw new AssertionError(e);
         }
-        return null;
     }
 
     public static OntologyModel loadOntologyFromIOStream(OWLOntologyManager manager, OntModel model, OntFormat convertFormat) {
@@ -70,7 +68,7 @@ public class TestUtils {
         try (InputStream is = ReadWriteUtils.toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {
             manager.loadOntologyFromOntologyDocument(is);
         } catch (IOException | OWLOntologyCreationException e) {
-            Assert.fail(e.getMessage());
+            throw new AssertionError(e);
         }
         OntologyModel res = (OntologyModel) manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, res);
@@ -126,21 +124,52 @@ public class TestUtils {
     }
 
     public static void compareAxioms(Stream<? extends OWLAxiom> expected, Stream<? extends OWLAxiom> actual) {
-        List<OWLAxiom> list1 = expected.sorted().collect(Collectors.toList());
-        List<OWLAxiom> list2 = actual.sorted().collect(Collectors.toList());
-        Assert.assertEquals("Not equal axioms streams count", list1.size(), list2.size());
+        compareAxioms(toMap(expected), toMap(actual));
+    }
+
+    public static void compareAxioms(Map<AxiomType, List<OWLAxiom>> expected, Map<AxiomType, List<OWLAxiom>> actual) {
+        Assert.assertEquals("Incorrect axiom types:", expected.keySet(), actual.keySet());
         List<String> errors = new ArrayList<>();
-        for (int i = 0; i < list1.size(); i++) {
-            OWLAxiom a = list1.get(i);
-            OWLAxiom b = list2.get(i);
-            if (same(a, b)) continue;
-            errors.add(String.format("%s != %s", a, b));
+        for (AxiomType type : expected.keySet()) {
+            List<OWLAxiom> exList = expected.get(type);
+            List<OWLAxiom> acList = actual.get(type);
+            if (exList.size() != acList.size()) {
+                errors.add(String.format("[%s]incorrect axioms list: %d != %d", type, exList.size(), acList.size()));
+                continue;
+            }
+            for (int i = 0; i < exList.size(); i++) {
+                OWLAxiom a = exList.get(i);
+                OWLAxiom b = acList.get(i);
+                if (same(a, b)) continue;
+                errors.add(String.format("[%s]%s != %s", type, a, b));
+            }
         }
         errors.forEach(LOGGER::error);
         Assert.assertTrue("There are " + errors.size() + " errors", errors.isEmpty());
     }
 
+    public static Map<AxiomType, List<OWLAxiom>> toMap(Stream<? extends OWLAxiom> stream) {
+        return toMap(stream.collect(Collectors.toList()));
+    }
+
+    public static Map<AxiomType, List<OWLAxiom>> toMap(List<? extends OWLAxiom> list) {
+        Set<AxiomType> types = list.stream().map(OWLAxiom::getAxiomType).collect(Collectors.toSet());
+        Map<AxiomType, List<OWLAxiom>> res = new HashMap<>();
+        types.forEach(type -> {
+            List<OWLAxiom> value = res.computeIfAbsent(type, t -> new ArrayList<>());
+            List<OWLAxiom> byType = list.stream().filter(a -> type.equals(a.getAxiomType())).sorted().collect(Collectors.toList());
+            value.addAll(byType);
+        });
+        return res;
+    }
+
+    private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(NodeID.getNodeID());
+
     public static boolean same(OWLAxiom a, OWLAxiom b) {
-        return a.typeIndex() == b.typeIndex() && OWLAPIStreamUtils.equalStreams(a.components(), b.components());
+        return a.typeIndex() == b.typeIndex() && OWLAPIStreamUtils.equalStreams(replaceAnonymous(a.components()), replaceAnonymous(b.components()));
+    }
+
+    private static Stream<?> replaceAnonymous(Stream<?> stream) {
+        return stream.map(o -> o instanceof OWLAnonymousIndividual ? ANONYMOUS_INDIVIDUAL : o);
     }
 }

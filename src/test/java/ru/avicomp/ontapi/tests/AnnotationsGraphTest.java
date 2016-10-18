@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.tests;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,10 +35,8 @@ import ru.avicomp.ontapi.utils.TestUtils;
 public class AnnotationsGraphTest extends GraphTestBase {
 
     @Test
-    public void test1() throws OWLOntologyCreationException {
+    public void testSingleComplexAnnotation() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/1");
-        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
-
         // test data:
         OntIRI clazzIRI = iri.addFragment("SomeClass1");
         OntIRI annotationProperty = iri.addFragment("some-annotation-property");
@@ -46,7 +45,9 @@ public class AnnotationsGraphTest extends GraphTestBase {
         String label = "some-label";
 
         LOGGER.info("Create fresh ontology (" + iri + ").");
-        OntologyModel owl = (OntologyModel) manager.createOntology(iri.toOwlOntologyID());
+        OntologyModel owl = TestUtils.createModel(iri);
+        OWLOntologyManager manager = owl.getOWLOntologyManager();
+
         OntModel jena = owl.asGraphModel();
         OntClass ontClass = jena.createClass(clazzIRI.getIRIString());
 
@@ -83,10 +84,15 @@ public class AnnotationsGraphTest extends GraphTestBase {
                 factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))
         ).collect(Collectors.toSet()));
         TestUtils.compareAxioms(Stream.of(expected), owl.axioms());
+
+        checkAnnotatedAxioms(owl);
     }
 
+    /**
+     * test complex woody annotations.
+     */
     @Test
-    public void test2() throws OWLOntologyCreationException {
+    public void testComplexAnnotations() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/2");
         OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
@@ -94,7 +100,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         OWLOntologyID id1 = iri.toOwlOntologyID(iri.addPath("1.0"));
         LOGGER.info("Create ontology " + id1);
-        OntologyModel owl1 = (OntologyModel) manager.createOntology(id1);
+        OntologyModel owl1 = TestUtils.createModel(manager, id1);
 
         OWLAnnotation simple1 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("PLAIN-1"));
         OWLAnnotation simple2 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("PLAIN-2"));
@@ -125,7 +131,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         OWLOntologyID id2 = iri.toOwlOntologyID(iri.addPath("2.0"));
         LOGGER.info("Create ontology " + id2 + " (empty)");
-        OntologyModel owl2 = (OntologyModel) manager.createOntology(id2);
+        OntologyModel owl2 = TestUtils.createModel(manager, id2);
         Assert.assertEquals("Incorrect number of ontologies.", count + 2, manager.ontologies().count());
 
         LOGGER.info("Pass all content from " + id1 + " to " + id2 + " using jena");
@@ -139,13 +145,15 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         LOGGER.info("Compare axioms"); // note! there is one more axiom in new ontology: Declaration(NamedIndividual(<http://test.org/annotations/2#Indi>))
         TestUtils.compareAxioms(owl1.axioms(), owl2.axioms().filter(OWLAxiom::isAnnotated));
+
+        checkAnnotatedAxioms(owl1);
     }
 
     /**
      * test DifferentIndividuals, DisjointClasses, NegativeObjectPropertyAssertion, DisjointObjectProperties axioms.
      */
     @Test
-    public void test3() {
+    public void testBulkNaryAnnotatedAxioms() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/3");
         OntologyModel owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
@@ -154,7 +162,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         OWLClass clazz1 = factory.getOWLClass(iri.addFragment("MyClass1"));
         OWLClass clazz2 = factory.getOWLClass(iri.addFragment("MyClass2"));
         OWLClass clazz3 = factory.getOWLClass(iri.addFragment("MyClass3"));
-        OWLIndividual ind1 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi0")); //factory.getOWLAnonymousIndividual();
+        OWLIndividual ind1 = factory.getOWLAnonymousIndividual();
         OWLIndividual ind2 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi1"));
         OWLIndividual ind3 = factory.getOWLNamedIndividual(iri.addFragment("MyIndi2"));
         OWLObjectPropertyExpression objectProperty1 = factory.getOWLObjectProperty(iri.addFragment("objectProperty1"));
@@ -202,16 +210,16 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         debug(owl);
 
-        owl.asGraphModel().rebind();
-
-        //checkAnnotatedAxioms(owl); //TODO
+        // TODO: WARNING: ANNOTATIONS is not supported for DifferentIndividuals AXIOM by the OWL API (version 5.0.3)
+        // TODO: need to rewrite owl-loader to fix it.
+        checkAnnotatedAxioms(owl, AxiomType.DIFFERENT_INDIVIDUALS);
     }
 
     /**
      * test "nary" annotated axioms: EquivalentClasses, EquivalentDataProperties, EquivalentObjectProperties, SameIndividual
      */
     @Test
-    public void test4() {
+    public void testNaryAnnotatedAxioms() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/4");
         OntologyModel owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
@@ -276,7 +284,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
      * test axioms with a subproperty chain: DisjointUnion, SubObjectPropertyOf, HasKey
      */
     @Test
-    public void test5() {
+    public void testAnnotatedAxiomsWithSubProperties() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/5");
         OntologyModel owl = TestUtils.createModel(iri);
 
@@ -325,9 +333,11 @@ public class AnnotationsGraphTest extends GraphTestBase {
         checkAnnotatedAxioms(owl);
     }
 
-    private static Stream<OWLAxiom> annotatedAxioms(OWLOntology ontology) {
+    private static Stream<OWLAxiom> annotatedAxioms(OWLOntology ontology, AxiomType... excluded) {
         List<OWLAxiom> res = new ArrayList<>();
+        List<AxiomType> toExclude = Stream.of(excluded).collect(Collectors.toList());
         ontology.axioms().filter(OWLAxiom::isAnnotated).forEach(axiom -> {
+            if (toExclude.contains(axiom.getAxiomType())) return;
             if (axiom instanceof OWLNaryAxiom) {
                 //noinspection unchecked
                 res.addAll(((OWLNaryAxiom) axiom).splitToAnnotatedPairs());
@@ -338,16 +348,18 @@ public class AnnotationsGraphTest extends GraphTestBase {
         return res.stream();
     }
 
-    private static void checkAnnotatedAxioms(OntologyModel original) {
+    private static void checkAnnotatedAxioms(OntologyModel original, AxiomType... excluded) {
         LOGGER.info("Load ontology to another manager from jena graph.");
         OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
         OntologyModel result = TestUtils.loadOntologyFromIOStream(manager, original.asGraphModel(), null);
         LOGGER.info("All axioms:");
         result.axioms().forEach(LOGGER::info);
+        Map<AxiomType, List<OWLAxiom>> expected = TestUtils.toMap(annotatedAxioms(original, excluded));
+        Map<AxiomType, List<OWLAxiom>> actual = TestUtils.toMap(annotatedAxioms(result, excluded));
         LOGGER.info("Expected axioms:");
-        annotatedAxioms(original).forEach(LOGGER::info);
-        LOGGER.info("Actual (annotated, splitted):");
-        annotatedAxioms(result).forEach(LOGGER::info);
-        TestUtils.compareAxioms(annotatedAxioms(original), annotatedAxioms(result));
+        expected.forEach((t, list) -> LOGGER.debug(String.format("[%s]:::%s", t, list)));
+        LOGGER.info("Actual axioms:");
+        actual.forEach((t, list) -> LOGGER.debug(String.format("[%s]:::%s", t, list)));
+        TestUtils.compareAxioms(expected, actual);
     }
 }
