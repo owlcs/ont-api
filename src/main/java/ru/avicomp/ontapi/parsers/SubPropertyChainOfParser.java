@@ -4,30 +4,29 @@ import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.vocabulary.OWL2;
-import org.semanticweb.owlapi.model.OWLHasKeyAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 
 /**
  * base class : {@link AbstractSubChainedParser}
- * for HasKey axiom.
- * example:
- * :MyClass1 owl:hasKey ( :ob-prop-1 ) .
+ * for SubPropertyChainOf axiom
+ * example: owl:topObjectProperty owl:propertyChainAxiom ( :ob-prop-1 :ob-prop-2 ) .
  * <p>
- * Created by @szuev on 17.10.2016.
+ * Created by @szuev on 18.10.2016.
  */
-class HasKeyParser extends AbstractSubChainedParser<OWLHasKeyAxiom> {
+class SubPropertyChainOfParser extends AbstractSubChainedParser<OWLSubPropertyChainOfAxiom> {
     @Override
     public OWLObject getSubject() {
-        return getAxiom().getClassExpression();
+        return getAxiom().getSuperProperty();
     }
 
     @Override
     public Property getPredicate() {
-        return OWL2.hasKey;
+        return OWL2.propertyChainAxiom;
     }
 
     @Override
     public Stream<? extends OWLObject> getObjects() {
-        return getAxiom().propertyExpressions();
+        return getAxiom().getPropertyChain().stream();
     }
 }

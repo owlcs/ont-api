@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -284,10 +283,10 @@ public class AnnotationsGraphTest extends GraphTestBase {
     }
 
     /**
-     * test axioms with a subproperty chain: DisjointUnion, SubObjectPropertyOf, HasKey
+     * test axioms with a sub chain: DisjointUnion, SubPropertyChainOf, HasKey
      */
     @Test
-    public void testAnnotatedAxiomsWithSubProperties() {
+    public void testAnnotatedAxiomsWithSubChain() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/5");
         OntologyModel owl = TestUtils.createModel(iri);
 
@@ -300,6 +299,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         OWLClass clazz4 = factory.getOWLClass(iri.addFragment("MyClass4"));
         OWLObjectProperty op1 = factory.getOWLObjectProperty(iri.addFragment("ob-prop-1"));
         OWLObjectProperty op2 = factory.getOWLObjectProperty(iri.addFragment("ob-prop-2"));
+        OWLObjectProperty top = factory.getOWLTopObjectProperty();
 
         OWLClassExpression ce1 = factory.getOWLObjectUnionOf(clazz3, clazz4);
         OWLObjectPropertyExpression ope1 = factory.getOWLObjectInverseOf(op2);
@@ -310,9 +310,9 @@ public class AnnotationsGraphTest extends GraphTestBase {
         OWLAnnotation ann1 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("some comment"));
         axioms.add(factory.getOWLDisjointUnionAxiom(clazz1, Stream.of(clazz2, ce1), Stream.of(ann1).collect(Collectors.toSet())));
 
-        // subObjectPropertyOf
+        // SubPropertyChainOf
         OWLAnnotation ann2 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("sub-label", "xx"));
-        axioms.add(factory.getOWLSubObjectPropertyOfAxiom(op1, ope1, Stream.of(ann2).collect(Collectors.toSet())));
+        axioms.add(factory.getOWLSubPropertyChainOfAxiom(Stream.of(op1, ope1).collect(Collectors.toList()), top, Stream.of(ann2).collect(Collectors.toSet())));
 
         // hasKey
         OWLAnnotation ann3 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), iri.addFragment("click-me/please"));
@@ -324,12 +324,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         axioms.add(factory.getOWLHasKeyAxiom(clazz1, Stream.of(op1).collect(Collectors.toSet()), Stream.of(ann4).collect(Collectors.toSet())));
 
         LOGGER.info("Add annotated axioms");
-        axioms.forEach(new Consumer<OWLAxiom>() {
-            @Override
-            public void accept(OWLAxiom axiom) {
-                owl.applyChanges(new AddAxiom(owl, axiom));
-            }
-        });
+        axioms.forEach(a -> owl.applyChanges(new AddAxiom(owl, a)));
 
         debug(owl);
 

@@ -111,6 +111,14 @@ public class TranslationHelper {
         addAnnotations(model, _subject, predicate, _object, axiom);
     }
 
+    public static void processAnnotatedTriple(Graph graph, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, OWLAxiom axiom, boolean addSubject) {
+        Model model = createModel(graph);
+        Resource _subject = addSubject ? addRDFNode(model, subject).asResource() : toResource(subject);
+        RDFNode _object = addRDFList(model, objects);
+        model.add(_subject, predicate, _object);
+        addAnnotations(model, _subject, predicate, _object, axiom);
+    }
+
     public static RDFList addRDFList(Model model, Stream<? extends OWLObject> objects) {
         return model.createList(toResourceIterator(model, objects));
     }
