@@ -18,11 +18,11 @@ class ClassAssertionParser extends AxiomParser<OWLClassAssertionAxiom> {
         Model model = ModelFactory.createModelForGraph(graph);
         OWLIndividual individual = getAxiom().getIndividual();
         Resource subject = individual.isAnonymous() ?
-                AxiomParseUtils.toResource(individual) :
-                AxiomParseUtils.addRDFNode(model, individual).asResource();
-        RDFNode object = AxiomParseUtils.addRDFNode(model, getAxiom().getClassExpression());
+                TranslationHelper.toResource(individual) :
+                TranslationHelper.addRDFNode(model, individual).asResource();
+        RDFNode object = TranslationHelper.addRDFNode(model, getAxiom().getClassExpression());
         Property predicate = RDF.type;
         model.add(subject, predicate, object);
-        AnnotationsParseUtils.addAnnotations(model, subject, predicate, object, getAxiom());
+        TranslationHelper.addAnnotations(model, subject, predicate, object, getAxiom());
     }
 }

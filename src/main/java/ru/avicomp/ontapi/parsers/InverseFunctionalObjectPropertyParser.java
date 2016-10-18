@@ -16,7 +16,7 @@ import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
 class InverseFunctionalObjectPropertyParser extends AbstractSingleTripleParser<OWLInverseFunctionalObjectPropertyAxiom> {
     @Override
     public Resource getSubject() {
-        return AxiomParseUtils.toResource(getAxiom().getProperty());
+        return TranslationHelper.toResource(getAxiom().getProperty());
     }
 
     @Override

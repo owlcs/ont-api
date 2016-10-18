@@ -14,6 +14,6 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 class SubClassOfParser extends AxiomParser<OWLSubClassOfAxiom> {
     @Override
     public void process(Graph graph) {
-        AxiomParseUtils.processAnnotatedTriple(graph, getAxiom().getSubClass(), RDFS.subClassOf, getAxiom().getSuperClass(), getAxiom());
+        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getSubClass(), RDFS.subClassOf, getAxiom().getSuperClass(), getAxiom());
     }
 }

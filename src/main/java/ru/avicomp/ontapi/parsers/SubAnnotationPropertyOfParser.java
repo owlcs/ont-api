@@ -11,6 +11,6 @@ import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 class SubAnnotationPropertyOfParser extends AxiomParser<OWLSubAnnotationPropertyOfAxiom> {
     @Override
     public void process(Graph graph) {
-        AxiomParseUtils.processAnnotatedTriple(graph, getAxiom().getSubProperty(), RDFS.subPropertyOf, getAxiom().getSuperProperty(), getAxiom());
+        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getSubProperty(), RDFS.subPropertyOf, getAxiom().getSuperProperty(), getAxiom());
     }
 }

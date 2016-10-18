@@ -14,6 +14,6 @@ import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 class AnnotationAssertionParser extends AxiomParser<OWLAnnotationAssertionAxiom> {
     @Override
     public void process(Graph graph) {
-        AxiomParseUtils.processAnnotatedTriple(graph, getAxiom().getSubject(), getAxiom().getProperty(), getAxiom().getValue(), getAxiom());
+        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getSubject(), getAxiom().getProperty(), getAxiom().getValue(), getAxiom());
     }
 }

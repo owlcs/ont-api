@@ -17,11 +17,11 @@ import org.semanticweb.owlapi.model.OWLDisjointUnionAxiom;
 class DisjointUnionParser extends AxiomParser<OWLDisjointUnionAxiom> {
     @Override
     public void process(Graph graph) {
-        Model model = AxiomParseUtils.createModel(graph);
-        Resource subject = AxiomParseUtils.addRDFNode(model, getAxiom().getOWLClass()).asResource();
+        Model model = TranslationHelper.createModel(graph);
+        Resource subject = TranslationHelper.addRDFNode(model, getAxiom().getOWLClass()).asResource();
         Property predicate = OWL2.disjointUnionOf;
-        RDFNode object = AxiomParseUtils.addRDFList(model, getAxiom().classExpressions());
+        RDFNode object = TranslationHelper.addRDFList(model, getAxiom().classExpressions());
         model.add(subject, predicate, object);
-        AnnotationsParseUtils.addAnnotations(model, subject, predicate, object, getAxiom());
+        TranslationHelper.addAnnotations(model, subject, predicate, object, getAxiom());
     }
 }

@@ -13,6 +13,6 @@ import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 class InverseObjectPropertiesParser extends AxiomParser<OWLInverseObjectPropertiesAxiom> {
     @Override
     public void process(Graph graph) {
-        AxiomParseUtils.processAnnotatedTriple(graph, getAxiom().getFirstProperty(), OWL.inverseOf, getAxiom().getSecondProperty(), getAxiom());
+        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getFirstProperty(), OWL.inverseOf, getAxiom().getSecondProperty(), getAxiom());
     }
 }

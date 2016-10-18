@@ -63,6 +63,7 @@ public class TestUtils {
     }
 
     public static OntologyModel loadOntologyFromIOStream(OWLOntologyManager manager, OntModel model, OntFormat convertFormat) {
+        if (manager == null) manager = OntManagerFactory.createOWLOntologyManager();
         String uri = getURI(model);
         LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
         try (InputStream is = ReadWriteUtils.toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {
@@ -73,6 +74,10 @@ public class TestUtils {
         OntologyModel res = (OntologyModel) manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, res);
         return res;
+    }
+
+    public static OntologyModel loadOntologyFromIOStream(OntModel model) {
+        return loadOntologyFromIOStream(null, model, null);
     }
 
     public static OntModel copyOntModel(OntModel original, String newURI) {

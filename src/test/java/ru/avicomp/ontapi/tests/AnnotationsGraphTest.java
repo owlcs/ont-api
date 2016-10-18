@@ -24,7 +24,10 @@ import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.io.OntFormat;
+import ru.avicomp.ontapi.parsers.TranslationHelper;
 import ru.avicomp.ontapi.utils.OntIRI;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
@@ -331,6 +334,68 @@ public class AnnotationsGraphTest extends GraphTestBase {
         debug(owl);
 
         checkAnnotatedAxioms(owl);
+    }
+
+    @Test
+    public void testAnnotateOntology() {
+        OntIRI iri = OntIRI.create("http://test.org/annotations/6");
+        OntologyModel owl = TestUtils.createModel(iri);
+        OWLOntologyManager manager = owl.getOWLOntologyManager();
+        OWLDataFactory factory = manager.getOWLDataFactory();
+
+        OWLAnnotationProperty property = factory.getOWLAnnotationProperty(iri.addFragment("ann-prop"));
+        OWLLiteral someLiteral = factory.getOWLLiteral("some-literal", "eee");
+        OWLLiteral label = factory.getOWLLiteral("annotation-label");
+        OWLLiteral comment = factory.getOWLLiteral("annotation-comment");
+        OntIRI link = iri.addFragment("see-also");
+
+        // WARNING: OWL-API version 5.0.3 does NOT support complex annotations for ontology.
+        // and this is contrary to the specification.
+        // But our graph representation of OWLOntology provides fully correct graph for this case.
+        // After reloading graph back to OWL-API loss information is expected.
+        // TODO: need fix OWL-API graph loader also.
+        OWLAnnotation _ann1 = factory.getOWLAnnotation(factory.getRDFSLabel(), label);
+        OWLAnnotation _ann2 = factory.getOWLAnnotation(factory.getRDFSComment(), comment, _ann1);
+        OWLAnnotation annotation1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), link, Stream.of(_ann1, _ann2));
+
+        OWLAnnotation annotation2 = factory.getOWLAnnotation(property, someLiteral);
+
+        LOGGER.info("Annotate ontology.");
+        owl.applyChanges(new AddOntologyAnnotation(owl, annotation1));
+        owl.applyChanges(new AddOntologyAnnotation(owl, annotation2));
+
+        debug(owl);
+        ReadWriteUtils.print(owl, OntFormat.FUNCTIONAL_SYNTAX);
+        LOGGER.info("Annotations:");
+        owl.annotations().forEach(LOGGER::debug);
+
+        // checking
+        OntModel jena = owl.asGraphModel();
+        // test annotation1:
+        Assert.assertTrue("Can't find rdfs:comment " + comment, jena.contains(null, RDFS.comment, TranslationHelper.toRDFNode(comment)));
+        Assert.assertTrue("Can't find owl:annotatedTarget " + comment, jena.contains(null, OWL2.annotatedTarget, TranslationHelper.toRDFNode(comment)));
+        Assert.assertEquals("Should be at least two rdf:label " + label, 2, jena.listStatements(null, RDFS.label, TranslationHelper.toRDFNode(label)).toList().size());
+        Assert.assertTrue("Can't find rdfs:seeAlso " + link, jena.contains(iri.toResource(), RDFS.seeAlso, TranslationHelper.toResource(link)));
+        // test annotation2:
+        Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), TranslationHelper.toProperty(property), TranslationHelper.toRDFNode(someLiteral)));
+        Assert.assertTrue("Can't find declaration of " + property, jena.contains(TranslationHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
+
+        LOGGER.info("Remove " + annotation1);
+        owl.applyChanges(new RemoveOntologyAnnotation(owl, annotation1));
+        debug(owl);
+        // test annotation1:
+        Assert.assertFalse("There is rdfs:comment " + comment, jena.contains(null, RDFS.comment, TranslationHelper.toRDFNode(comment)));
+        Assert.assertFalse("There is owl:annotatedTarget " + comment, jena.contains(null, OWL2.annotatedTarget, TranslationHelper.toRDFNode(comment)));
+        Assert.assertEquals("There is rdf:label " + label, 0, jena.listStatements(null, RDFS.label, TranslationHelper.toRDFNode(label)).toList().size());
+        Assert.assertFalse("There is rdfs:seeAlso " + link, jena.contains(iri.toResource(), RDFS.seeAlso, TranslationHelper.toResource(link)));
+        // test annotation2:
+        Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), TranslationHelper.toProperty(property), TranslationHelper.toRDFNode(someLiteral)));
+        Assert.assertTrue("Can't find declaration of " + property, jena.contains(TranslationHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
+
+        LOGGER.info("Remove " + annotation2);
+        owl.applyChanges(new RemoveOntologyAnnotation(owl, annotation2));
+        debug(owl);
+        Assert.assertEquals("Expected only single triplet", 1, jena.listStatements().toList().size());
     }
 
     private static Stream<OWLAxiom> annotatedAxioms(OWLOntology ontology, AxiomType... excluded) {

@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.jena.graph.*;
 import org.apache.jena.ontology.OntModel;
@@ -18,6 +19,7 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 
 import com.google.inject.assistedinject.Assisted;
 import ru.avicomp.ontapi.parsers.AxiomParserProvider;
+import ru.avicomp.ontapi.parsers.TranslationHelper;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION;
@@ -233,15 +235,22 @@ public class OntologyModel extends OWLOntologyImpl {
             }
         }
 
+        /**
+         * WARNING: Complex ANNOTATIONS are not supported for Ontology Object by the OWL API (version 5.0.3).
+         * Also not all axioms it is possible to annotated, e.g. DifferentIndividuals.
+         * BUT we still provide a fully correct set of triplets for these cases in accordance with the specification
+         * (for ontology annotations see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Axioms_without_Annotations'>2.1 Translation of Axioms without Annotations</a>, Table 1).
+         * So after reloading a graph model back to OWL API loss of information about woody nested annotations is expected.
+         * TODO: need to fix OWL-API graph loader also.
+         *
+         * @param annotation OWLAnnotation Object
+         */
         private void addAnnotation(OWLAnnotation annotation) {
             OntGraphEventStore.OWLEvent event = OntGraphEventStore.createAdd(annotation);
             GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
-                OWLAnnotationProperty property = annotation.getProperty();
-                OWLAnnotationValue value = annotation.getValue();
-                OWLAnnotationValue literal = value.isIRI() ? value : value.asLiteral().orElse(null);
-                inner.add(Triple.create(getNodeIRI(), NodeIRIUtils.toNode(property.getIRI()), NodeIRIUtils.toNode(literal)));
+                TranslationHelper.addAnnotations(inner, getNodeIRI(), Stream.of(annotation).collect(Collectors.toList()));
             } finally {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
@@ -253,10 +262,7 @@ public class OntologyModel extends OWLOntologyImpl {
             GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
-                OWLAnnotationProperty property = annotation.getProperty();
-                OWLAnnotationValue value = annotation.getValue();
-                OWLAnnotationValue literal = value.isIRI() ? value : value.asLiteral().orElse(null);
-                inner.remove(getNodeIRI(), NodeIRIUtils.toNode(property.getIRI()), NodeIRIUtils.toNode(literal));
+                removeAllTriples(event.reverse());
             } finally {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
@@ -287,15 +293,19 @@ public class OntologyModel extends OWLOntologyImpl {
             GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
-                eventStore.triples(event.reverse()).
-                        filter(t -> eventStore.count(t) < 2). // skip triplets which are included in several axioms
-                        map(OntGraphEventStore.TripleEvent::get).forEach(inner::delete);
+                removeAllTriples(event.reverse());
             } catch (Exception e) {
                 throw new OntException("Remove axiom " + axiom, e);
             } finally {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
+        }
+
+        private void removeAllTriples(OntGraphEventStore.OWLEvent event) {
+            eventStore.triples(event).
+                    filter(t -> eventStore.count(t) < 2). // skip triplets which are included in several axioms
+                    map(OntGraphEventStore.TripleEvent::get).forEach(inner::delete);
         }
 
         /**

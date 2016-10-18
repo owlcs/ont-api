@@ -28,7 +28,7 @@ abstract class AbstractSingleTripleParser<Axiom extends OWLAxiom> extends AxiomP
     public void process(Graph graph) {
         Triple triple = getTriple();
         graph.add(triple);
-        AnnotationsParseUtils.addAnnotations(graph, triple, getAxiom());
+        TranslationHelper.addAnnotations(graph, triple, getAxiom());
     }
 
 }

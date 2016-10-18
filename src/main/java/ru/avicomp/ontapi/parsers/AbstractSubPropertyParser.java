@@ -14,6 +14,6 @@ import org.semanticweb.owlapi.model.OWLSubPropertyAxiom;
 abstract class AbstractSubPropertyParser<Axiom extends OWLSubPropertyAxiom> extends AxiomParser<Axiom> {
     @Override
     public void process(Graph graph) {
-        AxiomParseUtils.processAnnotatedTriple(graph, getAxiom().getSubProperty(), RDFS.subPropertyOf, getAxiom().getSuperProperty(), getAxiom());
+        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getSubProperty(), RDFS.subPropertyOf, getAxiom().getSuperProperty(), getAxiom());
     }
 }

@@ -27,7 +27,7 @@ abstract class AbstractNaryParser<Axiom extends OWLAxiom & OWLNaryAxiom<? extend
                 orElseThrow(() -> new OntException("Can't find a single non-anonymous expression inside " + axiom));
         OWLObject rest = axiom.operands().filter((obj) -> !first.equals(obj)).findFirst().
                 orElseThrow(() -> new OntException("Should be at least two expressions inside " + axiom));
-        AxiomParseUtils.processAnnotatedTriple(graph, first, getPredicate(), rest, getAxiom(), true);
+        TranslationHelper.processAnnotatedTriple(graph, first, getPredicate(), rest, getAxiom(), true);
     }
 
     @Override

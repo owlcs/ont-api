@@ -16,7 +16,7 @@ import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 class SymmetricObjectPropertyParser extends AbstractSingleTripleParser<OWLSymmetricObjectPropertyAxiom> {
     @Override
     public Resource getSubject() {
-        return AxiomParseUtils.toResource(getAxiom().getProperty());
+        return TranslationHelper.toResource(getAxiom().getProperty());
     }
 
     @Override

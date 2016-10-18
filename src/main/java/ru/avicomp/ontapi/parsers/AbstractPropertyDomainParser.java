@@ -15,6 +15,6 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 abstract class AbstractPropertyDomainParser<Axiom extends OWLAxiom & HasDomain & HasProperty> extends AxiomParser<Axiom> {
     @Override
     public void process(Graph graph) {
-        AxiomParseUtils.processAnnotatedTriple(graph, getAxiom().getProperty(), RDFS.domain, getAxiom().getDomain(), getAxiom());
+        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getProperty(), RDFS.domain, getAxiom().getDomain(), getAxiom());
     }
 }

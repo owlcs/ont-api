@@ -52,7 +52,7 @@ public class ReadWriteUtils {
 
     public static StringWriter toStringWriter(Model model, OntFormat ext) {
         StringWriter sw = new StringWriter();
-        model.write(sw, ext.getType(), null);
+        model.write(sw, (ext == null ? OntFormat.TTL_RDF : ext).getType(), null);
         return sw;
     }
 

@@ -18,11 +18,11 @@ import org.semanticweb.owlapi.model.OWLHasKeyAxiom;
 class HasKeyParser extends AxiomParser<OWLHasKeyAxiom> {
     @Override
     public void process(Graph graph) {
-        Model model = AxiomParseUtils.createModel(graph);
-        Resource subject = AxiomParseUtils.addRDFNode(model, getAxiom().getClassExpression()).asResource();
+        Model model = TranslationHelper.createModel(graph);
+        Resource subject = TranslationHelper.addRDFNode(model, getAxiom().getClassExpression()).asResource();
         Property predicate = OWL2.hasKey;
-        RDFNode object = AxiomParseUtils.addRDFList(model, getAxiom().propertyExpressions());
+        RDFNode object = TranslationHelper.addRDFList(model, getAxiom().propertyExpressions());
         model.add(subject, predicate, object);
-        AnnotationsParseUtils.addAnnotations(model, subject, predicate, object, getAxiom());
+        TranslationHelper.addAnnotations(model, subject, predicate, object, getAxiom());
     }
 }

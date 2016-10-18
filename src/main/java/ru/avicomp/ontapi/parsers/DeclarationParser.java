@@ -14,7 +14,7 @@ import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 class DeclarationParser extends AbstractSingleTripleParser<OWLDeclarationAxiom> {
     @Override
     public Resource getSubject() {
-        return AxiomParseUtils.toResource(getAxiom().getEntity());
+        return TranslationHelper.toResource(getAxiom().getEntity());
     }
 
     @Override
@@ -24,6 +24,6 @@ class DeclarationParser extends AbstractSingleTripleParser<OWLDeclarationAxiom> 
 
     @Override
     public RDFNode getObject() {
-        return AxiomParseUtils.getType(getAxiom().getEntity());
+        return TranslationHelper.getType(getAxiom().getEntity());
     }
 }
