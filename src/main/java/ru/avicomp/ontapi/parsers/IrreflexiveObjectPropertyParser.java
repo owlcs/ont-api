@@ -6,6 +6,7 @@ import org.semanticweb.owlapi.model.OWLIrreflexiveObjectPropertyAxiom;
 
 /**
  * base classes {@link AbstractSingleTripleParser}, {@link AbstractObjectPropertyParser}
+ * NOTE: owl AxiomType is "IrrefexiveObjectProperty", not "IrreflexiveObjectProperty"
  * example: :ob-prop-2 rdf:type owl:ObjectProperty , owl:IrreflexiveProperty .
  * Created by @szuev on 18.10.2016.
  */

@@ -3,7 +3,8 @@ package ru.avicomp.ontapi.parsers;
 import org.semanticweb.owlapi.model.OWLAnnotationPropertyRangeAxiom;
 
 /**
- * see {@link AbstractPropertyRangeParser}
+ * base class {@link AbstractPropertyRangeParser}
+ * Note: OWL Axiom Type is "AnnotationPropertyRangeOf", not "AnnotationPropertyRange"
  * <p>
  * Created by @szuev on 30.09.2016.
  */
