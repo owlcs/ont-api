@@ -2,11 +2,11 @@ package ru.avicomp.ontapi.parsers;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.HasProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 /**
  * base class for {@link FunctionalObjectPropertyParser} and {@link FunctionalDataPropertyParser}
@@ -15,8 +15,8 @@ import org.semanticweb.owlapi.model.OWLAxiom;
  */
 abstract class AbstractFunctionalPropertyParser<Axiom extends OWLAxiom & HasProperty> extends AbstractSingleTripleParser<Axiom> {
     @Override
-    public Resource getSubject() {
-        return TranslationHelper.toResource(getAxiom().getProperty());
+    public OWLObject getSubject() {
+        return getAxiom().getProperty();
     }
 
     @Override

@@ -2,9 +2,9 @@ package ru.avicomp.ontapi.parsers;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
+import org.semanticweb.owlapi.model.OWLEntity;
 
 /**
  * simple triplet with rdf:type predicate.
@@ -13,8 +13,8 @@ import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
  */
 class DeclarationParser extends AbstractSingleTripleParser<OWLDeclarationAxiom> {
     @Override
-    public Resource getSubject() {
-        return TranslationHelper.toResource(getAxiom().getEntity());
+    public OWLEntity getSubject() {
+        return getAxiom().getEntity();
     }
 
     @Override
@@ -24,6 +24,6 @@ class DeclarationParser extends AbstractSingleTripleParser<OWLDeclarationAxiom> 
 
     @Override
     public RDFNode getObject() {
-        return TranslationHelper.getType(getAxiom().getEntity());
+        return TranslationHelper.getType(getSubject());
     }
 }

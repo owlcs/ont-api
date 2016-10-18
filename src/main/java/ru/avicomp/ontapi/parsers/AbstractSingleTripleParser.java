@@ -1,34 +1,37 @@
 package ru.avicomp.ontapi.parsers;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 /**
- * Class for parse axiom which is related to single triplet.
+ * Base class for parse axiom which is related to single triplet.
+ * sub-classes:
+ *  {@link DeclarationParser},
+ *  {@link FunctionalDataPropertyParser},
+ *  {@link FunctionalObjectPropertyParser},
+ *  {@link ReflexiveObjectPropertyParser},
+ *  {@link IrreflexiveObjectPropertyParser},
+ *  {@link AsymmetricObjectPropertyParser},
+ *  {@link SymmetricObjectPropertyParser},
+ *  {@link TransitiveObjectPropertyParser},
+ *  {@link InverseFunctionalObjectPropertyParser},
  * <p>
  * Created by @szuev on 28.09.2016.
  */
 abstract class AbstractSingleTripleParser<Axiom extends OWLAxiom> extends AxiomParser<Axiom> {
 
-    public abstract Resource getSubject();
+    public abstract OWLObject getSubject();
 
     public abstract Property getPredicate();
 
     public abstract RDFNode getObject();
 
-    public Triple getTriple() {
-        return Triple.create(getSubject().asNode(), getPredicate().asNode(), getObject().asNode());
-    }
-
     @Override
     public void process(Graph graph) {
-        Triple triple = getTriple();
-        graph.add(triple);
-        TranslationHelper.addAnnotations(graph, triple, getAxiom());
+        TranslationHelper.processAnnotatedTriple(graph, getSubject(), getPredicate(), getObject(), getAxiom(), true);
     }
 
 }
