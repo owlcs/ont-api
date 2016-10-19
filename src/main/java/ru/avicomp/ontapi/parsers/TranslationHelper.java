@@ -130,6 +130,13 @@ public class TranslationHelper {
         return model.createList(toResourceIterator(model, objects));
     }
 
+    /**
+     * the main method to add OWLObject as RDFNode to the specified model.
+     *
+     * @param model {@link Model}
+     * @param o     {@link OWLObject}
+     * @return {@link RDFNode} node, attached to the model.
+     */
     public static RDFNode addRDFNode(Model model, OWLObject o) {
         if (OWLEntity.class.isInstance(o)) {
             OWLEntity entity = (OWLEntity) o;
@@ -140,13 +147,22 @@ public class TranslationHelper {
             return res.inModel(model);
         }
         if (OWLObjectInverseOf.class.isInstance(o)) {
-            OWLObjectInverseOf inverseOf = (OWLObjectInverseOf) o;
+            OWLObjectInverseOf io = (OWLObjectInverseOf) o;
             Resource res = model.createResource();
-            model.add(res, OWL.inverseOf, addRDFNode(model, inverseOf.getInverse()));
+            model.add(res, OWL.inverseOf, addRDFNode(model, io.getInverse()));
+            return res;
+        }
+        if (OWLFacetRestriction.class.isInstance(o)) {
+            OWLFacetRestriction fr = (OWLFacetRestriction) o;
+            Resource res = model.createResource();
+            model.add(res, toProperty(fr.getFacet().getIRI()), addRDFNode(model, fr.getFacetValue()));
             return res;
         }
         if (OWLClassExpression.class.isInstance(o)) {
-            return CETranslator.addClassExpression(model, (OWLClassExpression) o);
+            return CETranslator.add(model, (OWLClassExpression) o);
+        }
+        if (OWLDataRange.class.isInstance(o)) {
+            return DRTranslator.add(model, (OWLDataRange) o);
         }
         if (OWLAnonymousIndividual.class.isInstance(o)) {
             Resource res = toResource(((OWLAnonymousIndividual) o).getID());
@@ -177,11 +193,11 @@ public class TranslationHelper {
      * DisjointClasses with two classes,
      * DifferentIndividuals with two individuals, or
      * AnnotationAssertion.
+     * DisjointUnion, SubObjectPropertyOf with a subproperty chain, or HasKey
      * Also for
      * EquivalentClasses, EquivalentObjectProperties, EquivalentDataProperties, or SameIndividual (see {@link AbstractNaryParser});
      * in last case call this method for each of triple from inner axiom.
      * <p>
-     * TODO:  DisjointUnion, SubObjectPropertyOf with a subproperty chain, or HasKey
      *
      * @param graph Graph
      * @param axiom OWLAxiom
@@ -204,7 +220,8 @@ public class TranslationHelper {
      * DisjointClasses,
      * DisjointObjectProperties,
      * DisjointDataProperties,
-     * DifferentIndividuals
+     * DifferentIndividuals.
+     * (see {@link AbstractTwoWayNaryParser})
      *
      * @param graph Graph
      * @param root  {@link org.apache.jena.graph.Node_Blank} anonymous node
@@ -247,6 +264,102 @@ public class TranslationHelper {
         return res;
     }
 
+    /**
+     * Data Range translator
+     */
+    private enum DRTranslator {
+        ONE_OF(DataRangeType.DATA_ONE_OF, new OneOf()),
+        RESTRICTION(DataRangeType.DATATYPE_RESTRICTION, new DatatypeRestriction()),
+        COMPLEMENT_OF(DataRangeType.DATA_COMPLEMENT_OF, new ComplementOf()),
+        UNION_OF(DataRangeType.DATA_UNION_OF, new NaryDataRange<OWLDataUnionOf>() {
+            @Override
+            Property getPredicate() {
+                return OWL.unionOf;
+            }
+        }),
+        INTERSECTION_OF(DataRangeType.DATA_INTERSECTION_OF, new NaryDataRange<OWLDataIntersectionOf>() {
+            @Override
+            Property getPredicate() {
+                return OWL.intersectionOf;
+            }
+        }),;
+        private final DataRangeType type;
+        private final Translator<? extends OWLDataRange> translator;
+
+        DRTranslator(DataRangeType type, Translator<? extends OWLDataRange> translator) {
+            this.translator = translator;
+            this.type = type;
+        }
+
+        public static DRTranslator valueOf(DataRangeType type) {
+            for (DRTranslator t : values()) {
+                if (t.type.equals(type)) return t;
+            }
+            return null;
+        }
+
+        public static Resource add(Model model, OWLDataRange expression) {
+            DataRangeType type = expression.getDataRangeType();
+            DRTranslator drt = OntException.notNull(valueOf(type), "Unsupported data-range expression " + expression + "/" + type);
+            return drt.translator.add(model, expression);
+        }
+
+        private static abstract class Translator<DR extends OWLDataRange> {
+            @SuppressWarnings("unchecked")
+            private Resource add(Model model, OWLDataRange expression) {
+                return translate(model, (DR) expression);
+            }
+
+            abstract Resource translate(Model model, DR expression);
+        }
+
+        private static class OneOf extends Translator<OWLDataOneOf> {
+            @Override
+            Resource translate(Model model, OWLDataOneOf expression) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, RDFS.Datatype);
+                model.add(res, OWL.oneOf, addRDFList(model, expression.values()));
+                return res;
+            }
+        }
+
+        private static class DatatypeRestriction extends Translator<OWLDatatypeRestriction> {
+            @Override
+            Resource translate(Model model, OWLDatatypeRestriction expression) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, RDFS.Datatype);
+                model.add(res, OWL2.onDatatype, addRDFNode(model, expression.getDatatype()));
+                model.add(res, OWL2.withRestrictions, addRDFList(model, expression.facetRestrictions()));
+                return res;
+            }
+        }
+
+        private static class ComplementOf extends Translator<OWLDataComplementOf> {
+            @Override
+            Resource translate(Model model, OWLDataComplementOf expression) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, RDFS.Datatype);
+                model.add(res, OWL2.datatypeComplementOf, addRDFNode(model, expression.getDataRange()));
+                return res;
+            }
+        }
+
+        private static abstract class NaryDataRange<NaryDR extends OWLNaryDataRange> extends Translator<NaryDR> {
+            @Override
+            Resource translate(Model model, NaryDR expression) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, RDFS.Datatype);
+                model.add(res, getPredicate(), addRDFList(model, expression.operands()));
+                return res;
+            }
+
+            abstract Property getPredicate();
+        }
+    }
+
+    /**
+     * Class Expression translator
+     */
     private enum CETranslator {
         OBJECT_MAX_CARDINALITY(ClassExpressionType.OBJECT_MAX_CARDINALITY, new RestrictionCardinality<OWLObjectMaxCardinality>() {
             @Override
@@ -254,7 +367,7 @@ public class TranslationHelper {
                 return OWL.maxCardinality;
             }
         }),
-        DATA_MAX_CARDINALITY(ClassExpressionType.DATA_MAX_CARDINALITY, new RestrictionCardinality<OWLDataMaxCardinality>() {
+        DATA_MAX_CARDINALITY(ClassExpressionType.DATA_MAX_CARDINALITY, new DataRestrictionCardinality<OWLDataMaxCardinality>() {
             @Override
             Property getPredicate() {
                 return OWL.maxCardinality;
@@ -266,7 +379,7 @@ public class TranslationHelper {
                 return OWL.minCardinality;
             }
         }),
-        DATA_MIN_CARDINALITY(ClassExpressionType.DATA_MIN_CARDINALITY, new RestrictionCardinality<OWLDataMinCardinality>() {
+        DATA_MIN_CARDINALITY(ClassExpressionType.DATA_MIN_CARDINALITY, new DataRestrictionCardinality<OWLDataMinCardinality>() {
             @Override
             Property getPredicate() {
                 return OWL.minCardinality;
@@ -278,7 +391,7 @@ public class TranslationHelper {
                 return OWL.cardinality;
             }
         }),
-        DATA_EXACT_CARDINALITY(ClassExpressionType.DATA_EXACT_CARDINALITY, new RestrictionCardinality<OWLDataExactCardinality>() {
+        DATA_EXACT_CARDINALITY(ClassExpressionType.DATA_EXACT_CARDINALITY, new DataRestrictionCardinality<OWLDataExactCardinality>() {
             @Override
             Property getPredicate() {
                 return OWL.cardinality;
@@ -366,9 +479,9 @@ public class TranslationHelper {
             return null;
         }
 
-        public static Resource addClassExpression(Model model, OWLClassExpression expression) {
-            CETranslator cet = OntException.notNull(valueOf(expression.getClassExpressionType()),
-                    "Unsupported expression " + expression + "/" + expression.getClassExpressionType());
+        public static Resource add(Model model, OWLClassExpression expression) {
+            ClassExpressionType type = expression.getClassExpressionType();
+            CETranslator cet = OntException.notNull(valueOf(type), "Unsupported class-expression " + expression + "/" + type);
             return cet.translator.add(model, expression);
         }
 
@@ -417,6 +530,15 @@ public class TranslationHelper {
                 model.add(res, RDF.type, OWL.Restriction);
                 model.add(res, OWL.onProperty, toResource(property));
                 model.add(res, getPredicate(), model.getRDFNode(getCardinalityLiteral(expression)));
+                return res;
+            }
+        }
+
+        private static abstract class DataRestrictionCardinality<DataRestrictionCardinalityCE extends OWLDataCardinalityRestriction> extends RestrictionCardinality<DataRestrictionCardinalityCE> {
+            @Override
+            Resource translate(Model model, DataRestrictionCardinalityCE expression) {
+                Resource res = super.translate(model, expression);
+                model.add(res, OWL2.onDataRange, addRDFNode(model, expression.getFiller()));
                 return res;
             }
         }

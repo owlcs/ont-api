@@ -3,7 +3,6 @@ package ru.avicomp.ontapi.tests;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -87,7 +86,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         ).collect(Collectors.toSet()));
         TestUtils.compareAxioms(Stream.of(expected), owl.axioms());
 
-        checkAnnotatedAxioms(owl);
+        checkAxioms(owl);
     }
 
     /**
@@ -148,7 +147,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         LOGGER.info("Compare axioms"); // note! there is one more axiom in new ontology: Declaration(NamedIndividual(<http://test.org/annotations/2#Indi>))
         TestUtils.compareAxioms(owl1.axioms(), owl2.axioms().filter(OWLAxiom::isAnnotated));
 
-        checkAnnotatedAxioms(owl1);
+        checkAxioms(owl1);
     }
 
     /**
@@ -214,7 +213,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         // TODO: WARNING: ANNOTATIONS is not supported for DifferentIndividuals AXIOM by the OWL API (version 5.0.3)
         // TODO: need to rewrite owl-loader to fix it.
-        checkAnnotatedAxioms(owl, AxiomType.DIFFERENT_INDIVIDUALS);
+        checkAxioms(owl, AxiomType.DIFFERENT_INDIVIDUALS);
     }
 
     /**
@@ -279,7 +278,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         debug(owl);
 
-        checkAnnotatedAxioms(owl);
+        checkAxioms(owl);
     }
 
     /**
@@ -328,7 +327,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         debug(owl);
 
-        checkAnnotatedAxioms(owl);
+        checkAxioms(owl);
     }
 
     @Test
@@ -393,11 +392,10 @@ public class AnnotationsGraphTest extends GraphTestBase {
         Assert.assertEquals("Expected only single triplet", 1, jena.listStatements().toList().size());
     }
 
-    private static Stream<OWLAxiom> annotatedAxioms(OWLOntology ontology, AxiomType... excluded) {
+    @Override
+    Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType... excluded) {
         List<OWLAxiom> res = new ArrayList<>();
-        List<AxiomType> toExclude = Stream.of(excluded).collect(Collectors.toList());
-        ontology.axioms().filter(OWLAxiom::isAnnotated).forEach(axiom -> {
-            if (toExclude.contains(axiom.getAxiomType())) return;
+        super.filterAxioms(ontology, excluded).filter(OWLAxiom::isAnnotated).forEach(axiom -> {
             if (axiom instanceof OWLNaryAxiom) {
                 //noinspection unchecked
                 res.addAll(((OWLNaryAxiom) axiom).splitToAnnotatedPairs());
@@ -408,18 +406,4 @@ public class AnnotationsGraphTest extends GraphTestBase {
         return res.stream();
     }
 
-    private static void checkAnnotatedAxioms(OntologyModel original, AxiomType... excluded) {
-        LOGGER.info("Load ontology to another manager from jena graph.");
-        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
-        OntologyModel result = TestUtils.loadOntologyFromIOStream(manager, original.asGraphModel(), null);
-        LOGGER.info("All axioms:");
-        result.axioms().forEach(LOGGER::info);
-        Map<AxiomType, List<OWLAxiom>> expected = TestUtils.toMap(annotatedAxioms(original, excluded));
-        Map<AxiomType, List<OWLAxiom>> actual = TestUtils.toMap(annotatedAxioms(result, excluded));
-        LOGGER.info("Expected axioms:");
-        expected.forEach((t, list) -> LOGGER.debug(String.format("[%s]:::%s", t, list)));
-        LOGGER.info("Actual axioms:");
-        actual.forEach((t, list) -> LOGGER.debug(String.format("[%s]:::%s", t, list)));
-        TestUtils.compareAxioms(expected, actual);
-    }
 }

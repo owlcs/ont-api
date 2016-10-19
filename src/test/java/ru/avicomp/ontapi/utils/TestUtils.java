@@ -32,6 +32,7 @@ public class TestUtils {
     private static final Logger LOGGER = Logger.getLogger(TestUtils.class);
 
     public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (o1, o2) -> NodeUtils.compareRDFTerms(o1.asNode(), o2.asNode());
+    private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(NodeID.getNodeID());
 
     public static OntologyModel load(OWLOntologyManager manager, IRI fileIRI) {
         LOGGER.info("Load ontology model from " + fileIRI + ".");
@@ -167,8 +168,6 @@ public class TestUtils {
         });
         return res;
     }
-
-    private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(NodeID.getNodeID());
 
     public static boolean same(OWLAxiom a, OWLAxiom b) {
         return a.typeIndex() == b.typeIndex() && OWLAPIStreamUtils.equalStreams(replaceAnonymous(a.components()), replaceAnonymous(b.components()));
