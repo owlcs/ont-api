@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
 import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.vocabulary.SWRL;
 
 /**
  * Helper for axiom parsing.
@@ -171,7 +172,9 @@ public class TranslationHelper {
             }
             return res.inModel(model);
         }
-
+        if (SWRLAtom.class.isInstance(o)) {
+            return SWRLAtomTranslator.add(model, (SWRLAtom) o);
+        }
         return toRDFNode(o).inModel(model);
     }
 
@@ -262,6 +265,137 @@ public class TranslationHelper {
             graph.add(Triple.create(res, RDF.type.asNode(), OWL.AnnotationProperty.asNode()));
         }
         return res;
+    }
+
+    /**
+     * for SWRLAtom
+     */
+    private enum SWRLAtomTranslator {
+        BUILT_IN(SWRLBuiltInAtom.class, new BuiltIn()),
+        OWL_CLASS(SWRLClassAtom.class, new OWLClass()),
+        DATA_PROPERTY(SWRLDataPropertyAtom.class, new DataProperty()),
+        DATA_RANGE(SWRLDataRangeAtom.class, new DataRange()),
+        DIFFERENT_INDIVIDUALS(SWRLDifferentIndividualsAtom.class, new DifferentIndividuals()),
+        OBJECT_PROPERTY(SWRLObjectPropertyAtom.class, new ObjectProperty()),
+        SAME_INDIVIDUALS(SWRLSameIndividualAtom.class, new SameIndividuals()),;
+        private final Translator<? extends SWRLAtom> translator;
+        private final Class<? extends SWRLAtom> type;
+
+        SWRLAtomTranslator(Class<? extends SWRLAtom> type, Translator<? extends SWRLAtom> translator) {
+            this.translator = translator;
+            this.type = type;
+        }
+
+        private static SWRLAtomTranslator valueOf(SWRLAtom atom) {
+            if (atom == null) return null;
+            for (SWRLAtomTranslator t : values()) {
+                if (t.type.equals(atom.getClass())) return t;
+            }
+            return null;
+        }
+
+        public static Resource add(Model model, SWRLAtom atom) {
+            SWRLAtomTranslator swrlt = OntException.notNull(valueOf(atom), "Unsupported swrl-atom " + atom);
+            return swrlt.translator.add(model, atom);
+        }
+
+        private static abstract class Translator<Atom extends SWRLAtom> {
+            @SuppressWarnings("unchecked")
+            private Resource add(Model model, SWRLAtom atom) {
+                return translate(model, (Atom) atom);
+            }
+
+            abstract Resource translate(Model model, Atom atom);
+        }
+
+        private static class BuiltIn extends Translator<SWRLBuiltInAtom> {
+            /**
+             * see {@link org.semanticweb.owlapi.rdf.model.AbstractTranslator#visit(SWRLBuiltInAtom)}
+             *
+             * @param model Model
+             * @param atom  SWRLBuiltInAtom
+             * @return Resource
+             */
+            @Override
+            Resource translate(Model model, SWRLBuiltInAtom atom) {
+                // todo: it differs from OWL-API output.
+                Resource res = model.createResource();
+                model.add(res, RDF.type, SWRL.BuiltinAtom);
+                model.add(res, SWRL.builtin, addRDFNode(model, atom.getPredicate()));
+                model.add(toResource(atom.getPredicate()), RDF.type, SWRL.Builtin);
+                // is using rdf:List in such way is correct?
+                model.add(res, SWRL.arguments, addRDFList(model, atom.arguments()));
+                return res;
+            }
+        }
+
+        private static class OWLClass extends Translator<SWRLClassAtom> {
+            @Override
+            Resource translate(Model model, SWRLClassAtom atom) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, SWRL.ClassAtom);
+                model.add(res, SWRL.classPredicate, addRDFNode(model, atom.getPredicate()));
+                model.add(res, SWRL.argument1, addRDFNode(model, atom.getArgument()));
+                return res;
+            }
+        }
+
+        private static class DataProperty extends Translator<SWRLDataPropertyAtom> {
+            @Override
+            Resource translate(Model model, SWRLDataPropertyAtom atom) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, SWRL.DatavaluedPropertyAtom);
+                model.add(res, SWRL.propertyPredicate, addRDFNode(model, atom.getPredicate()));
+                model.add(res, SWRL.argument1, addRDFNode(model, atom.getFirstArgument()));
+                model.add(res, SWRL.argument2, addRDFNode(model, atom.getSecondArgument()));
+                return res;
+            }
+        }
+
+        private static class DataRange extends Translator<SWRLDataRangeAtom> {
+            @Override
+            Resource translate(Model model, SWRLDataRangeAtom atom) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, SWRL.DataRangeAtom);
+                model.add(res, SWRL.dataRange, addRDFNode(model, atom.getPredicate()));
+                model.add(res, SWRL.argument1, addRDFNode(model, atom.getArgument()));
+                return res;
+            }
+        }
+
+        private static class DifferentIndividuals extends Translator<SWRLDifferentIndividualsAtom> {
+            @Override
+            Resource translate(Model model, SWRLDifferentIndividualsAtom atom) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, SWRL.DifferentIndividualsAtom);
+                model.add(res, SWRL.argument1, addRDFNode(model, atom.getFirstArgument()));
+                model.add(res, SWRL.argument2, addRDFNode(model, atom.getSecondArgument()));
+                return res;
+            }
+        }
+
+        private static class ObjectProperty extends Translator<SWRLObjectPropertyAtom> {
+            @Override
+            Resource translate(Model model, SWRLObjectPropertyAtom atom) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, SWRL.IndividualPropertyAtom);
+                model.add(res, SWRL.propertyPredicate, addRDFNode(model, atom.getPredicate()));
+                model.add(res, SWRL.argument1, addRDFNode(model, atom.getFirstArgument()));
+                model.add(res, SWRL.argument2, addRDFNode(model, atom.getSecondArgument()));
+                return res;
+            }
+        }
+
+        private static class SameIndividuals extends Translator<SWRLSameIndividualAtom> {
+            @Override
+            Resource translate(Model model, SWRLSameIndividualAtom atom) {
+                Resource res = model.createResource();
+                model.add(res, RDF.type, SWRL.SameIndividualAtom);
+                model.add(res, SWRL.argument1, addRDFNode(model, atom.getFirstArgument()));
+                model.add(res, SWRL.argument2, addRDFNode(model, atom.getSecondArgument()));
+                return res;
+            }
+        }
     }
 
     /**
