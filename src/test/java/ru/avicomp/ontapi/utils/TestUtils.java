@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.*;
@@ -127,6 +128,10 @@ public class TestUtils {
         if (ontologies.size() != 1)
             Assert.fail("More then one jena-ontology inside model : " + ontologies.size());
         return ontologies.get(0);
+    }
+
+    public static Triple createTriple(Resource r, Property p, RDFNode o) {
+        return Triple.create(r.asNode(), p.asNode(), o.asNode());
     }
 
     public static void compareAxioms(Stream<? extends OWLAxiom> expected, Stream<? extends OWLAxiom> actual) {

@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.*;
+import org.apache.jena.graph.compose.DisjointUnion;
+import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.impl.OntModelImpl;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -104,6 +106,16 @@ public class OntologyModel extends OWLOntologyImpl {
             outer.sync();
     }
 
+    private Stream<OWLDeclarationAxiom> declarationAxioms(OWLImportsDeclaration declaration) {
+        // what if there are several ontologies with the same IRI ?
+        OWLOntology importedOntology = getOWLOntologyManager().getImportedOntology(declaration);
+        return importedOntology == null ? Stream.empty() : importedOntology.signature().map(e -> getOWLOntologyManager().getOWLDataFactory().getOWLDeclarationAxiom(e));
+    }
+
+    private Stream<OWLDeclarationAxiom> declarationAxioms() {
+        return signature().map(e -> getOWLOntologyManager().getOWLDataFactory().getOWLDeclarationAxiom(e));
+    }
+
     /**
      * don't forget to call {@link OntModel#rebind()} after adding bulk axiom.
      *
@@ -137,6 +149,7 @@ public class OntologyModel extends OWLOntologyImpl {
 
         ChangeFilter() {
             this.eventStore = new OntGraphEventStore();
+            // todo: move graph-factory to manager
             this.inner = Factory.createGraphMem();
             initOntologyID();
         }
@@ -147,6 +160,17 @@ public class OntologyModel extends OWLOntologyImpl {
 
         Graph getGraph() {
             return inner;
+        }
+
+        private Graph getUnionGraph() {
+            Graph imports = getImportsGraph();
+            return imports.isEmpty() ? inner : new DisjointUnion(inner, imports);
+        }
+
+        private Graph getImportsGraph() {
+            MultiUnion res = new MultiUnion();
+            imports().map(OntologyModel.class::cast).forEach(i -> res.addGraph(i.getInnerGraph()));
+            return res;
         }
 
         /**
@@ -221,6 +245,12 @@ public class OntologyModel extends OWLOntologyImpl {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
+            // remove duplicated Declaration Axioms if they are present in the imported ontology
+            Set<OWLAxiom> declarationAxiomsFromImport = declarationAxioms(declaration).collect(Collectors.toSet());
+            declarationAxioms().filter(declarationAxiomsFromImport::contains).forEach(axiom -> {
+                ints.removeAxiom(axiom); // don't use this.removeAxiom to avoid breaking other non-declaration axioms which could use these triplets also
+                eventStore.triples(OntGraphEventStore.createAdd(axiom)).map(OntGraphEventStore.TripleEvent::get).forEach(inner::delete);
+            });
         }
 
         private void removeImport(OWLImportsDeclaration declaration) {
@@ -233,6 +263,9 @@ public class OntologyModel extends OWLOntologyImpl {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
             }
+            // return back Declaration Axioms which is in use:
+            Set<OWLAxiom> declarationAxiomsFromThis = declarationAxioms().collect(Collectors.toSet());
+            declarationAxioms(declaration).filter(declarationAxiomsFromThis::contains).forEach(this::addAxiom);
         }
 
         /**
@@ -270,7 +303,6 @@ public class OntologyModel extends OWLOntologyImpl {
         }
 
         /**
-         * todo: use {@link org.apache.jena.graph.compose.MultiUnion} graph wrapper
          *
          * @param axiom OWLAxiom
          */
@@ -279,7 +311,7 @@ public class OntologyModel extends OWLOntologyImpl {
             GraphListener listener = OntGraphListener.create(eventStore, event);
             try {
                 inner.getEventManager().register(listener);
-                AxiomParserProvider.get(axiom).process(inner);
+                AxiomParserProvider.get(axiom).process(getUnionGraph());
             } catch (Exception e) {
                 throw new OntException("Add axiom " + axiom, e);
             } finally {
