@@ -1,35 +1,29 @@
 package ru.avicomp.ontapi.tests;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Ignore;
 import org.junit.Test;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
+import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.OntIRI;
-import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
  * for SWRLRule Axiom.
  * <p>
  * Created by szuev on 19.10.2016.
  */
-@Ignore
 public class SWRLRuleGraphTest extends GraphTestBase {
     @Test
-    public void testRules() throws OWLOntologyCreationException {
+    public void test() {
         OntIRI iri = OntIRI.create("http://test.org/rule");
-        //OntologyModel owl = TestUtils.createModel(iri);
-        //OWLOntologyManager manager = owl.getOWLOntologyManager();
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-        OWLOntology owl = manager.createOntology(iri.toOwlOntologyID(iri.addFragment("1.0.0")));
-
+        OntologyModel owl = TestUtils.createModel(iri);
+        OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         OWLClass class1 = factory.getOWLClass(iri.addFragment("Class-1"));
@@ -66,16 +60,14 @@ public class SWRLRuleGraphTest extends GraphTestBase {
         List<OWLAxiom> axioms = new ArrayList<>();
         axioms.add(factory.getSWRLRule(head, body));
 
-        OWLAnnotation _ann1 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("label", "swrl"));
-        OWLAnnotation _ann2 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("comment", "swrl"), _ann1);
-        OWLAnnotation annotation1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), iri.addPath("link").addFragment("some"), Stream.of(_ann1, _ann2));
-        axioms.add(factory.getSWRLRule(Collections.emptyList(), Collections.emptyList(), Stream.of(annotation1).collect(Collectors.toList())));
-
         axioms.add(factory.getOWLClassAssertionAxiom(class1, individual2));
 
         axioms.forEach(axiom -> owl.applyChanges(new AddAxiom(owl, axiom)));
-        ReadWriteUtils.print(owl, null);
 
         owl.axioms().forEach(LOGGER::info);
+
+        debug(owl);
+
+        checkAxioms(owl, AxiomType.DECLARATION);
     }
 }

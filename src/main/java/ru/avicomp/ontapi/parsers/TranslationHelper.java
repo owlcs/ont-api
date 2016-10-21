@@ -172,10 +172,29 @@ public class TranslationHelper {
             }
             return res.inModel(model);
         }
-        if (SWRLAtom.class.isInstance(o)) {
-            return SWRLAtomTranslator.add(model, (SWRLAtom) o);
+        if (SWRLObject.class.isInstance(o)) {
+            return addRDFNode(model, (SWRLObject) o);
         }
         return toRDFNode(o).inModel(model);
+    }
+
+    public static RDFNode addRDFNode(Model model, SWRLObject o) {
+        if (SWRLAtom.class.isInstance(o)) {
+            return SWRLAtomTranslator.add(model, (SWRLAtom) o);
+        } else if (SWRLArgument.class.isInstance(o)) {
+            if (SWRLVariable.class.isInstance(o)) {
+                Resource res = toResource(((SWRLVariable) o).getIRI()).inModel(model);
+                res.addProperty(RDF.type, SWRL.Variable);
+                return res;
+            }
+            if (SWRLLiteralArgument.class.isInstance(o)) {
+                return addRDFNode(model, ((SWRLLiteralArgument) o).getLiteral());
+            }
+            if (SWRLIndividualArgument.class.isInstance(o)) {
+                return addRDFNode(model, ((SWRLIndividualArgument) o).getIndividual());
+            }
+        }
+        throw new OntException("Unsupported SWRL-Object: " + o);
     }
 
     /**
@@ -287,9 +306,8 @@ public class TranslationHelper {
         }
 
         private static SWRLAtomTranslator valueOf(SWRLAtom atom) {
-            if (atom == null) return null;
             for (SWRLAtomTranslator t : values()) {
-                if (t.type.equals(atom.getClass())) return t;
+                if (t.type.isInstance(atom)) return t;
             }
             return null;
         }
@@ -323,7 +341,7 @@ public class TranslationHelper {
                 model.add(res, RDF.type, SWRL.BuiltinAtom);
                 model.add(res, SWRL.builtin, addRDFNode(model, atom.getPredicate()));
                 model.add(toResource(atom.getPredicate()), RDF.type, SWRL.Builtin);
-                // is using rdf:List in such way is correct?
+                // is using rdf:List in such way correct?
                 model.add(res, SWRL.arguments, addRDFList(model, atom.arguments()));
                 return res;
             }

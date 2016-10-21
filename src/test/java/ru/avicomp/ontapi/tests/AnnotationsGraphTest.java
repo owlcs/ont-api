@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.tests;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
@@ -331,8 +333,30 @@ public class AnnotationsGraphTest extends GraphTestBase {
     }
 
     @Test
-    public void testAnnotateOntology() {
+    @Ignore
+    public void testSWRLRuleAnnotation() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/6");
+        OntologyModel owl = TestUtils.createModel(iri);
+        OWLOntologyManager manager = owl.getOWLOntologyManager();
+        OWLDataFactory factory = manager.getOWLDataFactory();
+
+        OWLAnnotation _ann1 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("label", "swrl"));
+        OWLAnnotation _ann2 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("comment", "swrl"), _ann1);
+        OWLAnnotation annotation1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), iri.addPath("link").addFragment("some"), Stream.of(_ann1, _ann2));
+        OWLAnnotation annotation2 = factory.getOWLAnnotation(factory.getOWLAnnotationProperty(iri.addPath("ann").addFragment("prop")), factory.getOWLLiteral("ann-prop-lit", "s"));
+        OWLAxiom axiom = factory.getSWRLRule(Collections.emptyList(), Collections.emptyList(), Stream.of(annotation1, annotation2).collect(Collectors.toList()));
+        owl.applyChanges(new AddAxiom(owl, axiom));
+
+        debug(owl);
+
+        // Does't work due incorrect working with complex annotations in OWL-API (just try to reload ontology using only original OWL-API ver 5.0.3)
+        // TODO: need to change OWL-API rdf-loader.
+        checkAxioms(owl);
+    }
+
+    @Test
+    public void testAnnotateOntology() {
+        OntIRI iri = OntIRI.create("http://test.org/annotations/7");
         OntologyModel owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
