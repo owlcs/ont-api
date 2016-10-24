@@ -20,7 +20,9 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.OntologyModelImpl;
 import ru.avicomp.ontapi.io.OntFormat;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
 
@@ -35,7 +37,7 @@ public class TestUtils {
     public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (o1, o2) -> NodeUtils.compareRDFTerms(o1.asNode(), o2.asNode());
     private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(NodeID.getNodeID());
 
-    public static OntologyModel load(OWLOntologyManager manager, IRI fileIRI) {
+    public static OntologyModel load(OntologyManager manager, IRI fileIRI) {
         LOGGER.info("Load ontology model from " + fileIRI + ".");
         OWLOntology owl = null;
         try {
@@ -43,8 +45,8 @@ public class TestUtils {
         } catch (OWLOntologyCreationException e) {
             Assert.fail(e.getMessage());
         }
-        Assert.assertEquals("incorrect class " + owl.getClass(), OntologyModel.class, owl.getClass());
-        return (OntologyModel) owl;
+        Assert.assertEquals("incorrect class " + owl.getClass(), OntologyModelImpl.class, owl.getClass());
+        return (OntologyModelImpl) owl;
     }
 
     public static OntologyModel createModel(OntIRI iri) {
@@ -52,20 +54,16 @@ public class TestUtils {
     }
 
     public static OntologyModel createModel(OWLOntologyID id) {
-        return createModel(OntManagerFactory.createOWLOntologyManager(), id);
+        return createModel(OntManagerFactory.createOntologyManager(), id);
     }
 
-    public static OntologyModel createModel(OWLOntologyManager manager, OWLOntologyID id) {
-        try {
-            LOGGER.info("Create ontology " + id);
-            return (OntologyModel) manager.createOntology(id);
-        } catch (OWLOntologyCreationException e) {
-            throw new AssertionError(e);
-        }
+    public static OntologyModel createModel(OntologyManager manager, OWLOntologyID id) {
+        LOGGER.info("Create ontology " + id);
+        return manager.createOntology(id);
     }
 
-    public static OntologyModel loadOntologyFromIOStream(OWLOntologyManager manager, OntModel model, OntFormat convertFormat) {
-        if (manager == null) manager = OntManagerFactory.createOWLOntologyManager();
+    public static OntologyModel loadOntologyFromIOStream(OntologyManager manager, OntModel model, OntFormat convertFormat) {
+        if (manager == null) manager = OntManagerFactory.createOntologyManager();
         String uri = getURI(model);
         LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
         try (InputStream is = ReadWriteUtils.toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {
@@ -73,7 +71,7 @@ public class TestUtils {
         } catch (IOException | OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }
-        OntologyModel res = (OntologyModel) manager.getOntology(IRI.create(uri));
+        OntologyModel res = (OntologyModelImpl) manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, res);
         return res;
     }

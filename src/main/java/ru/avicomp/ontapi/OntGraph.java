@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.parsers.AxiomParser;
  * <p>
  * There are two graphs underling.
  * One of them ({@link OntGraph#graph}) is associated with this wrapper and through it with jena-model,
- * The second one ({@link OntGraph#original}) is associated with owl-ontology {@link OntologyModel} and triple-handler {@link OntTripleHandler} works with it.
+ * The second one ({@link OntGraph#original}) is associated with owl-ontology {@link OntologyModelImpl} and triple-handler {@link OntTripleHandler} works with it.
  * Two-graphs architecture allows to avoid duplicating of anonymous nodes.
  * The adding of triples occurs with help of OntTripleHandler (base class {@link org.semanticweb.owlapi.rdf.rdfxml.parser.OWLRDFConsumer},
  * which produces axioms and related with them triplets in the original graph (through {@link AxiomParser}).
@@ -42,7 +42,7 @@ public class OntGraph implements Graph {
     // triplet handler, which works original graph through owl-ontology
     private final OntTripleHandler tripleHandler;
 
-    public OntGraph(OntologyModel owlOntology) {
+    public OntGraph(OntologyModelImpl owlOntology) {
         this(owlOntology.getInnerGraph(), new OntTripleHandler(owlOntology, ONT_LOADER_CONFIGURATION));
     }
 
@@ -208,13 +208,13 @@ public class OntGraph implements Graph {
         private Map<Node, IRI> nodes = new HashMap<>();
         private Set<OntTriple> triples = new HashSet<>();
 
-        OntTripleHandler(OntologyModel ontology, OWLOntologyLoaderConfiguration configuration) {
+        OntTripleHandler(OntologyModelImpl ontology, OWLOntologyLoaderConfiguration configuration) {
             super(ontology, configuration);
         }
 
         @Override
-        public OntologyModel getOntology() {
-            return (OntologyModel) super.getOntology();
+        public OntologyModelImpl getOntology() {
+            return (OntologyModelImpl) super.getOntology();
         }
 
         public OntGraphEventStore getStore() {
@@ -260,7 +260,7 @@ public class OntGraph implements Graph {
                 versionTriple.markRemoved();
             }
             OWLOntologyID id = new OWLOntologyID(iri, version);
-            OntologyModel ontology = getOntology();
+            OntologyModelImpl ontology = getOntology();
             if (same(old, id)) { // nothing to change
                 return;
             }
@@ -313,7 +313,7 @@ public class OntGraph implements Graph {
         public void deleteTriple(Triple t) {
             //TODO: remove only roots?
             fetch(t).markRemoved();
-            OntologyModel ontology = getOntology();
+            OntologyModelImpl ontology = getOntology();
             OntGraphEventStore store = getStore();
             store.getEvents(OntGraphEventStore.createAdd(t)).forEach(event -> {
                 if (event.is(OWLAxiom.class)) {

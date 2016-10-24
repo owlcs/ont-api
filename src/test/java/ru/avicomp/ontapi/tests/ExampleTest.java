@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.utils.OntIRI;
@@ -36,13 +37,10 @@ public class ExampleTest {
     public void test() throws OWLOntologyCreationException {
         OntIRI owlURI = OntIRI.create("http://test.test/example");
         int statementsNumber = 15;
-        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
+        OntologyManager manager = OntManagerFactory.createOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
-        OWLOntology owl = manager.createOntology(owlURI.toOwlOntologyID());
-        // use NonConcurrentOWLOntologyBuilder:
-        Assert.assertEquals("incorrect class", OntologyModel.class, owl.getClass());
-        OntologyModel ontology = (OntologyModel) owl;
+        OntologyModel ontology = manager.createOntology(owlURI.toOwlOntologyID());
         manager.applyChange(new AddImport(ontology, factory.getOWLImportsDeclaration(IRI.create(ReadWriteUtils.getResourceURI("sp.ttl")))));
         //manager.applyChange(new AddImport(ontology, factory.getOWLImportsDeclaration(IRI.create(SPINMAP_SPIN.BASE_URI))));
         manager.applyChange(new AddOntologyAnnotation(ontology, factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("test-comment"))));

@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -32,7 +33,7 @@ public class ImportsGraphTest extends GraphTestBase {
     public void testAdd() {
         OntIRI iri = OntIRI.create("http://test.test/add-import/1");
         OntologyModel owl = TestUtils.createModel(iri);
-        OWLOntologyManager manager = owl.getOWLOntologyManager();
+        OntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
         OntModel jena = owl.asGraphModel();
         int importsCount = 4;
@@ -68,7 +69,7 @@ public class ImportsGraphTest extends GraphTestBase {
     public void testGraph() {
         OntIRI baseIRI = OntIRI.create("http://test.test/add-import/base");
         OntologyModel base = TestUtils.createModel(baseIRI);
-        OWLOntologyManager manager = base.getOWLOntologyManager();
+        OntologyManager manager = base.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         OntIRI classIRI1 = baseIRI.addFragment("Class-1");
@@ -131,7 +132,7 @@ public class ImportsGraphTest extends GraphTestBase {
         checkTriple(base.asGraphModel(), child.asGraphModel(), dataTypeIRI.toResource(), RDF.type, RDFS.Datatype);
 
         LOGGER.info("Reload models.");
-        OWLOntologyManager newManager = OntManagerFactory.createOWLOntologyManager();
+        OntologyManager newManager = OntManagerFactory.createOntologyManager();
         OntologyModel newBase = TestUtils.loadOntologyFromIOStream(newManager, base.asGraphModel(), null);
         OntologyModel newChild = TestUtils.loadOntologyFromIOStream(newManager, child.asGraphModel(), null);
         Assert.assertEquals("Incorrect imports count", 1, newChild.imports().count());

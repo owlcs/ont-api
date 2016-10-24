@@ -1,33 +1,44 @@
 package ru.avicomp.ontapi;
 
-import java.util.concurrent.locks.ReadWriteLock;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-import org.apache.jena.ontology.OntDocumentManager;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.ProfileRegistry;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import com.google.inject.Inject;
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
+import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
+import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 
 /**
- * TODO
- * Created by @szuev on 03.10.2016.
+ * Overwritten {@link OWLOntologyManager}
+ *
+ * Created by szuev on 24.10.2016.
  */
-public class OntologyManager extends OWLOntologyManagerImpl {
-    private OntModelSpec spec;
+public interface OntologyManager extends OWLOntologyManager {
+    OntModelSpec getSpec();
 
-    @Inject
-    public OntologyManager(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
-        super(dataFactory, readWriteLock);
-        OntDocumentManager documentManager = new OntDocumentManager();
-        documentManager.setProcessImports(false);
-        this.spec = new OntModelSpec(ModelFactory.createMemModelMaker(), documentManager, null, ProfileRegistry.OWL_DL_LANG);
+    OntologyModel getOntology(@Nullable IRI ontologyIRI);
+
+    OntologyModel getOntology(@Nonnull OWLOntologyID ontologyID);
+
+    OntologyModel createOntology(@Nonnull OWLOntologyID ontologyID);
+
+    default OntologyModel createOntology() {
+        return createOntology(new OWLOntologyID());
     }
 
-    public OntModelSpec getSpec() {
-        return spec;
+    default OntologyModel createOntology(IRI ontologyIRI) {
+        return createOntology(new OWLOntologyID(optional(ontologyIRI), emptyOptional(IRI.class)));
     }
 
+    void setGraphFactory(GraphFactory factory);
+
+    GraphFactory getGraphFactory();
+
+    interface GraphFactory {
+        Graph create();
+    }
 }

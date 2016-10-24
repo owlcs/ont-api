@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.OntologyModelImpl;
 import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -35,13 +36,13 @@ public class DisjointClassesGraphTest extends GraphTestBase {
     public void test() throws OWLOntologyCreationException {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("test1.ttl"));
         LOGGER.info("Load ontology from file " + fileIRI);
-        OntologyModel original = (OntologyModel) OntManagerFactory.createOWLOntologyManager().loadOntology(fileIRI);
+        OntologyModel original = (OntologyModelImpl) OntManagerFactory.createOntologyManager().loadOntology(fileIRI);
         debug(original);
 
         LOGGER.info("Assemble new ontology with the same content.");
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
-        OntologyModel result = (OntologyModel) OntManagerFactory.createOWLOntologyManager().createOntology(iri.toOwlOntologyID());
+        OntologyModel result = OntManagerFactory.createOntologyManager().createOntology(iri.toOwlOntologyID());
         OntModel jena = result.asGraphModel();
         jena.setNsPrefix("", iri.getIRIString() + "#");
         jena.add(jena.getOntology(iri.getIRIString()), OWL2.versionIRI, ver.toResource());
@@ -85,7 +86,7 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         jena.removeAll(anon, null, null);
 
         LOGGER.info("Events");
-        result.getEventStore().getLogs().forEach(LOGGER::debug);
+        ((OntologyModelImpl) result).getEventStore().getLogs().forEach(LOGGER::debug);
 
         LOGGER.info("Compare axioms.");
         result.axioms().forEach(LOGGER::debug);

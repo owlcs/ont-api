@@ -8,10 +8,9 @@ import java.util.stream.Stream;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -35,7 +34,7 @@ abstract class GraphTestBase {
         ReadWriteUtils.print(ontology.asGraphModel(), OntFormat.TTL_RDF);
     }
 
-    Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType... excluded) {
+    Stream<OWLAxiom> filterAxioms(OntologyModel ontology, AxiomType... excluded) {
         if (excluded.length == 0) return ontology.axioms();
         List<AxiomType> types = Stream.of(excluded).collect(Collectors.toList());
         return ontology.axioms().filter(axiom -> !types.contains(axiom.getAxiomType()));
@@ -43,7 +42,7 @@ abstract class GraphTestBase {
 
     void checkAxioms(OntologyModel original, AxiomType... excluded) {
         LOGGER.info("Load ontology to another manager from jena graph.");
-        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
+        OntologyManager manager = OntManagerFactory.createOntologyManager();
         OntologyModel result = TestUtils.loadOntologyFromIOStream(manager, original.asGraphModel(), null);
         LOGGER.info("All axioms:");
         result.axioms().forEach(LOGGER::info);

@@ -16,10 +16,10 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.TestUtils;
@@ -84,7 +84,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
     }
 
     private static OWLAnnotation toOWLAnnotation(Property property, RDFNode node) {
-        return toOWLAnnotation(OWLManager.createOWLOntologyManager().getOWLDataFactory(), property, node);
+        return toOWLAnnotation(OntManagerFactory.createDataFactory(), property, node);
     }
 
     private static OWLAnnotation toOWLAnnotation(OWLDataFactory factory, Property property, RDFNode node) {
@@ -103,10 +103,10 @@ public class ChangeIDGraphTest extends GraphTestBase {
 
     @Test
     public void test() throws OWLOntologyCreationException {
-        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
+        OntologyManager manager = OntManagerFactory.createOntologyManager();
 
         // anon ontology
-        OntologyModel anon = (OntologyModel) manager.createOntology();
+        OntologyModel anon = manager.createOntology();
         Assert.assertEquals("Should be one ontology inside jena-graph", 1, anon.asGraphModel().listOntologies().toList().size());
 
         LOGGER.info("Create owl ontology.");
@@ -119,7 +119,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
         annotations.computeIfAbsent(OWL.incompatibleWith, p -> new ArrayList<>()).add(ResourceFactory.createResource("http://yyy/zzz"));
 
         OWLDataFactory factory = manager.getOWLDataFactory();
-        OntologyModel owl = (OntologyModel) manager.createOntology(iri.toOwlOntologyID());
+        OntologyModel owl = manager.createOntology(iri.toOwlOntologyID());
         createOntologyProperties(owl, imports, annotations);
         OWLAnnotationProperty ap1 = factory.getOWLAnnotationProperty(iri.addFragment("annotation-property-1"));
         OWLAnnotation a1 = factory.getOWLAnnotation(ap1, factory.getOWLLiteral("tess-annotation-1"));

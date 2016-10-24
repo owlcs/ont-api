@@ -10,9 +10,9 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -35,7 +35,7 @@ public abstract class LoadTestBase {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(getFileName()));
         LOGGER.info("The file " + fileIRI);
 
-        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
+        OntologyManager manager = OntManagerFactory.createOntologyManager();
         OntologyModel ontology = TestUtils.load(manager, fileIRI);
         OWLOntologyID id = ontology.getOntologyID();
         IRI iri = id.getOntologyIRI().orElse(null);
