@@ -36,13 +36,13 @@ public class DisjointClassesGraphTest extends GraphTestBase {
     public void test() throws OWLOntologyCreationException {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("test1.ttl"));
         LOGGER.info("Load ontology from file " + fileIRI);
-        OntologyModel original = (OntologyModelImpl) OntManagerFactory.createOntologyManager().loadOntology(fileIRI);
+        OntologyModel original = (OntologyModelImpl) OntManagerFactory.createONTManager().loadOntology(fileIRI);
         debug(original);
 
         LOGGER.info("Assemble new ontology with the same content.");
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
-        OntologyModel result = OntManagerFactory.createOntologyManager().createOntology(iri.toOwlOntologyID());
+        OntologyModel result = OntManagerFactory.createONTManager().createOntology(iri.toOwlOntologyID());
         OntModel jena = result.asGraphModel();
         jena.setNsPrefix("", iri.getIRIString() + "#");
         jena.add(jena.getOntology(iri.getIRIString()), OWL2.versionIRI, ver.toResource());

@@ -37,7 +37,7 @@ public class ExampleTest {
     public void test() throws OWLOntologyCreationException {
         OntIRI owlURI = OntIRI.create("http://test.test/example");
         int statementsNumber = 15;
-        OntologyManager manager = OntManagerFactory.createOntologyManager();
+        OntologyManager manager = OntManagerFactory.createONTManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         OntologyModel ontology = manager.createOntology(owlURI.toOwlOntologyID());

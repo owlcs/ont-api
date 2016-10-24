@@ -132,7 +132,7 @@ public class ImportsGraphTest extends GraphTestBase {
         checkTriple(base.asGraphModel(), child.asGraphModel(), dataTypeIRI.toResource(), RDF.type, RDFS.Datatype);
 
         LOGGER.info("Reload models.");
-        OntologyManager newManager = OntManagerFactory.createOntologyManager();
+        OntologyManager newManager = OntManagerFactory.createONTManager();
         OntologyModel newBase = TestUtils.loadOntologyFromIOStream(newManager, base.asGraphModel(), null);
         OntologyModel newChild = TestUtils.loadOntologyFromIOStream(newManager, child.asGraphModel(), null);
         Assert.assertEquals("Incorrect imports count", 1, newChild.imports().count());

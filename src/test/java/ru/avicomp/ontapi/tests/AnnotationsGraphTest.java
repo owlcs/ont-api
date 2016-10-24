@@ -97,7 +97,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
     @Test
     public void testComplexAnnotations() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/2");
-        OntologyManager manager = OntManagerFactory.createOntologyManager();
+        OntologyManager manager = OntManagerFactory.createONTManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
         long count = manager.ontologies().count();
 

@@ -142,23 +142,4 @@ public class ReadWriteUtils {
         }
     }
 
-    /*public static void main(String ... a) throws OWLOntologyCreationException {
-        *//*String url = "http://protege.stanford.edu/ontologies/pizza/pizza.owl";
-        Model base = ModelFactory.createDefaultModel();
-        base.read(url);
-        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.getDefaultSpec(ProfileRegistry.OWL_LANG), base);
-        save(model, "pizza", OntFormat.TTL_RDF);*//*
-        URI uri = getFileToSave("pizza", OntFormat.TTL_RDF).toURI();
-        OWLOntologyManager manager = OntManagerFactory.createOWLOntologyManager();
-        OWLOntology ontology = manager.loadOntology(IRI.create(uri));
-        LOGGER.debug(ontology.getClass());
-    }*/
-
-    /*public static void main(String ... a) throws OWLOntologyCreationException {
-        String url = "http://protege.stanford.edu/ontologies/pizza/pizza.owl";
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-        OWLOntology ontology = manager.loadOntology(IRI.create(url));
-        //save(ontology, "pizza.owl", OntFormat.TTL_RDF);
-        save(ontology, "pizza.ttl", null);
-    }*/
 }

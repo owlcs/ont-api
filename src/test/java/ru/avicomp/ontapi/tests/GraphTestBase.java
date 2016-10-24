@@ -42,7 +42,7 @@ abstract class GraphTestBase {
 
     void checkAxioms(OntologyModel original, AxiomType... excluded) {
         LOGGER.info("Load ontology to another manager from jena graph.");
-        OntologyManager manager = OntManagerFactory.createOntologyManager();
+        OntologyManager manager = OntManagerFactory.createONTManager();
         OntologyModel result = TestUtils.loadOntologyFromIOStream(manager, original.asGraphModel(), null);
         LOGGER.info("All axioms:");
         result.axioms().forEach(LOGGER::info);

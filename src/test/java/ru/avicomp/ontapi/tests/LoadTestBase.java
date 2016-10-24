@@ -35,7 +35,7 @@ public abstract class LoadTestBase {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(getFileName()));
         LOGGER.info("The file " + fileIRI);
 
-        OntologyManager manager = OntManagerFactory.createOntologyManager();
+        OntologyManager manager = OntManagerFactory.createONTManager();
         OntologyModel ontology = TestUtils.load(manager, fileIRI);
         OWLOntologyID id = ontology.getOntologyID();
         IRI iri = id.getOntologyIRI().orElse(null);

@@ -24,7 +24,7 @@ public class IndividualsGraphTest extends GraphTestBase {
     @Test
     public void test() throws OWLOntologyCreationException {
         OntIRI iri = OntIRI.create("http://test.test/add-class-individual");
-        OntologyManager manager = OntManagerFactory.createOntologyManager();
+        OntologyManager manager = OntManagerFactory.createONTManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         OntologyModel owl = manager.createOntology(iri.toOwlOntologyID());

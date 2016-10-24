@@ -54,7 +54,7 @@ public class TestUtils {
     }
 
     public static OntologyModel createModel(OWLOntologyID id) {
-        return createModel(OntManagerFactory.createOntologyManager(), id);
+        return createModel(OntManagerFactory.createONTManager(), id);
     }
 
     public static OntologyModel createModel(OntologyManager manager, OWLOntologyID id) {
@@ -63,7 +63,7 @@ public class TestUtils {
     }
 
     public static OntologyModel loadOntologyFromIOStream(OntologyManager manager, OntModel model, OntFormat convertFormat) {
-        if (manager == null) manager = OntManagerFactory.createOntologyManager();
+        if (manager == null) manager = OntManagerFactory.createONTManager();
         String uri = getURI(model);
         LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
         try (InputStream is = ReadWriteUtils.toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {

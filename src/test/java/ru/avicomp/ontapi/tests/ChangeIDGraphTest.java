@@ -103,7 +103,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
 
     @Test
     public void test() throws OWLOntologyCreationException {
-        OntologyManager manager = OntManagerFactory.createOntologyManager();
+        OntologyManager manager = OntManagerFactory.createONTManager();
 
         // anon ontology
         OntologyModel anon = manager.createOntology();

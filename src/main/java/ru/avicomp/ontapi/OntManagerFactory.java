@@ -19,7 +19,6 @@ import com.google.inject.multibindings.Multibinder;
 import uk.ac.manchester.cs.owl.owlapi.CompressionEnabled;
 import uk.ac.manchester.cs.owl.owlapi.OWLAPIImplModule;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.Concurrency;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NonConcurrentDelegate;
@@ -35,11 +34,11 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
 
     private static ManagerProfile profile = DEFAULT_PROFILE;
 
-    public static OntologyManager createOntologyManager() {
+    public static OntologyManager createONTManager() {
         return DEFAULT_PROFILE.createManager();
     }
 
-    public static OWLOntologyManager createOWLOntologyManager() {
+    public static OWLOntologyManager createOWLManager() {
         return new OWLManagerProfile().createManager();
     }
 
@@ -79,7 +78,7 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
             bind(OWLOntologyBuilder.class).to(ONTBuilder.class);
             bind(OWLOntologyBuilder.class).annotatedWith(NonConcurrentDelegate.class).to(ONTBuilder.class);
             install(new FactoryModuleBuilder().implement(OntologyModel.class, OntologyModelImpl.class).build(ONTImplementationFactory.class));
-            multibind(OWLOntologyFactory.class, OWLOntologyFactoryImpl.class);
+            multibind(OWLOntologyFactory.class, OntologyFactoryImpl.class);
         }
 
         @SafeVarargs
