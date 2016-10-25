@@ -2,12 +2,8 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,7 +13,6 @@ import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.impl.OntModelImpl;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -27,7 +22,9 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import com.google.inject.assistedinject.Assisted;
 import ru.avicomp.ontapi.parsers.axiom2rdf.AxiomParserProvider;
 import ru.avicomp.ontapi.parsers.axiom2rdf.TranslationHelper;
-import uk.ac.manchester.cs.owl.owlapi.*;
+import ru.avicomp.ontapi.parsers.rdf2axiom.ParseHelper;
+import uk.ac.manchester.cs.owl.owlapi.Internals;
+import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION;
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY;
@@ -47,7 +44,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
     @Inject
     public OntologyModelImpl(@Assisted OntologyManager manager, @Assisted OWLOntologyID ontologyID) {
         super(manager, ontologyID);
-        rdfProcessor = new RDFChangeProcessor(this);
+        rdfProcessor = new RDFChangeProcessor();
     }
 
     public OntGraphEventStore getEventStore() {
@@ -112,6 +109,28 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
     }
 
     /**
+     * gets all ontologies from imports
+     *
+     * @return Stream
+     */
+    public Stream<OntologyModelImpl> ontologies() {
+        return imports().map(OntologyModelImpl.class::cast);
+    }
+
+    /**
+     * recursively gets all entites.
+     *
+     * @return Stream
+     */
+    public Stream<OWLEntity> entities() {
+        Stream<OWLEntity> res = signature();
+        for (OntologyModelImpl ont : ontologies().collect(Collectors.toSet())) {
+            res = Stream.concat(res, ont.entities());
+        }
+        return res;
+    }
+
+    /**
      * don't forget to call {@link OntModel#rebind()} after adding bulk axiom.
      *
      * @return OntModel
@@ -141,51 +160,39 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
      * package-private access.
      * WARNING: High Coupling with {@link OntGraph}, {@link OntologyFactoryImpl} and this {@link OntologyModelImpl}!
      */
-    static class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
+    class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
         private final OntGraphEventStore eventStore;
-        private final OntologyModelImpl ontology;
-        private Graph inner;
+        private final Graph inner;
         private Node nodeIRI;
 
-        RDFChangeProcessor(OntologyModelImpl ontology) {
-            this.ontology = ontology;
+        RDFChangeProcessor() {
             this.eventStore = new OntGraphEventStore();
+            this.inner = getOWLOntologyManager().getGraphFactory().create();
+            initOntologyID();
         }
 
         OntGraphEventStore getEventStore() {
             return eventStore;
         }
 
-        OntologyManager getManager() {
-            return ontology.getOWLOntologyManager();
-        }
-
         OntologyModelImpl getOntology() {
-            return ontology;
+            return OntologyModelImpl.this;
         }
 
         OWLOntologyID getOntologyID() {
-            return ontology.getOntologyID();
+            return ontologyID;
         }
 
         private void setOntologyID(OWLOntologyID id) {
-            ontology.ontologyID = id;
+            ontologyID = id;
         }
 
         Internals getInternals() {
-            return ontology.ints;
+            return ints;
         }
 
         Graph getGraph() {
-            if (inner == null) {
-                inner = getManager().getGraphFactory().create();
-                initOntologyID();
-            }
             return inner;
-        }
-
-        private void setGraph(Graph inner) {
-            this.inner = OntException.notNull(inner, "Null graph specified.");
         }
 
         private Graph getUnionGraph() {
@@ -196,7 +203,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
 
         private Graph getImportsGraph() {
             MultiUnion res = new MultiUnion();
-            getOntology().imports().map(OntologyModelImpl.class::cast).forEach(i -> res.addGraph(i.getRDFChangeProcessor().getGraph()));
+            getOntology().ontologies().forEach(i -> res.addGraph(i.getRDFChangeProcessor().getGraph()));
             return res;
         }
 
@@ -228,61 +235,19 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
             }
         }
 
-        static OWLOntologyID parseOntologyID(Graph graph) {
-            List<Triple> ontologies = graph.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()).toList();
-            if (ontologies.isEmpty()) {
-                return new OWLOntologyID();
-            }
-            // in case many ontologies in the single doc OWL-API gets the first one.
-            if (ontologies.size() != 1) throw new OntException("Multiple ontologies are not supported.");
-            Node subject = ontologies.get(0).getSubject();
-            IRI iri = IRI.create(subject.getURI());
-            IRI versionIRI = null;
-            List<Triple> versions = graph.find(subject, OWL2.versionIRI.asNode(), Node.ANY).toList();
-            if (!versions.isEmpty()) {
-                if (versions.size() != 1) throw new OntException("Should be one versionIRI triple.");
-                versionIRI = IRI.create(versions.get(0).getObject().getURI());
-            }
-            return new OWLOntologyID(iri, versionIRI);
-        }
-
-        void parse(Graph graph) {
-            setGraph(graph);
-            parse();
-        }
-
-        private void parse() {
-            parseImports().forEach(owlImportsDeclaration -> getInternals().addImportsDeclaration(owlImportsDeclaration));
-            parseOWLEntities().forEach(new Consumer<OWLEntity>() {
-                @Override
-                public void accept(OWLEntity entity) {
-                    getInternals().addAxiom(new OWLDeclarationAxiomImpl(entity, Collections.emptyList()));
-                }
+        /**
+         * puts axioms to this OWLOntology inner graph from external graph
+         * these graphs may be different (see specification
+         * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Parsing_of_the_Ontology_Header_and_Declarations'>Parsing of the Ontology Header and Declarations</a>).
+         *
+         * @param external Graph from.
+         */
+        void load(Graph external) {
+            ParseHelper.imports(getOntologyID(), external).forEachRemaining(this::addImport);
+            ParseHelper.declarationAxioms(external).forEachRemaining(axiom -> {
+                getInternals().addAxiom(axiom);
+                RDFChangeProcessor.this.addAxiom(axiom);
             });
-            //todo:
-        }
-
-        private Set<OWLImportsDeclaration> parseImports() {
-            return getGraph().find(getNodeIRI(), OWL.imports.asNode(), Node.ANY).
-                    mapWith(t -> IRI.create(t.getObject().getURI())).
-                    mapWith((Function<IRI, OWLImportsDeclaration>) OWLImportsDeclarationImpl::new).toSet();
-        }
-
-        private Set<OWLEntity> parseOWLEntities() {
-            Graph graph = getGraph();
-            Set<OWLEntity> res = new HashSet<>();
-            ExtendedIterator<Triple> nodes = graph.find(Node.ANY, RDF.type.asNode(), Node.ANY);
-            while (nodes.hasNext()) {
-                Triple triple = nodes.next();
-                Node subject = triple.getSubject();
-                Node object = triple.getObject();
-                if (OWL.Class.asNode().equals(object)) {
-                    OWLClass clazz = new OWLClassImpl(IRI.create(subject.getURI()));
-                    res.add(clazz);
-                }
-            }
-            //TODO:
-            return res;
         }
 
         /**

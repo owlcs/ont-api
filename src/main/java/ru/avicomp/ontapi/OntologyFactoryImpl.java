@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
 import com.google.inject.Inject;
+import ru.avicomp.ontapi.parsers.rdf2axiom.ParseHelper;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
 /**
@@ -82,8 +83,8 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
 
 
     private enum JenaFormats {
-        XML_RDF("rdf"),
         TTL_RDF("ttl"),
+        XML_RDF("rdf"),
         JSON_LD_RDF("json"),
         JSON_RDF("json"),
         NTRIPLES("nt"),
@@ -101,9 +102,9 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
     }
 
     private OntologyModel parse(OntologyManager manager, Graph graph, IRI docIRI, OWLOntologyCreationHandler handler) {
-        OWLOntologyID id = OntologyModelImpl.RDFChangeProcessor.parseOntologyID(graph);
+        OWLOntologyID id = ParseHelper.getOWLOntologyID(graph);
         OntologyModelImpl res = createOWLOntology(manager, id, docIRI, handler);
-        res.getRDFChangeProcessor().parse(graph);
+        res.getRDFChangeProcessor().load(graph);
         return res;
     }
 

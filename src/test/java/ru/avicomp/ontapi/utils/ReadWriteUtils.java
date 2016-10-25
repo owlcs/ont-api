@@ -28,6 +28,14 @@ public class ReadWriteUtils {
 
     private static final String DESTINATION_DIR = "out";
 
+    public static void print(OWLOntology ontology) {
+        print(ontology, null);
+    }
+
+    public static void print(Model model) {
+        print(model, null);
+    }
+
     public static void print(OWLOntology ontology, OntFormat ext) {
         LOGGER.debug("\n" + toString(ontology, ext));
     }
