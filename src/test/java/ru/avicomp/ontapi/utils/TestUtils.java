@@ -71,7 +71,7 @@ public class TestUtils {
         } catch (IOException | OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }
-        OntologyModel res = (OntologyModelImpl) manager.getOntology(IRI.create(uri));
+        OntologyModel res = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, res);
         return res;
     }

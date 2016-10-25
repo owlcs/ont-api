@@ -2,8 +2,12 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -13,6 +17,7 @@ import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.impl.OntModelImpl;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -20,9 +25,9 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 
 import com.google.inject.assistedinject.Assisted;
-import ru.avicomp.ontapi.parsers.AxiomParserProvider;
-import ru.avicomp.ontapi.parsers.TranslationHelper;
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
+import ru.avicomp.ontapi.parsers.axiom2rdf.AxiomParserProvider;
+import ru.avicomp.ontapi.parsers.axiom2rdf.TranslationHelper;
+import uk.ac.manchester.cs.owl.owlapi.*;
 
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION;
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY;
@@ -32,7 +37,7 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
  * Created by @szuev on 27.09.2016.
  */
 public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel {
-    private final ChangeFilter filter;
+    private final RDFChangeProcessor rdfProcessor;
     private transient OntGraph outer;
 
     /**
@@ -42,16 +47,16 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
     @Inject
     public OntologyModelImpl(@Assisted OntologyManager manager, @Assisted OWLOntologyID ontologyID) {
         super(manager, ontologyID);
-        filter = new ChangeFilter();
+        rdfProcessor = new RDFChangeProcessor(this);
     }
 
     public OntGraphEventStore getEventStore() {
-        return filter.getEventStore();
+        return rdfProcessor.getEventStore();
     }
 
     @Override
     public ChangeApplied applyDirectChange(OWLOntologyChange change) {
-        ChangeApplied res = change.accept(getChangeFilter());
+        ChangeApplied res = change.accept(getRDFChangeProcessor());
         if (SUCCESSFULLY.equals(res)) {
             sync();
         }
@@ -59,7 +64,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
     }
 
     @Override
-    public ChangeApplied applyChanges(List<? extends OWLOntologyChange> changes) {
+    public ChangeApplied applyChanges(@Nonnull List<? extends OWLOntologyChange> changes) {
         ChangeApplied appliedChanges = SUCCESSFULLY;
         for (OWLOntologyChange change : changes) {
             ChangeApplied result = applyDirectChange(change);
@@ -78,18 +83,8 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         return (OntologyManager) manager;
     }
 
-    public OWLOntologyChangeVisitorEx<ChangeApplied> getChangeFilter() {
-        return filter;
-    }
-
-    /**
-     * package-private access,
-     * to use only inside {@link OntGraph}
-     *
-     * @return Graph
-     */
-    Graph getInnerGraph() {
-        return filter.getGraph();
+    RDFChangeProcessor getRDFChangeProcessor() {
+        return rdfProcessor;
     }
 
     private OntGraph getOntGraph() {
@@ -125,8 +120,8 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         return new OntGraphModel(this);
     }
 
-    public static class OntGraphModel extends OntModelImpl {
-        public OntGraphModel(OntologyModelImpl ontology) {
+    private static class OntGraphModel extends OntModelImpl {
+        OntGraphModel(OntologyModelImpl ontology) {
             super(ontology.getOWLOntologyManager().getSpec(), ModelFactory.createModelForGraph(ontology.getOntGraph()));
         }
 
@@ -142,33 +137,66 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         }
     }
 
-    private class ChangeFilter implements OWLOntologyChangeVisitorEx<ChangeApplied> {
+    /**
+     * package-private access.
+     * WARNING: High Coupling with {@link OntGraph}, {@link OntologyFactoryImpl} and this {@link OntologyModelImpl}!
+     */
+    static class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
         private final OntGraphEventStore eventStore;
-        private final Graph inner;
+        private final OntologyModelImpl ontology;
+        private Graph inner;
         private Node nodeIRI;
 
-        ChangeFilter() {
+        RDFChangeProcessor(OntologyModelImpl ontology) {
+            this.ontology = ontology;
             this.eventStore = new OntGraphEventStore();
-            this.inner = getOWLOntologyManager().getGraphFactory().create();
-            initOntologyID();
         }
 
         OntGraphEventStore getEventStore() {
             return eventStore;
         }
 
+        OntologyManager getManager() {
+            return ontology.getOWLOntologyManager();
+        }
+
+        OntologyModelImpl getOntology() {
+            return ontology;
+        }
+
+        OWLOntologyID getOntologyID() {
+            return ontology.getOntologyID();
+        }
+
+        private void setOntologyID(OWLOntologyID id) {
+            ontology.ontologyID = id;
+        }
+
+        Internals getInternals() {
+            return ontology.ints;
+        }
+
         Graph getGraph() {
+            if (inner == null) {
+                inner = getManager().getGraphFactory().create();
+                initOntologyID();
+            }
             return inner;
+        }
+
+        private void setGraph(Graph inner) {
+            this.inner = OntException.notNull(inner, "Null graph specified.");
         }
 
         private Graph getUnionGraph() {
             Graph imports = getImportsGraph();
+            Graph inner = getGraph();
             return imports.isEmpty() ? inner : new DisjointUnion(inner, imports);
         }
 
         private Graph getImportsGraph() {
             MultiUnion res = new MultiUnion();
-            imports().map(OntologyModelImpl.class::cast).forEach(i -> res.addGraph(i.getInnerGraph()));
+            getOntology().imports().map(OntologyModelImpl.class::cast).forEach(i -> res.addGraph(i.getRDFChangeProcessor().getGraph()));
             return res;
         }
 
@@ -177,9 +205,9 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
          *
          * @return {@link Node_Blank} or {@link Node_URI}
          */
-        private Node getNodeIRI() {
+        Node getNodeIRI() {
             if (nodeIRI != null) return nodeIRI;
-            return nodeIRI = createNodeIRI(ontologyID);
+            return nodeIRI = createNodeIRI(getOntologyID());
         }
 
         private Node createNodeIRI(OWLOntologyID id) {
@@ -187,16 +215,74 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         }
 
         private void initOntologyID() {
-            GraphListener listener = OntGraphListener.create(eventStore, OntGraphEventStore.createChange(ontologyID));
+            GraphListener listener = OntGraphListener.create(eventStore, OntGraphEventStore.createChange(getOntologyID()));
+            Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
                 inner.add(Triple.create(getNodeIRI(), RDF.type.asNode(), OWL.Ontology.asNode()));
-                IRI versionIRI = ontologyID.getVersionIRI().orElse(null);
+                IRI versionIRI = getOntologyID().getVersionIRI().orElse(null);
                 if (versionIRI == null) return;
                 inner.add(Triple.create(getNodeIRI(), OWL2.versionIRI.asNode(), NodeIRIUtils.toNode(versionIRI)));
             } finally {
                 inner.getEventManager().unregister(listener);
             }
+        }
+
+        static OWLOntologyID parseOntologyID(Graph graph) {
+            List<Triple> ontologies = graph.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()).toList();
+            if (ontologies.isEmpty()) {
+                return new OWLOntologyID();
+            }
+            // in case many ontologies in the single doc OWL-API gets the first one.
+            if (ontologies.size() != 1) throw new OntException("Multiple ontologies are not supported.");
+            Node subject = ontologies.get(0).getSubject();
+            IRI iri = IRI.create(subject.getURI());
+            IRI versionIRI = null;
+            List<Triple> versions = graph.find(subject, OWL2.versionIRI.asNode(), Node.ANY).toList();
+            if (!versions.isEmpty()) {
+                if (versions.size() != 1) throw new OntException("Should be one versionIRI triple.");
+                versionIRI = IRI.create(versions.get(0).getObject().getURI());
+            }
+            return new OWLOntologyID(iri, versionIRI);
+        }
+
+        void parse(Graph graph) {
+            setGraph(graph);
+            parse();
+        }
+
+        private void parse() {
+            parseImports().forEach(owlImportsDeclaration -> getInternals().addImportsDeclaration(owlImportsDeclaration));
+            parseOWLEntities().forEach(new Consumer<OWLEntity>() {
+                @Override
+                public void accept(OWLEntity entity) {
+                    getInternals().addAxiom(new OWLDeclarationAxiomImpl(entity, Collections.emptyList()));
+                }
+            });
+            //todo:
+        }
+
+        private Set<OWLImportsDeclaration> parseImports() {
+            return getGraph().find(getNodeIRI(), OWL.imports.asNode(), Node.ANY).
+                    mapWith(t -> IRI.create(t.getObject().getURI())).
+                    mapWith((Function<IRI, OWLImportsDeclaration>) OWLImportsDeclarationImpl::new).toSet();
+        }
+
+        private Set<OWLEntity> parseOWLEntities() {
+            Graph graph = getGraph();
+            Set<OWLEntity> res = new HashSet<>();
+            ExtendedIterator<Triple> nodes = graph.find(Node.ANY, RDF.type.asNode(), Node.ANY);
+            while (nodes.hasNext()) {
+                Triple triple = nodes.next();
+                Node subject = triple.getSubject();
+                Node object = triple.getObject();
+                if (OWL.Class.asNode().equals(object)) {
+                    OWLClass clazz = new OWLClassImpl(IRI.create(subject.getURI()));
+                    res.add(clazz);
+                }
+            }
+            //TODO:
+            return res;
         }
 
         /**
@@ -207,11 +293,12 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
          * @param id new OWLOntologyID
          */
         private void changeOntologyID(OWLOntologyID id) {
-            GraphListener listener = OntGraphListener.create(eventStore, OntGraphEventStore.createChange(ontologyID));
+            GraphListener listener = OntGraphListener.create(eventStore, OntGraphEventStore.createChange(getOntologyID()));
+            Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
-                Set<OWLImportsDeclaration> imports = OntologyModelImpl.this.importsDeclarations().collect(Collectors.toSet());
-                Set<OWLAnnotation> annotations = OntologyModelImpl.this.annotations().collect(Collectors.toSet());
+                Set<OWLImportsDeclaration> imports = getOntology().importsDeclarations().collect(Collectors.toSet());
+                Set<OWLAnnotation> annotations = getOntology().annotations().collect(Collectors.toSet());
                 // first remove imports and annotations
                 imports.forEach(this::removeImport);
                 annotations.forEach(this::removeAnnotation);
@@ -228,7 +315,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
                 imports.forEach(this::addImport);
                 // return back annotations:
                 annotations.forEach(this::addAnnotation);
-                ontologyID = id;
+                setOntologyID(id);
             } finally {
                 inner.getEventManager().unregister(listener);
             }
@@ -237,6 +324,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         private void addImport(OWLImportsDeclaration declaration) {
             OntGraphEventStore.OWLEvent event = OntGraphEventStore.createAdd(declaration);
             GraphListener listener = OntGraphListener.create(eventStore, event);
+            Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
                 inner.add(Triple.create(getNodeIRI(), OWL.imports.asNode(), NodeIRIUtils.toNode(declaration.getIRI())));
@@ -245,9 +333,9 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
                 inner.getEventManager().unregister(listener);
             }
             // remove duplicated Declaration Axioms if they are present in the imported ontology
-            Set<OWLAxiom> declarationAxiomsFromImport = declarationAxioms(declaration).collect(Collectors.toSet());
-            declarationAxioms().filter(declarationAxiomsFromImport::contains).forEach(axiom -> {
-                ints.removeAxiom(axiom); // don't use this.removeAxiom to avoid breaking other non-declaration axioms which could use these triplets also
+            Set<OWLAxiom> declarationAxiomsFromImport = getOntology().declarationAxioms(declaration).collect(Collectors.toSet());
+            getOntology().declarationAxioms().filter(declarationAxiomsFromImport::contains).forEach(axiom -> {
+                getInternals().removeAxiom(axiom); // don't use this.removeAxiom to avoid breaking other non-declaration axioms which could use these triplets also
                 eventStore.triples(OntGraphEventStore.createAdd(axiom)).map(OntGraphEventStore.TripleEvent::get).forEach(inner::delete);
             });
         }
@@ -255,6 +343,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         private void removeImport(OWLImportsDeclaration declaration) {
             OntGraphEventStore.OWLEvent event = OntGraphEventStore.createRemove(declaration);
             GraphListener listener = OntGraphListener.create(eventStore, event);
+            Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
                 inner.remove(getNodeIRI(), OWL.imports.asNode(), NodeIRIUtils.toNode(declaration.getIRI()));
@@ -263,8 +352,8 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
                 inner.getEventManager().unregister(listener);
             }
             // return back Declaration Axioms which is in use:
-            Set<OWLAxiom> declarationAxiomsFromThis = declarationAxioms().collect(Collectors.toSet());
-            declarationAxioms(declaration).filter(declarationAxiomsFromThis::contains).forEach(this::addAxiom);
+            Set<OWLAxiom> declarationAxiomsFromThis = getOntology().declarationAxioms().collect(Collectors.toSet());
+            getOntology().declarationAxioms(declaration).filter(declarationAxiomsFromThis::contains).forEach(this::addAxiom);
         }
 
         /**
@@ -280,6 +369,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         private void addAnnotation(OWLAnnotation annotation) {
             OntGraphEventStore.OWLEvent event = OntGraphEventStore.createAdd(annotation);
             GraphListener listener = OntGraphListener.create(eventStore, event);
+            Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
                 TranslationHelper.addAnnotations(inner, getNodeIRI(), Stream.of(annotation).collect(Collectors.toList()));
@@ -292,9 +382,10 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         private void removeAnnotation(OWLAnnotation annotation) {
             OntGraphEventStore.OWLEvent event = OntGraphEventStore.createRemove(annotation);
             GraphListener listener = OntGraphListener.create(eventStore, event);
+            Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
-                removeAllTriples(event.reverse());
+                removeAllTriples(inner, event.reverse());
             } finally {
                 eventStore.clear(event.reverse());
                 inner.getEventManager().unregister(listener);
@@ -307,6 +398,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         private void addAxiom(OWLAxiom axiom) {
             OntGraphEventStore.OWLEvent event = OntGraphEventStore.createAdd(axiom);
             GraphListener listener = OntGraphListener.create(eventStore, event);
+            Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
                 AxiomParserProvider.get(axiom).process(getUnionGraph());
@@ -321,9 +413,10 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         private void removeAxiom(OWLAxiom axiom) {
             OntGraphEventStore.OWLEvent event = OntGraphEventStore.createRemove(axiom);
             GraphListener listener = OntGraphListener.create(eventStore, event);
+            Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
-                removeAllTriples(event.reverse());
+                removeAllTriples(inner, event.reverse());
             } catch (Exception e) {
                 throw new OntException("Remove axiom " + axiom, e);
             } finally {
@@ -332,10 +425,10 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
             }
         }
 
-        private void removeAllTriples(OntGraphEventStore.OWLEvent event) {
+        private void removeAllTriples(Graph graph, OntGraphEventStore.OWLEvent event) {
             eventStore.triples(event).
                     filter(t -> eventStore.count(t) < 2). // skip triplets which are included in several axioms
-                    map(OntGraphEventStore.TripleEvent::get).forEach(inner::delete);
+                    map(OntGraphEventStore.TripleEvent::get).forEach(graph::delete);
         }
 
         /**
@@ -345,7 +438,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         @Override
         public ChangeApplied visit(@Nonnull AddAxiom change) {
             OWLAxiom axiom = change.getAxiom();
-            if (ints.addAxiom(axiom)) {
+            if (getInternals().addAxiom(axiom)) {
                 addAxiom(axiom);
                 return SUCCESSFULLY;
             }
@@ -355,7 +448,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         @Override
         public ChangeApplied visit(@Nonnull RemoveAxiom change) {
             OWLAxiom axiom = change.getAxiom();
-            if (ints.removeAxiom(axiom)) {
+            if (getInternals().removeAxiom(axiom)) {
                 removeAxiom(axiom);
                 return SUCCESSFULLY;
             }
@@ -365,7 +458,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         @Override
         public ChangeApplied visit(@Nonnull AddImport change) {
             OWLImportsDeclaration importDeclaration = change.getImportDeclaration();
-            if (ints.addImportsDeclaration(importDeclaration)) {
+            if (getInternals().addImportsDeclaration(importDeclaration)) {
                 addImport(importDeclaration);
                 return SUCCESSFULLY;
             }
@@ -375,7 +468,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         @Override
         public ChangeApplied visit(@Nonnull RemoveImport change) {
             OWLImportsDeclaration importDeclaration = change.getImportDeclaration();
-            if (ints.removeImportsDeclaration(importDeclaration)) {
+            if (getInternals().removeImportsDeclaration(importDeclaration)) {
                 removeImport(importDeclaration);
                 return SUCCESSFULLY;
             }
@@ -385,7 +478,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         @Override
         public ChangeApplied visit(@Nonnull AddOntologyAnnotation change) {
             OWLAnnotation annotation = change.getAnnotation();
-            if (ints.addOntologyAnnotation(annotation)) {
+            if (getInternals().addOntologyAnnotation(annotation)) {
                 addAnnotation(annotation);
                 return SUCCESSFULLY;
             }
@@ -395,7 +488,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         @Override
         public ChangeApplied visit(@Nonnull RemoveOntologyAnnotation change) {
             OWLAnnotation annotation = change.getAnnotation();
-            if (ints.removeOntologyAnnotation(annotation)) {
+            if (getInternals().removeOntologyAnnotation(annotation)) {
                 removeAnnotation(annotation);
                 return SUCCESSFULLY;
             }
@@ -405,7 +498,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
         @Override
         public ChangeApplied visit(@Nonnull SetOntologyID change) {
             OWLOntologyID id = change.getNewOntologyID();
-            if (!ontologyID.equals(id)) {
+            if (!getOntologyID().equals(id)) {
                 changeOntologyID(id);
                 return SUCCESSFULLY;
             }

@@ -18,7 +18,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.rdf.turtle.parser.OWLRDFConsumerAdapter;
 
-import ru.avicomp.ontapi.parsers.AxiomParser;
+import ru.avicomp.ontapi.parsers.axiom2rdf.AxiomParser;
 
 /**
  * Graph wrapper.
@@ -43,7 +43,7 @@ public class OntGraph implements Graph {
     private final OntTripleHandler tripleHandler;
 
     public OntGraph(OntologyModelImpl owlOntology) {
-        this(owlOntology.getInnerGraph(), new OntTripleHandler(owlOntology, ONT_LOADER_CONFIGURATION));
+        this(owlOntology.getRDFChangeProcessor().getGraph(), new OntTripleHandler(owlOntology, ONT_LOADER_CONFIGURATION));
     }
 
     public OntGraph(Graph base, OntTripleHandler tripletHandler) {

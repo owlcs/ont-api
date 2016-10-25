@@ -6,7 +6,7 @@ import org.apache.jena.sparql.util.graph.GraphListenerBase;
 
 /**
  * Graph Event listener and factory.
- * inner graph({@link OntologyModelImpl#getInnerGraph()}) should have this listener assigned to {@link org.apache.jena.graph.GraphEventManager}.
+ * inner graph({@link OntologyModelImpl.RDFChangeProcessor#getGraph()}) should have this listener assigned to {@link org.apache.jena.graph.GraphEventManager}.
  * <p>
  * Created by @szuev on 04.10.2016.
  */
