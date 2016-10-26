@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
-import ru.avicomp.ontapi.parsers.axiom2rdf.TranslationHelper;
+import ru.avicomp.ontapi.translators.TranslationHelper;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;

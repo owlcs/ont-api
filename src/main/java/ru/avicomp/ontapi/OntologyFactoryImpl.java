@@ -14,7 +14,7 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
 import com.google.inject.Inject;
-import ru.avicomp.ontapi.parsers.rdf2axiom.ParseHelper;
+import ru.avicomp.ontapi.translators.rdf2axiom.ParseHelper;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
 /**

@@ -20,9 +20,9 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 
 import com.google.inject.assistedinject.Assisted;
-import ru.avicomp.ontapi.parsers.axiom2rdf.AxiomParserProvider;
-import ru.avicomp.ontapi.parsers.axiom2rdf.TranslationHelper;
-import ru.avicomp.ontapi.parsers.rdf2axiom.ParseHelper;
+import ru.avicomp.ontapi.translators.AxiomParserProvider;
+import ru.avicomp.ontapi.translators.TranslationHelper;
+import ru.avicomp.ontapi.translators.rdf2axiom.ParseHelper;
 import uk.ac.manchester.cs.owl.owlapi.Internals;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 

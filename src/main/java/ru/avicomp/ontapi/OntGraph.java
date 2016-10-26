@@ -18,7 +18,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.rdf.turtle.parser.OWLRDFConsumerAdapter;
 
-import ru.avicomp.ontapi.parsers.axiom2rdf.AxiomParser;
+import ru.avicomp.ontapi.translators.AxiomTranslator;
 
 /**
  * Graph wrapper.
@@ -28,7 +28,7 @@ import ru.avicomp.ontapi.parsers.axiom2rdf.AxiomParser;
  * The second one ({@link OntGraph#original}) is associated with owl-ontology {@link OntologyModelImpl} and triple-handler {@link OntTripleHandler} works with it.
  * Two-graphs architecture allows to avoid duplicating of anonymous nodes.
  * The adding of triples occurs with help of OntTripleHandler (base class {@link org.semanticweb.owlapi.rdf.rdfxml.parser.OWLRDFConsumer},
- * which produces axioms and related with them triplets in the original graph (through {@link AxiomParser}).
+ * which produces axioms and related with them triplets in the original graph (through {@link AxiomTranslator}).
  * The removing occurs using events recorded by {@link OntGraphListener} (base class {@link GraphListener}) during axiom parsing.
  * <p>
  * Created by @szuev on 02.10.2016.
