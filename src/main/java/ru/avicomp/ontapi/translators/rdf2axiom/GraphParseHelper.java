@@ -21,7 +21,7 @@ import uk.ac.manchester.cs.owl.owlapi.*;
  * see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_RDF_Graphs_to_the_Structural_Specification'>Mapping from RDF Graphs to the Structural Specification</a>
  * Created by szuev on 25.10.2016.
  */
-public class ParseHelper {
+public class GraphParseHelper {
 
     public static OWLOntologyID getOWLOntologyID(Graph graph) {
         List<Triple> ontologies = graph.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()).toList();
@@ -62,12 +62,12 @@ public class ParseHelper {
     }
 
     public static ExtendedIterator<OWLEntity> entities(Graph graph) {
-        return graph.find(Node.ANY, RDF.type.asNode(), Node.ANY).mapWith(ParseHelper::toEntity).filterDrop(Objects::isNull);
+        return graph.find(Node.ANY, RDF.type.asNode(), Node.ANY).mapWith(GraphParseHelper::toEntity).filterDrop(Objects::isNull);
     }
 
     public static ExtendedIterator<OWLProperty> properties(Graph graph) {
         return graph.find(Node.ANY, RDF.type.asNode(), Node.ANY).filterKeep(t -> t.getSubject().isURI()).
-                mapWith(ParseHelper::toProperty).filterDrop(Objects::isNull).mapWith(OWLProperty.class::cast);
+                mapWith(GraphParseHelper::toProperty).filterDrop(Objects::isNull).mapWith(OWLProperty.class::cast);
     }
 
     private static boolean isPropertyType(Node object) {

@@ -22,7 +22,7 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import com.google.inject.assistedinject.Assisted;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
 import ru.avicomp.ontapi.translators.TranslationHelper;
-import ru.avicomp.ontapi.translators.rdf2axiom.ParseHelper;
+import ru.avicomp.ontapi.translators.rdf2axiom.GraphParseHelper;
 import uk.ac.manchester.cs.owl.owlapi.Internals;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
@@ -195,6 +195,12 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
             return inner;
         }
 
+        /**
+         * {@link MultiUnion} graph adds triple to base graph even it is present inside some sub-graph.
+         * so we use {@link DisjointUnion} graph
+         *
+         * @return Graph.
+         */
         private Graph getUnionGraph() {
             Graph imports = getImportsGraph();
             Graph inner = getGraph();
@@ -243,8 +249,8 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
          * @param external Graph from.
          */
         void load(Graph external) {
-            ParseHelper.imports(getOntologyID(), external).forEachRemaining(this::addImport);
-            ParseHelper.declarationAxioms(external).forEachRemaining(axiom -> {
+            GraphParseHelper.imports(getOntologyID(), external).forEachRemaining(this::addImport);
+            GraphParseHelper.declarationAxioms(external).forEachRemaining(axiom -> {
                 getInternals().addAxiom(axiom);
                 RDFChangeProcessor.this.addAxiom(axiom);
             });

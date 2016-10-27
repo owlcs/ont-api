@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi;
+package ru.avicomp.ontapi.jena;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -14,7 +14,8 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.translators.rdf2axiom.ParseHelper;
+import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.translators.rdf2axiom.GraphParseHelper;
 import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 
 /**
@@ -46,15 +47,15 @@ public class GraphModelImpl extends ModelCom {
     }
 
     public OWLOntologyID getID() {
-        return ParseHelper.getOWLOntologyID(graph);
+        return GraphParseHelper.getOWLOntologyID(graph);
     }
 
     public ExtendedIterator<OWLEntity> entities() {
-        return ParseHelper.entities(graph);
+        return GraphParseHelper.entities(graph);
     }
 
     public ExtendedIterator<OWLEntity> allEntities() {
-        return ParseHelper.entities(getUnionGraph());
+        return GraphParseHelper.entities(getUnionGraph());
     }
 
     public ExtendedIterator<OWLDeclarationAxiom> declarationAxioms() {
@@ -78,4 +79,5 @@ public class GraphModelImpl extends ModelCom {
         //todo
         return Collections.emptySet();
     }
+
 }
