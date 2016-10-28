@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 
 import com.google.inject.assistedinject.Assisted;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
 import ru.avicomp.ontapi.translators.TranslationHelper;
 import ru.avicomp.ontapi.translators.rdf2axiom.GraphParseHelper;
@@ -202,13 +203,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
          * @return Graph.
          */
         private Graph getUnionGraph() {
-            Graph imports = getImportsGraph();
-            Graph inner = getGraph();
-            return imports.isEmpty() ? inner : new DisjointUnion(inner, imports);
-        }
-
-        private Graph getImportsGraph() {
-            MultiUnion res = new MultiUnion();
+            UnionGraph res = new UnionGraph(inner);
             getOntology().ontologies().forEach(i -> res.addGraph(i.getRDFChangeProcessor().getGraph()));
             return res;
         }

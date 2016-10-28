@@ -6,7 +6,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.SWRLRule;
 
-import ru.avicomp.ontapi.JenaUtils;
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.vocabulary.SWRL;
 
 /**
