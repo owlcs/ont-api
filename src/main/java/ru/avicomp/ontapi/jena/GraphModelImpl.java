@@ -15,7 +15,6 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -100,7 +99,31 @@ public class GraphModelImpl extends ModelCom {
     }
 
     public Stream<OntEntity> listEntities(EntityType type) {
-        return byTypes(type.getType()).filter(GraphModelImpl::isURI).map(Statement::getSubject).filter(new UniqueFilter<>()).map(r -> newInstance(type, r));
+        return byTypes(type.getType()).filter(GraphModelImpl::isURI).map(Statement::getSubject).distinct().map(r -> newOntEntity(type, r));
+    }
+
+    public Stream<ClassEntity> listClasses() {
+        return listEntities(EntityType.CLASS).map(ClassEntity.class::cast);
+    }
+
+    public Stream<AnnotationPropertyEntity> listAnnotationProperties() {
+        return listEntities(EntityType.ANNOTATION_PROPERTY).map(AnnotationPropertyEntity.class::cast);
+    }
+
+    public Stream<DataPropertyEntity> listDataProperties() {
+        return listEntities(EntityType.DATA_PROPERTY).map(DataPropertyEntity.class::cast);
+    }
+
+    public Stream<ObjectPropertyEntity> listObjectProperties() {
+        return listEntities(EntityType.OBJECT_PROPERTY).map(ObjectPropertyEntity.class::cast);
+    }
+
+    public Stream<DatatypeEntity> listDatatypes() {
+        return listEntities(EntityType.DATATYPE).map(DatatypeEntity.class::cast);
+    }
+
+    public Stream<IndividualEntity> listIndividuals() {
+        return listEntities(EntityType.INDIVIDUAL).map(IndividualEntity.class::cast);
     }
 
     protected ExtendedIterator<Statement> findByType(Resource type) {
@@ -161,7 +184,7 @@ public class GraphModelImpl extends ModelCom {
         }
     }
 
-    private OntEntity newInstance(EntityType type, Resource s) {
+    private OntEntity newOntEntity(EntityType type, Resource s) {
         try {
             return type.getView().getDeclaredConstructor(GraphModelImpl.class, Resource.class).newInstance(this, s);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -177,16 +200,20 @@ public class GraphModelImpl extends ModelCom {
             this.type = OntException.notNull(type, "Null type");
         }
 
-        public Resource getType() {
-            return type.getType();
+        protected Set<Resource> getTypes() {
+            return listStatements(this, RDF.type, (RDFNode) null).mapWith(Statement::getObject).filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast).toSet();
+        }
+
+        public EntityType getEntityType() {
+            return type;
         }
 
         public boolean isLocal() {
-            return isInBaseModel(this, RDF.type, getType());
+            return isInBaseModel(this, RDF.type, getEntityType().getType());
         }
 
         public boolean isClass() {
-            return EntityType.CLASS.equals(type);
+            return getTypes().contains(EntityType.CLASS.getType());
         }
 
         public boolean isProperty() {
@@ -210,7 +237,7 @@ public class GraphModelImpl extends ModelCom {
         }
 
         public boolean isIndividual() {
-            return EntityType.INDIVIDUAL.equals(type);
+            return getTypes().contains(EntityType.INDIVIDUAL.getType());
         }
     }
 
@@ -222,10 +249,6 @@ public class GraphModelImpl extends ModelCom {
         @Override
         public boolean isProperty() {
             return true;
-        }
-
-        private Set<Resource> getTypes() {
-            return listStatements(this, RDF.type, (RDFNode) null).mapWith(Statement::getObject).filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast).toSet();
         }
 
         @Override

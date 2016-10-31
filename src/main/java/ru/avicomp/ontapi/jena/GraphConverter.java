@@ -3,6 +3,8 @@ package ru.avicomp.ontapi.jena;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +19,7 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.log4j.Logger;
 
 import ru.avicomp.ontapi.OntException;
 
@@ -27,10 +30,11 @@ import ru.avicomp.ontapi.OntException;
  * Created by szuev on 28.10.2016.
  */
 public abstract class GraphConverter {
+    private static final Logger LOGGER = Logger.getLogger(GraphConverter.class);
     public static final FactoryStore CONVERTERS = new FactoryStore().add(RDFStoOWL::new).add(OWL1toOWL2DL::new);
 
     public static Graph convert(Graph graph) {
-        CONVERTERS.stream(graph).forEach(TransformAction::perform);
+        CONVERTERS.stream(graph).forEach(TransformAction::process);
         return graph;
     }
 
@@ -57,15 +61,37 @@ public abstract class GraphConverter {
         }
     }
 
+    /**
+     * The base class for any graph-convert-transformation
+     */
     public static abstract class TransformAction {
-        public static final Node RDF_TYPE = RDF.type.asNode();
+        static final Node RDF_TYPE = RDF.type.asNode();
         protected Graph graph;
 
         protected TransformAction(Graph graph) {
             this.graph = graph;
         }
 
+        /**
+         * performs the graph transformation.
+         */
         public abstract void perform();
+
+        /**
+         * decides is the transformation needed or not.
+         *
+         * @return true to process, false to skip
+         */
+        public boolean test() {
+            return true;
+        }
+
+        public void process() {
+            if (test()) {
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("Process " + getClass().getSimpleName());
+                perform();
+            }
+        }
 
         public Graph getGraph() {
             return graph;
@@ -81,6 +107,10 @@ public abstract class GraphConverter {
 
         protected void deleteType(Node subject, Resource type) {
             getGraph().delete(Triple.create(subject, RDF_TYPE, type.asNode()));
+        }
+
+        protected boolean containsType(Resource type) {
+            return getBaseGraph().contains(Node.ANY, RDF_TYPE, type.asNode());
         }
     }
 
@@ -105,6 +135,11 @@ public abstract class GraphConverter {
                     forEach(type -> findByType(type).forEachRemaining(node -> addType(node, OWL.ObjectProperty)));
         }
 
+        @Override
+        public boolean test() {
+            return containsType(RDFS.Class) || containsType(RDF.Property) || containsType(OWL.OntologyProperty);
+        }
+
         private ExtendedIterator<Node> findByType(Resource type) {
             return getBaseGraph().find(Node.ANY, RDF_TYPE, type.asNode()).mapWith(Triple::getSubject);
         }
@@ -116,34 +151,35 @@ public abstract class GraphConverter {
      * see <a href='https://www.w3.org/TR/rdf-schema'>RDFS specification</a>
      */
     private static class RDFStoOWL extends TransformAction {
-        private static final Set<Node> DATATYPES = JenaUtils.BUILT_IN_DATATYPES.stream().map(t -> NodeFactory.createURI(t.getURI())).collect(Collectors.toSet());
-        private static final Set<Node> NOT_INDIVIDUAL_TYPES = Stream.of(RDFS.Class, OWL.Class, RDFS.Datatype, OWL.DataRange, RDF.Property, OWL.DatatypeProperty,
-                OWL.AnnotationProperty, OWL.ObjectProperty, OWL.Ontology, OWL2.NamedIndividual).
+        private static final Set<Node> DATATYPES = JenaUtils.BUILT_IN_DATATYPES.stream().
+                map(t -> NodeFactory.createURI(t.getURI())).collect(Collectors.toSet());
+        private static final Set<Node> BUILT_IN = Stream.concat(JenaUtils.BUILT_IN_PROPERTIES.stream(), JenaUtils.BUILT_IN_RESOURCES.stream()).map(Function.identity()).
+                map(t -> NodeFactory.createURI(t.getURI())).collect(Collectors.toSet());
+        private static final Set<Node> NOT_INDIVIDUAL_TYPES = Stream.of(RDFS.Class, OWL.Class,
+                RDFS.Datatype, OWL.DataRange,
+                RDF.Property, OWL.DatatypeProperty, OWL.AnnotationProperty, OWL.ObjectProperty,
+                OWL.Ontology, OWL2.NamedIndividual).
                 map(Resource::asNode).collect(Collectors.toSet());
-        private static final Set<Node> SYSTEM_CLASSES = Stream.of(OWL.Nothing, OWL.Thing,
-                RDFS.Class, OWL.Class, RDF.List, RDFS.Resource, RDF.Property, OWL.DeprecatedClass, OWL.Ontology).
-                map(Resource::asNode).collect(Collectors.toSet());
-
-        private ClassConverter classConverter;
-        private PropertyConverter propertyConverter;
-        private IndividualConverter individualConverter;
 
         private RDFStoOWL(Graph graph) {
             super(graph);
-            classConverter = new ClassConverter(graph);
-            propertyConverter = new PropertyConverter(graph);
-            individualConverter = new IndividualConverter(graph);
         }
 
         @Override
         public void perform() {
-            propertyConverter.perform();
-            classConverter.perform(); // todo: class-converter is dependent on property-converter
-            individualConverter.perform();
+            // the order is important
+            fixProperties();
+            fixClasses();
+            fixIndividuals();
+        }
+
+        @Override
+        public boolean test() {
+            return !containsType(OWL.Class) && !containsType(OWL.AnnotationProperty) && !containsType(OWL.DatatypeProperty) && !containsType(OWL.AnnotationProperty) && !containsType(OWL2.NamedIndividual);
         }
 
         private Set<Resource> getPropertyTypes(Node subject) {
-            Set<Resource> res = new HashSet<>();
+            Set<Resource> res = new TreeSet<>(JenaUtils.RDF_NODE_COMPARATOR);
             Set<Node> ranges = getGraph().find(subject, RDFS.range.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
             Set<Node> domains = getGraph().find(subject, RDFS.domain.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
             Set<Node> superProperties = getGraph().find(subject, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
@@ -160,10 +196,12 @@ public abstract class GraphConverter {
             return res;
         }
 
-        private boolean isIndividual(Node node) {
-            Set<Node> types = getGraph().find(node, RDF.type.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
-            for (Node t : types) {
-                if (NOT_INDIVIDUAL_TYPES.contains(t)) return false;
+        private boolean isIndividual(Node uri) {
+            // everything that are not Class(owl:Class), Property (owl:AnnotationProperty, owl:DataProperty and owl:ObjectProperty), datatype(rdfs:Datatype) and not owl:Ontology
+            Set<Node> types = getGraph().find(uri, RDF_TYPE, Node.ANY).mapWith(Triple::getObject).toSet();
+            for (Node type : types) {
+                //if (getGraph().contains(type, RDF_TYPE, OWL.Class.asNode())) return true;
+                if (NOT_INDIVIDUAL_TYPES.contains(type)) return false;
             }
             return true;
         }
@@ -177,74 +215,60 @@ public abstract class GraphConverter {
             return graph.contains(subject, RDF_TYPE, RDFS.Datatype.asNode());
         }
 
-        private class ClassConverter extends TransformAction {
-            ClassConverter(Graph graph) {
-                super(graph);
-            }
-
-            @Override
-            public void perform() {
-                Set<Node> declarations = getBaseGraph().find(Node.ANY, RDF_TYPE, RDFS.Class.asNode()).andThen(findByPredicate(RDFS.subClassOf)).mapWith(Triple::getSubject).toSet();
-                Set<Node> classes = new HashSet<>(declarations);
-                // consider objects from @Class,rdfs:subClassOf,@Any and @Class,rdf:type,@Any triplets as owl:Classes also:
-                for (Node subject : declarations) {
-                    Stream.of(RDF_TYPE, RDFS.subClassOf.asNode()).forEach(predicate -> classes.addAll(getBaseGraph().find(subject, predicate, Node.ANY).mapWith(Triple::getObject).toSet()));
-                }
-                // left side of ObjectProperties is individual, anonymous individuals should be assigned to class
-                Set<Node> anonIndividuals = new HashSet<>();
-                getGraph().find(Node.ANY, RDF_TYPE, OWL.ObjectProperty.asNode()).mapWith(Triple::getSubject).
-                        forEachRemaining(objectProperty -> anonIndividuals.addAll(getBaseGraph().
-                                find(Node.ANY, objectProperty, Node.ANY).mapWith(Triple::getObject).filterKeep(Node::isBlank).toSet()));
-                for (Node i : anonIndividuals) {
-                    classes.addAll(getBaseGraph().find(i, RDF_TYPE, Node.ANY).mapWith(Triple::getObject).toSet());
-                }
-                // not datatype and not system class:
-                classes.stream().filter(node -> !isDatatype(node)).filter(node -> !SYSTEM_CLASSES.contains(node)).forEach(node -> addType(node, OWL.Class));
-                // could such OWL-structures be here (inside RDFS Ontology)?
-                findClassExpressions().mapWith(Triple::getObject).filterDrop(RDFStoOWL.this::isDatatype).forEachRemaining(n -> addType(n, OWL.Class));
-            }
-
-            private ExtendedIterator<Triple> findByPredicate(Property predicate) {
-                return getBaseGraph().find(Node.ANY, predicate.asNode(), Node.ANY);
-            }
-
-            private ExtendedIterator<Triple> findClassExpressions() {
-                return findByPredicate(OWL.intersectionOf).andThen(findByPredicate(OWL.oneOf)).andThen(findByPredicate(OWL.unionOf)).andThen(findByPredicate(OWL.complementOf));
-            }
-
+        private ExtendedIterator<Triple> findByPredicate(Property predicate) {
+            return getBaseGraph().find(Node.ANY, predicate.asNode(), Node.ANY);
         }
 
-        private class PropertyConverter extends TransformAction {
-            PropertyConverter(Graph graph) {
-                super(graph);
-            }
+        private ExtendedIterator<Triple> findClassExpressions() {
+            return findByPredicate(OWL.intersectionOf).andThen(findByPredicate(OWL.oneOf)).andThen(findByPredicate(OWL.unionOf)).andThen(findByPredicate(OWL.complementOf));
+        }
 
-            @Override
-            public void perform() {
-                Set<Triple> properties = getBaseGraph().find(Node.ANY, RDF_TYPE, RDF.Property.asNode()).toSet();
-                for (Triple triple : properties) {
-                    Node prop = triple.getSubject();
-                    Set<Resource> types = getPropertyTypes(prop);
-                    if (types.isEmpty()) throw new OntException("Can't determine property type for " + triple);
-                    if (types.contains(OWL.DatatypeProperty) && types.contains(OWL.ObjectProperty)) {
-                        throw new OntException("Property " + triple + " can't be data and object at the same time.");
-                    }
-                    types.stream().sorted(JenaUtils.RDF_NODE_COMPARATOR).forEach(type -> addType(prop, type));
+        private void fixClasses() {
+            Set<Node> declarations = getBaseGraph().find(Node.ANY, RDF_TYPE, RDFS.Class.asNode()).andThen(findByPredicate(RDFS.subClassOf)).mapWith(Triple::getSubject).toSet();
+            Set<Node> classes = new HashSet<>(declarations);
+            // consider objects from @Class,rdfs:subClassOf,@Any and @Class,rdf:type,@Any triplets as owl:Class also:
+            for (Node subject : declarations) {
+                Stream.of(RDF_TYPE, RDFS.subClassOf.asNode()).forEach(predicate -> classes.addAll(getBaseGraph().find(subject, predicate, Node.ANY).mapWith(Triple::getObject).toSet()));
+            }
+            // left side of ObjectProperties is individual; anonymous individuals should be assigned to class
+            Set<Node> anonIndividuals = new HashSet<>();
+            getGraph().find(Node.ANY, RDF_TYPE, OWL.ObjectProperty.asNode()).mapWith(Triple::getSubject).
+                    forEachRemaining(objectProperty -> anonIndividuals.addAll(getBaseGraph().
+                            find(Node.ANY, objectProperty, Node.ANY).mapWith(Triple::getObject).filterKeep(Node::isBlank).toSet()));
+            for (Node i : anonIndividuals) {
+                classes.addAll(getBaseGraph().find(i, RDF_TYPE, Node.ANY).mapWith(Triple::getObject).toSet());
+            }
+            classes.removeAll(BUILT_IN);
+            // not datatype and not system class:
+            classes.stream().filter(node -> !isDatatype(node)).forEach(node -> addType(node, OWL.Class));
+            // could such OWL-structures be here (inside RDFS Ontology)?
+            findClassExpressions().mapWith(Triple::getObject).filterDrop(RDFStoOWL.this::isDatatype).forEachRemaining(n -> addType(n, OWL.Class));
+        }
+
+        private void fixProperties() {
+            Set<Node> properties = getBaseGraph().find(Node.ANY, RDF_TYPE, RDF.Property.asNode()).mapWith(Triple::getSubject).toSet();
+            // any standalone none-built-in predicates should be treated as rdf:Property also
+            Set<Node> standalone = getBaseGraph().find(Node.ANY, Node.ANY, Node.ANY).
+                    mapWith(Triple::getPredicate).filterDrop(node -> getGraph().contains(node, Node.ANY, Node.ANY)).toSet();
+            properties.addAll(standalone);
+            // all rdfs:subPropertyOf
+            Set<Node> superProperties = getBaseGraph().find(Node.ANY, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getSubject).toSet();
+            properties.addAll(superProperties);
+            properties.removeAll(BUILT_IN);
+            for (Node prop : properties) {
+                Set<Resource> types = getPropertyTypes(prop);
+                if (types.isEmpty()) throw new OntException("Can't determine property type for " + prop);
+                if (types.contains(OWL.DatatypeProperty) && types.contains(OWL.ObjectProperty)) {
+                    throw new OntException("Property " + prop + " can't be data and object at the same time.");
                 }
+                types.forEach(type -> addType(prop, type));
             }
         }
 
-        private class IndividualConverter extends TransformAction {
-            IndividualConverter(Graph graph) {
-                super(graph);
-            }
-
-            @Override
-            public void perform() {
-                Set<Node> individuals = getBaseGraph().find(Node.ANY, RDF_TYPE, Node.ANY).mapWith(Triple::getSubject).
-                        filterKeep(Node::isURI).filterKeep(RDFStoOWL.this::isIndividual).toSet();
-                individuals.forEach(node -> addType(node, OWL2.NamedIndividual));
-            }
+        private void fixIndividuals() {
+            Set<Node> individuals = getBaseGraph().find(Node.ANY, RDF_TYPE, Node.ANY).mapWith(Triple::getSubject).
+                    filterKeep(Node::isURI).filterKeep(RDFStoOWL.this::isIndividual).toSet();
+            individuals.forEach(node -> addType(node, OWL2.NamedIndividual));
         }
     }
 

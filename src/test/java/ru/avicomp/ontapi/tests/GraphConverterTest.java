@@ -2,7 +2,7 @@ package ru.avicomp.ontapi.tests;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -12,17 +12,21 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.UniqueFilter;
-import org.apache.jena.vocabulary.*;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.GraphModelImpl;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -43,18 +47,24 @@ public class GraphConverterTest {
         });
 
         OWLOntologyManager manager = OntManagerFactory.createOWLManager();
+        OWLOntologyManager testManager = OntManagerFactory.createOWLManager();
 
-        Model sp = load("sp.ttl");
-        GraphModelImpl jenaSP = new GraphModelImpl(GraphConverter.convert(sp.getGraph()));
+        GraphModelImpl jenaSP = new GraphModelImpl(GraphConverter.convert(load("sp.ttl").getGraph()));
         OWLOntology owlSP = load(manager, "sp.ttl");
         LOGGER.info("SP(Jena): ");
         ReadWriteUtils.print(jenaSP);
         LOGGER.info("SP(OWL): ");
         ReadWriteUtils.print(owlSP);
         testSignature(owlSP, jenaSP);
+        OWLOntology testSP = testManager.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(jenaSP, OntFormat.TTL_RDF));
+        LOGGER.info("SP signature:");
+        testSP.signature().forEach(entity -> LOGGER.debug(String.format("%s(%s)", entity, entity.getEntityType())));
 
-        /*Model spin = load("spin.ttl");
-        UnionGraph spinGraph = new UnionGraph(spin.getGraph());
+        // WARNING:
+        // I believe that our GraphConverter makes transformation more correctly than OWL-API.
+        // Example: spin:violationDetail is ObjectProperty and spin:labelTemplate is DataProperty due to rdfs:range. But OWL-API treats them as AnnotationProperty only.
+        // spin:Modules is treated by OWL-API as NamedIndividual. Why? So i decide do not fully synchronize our API and OWL-API.
+        UnionGraph spinGraph = new UnionGraph(load("spin.ttl").getGraph());
         spinGraph.addGraph(jenaSP.getBaseGraph());
         GraphModelImpl jenaSPIN = new GraphModelImpl(GraphConverter.convert(spinGraph));
         OWLOntology owlSPIN = load(manager, "spin.ttl");
@@ -62,16 +72,20 @@ public class GraphConverterTest {
         ReadWriteUtils.print(jenaSPIN);
         LOGGER.info("SPIN(OWL): ");
         ReadWriteUtils.print(owlSPIN);
+
+        //testSignature(owlSPIN, jenaSPIN);
+        OWLOntology testSPIN = testManager.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(jenaSPIN, OntFormat.TTL_RDF));
+        LOGGER.info("SPIN signature:");
+        testSPIN.signature().forEach(entity -> LOGGER.debug(String.format("%s(%s)", entity, entity.getEntityType())));
+        LOGGER.info("Origin SPIN signature:");
         owlSPIN.signature().forEach(e -> LOGGER.debug(String.format("%s(%s)", e, e.getEntityType())));
-        testSignature(owlSPIN, jenaSPIN);*/
 
-        /*Model spl = load("spl.spin.ttl");
-        UnionGraph splGraph = new UnionGraph(spl.getGraph());
-        splGraph.addGraph(sp.getGraph());
-        GraphConverter.convert(splGraph);
-        LOGGER.info("SPL: ");
-        ReadWriteUtils.print(spl);*/
-
+        UnionGraph splGraph = new UnionGraph(load("spl.spin.ttl").getGraph());
+        splGraph.addGraph(jenaSPIN.getBaseGraph());
+        GraphModelImpl jenaSPL = new GraphModelImpl(GraphConverter.convert(splGraph));
+        LOGGER.info("SPL-SPIN(Jena): ");
+        ReadWriteUtils.print(jenaSPL);
+        jenaSPL.listEntities().forEach(e -> LOGGER.debug(String.format("%s(%s)", e, e.getEntityType())));
     }
 
     private static String getOntURI(Graph graph) {
@@ -80,51 +94,53 @@ public class GraphConverterTest {
     }
 
     private static void testSignature(OWLOntology owl, GraphModelImpl jena) {
-        Stream<OWLClass> owlClasses =
-                //owl.classesInSignature();
-                Stream.concat(owl.classesInSignature(), owl.imports().map(HasClassesInSignature::classesInSignature).flatMap(Function.identity()));
-        List<String> expectedClasses = toList(owlClasses, RDFS.Resource, RDF.List, RDF.Property, OWL.Ontology, RDFS.Class);
-        List<String> actualClasses = toList(jena.listEntities().filter(GraphModelImpl.OntEntity::isClass));
+        List<String> expectedClasses = owlToList(owl.classesInSignature(Imports.INCLUDED));
+        List<String> actualClasses = jenaToList(jena.listClasses());
         Assert.assertThat("Classes", actualClasses, IsEqual.equalTo(expectedClasses));
 
-        List<String> expectedAnnotationProperties = toList(owl.annotationPropertiesInSignature(), RDFS.comment, RDFS.label, OWL2.deprecated, OWL.versionInfo);
-        List<String> actualAnnotationProperties = toList(jena.listEntities(GraphModelImpl.EntityType.ANNOTATION_PROPERTY));
+        List<String> expectedAnnotationProperties = owlToList(owl.annotationPropertiesInSignature(Imports.INCLUDED));//, RDFS.comment, RDFS.label, OWL2.deprecated, OWL.versionInfo);
+        List<String> actualAnnotationProperties = jenaToList(jena.listAnnotationProperties());
+        List<String> expectedDataProperties = owlToList(owl.dataPropertiesInSignature(Imports.INCLUDED));
+        List<String> actualDataProperties = jenaToList(jena.listDataProperties());
+        List<String> expectedObjectProperties = owlToList(owl.objectPropertiesInSignature(Imports.INCLUDED));
+        List<String> actualObjectProperties = jenaToList(jena.listObjectProperties());
+        LOGGER.debug("Actual AnnotationProperties: " + actualAnnotationProperties);
+        LOGGER.debug("Actual ObjectProperties: " + actualObjectProperties);
+        LOGGER.debug("Actual DataProperties: " + actualDataProperties);
+
         Assert.assertThat("AnnotationProperties", actualAnnotationProperties, IsEqual.equalTo(expectedAnnotationProperties));
-
-        List<String> expectedDataProperties = toList(owl.dataPropertiesInSignature());
-        List<String> actualDataProperties = toList(jena.listEntities(GraphModelImpl.EntityType.DATA_PROPERTY));
         Assert.assertThat("DataProperties", actualDataProperties, IsEqual.equalTo(expectedDataProperties));
-
-        List<String> expectedObjectProperties = toList(owl.objectPropertiesInSignature());
-        List<String> actualObjectProperties = toList(jena.listEntities(GraphModelImpl.EntityType.OBJECT_PROPERTY));
         Assert.assertThat("ObjectProperties", actualObjectProperties, IsEqual.equalTo(expectedObjectProperties));
 
-        List<String> expectedDatatypes = toList(owl.datatypesInSignature(), XSD.xboolean, XSD.integer, XSD.xlong, XSD.xstring);
-        List<String> actualDatatypes = toList(jena.listEntities(GraphModelImpl.EntityType.DATATYPE));
+        List<String> expectedDatatypes = owlToList(owl.datatypesInSignature(Imports.INCLUDED));
+        List<String> actualDatatypes = jenaToList(jena.listDatatypes());
         Assert.assertThat("Datatypes", actualDatatypes, IsEqual.equalTo(expectedDatatypes));
 
-        List<String> expectedIndividuals = toList(owl.individualsInSignature());
-        List<String> actualIndividuals = toList(jena.listEntities(GraphModelImpl.EntityType.INDIVIDUAL));
+        List<String> expectedIndividuals = owlToList(owl.individualsInSignature(Imports.INCLUDED));
+        List<String> actualIndividuals = jenaToList(jena.listIndividuals());
         Assert.assertThat("Individuals", actualIndividuals, IsEqual.equalTo(expectedIndividuals));
     }
 
-    private static Stream<String> toStream(Stream<? extends OWLEntity> entities, Resource... system) {
-        List<String> excluded = Stream.of(system).map(Resource::getURI).collect(Collectors.toList());
-        return entities.filter(new UniqueFilter<>()).map(HasIRI::getIRI).map(IRI::getIRIString).filter(u -> !excluded.contains(u)).sorted();
+    private static final Set<IRI> ADDITIONAL_BUILT_IN_ENTITIES = Stream.of(RDF.List, RDFS.Resource, RDF.Property, RDFS.Class, OWL.Ontology).map(r -> IRI.create(r.getURI())).collect(Collectors.toSet());
+
+    private static boolean isNotBuiltIn(OWLEntity entity) {
+        return !entity.isBuiltIn() && !ADDITIONAL_BUILT_IN_ENTITIES.contains(entity.getIRI());
     }
 
-    private static List<String> toList(Stream<? extends OWLEntity> entities, Resource... system) {
-        return toStream(entities, system).collect(Collectors.toList());
+    private static Stream<String> owlToStream(Stream<? extends OWLEntity> entities) {
+        return entities.filter(GraphConverterTest::isNotBuiltIn).distinct().map(HasIRI::getIRI).map(IRI::getIRIString).sorted();
     }
 
-    private static Stream<String> toStream(Stream<? extends GraphModelImpl.OntEntity> entities) {
-        return entities
-                //.filter(GraphModelImpl.OntEntity::isLocal)
-                .map(Resource::getURI).sorted();
+    private static List<String> owlToList(Stream<? extends OWLEntity> entities) {
+        return owlToStream(entities).collect(Collectors.toList());
     }
 
-    private static List<String> toList(Stream<? extends GraphModelImpl.OntEntity> entities) {
-        return toStream(entities).sorted().collect(Collectors.toList());
+    private static Stream<String> jenaToStream(Stream<? extends GraphModelImpl.OntEntity> entities) {
+        return entities.map(Resource::getURI).sorted();
+    }
+
+    private static List<String> jenaToList(Stream<? extends GraphModelImpl.OntEntity> entities) {
+        return jenaToStream(entities).sorted().collect(Collectors.toList());
     }
 
     private static Model load(String file) throws Exception {
