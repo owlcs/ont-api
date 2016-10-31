@@ -9,7 +9,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 /**
  * Union Graph.
  * The difference between {@link MultiUnion} and this graph is it doesn't allow to modify any graphs with except of base.
- * Underling sub graphs are used only for searching, the adding and removing are performed only over the base graph (left graph).
+ * Underling sub graphs are used only for searching, the adding and removing are performed only over the base (left) graph.
  * <p>
  * Created by szuev on 28.10.2016.
  */

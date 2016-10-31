@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.TestUtils;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImplNotAnnotated;
@@ -59,8 +60,8 @@ public class ChangeIDGraphTest extends GraphTestBase {
         // check jena annotations:
         for (Property property : annotations.keySet()) {
             List<RDFNode> actualList = jena.listStatements(ont, property, (RDFNode) null).mapWith(Statement::getObject).
-                    toList().stream().sorted(TestUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
-            List<RDFNode> expectedList = annotations.get(property).stream().sorted(TestUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+                    toList().stream().sorted(JenaUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+            List<RDFNode> expectedList = annotations.get(property).stream().sorted(JenaUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
             Assert.assertEquals("Incorrect list of annotations", expectedList, actualList);
         }
     }

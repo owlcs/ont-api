@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,6 +13,7 @@ import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.sparql.util.NodeUtils;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
@@ -22,6 +24,8 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 public class JenaUtils {
 
     public static final Set<RDFDatatype> BUILT_IN_DATATYPES = createBuiltInTypes();
+
+    public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (o1, o2) -> NodeUtils.compareRDFTerms(o1.asNode(), o2.asNode());
 
     public static Resource createTypedList(Model model, Resource type, List<? extends RDFNode> members) {
         if (members.isEmpty()) return RDF.nil.inModel(model);

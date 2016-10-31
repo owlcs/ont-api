@@ -85,7 +85,7 @@ public class ReadWriteUtils {
         if (url == null)
             throw new IllegalArgumentException("Can't find project " + projectDirName + ".");
         File dir = new File(url.toURI());
-        LOGGER.debug("Directory:" + dir);
+        LOGGER.debug("Directory: " + dir);
         File res = new File(dir, fileName);
         if (!res.exists()) throw new FileNotFoundException(fileName);
         return res;

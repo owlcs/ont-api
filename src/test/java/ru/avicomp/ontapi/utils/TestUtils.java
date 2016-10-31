@@ -10,7 +10,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.sparql.util.NodeUtils;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
@@ -34,7 +33,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
 public class TestUtils {
     private static final Logger LOGGER = Logger.getLogger(TestUtils.class);
 
-    public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (o1, o2) -> NodeUtils.compareRDFTerms(o1.asNode(), o2.asNode());
     private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(NodeID.getNodeID());
 
     public static OntologyModel load(OntologyManager manager, IRI fileIRI) {
