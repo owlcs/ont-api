@@ -27,6 +27,7 @@ import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.GraphModelImpl;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -85,7 +86,7 @@ public class GraphConverterTest {
         GraphModelImpl jenaSPL = new GraphModelImpl(GraphConverter.convert(splGraph));
         LOGGER.info("SPL-SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPL);
-        jenaSPL.listEntities().forEach(e -> LOGGER.debug(String.format("%s(%s)", e, e.getEntityType())));
+        jenaSPL.listEntities().forEach(LOGGER::debug);
     }
 
     private static String getOntURI(Graph graph) {
@@ -135,11 +136,11 @@ public class GraphConverterTest {
         return owlToStream(entities).collect(Collectors.toList());
     }
 
-    private static Stream<String> jenaToStream(Stream<? extends GraphModelImpl.OntEntity> entities) {
+    private static Stream<String> jenaToStream(Stream<? extends OntEntity> entities) {
         return entities.map(Resource::getURI).sorted();
     }
 
-    private static List<String> jenaToList(Stream<? extends GraphModelImpl.OntEntity> entities) {
+    private static List<String> jenaToList(Stream<? extends OntEntity> entities) {
         return jenaToStream(entities).sorted().collect(Collectors.toList());
     }
 
