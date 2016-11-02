@@ -11,13 +11,13 @@ import org.apache.jena.rdf.model.Resource;
  */
 public interface OntAPEntity extends OntPropertyEntity {
     @Override
-    default boolean isAnnotationProperty() {
-        return true;
+    Stream<Resource> domain();
+
+    @Override
+    Stream<Resource> range();
+
+    @Override
+    default Type getOntType() {
+        return Type.ANNOTATION_PROPERTY;
     }
-
-    @Override
-    Stream<Resource> getDomain();
-
-    @Override
-    Stream<Resource> getRange();
 }

@@ -8,13 +8,13 @@ import java.util.stream.Stream;
  */
 public interface OntOPEntity extends OntPropertyEntity {
     @Override
-    default boolean isObjectProperty() {
-        return true;
+    Stream<OntCE> domain();
+
+    @Override
+    Stream<OntCE> range();
+
+    @Override
+    default Type getOntType() {
+        return Type.OBJECT_PROPERTY;
     }
-
-    @Override
-    Stream<OntCE> getDomain();
-
-    @Override
-    Stream<OntCE> getRange();
 }

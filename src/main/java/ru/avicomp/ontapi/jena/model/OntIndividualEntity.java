@@ -5,9 +5,9 @@ package ru.avicomp.ontapi.jena.model;
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntIndividualEntity extends OntObjectEntity {
+public interface OntIndividualEntity extends OntObjEntity, OntIndividual {
     @Override
-    default boolean isIndividual() {
-        return true;
+    default Type getOntType() {
+        return Type.INDIVIDUAL;
     }
 }

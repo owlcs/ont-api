@@ -5,9 +5,9 @@ package ru.avicomp.ontapi.jena.model;
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntClassEntity extends OntObjectEntity, OntCE {
+public interface OntClassEntity extends OntObjEntity, OntCE {
     @Override
-    default boolean isClass() {
-        return true;
+    default OntEntity.Type getOntType() {
+        return OntEntity.Type.CLASS;
     }
 }

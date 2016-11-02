@@ -7,7 +7,7 @@ package ru.avicomp.ontapi.jena.model;
  */
 public interface OntDatatypeEntity extends OntEntity, OntDR {
     @Override
-    default boolean isDatatype() {
-        return true;
+    default OntEntity.Type getOntType() {
+        return OntEntity.Type.DATATYPE;
     }
 }

@@ -86,7 +86,7 @@ public class GraphConverterTest {
         GraphModelImpl jenaSPL = new GraphModelImpl(GraphConverter.convert(splGraph));
         LOGGER.info("SPL-SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPL);
-        jenaSPL.listEntities().forEach(LOGGER::debug);
+        jenaSPL.ontEntities().forEach(LOGGER::debug);
     }
 
     private static String getOntURI(Graph graph) {
@@ -118,7 +118,7 @@ public class GraphConverterTest {
         Assert.assertThat("Datatypes", actualDatatypes, IsEqual.equalTo(expectedDatatypes));
 
         List<String> expectedIndividuals = owlToList(owl.individualsInSignature(Imports.INCLUDED));
-        List<String> actualIndividuals = jenaToList(jena.listIndividuals());
+        List<String> actualIndividuals = jenaToList(jena.listNamedIndividuals());
         Assert.assertThat("Individuals", actualIndividuals, IsEqual.equalTo(expectedIndividuals));
     }
 

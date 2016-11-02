@@ -7,43 +7,27 @@ package ru.avicomp.ontapi.jena.model;
  */
 public interface OntEntity extends OntObject {
 
-    default boolean isClass() {
-        return false;
-    }
-
-    default boolean isProperty() {
-        return false;
-    }
-
-    default boolean isAnnotationProperty() {
-        return false;
-    }
-
-    default boolean isDataProperty() {
-        return false;
-    }
-
-    default boolean isObjectProperty() {
-        return false;
-    }
-
-    default boolean isDatatype() {
-        return false;
-    }
-
-    default boolean isIndividual() {
-        return false;
-    }
-
-    @Override
-    default boolean isEntity() {
-        return true;
-    }
-
     /**
-     * Determines is resource local defined.
+     * Determines is entity-resource local defined.
      *
      * @return true if this resource is local to the base graph.
      */
     boolean isLocal();
+
+    @Override
+    Type getOntType();
+
+    enum Type implements OntType {
+        CLASS,
+        ANNOTATION_PROPERTY,
+        DATA_PROPERTY,
+        OBJECT_PROPERTY,
+        DATATYPE,
+        INDIVIDUAL,;
+
+        @Override
+        public boolean isEntity() {
+            return true;
+        }
+    }
 }

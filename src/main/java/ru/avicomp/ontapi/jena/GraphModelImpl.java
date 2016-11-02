@@ -2,9 +2,7 @@ package ru.avicomp.ontapi.jena;
 
 import java.io.OutputStream;
 import java.io.Writer;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -93,36 +91,36 @@ public class GraphModelImpl extends ModelCom {
         return getBaseGraph().contains(s.asNode(), p.asNode(), o.asNode());
     }
 
-    public Stream<OntEntity> listEntities() {
-        return Arrays.stream(EntityType.values()).map(this::listEntities).flatMap(Function.identity());
+    public Stream<OntEntity> ontEntities() {
+        return Arrays.stream(OntEntity.Type.values()).map(this::ontEntities).flatMap(Function.identity());
     }
 
-    private Stream<EntityImpl> listEntities(EntityType type) {
-        return byTypes(type.getType()).filter(GraphModelImpl::isURI).map(Statement::getSubject).distinct().map(r -> newOntEntity(type, r));
+    public Stream<EntityImpl> ontEntities(OntEntity.Type type) {
+        return byTypes(extractType(type)).filter(GraphModelImpl::isURI).map(Statement::getSubject).map(r -> wrapEntity(type, r));
     }
 
     public Stream<OntClassEntity> listClasses() {
-        return listEntities(EntityType.CLASS).map(OntClassEntity.class::cast);
+        return ontEntities(OntEntity.Type.CLASS).map(OntClassEntity.class::cast);
     }
 
     public Stream<OntAPEntity> listAnnotationProperties() {
-        return listEntities(EntityType.ANNOTATION_PROPERTY).map(OntAPEntity.class::cast);
+        return ontEntities(OntEntity.Type.ANNOTATION_PROPERTY).map(OntAPEntity.class::cast);
     }
 
     public Stream<DPropertyImpl> listDataProperties() {
-        return listEntities(EntityType.DATA_PROPERTY).map(DPropertyImpl.class::cast);
+        return ontEntities(OntEntity.Type.DATA_PROPERTY).map(DPropertyImpl.class::cast);
     }
 
     public Stream<OPropertyImpl> listObjectProperties() {
-        return listEntities(EntityType.OBJECT_PROPERTY).map(OPropertyImpl.class::cast);
+        return ontEntities(OntEntity.Type.OBJECT_PROPERTY).map(OPropertyImpl.class::cast);
     }
 
     public Stream<OntDatatypeEntity> listDatatypes() {
-        return listEntities(EntityType.DATATYPE).map(OntDatatypeEntity.class::cast);
+        return ontEntities(OntEntity.Type.DATATYPE).map(OntDatatypeEntity.class::cast);
     }
 
-    public Stream<OntIndividualEntity> listIndividuals() {
-        return listEntities(EntityType.INDIVIDUAL).map(OntIndividualEntity.class::cast);
+    public Stream<OntIndividualEntity> listNamedIndividuals() {
+        return ontEntities(OntEntity.Type.INDIVIDUAL).map(OntIndividualEntity.class::cast);
     }
 
     protected ExtendedIterator<Statement> findByType(Resource type) {
@@ -149,36 +147,52 @@ public class GraphModelImpl extends ModelCom {
         return statement.getSubject().isURIResource();
     }
 
-    private enum EntityType {
-        CLASS(ClassImpl.class, OWL.Class),
-        ANNOTATION_PROPERTY(APropertyImpl.class, OWL.AnnotationProperty),
-        DATA_PROPERTY(DPropertyImpl.class, OWL.DatatypeProperty),
-        OBJECT_PROPERTY(OPropertyImpl.class, OWL.ObjectProperty),
-        DATATYPE(DatatypeImpl.class, RDFS.Datatype),
-        INDIVIDUAL(IndividualImpl.class, OWL2.NamedIndividual);
-
-        private Class<? extends EntityImpl> getView() {
-            return view;
+    private static Resource checkEntityResource(Resource res) {
+        if (OntException.notNull(res, "Null resource").isURIResource()) {
+            return res;
         }
+        throw new OntException("Not uri resource " + res);
+    }
 
-        private Class<? extends EntityImpl> view;
-        private Resource type;
+    private Stream<OntCE> classExpressions(Resource resource, Property predicate) {
+        return ModelHelper.asStream(listObjectsOfProperty(resource, predicate).mapWith(node -> ModelHelper.toCE(GraphModelImpl.this, node.asResource())));
+    }
 
-        EntityType(Class<? extends EntityImpl> view, Resource type) {
-            this.type = type;
-            this.view = view;
-        }
-
-        public Resource getType() {
-            return type;
+    private static Resource extractType(OntEntity.Type type) {
+        switch (type) {
+            case CLASS:
+                return OWL.Class;
+            case ANNOTATION_PROPERTY:
+                return OWL.AnnotationProperty;
+            case DATA_PROPERTY:
+                return OWL.DatatypeProperty;
+            case OBJECT_PROPERTY:
+                return OWL.ObjectProperty;
+            case DATATYPE:
+                return RDFS.Datatype;
+            case INDIVIDUAL:
+                return OWL2.NamedIndividual;
+            default:
+                throw new OntException("Unsupported entity type " + type);
         }
     }
 
-    private EntityImpl newOntEntity(EntityType type, Resource s) {
-        try {
-            return type.getView().getDeclaredConstructor(GraphModelImpl.class, Resource.class).newInstance(this, s);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new OntException(e);
+    private EntityImpl wrapEntity(OntEntity.Type type, Resource r) {
+        switch (type) {
+            case CLASS:
+                return new ClassImpl(r);
+            case ANNOTATION_PROPERTY:
+                return new APropertyImpl(r);
+            case DATA_PROPERTY:
+                return new DPropertyImpl(r);
+            case OBJECT_PROPERTY:
+                return new OPropertyImpl(r);
+            case DATATYPE:
+                return new DatatypeImpl(r);
+            case INDIVIDUAL:
+                return new NamedIndividualImpl(r);
+            default:
+                throw new OntException("Unsupported entity type " + type);
         }
     }
 
@@ -192,49 +206,32 @@ public class GraphModelImpl extends ModelCom {
         public GraphModelImpl getModel() {
             return GraphModelImpl.this;
         }
-    }
 
-    private static Resource checkEntityResource(Resource res) {
-        if (OntException.notNull(res, "Null resource").isURIResource()) {
-            return res;
+        @Override
+        public Stream<Resource> types() {
+            return ModelHelper.asStream(listStatements(this, RDF.type, (RDFNode) null).mapWith(Statement::getObject).filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast));
         }
-        throw new OntException("Not uri resource " + res);
     }
 
     abstract class EntityImpl extends ObjectResourceImpl implements OntEntity {
-        private final EntityType type;
-
-        EntityImpl(EntityType type, Resource r) {
+        EntityImpl(Resource r) {
             super(checkEntityResource(r));
-            this.type = OntException.notNull(type, "Null type");
-        }
-
-        protected Set<Resource> getTypes() {
-            return listStatements(this, RDF.type, (RDFNode) null).mapWith(Statement::getObject).filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast).toSet();
-        }
-
-        EntityType getEntityType() {
-            return type;
         }
 
         @Override
         public boolean isLocal() {
-            return isInBaseModel(this, RDF.type, getEntityType().getType());
+            return isInBaseModel(this, RDF.type, extractType(getOntType()));
         }
 
         @Override
         public String toString() {
-            return String.format("%s(%s)", getURI(), type);
+            return String.format("%s(%s)", getURI(), getOntType());
         }
-    }
-
-    private Stream<OntCE> classExpressions(Resource resource, Property predicate) {
-        return ModelHelper.asStream(listObjectsOfProperty(resource, predicate).mapWith(node -> ModelHelper.toCE(GraphModelImpl.this, node.asResource())));
     }
 
     class ClassImpl extends EntityImpl implements OntClassEntity {
         ClassImpl(Resource r) {
-            super(EntityType.CLASS, r);
+            super(r);
         }
 
         @Override
@@ -245,61 +242,61 @@ public class GraphModelImpl extends ModelCom {
 
     private class APropertyImpl extends EntityImpl implements OntAPEntity {
         APropertyImpl(Resource r) {
-            super(EntityType.ANNOTATION_PROPERTY, r);
+            super(r);
         }
 
         @Override
-        public Stream<Resource> getDomain() {
+        public Stream<Resource> domain() {
             return ModelHelper.asStream(listObjectsOfProperty(this, RDFS.domain).mapWith(RDFNode::asResource));
         }
 
         @Override
-        public Stream<Resource> getRange() {
+        public Stream<Resource> range() {
             return ModelHelper.asStream(listObjectsOfProperty(this, RDFS.range).mapWith(RDFNode::asResource));
         }
     }
 
     private class DPropertyImpl extends EntityImpl implements OntDPEntity {
         DPropertyImpl(Resource r) {
-            super(EntityType.DATA_PROPERTY, r);
+            super(r);
         }
 
         @Override
-        public Stream<OntCE> getDomain() {
+        public Stream<OntCE> domain() {
             return GraphModelImpl.this.classExpressions(this, RDFS.domain);
         }
 
         @Override
-        public Stream<OntDR> getRange() {
+        public Stream<OntDR> range() {
             return ModelHelper.asStream(listObjectsOfProperty(this, RDFS.range).mapWith(node -> ModelHelper.toDR(GraphModelImpl.this, node.asResource())));
         }
     }
 
     private class OPropertyImpl extends EntityImpl implements OntOPEntity {
         OPropertyImpl(Resource r) {
-            super(EntityType.OBJECT_PROPERTY, r);
+            super(r);
         }
 
         @Override
-        public Stream<OntCE> getDomain() {
+        public Stream<OntCE> domain() {
             return GraphModelImpl.this.classExpressions(this, RDFS.domain);
         }
 
         @Override
-        public Stream<OntCE> getRange() {
+        public Stream<OntCE> range() {
             return GraphModelImpl.this.classExpressions(this, RDFS.range);
         }
     }
 
     private class DatatypeImpl extends EntityImpl implements OntDatatypeEntity {
         DatatypeImpl(Resource r) {
-            super(EntityType.DATATYPE, r);
+            super(r);
         }
     }
 
-    private class IndividualImpl extends EntityImpl implements OntIndividualEntity {
-        IndividualImpl(Resource r) {
-            super(EntityType.INDIVIDUAL, r);
+    private class NamedIndividualImpl extends EntityImpl implements OntIndividualEntity {
+        NamedIndividualImpl(Resource r) {
+            super(r);
         }
     }
 
@@ -335,13 +332,14 @@ public class GraphModelImpl extends ModelCom {
         }
     }
 
-    public class CollectionOfCEImpl extends CEImpl {
+    abstract class CollectionOfCEImpl extends CEImpl implements OntCE.Components<OntCE> {
 
-        public CollectionOfCEImpl(Resource r, Property predicate) {
+        CollectionOfCEImpl(Resource r, Property predicate) {
             super(r, predicate);
         }
 
-        public Stream<OntCE> list() {
+        @Override
+        public Stream<OntCE> components() {
             // ignore anything but Class Expressions
             return ModelHelper.asStream(listObjectsOfProperty(this, predicate)
                     .mapWith(n -> n.as(RDFList.class))

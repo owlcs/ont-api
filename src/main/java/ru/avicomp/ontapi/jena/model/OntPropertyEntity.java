@@ -11,12 +11,7 @@ import org.apache.jena.rdf.model.Resource;
  */
 public interface OntPropertyEntity extends OntEntity {
 
-    @Override
-    default boolean isProperty() {
-        return true;
-    }
+    Stream<? extends Resource> domain();
 
-    Stream<? extends Resource> getDomain();
-
-    Stream<? extends Resource> getRange();
+    Stream<? extends Resource> range();
 }

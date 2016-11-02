@@ -9,13 +9,13 @@ import java.util.stream.Stream;
  */
 public interface OntDPEntity extends OntPropertyEntity {
     @Override
-    default boolean isDataProperty() {
-        return true;
+    Stream<OntCE> domain();
+
+    @Override
+    Stream<OntDR> range();
+
+    @Override
+    default Type getOntType() {
+        return Type.DATA_PROPERTY;
     }
-
-    @Override
-    Stream<OntCE> getDomain();
-
-    @Override
-    Stream<OntDR> getRange();
 }

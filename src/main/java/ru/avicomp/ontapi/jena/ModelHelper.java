@@ -23,12 +23,13 @@ import ru.avicomp.ontapi.jena.model.OntObject;
  */
 public class ModelHelper {
     public static <T> Stream<T> asStream(Iterator<T> iterator) {
-        return asStream(iterator, false);
+        return asStream(iterator, true, false);
     }
 
-    public static <T> Stream<T> asStream(Iterator<T> iterator, boolean parallel) {
+    public static <T> Stream<T> asStream(Iterator<T> iterator, boolean distinct, boolean parallel) {
         Iterable<T> iterable = () -> iterator;
-        return StreamSupport.stream(iterable.spliterator(), parallel);
+        Stream<T> res = StreamSupport.stream(iterable.spliterator(), parallel);
+        return distinct ? res.distinct() : res;
     }
 
     public static Stream<RDFNode> asStream(GraphModelImpl model, RDFList list) {
@@ -70,4 +71,6 @@ public class ModelHelper {
     public static OntDR toDR(GraphModelImpl model, Resource resource) {
         throw new OntException("Unsupported data-range expression " + resource);
     }
+
+
 }
