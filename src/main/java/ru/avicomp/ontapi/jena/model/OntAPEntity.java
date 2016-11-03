@@ -15,9 +15,4 @@ public interface OntAPEntity extends OntPropertyEntity {
 
     @Override
     Stream<Resource> range();
-
-    @Override
-    default Type getOntType() {
-        return Type.ANNOTATION_PROPERTY;
-    }
 }

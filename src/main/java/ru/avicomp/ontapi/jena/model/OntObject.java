@@ -13,5 +13,4 @@ public interface OntObject extends Resource {
 
     Stream<Resource> types();
 
-    OntType getOntType();
 }

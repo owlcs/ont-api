@@ -13,8 +13,4 @@ public interface OntOPEntity extends OntPropertyEntity {
     @Override
     Stream<OntCE> range();
 
-    @Override
-    default Type getOntType() {
-        return Type.OBJECT_PROPERTY;
-    }
 }

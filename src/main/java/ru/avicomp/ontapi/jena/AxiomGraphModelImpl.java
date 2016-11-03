@@ -5,6 +5,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
+import ru.avicomp.ontapi.jena.impl.GraphModelImpl;
 import ru.avicomp.ontapi.translators.rdf2axiom.GraphParseHelper;
 
 /**

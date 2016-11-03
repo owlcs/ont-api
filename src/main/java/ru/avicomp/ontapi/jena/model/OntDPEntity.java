@@ -13,9 +13,4 @@ public interface OntDPEntity extends OntPropertyEntity {
 
     @Override
     Stream<OntDR> range();
-
-    @Override
-    default Type getOntType() {
-        return Type.DATA_PROPERTY;
-    }
 }

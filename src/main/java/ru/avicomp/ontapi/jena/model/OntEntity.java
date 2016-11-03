@@ -14,20 +14,4 @@ public interface OntEntity extends OntObject {
      */
     boolean isLocal();
 
-    @Override
-    Type getOntType();
-
-    enum Type implements OntType {
-        CLASS,
-        ANNOTATION_PROPERTY,
-        DATA_PROPERTY,
-        OBJECT_PROPERTY,
-        DATATYPE,
-        INDIVIDUAL,;
-
-        @Override
-        public boolean isEntity() {
-            return true;
-        }
-    }
 }

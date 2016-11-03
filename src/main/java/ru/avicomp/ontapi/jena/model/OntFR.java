@@ -11,7 +11,7 @@ import org.apache.jena.rdf.model.Literal;
 public interface OntFR extends OntObject {
     Literal getValue();
 
-    enum Type implements OntType {
+    enum Type {
         LENGTH, MIN_LENGTH, MAX_LENGTH, PATTERN, MIN_INCLUSIVE, MIN_EXCLUSIVE, MAX_INCLUSIVE, MAX_EXCLUSIVE, TOTAL_DIGITS, FRACTION_DIGIT, LANG_RANGE
     }
 }
