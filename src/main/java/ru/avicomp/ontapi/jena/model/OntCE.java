@@ -6,8 +6,8 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 
 /**
- * Common interface for Class Expressions
- * see, for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
+ * Common interface for Class Expressions.
+ * See for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
  * <p>
  * Created by szuev on 01.11.2016.
  */
@@ -15,71 +15,79 @@ public interface OntCE extends OntObject {
 
     Stream<OntCE> subClassOf();
 
-    interface ObjectSomeValuesFrom extends OntCE, Component<OntCE>, ONProperty {
+    /**
+     * ============================
+     * all known Class Expressions:
+     * ============================
+     */
+
+    interface ObjectSomeValuesFrom extends ComponentRestrictionCE<OntCE> {
     }
 
-    interface DataSomeValuesFrom extends OntCE, Component<OntDR>, ONProperty {
+    interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDR> {
     }
 
-    interface ObjectAllValuesFrom extends OntCE, Component<OntCE>, ONProperty {
+    interface ObjectAllValuesFrom extends ComponentRestrictionCE<OntCE> {
     }
 
-    interface DataAllValuesFrom extends OntCE, Component<OntDR>, ONProperty {
+    interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR> {
     }
 
-    interface ObjectMinCardinality extends OntCE, CardinalityRestriction<OntCE> {
+    interface ObjectMinCardinality extends CardinalityRestrictionCE<OntCE> {
     }
 
-    interface DataMinCardinality extends OntCE, CardinalityRestriction<OntDR> {
+    interface DataMinCardinality extends CardinalityRestrictionCE<OntDR> {
     }
 
-    interface ObjectMaxCardinality extends OntCE, CardinalityRestriction<OntCE> {
+    interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntCE> {
     }
 
-    interface DataMaxCardinality extends OntCE, CardinalityRestriction<OntDR> {
+    interface DataMaxCardinality extends CardinalityRestrictionCE<OntDR> {
     }
 
-    interface ObjectCardinality extends OntCE, CardinalityRestriction<OntCE> {
+    interface ObjectCardinality extends CardinalityRestrictionCE<OntCE> {
     }
 
-    interface DataCardinality extends OntCE, CardinalityRestriction<OntDR> {
+    interface DataCardinality extends CardinalityRestrictionCE<OntDR> {
     }
 
-    interface ObjectHasValue extends OntCE, Value<OntIndividual>, ONProperty {
+    interface ObjectHasValue extends ValueRestrictionCE<OntIndividual> {
     }
 
-    interface DataHasValue extends OntCE, Value<Literal>, ONProperty {
+    interface DataHasValue extends ValueRestrictionCE<Literal> {
     }
 
-    interface HasSelf extends OntCE, ONProperty {
+    interface HasSelf extends RestrictionCE, ONProperty {
     }
 
-    interface UnionOf extends OntCE, Components<OntCE> {
+    interface UnionOf extends ComponentsCE<OntCE> {
     }
 
-    interface OneOf extends OntCE, Components<OntCE> {
+    interface OneOf extends ComponentsCE<OntIndividual> {
     }
 
-    interface IntersectionOf extends OntCE, Components<OntCE> {
+    interface IntersectionOf extends ComponentsCE<OntCE> {
     }
 
     interface ComplementOf extends OntCE, Component<OntCE> {
     }
 
-    interface NaryDataAllValuesFrom extends OntCE, Component<OntDR>, ONProperties {
+    interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR> {
     }
 
-    interface NaryDataSomeValuesFrom extends OntCE, Component<OntDR>, ONProperties {
+    interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR> {
     }
 
     /**
-     * *
-     * Technical interfaces
-     * *
+     * ======================================
+     * Technical interfaces for abstract CEs:
+     * ======================================
      */
 
     interface ONProperty {
-        OntPE onProperty();
+        OntPE getOnProperty();
+
+        void setOntProperty(OntPE p);
     }
 
     interface ONProperties {
@@ -88,15 +96,33 @@ public interface OntCE extends OntObject {
 
     interface Component<T extends OntObject> {
         T getComponent();
+
+        void setComponent(T c);
     }
 
     interface Components<T extends OntObject> {
         Stream<T> components();
+
+        void setComponents(Stream<T> components);
+
+        void clear();
     }
 
     interface Cardinality {
         Integer getCardinality();
 
+        void setCardinality(int cardinality);
+
+        /**
+         * Determines if this restriction is qualified. Qualified cardinality
+         * restrictions are defined to be cardinality restrictions that have fillers
+         * which aren't TOP (owl:Thing or rdfs:Literal). An object restriction is
+         * unqualified if it has a filler that is owl:Thing. A data restriction is
+         * unqualified if it has a filler which is the top data type (rdfs:Literal).
+         *
+         * @return {@code true} if this restriction is qualified, or {@code false}
+         * if this restriction is unqualified.
+         */
         boolean isQualified();
     }
 
@@ -104,7 +130,28 @@ public interface OntCE extends OntObject {
         T getValue();
     }
 
-    interface CardinalityRestriction<T extends OntObject> extends Component<T>, ONProperty, Cardinality {
+    /**
+     * ============================
+     * Interfaces for Abstract CEs:
+     * ============================
+     */
+
+    interface ComponentsCE<T extends OntObject> extends OntCE, Components<T> {
+    }
+
+    interface RestrictionCE extends OntCE {
+    }
+
+    interface ComponentRestrictionCE<T extends OntObject> extends RestrictionCE, Component<T>, ONProperty {
+    }
+
+    interface ValueRestrictionCE<T extends RDFNode> extends RestrictionCE, Value<T>, ONProperty {
+    }
+
+    interface NaryRestrictionCE<T extends OntObject> extends RestrictionCE, ONProperties, Component<T> {
+    }
+
+    interface CardinalityRestrictionCE<T extends OntObject> extends ComponentRestrictionCE<T>, Cardinality {
     }
 
 }

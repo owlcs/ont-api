@@ -2,18 +2,13 @@ package ru.avicomp.ontapi.jena.impl;
 
 import java.io.OutputStream;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.UnionGraph;
@@ -28,7 +23,7 @@ import ru.avicomp.ontapi.jena.model.*;
 public class GraphModelImpl extends ModelCom {
 
     public GraphModelImpl(Graph graph) {
-        super(graph instanceof UnionGraph ? graph : new UnionGraph(graph));
+        super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntConfiguration.getPersonality());
     }
 
     public void addImport(GraphModelImpl m) {
@@ -93,11 +88,33 @@ public class GraphModelImpl extends ModelCom {
     }
 
     public Stream<OntEntity> ontEntities() {
-        return Arrays.stream(OntEntityImpl.Type.values()).map(OntEntityImpl.Type::getView).map(this::ontEntities).flatMap(Function.identity());
+        return ontObjects(OntEntity.class);
+    }
+
+    /**
+     * to retrieve the stream of OntObjects
+     *
+     * @param type Class
+     * @return Stream
+     */
+    protected <T extends OntObject> Stream<T> ontObjects(Class<T> type) {
+        return getFactory(type).find(this).map(e -> getNodeAs(e.asNode(), type));
+    }
+
+    /**
+     * to create any OntObject resource
+     *
+     * @param type Class
+     * @param uri  String
+     * @return OntObject
+     */
+    protected <T extends OntObject> T createOntObject(Class<T> type, String uri) {
+        Resource res = uri == null ? createResource() : createResource(uri);
+        return getFactory(type).create(res.asNode(), this).as(type);
     }
 
     public <T extends OntEntity> Stream<T> ontEntities(Class<T> type) {
-        return byTypes(OntEntityImpl.getRDFType(type)).filter(GraphModelImpl::isURI).map(Statement::getSubject).map(r -> OntEntityImpl.wrapEntity(type, r));
+        return ontObjects(type);
     }
 
     public Stream<OntClassEntity> listClasses() {
@@ -124,25 +141,10 @@ public class GraphModelImpl extends ModelCom {
         return ontEntities(OntIndividualEntity.class).map(OntIndividualEntity.class::cast);
     }
 
-    protected ExtendedIterator<Statement> findByType(Resource type) {
-        return listStatements(null, RDF.type, type);
+    protected OntConfiguration.OntObjectFactory getFactory(Class<? extends OntObject> view) {
+        return (OntConfiguration.OntObjectFactory) OntException.notNull(getPersonality().getImplementation(view), "Can't find factory for object " + view);
     }
 
-    protected Stream<Statement> byType(Resource type) {
-        return asStream(findByType(type));
-    }
-
-    protected Stream<Statement> byTypes(Resource... types) {
-        Stream<Statement> res = null;
-        for (Resource t : types) {
-            if (res == null) {
-                res = byType(t);
-            } else {
-                res = Stream.concat(res, byType(t));
-            }
-        }
-        return res;
-    }
 
     public static <T> Stream<T> asStream(Iterator<T> iterator) {
         return asStream(iterator, true, false);
@@ -154,61 +156,12 @@ public class GraphModelImpl extends ModelCom {
         return distinct ? res.distinct() : res;
     }
 
-    public Stream<RDFNode> asStream(RDFList list) {
-        return list.asJavaList().stream().map(this::wrapRDFNode).distinct();
-    }
-
-    private static boolean isURI(Statement statement) {
-        return statement.getSubject().isURIResource();
-    }
-
     Stream<OntCE> classExpressions(Resource resource, Property predicate) {
-        return asStream(listObjectsOfProperty(resource, predicate).mapWith(node -> wrapCE(node.asResource())));
+        return asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntCE.class)).distinct();
     }
 
-    public <T extends OntCE> T createClass(String uri, Class<T> view) {
-        Resource resource = createResource(uri);
-        if (view.isAssignableFrom(OntClassEntity.class)) {
-        }
-        // todo:
-        return null;
+    Stream<OntDR> dataRanges(Resource resource, Property predicate) {
+        return GraphModelImpl.asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntDR.class)).distinct();
     }
-
-    public boolean isCE(RDFNode node) {
-        return node.isResource() && (contains(node.asResource(), RDF.type, OWL.Class) || contains(node.asResource(), RDF.type, OWL.Restriction));
-    }
-
-    public RDFNode wrapRDFNode(RDFNode node) {
-        if (node.isLiteral()) return node;
-        return toOntObject(node);
-    }
-
-    public OntObject toOntObject(RDFNode node) {
-        if (isCE(node)) {
-            return wrapCE(node.asResource());
-        }
-        throw new OntException("Unsupported resource " + node);
-    }
-
-    public OntCE wrapCE(Resource resource) {
-        if (resource.isURIResource()) {
-            return new OntClassImpl(resource);
-        }
-        if (contains(resource, OWL.unionOf)) {
-            return new OntCEImpl.UnionOfImpl(resource);
-        }
-        if (contains(resource, OWL.intersectionOf)) {
-            return new OntCEImpl.IntersectionOfImpl(resource);
-        }
-        if (contains(resource, OWL.oneOf)) {
-            return new OntCEImpl.OneOfImpl(resource);
-        }
-        throw new OntException("Unsupported class expression " + resource);
-    }
-
-    public OntDR wrapDR(Resource resource) {
-        throw new OntException("Unsupported data-range expression " + resource);
-    }
-
 
 }

@@ -2,6 +2,7 @@ package ru.avicomp.ontapi.jena.model;
 
 /**
  * OWL-Entity here.
+ * It is always uri-resource
  * TODO:
  * Created by szuev on 01.11.2016.
  */

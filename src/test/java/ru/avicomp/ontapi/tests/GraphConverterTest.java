@@ -86,6 +86,7 @@ public class GraphConverterTest {
         GraphModelImpl jenaSPL = new GraphModelImpl(GraphConverter.convert(splGraph));
         LOGGER.info("SPL-SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPL);
+        LOGGER.info("SPL-SPIN(Jena) All entities: ");
         jenaSPL.ontEntities().forEach(LOGGER::debug);
     }
 

@@ -9,41 +9,35 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntDPEntity;
-import ru.avicomp.ontapi.jena.model.OntDR;
+import ru.avicomp.ontapi.jena.model.OntClassEntity;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 
 /**
- * owl:DatatypeProperty
+ * owl:Class
  * Created by szuev on 03.11.2016.
  */
-class OntDPropertyImpl extends OntEntityImpl implements OntDPEntity {
+public class OntClassEntityImpl extends OntEntityImpl implements OntClassEntity {
 
-    OntDPropertyImpl(Resource inModel) {
+    OntClassEntityImpl(Resource inModel) {
         super(inModel);
     }
 
-    OntDPropertyImpl(Node n, EnhGraph g) {
-        super(n, g);
+    OntClassEntityImpl(Node n, EnhGraph eg) {
+        super(n, eg);
     }
 
     @Override
     public Class<? extends OntEntity> getActualClass() {
-        return OntDPEntity.class;
+        return OntClassEntity.class;
     }
 
     @Override
     public Resource getRDFType() {
-        return OWL.DatatypeProperty;
+        return OWL.Class;
     }
 
     @Override
-    public Stream<OntCE> domain() {
-        return getModel().classExpressions(this, RDFS.domain);
-    }
-
-    @Override
-    public Stream<OntDR> range() {
-        return getModel().dataRanges(this, RDFS.range);
+    public Stream<OntCE> subClassOf() {
+        return getModel().classExpressions(this, RDFS.subClassOf);
     }
 }
