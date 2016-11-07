@@ -17,13 +17,13 @@ import ru.avicomp.ontapi.jena.model.OntOPEntity;
  * <p>
  * Created by szuev on 03.11.2016.
  */
-class OntOPropertyImpl extends OntEntityImpl implements OntOPEntity {
+public class OntOPropertyImpl extends OntEntityImpl implements OntOPEntity {
 
     OntOPropertyImpl(Resource inModel) {
         super(inModel);
     }
 
-    OntOPropertyImpl(Node n, EnhGraph g) {
+    public OntOPropertyImpl(Node n, EnhGraph g) {
         super(n, g);
     }
 

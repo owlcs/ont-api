@@ -33,6 +33,12 @@ public interface OntCE extends OntObject {
     interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR> {
     }
 
+    interface ObjectHasValue extends ComponentRestrictionCE<OntIndividual> {
+    }
+
+    interface DataHasValue extends ComponentRestrictionCE<Literal> {
+    }
+
     interface ObjectMinCardinality extends CardinalityRestrictionCE<OntCE> {
     }
 
@@ -51,12 +57,6 @@ public interface OntCE extends OntObject {
     interface DataCardinality extends CardinalityRestrictionCE<OntDR> {
     }
 
-    interface ObjectHasValue extends ValueRestrictionCE<OntIndividual> {
-    }
-
-    interface DataHasValue extends ValueRestrictionCE<Literal> {
-    }
-
     interface HasSelf extends RestrictionCE, ONProperty {
     }
 
@@ -69,7 +69,7 @@ public interface OntCE extends OntObject {
     interface IntersectionOf extends ComponentsCE<OntCE> {
     }
 
-    interface ComplementOf extends OntCE, Component<OntCE> {
+    interface ComplementOf extends OntCE, Value<OntCE> {
     }
 
     interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR> {
@@ -94,18 +94,17 @@ public interface OntCE extends OntObject {
         Stream<OntPE> onProperties();
     }
 
-    interface Component<T extends OntObject> {
-        T getComponent();
-
-        void setComponent(T c);
-    }
-
     interface Components<T extends OntObject> {
         Stream<T> components();
 
         void setComponents(Stream<T> components);
+    }
 
-        void clear();
+
+    interface Value<T extends RDFNode> {
+        T getValue();
+
+        void setValue(T value);
     }
 
     interface Cardinality {
@@ -126,10 +125,6 @@ public interface OntCE extends OntObject {
         boolean isQualified();
     }
 
-    interface Value<T extends RDFNode> {
-        T getValue();
-    }
-
     /**
      * ============================
      * Interfaces for Abstract CEs:
@@ -142,17 +137,15 @@ public interface OntCE extends OntObject {
     interface RestrictionCE extends OntCE {
     }
 
-    interface ComponentRestrictionCE<T extends OntObject> extends RestrictionCE, Component<T>, ONProperty {
-    }
-
-    interface ValueRestrictionCE<T extends RDFNode> extends RestrictionCE, Value<T>, ONProperty {
-    }
-
-    interface NaryRestrictionCE<T extends OntObject> extends RestrictionCE, ONProperties, Component<T> {
+    interface ComponentRestrictionCE<T extends RDFNode> extends RestrictionCE, Value<T>, ONProperty {
     }
 
     interface CardinalityRestrictionCE<T extends OntObject> extends ComponentRestrictionCE<T>, Cardinality {
     }
+
+    interface NaryRestrictionCE<T extends OntObject> extends RestrictionCE, ONProperties, Value<T> {
+    }
+
 
 }
 

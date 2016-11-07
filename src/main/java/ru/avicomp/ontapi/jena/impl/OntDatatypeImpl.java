@@ -12,13 +12,13 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
  * rdfs:Datatype
  * Created by szuev on 03.11.2016.
  */
-class OntDatatypeImpl extends OntEntityImpl implements OntDatatypeEntity {
+public class OntDatatypeImpl extends OntEntityImpl implements OntDatatypeEntity {
 
     OntDatatypeImpl(Resource inModel) {
         super(inModel);
     }
 
-    OntDatatypeImpl(Node n, EnhGraph g) {
+    public OntDatatypeImpl(Node n, EnhGraph g) {
         super(n, g);
     }
 

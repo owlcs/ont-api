@@ -17,13 +17,13 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
  * owl:DatatypeProperty
  * Created by szuev on 03.11.2016.
  */
-class OntDPropertyImpl extends OntEntityImpl implements OntDPEntity {
+public class OntDPropertyImpl extends OntEntityImpl implements OntDPEntity {
 
     OntDPropertyImpl(Resource inModel) {
         super(inModel);
     }
 
-    OntDPropertyImpl(Node n, EnhGraph g) {
+    public OntDPropertyImpl(Node n, EnhGraph g) {
         super(n, g);
     }
 

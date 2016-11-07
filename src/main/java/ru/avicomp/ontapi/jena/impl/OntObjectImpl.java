@@ -12,6 +12,7 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
 /**
@@ -19,8 +20,8 @@ import ru.avicomp.ontapi.jena.model.OntObject;
  * <p>
  * Created by szuev on 03.11.2016.
  */
-class OntObjectImpl extends ResourceImpl implements OntObject {
-    public static OntConfiguration.OntObjectFactory factory = new OntConfiguration.OntObjectFactory() {
+public class OntObjectImpl extends ResourceImpl implements OntObject {
+    public static OntObjectFactory factory = new OntObjectFactory() {
         @Override
         public Stream<EnhNode> find(EnhGraph eg) {
             return GraphModelImpl.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY).
@@ -45,7 +46,7 @@ class OntObjectImpl extends ResourceImpl implements OntObject {
         this(inModel.asNode(), (GraphModelImpl) inModel.getModel());
     }
 
-    OntObjectImpl(Node n, EnhGraph m) {
+    public OntObjectImpl(Node n, EnhGraph m) {
         super(n, m);
     }
 

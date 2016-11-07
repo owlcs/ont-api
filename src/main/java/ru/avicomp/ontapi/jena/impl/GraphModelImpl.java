@@ -12,6 +12,8 @@ import org.apache.jena.rdf.model.impl.ModelCom;
 
 import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.impl.configuration.OntConfiguration;
+import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
@@ -97,7 +99,7 @@ public class GraphModelImpl extends ModelCom {
      * @param type Class
      * @return Stream
      */
-    protected <T extends OntObject> Stream<T> ontObjects(Class<T> type) {
+    public <T extends OntObject> Stream<T> ontObjects(Class<T> type) {
         return getFactory(type).find(this).map(e -> getNodeAs(e.asNode(), type));
     }
 
@@ -141,8 +143,8 @@ public class GraphModelImpl extends ModelCom {
         return ontEntities(OntIndividualEntity.class).map(OntIndividualEntity.class::cast);
     }
 
-    protected OntConfiguration.OntObjectFactory getFactory(Class<? extends OntObject> view) {
-        return (OntConfiguration.OntObjectFactory) OntException.notNull(getPersonality().getImplementation(view), "Can't find factory for object " + view);
+    protected OntObjectFactory getFactory(Class<? extends OntObject> view) {
+        return (OntObjectFactory) OntException.notNull(getPersonality().getImplementation(view), "Can't find factory for object " + view);
     }
 
 

@@ -72,6 +72,23 @@ public class ReadWriteUtils {
         }
     }
 
+    public static Model load(URI file, OntFormat f) {
+        String format = f == null ? "ttl" : f.getType();
+        Model m = ModelFactory.createDefaultModel();
+        LOGGER.debug("Load model from " + file);
+        try (InputStream in = file.toURL().openStream()) {
+            m.read(in, null, format);
+            return m;
+        } catch (IOException e) {
+            LOGGER.fatal("Can't read model", e);
+            throw new OntException(e);
+        }
+    }
+
+    public static OntModel load(OntModelSpec spec, File file, OntFormat f) {
+        return ModelFactory.createOntologyModel(spec, load(file.toURI(), f));
+    }
+
     private static File getFileToSave(String name, OntFormat type) {
         File dir = new File(DESTINATION_DIR);
         if (!dir.exists()) {
@@ -115,18 +132,6 @@ public class ReadWriteUtils {
 
     public static URI getOutURI(String file) {
         return new File(DESTINATION_DIR, file).toURI();
-    }
-
-    public static OntModel load(OntModelSpec spec, File file, OntFormat format) {
-        Model base = ModelFactory.createDefaultModel();
-        try {
-            LOGGER.debug("Load model from " + file.toURI());
-            base.read(new FileInputStream(file), null, format.getType());
-        } catch (FileNotFoundException e) {
-            LOGGER.fatal("Can't read ontology", e);
-            throw new IllegalArgumentException(e);
-        }
-        return ModelFactory.createOntologyModel(spec, base);
     }
 
     public static void save(Model model, String name, OntFormat type) {

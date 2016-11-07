@@ -13,13 +13,13 @@ import ru.avicomp.ontapi.jena.model.OntIndividualEntity;
  * <p>
  * Created by szuev on 03.11.2016.
  */
-class OntNamedIndividualImpl extends OntEntityImpl implements OntIndividualEntity {
+public class OntNamedIndividualImpl extends OntEntityImpl implements OntIndividualEntity {
 
     OntNamedIndividualImpl(Resource inModel) {
         super(inModel);
     }
 
-    OntNamedIndividualImpl(Node n, EnhGraph g) {
+    public OntNamedIndividualImpl(Node n, EnhGraph g) {
         super(n, g);
     }
 

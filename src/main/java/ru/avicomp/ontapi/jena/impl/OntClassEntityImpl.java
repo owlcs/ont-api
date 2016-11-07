@@ -22,7 +22,7 @@ public class OntClassEntityImpl extends OntEntityImpl implements OntClassEntity 
         super(inModel);
     }
 
-    OntClassEntityImpl(Node n, EnhGraph eg) {
+    public OntClassEntityImpl(Node n, EnhGraph eg) {
         super(n, eg);
     }
 

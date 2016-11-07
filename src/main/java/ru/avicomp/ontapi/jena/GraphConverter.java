@@ -26,6 +26,7 @@ import ru.avicomp.ontapi.OntException;
 /**
  * Class to perform some transformation action on the specified graph.
  * Currently it is to convert the OWL-1/RDFS ontological graph to the OWL-2-DL graph.
+ * Use it after loading inside {@link ru.avicomp.ontapi.OntologyFactoryImpl}
  * <p>
  * Created by szuev on 28.10.2016.
  */
