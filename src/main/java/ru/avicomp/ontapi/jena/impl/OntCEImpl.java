@@ -10,12 +10,12 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.UniqueFilter;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -33,33 +33,33 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     private static final Node OWL_DATATYPE_PROPERTY = OWL2.DatatypeProperty.asNode();
     private static final Node OWL_OBJECT_PROPERTY = OWL2.ObjectProperty.asNode();
 
-    private static final Filter BLANK_FILTER = (n, g) -> n.isBlank();
-    private static final Filter ON_PROPERTY_DATA = new OnPropertyTypeFilter(RestrictionType.DATA);
-    private static final Filter ON_PROPERTY_OBJECT = new OnPropertyTypeFilter(RestrictionType.OBJECT);
+    private static final OntFilter BLANK_FILTER = (n, g) -> n.isBlank();
+    private static final OntFilter ON_PROPERTY_DATA = new OnPropertyTypeFilter(RestrictionType.DATA);
+    private static final OntFilter ON_PROPERTY_OBJECT = new OnPropertyTypeFilter(RestrictionType.OBJECT);
 
     public static OntObjectFactory unionOfCEFactory = new TypedOntObjectFactory(UnionOfImpl.class, OWL2.Class,
-            BLANK_FILTER, new Filter.Predicate(OWL2.unionOf));
-    public static OntObjectFactory intersectionOfCEFactory = new TypedOntObjectFactory(IntersectionOfImpl.class, OWL.Class,
-            BLANK_FILTER, new Filter.Predicate(OWL2.intersectionOf));
+            BLANK_FILTER, new OntFilter.Predicate(OWL2.unionOf));
+    public static OntObjectFactory intersectionOfCEFactory = new TypedOntObjectFactory(IntersectionOfImpl.class, OWL2.Class,
+            BLANK_FILTER, new OntFilter.Predicate(OWL2.intersectionOf));
     public static OntObjectFactory oneOfCEFactory = new TypedOntObjectFactory(OneOfImpl.class, OWL2.Class,
-            BLANK_FILTER, new Filter.Predicate(OWL2.oneOf));
+            BLANK_FILTER, new OntFilter.Predicate(OWL2.oneOf));
     public static OntObjectFactory complementOfCEFactory = new TypedOntObjectFactory(ComplementOfImpl.class, OWL2.Class,
-            BLANK_FILTER, new Filter.Predicate(OWL2.complementOf));
+            BLANK_FILTER, new OntFilter.Predicate(OWL2.complementOf));
 
     public static OntObjectFactory objectSomeValuesOfCEFactory = new TypedOntObjectFactory(ObjectSomeValuesFromImpl.class, OWL2.Restriction,
-            BLANK_FILTER, ON_PROPERTY_OBJECT, new Filter.Predicate(OWL.someValuesFrom));
+            BLANK_FILTER, ON_PROPERTY_OBJECT, new OntFilter.Predicate(OWL2.someValuesFrom));
     public static OntObjectFactory dataSomeValuesOfCEFactory = new TypedOntObjectFactory(DataSomeValuesFromImpl.class, OWL2.Restriction,
-            BLANK_FILTER, ON_PROPERTY_DATA, new Filter.Predicate(OWL.someValuesFrom));
+            BLANK_FILTER, ON_PROPERTY_DATA, new OntFilter.Predicate(OWL2.someValuesFrom));
 
     public static OntObjectFactory objectAllValuesOfCEFactory = new TypedOntObjectFactory(ObjectAllValuesFromImpl.class, OWL2.Restriction,
-            BLANK_FILTER, ON_PROPERTY_OBJECT, new Filter.Predicate(OWL.allValuesFrom));
+            BLANK_FILTER, ON_PROPERTY_OBJECT, new OntFilter.Predicate(OWL2.allValuesFrom));
     public static OntObjectFactory dataAllValuesOfCEFactory = new TypedOntObjectFactory(DataAllValuesFromImpl.class, OWL2.Restriction,
-            BLANK_FILTER, ON_PROPERTY_DATA, new Filter.Predicate(OWL.allValuesFrom));
+            BLANK_FILTER, ON_PROPERTY_DATA, new OntFilter.Predicate(OWL2.allValuesFrom));
 
     public static OntObjectFactory objectHasValueCEFactory = new TypedOntObjectFactory(ObjectHasValueImpl.class, OWL2.Restriction,
-            BLANK_FILTER, ON_PROPERTY_OBJECT, new Filter.Predicate(OWL2.hasValue));
+            BLANK_FILTER, ON_PROPERTY_OBJECT, new OntFilter.Predicate(OWL2.hasValue));
     public static OntObjectFactory dataHasValueCEFactory = new TypedOntObjectFactory(DataHasValueImpl.class, OWL2.Restriction,
-            BLANK_FILTER, ON_PROPERTY_DATA, new Filter.Predicate(OWL.hasValue));
+            BLANK_FILTER, ON_PROPERTY_DATA, new OntFilter.Predicate(OWL2.hasValue));
 
     public static OntObjectFactory dataMinCardinalityCEFactory = new TypedOntObjectFactory(DataMinCardinalityImpl.class, OWL2.Restriction,
             BLANK_FILTER, ON_PROPERTY_DATA, new CardinalityPredicateFilter(CardinalityType.MIN));
@@ -76,7 +76,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     public static OntObjectFactory objectCardinalityCEFactory = new TypedOntObjectFactory(ObjectCardinalityImpl.class, OWL2.Restriction,
             BLANK_FILTER, ON_PROPERTY_OBJECT, new CardinalityPredicateFilter(CardinalityType.EXACTLY));
 
-    public static OntObjectFactory hasSelfCEFactory = new CommonOntObjectFactory(HasSelfImpl.class, new HasSelfMaker(), new TypedOntObjectFactory.TypeFinder(OWL.Restriction), new HasSelfFilter());
+    public static OntObjectFactory hasSelfCEFactory = new CommonOntObjectFactory(HasSelfImpl.class, new HasSelfMaker(), new TypedOntObjectFactory.TypeFinder(OWL2.Restriction), new HasSelfFilter());
 
     public static OntObjectFactory abstractCEFactory = new MultiOntObjectFactory(OntEntityImpl.classFactory,
             objectSomeValuesOfCEFactory, dataSomeValuesOfCEFactory,
@@ -121,27 +121,50 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return getModel().classExpressions(this, RDFS.subClassOf);
     }
 
+    @Override
+    public abstract Class<? extends OntCE> getActualClass();
+
     public static class ObjectSomeValuesFromImpl extends ComponentRestrictionCEImpl<OntCE> implements ObjectSomeValuesFrom {
         public ObjectSomeValuesFromImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.someValuesFrom, OntCE.class);
+            super(n, m, OWL2.someValuesFrom, OntCE.class);
+        }
+
+        @Override
+        public Class<ObjectSomeValuesFrom> getActualClass() {
+            return ObjectSomeValuesFrom.class;
         }
     }
 
     public static class DataSomeValuesFromImpl extends ComponentRestrictionCEImpl<OntDR> implements DataSomeValuesFrom {
         public DataSomeValuesFromImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.someValuesFrom, OntDR.class);
+            super(n, m, OWL2.someValuesFrom, OntDR.class);
+        }
+
+        @Override
+        public Class<DataSomeValuesFrom> getActualClass() {
+            return DataSomeValuesFrom.class;
         }
     }
 
     public static class ObjectAllValuesFromImpl extends ComponentRestrictionCEImpl<OntCE> implements ObjectAllValuesFrom {
         public ObjectAllValuesFromImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.allValuesFrom, OntCE.class);
+            super(n, m, OWL2.allValuesFrom, OntCE.class);
+        }
+
+        @Override
+        public Class<ObjectAllValuesFrom> getActualClass() {
+            return ObjectAllValuesFrom.class;
         }
     }
 
     public static class DataAllValuesFromImpl extends ComponentRestrictionCEImpl<OntDR> implements DataAllValuesFrom {
         public DataAllValuesFromImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.allValuesFrom, OntDR.class);
+            super(n, m, OWL2.allValuesFrom, OntDR.class);
+        }
+
+        @Override
+        public Class<DataAllValuesFrom> getActualClass() {
+            return DataAllValuesFrom.class;
         }
     }
 
@@ -149,29 +172,54 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         public ObjectHasValueImpl(Node n, EnhGraph m) {
             super(n, m, OWL2.hasValue, OntIndividual.class);
         }
+
+        @Override
+        public Class<ObjectHasValue> getActualClass() {
+            return ObjectHasValue.class;
+        }
     }
 
     public static class DataHasValueImpl extends ComponentRestrictionCEImpl<Literal> implements DataHasValue {
         public DataHasValueImpl(Node n, EnhGraph m) {
             super(n, m, OWL2.hasValue, Literal.class);
         }
+
+        @Override
+        public Class<DataHasValue> getActualClass() {
+            return DataHasValue.class;
+        }
     }
 
     public static class UnionOfImpl extends ComponentsCEImpl<OntCE> implements UnionOf {
         public UnionOfImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.unionOf, OntCE.class);
+            super(n, m, OWL2.unionOf, OntCE.class);
+        }
+
+        @Override
+        public Class<UnionOf> getActualClass() {
+            return UnionOf.class;
         }
     }
 
     public static class IntersectionOfImpl extends ComponentsCEImpl<OntCE> implements IntersectionOf {
         public IntersectionOfImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.intersectionOf, OntCE.class);
+            super(n, m, OWL2.intersectionOf, OntCE.class);
+        }
+
+        @Override
+        public Class<IntersectionOf> getActualClass() {
+            return IntersectionOf.class;
         }
     }
 
     public static class OneOfImpl extends ComponentsCEImpl<OntIndividual> implements OneOf {
         public OneOfImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.oneOf, OntIndividual.class);
+            super(n, m, OWL2.oneOf, OntIndividual.class);
+        }
+
+        @Override
+        public Class<OneOf> getActualClass() {
+            return OneOf.class;
         }
     }
 
@@ -179,11 +227,21 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         public DataMinCardinalityImpl(Node n, EnhGraph m) {
             super(n, m, OWL2.onDataRange, OntDR.class, CardinalityType.MIN);
         }
+
+        @Override
+        public Class<DataMinCardinality> getActualClass() {
+            return DataMinCardinality.class;
+        }
     }
 
     public static class ObjectMinCardinalityImpl extends CardinalityRestrictionCEImpl<OntCE> implements ObjectMinCardinality {
         public ObjectMinCardinalityImpl(Node n, EnhGraph m) {
             super(n, m, OWL2.onClass, OntCE.class, CardinalityType.MIN);
+        }
+
+        @Override
+        public Class<ObjectMinCardinality> getActualClass() {
+            return ObjectMinCardinality.class;
         }
     }
 
@@ -191,11 +249,21 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         public DataMaxCardinalityImpl(Node n, EnhGraph m) {
             super(n, m, OWL2.onDataRange, OntDR.class, CardinalityType.MAX);
         }
+
+        @Override
+        public Class<DataMaxCardinality> getActualClass() {
+            return DataMaxCardinality.class;
+        }
     }
 
     public static class ObjectMaxCardinalityImpl extends CardinalityRestrictionCEImpl<OntCE> implements ObjectMaxCardinality {
         public ObjectMaxCardinalityImpl(Node n, EnhGraph m) {
             super(n, m, OWL2.onClass, OntCE.class, CardinalityType.MAX);
+        }
+
+        @Override
+        public Class<ObjectMaxCardinality> getActualClass() {
+            return ObjectMaxCardinality.class;
         }
     }
 
@@ -203,17 +271,32 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         public DataCardinalityImpl(Node n, EnhGraph m) {
             super(n, m, OWL2.onDataRange, OntDR.class, CardinalityType.EXACTLY);
         }
+
+        @Override
+        public Class<DataCardinality> getActualClass() {
+            return DataCardinality.class;
+        }
     }
 
     public static class ObjectCardinalityImpl extends CardinalityRestrictionCEImpl<OntCE> implements ObjectCardinality {
         public ObjectCardinalityImpl(Node n, EnhGraph m) {
             super(n, m, OWL2.onClass, OntCE.class, CardinalityType.EXACTLY);
         }
+
+        @Override
+        public Class<ObjectCardinality> getActualClass() {
+            return ObjectCardinality.class;
+        }
     }
 
     public static class HasSelfImpl extends OnPropertyRestrictionCEImpl implements HasSelf {
         public HasSelfImpl(Node n, EnhGraph m) {
             super(n, m);
+        }
+
+        @Override
+        public Class<HasSelf> getActualClass() {
+            return HasSelf.class;
         }
     }
 
@@ -223,18 +306,23 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
+        public Class<ComplementOf> getActualClass() {
+            return ComplementOf.class;
+        }
+
+        @Override
         public OntCE getValue() {
-            return getModel().getNodeAs(getPropertyResourceValue(OWL.complementOf).asNode(), OntCE.class);
+            return getModel().getNodeAs(getPropertyResourceValue(OWL2.complementOf).asNode(), OntCE.class);
         }
 
         @Override
         public void setValue(OntCE c) {
             clear();
-            addProperty(OWL.complementOf, c);
+            addProperty(OWL2.complementOf, c);
         }
 
         void clear() {
-            removeAll(OWL.complementOf);
+            removeAll(OWL2.complementOf);
         }
     }
 
@@ -254,7 +342,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         Stream<RDFNode> components(Property predicate) {
-            return GraphModelImpl.asStream(getModel().listObjectsOfProperty(this, predicate).mapWith(n -> n.as(RDFList.class)))
+            return JenaUtils.asStream(getModel().listObjectsOfProperty(this, predicate).mapWith(n -> n.as(RDFList.class)))
                     .map(list -> list.asJavaList().stream()).flatMap(Function.identity()).distinct();
         }
 
@@ -286,12 +374,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         public OntPE getOnProperty() {
-            return getModel().getNodeAs(getRequiredProperty(OWL.onProperty).getObject().asNode(), OntPE.class);
+            return getModel().getNodeAs(getRequiredProperty(OWL2.onProperty).getObject().asNode(), OntPE.class);
         }
 
-        public void setOntProperty(OntPE p) {
-            clearProperty(OWL.onProperty);
-            addProperty(OWL.onProperty, p);
+        public void setOnProperty(OntPE p) {
+            clearProperty(OWL2.onProperty);
+            addProperty(OWL2.onProperty, p);
         }
 
         void clearProperty(Property p) {
@@ -327,7 +415,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    static class CardinalityRestrictionCEImpl<T extends OntObject> extends ComponentRestrictionCEImpl<T> implements CardinalityRestrictionCE<T> {
+    static abstract class CardinalityRestrictionCEImpl<T extends OntObject> extends ComponentRestrictionCEImpl<T> implements CardinalityRestrictionCE<T> {
         private final CardinalityType cardinalityType;
 
         /**
@@ -349,7 +437,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Integer getCardinality() {
+        public int getCardinality() {
             return getRequiredProperty(getCardinalityPredicate()).getObject().asLiteral().getInt();
         }
 
@@ -374,11 +462,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         @Override
         public boolean isQualified() {
             T c = getValue();
-            return c != null && !OWL.Thing.equals(c) && !RDFS.Literal.equals(c);
+            return c != null && !OWL2.Thing.equals(c) && !RDFS.Literal.equals(c);
         }
     }
 
-    private static class OnPropertyTypeFilter implements Filter {
+    private static class OnPropertyTypeFilter implements OntFilter {
         private final RestrictionType type;
 
         private OnPropertyTypeFilter(RestrictionType type) {
@@ -388,11 +476,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         @Override
         public boolean test(Node n, EnhGraph g) {
             List<Node> nodes = g.asGraph().find(n, OWL_ON_PROPERTY, Node.ANY).mapWith(Triple::getObject).filterKeep(new UniqueFilter<>()).toList();
-            return nodes.size() == 1 && (RestrictionType.UNDEFINED.equals(type) || g.asGraph().contains(n, RDF_TYPE, RestrictionType.DATA.equals(type) ? OWL_DATATYPE_PROPERTY : OWL_OBJECT_PROPERTY));
+            return nodes.size() == 1 && (RestrictionType.UNDEFINED.equals(type) || g.asGraph().contains(nodes.get(0), RDF_TYPE, RestrictionType.DATA.equals(type) ? OWL_DATATYPE_PROPERTY : OWL_OBJECT_PROPERTY));
         }
     }
 
-    private static class CardinalityPredicateFilter implements Filter {
+    private static class CardinalityPredicateFilter implements OntFilter {
         private final CardinalityType type;
 
         private CardinalityPredicateFilter(CardinalityType type) {
@@ -410,7 +498,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    private static class HasSelfFilter implements Filter {
+    private static class HasSelfFilter implements OntFilter {
         @Override
         public boolean test(Node n, EnhGraph g) {
             return g.asGraph().contains(n, OWL2.hasSelf.asNode(), ResourceFactory.createTypedLiteral(Boolean.TRUE).asNode());

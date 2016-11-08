@@ -3,14 +3,13 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.OntException;
-import ru.avicomp.ontapi.jena.impl.configuration.Filter;
 import ru.avicomp.ontapi.jena.impl.configuration.MultiOntObjectFactory;
+import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.impl.configuration.TypedOntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntEntity;
@@ -20,12 +19,12 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
  * Created by szuev on 03.11.2016.
  */
 public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
-    private static final Filter.Named URI_FILTER = new Filter.Named(true);
+    private static final OntFilter.Named URI_FILTER = new OntFilter.Named(true);
 
-    public static OntObjectFactory classFactory = new TypedOntObjectFactory(OntClassEntityImpl.class, OWL.Class, URI_FILTER);
-    public static OntObjectFactory annotationPropertyFactory = new TypedOntObjectFactory(OntAPropertyImpl.class, OWL.AnnotationProperty, URI_FILTER);
-    public static OntObjectFactory dataPropertyFactory = new TypedOntObjectFactory(OntDPropertyImpl.class, OWL.DatatypeProperty, URI_FILTER);
-    public static OntObjectFactory objectPropertyFactory = new TypedOntObjectFactory(OntOPropertyImpl.class, OWL.ObjectProperty, URI_FILTER);
+    public static OntObjectFactory classFactory = new TypedOntObjectFactory(OntClassEntityImpl.class, OWL2.Class, URI_FILTER);
+    public static OntObjectFactory annotationPropertyFactory = new TypedOntObjectFactory(OntAPropertyImpl.class, OWL2.AnnotationProperty, URI_FILTER);
+    public static OntObjectFactory dataPropertyFactory = new TypedOntObjectFactory(OntDPropertyImpl.class, OWL2.DatatypeProperty, URI_FILTER);
+    public static OntObjectFactory objectPropertyFactory = new TypedOntObjectFactory(OntOPropertyImpl.class, OWL2.ObjectProperty, URI_FILTER);
     public static OntObjectFactory datatypeFactory = new TypedOntObjectFactory(OntDatatypeImpl.class, RDFS.Datatype, URI_FILTER);
     public static OntObjectFactory individualFactory = new TypedOntObjectFactory(OntNamedIndividualImpl.class, OWL2.NamedIndividual, URI_FILTER);
 
@@ -43,11 +42,6 @@ public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
     @Override
     public boolean isLocal() {
         return getModel().isInBaseModel(this, RDF.type, getRDFType());
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s(%s)", getURI(), getActualClass().getSimpleName());
     }
 
     private static Resource checkEntityResource(Resource res) {

@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -15,10 +16,10 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.util.NodeUtils;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.XSD;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import ru.avicomp.ontapi.OntException;
@@ -29,8 +30,8 @@ import ru.avicomp.ontapi.OntException;
  */
 public class JenaUtils {
 
-    public static final Set<Property> BUILT_IN_PROPERTIES = getConstants(Property.class, RDF.class, RDFS.class, OWL.class, OWL2.class);
-    public static final Set<Resource> BUILT_IN_RESOURCES = getConstants(Resource.class, RDF.class, RDFS.class, OWL.class, OWL2.class);
+    public static final Set<Property> BUILT_IN_PROPERTIES = getConstants(Property.class, RDF.class, RDFS.class, OWL2.class);
+    public static final Set<Resource> BUILT_IN_RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL2.class);
 
     public static final Set<RDFDatatype> BUILT_IN_DATATYPES = createBuiltInTypes();
 
@@ -51,6 +52,7 @@ public class JenaUtils {
 
     private static Set<RDFDatatype> createBuiltInTypes() {
         TypeMapper mapper = TypeMapper.getInstance();
+        // todo: no entries of OWL-API should be in this class
         Stream.of(OWL2Datatype.OWL_REAL, OWL2Datatype.OWL_RATIONAL).forEach(d -> mapper.registerDatatype(new BaseDatatype(d.getIRI().getIRIString()) {
             @Override
             public Class<?> getJavaClass() {
@@ -71,7 +73,7 @@ public class JenaUtils {
     }
 
     private static <T> Stream<T> constants(Class vocabulary, Class<T> type) {
-        return fields(vocabulary, type).map(field -> getValue(field, type));
+        return fields(vocabulary, type).map(field -> getValue(field, type)).filter(v -> v != null);
     }
 
     private static <T> T getValue(Field field, Class<T> type) {
@@ -85,4 +87,15 @@ public class JenaUtils {
     private static <T> Set<T> getConstants(Class<T> type, Class... vocabularies) {
         return Arrays.stream(vocabularies).map(voc -> constants(voc, type)).flatMap(Function.identity()).collect(Collectors.toSet());
     }
+
+    public static <T> Stream<T> asStream(Iterator<T> iterator) {
+        return asStream(iterator, true, false);
+    }
+
+    public static <T> Stream<T> asStream(Iterator<T> iterator, boolean distinct, boolean parallel) {
+        Iterable<T> iterable = () -> iterator;
+        Stream<T> res = StreamSupport.stream(iterable.spliterator(), parallel);
+        return distinct ? res.distinct() : res;
+    }
+
 }

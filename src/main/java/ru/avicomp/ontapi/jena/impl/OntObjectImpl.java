@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
@@ -12,6 +13,7 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
@@ -24,7 +26,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public static OntObjectFactory factory = new OntObjectFactory() {
         @Override
         public Stream<EnhNode> find(EnhGraph eg) {
-            return GraphModelImpl.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY).
+            return JenaUtils.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY).
                     mapWith(Triple::getSubject).filterKeep(n -> canWrap(n, eg)).mapWith(n -> wrap(n, eg)));
         }
 
@@ -52,12 +54,22 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public Stream<Resource> types() {
-        return GraphModelImpl.asStream(getModel().listObjectsOfProperty(this, RDF.type)
+        return JenaUtils.asStream(getModel().listObjectsOfProperty(this, RDF.type)
                 .filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast));
     }
 
     @Override
     public GraphModelImpl getModel() {
         return (GraphModelImpl) super.getModel();
+    }
+
+    @SuppressWarnings("unchecked")
+    public Class<? extends OntObject> getActualClass() {
+        return Arrays.stream(getClass().getInterfaces()).filter(OntObject.class::isAssignableFrom).map(c -> (Class<? extends OntObject>) c).findFirst().orElse(null);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s(%s)", asNode(), getActualClass().getSimpleName());
     }
 }

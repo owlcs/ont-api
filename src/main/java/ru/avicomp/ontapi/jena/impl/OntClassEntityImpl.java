@@ -5,12 +5,11 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntClassEntity;
-import ru.avicomp.ontapi.jena.model.OntEntity;
 
 /**
  * owl:Class
@@ -27,13 +26,13 @@ public class OntClassEntityImpl extends OntEntityImpl implements OntClassEntity 
     }
 
     @Override
-    public Class<? extends OntEntity> getActualClass() {
+    public Class<OntClassEntity> getActualClass() {
         return OntClassEntity.class;
     }
 
     @Override
     public Resource getRDFType() {
-        return OWL.Class;
+        return OWL2.Class;
     }
 
     @Override

@@ -5,11 +5,10 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntOPEntity;
 
 /**
@@ -28,13 +27,13 @@ public class OntOPropertyImpl extends OntEntityImpl implements OntOPEntity {
     }
 
     @Override
-    public Class<? extends OntEntity> getActualClass() {
+    public Class<OntOPEntity> getActualClass() {
         return OntOPEntity.class;
     }
 
     @Override
     public Resource getRDFType() {
-        return OWL.ObjectProperty;
+        return OWL2.ObjectProperty;
     }
 
     @Override
@@ -52,15 +51,15 @@ public class OntOPropertyImpl extends OntEntityImpl implements OntOPEntity {
     }
 
     public boolean isInverseFunctional() {
-        return hasType(OWL.InverseFunctionalProperty);
+        return hasType(OWL2.InverseFunctionalProperty);
     }
 
     public boolean isTransitive() {
-        return hasType(OWL.TransitiveProperty);
+        return hasType(OWL2.TransitiveProperty);
     }
 
     public boolean isSymetric() {
-        return hasType(OWL.SymmetricProperty);
+        return hasType(OWL2.SymmetricProperty);
     }
 
 }

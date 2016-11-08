@@ -87,11 +87,13 @@ public interface OntCE extends OntObject {
     interface ONProperty {
         OntPE getOnProperty();
 
-        void setOntProperty(OntPE p);
+        void setOnProperty(OntPE p);
     }
 
     interface ONProperties {
         Stream<OntPE> onProperties();
+
+        void setOnProperties(Stream<OntPE> properties);
     }
 
     interface Components<T extends OntObject> {
@@ -108,7 +110,7 @@ public interface OntCE extends OntObject {
     }
 
     interface Cardinality {
-        Integer getCardinality();
+        int getCardinality();
 
         void setCardinality(int cardinality);
 
@@ -137,10 +139,10 @@ public interface OntCE extends OntObject {
     interface RestrictionCE extends OntCE {
     }
 
-    interface ComponentRestrictionCE<T extends RDFNode> extends RestrictionCE, Value<T>, ONProperty {
+    interface ComponentRestrictionCE<T extends RDFNode> extends RestrictionCE, ONProperty, Value<T> {
     }
 
-    interface CardinalityRestrictionCE<T extends OntObject> extends ComponentRestrictionCE<T>, Cardinality {
+    interface CardinalityRestrictionCE<T extends OntObject> extends Cardinality, ComponentRestrictionCE<T> {
     }
 
     interface NaryRestrictionCE<T extends OntObject> extends RestrictionCE, ONProperties, Value<T> {

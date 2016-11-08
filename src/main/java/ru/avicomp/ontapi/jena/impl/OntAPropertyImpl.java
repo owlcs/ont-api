@@ -6,11 +6,11 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntAPEntity;
-import ru.avicomp.ontapi.jena.model.OntEntity;
 
 /**
  * owl:AnnotationProperty
@@ -28,22 +28,22 @@ public class OntAPropertyImpl extends OntEntityImpl implements OntAPEntity {
     }
 
     @Override
-    public Class<? extends OntEntity> getActualClass() {
+    public Class<OntAPEntity> getActualClass() {
         return OntAPEntity.class;
     }
 
     @Override
     public Resource getRDFType() {
-        return OWL.AnnotationProperty;
+        return OWL2.AnnotationProperty;
     }
 
     @Override
     public Stream<Resource> domain() {
-        return GraphModelImpl.asStream(getModel().listObjectsOfProperty(this, RDFS.domain).mapWith(RDFNode::asResource));
+        return JenaUtils.asStream(getModel().listObjectsOfProperty(this, RDFS.domain).mapWith(RDFNode::asResource));
     }
 
     @Override
     public Stream<Resource> range() {
-        return GraphModelImpl.asStream(getModel().listObjectsOfProperty(this, RDFS.range).mapWith(RDFNode::asResource));
+        return JenaUtils.asStream(getModel().listObjectsOfProperty(this, RDFS.range).mapWith(RDFNode::asResource));
     }
 }

@@ -5,13 +5,12 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntDPEntity;
 import ru.avicomp.ontapi.jena.model.OntDR;
-import ru.avicomp.ontapi.jena.model.OntEntity;
 
 /**
  * owl:DatatypeProperty
@@ -28,13 +27,13 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntDPEntity {
     }
 
     @Override
-    public Class<? extends OntEntity> getActualClass() {
+    public Class<OntDPEntity> getActualClass() {
         return OntDPEntity.class;
     }
 
     @Override
     public Resource getRDFType() {
-        return OWL.DatatypeProperty;
+        return OWL2.DatatypeProperty;
     }
 
     @Override

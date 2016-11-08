@@ -13,28 +13,28 @@ import ru.avicomp.ontapi.OntException;
  * Created by szuev on 07.11.2016.
  */
 @FunctionalInterface
-public interface Filter {
+public interface OntFilter {
     boolean test(Node n, EnhGraph g);
 
-    default Filter and(Filter other) {
+    default OntFilter and(OntFilter other) {
         OntException.notNull(other, "Null and-filter.");
         return (Node t, EnhGraph u) -> test(t, u) && other.test(t, u);
     }
 
-    default Filter or(Filter other) {
+    default OntFilter or(OntFilter other) {
         OntException.notNull(other, "Null or-filter.");
         return (Node t, EnhGraph u) -> test(t, u) || other.test(t, u);
     }
 
-    default Filter accumulate(Filter... filters) {
-        Filter res = this;
-        for (Filter o : filters) {
+    default OntFilter accumulate(OntFilter... filters) {
+        OntFilter res = this;
+        for (OntFilter o : filters) {
             res = res.and(o);
         }
         return res;
     }
 
-    class Named implements Filter {
+    class Named implements OntFilter {
         private final Boolean named;
 
         public Named(Boolean named) {
@@ -47,7 +47,7 @@ public interface Filter {
         }
     }
 
-    class Predicate implements Filter {
+    class Predicate implements OntFilter {
         private final Node predicate;
 
         public Predicate(Property predicate) {

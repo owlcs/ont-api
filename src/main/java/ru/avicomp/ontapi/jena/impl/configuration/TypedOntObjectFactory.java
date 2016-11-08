@@ -9,16 +9,16 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntException;
-import ru.avicomp.ontapi.jena.impl.GraphModelImpl;
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 
 /**
- * Factory to create typed resources.
+ * Factory to create typed {@link ru.avicomp.ontapi.jena.model.OntObject} resources.
  * <p>
  * Created by szuev on 07.11.2016.
  */
 public class TypedOntObjectFactory extends CommonOntObjectFactory {
-    public TypedOntObjectFactory(Class<? extends OntObjectImpl> impl, Resource type, Filter... filters) {
+    public TypedOntObjectFactory(Class<? extends OntObjectImpl> impl, Resource type, OntFilter... filters) {
         super(impl, new TypeMaker(type), new TypeFinder(type), new TypeFilter(type), filters);
     }
 
@@ -31,7 +31,7 @@ public class TypedOntObjectFactory extends CommonOntObjectFactory {
         }
     }
 
-    public static class TypeMaker extends TypeWrapper implements Maker {
+    public static class TypeMaker extends TypeWrapper implements OntMaker {
         public TypeMaker(Resource type) {
             super(type);
         }
@@ -42,18 +42,18 @@ public class TypedOntObjectFactory extends CommonOntObjectFactory {
         }
     }
 
-    public static class TypeFinder extends TypeWrapper implements Finder {
+    public static class TypeFinder extends TypeWrapper implements OntFinder {
         public TypeFinder(Resource type) {
             super(type);
         }
 
         @Override
         public Stream<Node> find(EnhGraph eg) {
-            return GraphModelImpl.asStream(eg.asGraph().find(Node.ANY, RDF_TYPE, type).mapWith(Triple::getSubject));
+            return JenaUtils.asStream(eg.asGraph().find(Node.ANY, RDF_TYPE, type).mapWith(Triple::getSubject));
         }
     }
 
-    public static class TypeFilter extends TypeWrapper implements Filter {
+    public static class TypeFilter extends TypeWrapper implements OntFilter {
         public TypeFilter(Resource type) {
             super(type);
         }

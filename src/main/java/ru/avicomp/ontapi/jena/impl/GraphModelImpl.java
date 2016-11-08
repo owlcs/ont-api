@@ -2,15 +2,14 @@ package ru.avicomp.ontapi.jena.impl;
 
 import java.io.OutputStream;
 import java.io.Writer;
-import java.util.Iterator;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
 
 import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntConfiguration;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
@@ -148,22 +147,12 @@ public class GraphModelImpl extends ModelCom {
     }
 
 
-    public static <T> Stream<T> asStream(Iterator<T> iterator) {
-        return asStream(iterator, true, false);
-    }
-
-    public static <T> Stream<T> asStream(Iterator<T> iterator, boolean distinct, boolean parallel) {
-        Iterable<T> iterable = () -> iterator;
-        Stream<T> res = StreamSupport.stream(iterable.spliterator(), parallel);
-        return distinct ? res.distinct() : res;
-    }
-
     Stream<OntCE> classExpressions(Resource resource, Property predicate) {
-        return asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntCE.class)).distinct();
+        return JenaUtils.asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntCE.class)).distinct();
     }
 
     Stream<OntDR> dataRanges(Resource resource, Property predicate) {
-        return GraphModelImpl.asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntDR.class)).distinct();
+        return JenaUtils.asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntDR.class)).distinct();
     }
 
 }

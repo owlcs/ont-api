@@ -1,15 +1,17 @@
 package ru.avicomp.ontapi.jena.impl.configuration;
 
+import java.util.stream.Stream;
+
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 
 /**
- * To make some preparation while creating.
+ * To search resources in model
  * Used in factory.
  * <p>
  * Created by szuev on 07.11.2016.
  */
 @FunctionalInterface
-public interface Maker {
-    void prepare(Node node, EnhGraph eg);
+public interface OntFinder {
+    Stream<Node> find(EnhGraph eg);
 }

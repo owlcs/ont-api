@@ -5,7 +5,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
 
-import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntIndividualEntity;
 
 /**
@@ -24,7 +23,7 @@ public class OntNamedIndividualImpl extends OntEntityImpl implements OntIndividu
     }
 
     @Override
-    public Class<? extends OntEntity> getActualClass() {
+    public Class<OntIndividualEntity> getActualClass() {
         return OntIndividualEntity.class;
     }
 

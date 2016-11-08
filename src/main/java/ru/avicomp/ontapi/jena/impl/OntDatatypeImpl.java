@@ -6,7 +6,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntDatatypeEntity;
-import ru.avicomp.ontapi.jena.model.OntEntity;
 
 /**
  * rdfs:Datatype
@@ -23,7 +22,7 @@ public class OntDatatypeImpl extends OntEntityImpl implements OntDatatypeEntity 
     }
 
     @Override
-    public Class<? extends OntEntity> getActualClass() {
+    public Class<OntDatatypeEntity> getActualClass() {
         return OntDatatypeEntity.class;
     }
 

@@ -17,11 +17,11 @@ import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
  */
 public class CommonOntObjectFactory extends OntObjectFactory {
     private final Class<? extends OntObjectImpl> impl;
-    private final Maker maker;
-    private final Finder finder;
-    private final Filter filter;
+    private final OntMaker maker;
+    private final OntFinder finder;
+    private final OntFilter filter;
 
-    public CommonOntObjectFactory(Class<? extends OntObjectImpl> impl, Maker maker, Finder finder, Filter primaryFilter, Filter... additionalFilters) {
+    public CommonOntObjectFactory(Class<? extends OntObjectImpl> impl, OntMaker maker, OntFinder finder, OntFilter primaryFilter, OntFilter... additionalFilters) {
         this.impl = OntException.notNull(impl, "Null implementation class.");
         this.maker = OntException.notNull(maker, "Null maker.");
         this.finder = OntException.notNull(finder, "Null finder.");
