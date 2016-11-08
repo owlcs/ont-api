@@ -14,6 +14,9 @@ import ru.avicomp.ontapi.OntException;
  */
 @FunctionalInterface
 public interface OntFilter {
+    OntFilter URI = new Named(true);
+    OntFilter BLANK = (n, g) -> n.isBlank();
+
     boolean test(Node n, EnhGraph g);
 
     default OntFilter and(OntFilter other) {

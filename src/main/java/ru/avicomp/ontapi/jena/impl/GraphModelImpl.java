@@ -119,27 +119,27 @@ public class GraphModelImpl extends ModelCom {
     }
 
     public Stream<OntClassEntity> listClasses() {
-        return ontEntities(OntClassEntity.class).map(OntClassEntity.class::cast);
+        return ontEntities(OntClassEntity.class);
     }
 
     public Stream<OntAPEntity> listAnnotationProperties() {
-        return ontEntities(OntAPEntity.class).map(OntAPEntity.class::cast);
+        return ontEntities(OntAPEntity.class);
     }
 
-    public Stream<OntDPropertyImpl> listDataProperties() {
-        return ontEntities(OntDPEntity.class).map(OntDPropertyImpl.class::cast);
+    public Stream<OntDPEntity> listDataProperties() {
+        return ontEntities(OntDPEntity.class);
     }
 
-    public Stream<OntOPropertyImpl> listObjectProperties() {
-        return ontEntities(OntOPEntity.class).map(OntOPropertyImpl.class::cast);
+    public Stream<OntOPEntity> listObjectProperties() {
+        return ontEntities(OntOPEntity.class);
     }
 
     public Stream<OntDatatypeEntity> listDatatypes() {
-        return ontEntities(OntDatatypeEntity.class).map(OntDatatypeEntity.class::cast);
+        return ontEntities(OntDatatypeEntity.class);
     }
 
     public Stream<OntIndividualEntity> listNamedIndividuals() {
-        return ontEntities(OntIndividualEntity.class).map(OntIndividualEntity.class::cast);
+        return ontEntities(OntIndividualEntity.class);
     }
 
     protected OntObjectFactory getFactory(Class<? extends OntObject> view) {

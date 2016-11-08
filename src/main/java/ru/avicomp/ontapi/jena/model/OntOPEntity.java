@@ -1,16 +1,15 @@
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.stream.Stream;
-
 /**
  * Object property
  * Created by szuev on 01.11.2016.
  */
-public interface OntOPEntity extends OntPropertyEntity, OntPE {
-    @Override
-    Stream<OntCE> domain();
+public interface OntOPEntity extends OntOPE, OntEntity {
 
-    @Override
-    Stream<OntCE> range();
-
+    /**
+     * inverse this property
+     *
+     * @return new anonymous OntOPE resource
+     */
+    Inverse inverse();
 }

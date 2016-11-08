@@ -3,6 +3,8 @@ package ru.avicomp.ontapi.jena.impl.configuration;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 
+import ru.avicomp.ontapi.OntException;
+
 /**
  * To make some preparation while creating.
  * Used in factory.
@@ -11,5 +13,9 @@ import org.apache.jena.graph.Node;
  */
 @FunctionalInterface
 public interface OntMaker {
+    OntMaker UNSUPPORTED = (n, g) -> {
+        throw new OntException("Creation is not allowed for node " + n);
+    };
+
     void prepare(Node node, EnhGraph eg);
 }

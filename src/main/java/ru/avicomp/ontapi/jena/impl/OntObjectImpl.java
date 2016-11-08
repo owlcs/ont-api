@@ -7,9 +7,12 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntException;
@@ -23,7 +26,11 @@ import ru.avicomp.ontapi.jena.model.OntObject;
  * Created by szuev on 03.11.2016.
  */
 public class OntObjectImpl extends ResourceImpl implements OntObject {
-    public static OntObjectFactory factory = new OntObjectFactory() {
+    static final Node RDF_TYPE = RDF.type.asNode();
+    static final Node OWL_DATATYPE_PROPERTY = OWL2.DatatypeProperty.asNode();
+    static final Node OWL_OBJECT_PROPERTY = OWL2.ObjectProperty.asNode();
+
+    public static OntObjectFactory objectFactory = new OntObjectFactory() {
         @Override
         public Stream<EnhNode> find(EnhGraph eg) {
             return JenaUtils.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY).
@@ -58,6 +65,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast));
     }
 
+    boolean hasType(Resource type) {
+        return types().filter(type::equals).findAny().isPresent();
+    }
+
     @Override
     public GraphModelImpl getModel() {
         return (GraphModelImpl) super.getModel();
@@ -71,5 +82,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public String toString() {
         return String.format("%s(%s)", asNode(), getActualClass().getSimpleName());
+    }
+
+    public <T extends OntObject> T getOntProperty(Property predicate, Class<T> view) {
+        Statement st = getProperty(predicate);
+        return st == null ? null : getModel().getNodeAs(st.getObject().asNode(), view);
+    }
+
+    public <T extends OntObject> T getRequiredOntProperty(Property predicate, Class<T> view) {
+        return getModel().getNodeAs(getRequiredProperty(predicate).getObject().asNode(), view);
     }
 }

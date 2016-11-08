@@ -7,6 +7,7 @@ import org.apache.jena.rdf.model.impl.*;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.impl.OntEntityImpl;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
+import ru.avicomp.ontapi.jena.impl.OntPEImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
@@ -31,7 +32,7 @@ public class OntConfiguration {
             .add(RDFNode.class, ResourceImpl.rdfNodeFactory)
 
             // entities:
-            .add(OntObject.class, OntObjectImpl.factory)
+            .add(OntObject.class, OntObjectImpl.objectFactory)
             .add(OntClassEntity.class, OntEntityImpl.classFactory)
             .add(OntAPEntity.class, OntEntityImpl.annotationPropertyFactory)
             .add(OntDPEntity.class, OntEntityImpl.dataPropertyFactory)
@@ -63,6 +64,11 @@ public class OntConfiguration {
             .add(OntCE.CardinalityRestrictionCE.class, OntCEImpl.abstractCardinalityRestrictionCEFactory)
             .add(OntCE.ComponentRestrictionCE.class, OntCEImpl.abstractComponentRestrictionCEFactory)
             .add(OntCE.RestrictionCE.class, OntCEImpl.abstractRestrictionCEFactory) //todo: add nary CEs
+
+            // property expressions:
+            .add(OntOPE.Inverse.class, OntPEImpl.inversePropertyFactory)
+            .add(OntOPE.class, OntPEImpl.abstractOPEFactory)
+            .add(OntPE.class, OntPEImpl.abstractPEFactory)
             ;
 
     // todo: replace with out resources. ontology additions

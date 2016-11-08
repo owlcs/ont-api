@@ -19,14 +19,13 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
  * Created by szuev on 03.11.2016.
  */
 public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
-    private static final OntFilter.Named URI_FILTER = new OntFilter.Named(true);
 
-    public static OntObjectFactory classFactory = new TypedOntObjectFactory(OntClassEntityImpl.class, OWL2.Class, URI_FILTER);
-    public static OntObjectFactory annotationPropertyFactory = new TypedOntObjectFactory(OntAPropertyImpl.class, OWL2.AnnotationProperty, URI_FILTER);
-    public static OntObjectFactory dataPropertyFactory = new TypedOntObjectFactory(OntDPropertyImpl.class, OWL2.DatatypeProperty, URI_FILTER);
-    public static OntObjectFactory objectPropertyFactory = new TypedOntObjectFactory(OntOPropertyImpl.class, OWL2.ObjectProperty, URI_FILTER);
-    public static OntObjectFactory datatypeFactory = new TypedOntObjectFactory(OntDatatypeImpl.class, RDFS.Datatype, URI_FILTER);
-    public static OntObjectFactory individualFactory = new TypedOntObjectFactory(OntNamedIndividualImpl.class, OWL2.NamedIndividual, URI_FILTER);
+    public static OntObjectFactory classFactory = new TypedOntObjectFactory(OntClassEntityImpl.class, OWL2.Class, OntFilter.URI);
+    public static OntObjectFactory annotationPropertyFactory = new TypedOntObjectFactory(OntAPropertyImpl.class, OWL2.AnnotationProperty, OntFilter.URI);
+    public static OntObjectFactory dataPropertyFactory = new TypedOntObjectFactory(OntDPropertyImpl.class, OWL2.DatatypeProperty, OntFilter.URI);
+    public static OntObjectFactory objectPropertyFactory = new TypedOntObjectFactory(OntOPEImpl.NamedProperty.class, OWL2.ObjectProperty, OntFilter.URI);
+    public static OntObjectFactory datatypeFactory = new TypedOntObjectFactory(OntDatatypeImpl.class, RDFS.Datatype, OntFilter.URI);
+    public static OntObjectFactory individualFactory = new TypedOntObjectFactory(OntNamedIndividualImpl.class, OWL2.NamedIndividual, OntFilter.URI);
 
     public static OntObjectFactory abstractEntityFactory =
             new MultiOntObjectFactory(classFactory, annotationPropertyFactory, dataPropertyFactory, objectPropertyFactory, datatypeFactory, individualFactory);
