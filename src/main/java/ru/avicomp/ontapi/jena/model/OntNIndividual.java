@@ -5,5 +5,5 @@ package ru.avicomp.ontapi.jena.model;
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntIndividualEntity extends OntEntity, OntIndividual {
+public interface OntNIndividual extends OntEntity, OntIndividual {
 }

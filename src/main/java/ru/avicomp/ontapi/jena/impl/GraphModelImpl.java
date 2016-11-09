@@ -2,11 +2,16 @@ package ru.avicomp.ontapi.jena.impl;
 
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
+import org.apache.jena.util.iterator.UniqueFilter;
+import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
@@ -25,6 +30,18 @@ public class GraphModelImpl extends ModelCom {
 
     public GraphModelImpl(Graph graph) {
         super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntConfiguration.getPersonality());
+    }
+
+    public OntID getID() {
+        List<Resource> tmp = listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject).filterKeep(new UniqueFilter<>()).toList();
+        Resource res;
+        if (tmp.isEmpty()) {
+            res = createResource();
+            add(res, RDF.type, OWL2.Ontology);
+        } else {
+            res = tmp.get(0); // choose first.
+        }
+        return getNodeAs(res.asNode(), OntID.class);
     }
 
     public void addImport(GraphModelImpl m) {
@@ -88,6 +105,12 @@ public class GraphModelImpl extends ModelCom {
         return getBaseGraph().contains(s.asNode(), p.asNode(), o.asNode());
     }
 
+    @Override
+    public GraphModelImpl remove(Resource s, Property p, RDFNode o) { // todo: removing is allowed only for base graph
+        graph.delete(Triple.create(s.asNode(), p.asNode(), o.asNode()));
+        return this;
+    }
+
     public Stream<OntEntity> ontEntities() {
         return ontObjects(OntEntity.class);
     }
@@ -118,28 +141,28 @@ public class GraphModelImpl extends ModelCom {
         return ontObjects(type);
     }
 
-    public Stream<OntClassEntity> listClasses() {
-        return ontEntities(OntClassEntity.class);
+    public Stream<OntClass> listClasses() {
+        return ontEntities(OntClass.class);
     }
 
-    public Stream<OntAPEntity> listAnnotationProperties() {
-        return ontEntities(OntAPEntity.class);
+    public Stream<OntAProperty> listAnnotationProperties() {
+        return ontEntities(OntAProperty.class);
     }
 
-    public Stream<OntDPEntity> listDataProperties() {
-        return ontEntities(OntDPEntity.class);
+    public Stream<OntDProperty> listDataProperties() {
+        return ontEntities(OntDProperty.class);
     }
 
-    public Stream<OntOPEntity> listObjectProperties() {
-        return ontEntities(OntOPEntity.class);
+    public Stream<OntOProperty> listObjectProperties() {
+        return ontEntities(OntOProperty.class);
     }
 
-    public Stream<OntDatatypeEntity> listDatatypes() {
-        return ontEntities(OntDatatypeEntity.class);
+    public Stream<OntDT> listDatatypes() {
+        return ontEntities(OntDT.class);
     }
 
-    public Stream<OntIndividualEntity> listNamedIndividuals() {
-        return ontEntities(OntIndividualEntity.class);
+    public Stream<OntNIndividual> listNamedIndividuals() {
+        return ontEntities(OntNIndividual.class);
     }
 
     protected OntObjectFactory getFactory(Class<? extends OntObject> view) {

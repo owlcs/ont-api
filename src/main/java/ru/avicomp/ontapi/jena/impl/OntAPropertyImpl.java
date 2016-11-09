@@ -10,26 +10,22 @@ import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
-import ru.avicomp.ontapi.jena.model.OntAPEntity;
+import ru.avicomp.ontapi.jena.model.OntAProperty;
 
 /**
  * owl:AnnotationProperty
  * <p>
  * Created by szuev on 03.11.2016.
  */
-public class OntAPropertyImpl extends OntEntityImpl implements OntAPEntity {
-
-    OntAPropertyImpl(Resource inModel) {
-        super(inModel);
-    }
+public class OntAPropertyImpl extends OntEntityImpl implements OntAProperty {
 
     public OntAPropertyImpl(Node n, EnhGraph g) {
-        super(n, g);
+        super(OntEntityImpl.checkNamed(n), g);
     }
 
     @Override
-    public Class<OntAPEntity> getActualClass() {
-        return OntAPEntity.class;
+    public Class<OntAProperty> getActualClass() {
+        return OntAProperty.class;
     }
 
     @Override

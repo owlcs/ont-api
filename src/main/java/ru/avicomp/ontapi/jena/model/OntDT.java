@@ -5,5 +5,5 @@ package ru.avicomp.ontapi.jena.model;
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntDatatypeEntity extends OntEntity, OntDR {
+public interface OntDT extends OntEntity, OntDR {
 }

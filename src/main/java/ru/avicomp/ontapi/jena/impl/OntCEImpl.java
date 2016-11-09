@@ -127,9 +127,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    public static class DataSomeValuesFromImpl extends ComponentRestrictionCEImpl<OntDR, OntDPEntity> implements DataSomeValuesFrom {
+    public static class DataSomeValuesFromImpl extends ComponentRestrictionCEImpl<OntDR, OntDProperty> implements DataSomeValuesFrom {
         public DataSomeValuesFromImpl(Node n, EnhGraph m) {
-            super(n, m, OWL2.someValuesFrom, OntDR.class, OntDPEntity.class);
+            super(n, m, OWL2.someValuesFrom, OntDR.class, OntDProperty.class);
         }
 
         @Override
@@ -149,9 +149,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    public static class DataAllValuesFromImpl extends ComponentRestrictionCEImpl<OntDR, OntDPEntity> implements DataAllValuesFrom {
+    public static class DataAllValuesFromImpl extends ComponentRestrictionCEImpl<OntDR, OntDProperty> implements DataAllValuesFrom {
         public DataAllValuesFromImpl(Node n, EnhGraph m) {
-            super(n, m, OWL2.allValuesFrom, OntDR.class, OntDPEntity.class);
+            super(n, m, OWL2.allValuesFrom, OntDR.class, OntDProperty.class);
         }
 
         @Override
@@ -171,9 +171,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    public static class DataHasValueImpl extends ComponentRestrictionCEImpl<Literal, OntDPEntity> implements DataHasValue {
+    public static class DataHasValueImpl extends ComponentRestrictionCEImpl<Literal, OntDProperty> implements DataHasValue {
         public DataHasValueImpl(Node n, EnhGraph m) {
-            super(n, m, OWL2.hasValue, Literal.class, OntDPEntity.class);
+            super(n, m, OWL2.hasValue, Literal.class, OntDProperty.class);
         }
 
         @Override
@@ -215,9 +215,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    public static class DataMinCardinalityImpl extends CardinalityRestrictionCEImpl<OntDR, OntDPEntity> implements DataMinCardinality {
+    public static class DataMinCardinalityImpl extends CardinalityRestrictionCEImpl<OntDR, OntDProperty> implements DataMinCardinality {
         public DataMinCardinalityImpl(Node n, EnhGraph m) {
-            super(n, m, OWL2.onDataRange, OntDR.class, OntDPEntity.class, CardinalityType.MIN);
+            super(n, m, OWL2.onDataRange, OntDR.class, OntDProperty.class, CardinalityType.MIN);
         }
 
         @Override
@@ -237,9 +237,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    public static class DataMaxCardinalityImpl extends CardinalityRestrictionCEImpl<OntDR, OntDPEntity> implements DataMaxCardinality {
+    public static class DataMaxCardinalityImpl extends CardinalityRestrictionCEImpl<OntDR, OntDProperty> implements DataMaxCardinality {
         public DataMaxCardinalityImpl(Node n, EnhGraph m) {
-            super(n, m, OWL2.onDataRange, OntDR.class, OntDPEntity.class, CardinalityType.MAX);
+            super(n, m, OWL2.onDataRange, OntDR.class, OntDProperty.class, CardinalityType.MAX);
         }
 
         @Override
@@ -259,9 +259,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    public static class DataCardinalityImpl extends CardinalityRestrictionCEImpl<OntDR, OntDPEntity> implements DataCardinality {
+    public static class DataCardinalityImpl extends CardinalityRestrictionCEImpl<OntDR, OntDProperty> implements DataCardinality {
         public DataCardinalityImpl(Node n, EnhGraph m) {
-            super(n, m, OWL2.onDataRange, OntDR.class, OntDPEntity.class, CardinalityType.EXACTLY);
+            super(n, m, OWL2.onDataRange, OntDR.class, OntDProperty.class, CardinalityType.EXACTLY);
         }
 
         @Override

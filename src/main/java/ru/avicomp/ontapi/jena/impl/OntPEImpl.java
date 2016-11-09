@@ -9,7 +9,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntMaker;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 
 /**
- * Property Expression Implementation.
+ * Property Expression base class.
  * <p>
  * Created by @szuev on 08.11.2016.
  */

@@ -1,13 +1,13 @@
 package ru.avicomp.ontapi.tests;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.log4j.Logger;
@@ -17,7 +17,9 @@ import org.junit.Test;
 import ru.avicomp.ontapi.jena.impl.GraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntClassEntity;
+import ru.avicomp.ontapi.jena.model.OntClass;
+import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
@@ -31,8 +33,9 @@ public class GraphModelTest {
     public void testLoadCE() {
         LOGGER.info("load pizza");
         GraphModelImpl m = new GraphModelImpl(loadGraph("pizza.ttl"));
+        LOGGER.info("Ontology: " + m.getID());
 
-        List<OntClassEntity> classes = m.ontObjects(OntClassEntity.class).collect(Collectors.toList());
+        List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
         int expectedClassesCount = m.listStatements(null, RDF.type, OWL2.Class).mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).toSet().size();
         int actualClassesCount = classes.size();
         LOGGER.info("Classes Count = " + actualClassesCount);
@@ -66,6 +69,35 @@ public class GraphModelTest {
         testPizzaCEs(m, OWL2.complementOf, complementOfCEs);
         testPizzaCEs(m, OWL2.oneOf, oneOfCEs);
         testPizzaCEs(m, OWL2.minCardinality, objectMinCardinalityCEs);
+    }
+
+    @Test
+    public void testLoadProperties() {
+        LOGGER.info("load pizza");
+        GraphModelImpl m = new GraphModelImpl(loadGraph("pizza.ttl"));
+        List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
+        actual.forEach(LOGGER::debug);
+        Set<Resource> expected = new HashSet<>();
+        Stream.of(OWL2.AnnotationProperty, OWL2.DatatypeProperty, OWL2.ObjectProperty)
+                .forEach(r -> expected.addAll(m.listStatements(null, RDF.type, r).mapWith(Statement::getSubject).toSet()));
+        Assert.assertEquals("Incorrect number of properties", expected.size(), actual.size());
+    }
+
+    @Test
+    public void testLoadIndividuals() {
+        LOGGER.info("load pizza");
+        GraphModelImpl m = new GraphModelImpl(loadGraph("pizza.ttl"));
+        List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
+        individuals.forEach(i -> LOGGER.debug(i + " classes: " + i.classes().collect(Collectors.toSet())));
+
+        Set<Resource> namedIndividuals = m.listSubjectsWithProperty(RDF.type, OWL2.NamedIndividual).toSet();
+        Set<Resource> anonIndividuals = m.listStatements(null, RDF.type, (RDFNode) null)
+                .filterKeep(s -> s.getSubject().isAnon())
+                .filterKeep(s -> s.getObject().isResource() && m.contains(s.getObject().asResource(), RDF.type, OWL2.Class))
+                .mapWith(Statement::getSubject).toSet();
+        Set<Resource> expected = new HashSet<>(namedIndividuals);
+        expected.addAll(anonIndividuals);
+        Assert.assertEquals("Incorrect number of individuals", expected.size(), individuals.size());
     }
 
     private static void testPizzaCEs(Model m, Property predicate, List<? extends OntCE> ces) {

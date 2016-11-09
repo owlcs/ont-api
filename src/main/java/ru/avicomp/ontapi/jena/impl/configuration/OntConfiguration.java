@@ -4,10 +4,7 @@ import org.apache.jena.enhanced.Personality;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.*;
 
-import ru.avicomp.ontapi.jena.impl.OntCEImpl;
-import ru.avicomp.ontapi.jena.impl.OntEntityImpl;
-import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
-import ru.avicomp.ontapi.jena.impl.OntPEImpl;
+import ru.avicomp.ontapi.jena.impl.*;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
@@ -31,14 +28,17 @@ public class OntConfiguration {
             .add(RDFList.class, RDFListImpl.factory)
             .add(RDFNode.class, ResourceImpl.rdfNodeFactory)
 
+            // ont-id
+            .add(OntID.class, OntIDImpl.idFactory)
+
             // entities:
             .add(OntObject.class, OntObjectImpl.objectFactory)
-            .add(OntClassEntity.class, OntEntityImpl.classFactory)
-            .add(OntAPEntity.class, OntEntityImpl.annotationPropertyFactory)
-            .add(OntDPEntity.class, OntEntityImpl.dataPropertyFactory)
-            .add(OntOPEntity.class, OntEntityImpl.objectPropertyFactory)
-            .add(OntDatatypeEntity.class, OntEntityImpl.datatypeFactory)
-            .add(OntIndividualEntity.class, OntEntityImpl.individualFactory)
+            .add(OntClass.class, OntEntityImpl.classFactory)
+            .add(OntAProperty.class, OntEntityImpl.annotationPropertyFactory)
+            .add(OntDProperty.class, OntEntityImpl.dataPropertyFactory)
+            .add(OntOProperty.class, OntEntityImpl.objectPropertyFactory)
+            .add(OntDT.class, OntEntityImpl.datatypeFactory)
+            .add(OntNIndividual.class, OntEntityImpl.individualFactory)
             .add(OntEntity.class, OntEntityImpl.abstractEntityFactory)
 
             // class expressions:
@@ -69,6 +69,9 @@ public class OntConfiguration {
             .add(OntOPE.Inverse.class, OntPEImpl.inversePropertyFactory)
             .add(OntOPE.class, OntPEImpl.abstractOPEFactory)
             .add(OntPE.class, OntPEImpl.abstractPEFactory)
+
+            // individuals
+            .add(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory)
             ;
 
     // todo: replace with out resources. ontology additions

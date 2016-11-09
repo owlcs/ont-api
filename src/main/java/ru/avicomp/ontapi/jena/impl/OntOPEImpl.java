@@ -17,7 +17,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntOPE;
-import ru.avicomp.ontapi.jena.model.OntOPEntity;
+import ru.avicomp.ontapi.jena.model.OntOProperty;
 
 /**
  * owl:ObjectProperty (could be also Annotation, InverseFunctional, Transitive, SymmetricProperty, etc)
@@ -30,14 +30,14 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         super(n, g);
     }
 
-    public static class NamedProperty extends OntOPEImpl implements OntOPEntity {
+    public static class NamedProperty extends OntOPEImpl implements OntOProperty {
 
         public NamedProperty(Node n, EnhGraph g) {
-            super(n, g);
+            super(OntEntityImpl.checkNamed(n), g);
         }
 
         @Override
-        public Inverse inverse() {
+        public Inverse createInverse() {
             Resource res = getModel().createResource();
             getModel().add(res, OWL2.inverseOf, this);
             return new InverseProperty(res.asNode(), getModel());
@@ -49,8 +49,8 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         }
 
         @Override
-        public Class<OntOPEntity> getActualClass() {
-            return OntOPEntity.class;
+        public Class<OntOProperty> getActualClass() {
+            return OntOProperty.class;
         }
     }
 
@@ -127,47 +127,39 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         return hasType(OWL2.IrreflexiveProperty);
     }
 
-    private void setProperty(Resource property, boolean add) {
-        if (add) {
-            getModel().add(this, RDF.type, property);
-        } else { // todo: what if property is defined in imports?
-            getModel().remove(this, RDF.type, property);
-        }
-    }
-
     @Override
     public void setFunctional(boolean functional) {
-        setProperty(OWL2.FunctionalProperty, functional);
+        changeType(OWL2.FunctionalProperty, functional);
     }
 
     @Override
     public void setInverseFunctional(boolean inverseFunctional) {
-        setProperty(OWL2.InverseFunctionalProperty, inverseFunctional);
+        changeType(OWL2.InverseFunctionalProperty, inverseFunctional);
     }
 
     @Override
     public void setAsymmetric(boolean asymmetric) {
-        setProperty(OWL2.AsymmetricProperty, asymmetric);
+        changeType(OWL2.AsymmetricProperty, asymmetric);
     }
 
     @Override
     public void setTransitive(boolean transitive) {
-        setProperty(OWL2.TransitiveProperty, transitive);
+        changeType(OWL2.TransitiveProperty, transitive);
     }
 
     @Override
     public void setReflexive(boolean reflexive) {
-        setProperty(OWL2.ReflexiveProperty, reflexive);
+        changeType(OWL2.ReflexiveProperty, reflexive);
     }
 
     @Override
     public void setIrreflexive(boolean irreflexive) {
-        setProperty(OWL2.IrreflexiveProperty, irreflexive);
+        changeType(OWL2.IrreflexiveProperty, irreflexive);
     }
 
     @Override
     public void setSymmetric(boolean symmetric) {
-        setProperty(OWL2.SymmetricProperty, symmetric);
+        changeType(OWL2.SymmetricProperty, symmetric);
     }
 
     @Override
@@ -177,7 +169,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     @Override
     public void removeInverseOf(OntOPE other) {
-        // todo: removing is allowed only from current graph
         getModel().remove(this, OWL2.inverseOf, OntException.notNull(other, "Null object property expression."));
     }
 

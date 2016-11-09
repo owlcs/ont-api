@@ -29,6 +29,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     static final Node RDF_TYPE = RDF.type.asNode();
     static final Node OWL_DATATYPE_PROPERTY = OWL2.DatatypeProperty.asNode();
     static final Node OWL_OBJECT_PROPERTY = OWL2.ObjectProperty.asNode();
+    static final Node OWL_CLASS = OWL2.Class.asNode();
 
     public static OntObjectFactory objectFactory = new OntObjectFactory() {
         @Override
@@ -51,15 +52,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         }
     };
 
-    OntObjectImpl(Resource inModel) {
-        this(inModel.asNode(), (GraphModelImpl) inModel.getModel());
-    }
-
     public OntObjectImpl(Node n, EnhGraph m) {
         super(n, m);
     }
 
-    @Override
     public Stream<Resource> types() {
         return JenaUtils.asStream(getModel().listObjectsOfProperty(this, RDF.type)
                 .filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast));
@@ -67,6 +63,22 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     boolean hasType(Resource type) {
         return types().filter(type::equals).findAny().isPresent();
+    }
+
+    void addType(Resource type) {
+        getModel().add(this, RDF.type, type);
+    }
+
+    void removeType(Resource type) {
+        getModel().remove(this, RDF.type, type);
+    }
+
+    void changeType(Resource property, boolean add) {
+        if (add) {
+            addType(property);
+        } else {
+            removeType(property);
+        }
     }
 
     @Override

@@ -16,7 +16,7 @@ public interface OntDR extends OntObject {
     }
 
     interface Restriction extends OntDR {
-        OntDatatypeEntity getDatatype();
+        OntDT getDatatype();
 
         Stream<OntFR> facetRestrictions();
     }

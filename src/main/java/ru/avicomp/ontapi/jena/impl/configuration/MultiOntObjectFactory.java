@@ -12,6 +12,7 @@ import ru.avicomp.ontapi.OntException;
 
 /**
  * Factory to combine several factories.
+ * TODO: way to specify custom finder to speedup searching
  * <p>
  * Created by szuev on 07.11.2016.
  */

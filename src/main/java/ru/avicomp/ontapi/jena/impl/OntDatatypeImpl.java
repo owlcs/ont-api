@@ -5,25 +5,21 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.model.OntDatatypeEntity;
+import ru.avicomp.ontapi.jena.model.OntDT;
 
 /**
  * rdfs:Datatype
  * Created by szuev on 03.11.2016.
  */
-public class OntDatatypeImpl extends OntEntityImpl implements OntDatatypeEntity {
-
-    OntDatatypeImpl(Resource inModel) {
-        super(inModel);
-    }
+public class OntDatatypeImpl extends OntEntityImpl implements OntDT {
 
     public OntDatatypeImpl(Node n, EnhGraph g) {
-        super(n, g);
+        super(OntEntityImpl.checkNamed(n), g);
     }
 
     @Override
-    public Class<OntDatatypeEntity> getActualClass() {
-        return OntDatatypeEntity.class;
+    public Class<OntDT> getActualClass() {
+        return OntDT.class;
     }
 
     @Override

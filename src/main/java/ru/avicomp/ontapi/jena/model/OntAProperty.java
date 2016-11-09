@@ -5,11 +5,11 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- * Annotation Property resource.
+ * (Named) Annotation Property resource.
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntAPEntity extends OntPE, OntEntity {
+public interface OntAProperty extends OntPE, OntEntity {
     @Override
     Stream<Resource> domain();
 
