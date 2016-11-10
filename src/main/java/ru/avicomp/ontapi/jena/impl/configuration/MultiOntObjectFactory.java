@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.jena.impl.configuration;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -12,23 +13,27 @@ import ru.avicomp.ontapi.OntException;
 
 /**
  * Factory to combine several factories.
- * TODO: way to specify custom finder to speedup searching
  * <p>
  * Created by szuev on 07.11.2016.
  */
 public class MultiOntObjectFactory extends OntObjectFactory {
     private final OntObjectFactory[] factories;
+    private OntFinder finder;
 
     public MultiOntObjectFactory(OntObjectFactory... factories) {
+        this(null, factories);
+    }
+
+    public MultiOntObjectFactory(OntFinder finder, OntObjectFactory... factories) {
+        this.finder = finder;
         this.factories = factories;
     }
 
     @Override
     public EnhNode wrap(Node node, EnhGraph eg) {
-        for (OntObjectFactory f : factories) {
-            if (f.canWrap(node, eg)) return f.wrap(node, eg);
-        }
-        throw new OntException("Can't wrap node " + node + ". Use direct factory");
+        EnhNode res = doWrap(node, eg);
+        if (res != null) return res;
+        throw new OntException("Can't wrap node " + node + ". Use direct factory.");
     }
 
     @Override
@@ -39,8 +44,18 @@ public class MultiOntObjectFactory extends OntObjectFactory {
         return false;
     }
 
+    private EnhNode doWrap(Node node, EnhGraph eg) {
+        for (OntObjectFactory f : factories) {
+            if (f.canWrap(node, eg)) return f.wrap(node, eg);
+        }
+        return null;
+    }
+
     @Override
     public Stream<EnhNode> find(EnhGraph eg) {
+        if (finder != null) {
+            return finder.find(eg).map(n -> doWrap(n, eg)).filter(Objects::nonNull).distinct();
+        }
         return Arrays.stream(factories).map(f -> f.find(eg)).flatMap(Function.identity()).distinct();
     }
 

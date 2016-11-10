@@ -13,11 +13,10 @@ import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.impl.configuration.OntConfiguration;
-import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
+import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
@@ -29,7 +28,11 @@ import ru.avicomp.ontapi.jena.model.*;
 public class GraphModelImpl extends ModelCom {
 
     public GraphModelImpl(Graph graph) {
-        super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntConfiguration.getPersonality());
+        this(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntModelConfig.ONT_PERSONALITY);
+    }
+
+    public GraphModelImpl(Graph graph, OntPersonality personality) {
+        super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), personality);
     }
 
     public OntID getID() {
@@ -122,7 +125,7 @@ public class GraphModelImpl extends ModelCom {
      * @return Stream
      */
     public <T extends OntObject> Stream<T> ontObjects(Class<T> type) {
-        return getFactory(type).find(this).map(e -> getNodeAs(e.asNode(), type));
+        return getPersonality().getOntImplementation(type).find(this).map(e -> getNodeAs(e.asNode(), type));
     }
 
     /**
@@ -134,7 +137,7 @@ public class GraphModelImpl extends ModelCom {
      */
     protected <T extends OntObject> T createOntObject(Class<T> type, String uri) {
         Resource res = uri == null ? createResource() : createResource(uri);
-        return getFactory(type).create(res.asNode(), this).as(type);
+        return getPersonality().getOntImplementation(type).create(res.asNode(), this).as(type);
     }
 
     public <T extends OntEntity> Stream<T> ontEntities(Class<T> type) {
@@ -165,10 +168,10 @@ public class GraphModelImpl extends ModelCom {
         return ontEntities(OntNIndividual.class);
     }
 
-    protected OntObjectFactory getFactory(Class<? extends OntObject> view) {
-        return (OntObjectFactory) OntException.notNull(getPersonality().getImplementation(view), "Can't find factory for object " + view);
+    @Override
+    protected OntPersonality getPersonality() {
+        return (OntPersonality) super.getPersonality();
     }
-
 
     Stream<OntCE> classExpressions(Resource resource, Property predicate) {
         return JenaUtils.asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntCE.class)).distinct();

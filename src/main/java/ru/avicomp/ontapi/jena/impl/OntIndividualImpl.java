@@ -25,9 +25,10 @@ import ru.avicomp.ontapi.jena.model.OntNIndividual;
  */
 public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
-    public static OntObjectFactory anonymousIndividualFactory = new CommonOntObjectFactory(OntIndividualImpl.AnonymousIndividual.class,
-            OntMaker.UNSUPPORTED, new AnonymousIndividual.Finder(), new AnonymousIndividual.Filter());
-    public static OntObjectFactory abstractIndividualFactory = new MultiOntObjectFactory(OntEntityImpl.individualFactory, anonymousIndividualFactory);
+    public static OntObjectFactory anonymousIndividualFactory = new CommonOntObjectFactory(
+            new OntMaker.Default(OntIndividualImpl.AnonymousIndividual.class), new AnonymousIndividual.Finder(), new AnonymousIndividual.Filter());
+    public static OntObjectFactory abstractIndividualFactory = new MultiOntObjectFactory(OntFinder.TYPED,
+            OntEntityImpl.individualFactory, anonymousIndividualFactory);
 
     public OntIndividualImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -58,6 +59,11 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         @Override
         public boolean isLocal() {
             return getModel().isInBaseModel(this, RDF.type, OWL2.NamedIndividual);
+        }
+
+        @Override
+        public boolean isBuiltIn() {
+            return false;
         }
     }
 
@@ -94,7 +100,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static boolean isOntClass(Node node, EnhGraph eg) {
-            return eg.asGraph().contains(node, RDF_TYPE, OWL_CLASS);
+            return OntEntityImpl.classFactory.canWrap(node, eg);
         }
     }
 }

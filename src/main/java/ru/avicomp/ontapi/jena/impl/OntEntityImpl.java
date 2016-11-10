@@ -1,5 +1,9 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
@@ -8,10 +12,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.OntException;
-import ru.avicomp.ontapi.jena.impl.configuration.MultiOntObjectFactory;
-import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
-import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
-import ru.avicomp.ontapi.jena.impl.configuration.TypedOntObjectFactory;
+import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 
 /**
@@ -20,15 +21,18 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
  */
 public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
 
-    public static OntObjectFactory classFactory = new TypedOntObjectFactory(OntClassImpl.class, OWL2.Class, OntFilter.URI);
-    public static OntObjectFactory annotationPropertyFactory = new TypedOntObjectFactory(OntAPropertyImpl.class, OWL2.AnnotationProperty, OntFilter.URI);
-    public static OntObjectFactory dataPropertyFactory = new TypedOntObjectFactory(OntDPropertyImpl.class, OWL2.DatatypeProperty, OntFilter.URI);
-    public static OntObjectFactory objectPropertyFactory = new TypedOntObjectFactory(OntOPEImpl.NamedProperty.class, OWL2.ObjectProperty, OntFilter.URI);
-    public static OntObjectFactory datatypeFactory = new TypedOntObjectFactory(OntDatatypeImpl.class, RDFS.Datatype, OntFilter.URI);
-    public static OntObjectFactory individualFactory = new TypedOntObjectFactory(OntIndividualImpl.NamedIndividual.class, OWL2.NamedIndividual, OntFilter.URI);
+    public static final Set<Resource> BUILT_IN_CLASSES = Stream.of(OWL2.Nothing, OWL2.Thing).collect(Collectors.toSet());
+
+    public static OntObjectFactory classFactory = new EntityFactory(OntClassImpl.class, OWL2.Class, BUILT_IN_CLASSES);
+    public static OntObjectFactory annotationPropertyFactory = new EntityFactory(OntAPropertyImpl.class, OWL2.AnnotationProperty);
+    public static OntObjectFactory dataPropertyFactory = new EntityFactory(OntDPropertyImpl.class, OWL2.DatatypeProperty);
+    public static OntObjectFactory objectPropertyFactory = new EntityFactory(OntOPEImpl.NamedProperty.class, OWL2.ObjectProperty);
+    public static OntObjectFactory datatypeFactory = new EntityFactory(OntDatatypeImpl.class, RDFS.Datatype);
+    public static OntObjectFactory individualFactory = new EntityFactory(OntIndividualImpl.NamedIndividual.class, OWL2.NamedIndividual);
 
     public static OntObjectFactory abstractEntityFactory =
-            new MultiOntObjectFactory(classFactory, annotationPropertyFactory, dataPropertyFactory, objectPropertyFactory, datatypeFactory, individualFactory);
+            new MultiOntObjectFactory(OntFinder.TYPED,
+                    classFactory, annotationPropertyFactory, dataPropertyFactory, objectPropertyFactory, datatypeFactory, individualFactory);
 
     public OntEntityImpl(Node n, EnhGraph g) {
         super(n, g);
@@ -37,6 +41,11 @@ public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
     @Override
     public boolean isLocal() {
         return getModel().isInBaseModel(this, RDF.type, getRDFType());
+    }
+
+    @Override
+    public boolean isBuiltIn() { //todo:
+        return false;
     }
 
     static Node checkNamed(Node res) {
@@ -49,5 +58,32 @@ public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
     public abstract Class<? extends OntEntity> getActualClass();
 
     public abstract Resource getRDFType();
+
+    private static class EntityFactory extends CommonOntObjectFactory {
+        private EntityFactory(Class<? extends OntObjectImpl> impl, Resource type, Set<Resource> builtInTypes) {
+            super(makeEntityMaker(impl, type), makeEntityFinder(type), makeEntityFilter(type, builtInTypes));
+        }
+
+        private EntityFactory(Class<? extends OntObjectImpl> impl, Resource type) {
+            super(makeEntityMaker(impl, type), makeEntityFinder(type), makeEntityFilter(type));
+        }
+
+        private static OntMaker makeEntityMaker(Class<? extends OntObjectImpl> impl, Resource type) {
+            return new OntMaker.WithType(impl, type);
+        }
+
+        private static OntFinder makeEntityFinder(Resource type) {
+            return new OntFinder.ByType(type);
+        }
+
+        private static OntFilter makeEntityFilter(Resource type, Set<Resource> exactMatches) {
+            return new OntFilter.OneOf(exactMatches).or(makeEntityFilter(type));
+        }
+
+        private static OntFilter makeEntityFilter(Resource type) {
+            return OntFilter.URI.and(new OntFilter.HasType(type));
+        }
+
+    }
 
 }

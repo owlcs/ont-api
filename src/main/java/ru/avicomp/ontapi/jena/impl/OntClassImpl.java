@@ -26,6 +26,11 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
     }
 
     @Override
+    public boolean isBuiltIn() {
+        return BUILT_IN_CLASSES.contains(this);
+    }
+
+    @Override
     public Class<OntClass> getActualClass() {
         return OntClass.class;
     }

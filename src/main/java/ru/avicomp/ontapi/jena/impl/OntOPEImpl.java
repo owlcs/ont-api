@@ -49,12 +49,19 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         }
 
         @Override
+        public boolean isBuiltIn() {
+            //TODO:
+            return false;
+        }
+
+        @Override
         public Class<OntOProperty> getActualClass() {
             return OntOProperty.class;
         }
     }
 
     public static class InverseProperty extends OntOPEImpl implements OntOPE.Inverse {
+
         public InverseProperty(Node n, EnhGraph g) {
             super(n, g);
         }
@@ -78,7 +85,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         }
 
         private static boolean isObjectPropertyNode(Node node, EnhGraph eg) {
-            return eg.asGraph().contains(node, RDF_TYPE, OWL_OBJECT_PROPERTY);
+            return OntEntityImpl.objectPropertyFactory.canWrap(node, eg);
         }
     }
 

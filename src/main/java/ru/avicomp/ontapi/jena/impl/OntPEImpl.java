@@ -3,10 +3,7 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 
-import ru.avicomp.ontapi.jena.impl.configuration.CommonOntObjectFactory;
-import ru.avicomp.ontapi.jena.impl.configuration.MultiOntObjectFactory;
-import ru.avicomp.ontapi.jena.impl.configuration.OntMaker;
-import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
+import ru.avicomp.ontapi.jena.impl.configuration.*;
 
 /**
  * Property Expression base class.
@@ -15,11 +12,13 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
  */
 public abstract class OntPEImpl extends OntObjectImpl {
 
-    public static OntObjectFactory inversePropertyFactory = new CommonOntObjectFactory(OntOPEImpl.InverseProperty.class,
-            OntMaker.UNSUPPORTED, new OntOPEImpl.InverseProperty.Finder(), new OntOPEImpl.InverseProperty.Filter());
-    public static OntObjectFactory abstractOPEFactory = new MultiOntObjectFactory(OntEntityImpl.objectPropertyFactory,
+    public static OntObjectFactory inversePropertyFactory = new CommonOntObjectFactory(new OntMaker.Default(OntOPEImpl.InverseProperty.class),
+            new OntOPEImpl.InverseProperty.Finder(), new OntOPEImpl.InverseProperty.Filter());
+    public static OntObjectFactory abstractOPEFactory = new MultiOntObjectFactory(OntFinder.TYPED,
+            OntEntityImpl.objectPropertyFactory,
             inversePropertyFactory);
-    public static OntObjectFactory abstractPEFactory = new MultiOntObjectFactory(OntEntityImpl.objectPropertyFactory,
+    public static OntObjectFactory abstractPEFactory = new MultiOntObjectFactory(OntFinder.TYPED,
+            OntEntityImpl.objectPropertyFactory,
             OntEntityImpl.dataPropertyFactory, OntEntityImpl.annotationPropertyFactory, inversePropertyFactory);
 
     OntPEImpl(Node n, EnhGraph m) {

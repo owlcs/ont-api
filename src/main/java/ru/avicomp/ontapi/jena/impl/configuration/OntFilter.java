@@ -1,21 +1,28 @@
 package ru.avicomp.ontapi.jena.impl.configuration;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntException;
 
 /**
  * To filter resources.
- * Used in factory.
+ * Used in factory ({@link CommonOntObjectFactory}).
  * <p>
  * Created by szuev on 07.11.2016.
  */
 @FunctionalInterface
 public interface OntFilter {
     OntFilter URI = new Named(true);
-    OntFilter BLANK = (n, g) -> n.isBlank();
+    OntFilter BLANK = new Named(false);
 
     boolean test(Node n, EnhGraph g);
 
@@ -50,16 +57,42 @@ public interface OntFilter {
         }
     }
 
-    class Predicate implements OntFilter {
-        private final Node predicate;
+    class HasPredicate implements OntFilter {
+        protected final Node predicate;
 
-        public Predicate(Property predicate) {
+        public HasPredicate(Property predicate) {
             this.predicate = OntException.notNull(predicate, "Null predicate.").asNode();
         }
 
         @Override
         public boolean test(Node n, EnhGraph g) {
             return g.asGraph().contains(n, predicate, Node.ANY);
+        }
+    }
+
+    class HasType implements OntFilter {
+        protected final Node type;
+
+        public HasType(Resource type) {
+            this.type = OntException.notNull(type, "Null type.").asNode();
+        }
+
+        @Override
+        public boolean test(Node node, EnhGraph eg) {
+            return eg.asGraph().contains(node, RDF.type.asNode(), type);
+        }
+    }
+
+    class OneOf implements OntFilter {
+        protected final Set<Node> nodes;
+
+        public OneOf(Collection<Resource> types) {
+            nodes = types.stream().map(RDFNode::asNode).collect(Collectors.toSet());
+        }
+
+        @Override
+        public boolean test(Node n, EnhGraph g) {
+            return nodes.contains(n);
         }
     }
 }

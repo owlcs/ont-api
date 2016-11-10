@@ -30,6 +30,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     static final Node OWL_DATATYPE_PROPERTY = OWL2.DatatypeProperty.asNode();
     static final Node OWL_OBJECT_PROPERTY = OWL2.ObjectProperty.asNode();
     static final Node OWL_CLASS = OWL2.Class.asNode();
+    static final Node OWL_RESTRICTION = OWL2.Restriction.asNode();
 
     public static OntObjectFactory objectFactory = new OntObjectFactory() {
         @Override
