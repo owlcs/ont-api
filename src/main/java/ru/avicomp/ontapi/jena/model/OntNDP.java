@@ -7,7 +7,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntDProperty extends OntPE, OntEntity {
+public interface OntNDP extends OntPE, OntEntity {
     @Override
     Stream<OntCE> domain();
 

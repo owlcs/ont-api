@@ -16,7 +16,6 @@ import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntNIndividual;
 
 /**
  * both for anon and named individuals.
@@ -26,7 +25,7 @@ import ru.avicomp.ontapi.jena.model.OntNIndividual;
 public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
     public static OntObjectFactory anonymousIndividualFactory = new CommonOntObjectFactory(
-            new OntMaker.Default(OntIndividualImpl.AnonymousIndividual.class), new AnonymousIndividual.Finder(), new AnonymousIndividual.Filter());
+            new OntMaker.Default(AnonymousImpl.class), new AnonymousImpl.Finder(), new AnonymousImpl.Filter());
     public static OntObjectFactory abstractIndividualFactory = new MultiOntObjectFactory(OntFinder.TYPED,
             OntEntityImpl.individualFactory, anonymousIndividualFactory);
 
@@ -51,8 +50,8 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
                 mapWith(r -> getModel().getNodeAs(r.asNode(), OntClass.class)));
     }
 
-    public static class NamedIndividual extends OntIndividualImpl implements OntNIndividual {
-        public NamedIndividual(Node n, EnhGraph m) {
+    public static class NamedImpl extends OntIndividualImpl implements OntIndividual.Named {
+        public NamedImpl(Node n, EnhGraph m) {
             super(OntEntityImpl.checkNamed(n), m);
         }
 
@@ -67,8 +66,8 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
     }
 
-    public static class AnonymousIndividual extends OntIndividualImpl {
-        public AnonymousIndividual(Node n, EnhGraph m) {
+    public static class AnonymousImpl extends OntIndividualImpl implements OntIndividual.Anonymous {
+        public AnonymousImpl(Node n, EnhGraph m) {
             super(n, m);
         }
 

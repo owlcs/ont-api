@@ -18,6 +18,7 @@ import org.apache.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
+import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
 /**
@@ -104,5 +105,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     public <T extends OntObject> T getRequiredOntProperty(Property predicate, Class<T> view) {
         return getModel().getNodeAs(getRequiredProperty(predicate).getObject().asNode(), view);
+    }
+
+    @Override
+    public Stream<RDFNode> annotationAssertions(OntNAP property) {
+        //TODO:
+        throw new OntException.Unsupported("TODO");
     }
 }

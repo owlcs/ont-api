@@ -7,7 +7,7 @@ package ru.avicomp.ontapi.jena.model;
  */
 public interface OntClass extends OntEntity, OntCE {
 
-    OntIndividual createIndividual();
+    OntIndividual.Anonymous createIndividual();
 
-    OntNIndividual createIndividual(String uri);
+    OntIndividual.Named createIndividual(String uri);
 }

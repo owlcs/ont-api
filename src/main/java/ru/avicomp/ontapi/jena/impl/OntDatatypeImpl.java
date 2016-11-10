@@ -9,6 +9,7 @@ import ru.avicomp.ontapi.jena.model.OntDT;
 
 /**
  * rdfs:Datatype
+ *
  * Created by szuev on 03.11.2016.
  */
 public class OntDatatypeImpl extends OntEntityImpl implements OntDT {
@@ -27,4 +28,8 @@ public class OntDatatypeImpl extends OntEntityImpl implements OntDT {
         return RDFS.Datatype;
     }
 
+    @Override
+    public boolean isBuiltIn() {
+        return BUILT_IN_DATATYPES.contains(this);
+    }
 }

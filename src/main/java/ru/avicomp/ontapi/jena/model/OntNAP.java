@@ -9,7 +9,7 @@ import org.apache.jena.rdf.model.Resource;
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntAProperty extends OntPE, OntEntity {
+public interface OntNAP extends OntPE, OntEntity {
     @Override
     Stream<Resource> domain();
 

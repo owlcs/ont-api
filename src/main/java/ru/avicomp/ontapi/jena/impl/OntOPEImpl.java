@@ -16,8 +16,8 @@ import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.model.OntCE;
+import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.jena.model.OntOPE;
-import ru.avicomp.ontapi.jena.model.OntOProperty;
 
 /**
  * owl:ObjectProperty (could be also Annotation, InverseFunctional, Transitive, SymmetricProperty, etc)
@@ -30,7 +30,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         super(n, g);
     }
 
-    public static class NamedProperty extends OntOPEImpl implements OntOProperty {
+    public static class NamedProperty extends OntOPEImpl implements OntNOP {
 
         public NamedProperty(Node n, EnhGraph g) {
             super(OntEntityImpl.checkNamed(n), g);
@@ -50,13 +50,12 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public boolean isBuiltIn() {
-            //TODO:
-            return false;
+            return OntEntityImpl.BUILT_IN_OBJECT_PROPERTIES.contains(this);
         }
 
         @Override
-        public Class<OntOProperty> getActualClass() {
-            return OntOProperty.class;
+        public Class<OntNOP> getActualClass() {
+            return OntNOP.class;
         }
     }
 

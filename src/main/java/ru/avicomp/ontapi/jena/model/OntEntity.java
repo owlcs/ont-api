@@ -22,7 +22,7 @@ public interface OntEntity extends OntObject {
      * - a data property and the URI corresponds to owl:topDataProperty or owl:bottomDataProperty
      * - a datatype and the IRI is rdfs:Literal or is in the OWL 2 datatype map or is rdf:PlainLiteral
      * - an annotation property and the URI is one of the following:
-     * rdfs:label, rdfs:comment, rdfs:seeAlso, rdfs:isDefinedBy, owl:deprecated, owl:priorVersion, owl:backwardCompatibleWith, owl:incompatibleWith
+     * rdfs:label, rdfs:comment, rdfs:seeAlso, rdfs:isDefinedBy, owl:deprecated, owl:versionInfo, owl:priorVersion, owl:backwardCompatibleWith, owl:incompatibleWith
      *
      * @return true if it is a built-in entity
      */

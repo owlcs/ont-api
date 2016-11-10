@@ -14,4 +14,21 @@ public interface OntIndividual extends OntObject {
     void detachClass(OntClass clazz);
 
     Stream<OntClass> classes();
+
+    /**
+     * Named Individual here.
+     * <p>
+     * Created by szuev on 01.11.2016.
+     */
+    interface Named extends OntIndividual, OntEntity {
+
+    }
+
+    /**
+     * Anonymous Individual here.
+     * <p>
+     * Created by szuev on 10.11.2016.
+     */
+    interface Anonymous extends OntIndividual {
+    }
 }

@@ -35,11 +35,11 @@ public class OntModelConfig {
             // entities:
             .register(OntObject.class, OntObjectImpl.objectFactory)
             .register(OntClass.class, OntEntityImpl.classFactory)
-            .register(OntAProperty.class, OntEntityImpl.annotationPropertyFactory)
-            .register(OntDProperty.class, OntEntityImpl.dataPropertyFactory)
-            .register(OntOProperty.class, OntEntityImpl.objectPropertyFactory)
+            .register(OntNAP.class, OntEntityImpl.annotationPropertyFactory)
+            .register(OntNDP.class, OntEntityImpl.dataPropertyFactory)
+            .register(OntNOP.class, OntEntityImpl.objectPropertyFactory)
             .register(OntDT.class, OntEntityImpl.datatypeFactory)
-            .register(OntNIndividual.class, OntEntityImpl.individualFactory)
+            .register(OntIndividual.Named.class, OntEntityImpl.individualFactory)
             .register(OntEntity.class, OntEntityImpl.abstractEntityFactory)
 
             // class expressions:
@@ -72,6 +72,7 @@ public class OntModelConfig {
             .register(OntPE.class, OntPEImpl.abstractPEFactory)
 
             // individuals
+            .register(OntIndividual.Anonymous.class, OntIndividualImpl.anonymousIndividualFactory)
             .register(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory);
 
 

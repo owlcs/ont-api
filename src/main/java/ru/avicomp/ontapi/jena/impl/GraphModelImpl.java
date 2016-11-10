@@ -6,13 +6,17 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
+import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
@@ -119,13 +123,23 @@ public class GraphModelImpl extends ModelCom {
     }
 
     /**
-     * to retrieve the stream of OntObjects
+     * to retrieve the stream of {@link OntObject}s
      *
      * @param type Class
      * @return Stream
      */
     public <T extends OntObject> Stream<T> ontObjects(Class<T> type) {
         return getPersonality().getOntImplementation(type).find(this).map(e -> getNodeAs(e.asNode(), type));
+    }
+
+    public <T extends OntEntity> T getOntEntity(Class<T> type, String uri) {
+        Node n = NodeFactory.createURI(OntException.notNull(uri, "Null uri."));
+        try { // returns not null in case it is present in graph or built-in.
+            return getNodeAs(n, type);
+        } catch (ConversionException ignore) {
+            // ignore
+            return null;
+        }
     }
 
     /**
@@ -148,24 +162,24 @@ public class GraphModelImpl extends ModelCom {
         return ontEntities(OntClass.class);
     }
 
-    public Stream<OntAProperty> listAnnotationProperties() {
-        return ontEntities(OntAProperty.class);
+    public Stream<OntNAP> listAnnotationProperties() {
+        return ontEntities(OntNAP.class);
     }
 
-    public Stream<OntDProperty> listDataProperties() {
-        return ontEntities(OntDProperty.class);
+    public Stream<OntNDP> listDataProperties() {
+        return ontEntities(OntNDP.class);
     }
 
-    public Stream<OntOProperty> listObjectProperties() {
-        return ontEntities(OntOProperty.class);
+    public Stream<OntNOP> listObjectProperties() {
+        return ontEntities(OntNOP.class);
     }
 
     public Stream<OntDT> listDatatypes() {
         return ontEntities(OntDT.class);
     }
 
-    public Stream<OntNIndividual> listNamedIndividuals() {
-        return ontEntities(OntNIndividual.class);
+    public Stream<OntIndividual.Named> listNamedIndividuals() {
+        return ontEntities(OntIndividual.Named.class);
     }
 
     @Override

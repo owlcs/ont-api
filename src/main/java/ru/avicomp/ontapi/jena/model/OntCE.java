@@ -24,37 +24,37 @@ public interface OntCE extends OntObject {
     interface ObjectSomeValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE> {
     }
 
-    interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDR, OntDProperty> {
+    interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP> {
     }
 
     interface ObjectAllValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE> {
     }
 
-    interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR, OntDProperty> {
+    interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP> {
     }
 
     interface ObjectHasValue extends ComponentRestrictionCE<OntIndividual, OntOPE> {
     }
 
-    interface DataHasValue extends ComponentRestrictionCE<Literal, OntDProperty> {
+    interface DataHasValue extends ComponentRestrictionCE<Literal, OntNDP> {
     }
 
     interface ObjectMinCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
     }
 
-    interface DataMinCardinality extends CardinalityRestrictionCE<OntDR, OntDProperty> {
+    interface DataMinCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
     }
 
     interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
     }
 
-    interface DataMaxCardinality extends CardinalityRestrictionCE<OntDR, OntDProperty> {
+    interface DataMaxCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
     }
 
     interface ObjectCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
     }
 
-    interface DataCardinality extends CardinalityRestrictionCE<OntDR, OntDProperty> {
+    interface DataCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
     }
 
     interface HasSelf extends RestrictionCE, ONProperty<OntOPE> {
@@ -72,10 +72,10 @@ public interface OntCE extends OntObject {
     interface ComplementOf extends OntCE, Value<OntCE> {
     }
 
-    interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntDProperty> {
+    interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
     }
 
-    interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntDProperty> {
+    interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
     }
 
     /**

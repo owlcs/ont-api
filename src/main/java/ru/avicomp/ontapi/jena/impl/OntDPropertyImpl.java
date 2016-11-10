@@ -9,22 +9,22 @@ import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntDProperty;
 import ru.avicomp.ontapi.jena.model.OntDR;
+import ru.avicomp.ontapi.jena.model.OntNDP;
 
 /**
  * owl:DatatypeProperty
  * Created by szuev on 03.11.2016.
  */
-public class OntDPropertyImpl extends OntEntityImpl implements OntDProperty {
+public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
 
     public OntDPropertyImpl(Node n, EnhGraph g) {
         super(OntEntityImpl.checkNamed(n), g);
     }
 
     @Override
-    public Class<OntDProperty> getActualClass() {
-        return OntDProperty.class;
+    public Class<OntNDP> getActualClass() {
+        return OntNDP.class;
     }
 
     @Override
@@ -50,5 +50,10 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntDProperty {
     @Override
     public boolean isFunctional() {
         return hasType(OWL2.FunctionalProperty);
+    }
+
+    @Override
+    public boolean isBuiltIn() {
+        return BUILT_IN_DATA_PROPERTIES.contains(this);
     }
 }
