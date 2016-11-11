@@ -15,7 +15,7 @@ import ru.avicomp.ontapi.jena.model.OntDT;
 public class OntDatatypeImpl extends OntEntityImpl implements OntDT {
 
     public OntDatatypeImpl(Node n, EnhGraph g) {
-        super(OntEntityImpl.checkNamed(n), g);
+        super(OntObjectImpl.checkNamed(n), g);
     }
 
     @Override

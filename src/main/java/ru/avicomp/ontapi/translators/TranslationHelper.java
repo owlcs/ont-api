@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
 import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntException;
-import ru.avicomp.ontapi.vocabulary.SWRL;
+import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
 /**
  * TODO: change to use {@link ru.avicomp.ontapi.jena.impl.GraphModelImpl} instead direct working with graph.

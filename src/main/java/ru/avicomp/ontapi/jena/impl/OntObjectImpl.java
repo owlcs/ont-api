@@ -7,10 +7,7 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -18,6 +15,7 @@ import org.apache.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
+import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
@@ -108,8 +106,41 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
-    public Stream<RDFNode> annotationAssertions(OntNAP property) {
-        //TODO:
-        throw new OntException.Unsupported("TODO");
+    public Stream<RDFNode> annotations(OntNAP property) {
+        return JenaUtils.asStream(mustBeURI().listProperties(property).mapWith(Statement::getObject)).distinct();
+    }
+
+    @Override
+    public void addAnnotation(OntNAP property, Resource uri) {
+        mustBeURI().addProperty(property, checkNamed(uri));
+    }
+
+    @Override
+    public void addAnnotation(OntNAP property, Literal literal) {
+        mustBeURI().addProperty(property, literal);
+    }
+
+    @Override
+    public void addAnnotation(OntNAP property, OntIndividual.Anonymous anon) {
+        mustBeURI().addProperty(property, anon);
+    }
+
+    OntObject mustBeURI() {
+        if (isURIResource()) return this;
+        throw new OntException("Resource must be uri");
+    }
+
+    static Node checkNamed(Node res) {
+        if (OntException.notNull(res, "Null node").isURI()) {
+            return res;
+        }
+        throw new OntException("Not uri node " + res);
+    }
+
+    static Resource checkNamed(Resource res) {
+        if (OntException.notNull(res, "Null resource").isURIResource()) {
+            return res;
+        }
+        throw new OntException("Not uri resource " + res);
     }
 }

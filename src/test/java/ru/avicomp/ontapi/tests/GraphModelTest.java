@@ -10,16 +10,14 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
 import ru.avicomp.ontapi.jena.impl.GraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
-import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntClass;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntPE;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
@@ -32,7 +30,7 @@ public class GraphModelTest {
     @Test
     public void testLoadCE() {
         LOGGER.info("load pizza");
-        GraphModelImpl m = new GraphModelImpl(loadGraph("pizza.ttl"));
+        GraphModel m = new GraphModelImpl(loadGraph("pizza.ttl"));
         LOGGER.info("Ontology: " + m.getID());
 
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
@@ -74,7 +72,7 @@ public class GraphModelTest {
     @Test
     public void testLoadProperties() {
         LOGGER.info("load pizza");
-        GraphModelImpl m = new GraphModelImpl(loadGraph("pizza.ttl"));
+        GraphModel m = new GraphModelImpl(loadGraph("pizza.ttl"));
         List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
         actual.forEach(LOGGER::debug);
         Set<Resource> expected = new HashSet<>();
@@ -86,7 +84,7 @@ public class GraphModelTest {
     @Test
     public void testLoadIndividuals() {
         LOGGER.info("load pizza");
-        GraphModelImpl m = new GraphModelImpl(loadGraph("pizza.ttl"));
+        GraphModel m = new GraphModelImpl(loadGraph("pizza.ttl"));
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
         individuals.forEach(i -> LOGGER.debug(i + " classes: " + i.classes().collect(Collectors.toSet())));
 
@@ -109,5 +107,25 @@ public class GraphModelTest {
         return ReadWriteUtils.load(ReadWriteUtils.getResourceURI(file), null).getGraph();
     }
 
+    @Test
+    public void testCreate() {
+        String uri = "http://test.com/graph/1";
+        String ns = uri + "#";
+
+        GraphModel m = new GraphModelImpl();
+        m.setNsPrefix("test", ns);
+        m.setNsPrefix("owl", OWL2.getURI());
+        m.setNsPrefix("rdfs", RDFS.getURI());
+
+        m.setID(uri).setVersionIRI(ns + "1.0.1");
+        m.getID().addComment("Some comment", "fr");
+
+        OntClass cl = m.createOntObject(OntClass.class, ns + "ClassN1");
+        cl.addLabel("some label", null);
+        cl.addLabel("another label", "de");
+        cl.annotations(m.getRDFSLabel()).forEach(LOGGER::debug);
+
+        ReadWriteUtils.print(m);
+    }
 
 }

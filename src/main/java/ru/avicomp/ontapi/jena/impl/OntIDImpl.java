@@ -35,9 +35,15 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
     }
 
     @Override
-    public String versionIRI() {
+    public String getVersionIRI() {
         Statement st = getProperty(OWL2.versionIRI);
         if (st == null || !st.getObject().isURIResource()) return null;
         return st.getObject().asResource().getURI();
+    }
+
+    @Override
+    public void setVersionIRI(String uri) {
+        removeAll(OWL2.versionIRI);
+        addProperty(OWL2.versionIRI, getModel().createResource(OntException.notNull(uri, "Null uri")));
     }
 }

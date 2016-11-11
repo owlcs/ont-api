@@ -73,7 +73,10 @@ public class OntModelConfig {
 
             // individuals
             .register(OntIndividual.Anonymous.class, OntIndividualImpl.anonymousIndividualFactory)
-            .register(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory);
+            .register(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory)
+
+            // owl-annotation
+            .register(OntAnnotation.class, OntAnnotationImpl.factory);
 
 
 }

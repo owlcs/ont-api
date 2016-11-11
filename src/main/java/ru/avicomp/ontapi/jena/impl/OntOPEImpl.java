@@ -6,6 +6,8 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -33,7 +35,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     public static class NamedProperty extends OntOPEImpl implements OntNOP {
 
         public NamedProperty(Node n, EnhGraph g) {
-            super(OntEntityImpl.checkNamed(n), g);
+            super(OntObjectImpl.checkNamed(n), g);
         }
 
         @Override
@@ -56,6 +58,11 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         @Override
         public Class<OntNOP> getActualClass() {
             return OntNOP.class;
+        }
+
+        @Override
+        public Property inModel(Model m) {
+            return getModel() == m ? this : m.createProperty(getURI());
         }
     }
 

@@ -3,16 +3,19 @@ package ru.avicomp.ontapi.jena.impl;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.mem.GraphMem;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
-import org.apache.jena.util.iterator.UniqueFilter;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
@@ -29,7 +32,14 @@ import ru.avicomp.ontapi.jena.model.*;
  * <p>
  * Created by @szuev on 27.10.2016.
  */
-public class GraphModelImpl extends ModelCom {
+public class GraphModelImpl extends ModelCom implements GraphModel {
+
+    /**
+     * fresh ontology.
+     */
+    public GraphModelImpl() {
+        this(new GraphMem());
+    }
 
     public GraphModelImpl(Graph graph) {
         this(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntModelConfig.ONT_PERSONALITY);
@@ -39,16 +49,31 @@ public class GraphModelImpl extends ModelCom {
         super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), personality);
     }
 
+    @Override
     public OntID getID() {
-        List<Resource> tmp = listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject).filterKeep(new UniqueFilter<>()).toList();
+        List<Resource> prev = ontologies().collect(Collectors.toList());
         Resource res;
-        if (tmp.isEmpty()) {
-            res = createResource();
+        if (prev.isEmpty()) {
+            res = createResource(); // anon id
             add(res, RDF.type, OWL2.Ontology);
         } else {
-            res = tmp.get(0); // choose first.
+            res = prev.get(0); // choose first.
         }
         return getNodeAs(res.asNode(), OntID.class);
+    }
+
+    @Override
+    public OntID setID(String uri) {
+        List<Statement> tmp = ontologies().map(s -> JenaUtils.asStream(listStatements(s, null, (RDFNode) null))).flatMap(Function.identity()).distinct().collect(Collectors.toList());
+        remove(tmp);
+        Resource subject = uri == null ? createResource() : createResource(uri);
+        add(subject, RDF.type, OWL2.Ontology);
+        tmp.forEach(s -> add(subject, s.getPredicate(), s.getObject()));
+        return getNodeAs(subject.asNode(), OntID.class);
+    }
+
+    private Stream<Resource> ontologies() {
+        return JenaUtils.asStream(listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject)).distinct();
     }
 
     public void addImport(GraphModelImpl m) {
@@ -66,12 +91,19 @@ public class GraphModelImpl extends ModelCom {
         return (UnionGraph) super.getGraph();
     }
 
+    @Override
     public Graph getBaseGraph() {
         return getGraph().getBaseGraph();
     }
 
     public Model getBaseModel() {
         return ModelFactory.createModelForGraph(getBaseGraph());
+    }
+
+    @Override
+    public PrefixMapping setNsPrefix(String prefix, String uri) {
+        getBaseGraph().getPrefixMapping().setNsPrefix(prefix, uri);
+        return this;
     }
 
     @Override
@@ -118,6 +150,7 @@ public class GraphModelImpl extends ModelCom {
         return this;
     }
 
+    @Override
     public Stream<OntEntity> ontEntities() {
         return ontObjects(OntEntity.class);
     }
@@ -128,10 +161,12 @@ public class GraphModelImpl extends ModelCom {
      * @param type Class
      * @return Stream
      */
+    @Override
     public <T extends OntObject> Stream<T> ontObjects(Class<T> type) {
         return getPersonality().getOntImplementation(type).find(this).map(e -> getNodeAs(e.asNode(), type));
     }
 
+    @Override
     public <T extends OntEntity> T getOntEntity(Class<T> type, String uri) {
         Node n = NodeFactory.createURI(OntException.notNull(uri, "Null uri."));
         try { // returns not null in case it is present in graph or built-in.
@@ -149,37 +184,15 @@ public class GraphModelImpl extends ModelCom {
      * @param uri  String
      * @return OntObject
      */
-    protected <T extends OntObject> T createOntObject(Class<T> type, String uri) {
+    @Override
+    public <T extends OntObject> T createOntObject(Class<T> type, String uri) {
         Resource res = uri == null ? createResource() : createResource(uri);
         return getPersonality().getOntImplementation(type).create(res.asNode(), this).as(type);
     }
 
+    @Override
     public <T extends OntEntity> Stream<T> ontEntities(Class<T> type) {
         return ontObjects(type);
-    }
-
-    public Stream<OntClass> listClasses() {
-        return ontEntities(OntClass.class);
-    }
-
-    public Stream<OntNAP> listAnnotationProperties() {
-        return ontEntities(OntNAP.class);
-    }
-
-    public Stream<OntNDP> listDataProperties() {
-        return ontEntities(OntNDP.class);
-    }
-
-    public Stream<OntNOP> listObjectProperties() {
-        return ontEntities(OntNOP.class);
-    }
-
-    public Stream<OntDT> listDatatypes() {
-        return ontEntities(OntDT.class);
-    }
-
-    public Stream<OntIndividual.Named> listNamedIndividuals() {
-        return ontEntities(OntIndividual.Named.class);
     }
 
     @Override

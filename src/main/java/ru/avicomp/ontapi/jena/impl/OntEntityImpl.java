@@ -13,7 +13,6 @@ import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntEntity;
@@ -50,13 +49,6 @@ public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
     @Override
     public boolean isLocal() {
         return getModel().isInBaseModel(this, RDF.type, getRDFType());
-    }
-
-    static Node checkNamed(Node res) {
-        if (OntException.notNull(res, "Null node").isURI()) {
-            return res;
-        }
-        throw new OntException("Not uri node " + res);
     }
 
     public abstract Class<? extends OntEntity> getActualClass();

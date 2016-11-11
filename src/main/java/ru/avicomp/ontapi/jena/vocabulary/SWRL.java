@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi.vocabulary;
+package ru.avicomp.ontapi.jena.vocabulary;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;

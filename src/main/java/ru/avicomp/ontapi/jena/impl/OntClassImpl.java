@@ -21,7 +21,7 @@ import ru.avicomp.ontapi.jena.model.OntIndividual;
 public class OntClassImpl extends OntEntityImpl implements OntClass {
 
     public OntClassImpl(Node n, EnhGraph eg) {
-        super(OntEntityImpl.checkNamed(n), eg);
+        super(OntObjectImpl.checkNamed(n), eg);
     }
 
     @Override

@@ -27,6 +27,7 @@ import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.GraphModelImpl;
+import ru.avicomp.ontapi.jena.model.GraphModel;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -50,7 +51,7 @@ public class GraphConverterTest {
         OWLOntologyManager manager = OntManagerFactory.createOWLManager();
         OWLOntologyManager testManager = OntManagerFactory.createOWLManager();
 
-        GraphModelImpl jenaSP = new GraphModelImpl(GraphConverter.convert(load("sp.ttl").getGraph()));
+        GraphModel jenaSP = new GraphModelImpl(GraphConverter.convert(load("sp.ttl").getGraph()));
         OWLOntology owlSP = load(manager, "sp.ttl");
         LOGGER.info("SP(Jena): ");
         ReadWriteUtils.print(jenaSP);
@@ -67,7 +68,7 @@ public class GraphConverterTest {
         // spin:Modules is treated by OWL-API as NamedIndividual. Why? So i decide do not fully synchronize our API and OWL-API.
         UnionGraph spinGraph = new UnionGraph(load("spin.ttl").getGraph());
         spinGraph.addGraph(jenaSP.getBaseGraph());
-        GraphModelImpl jenaSPIN = new GraphModelImpl(GraphConverter.convert(spinGraph));
+        GraphModel jenaSPIN = new GraphModelImpl(GraphConverter.convert(spinGraph));
         OWLOntology owlSPIN = load(manager, "spin.ttl");
         LOGGER.info("SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPIN);
@@ -95,7 +96,7 @@ public class GraphConverterTest {
         return res.isEmpty() ? null : res.get(0);
     }
 
-    private static void testSignature(OWLOntology owl, GraphModelImpl jena) {
+    private static void testSignature(OWLOntology owl, GraphModel jena) {
         List<String> expectedClasses = owlToList(owl.classesInSignature(Imports.INCLUDED));
         List<String> actualClasses = jenaToList(jena.listClasses());
         Assert.assertThat("Classes", actualClasses, IsEqual.equalTo(expectedClasses));

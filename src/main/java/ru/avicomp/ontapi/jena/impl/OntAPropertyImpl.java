@@ -4,6 +4,8 @@ import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
@@ -20,7 +22,7 @@ import ru.avicomp.ontapi.jena.model.OntNAP;
 public class OntAPropertyImpl extends OntEntityImpl implements OntNAP {
 
     public OntAPropertyImpl(Node n, EnhGraph g) {
-        super(OntEntityImpl.checkNamed(n), g);
+        super(OntObjectImpl.checkNamed(n), g);
     }
 
     @Override
@@ -46,5 +48,10 @@ public class OntAPropertyImpl extends OntEntityImpl implements OntNAP {
     @Override
     public boolean isBuiltIn() {
         return BUILT_IN_ANNOTATION_PROPERTIES.contains(this);
+    }
+
+    @Override
+    public Property inModel(Model m) {
+        return getModel() == m ? this : m.createProperty(getURI());
     }
 }

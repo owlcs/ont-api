@@ -7,7 +7,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.SWRLRule;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
-import ru.avicomp.ontapi.vocabulary.SWRL;
+import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
 /**
  * for "Rule" Axiom {@link org.semanticweb.owlapi.model.AxiomType#SWRL_RULE}

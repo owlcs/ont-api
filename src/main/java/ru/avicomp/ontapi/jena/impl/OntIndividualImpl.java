@@ -52,7 +52,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
     public static class NamedImpl extends OntIndividualImpl implements OntIndividual.Named {
         public NamedImpl(Node n, EnhGraph m) {
-            super(OntEntityImpl.checkNamed(n), m);
+            super(OntObjectImpl.checkNamed(n), m);
         }
 
         @Override

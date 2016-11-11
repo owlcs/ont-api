@@ -7,6 +7,8 @@ package ru.avicomp.ontapi.jena.model;
  */
 public interface OntID extends OntObject {
 
-    String versionIRI();
+    String getVersionIRI();
+
+    void setVersionIRI(String uri);
 
 }
