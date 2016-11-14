@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
 /**
@@ -69,5 +70,9 @@ public interface GraphModel extends Model {
 
     default OntNAP getRDFSLabel() {
         return getAnnotationProperty(RDFS.label);
+    }
+
+    default OntClass getOWLThing() {
+        return getOntEntity(OntClass.class, OWL2.Thing.getURI());
     }
 }

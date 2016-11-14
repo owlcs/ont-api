@@ -45,6 +45,16 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
     }
 
     @Override
+    public void addSubClassOf(OntCE superClass) {
+        getModel().add(this, RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
+    }
+
+    @Override
+    public void deleteSubClassOf(OntCE superClass) {
+        getModel().remove(this, RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
+    }
+
+    @Override
     public OntIndividual.Anonymous createIndividual() {
         Resource res = getModel().createResource();
         getModel().add(res, RDF.type, this);

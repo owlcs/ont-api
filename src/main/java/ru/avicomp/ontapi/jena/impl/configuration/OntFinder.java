@@ -21,6 +21,7 @@ import ru.avicomp.ontapi.jena.JenaUtils;
  */
 @FunctionalInterface
 public interface OntFinder {
+    OntFinder ANYTHING = eg -> JenaUtils.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY).mapWith(Triple::getSubject));
     OntFinder TYPED = new ByPredicate(RDF.type);
 
     Stream<Node> find(EnhGraph eg);

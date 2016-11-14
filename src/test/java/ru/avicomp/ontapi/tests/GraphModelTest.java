@@ -116,16 +116,38 @@ public class GraphModelTest {
         m.setNsPrefix("test", ns);
         m.setNsPrefix("owl", OWL2.getURI());
         m.setNsPrefix("rdfs", RDFS.getURI());
+        m.setNsPrefix("rdf", RDF.getURI());
 
         m.setID(uri).setVersionIRI(ns + "1.0.1");
         m.getID().addComment("Some comment", "fr");
 
         OntClass cl = m.createOntObject(OntClass.class, ns + "ClassN1");
-        cl.addLabel("some label", null);
-        cl.addLabel("another label", "de");
-        cl.annotations(m.getRDFSLabel()).forEach(LOGGER::debug);
+        OntAnnotation a1 = cl.addLabel("some label", null);
+        OntAnnotation a2 = cl.addLabel("another label", "de");
+        cl.annotations().forEach(LOGGER::debug);
 
         ReadWriteUtils.print(m);
+        OntAnnotation a3 = a2.add(m.getAnnotationProperty(RDFS.seeAlso), ResourceFactory.createResource("http://see.also/1"));
+        OntAnnotation a4 = a2.add(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label"));
+
+        cl.annotations().forEach(LOGGER::debug);
+        ReadWriteUtils.print(m);
+
+        OntNAP nap1 = m.createOntObject(OntNAP.class, ns + "annotation-prop-1");
+        a3.add(nap1, ResourceFactory.createPlainLiteral("comment to see also"));
+        OntAnnotation a5 = a4.add(nap1, ResourceFactory.createPlainLiteral("comment to see label"));
+        ReadWriteUtils.print(m);
+
+        a4.removeAnnotation(a5);
+        ReadWriteUtils.print(m);
+
+        a2.removeAll();
+        ReadWriteUtils.print(m);
+
+        cl.addSubClassOf(m.getOWLThing());
+        ReadWriteUtils.print(m);
+
     }
 
 }
+

@@ -1,12 +1,14 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.OWL2;
@@ -14,10 +16,9 @@ import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
+import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntNAP;
-import ru.avicomp.ontapi.jena.model.OntObject;
+import ru.avicomp.ontapi.jena.model.*;
 
 /**
  * base resource.
@@ -34,8 +35,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public static OntObjectFactory objectFactory = new OntObjectFactory() {
         @Override
         public Stream<EnhNode> find(EnhGraph eg) {
-            return JenaUtils.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY).
-                    mapWith(Triple::getSubject).filterKeep(n -> canWrap(n, eg)).mapWith(n -> wrap(n, eg)));
+            return OntFinder.ANYTHING.find(eg).filter(n -> canWrap(n, eg)).map(n -> wrap(n, eg));
         }
 
         @Override
@@ -58,7 +58,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     public Stream<Resource> types() {
         return JenaUtils.asStream(getModel().listObjectsOfProperty(this, RDF.type)
-                .filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast));
+                .filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast)).distinct();
     }
 
     boolean hasType(Resource type) {
@@ -81,6 +81,52 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         }
     }
 
+
+    public OntStatement getMainStatement() {
+        List<Resource> types = types().collect(Collectors.toList());
+        if (types.isEmpty()) throw new OntException("Can't determine main triple: no types.");
+        return new MainStatementImpl(this, RDF.type, types.get(0), getModel());
+    }
+
+    public OntStatement getStatement(Property property, OntObject object) {
+        return statements(property).filter(s -> s.getObject().equals(object)).findFirst().orElse(null);
+    }
+
+    public Stream<OntStatement> statements(Property property) {
+        return statements().filter(s -> s.getPredicate().equals(property));
+    }
+
+    public Stream<OntStatement> statements() {
+        OntStatement main = getMainStatement();
+        return JenaUtils.asStream(listProperties()).map(s -> wrapStatement(main, s));
+    }
+
+    private OntStatement wrapStatement(OntStatement main, Statement statement) {
+        if (statement.equals(main)) return main;
+        if (statement.getPredicate().canAs(OntNAP.class)) {
+            return new OntAStatementImpl(statement); //todo:
+        }
+        return new OntStatementImpl(statement);
+    }
+
+    public <T extends OntObject> T getOntProperty(Property predicate, Class<T> view) {
+        Statement st = getProperty(predicate);
+        return st == null ? null : getModel().getNodeAs(st.getObject().asNode(), view);
+    }
+
+    public <T extends OntObject> T getRequiredOntProperty(Property predicate, Class<T> view) {
+        return getModel().getNodeAs(getRequiredProperty(predicate).getObject().asNode(), view);
+    }
+
+    /**
+     * todo:
+     */
+    public class MainStatementImpl extends OntStatementImpl {
+        public MainStatementImpl(Resource subject, Property predicate, RDFNode object, GraphModel model) {
+            super(subject, predicate, object, model);
+        }
+    }
+
     @Override
     public GraphModelImpl getModel() {
         return (GraphModelImpl) super.getModel();
@@ -96,38 +142,44 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return String.format("%s(%s)", asNode(), getActualClass().getSimpleName());
     }
 
-    public <T extends OntObject> T getOntProperty(Property predicate, Class<T> view) {
-        Statement st = getProperty(predicate);
-        return st == null ? null : getModel().getNodeAs(st.getObject().asNode(), view);
+    @Override
+    public Stream<OntAnnotation> annotations() {
+        return Stream.concat(assertionAnnotations(), bulkAnnotations());
     }
 
-    public <T extends OntObject> T getRequiredOntProperty(Property predicate, Class<T> view) {
-        return getModel().getNodeAs(getRequiredProperty(predicate).getObject().asNode(), view);
+    public Stream<OntAnnotation> assertionAnnotations() {
+        return JenaUtils.asStream(listProperties()
+                .filterKeep(s -> s.getPredicate().canAs(OntNAP.class))
+                .mapWith(s -> new OntAStatementImpl(s.getSubject(), s.getPredicate().as(OntNAP.class), s.getObject(), getModel())));
+    }
+
+    public Stream<OntAnnotation> bulkAnnotations() {
+        Stream<Resource> subjects = JenaUtils.asStream(getModel().listStatements(null, OWL2.annotatedSource, this)
+                .mapWith(Statement::getSubject)
+                .filterKeep(s -> getModel().contains(s, RDF.type, OWL2.Axiom))
+                .filterKeep(s -> getModel().contains(s, OWL2.annotatedProperty, (RDFNode) null))
+                .filterKeep(s -> getModel().contains(s, OWL2.annotatedProperty, (RDFNode) null)));
+        return subjects.map(r -> OntAStatementImpl.children(r, getModel())).flatMap(Function.identity());
     }
 
     @Override
-    public Stream<RDFNode> annotations(OntNAP property) {
-        return JenaUtils.asStream(mustBeURI().listProperties(property).mapWith(Statement::getObject)).distinct();
+    public OntAnnotation addAnnotation(OntNAP property, Resource uri) {
+        return addAnnotation(OntException.notNull(property, "Null property."), (RDFNode) checkNamed(uri));
     }
 
     @Override
-    public void addAnnotation(OntNAP property, Resource uri) {
-        mustBeURI().addProperty(property, checkNamed(uri));
+    public OntAnnotation addAnnotation(OntNAP property, Literal literal) {
+        return addAnnotation(OntException.notNull(property, "Null property."), (RDFNode) OntException.notNull(literal, "Null literal."));
     }
 
     @Override
-    public void addAnnotation(OntNAP property, Literal literal) {
-        mustBeURI().addProperty(property, literal);
+    public OntAnnotation addAnnotation(OntNAP property, OntIndividual.Anonymous anon) {
+        return addAnnotation(OntException.notNull(property, "Null property."), (RDFNode) OntException.notNull(anon, "Null individual."));
     }
 
-    @Override
-    public void addAnnotation(OntNAP property, OntIndividual.Anonymous anon) {
-        mustBeURI().addProperty(property, anon);
-    }
-
-    OntObject mustBeURI() {
-        if (isURIResource()) return this;
-        throw new OntException("Resource must be uri");
+    private OntAnnotation addAnnotation(OntNAP property, RDFNode value) {
+        addProperty(property, value);
+        return new OntAStatementImpl(this, property, value, getModel());
     }
 
     static Node checkNamed(Node res) {

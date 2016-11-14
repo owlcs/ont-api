@@ -24,6 +24,18 @@ public class CommonOntObjectFactory extends OntObjectFactory {
         this.filter = OntException.notNull(primary, "Null primary filter.").accumulate(additional);
     }
 
+    public OntMaker getMaker() {
+        return maker;
+    }
+
+    public OntFinder getFinder() {
+        return finder;
+    }
+
+    public OntFilter getFilter() {
+        return filter;
+    }
+
     @Override
     public EnhNode wrap(Node node, EnhGraph eg) {
         if (!canWrap(node, eg))

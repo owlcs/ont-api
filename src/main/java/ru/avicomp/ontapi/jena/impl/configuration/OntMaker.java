@@ -27,6 +27,9 @@ public interface OntMaker {
 
     Class<?> getInstanceClass();
 
+    /**
+     * Creation in graph is disabled for this maker
+     */
     class Default implements OntMaker {
         protected final Class<? extends OntObjectImpl> impl;
 
