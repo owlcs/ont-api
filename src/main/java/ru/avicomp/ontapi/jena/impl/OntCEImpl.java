@@ -25,6 +25,8 @@ import ru.avicomp.ontapi.jena.model.*;
  */
 public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     private static final Node OWL_ON_PROPERTY = OWL2.onProperty.asNode();
+    private static final Node OWL_RESTRICTION = OWL2.Restriction.asNode();
+    private static final Node OWL_CLASS = OWL2.Class.asNode();
 
     private static final OntFilter ON_PROPERTY_DATA_FILTER = new OnPropertyTypeFilter(RestrictionType.DATA);
     private static final OntFilter ON_PROPERTY_OBJECT_FILTER = new OnPropertyTypeFilter(RestrictionType.OBJECT);
@@ -115,13 +117,13 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public void addSubClassOf(OntCE superClass) {
-        getModel().add(this, RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
+    public OntStatement addSubClassOf(OntCE superClass) {
+        return addStatement(RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
     }
 
     @Override
     public void deleteSubClassOf(OntCE superClass) {
-        getModel().remove(this, RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
+        remove(RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
     }
 
     @Override

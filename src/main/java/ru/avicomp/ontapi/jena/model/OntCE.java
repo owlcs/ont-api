@@ -15,7 +15,7 @@ public interface OntCE extends OntObject {
 
     Stream<OntCE> subClassOf();
 
-    void addSubClassOf(OntCE superClass);
+    OntStatement addSubClassOf(OntCE superClass);
 
     void deleteSubClassOf(OntCE superClass);
 

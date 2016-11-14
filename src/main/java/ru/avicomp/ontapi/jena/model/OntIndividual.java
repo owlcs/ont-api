@@ -9,7 +9,7 @@ import java.util.stream.Stream;
  */
 public interface OntIndividual extends OntObject {
 
-    void attachClass(OntClass clazz);
+    OntStatement attachClass(OntClass clazz);
 
     void detachClass(OntClass clazz);
 

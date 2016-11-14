@@ -13,6 +13,7 @@ import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * owl:Class
@@ -45,13 +46,15 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
     }
 
     @Override
-    public void addSubClassOf(OntCE superClass) {
-        getModel().add(this, RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
+    public OntStatement addSubClassOf(OntCE superClass) {
+        OntStatement res = new OntStatementImpl(this, RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."), getModel());
+        getModel().add(res);
+        return res;
     }
 
     @Override
     public void deleteSubClassOf(OntCE superClass) {
-        getModel().remove(this, RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
+        remove(RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
     }
 
     @Override

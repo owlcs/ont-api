@@ -13,6 +13,7 @@ import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntNAP;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * owl:AnnotationProperty
@@ -33,6 +34,16 @@ public class OntAPropertyImpl extends OntEntityImpl implements OntNAP {
     @Override
     public Resource getRDFType() {
         return OWL2.AnnotationProperty;
+    }
+
+    @Override
+    public OntStatement addDomain(Resource domain) {
+        return addStatement(RDFS.domain, checkNamed(domain));
+    }
+
+    @Override
+    public OntStatement addRange(Resource range) {
+        return addStatement(RDFS.range, checkNamed(range));
     }
 
     @Override

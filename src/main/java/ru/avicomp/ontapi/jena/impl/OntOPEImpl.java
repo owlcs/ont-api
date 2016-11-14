@@ -20,6 +20,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.jena.model.OntOPE;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * owl:ObjectProperty (could be also Annotation, InverseFunctional, Transitive, SymmetricProperty, etc)
@@ -93,6 +94,16 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         private static boolean isObjectPropertyNode(Node node, EnhGraph eg) {
             return OntEntityImpl.objectPropertyFactory.canWrap(node, eg);
         }
+    }
+
+    @Override
+    public OntStatement addDomain(OntCE domain) {
+        return addStatement(RDFS.domain, domain);
+    }
+
+    @Override
+    public OntStatement addRange(OntCE range) {
+        return addStatement(RDFS.range, range);
     }
 
     @Override

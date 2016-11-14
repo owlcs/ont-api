@@ -11,6 +11,11 @@ import org.apache.jena.rdf.model.Resource;
  * Created by szuev on 01.11.2016.
  */
 public interface OntNAP extends OntPE, OntEntity, Property {
+
+    OntStatement addDomain(Resource domain);
+
+    OntStatement addRange(Resource range);
+
     @Override
     Stream<Resource> domain();
 

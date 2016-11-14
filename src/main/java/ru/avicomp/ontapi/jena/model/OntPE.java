@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.jena.model;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDFS;
 
 /**
  * Common interface for any Property Expressions (DataProperty, ObjectProperty(Entity and InverseOf), AnnotationProperty).
@@ -15,4 +16,13 @@ public interface OntPE extends OntObject {
     Stream<? extends Resource> domain();
 
     Stream<? extends Resource> range();
+
+    default void removeDomain(Resource domain) {
+        remove(RDFS.domain, domain);
+    }
+
+    default void removeRange(Resource range) {
+        remove(RDFS.range, range);
+    }
+
 }

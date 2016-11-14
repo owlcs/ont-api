@@ -16,6 +16,7 @@ import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * both for anon and named individuals.
@@ -34,8 +35,8 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
     }
 
     @Override
-    public void attachClass(OntClass clazz) {
-        addType(clazz);
+    public OntStatement attachClass(OntClass clazz) {
+        return addType(clazz);
     }
 
     @Override

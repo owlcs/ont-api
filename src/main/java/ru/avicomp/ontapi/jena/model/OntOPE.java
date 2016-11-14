@@ -9,6 +9,10 @@ import java.util.stream.Stream;
  */
 public interface OntOPE extends OntPE {
 
+    OntStatement addDomain(OntCE domain);
+
+    OntStatement addRange(OntCE range);
+
     @Override
     Stream<OntCE> domain();
 

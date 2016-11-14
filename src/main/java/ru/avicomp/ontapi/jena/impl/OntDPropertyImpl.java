@@ -13,6 +13,7 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntNDP;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * owl:DatatypeProperty
@@ -32,6 +33,16 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
     @Override
     public Resource getRDFType() {
         return OWL2.DatatypeProperty;
+    }
+
+    @Override
+    public OntStatement addDomain(OntCE domain) {
+        return addStatement(RDFS.domain, domain);
+    }
+
+    @Override
+    public OntStatement addRange(OntDR range) {
+        return addStatement(RDFS.range, range);
     }
 
     @Override

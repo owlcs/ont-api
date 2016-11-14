@@ -34,10 +34,11 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
  * to test {@link GraphConverter}
+ *
  * Created by @szuev on 30.10.2016.
  */
-public class GraphConverterTest {
-    private static final Logger LOGGER = Logger.getLogger(GraphConverterTest.class);
+public class GraphConverterJenaTest {
+    private static final Logger LOGGER = Logger.getLogger(GraphConverterJenaTest.class);
 
     @Test
     public void test() throws Exception {
@@ -131,7 +132,7 @@ public class GraphConverterTest {
     }
 
     private static Stream<String> owlToStream(Stream<? extends OWLEntity> entities) {
-        return entities.filter(GraphConverterTest::isNotBuiltIn).distinct().map(HasIRI::getIRI).map(IRI::getIRIString).sorted();
+        return entities.filter(GraphConverterJenaTest::isNotBuiltIn).distinct().map(HasIRI::getIRI).map(IRI::getIRIString).sorted();
     }
 
     private static List<String> owlToList(Stream<? extends OWLEntity> entities) {

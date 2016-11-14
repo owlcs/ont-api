@@ -2,23 +2,26 @@ package ru.avicomp.ontapi.jena.impl;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
-import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.model.OntNAP;
+import ru.avicomp.ontapi.jena.model.OntObject;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * base resource.
@@ -27,10 +30,6 @@ import ru.avicomp.ontapi.jena.model.*;
  */
 public class OntObjectImpl extends ResourceImpl implements OntObject {
     static final Node RDF_TYPE = RDF.type.asNode();
-    static final Node OWL_DATATYPE_PROPERTY = OWL2.DatatypeProperty.asNode();
-    static final Node OWL_OBJECT_PROPERTY = OWL2.ObjectProperty.asNode();
-    static final Node OWL_CLASS = OWL2.Class.asNode();
-    static final Node OWL_RESTRICTION = OWL2.Restriction.asNode();
 
     public static OntObjectFactory objectFactory = new OntObjectFactory() {
         @Override
@@ -65,8 +64,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return types().filter(type::equals).findAny().isPresent();
     }
 
-    void addType(Resource type) {
-        getModel().add(this, RDF.type, type);
+    OntStatement addType(Resource type) {
+        return addStatement(RDF.type, OntException.notNull(type, "Null rdf:type"));
     }
 
     void removeType(Resource type) {
@@ -81,34 +80,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         }
     }
 
-
-    public OntStatement getMainStatement() {
-        List<Resource> types = types().collect(Collectors.toList());
-        if (types.isEmpty()) throw new OntException("Can't determine main triple: no types.");
-        return new MainStatementImpl(this, RDF.type, types.get(0), getModel());
-    }
-
-    public OntStatement getStatement(Property property, OntObject object) {
-        return statements(property).filter(s -> s.getObject().equals(object)).findFirst().orElse(null);
-    }
-
-    public Stream<OntStatement> statements(Property property) {
-        return statements().filter(s -> s.getPredicate().equals(property));
-    }
-
-    public Stream<OntStatement> statements() {
-        OntStatement main = getMainStatement();
-        return JenaUtils.asStream(listProperties()).map(s -> wrapStatement(main, s));
-    }
-
-    private OntStatement wrapStatement(OntStatement main, Statement statement) {
-        if (statement.equals(main)) return main;
-        if (statement.getPredicate().canAs(OntNAP.class)) {
-            return new OntAStatementImpl(statement); //todo:
-        }
-        return new OntStatementImpl(statement);
-    }
-
     public <T extends OntObject> T getOntProperty(Property predicate, Class<T> view) {
         Statement st = getProperty(predicate);
         return st == null ? null : getModel().getNodeAs(st.getObject().asNode(), view);
@@ -118,13 +89,49 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return getModel().getNodeAs(getRequiredProperty(predicate).getObject().asNode(), view);
     }
 
-    /**
-     * todo:
-     */
-    public class MainStatementImpl extends OntStatementImpl {
-        public MainStatementImpl(Resource subject, Property predicate, RDFNode object, GraphModel model) {
-            super(subject, predicate, object, model);
+    @Override
+    public OntStatement getRoot() {
+        List<Resource> types = types().collect(Collectors.toList());
+        if (types.isEmpty()) throw new OntException("Can't determine main triple: no types.");
+        return new OntStatementImpl.RootImpl(this, RDF.type, types.get(0), getModel());
+    }
+
+    @Override
+    public OntStatement getStatement(Property property, OntObject object) {
+        return statements(property).filter(s -> s.getObject().equals(object)).findFirst().orElse(null);
+    }
+
+    @Override
+    public OntStatement addStatement(Property property, RDFNode value) {
+        OntStatement res = toOntStatement(getRoot(), getModel().createStatement(this, property, value));
+        getModel().add(res);
+        return res;
+    }
+
+    @Override
+    public Stream<OntStatement> statements(Property property) {
+        return statements().filter(s -> s.getPredicate().equals(property));
+    }
+
+    @Override
+    public Stream<OntStatement> statements() {
+        OntStatement main = getRoot();
+        return JenaUtils.asStream(listProperties()).map(s -> toOntStatement(main, s));
+    }
+
+    @Override
+    public void remove(Property property, RDFNode object) {
+        getModel().removeAll(this, property, object);
+    }
+
+    private OntStatement toOntStatement(OntStatement main, Statement st) {
+        if (st.equals(main)) return main;
+        if (st.getPredicate().canAs(OntNAP.class)) {
+            // if subject is anon -> general annotation wrapper.
+            return main.getSubject().isURIResource() ? new OntStatementImpl.AssertionAnnotationImpl(main, st.getPredicate().as(OntNAP.class), st.getObject()) :
+                    new OntStatementImpl.CommonAnnotationImpl(main.getSubject(), st.getPredicate().as(OntNAP.class), st.getObject(), main.getModel());
         }
+        return new OntStatementImpl(st.getSubject(), st.getPredicate(), st.getObject(), getModel());
     }
 
     @Override
@@ -140,46 +147,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public String toString() {
         return String.format("%s(%s)", asNode(), getActualClass().getSimpleName());
-    }
-
-    @Override
-    public Stream<OntAnnotation> annotations() {
-        return Stream.concat(assertionAnnotations(), bulkAnnotations());
-    }
-
-    public Stream<OntAnnotation> assertionAnnotations() {
-        return JenaUtils.asStream(listProperties()
-                .filterKeep(s -> s.getPredicate().canAs(OntNAP.class))
-                .mapWith(s -> new OntAStatementImpl(s.getSubject(), s.getPredicate().as(OntNAP.class), s.getObject(), getModel())));
-    }
-
-    public Stream<OntAnnotation> bulkAnnotations() {
-        Stream<Resource> subjects = JenaUtils.asStream(getModel().listStatements(null, OWL2.annotatedSource, this)
-                .mapWith(Statement::getSubject)
-                .filterKeep(s -> getModel().contains(s, RDF.type, OWL2.Axiom))
-                .filterKeep(s -> getModel().contains(s, OWL2.annotatedProperty, (RDFNode) null))
-                .filterKeep(s -> getModel().contains(s, OWL2.annotatedProperty, (RDFNode) null)));
-        return subjects.map(r -> OntAStatementImpl.children(r, getModel())).flatMap(Function.identity());
-    }
-
-    @Override
-    public OntAnnotation addAnnotation(OntNAP property, Resource uri) {
-        return addAnnotation(OntException.notNull(property, "Null property."), (RDFNode) checkNamed(uri));
-    }
-
-    @Override
-    public OntAnnotation addAnnotation(OntNAP property, Literal literal) {
-        return addAnnotation(OntException.notNull(property, "Null property."), (RDFNode) OntException.notNull(literal, "Null literal."));
-    }
-
-    @Override
-    public OntAnnotation addAnnotation(OntNAP property, OntIndividual.Anonymous anon) {
-        return addAnnotation(OntException.notNull(property, "Null property."), (RDFNode) OntException.notNull(anon, "Null individual."));
-    }
-
-    private OntAnnotation addAnnotation(OntNAP property, RDFNode value) {
-        addProperty(property, value);
-        return new OntAStatementImpl(this, property, value, getModel());
     }
 
     static Node checkNamed(Node res) {

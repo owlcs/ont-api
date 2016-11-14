@@ -10,6 +10,11 @@ import org.apache.jena.rdf.model.Property;
  * Created by szuev on 01.11.2016.
  */
 public interface OntNDP extends OntPE, OntEntity, Property {
+
+    OntStatement addDomain(OntCE domain);
+
+    OntStatement addRange(OntDR range);
+
     @Override
     Stream<OntCE> domain();
 
