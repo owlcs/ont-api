@@ -73,6 +73,19 @@ public class OntModelConfig {
 
             // individuals
             .register(OntIndividual.Anonymous.class, OntIndividualImpl.anonymousIndividualFactory)
-            .register(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory);
+            .register(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory)
+
+            // negative property assertions
+            .register(OntNPA.ObjectAssertion.class, OntNPAImpl.objectNPAFactory)
+            .register(OntNPA.DataAssertion.class, OntNPAImpl.dataNPAFactory)
+            .register(OntNPA.class, OntNPAImpl.abstractNPAFactory)
+
+            // disjoint anonymous collections
+            .register(OntDisjoint.Classes.class, OntDisjointImpl.disjointClassesFactory)
+            .register(OntDisjoint.Individuals.class, OntDisjointImpl.differentIndividualsFactory)
+            .register(OntDisjoint.ObjectProperties.class, OntDisjointImpl.objectPropertiesFactory)
+            .register(OntDisjoint.DataProperties.class, OntDisjointImpl.dataPropertiesFactory)
+            .register(OntDisjoint.Properties.class, OntDisjointImpl.abstractPropertiesFactory)
+            .register(OntDisjoint.class, OntDisjointImpl.abstractDisjointFactory);
 
 }

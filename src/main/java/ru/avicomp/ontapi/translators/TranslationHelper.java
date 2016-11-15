@@ -21,10 +21,11 @@ import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
 import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
 /**
- * TODO: change to use {@link ru.avicomp.ontapi.jena.impl.GraphModelImpl} instead direct working with graph.
+ * TODO: change to use {@link OntGraphModel} instead direct working with graph.
  * Helper for axiom parsing.
  * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2 Mapping from the Structural Specification to RDF Graphs</a>
  * for handling common graph triples (operator 'T') see chapter "2.1 Translation of Axioms without Annotations"

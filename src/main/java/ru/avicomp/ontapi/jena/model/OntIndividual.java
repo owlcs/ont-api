@@ -2,9 +2,11 @@ package ru.avicomp.ontapi.jena.model;
 
 import java.util.stream.Stream;
 
+import org.apache.jena.vocabulary.OWL2;
+
 /**
- * TODO:
  * for named and anonymous individuals
+ *
  * Created by @szuev on 02.11.2016.
  */
 public interface OntIndividual extends OntObject {
@@ -15,13 +17,20 @@ public interface OntIndividual extends OntObject {
 
     Stream<OntClass> classes();
 
+    default OntStatement addDifferentFrom(OntIndividual other) {
+        return addStatement(OWL2.differentFrom, other);
+    }
+
+    default void removeDifferentFrom(OntIndividual other) {
+        remove(OWL2.differentFrom, other);
+    }
+
     /**
      * Named Individual here.
      * <p>
      * Created by szuev on 01.11.2016.
      */
     interface Named extends OntIndividual, OntEntity {
-
     }
 
     /**

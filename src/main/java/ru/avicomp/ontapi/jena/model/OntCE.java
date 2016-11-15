@@ -4,6 +4,8 @@ import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDFS;
 
 /**
  * Common interface for Class Expressions.
@@ -15,9 +17,21 @@ public interface OntCE extends OntObject {
 
     Stream<OntCE> subClassOf();
 
-    OntStatement addSubClassOf(OntCE superClass);
+    default OntStatement addSubClassOf(OntCE superClass) {
+        return addStatement(RDFS.subClassOf, superClass);
+    }
 
-    void deleteSubClassOf(OntCE superClass);
+    default void removeSubClassOf(OntCE superClass) {
+        remove(RDFS.subClassOf, superClass);
+    }
+
+    default OntStatement addDisjointWith(OntCE other) {
+        return addStatement(OWL2.disjointWith, other);
+    }
+
+    default void removeDisjointWith(OntCE other) {
+        remove(OWL2.disjointWith, other);
+    }
 
     /**
      * ============================

@@ -32,20 +32,20 @@ import ru.avicomp.ontapi.jena.model.*;
  * <p>
  * Created by @szuev on 27.10.2016.
  */
-public class GraphModelImpl extends ModelCom implements GraphModel {
+public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     /**
      * fresh ontology.
      */
-    public GraphModelImpl() {
+    public OntGraphModelImpl() {
         this(new GraphMem());
     }
 
-    public GraphModelImpl(Graph graph) {
+    public OntGraphModelImpl(Graph graph) {
         this(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntModelConfig.ONT_PERSONALITY);
     }
 
-    public GraphModelImpl(Graph graph, OntPersonality personality) {
+    public OntGraphModelImpl(Graph graph, OntPersonality personality) {
         super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), personality);
     }
 
@@ -76,12 +76,12 @@ public class GraphModelImpl extends ModelCom implements GraphModel {
         return JenaUtils.asStream(listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject)).distinct();
     }
 
-    public void addImport(GraphModelImpl m) {
+    public void addImport(OntGraphModelImpl m) {
         getGraph().addGraph(m.getBaseGraph());
         // todo:
     }
 
-    public void removeImport(GraphModelImpl m) {
+    public void removeImport(OntGraphModelImpl m) {
         getGraph().removeGraph(m.getBaseGraph());
         // todo:
     }
@@ -145,7 +145,7 @@ public class GraphModelImpl extends ModelCom implements GraphModel {
     }
 
     @Override
-    public GraphModelImpl remove(Resource s, Property p, RDFNode o) { // todo: removing is allowed only for base graph
+    public OntGraphModelImpl remove(Resource s, Property p, RDFNode o) { // todo: removing is allowed only for base graph
         graph.delete(Triple.create(s.asNode(), p.asNode(), o.asNode()));
         return this;
     }
@@ -184,10 +184,14 @@ public class GraphModelImpl extends ModelCom implements GraphModel {
      * @param uri  String
      * @return OntObject
      */
-    @Override
     public <T extends OntObject> T createOntObject(Class<T> type, String uri) {
         Resource res = uri == null ? createResource() : createResource(uri);
         return getPersonality().getOntImplementation(type).create(res.asNode(), this).as(type);
+    }
+
+    @Override
+    public <T extends OntEntity> T createOntEntity(Class<T> type, String uri) {
+        return createOntObject(type, uri);
     }
 
     @Override
@@ -206,6 +210,26 @@ public class GraphModelImpl extends ModelCom implements GraphModel {
 
     Stream<OntDR> dataRanges(Resource resource, Property predicate) {
         return JenaUtils.asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntDR.class)).distinct();
+    }
+
+    @Override
+    public OntDisjoint.Classes createDisjointClasses(Stream<OntCE> classes) {
+        return OntDisjointImpl.createDisjointClasses(this, classes);
+    }
+
+    @Override
+    public OntDisjoint.Individuals createDifferentIndividuals(Stream<OntIndividual> individuals) {
+        return OntDisjointImpl.createDifferentIndividuals(this, individuals);
+    }
+
+    @Override
+    public OntDisjoint.ObjectProperties createDisjointObjectProperties(Stream<OntOPE> properties) {
+        return OntDisjointImpl.createDisjointObjectProperties(this, properties);
+    }
+
+    @Override
+    public OntDisjoint.DataProperties createDisjointDataProperties(Stream<OntNDP> properties) {
+        return OntDisjointImpl.createDisjointDataProperties(this, properties);
     }
 
 }

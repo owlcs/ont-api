@@ -2,6 +2,9 @@ package ru.avicomp.ontapi.jena.model;
 
 import java.util.stream.Stream;
 
+import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDFS;
+
 /**
  * Object Property Expression (i.e. for iri-object property entity and for inverseOf anonymous property expression)
  * <p>
@@ -9,9 +12,7 @@ import java.util.stream.Stream;
  */
 public interface OntOPE extends OntPE {
 
-    OntStatement addDomain(OntCE domain);
-
-    OntStatement addRange(OntCE range);
+    OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
 
     @Override
     Stream<OntCE> domain();
@@ -59,4 +60,28 @@ public interface OntOPE extends OntPE {
     void setInverseFunctional(boolean inverseFunctional);
 
     boolean isInverseFunctional();
+
+    default OntStatement addDomain(OntCE domain) {
+        return addStatement(RDFS.domain, domain);
+    }
+
+    default OntStatement addRange(OntCE range) {
+        return addStatement(RDFS.range, range);
+    }
+
+    default OntStatement addDisjointWith(OntOPE other) {
+        return addStatement(OWL2.propertyDisjointWith, other);
+    }
+
+    default void removeDisjointWith(OntOPE other) {
+        remove(OWL2.propertyDisjointWith, other);
+    }
+
+    default Stream<OntNPA.ObjectAssertion> negativeAssertions() {
+        return getModel().ontObjects(OntNPA.ObjectAssertion.class).filter(a -> OntOPE.this.equals(a.getProperty()));
+    }
+
+    default void removeNegativeAssertion(OntNPA.ObjectAssertion assertion) {
+        getModel().removeAll(assertion, null, null);
+    }
 }

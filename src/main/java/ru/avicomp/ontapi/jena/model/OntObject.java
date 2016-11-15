@@ -19,7 +19,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 public interface OntObject extends Resource {
 
     @Override
-    GraphModel getModel();
+    OntGraphModel getModel();
 
     /**
      * returns root triplet statement,

@@ -15,7 +15,7 @@ import org.apache.jena.rdf.model.Statement;
  */
 public interface OntStatement extends Statement {
 
-    GraphModel getModel();
+    OntGraphModel getModel();
 
     /**
      * adds annotation.
@@ -45,6 +45,14 @@ public interface OntStatement extends Statement {
 
     default boolean isAnnotation() {
         return getPredicate().canAs(OntNAP.class);
+    }
+
+    default boolean isData() {
+        return getPredicate().canAs(OntNDP.class);
+    }
+
+    default boolean isObject() {
+        return getPredicate().canAs(OntNOP.class);
     }
 
     /**

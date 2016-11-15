@@ -26,13 +26,13 @@ import ru.avicomp.ontapi.jena.model.*;
  */
 public class OntStatementImpl extends StatementImpl implements OntStatement {
 
-    public OntStatementImpl(Resource subject, Property predicate, RDFNode object, GraphModel model) {
+    public OntStatementImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
         super(subject, predicate, object, (ModelCom) model);
     }
 
     @Override
-    public GraphModel getModel() {
-        return (GraphModel) super.getModel();
+    public OntGraphModel getModel() {
+        return (OntGraphModel) super.getModel();
     }
 
     @Override
@@ -96,7 +96,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param model Model
      * @return Stream of annotation statement, in the example above the output will contain three statements (two labels and one comment).
      */
-    public static Stream<OntStatement> children(Resource root, GraphModel model) {
+    public static Stream<OntStatement> children(Resource root, OntGraphModel model) {
         return JenaUtils.asStream(root.listProperties()
                 .filterDrop(s -> RDF.type.equals(s.getPredicate()))
                 .filterDrop(s -> OWL2.annotatedSource.equals(s.getPredicate()))
@@ -133,7 +133,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return Anonymous resource
      */
     public static Resource findAnnotation(OntStatement base, Resource type) {
-        GraphModel model = base.getModel();
+        OntGraphModel model = base.getModel();
         List<Resource> candidates = model.listStatements(null, OWL2.annotatedSource, base.getSubject()).mapWith(Statement::getSubject).filterKeep(new UniqueFilter<>()).toList();
         for (Resource res : candidates) {
             if (!model.contains(res, RDF.type, type)) continue;
@@ -166,7 +166,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      */
     public static class CommonAnnotationImpl extends OntStatementImpl {
 
-        public CommonAnnotationImpl(Resource subject, OntNAP predicate, RDFNode object, GraphModel model) {
+        public CommonAnnotationImpl(Resource subject, OntNAP predicate, RDFNode object, OntGraphModel model) {
             super(subject, predicate, object, model);
         }
 
@@ -191,7 +191,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * see {@link OntObject#getRoot()}
      */
     public static class RootImpl extends OntStatementImpl {
-        RootImpl(Resource subject, Property predicate, RDFNode object, GraphModel model) {
+        RootImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
             super(subject, predicate, object, model);
         }
 

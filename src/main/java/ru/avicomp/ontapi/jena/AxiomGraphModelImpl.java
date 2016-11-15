@@ -2,7 +2,7 @@ package ru.avicomp.ontapi.jena;
 
 import org.apache.jena.graph.Graph;
 
-import ru.avicomp.ontapi.jena.impl.GraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 
 /**
  * New strategy here.
@@ -12,7 +12,7 @@ import ru.avicomp.ontapi.jena.impl.GraphModelImpl;
  *
  * Created by @szuev on 26.10.2016.
  */
-public class AxiomGraphModelImpl extends GraphModelImpl {
+public class AxiomGraphModelImpl extends OntGraphModelImpl {
 
     public AxiomGraphModelImpl(Graph base) {
         super(base);

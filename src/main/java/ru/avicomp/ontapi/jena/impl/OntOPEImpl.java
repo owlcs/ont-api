@@ -17,10 +17,7 @@ import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
-import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntNOP;
-import ru.avicomp.ontapi.jena.model.OntOPE;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 
 /**
  * owl:ObjectProperty (could be also Annotation, InverseFunctional, Transitive, SymmetricProperty, etc)
@@ -97,13 +94,8 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public OntStatement addDomain(OntCE domain) {
-        return addStatement(RDFS.domain, domain);
-    }
-
-    @Override
-    public OntStatement addRange(OntCE range) {
-        return addStatement(RDFS.range, range);
+    public OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target) {
+        return OntNPAImpl.create(getModel(), source, this, target);
     }
 
     @Override

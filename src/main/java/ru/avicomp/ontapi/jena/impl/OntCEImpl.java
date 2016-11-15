@@ -117,16 +117,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public OntStatement addSubClassOf(OntCE superClass) {
-        return addStatement(RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
-    }
-
-    @Override
-    public void deleteSubClassOf(OntCE superClass) {
-        remove(RDFS.subClassOf, OntException.notNull(superClass, "Null Super Class."));
-    }
-
-    @Override
     public abstract Class<? extends OntCE> getActualClass();
 
     public static class ObjectSomeValuesFromImpl extends ComponentRestrictionCEImpl<OntCE, OntOPE> implements ObjectSomeValuesFrom {

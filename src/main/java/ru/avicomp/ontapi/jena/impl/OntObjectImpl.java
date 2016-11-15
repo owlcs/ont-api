@@ -80,12 +80,12 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         }
     }
 
-    public <T extends OntObject> T getOntProperty(Property predicate, Class<T> view) {
+    public <T extends RDFNode> T getOntProperty(Property predicate, Class<T> view) {
         Statement st = getProperty(predicate);
         return st == null ? null : getModel().getNodeAs(st.getObject().asNode(), view);
     }
 
-    public <T extends OntObject> T getRequiredOntProperty(Property predicate, Class<T> view) {
+    public <T extends RDFNode> T getRequiredOntProperty(Property predicate, Class<T> view) {
         return getModel().getNodeAs(getRequiredProperty(predicate).getObject().asNode(), view);
     }
 
@@ -103,9 +103,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntStatement addStatement(Property property, RDFNode value) {
-        OntStatement res = toOntStatement(getRoot(), getModel().createStatement(this, property, value));
+        OntStatement res = toOntStatement(getRoot(), getModel().createStatement(this, OntException.notNull(property, "Null property."), OntException.notNull(value, "Null value.")));
         getModel().add(res);
         return res;
+    }
+
+    @Override
+    public void remove(Property property, RDFNode value) {
+        getModel().removeAll(this, OntException.notNull(property, "Null property."), OntException.notNull(value, "Null value."));
     }
 
     @Override
@@ -119,11 +124,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return JenaUtils.asStream(listProperties()).map(s -> toOntStatement(main, s));
     }
 
-    @Override
-    public void remove(Property property, RDFNode object) {
-        getModel().removeAll(this, property, object);
-    }
-
     private OntStatement toOntStatement(OntStatement main, Statement st) {
         if (st.equals(main)) return main;
         if (st.getPredicate().canAs(OntNAP.class)) {
@@ -135,8 +135,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
-    public GraphModelImpl getModel() {
-        return (GraphModelImpl) super.getModel();
+    public OntGraphModelImpl getModel() {
+        return (OntGraphModelImpl) super.getModel();
     }
 
     @SuppressWarnings("unchecked")

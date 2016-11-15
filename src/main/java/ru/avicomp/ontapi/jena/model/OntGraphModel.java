@@ -14,7 +14,7 @@ import org.apache.jena.vocabulary.RDFS;
  * <p>
  * Created by @szuev on 11.11.2016.
  */
-public interface GraphModel extends Model {
+public interface OntGraphModel extends Model {
 
     Graph getBaseGraph();
 
@@ -26,11 +26,19 @@ public interface GraphModel extends Model {
 
     <T extends OntEntity> T getOntEntity(Class<T> type, String uri);
 
-    <T extends OntObject> T createOntObject(Class<T> type, String uri);
-
     Stream<OntEntity> ontEntities();
 
     <T extends OntEntity> Stream<T> ontEntities(Class<T> type);
+
+    <T extends OntEntity> T createOntEntity(Class<T> type, String uri);
+
+    OntDisjoint.Classes createDisjointClasses(Stream<OntCE> classes);
+
+    OntDisjoint.Individuals createDifferentIndividuals(Stream<OntIndividual> individuals);
+
+    OntDisjoint.ObjectProperties createDisjointObjectProperties(Stream<OntOPE> properties);
+
+    OntDisjoint.DataProperties createDisjointDataProperties(Stream<OntNDP> properties);
 
     default Stream<OntClass> listClasses() {
         return ontEntities(OntClass.class);

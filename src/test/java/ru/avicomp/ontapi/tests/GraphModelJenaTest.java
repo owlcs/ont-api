@@ -16,13 +16,13 @@ import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ru.avicomp.ontapi.jena.impl.GraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
- * to test {@link GraphModel}
+ * to test {@link OntGraphModel}
  *
  * Created by szuev on 07.11.2016.
  */
@@ -32,7 +32,7 @@ public class GraphModelJenaTest {
     @Test
     public void testLoadCE() {
         LOGGER.info("load pizza");
-        GraphModel m = new GraphModelImpl(loadGraph("pizza.ttl"));
+        OntGraphModel m = new OntGraphModelImpl(loadGraph("pizza.ttl"));
         LOGGER.info("Ontology: " + m.getID());
 
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
@@ -74,7 +74,7 @@ public class GraphModelJenaTest {
     @Test
     public void testLoadProperties() {
         LOGGER.info("load pizza");
-        GraphModel m = new GraphModelImpl(loadGraph("pizza.ttl"));
+        OntGraphModel m = new OntGraphModelImpl(loadGraph("pizza.ttl"));
         List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
         actual.forEach(LOGGER::debug);
         Set<Resource> expected = new HashSet<>();
@@ -86,7 +86,7 @@ public class GraphModelJenaTest {
     @Test
     public void testLoadIndividuals() {
         LOGGER.info("load pizza");
-        GraphModel m = new GraphModelImpl(loadGraph("pizza.ttl"));
+        OntGraphModel m = new OntGraphModelImpl(loadGraph("pizza.ttl"));
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
         individuals.forEach(i -> LOGGER.debug(i + " classes: " + i.classes().collect(Collectors.toSet())));
 
@@ -109,16 +109,20 @@ public class GraphModelJenaTest {
         return ReadWriteUtils.load(ReadWriteUtils.getResourceURI(file), null).getGraph();
     }
 
-    @Test
-    public void testCreateAnnotations() {
-        String uri = "http://test.com/graph/1";
-        String ns = uri + "#";
-
-        GraphModel m = new GraphModelImpl();
-        m.setNsPrefix("test", ns);
+    private static void setDefaultPrefixes(OntGraphModel m) {
         m.setNsPrefix("owl", OWL2.getURI());
         m.setNsPrefix("rdfs", RDFS.getURI());
         m.setNsPrefix("rdf", RDF.getURI());
+    }
+
+    @Test
+    public void testCreatePlainAnnotations() {
+        String uri = "http://test.com/graph/1";
+        String ns = uri + "#";
+
+        OntGraphModel m = new OntGraphModelImpl();
+        m.setNsPrefix("test", ns);
+        setDefaultPrefixes(m);
 
         LOGGER.info("1) Assign version-iri and ontology comment.");
         m.setID(uri).setVersionIRI(ns + "1.0.1");
@@ -126,7 +130,7 @@ public class GraphModelJenaTest {
         m.getID().annotations().forEach(LOGGER::debug);
 
         LOGGER.info("2) Create class with two labels.");
-        OntClass cl = m.createOntObject(OntClass.class, ns + "ClassN1");
+        OntClass cl = m.createOntEntity(OntClass.class, ns + "ClassN1");
         cl.addLabel("some label", null);
         OntStatement label2 = cl.addLabel("another label", "de");
         ReadWriteUtils.print(m);
@@ -142,7 +146,7 @@ public class GraphModelJenaTest {
         Assert.assertTrue("Can't find owl:Annotation section.", m.contains(null, RDF.type, OWL2.Annotation));
 
         LOGGER.info("4) Create annotation property and annotate " + seeAlsoForLabel2 + " and " + labelForLabel2);
-        OntNAP nap1 = m.createOntObject(OntNAP.class, ns + "annotation-prop-1");
+        OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "annotation-prop-1");
         seeAlsoForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see also"));
         OntStatement annotationForLabelForLabel2 = labelForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see label"));
         ReadWriteUtils.print(m);
@@ -185,6 +189,45 @@ public class GraphModelJenaTest {
         Assert.assertEquals("Found annotations for class " + cl, 0, cl.annotations().count());
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL2.Axiom));
         Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL2.Annotation));
+    }
+
+    @Test
+    public void testCreateAnonAnnotations() {
+        String uri = "http://test.com/graph/2";
+        String ns = uri + "#";
+
+        OntGraphModel m = new OntGraphModelImpl();
+        m.setNsPrefix("test", ns);
+        setDefaultPrefixes(m);
+        m.setID(uri);
+
+        OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
+        OntClass cl2 = m.createOntEntity(OntClass.class, ns + "Class2");
+        OntClass cl3 = m.createOntEntity(OntClass.class, ns + "Class3");
+        OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "AnnotationProperty1");
+
+        OntDisjoint.Classes disjointClasses = m.createDisjointClasses(Stream.of(cl1, cl2, cl3));
+        Assert.assertEquals("Incorrect owl:AllDisjointClasses number", 1, m.ontObjects(OntDisjoint.Classes.class).count());
+
+        disjointClasses.addLabel("label1", "en");
+        disjointClasses.addLabel("comment", "kjpopo").addAnnotation(nap1, ResourceFactory.createStringLiteral("some txt"));
+        ReadWriteUtils.print(m);
+
+        Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL2.Axiom));
+        Assert.assertEquals("Should be single owl:Annotation", 1, m.listStatements(null, RDF.type, OWL2.Annotation).toList().size());
+
+        OntNOP nop1 = m.createOntEntity(OntNOP.class, ns + "ObjectProperty1");
+        OntIndividual.Named ind1 = cl1.createIndividual(ns + "Individual1");
+        OntIndividual.Anonymous ind2 = cl2.createIndividual();
+        ind2.addComment("anonymous individual", "ru");
+        OntNPA.ObjectAssertion nopa = nop1.addNegativeAssertion(ind1, ind2);
+        Assert.assertEquals("Incorrect owl:NegativePropertyAssertion number", 1, nop1.negativeAssertions().count());
+        nopa.addLabel("label1", null)
+                .addAnnotation(m.getRDFSLabel(), ResourceFactory.createStringLiteral("label2"))
+                .addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label3"));
+        Assert.assertEquals("Should be 3 owl:Annotation", 3, m.listStatements(null, RDF.type, OWL2.Annotation).toList().size());
+
+        ReadWriteUtils.print(m);
     }
 
 }
