@@ -86,6 +86,28 @@ public class OntModelConfig {
             .register(OntDisjoint.ObjectProperties.class, OntDisjointImpl.objectPropertiesFactory)
             .register(OntDisjoint.DataProperties.class, OntDisjointImpl.dataPropertiesFactory)
             .register(OntDisjoint.Properties.class, OntDisjointImpl.abstractPropertiesFactory)
-            .register(OntDisjoint.class, OntDisjointImpl.abstractDisjointFactory);
+            .register(OntDisjoint.class, OntDisjointImpl.abstractDisjointFactory)
+
+            // facet restrictions
+            .register(OntFR.Length.class, OntFRImpl.lengthFRFactory)
+            .register(OntFR.MinLength.class, OntFRImpl.minLengthFRFactory)
+            .register(OntFR.MaxLength.class, OntFRImpl.maxLengthFRFactory)
+            .register(OntFR.MinInclusive.class, OntFRImpl.minInclusiveFRFactory)
+            .register(OntFR.MaxInclusive.class, OntFRImpl.maxInclusiveFRFactory)
+            .register(OntFR.MinExclusive.class, OntFRImpl.minExclusiveFRFactory)
+            .register(OntFR.MaxExclusive.class, OntFRImpl.maxExclusiveFRFactory)
+            .register(OntFR.Pattern.class, OntFRImpl.patternFRFactory)
+            .register(OntFR.TotalDigits.class, OntFRImpl.totalDigitsFRFactory)
+            .register(OntFR.FractionDigits.class, OntFRImpl.fractionDigitsFRFactory)
+            .register(OntFR.LangRange.class, OntFRImpl.langRangeFRFactory)
+            .register(OntFR.class, OntFRImpl.abstractFRFactory)
+
+            // data ranges
+            .register(OntDR.OneOf.class, OntDRImpl.oneOfDRFactory)
+            .register(OntDR.Restriction.class, OntDRImpl.restrictionDRFactory)
+            .register(OntDR.ComplementOf.class, OntDRImpl.complementOfDRFactory)
+            .register(OntDR.UnionOf.class, OntDRImpl.unionOfDRFactory)
+            .register(OntDR.IntersectionOf.class, OntDRImpl.intersectionOfDRFactory)
+            .register(OntDR.class, OntDRImpl.abstractDRFactory);
 
 }

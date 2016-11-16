@@ -1,7 +1,6 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -11,6 +10,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.OntException;
@@ -335,17 +335,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             this.predicate = OntException.notNull(predicate, "Null predicate.");
             this.view = OntException.notNull(view, "Null view.");
         }
-
-        Stream<RDFNode> components(Property predicate) {
-            return JenaUtils.asStream(getModel().listObjectsOfProperty(this, predicate).mapWith(n -> n.as(RDFList.class)))
-                    .map(list -> list.asJavaList().stream()).flatMap(Function.identity()).distinct();
-        }
-
         @Override
         public Stream<O> components() {
-            return components(predicate)
-                    //.filter(n -> n.canAs(view))
-                    .map(n -> getModel().getNodeAs(n.asNode(), view));
+            return listOf(predicate, view);
         }
 
         void clear() {
@@ -463,19 +455,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         private Property getCardinalityPredicate() {
-            if (CardinalityType.MAX.equals(cardinalityType)) {
-                return isQualified() ? OWL2.maxQualifiedCardinality : OWL2.maxCardinality;
-            }
-            if (CardinalityType.MIN.equals(cardinalityType)) {
-                return isQualified() ? OWL2.minQualifiedCardinality : OWL2.minCardinality;
-            }
-            return isQualified() ? OWL2.qualifiedCardinality : OWL2.cardinality;
+            return getCardinalityPredicate(isQualified(), cardinalityType);
         }
 
         @Override
         public boolean isQualified() {
-            O c = getValue();
-            return c != null && !OWL2.Thing.equals(c) && !RDFS.Literal.equals(c);
+            return isQualified(getValue());
         }
     }
 
@@ -558,6 +543,29 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
+    protected static boolean isQualified(OntObject c) {
+        return c != null && !OWL2.Thing.equals(c) && !RDFS.Literal.equals(c);
+    }
+
+    protected static Property getCardinalityPredicate(boolean isQualified, CardinalityType cardinalityType) {
+        if (CardinalityType.MAX.equals(cardinalityType)) {
+            return isQualified ? OWL2.maxQualifiedCardinality : OWL2.maxCardinality;
+        }
+        if (CardinalityType.MIN.equals(cardinalityType)) {
+            return isQualified ? OWL2.minQualifiedCardinality : OWL2.minCardinality;
+        }
+        return isQualified ? OWL2.qualifiedCardinality : OWL2.cardinality;
+    }
+
+    private static CardinalityType getCardinalityType(Class<? extends CardinalityRestrictionCE> view) {
+        if (ObjectMinCardinality.class.equals(view) || DataMinCardinality.class.equals(view)) {
+            return CardinalityType.MIN;
+        }
+        if (ObjectMaxCardinality.class.equals(view) || DataMaxCardinality.class.equals(view)) {
+            return CardinalityType.MAX;
+        }
+        return CardinalityType.EXACTLY;
+    }
 
     private enum RestrictionType {
         UNDEFINED,
@@ -569,6 +577,31 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         EXACTLY,
         MAX,
         MIN
+    }
+
+    private static Resource createOnPropertyRestriction(OntGraphModelImpl model, OntPE onProperty) {
+        OntException.notNull(onProperty, "Null property.");
+        Resource res = model.createResource();
+        model.add(res, RDF.type, OWL2.Restriction);
+        model.add(res, OWL2.onProperty, onProperty);
+        return res;
+    }
+
+    public static <CE extends ComponentRestrictionCE> CE createComponentRestrictionCE(OntGraphModelImpl model, Class<CE> view, OntPE onProperty, RDFNode other, Property predicate) {
+        OntException.notNull(other, "Null expression.");
+        Resource res = createOnPropertyRestriction(model, onProperty);
+        model.add(res, predicate, other);
+        return model.getNodeAs(res.asNode(), view);
+    }
+
+    public static <CE extends CardinalityRestrictionCE> CE createCardinalityRestrictionCE(OntGraphModelImpl model, Class<CE> view, OntPE onProperty, int cardinality, OntObject object) {
+        Resource res = createOnPropertyRestriction(model, onProperty);
+        Literal value = ResourceFactory.createTypedLiteral(String.valueOf(cardinality), XSDDatatype.XSDnonNegativeInteger);
+        model.add(res, getCardinalityPredicate(isQualified(object), getCardinalityType(view)), value);
+        if (object != null) {
+            model.add(res, OntOPE.class.isInstance(onProperty) ? OWL2.onClass : OWL2.onDataRange, object);
+        }
+        return model.getNodeAs(res.asNode(), view);
     }
 
 }

@@ -19,10 +19,10 @@ import org.apache.jena.sparql.util.NodeUtils;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
-import org.apache.jena.vocabulary.XSD;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 /**
  * to work with {@link org.apache.jena.rdf.model.Model}
@@ -30,7 +30,7 @@ import ru.avicomp.ontapi.OntException;
  */
 public class JenaUtils {
 
-    public static final Set<Property> BUILT_IN_PROPERTIES = getConstants(Property.class, RDF.class, RDFS.class, OWL2.class);
+    public static final Set<Property> BUILT_IN_PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL2.class);
     public static final Set<Resource> BUILT_IN_RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL2.class);
 
     public static final Set<RDFDatatype> BUILT_IN_DATATYPES = createBuiltInTypes();
@@ -65,11 +65,16 @@ public class JenaUtils {
         return res;
     }
 
-    private static Stream<Field> fields(Class vocabulary, Class<?> type) {
+    private static Stream<Field> directFields(Class vocabulary, Class<?> type) {
         return Arrays.stream(vocabulary.getDeclaredFields()).
                 filter(field -> Modifier.isPublic(field.getModifiers())).
                 filter(field -> Modifier.isStatic(field.getModifiers())).
                 filter(field -> type.equals(field.getType()));
+    }
+
+    private static Stream<Field> fields(Class vocabulary, Class<?> type) {
+        Stream<Field> res = directFields(vocabulary, type);
+        return vocabulary.getSuperclass() != null ? Stream.concat(res, fields(vocabulary.getSuperclass(), type)) : res;
     }
 
     private static <T> Stream<T> constants(Class vocabulary, Class<T> type) {

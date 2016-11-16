@@ -2,16 +2,14 @@ package ru.avicomp.ontapi.jena.impl;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
@@ -132,6 +130,27 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                     new OntStatementImpl.CommonAnnotationImpl(main.getSubject(), st.getPredicate().as(OntNAP.class), st.getObject(), main.getModel());
         }
         return new OntStatementImpl(st.getSubject(), st.getPredicate(), st.getObject(), getModel());
+    }
+
+    /**
+     * gets rdf:List content as Stream of RDFNode's.
+     * if object is not rdf:List empty stream expected.
+     * if there are several lists with the same predicate the contents of all will be merged.
+     *
+     * @param property predicate
+     * @return Distinct Stream of RDFNode
+     */
+    public Stream<RDFNode> list(Property property) {
+        return JenaUtils.asStream(listProperties(property)
+                .mapWith(Statement::getObject)
+                .filterKeep(n -> n.canAs(RDFList.class))
+                .mapWith(n -> n.as(RDFList.class)))
+                .map(list -> list.asJavaList().stream())
+                .flatMap(Function.identity()).distinct();
+    }
+
+    public <O extends RDFNode> Stream<O> listOf(Property predicate, Class<O> view) {
+        return list(predicate).map(n -> getModel().getNodeAs(n.asNode(), view));
     }
 
     @Override

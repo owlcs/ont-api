@@ -195,6 +195,12 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
+    public void removeOntObject(OntObject obj) {
+        obj.clearAnnotations();
+        removeAll(obj, null, null);
+    }
+
+    @Override
     public <T extends OntEntity> Stream<T> ontEntities(Class<T> type) {
         return ontObjects(type);
     }
@@ -230,6 +236,96 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     @Override
     public OntDisjoint.DataProperties createDisjointDataProperties(Stream<OntNDP> properties) {
         return OntDisjointImpl.createDisjointDataProperties(this, properties);
+    }
+
+    @Override
+    public <T extends OntFR> T createFacetRestriction(Class<T> view, Literal literal) {
+        return OntFRImpl.create(this, view, literal);
+    }
+
+    @Override
+    public OntDR.OneOf createOneOfDataRange(Stream<Literal> values) {
+        return OntDRImpl.createOneOf(this, values);
+    }
+
+    @Override
+    public OntDR.Restriction createRestrictionDataRange(OntDR property, Stream<OntFR> values) {
+        return OntDRImpl.createRestriction(this, property, values);
+    }
+
+    @Override
+    public OntDR.ComplementOf createComplementOfDataRange(OntDR other) {
+        return OntDRImpl.createComplementOf(this, other);
+    }
+
+    @Override
+    public OntDR.UnionOf createUnionOfDataRange(Stream<OntDR> values) {
+        return OntDRImpl.createUnionOf(this, values);
+    }
+
+    @Override
+    public OntDR.IntersectionOf createIntersectionOfDataRange(Stream<OntDR> values) {
+        return OntDRImpl.createIntersectionOf(this, values);
+    }
+
+    @Override
+    public OntCE.ObjectSomeValuesFrom createObjectSomeValuesFrom(OntOPE onProperty, OntCE other) {
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectSomeValuesFrom.class, onProperty, other, OWL2.someValuesFrom);
+    }
+
+    @Override
+    public OntCE.DataSomeValuesFrom createDataSomeValuesFrom(OntNDP onProperty, OntDR other) {
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataSomeValuesFrom.class, onProperty, other, OWL2.someValuesFrom);
+    }
+
+    @Override
+    public OntCE.ObjectAllValuesFrom createObjectAllValuesFrom(OntOPE onProperty, OntCE other) {
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectAllValuesFrom.class, onProperty, other, OWL2.allValuesFrom);
+    }
+
+    @Override
+    public OntCE.DataAllValuesFrom createDataAllValuesFrom(OntNDP onProperty, OntDR other) {
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataAllValuesFrom.class, onProperty, other, OWL2.allValuesFrom);
+    }
+
+    @Override
+    public OntCE.ObjectHasValue createObjectHasValue(OntOPE onProperty, OntIndividual other) {
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectHasValue.class, onProperty, other, OWL2.hasValue);
+    }
+
+    @Override
+    public OntCE.DataHasValue createDataHasValue(OntNDP onProperty, Literal other) {
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataHasValue.class, onProperty, other, OWL2.hasValue);
+    }
+
+    @Override
+    public OntCE.ObjectMinCardinality createObjectMinCardinality(OntOPE onProperty, int cardinality, OntCE onObject) {
+        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.ObjectMinCardinality.class, onProperty, cardinality, onObject);
+    }
+
+    @Override
+    public OntCE.DataMinCardinality createObjectMinCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
+        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.DataMinCardinality.class, onProperty, cardinality, onObject);
+    }
+
+    @Override
+    public OntCE.ObjectMaxCardinality createObjectMaxCardinality(OntOPE onProperty, int cardinality, OntCE onObject) {
+        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.ObjectMaxCardinality.class, onProperty, cardinality, onObject);
+    }
+
+    @Override
+    public OntCE.DataMaxCardinality createObjectMaxCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
+        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.DataMaxCardinality.class, onProperty, cardinality, onObject);
+    }
+
+    @Override
+    public OntCE.ObjectCardinality createObjectCardinality(OntOPE onProperty, int cardinality, OntCE onObject) {
+        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.ObjectCardinality.class, onProperty, cardinality, onObject);
+    }
+
+    @Override
+    public OntCE.DataCardinality createObjectCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
+        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.DataCardinality.class, onProperty, cardinality, onObject);
     }
 
 }

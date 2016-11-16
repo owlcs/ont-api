@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.jena.model;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
@@ -30,7 +31,17 @@ public interface OntGraphModel extends Model {
 
     <T extends OntEntity> Stream<T> ontEntities(Class<T> type);
 
+    void removeOntObject(OntObject obj);
+
     <T extends OntEntity> T createOntEntity(Class<T> type, String uri);
+
+    <T extends OntFR> T createFacetRestriction(Class<T> view, Literal literal);
+
+    /**
+     * ===========================
+     * Creation Disjoint sections:
+     * ===========================
+     */
 
     OntDisjoint.Classes createDisjointClasses(Stream<OntCE> classes);
 
@@ -39,6 +50,58 @@ public interface OntGraphModel extends Model {
     OntDisjoint.ObjectProperties createDisjointObjectProperties(Stream<OntOPE> properties);
 
     OntDisjoint.DataProperties createDisjointDataProperties(Stream<OntNDP> properties);
+
+    /**
+     * =====================
+     * Creation Data Ranges:
+     * =====================
+     */
+
+    OntDR.OneOf createOneOfDataRange(Stream<Literal> values);
+
+    OntDR.Restriction createRestrictionDataRange(OntDR property, Stream<OntFR> values);
+
+    OntDR.ComplementOf createComplementOfDataRange(OntDR other);
+
+    OntDR.UnionOf createUnionOfDataRange(Stream<OntDR> values);
+
+    OntDR.IntersectionOf createIntersectionOfDataRange(Stream<OntDR> values);
+
+    /**
+     * ===========================
+     * Creation Class Expressions:
+     * ===========================
+     */
+
+    OntCE.ObjectSomeValuesFrom createObjectSomeValuesFrom(OntOPE onProperty, OntCE other);
+
+    OntCE.DataSomeValuesFrom createDataSomeValuesFrom(OntNDP onProperty, OntDR other);
+
+    OntCE.ObjectAllValuesFrom createObjectAllValuesFrom(OntOPE onProperty, OntCE other);
+
+    OntCE.DataAllValuesFrom createDataAllValuesFrom(OntNDP onProperty, OntDR other);
+
+    OntCE.ObjectHasValue createObjectHasValue(OntOPE onProperty, OntIndividual other);
+
+    OntCE.DataHasValue createDataHasValue(OntNDP onProperty, Literal other);
+
+    OntCE.ObjectMinCardinality createObjectMinCardinality(OntOPE onProperty, int cardinality, OntCE onObject);
+
+    OntCE.DataMinCardinality createObjectMinCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+
+    OntCE.ObjectMaxCardinality createObjectMaxCardinality(OntOPE onProperty, int cardinality, OntCE onObject);
+
+    OntCE.DataMaxCardinality createObjectMaxCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+
+    OntCE.ObjectCardinality createObjectCardinality(OntOPE onProperty, int cardinality, OntCE onObject);
+
+    OntCE.DataCardinality createObjectCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+
+    /**
+     * ===================================
+     * default methods for simplification:
+     * ===================================
+     */
 
     default Stream<OntClass> listClasses() {
         return ontEntities(OntClass.class);
@@ -72,6 +135,12 @@ public interface OntGraphModel extends Model {
         return getOntEntity(OntNAP.class, uri);
     }
 
+    /**
+     * ==================
+     * Built-in Entities:
+     * ==================
+     */
+
     default OntNAP getRDFSComment() {
         return getAnnotationProperty(RDFS.comment);
     }
@@ -83,4 +152,5 @@ public interface OntGraphModel extends Model {
     default OntClass getOWLThing() {
         return getOntEntity(OntClass.class, OWL2.Thing.getURI());
     }
+
 }

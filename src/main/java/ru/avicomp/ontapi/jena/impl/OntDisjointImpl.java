@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
@@ -15,7 +14,6 @@ import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -49,12 +47,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     protected abstract Class<O> componentClass();
 
     public Stream<O> members() {
-        return JenaUtils.asStream(getModel()
-                .listObjectsOfProperty(this, predicate())
-                .mapWith(n -> n.as(RDFList.class)))
-                .map(list -> list.asJavaList().stream())
-                .flatMap(Function.identity())
-                .map(n -> getModel().getNodeAs(n.asNode(), componentClass())).distinct();
+        return listOf(predicate(), componentClass());
     }
 
     private static OntFilter makeFilter(Property predicate, Class<? extends OntObject> view) {
