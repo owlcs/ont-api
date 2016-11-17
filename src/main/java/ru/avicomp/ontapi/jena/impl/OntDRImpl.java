@@ -36,7 +36,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     public static OntObjectFactory intersectionOfDRFactory = new CommonOntObjectFactory(new OntMaker.Default(IntersectionOfImpl.class), DR_FINDER,
             DR_FILTER.and(new OntFilter.HasPredicate(OWL2.intersectionOf)));
     public static OntObjectFactory abstractDRFactory = new MultiOntObjectFactory(DR_FINDER,
-            oneOfDRFactory, restrictionDRFactory, complementOfDRFactory, unionOfDRFactory, intersectionOfDRFactory);
+            OntEntityImpl.datatypeFactory, oneOfDRFactory, restrictionDRFactory, complementOfDRFactory, unionOfDRFactory, intersectionOfDRFactory);
 
     public OntDRImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -49,6 +49,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     }
 
     public static OneOf createOneOf(OntGraphModelImpl model, Stream<Literal> values) {
+        OntException.notNull(values, "Null values stream.");
         Resource res = create(model);
         model.add(res, OWL2.oneOf, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), OneOf.class);
@@ -56,6 +57,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
     public static Restriction createRestriction(OntGraphModelImpl model, OntDR property, Stream<OntFR> values) {
         OntException.notNull(property, "Null property.");
+        OntException.notNull(values, "Null values stream.");
         Resource res = create(model);
         model.add(res, OWL2.onDatatype, property);
         model.add(res, OWL2.withRestrictions, model.createList(values.iterator()));
@@ -70,12 +72,14 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     }
 
     public static UnionOf createUnionOf(OntGraphModelImpl model, Stream<OntDR> values) {
+        OntException.notNull(values, "Null values stream.");
         Resource res = create(model);
         model.add(res, OWL2.unionOf, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), UnionOf.class);
     }
 
     public static IntersectionOf createIntersectionOf(OntGraphModelImpl model, Stream<OntDR> values) {
+        OntException.notNull(values, "Null values stream.");
         Resource res = create(model);
         model.add(res, OWL2.intersectionOf, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), IntersectionOf.class);
@@ -88,7 +92,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<Literal> values() {
-            return listOf(OWL2.oneOf, Literal.class);
+            return rdfList(OWL2.oneOf, Literal.class);
         }
     }
 
@@ -109,7 +113,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntFR> facetRestrictions() {
-            return listOf(OWL2.withRestrictions, OntFR.class);
+            return rdfList(OWL2.withRestrictions, OntFR.class);
         }
     }
 
@@ -131,7 +135,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntDR> dataRanges() {
-            return listOf(OWL2.unionOf, OntDR.class);
+            return rdfList(OWL2.unionOf, OntDR.class);
         }
     }
 
@@ -142,7 +146,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntDR> dataRanges() {
-            return listOf(OWL2.intersectionOf, OntDR.class);
+            return rdfList(OWL2.intersectionOf, OntDR.class);
         }
     }
 }

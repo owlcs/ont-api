@@ -210,14 +210,6 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return (OntPersonality) super.getPersonality();
     }
 
-    Stream<OntCE> classExpressions(Resource resource, Property predicate) {
-        return JenaUtils.asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntCE.class)).distinct();
-    }
-
-    Stream<OntDR> dataRanges(Resource resource, Property predicate) {
-        return JenaUtils.asStream(listObjectsOfProperty(resource, predicate)).map(node -> getNodeAs(node.asNode(), OntDR.class)).distinct();
-    }
-
     @Override
     public OntDisjoint.Classes createDisjointClasses(Stream<OntCE> classes) {
         return OntDisjointImpl.createDisjointClasses(this, classes);
@@ -304,7 +296,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntCE.DataMinCardinality createObjectMinCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
+    public OntCE.DataMinCardinality createDataMinCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
         return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.DataMinCardinality.class, onProperty, cardinality, onObject);
     }
 
@@ -314,7 +306,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntCE.DataMaxCardinality createObjectMaxCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
+    public OntCE.DataMaxCardinality createDataMaxCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
         return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.DataMaxCardinality.class, onProperty, cardinality, onObject);
     }
 
@@ -324,8 +316,40 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntCE.DataCardinality createObjectCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
+    public OntCE.DataCardinality createDataCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
         return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.DataCardinality.class, onProperty, cardinality, onObject);
+    }
+
+    @Override
+    public OntCE.UnionOf createUnionOf(Stream<OntCE> classes) {
+        return OntCEImpl.createComponentsCE(this, OntCE.UnionOf.class, OWL2.unionOf, classes);
+    }
+
+    @Override
+    public OntCE.IntersectionOf createIntersectionOf(Stream<OntCE> classes) {
+        return OntCEImpl.createComponentsCE(this, OntCE.IntersectionOf.class, OWL2.intersectionOf, classes);
+    }
+
+    @Override
+    public OntCE.OneOf createOneOf(Stream<OntCE> classes) {
+        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL2.oneOf, classes);
+    }
+
+    @Override
+    public OntCE.HasSelf createHasSelf(OntOPE onProperty) {
+        return OntCEImpl.createHasSelf(this, onProperty);
+    }
+
+    @Override
+    public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Stream<OntNDP> onProperties, OntDR other) {
+        //todo
+        throw new OntException.Unsupported(OntCE.NaryDataAllValuesFrom.class);
+    }
+
+    @Override
+    public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Stream<OntNDP> onProperties, OntDR other) {
+        //todo
+        throw new OntException.Unsupported(OntCE.NaryDataSomeValuesFrom.class);
     }
 
 }

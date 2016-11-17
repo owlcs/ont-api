@@ -54,8 +54,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     public Stream<Resource> types() {
-        return JenaUtils.asStream(getModel().listObjectsOfProperty(this, RDF.type)
-                .filterKeep(RDFNode::isURIResource).mapWith(Resource.class::cast)).distinct();
+        return objects(RDF.type, Resource.class);
     }
 
     boolean hasType(Resource type) {
@@ -67,7 +66,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     void removeType(Resource type) {
-        getModel().remove(this, RDF.type, type);
+        remove(RDF.type, type);
     }
 
     void changeType(Resource property, boolean add) {
@@ -90,12 +89,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public OntStatement getRoot() {
         List<Resource> types = types().collect(Collectors.toList());
-        if (types.isEmpty()) throw new OntException("Can't determine main triple: no types.");
+        if (types.isEmpty()) {
+            throw new OntException("Can't determine main triple: no types.");
+        }
         return new OntStatementImpl.RootImpl(this, RDF.type, types.get(0), getModel());
     }
 
     @Override
-    public OntStatement getStatement(Property property, OntObject object) {
+    public OntStatement getStatement(Property property, RDFNode object) {
         return statements(property).filter(s -> s.getObject().equals(object)).findFirst().orElse(null);
     }
 
@@ -140,7 +141,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param property predicate
      * @return Distinct Stream of RDFNode
      */
-    public Stream<RDFNode> list(Property property) {
+    public Stream<RDFNode> rdfList(Property property) {
         return JenaUtils.asStream(listProperties(property)
                 .mapWith(Statement::getObject)
                 .filterKeep(n -> n.canAs(RDFList.class))
@@ -149,8 +150,28 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .flatMap(Function.identity()).distinct();
     }
 
-    public <O extends RDFNode> Stream<O> listOf(Property predicate, Class<O> view) {
-        return list(predicate).map(n -> getModel().getNodeAs(n.asNode(), view));
+    public <O extends RDFNode> Stream<O> rdfList(Property predicate, Class<O> view) {
+        return rdfList(predicate).map(n -> getModel().getNodeAs(n.asNode(), view));
+    }
+
+    /**
+     * removes all objects for predicate (if object is rdf:List removes all content)
+     *
+     * @param predicate Property
+     */
+    public void clearAll(Property predicate) {
+        listProperties(predicate).mapWith(Statement::getObject)
+                .filterKeep(n -> n.canAs(RDFList.class))
+                .mapWith(n -> n.as(RDFList.class)).forEachRemaining(RDFList::removeList);
+        removeAll(predicate);
+    }
+
+    public Stream<RDFNode> objects(Property predicate) {
+        return JenaUtils.asStream(listProperties(predicate).mapWith(Statement::getObject)).distinct();
+    }
+
+    public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view) {
+        return objects(predicate).filter(node -> node.canAs(view)).map(node -> getModel().getNodeAs(node.asNode(), view)).distinct();
     }
 
     @Override

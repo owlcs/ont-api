@@ -30,7 +30,9 @@ public interface OntObject extends Resource {
 
     OntStatement addStatement(Property property, RDFNode value);
 
-    OntStatement getStatement(Property property, OntObject object);
+    OntStatement getStatement(Property property, RDFNode object);
+
+    void remove(Property property, RDFNode object);
 
     Stream<OntStatement> statements(Property property);
 
@@ -41,7 +43,15 @@ public interface OntObject extends Resource {
      */
     Stream<OntStatement> statements();
 
-    void remove(Property property, RDFNode object);
+
+    /**
+     * gets stream of all objects attached on property to this ont-object
+     *
+     * @param predicate Property predicate
+     * @param view      Interface to cast
+     * @return Stream of objects
+     */
+    <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view);
 
     /**
      * Returns the stream of all annotations attached to this object (not only to main-triple).

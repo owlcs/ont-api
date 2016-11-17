@@ -4,6 +4,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDFS;
 
 /**
  * (Named) Annotation Property resource.
@@ -21,6 +22,15 @@ public interface OntNAP extends OntPE, OntEntity, Property {
 
     @Override
     Stream<Resource> range();
+
+    @Override
+    default Stream<OntNAP> subPropertyOf() {
+        return objects(RDFS.subPropertyOf, OntNAP.class);
+    }
+
+    default OntStatement addSubPropertyOf(OntNAP superProperty) {
+        return addStatement(RDFS.subPropertyOf, superProperty);
+    }
 
     @Override
     default boolean isProperty() {

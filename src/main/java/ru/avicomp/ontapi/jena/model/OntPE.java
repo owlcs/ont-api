@@ -17,6 +17,8 @@ public interface OntPE extends OntObject {
 
     Stream<? extends Resource> range();
 
+    Stream<? extends Resource> subPropertyOf();
+
     default void removeDomain(Resource domain) {
         remove(RDFS.domain, domain);
     }
@@ -25,4 +27,7 @@ public interface OntPE extends OntObject {
         remove(RDFS.range, range);
     }
 
+    default void removeSubPropertyOf(Resource superProperty) {
+        remove(RDFS.subPropertyOf, superProperty);
+    }
 }

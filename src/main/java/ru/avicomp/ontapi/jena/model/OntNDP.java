@@ -16,22 +16,39 @@ public interface OntNDP extends OntPE, OntEntity, Property {
 
     OntNPA.DataAssertion addNegativeAssertion(OntIndividual source, Literal target);
 
-    @Override
-    Stream<OntCE> domain();
-
-    @Override
-    Stream<OntDR> range();
-
     void setFunctional(boolean functional);
 
     boolean isFunctional();
+
+    @Override
+    default Stream<OntCE> domain() {
+        return objects(RDFS.domain, OntCE.class);
+    }
 
     default OntStatement addDomain(OntCE domain) {
         return addStatement(RDFS.domain, domain);
     }
 
+    @Override
+    default Stream<OntDR> range() {
+        return objects(RDFS.range, OntDR.class);
+    }
+
     default OntStatement addRange(OntDR range) {
         return addStatement(RDFS.range, range);
+    }
+
+    @Override
+    default Stream<OntNDP> subPropertyOf() {
+        return objects(RDFS.subPropertyOf, OntNDP.class);
+    }
+
+    default OntStatement addSubPropertyOf(OntNDP superProperty) {
+        return addStatement(RDFS.subPropertyOf, superProperty);
+    }
+
+    default Stream<OntNDP> disjointWith() {
+        return objects(OWL2.propertyDisjointWith, OntNDP.class);
     }
 
     default OntStatement addDisjointWith(OntNDP other) {
@@ -42,12 +59,20 @@ public interface OntNDP extends OntPE, OntEntity, Property {
         remove(OWL2.propertyDisjointWith, other);
     }
 
-    default Stream<OntNPA.DataAssertion> negativeAssertions() {
-        return getModel().ontObjects(OntNPA.DataAssertion.class).filter(a -> OntNDP.this.equals(a.getProperty()));
+    default Stream<OntNDP> equivalentProperty() {
+        return objects(OWL2.equivalentProperty, OntNDP.class);
     }
 
-    default void removeNegativeAssertion(OntNPA.DataAssertion assertion) {
-        getModel().removeAll(assertion, null, null);
+    default OntStatement addEquivalentProperty(OntNDP other) {
+        return addStatement(OWL2.equivalentProperty, other);
+    }
+
+    default void removeEquivalentProperty(OntNDP other) {
+        remove(OWL2.equivalentProperty, other);
+    }
+
+    default Stream<OntNPA.DataAssertion> negativeAssertions() {
+        return getModel().ontObjects(OntNPA.DataAssertion.class).filter(a -> OntNDP.this.equals(a.getProperty()));
     }
 
     @Override

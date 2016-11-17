@@ -87,15 +87,27 @@ public interface OntGraphModel extends Model {
 
     OntCE.ObjectMinCardinality createObjectMinCardinality(OntOPE onProperty, int cardinality, OntCE onObject);
 
-    OntCE.DataMinCardinality createObjectMinCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+    OntCE.DataMinCardinality createDataMinCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
 
     OntCE.ObjectMaxCardinality createObjectMaxCardinality(OntOPE onProperty, int cardinality, OntCE onObject);
 
-    OntCE.DataMaxCardinality createObjectMaxCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+    OntCE.DataMaxCardinality createDataMaxCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
 
     OntCE.ObjectCardinality createObjectCardinality(OntOPE onProperty, int cardinality, OntCE onObject);
 
-    OntCE.DataCardinality createObjectCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+    OntCE.DataCardinality createDataCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+
+    OntCE.UnionOf createUnionOf(Stream<OntCE> classes);
+
+    OntCE.IntersectionOf createIntersectionOf(Stream<OntCE> classes);
+
+    OntCE.OneOf createOneOf(Stream<OntCE> classes);
+
+    OntCE.HasSelf createHasSelf(OntOPE onProperty);
+
+    OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Stream<OntNDP> onProperties, OntDR other);
+
+    OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Stream<OntNDP> onProperties, OntDR other);
 
     /**
      * ===================================

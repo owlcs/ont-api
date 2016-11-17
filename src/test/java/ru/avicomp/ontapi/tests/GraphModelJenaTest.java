@@ -19,6 +19,7 @@ import org.junit.Test;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
@@ -113,6 +114,7 @@ public class GraphModelJenaTest {
         m.setNsPrefix("owl", OWL2.getURI());
         m.setNsPrefix("rdfs", RDFS.getURI());
         m.setNsPrefix("rdf", RDF.getURI());
+        m.setNsPrefix("xsd", XSD.getURI());
     }
 
     @Test
@@ -230,5 +232,46 @@ public class GraphModelJenaTest {
         ReadWriteUtils.print(m);
     }
 
+    @Test
+    public void testCreateExpressions() {
+        String uri = "http://test.com/graph/3";
+        String ns = uri + "#";
+
+        OntGraphModel m = new OntGraphModelImpl();
+        m.setNsPrefix("test", ns);
+        setDefaultPrefixes(m);
+        m.setID(uri);
+
+        OntNDP ndp1 = m.createOntEntity(OntNDP.class, ns + "dataProperty1");
+        OntDT dt1 = m.createOntEntity(OntDT.class, ns + "dataType1");
+        dt1.addEquivalentClass(m.getOntEntity(OntDT.class, XSD.dateTime));
+
+        OntDT dt2 = m.createOntEntity(OntDT.class, ns + "dataType2");
+
+        OntFR fr1 = m.createFacetRestriction(OntFR.MaxExclusive.class, ResourceFactory.createTypedLiteral(12));
+        OntFR fr2 = m.createFacetRestriction(OntFR.LangRange.class, ResourceFactory.createStringLiteral("\\d+"));
+
+        OntDR dr1 = m.createRestrictionDataRange(dt1, Stream.of(fr1, fr2));
+
+        OntCE ce1 = m.createDataSomeValuesFrom(ndp1, dr1);
+
+        OntDR dr2 = m.createIntersectionOfDataRange(Stream.of(dt1, dt2));
+        OntIndividual i1 = ce1.createIndividual(ns + "individual1");
+        OntCE ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
+        i1.attachClass(ce2);
+        i1.attachClass(m.createOntEntity(OntClass.class, ns + "Class1"));
+
+        OntIndividual i2 = ce2.createIndividual();
+        i2.addStatement(ndp1, ResourceFactory.createPlainLiteral("individual value"));
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals("Incorrect count of individuals", 2, m.ontObjects(OntIndividual.class).count());
+        Assert.assertEquals("Incorrect count of class expressions", 3, m.ontObjects(OntCE.class).count());
+        Assert.assertEquals("Incorrect count of datatype entities", 2, m.ontObjects(OntDT.class).count());
+        Assert.assertEquals("Incorrect count of data properties", 1, m.ontObjects(OntNDP.class).count());
+        Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFR.class).count());
+        Assert.assertEquals("Incorrect count of data ranges", 4, m.ontObjects(OntDR.class).count());
+        Assert.assertEquals("Incorrect count of entities", 5, m.ontObjects(OntEntity.class).count());
+    }
 }
 

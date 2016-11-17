@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.stream.Stream;
-
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Literal;
@@ -9,9 +7,10 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.jena.model.OntNDP;
+import ru.avicomp.ontapi.jena.model.OntNPA;
 
 /**
  * owl:DatatypeProperty
@@ -36,16 +35,6 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
     @Override
     public OntNPA.DataAssertion addNegativeAssertion(OntIndividual source, Literal target) {
         return OntNPAImpl.create(getModel(), source, this, target);
-    }
-
-    @Override
-    public Stream<OntCE> domain() {
-        return getModel().classExpressions(this, RDFS.domain);
-    }
-
-    @Override
-    public Stream<OntDR> range() {
-        return getModel().dataRanges(this, RDFS.range);
     }
 
     @Override

@@ -11,7 +11,6 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.OntException;
 import ru.avicomp.ontapi.jena.JenaUtils;
@@ -99,13 +98,19 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public Stream<OntCE> domain() {
-        return getModel().classExpressions(this, RDFS.domain);
+    public OntStatement addSubPropertiesOf(Stream<OntOPE> chain) {
+        OntException.notNull(chain, "Null properties chain");
+        return addStatement(OWL2.propertyChainAxiom, getModel().createList(chain.iterator()));
     }
 
     @Override
-    public Stream<OntCE> range() {
-        return getModel().classExpressions(this, RDFS.range);
+    public void removeSubPropertiesOf() {
+        clearAll(OWL2.propertyChainAxiom);
+    }
+
+    @Override
+    public Stream<OntOPE> subPropertiesOf() {
+        return rdfList(OWL2.propertyChainAxiom, OntOPE.class);
     }
 
     @Override
@@ -176,16 +181,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     @Override
     public void setSymmetric(boolean symmetric) {
         changeType(OWL2.SymmetricProperty, symmetric);
-    }
-
-    @Override
-    public void addInverseOf(OntOPE other) {
-        getModel().add(this, OWL2.inverseOf, OntException.notNull(other, "Null object property expression."));
-    }
-
-    @Override
-    public void removeInverseOf(OntOPE other) {
-        getModel().remove(this, OWL2.inverseOf, OntException.notNull(other, "Null object property expression."));
     }
 
     @Override

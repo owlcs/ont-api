@@ -112,8 +112,28 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public Stream<OntCE> subClassOf() {
-        return getModel().classExpressions(this, RDFS.subClassOf);
+    public OntIndividual.Anonymous createIndividual() {
+        return createAnonymousIndividual(getModel(), this);
+    }
+
+    @Override
+    public OntIndividual.Named createIndividual(String uri) {
+        return createNamedIndividual(getModel(), this, uri);
+    }
+
+    @Override
+    public OntStatement addHasKey(Stream<OntOPE> objectProperties, Stream<OntNDP> dataProperties) {
+        return addHasKey(this, objectProperties, dataProperties);
+    }
+
+    @Override
+    public void removeHasKey() {
+        clearAll(OWL2.hasKey);
+    }
+
+    @Override
+    public Stream<OntPE> hasKey() {
+        return rdfList(OWL2.hasKey, OntPE.class);
     }
 
     @Override
@@ -337,17 +357,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
         @Override
         public Stream<O> components() {
-            return listOf(predicate, view);
+            return rdfList(predicate, view);
         }
 
-        void clear() {
-            getModel().listObjectsOfProperty(this, predicate).mapWith(n -> n.as(RDFList.class)).forEachRemaining(RDFList::removeList);
-            removeAll(predicate);
-        }
-
-        @Deprecated
+        @Override
         public void setComponents(Stream<O> components) {
-            clear();
+            clearAll(predicate);
             addProperty(predicate, getModel().createList(components.iterator()));
         }
     }
@@ -604,4 +619,37 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return model.getNodeAs(res.asNode(), view);
     }
 
+    public static <CE extends ComponentsCE> CE createComponentsCE(OntGraphModelImpl model, Class<CE> view, Property predicate, Stream<? extends OntObject> components) {
+        OntException.notNull(components, "Null components stream.");
+        Resource res = model.createResource();
+        model.add(res, RDF.type, OWL2.Class);
+        model.add(res, predicate, model.createList(components.iterator()));
+        return model.getNodeAs(res.asNode(), view);
+    }
+
+    public static OntCE.HasSelf createHasSelf(OntGraphModelImpl model, OntOPE onProperty) {
+        Resource res = createOnPropertyRestriction(model, onProperty);
+        model.add(res, OWL2.hasSelf, ResourceFactory.createTypedLiteral(Boolean.TRUE));
+        return model.getNodeAs(res.asNode(), OntCE.HasSelf.class);
+    }
+
+    public static OntIndividual.Anonymous createAnonymousIndividual(OntGraphModelImpl model, OntCE source) {
+        Resource res = model.createResource();
+        model.add(res, RDF.type, source);
+        return model.getNodeAs(res.asNode(), OntIndividual.Anonymous.class);
+    }
+
+    public static OntIndividual.Named createNamedIndividual(OntGraphModelImpl model, OntCE source, String uri) {
+        Resource res = model.createResource(OntException.notNull(uri, "Null uri"));
+        model.add(res, RDF.type, source);
+        model.add(res, RDF.type, OWL2.NamedIndividual);
+        return model.getNodeAs(res.asNode(), OntIndividual.Named.class);
+    }
+
+    public static OntStatement addHasKey(OntCE clazz, Stream<OntOPE> objectProperties, Stream<OntNDP> dataProperties) {
+        if (objectProperties == null) objectProperties = Stream.empty();
+        if (dataProperties == null) dataProperties = Stream.empty();
+        Stream<OntPE> properties = Stream.concat(objectProperties, dataProperties);
+        return clazz.addStatement(OWL2.hasKey, clazz.getModel().createList(properties.iterator()));
+    }
 }

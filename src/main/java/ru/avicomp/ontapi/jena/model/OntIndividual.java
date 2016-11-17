@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.jena.model;
 import java.util.stream.Stream;
 
 import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 
 /**
  * for named and anonymous individuals
@@ -11,11 +12,29 @@ import org.apache.jena.vocabulary.OWL2;
  */
 public interface OntIndividual extends OntObject {
 
-    OntStatement attachClass(OntClass clazz);
+    OntStatement attachClass(OntCE clazz);
 
-    void detachClass(OntClass clazz);
+    void detachClass(OntCE clazz);
 
-    Stream<OntClass> classes();
+    default Stream<OntCE> classes() {
+        return objects(RDF.type, OntCE.class);
+    }
+
+    default Stream<OntIndividual> sameAs() {
+        return objects(OWL2.sameAs, OntIndividual.class);
+    }
+
+    default OntStatement addSameAs(OntIndividual other) {
+        return addStatement(OWL2.sameAs, other);
+    }
+
+    default void removeSameAs(OntIndividual other) {
+        remove(OWL2.sameAs, other);
+    }
+
+    default Stream<OntIndividual> differentFrom() {
+        return objects(OWL2.differentFrom, OntIndividual.class);
+    }
 
     default OntStatement addDifferentFrom(OntIndividual other) {
         return addStatement(OWL2.differentFrom, other);

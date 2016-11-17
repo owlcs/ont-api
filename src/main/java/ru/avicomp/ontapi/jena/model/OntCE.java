@@ -15,23 +15,15 @@ import org.apache.jena.vocabulary.RDFS;
  */
 public interface OntCE extends OntObject {
 
-    Stream<OntCE> subClassOf();
+    OntIndividual.Anonymous createIndividual();
 
-    default OntStatement addSubClassOf(OntCE superClass) {
-        return addStatement(RDFS.subClassOf, superClass);
-    }
+    OntIndividual.Named createIndividual(String uri);
 
-    default void removeSubClassOf(OntCE superClass) {
-        remove(RDFS.subClassOf, superClass);
-    }
+    Stream<OntPE> hasKey();
 
-    default OntStatement addDisjointWith(OntCE other) {
-        return addStatement(OWL2.disjointWith, other);
-    }
+    OntStatement addHasKey(Stream<OntOPE> objectProperties, Stream<OntNDP> dataProperties);
 
-    default void removeDisjointWith(OntCE other) {
-        remove(OWL2.disjointWith, other);
-    }
+    void removeHasKey();
 
     /**
      * ============================
@@ -166,6 +158,47 @@ public interface OntCE extends OntObject {
     interface NaryRestrictionCE<O extends OntObject, P extends OntPE> extends RestrictionCE, ONProperties<P>, Value<O> {
     }
 
+    /**
+     * ===============
+     * default methods
+     * ===============
+     */
+
+    default Stream<OntCE> subClassOf() {
+        return objects(RDFS.subClassOf, OntCE.class);
+    }
+
+    default OntStatement addSubClassOf(OntCE superClass) {
+        return addStatement(RDFS.subClassOf, superClass);
+    }
+
+    default void removeSubClassOf(OntCE superClass) {
+        remove(RDFS.subClassOf, superClass);
+    }
+
+    default Stream<OntCE> disjointWith() {
+        return objects(OWL2.disjointWith, OntCE.class);
+    }
+
+    default OntStatement addDisjointWith(OntCE other) {
+        return addStatement(OWL2.disjointWith, other);
+    }
+
+    default void removeDisjointWith(OntCE other) {
+        remove(OWL2.disjointWith, other);
+    }
+
+    default Stream<OntCE> equivalentClass() {
+        return objects(OWL2.equivalentClass, OntCE.class);
+    }
+
+    default OntStatement addEquivalentClass(OntCE other) {
+        return addStatement(OWL2.equivalentClass, other);
+    }
+
+    default void removeEquivalentClass(OntCE other) {
+        remove(OWL2.equivalentClass, other);
+    }
 
 }
 

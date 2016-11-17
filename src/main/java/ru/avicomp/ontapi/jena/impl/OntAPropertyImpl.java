@@ -11,7 +11,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -48,12 +47,12 @@ public class OntAPropertyImpl extends OntEntityImpl implements OntNAP {
 
     @Override
     public Stream<Resource> domain() {
-        return JenaUtils.asStream(getModel().listObjectsOfProperty(this, RDFS.domain).mapWith(RDFNode::asResource));
+        return objects(RDFS.domain, Resource.class).filter(RDFNode::isURIResource);
     }
 
     @Override
     public Stream<Resource> range() {
-        return JenaUtils.asStream(getModel().listObjectsOfProperty(this, RDFS.range).mapWith(RDFNode::asResource));
+        return objects(RDFS.range, Resource.class).filter(RDFNode::isURIResource);
     }
 
     @Override
