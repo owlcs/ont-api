@@ -32,7 +32,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public static OntObjectFactory objectFactory = new OntObjectFactory() {
         @Override
         public Stream<EnhNode> find(EnhGraph eg) {
-            return OntFinder.ANYTHING.find(eg).filter(n -> canWrap(n, eg)).map(n -> wrap(n, eg));
+            return OntFinder.ANY_SUBJECT.find(eg).filter(n -> canWrap(n, eg)).map(n -> wrap(n, eg));
         }
 
         @Override

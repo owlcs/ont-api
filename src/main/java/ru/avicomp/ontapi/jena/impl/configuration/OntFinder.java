@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.impl.configuration;
 
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
@@ -21,7 +22,13 @@ import ru.avicomp.ontapi.jena.JenaUtils;
  */
 @FunctionalInterface
 public interface OntFinder {
-    OntFinder ANYTHING = eg -> JenaUtils.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY).mapWith(Triple::getSubject));
+    OntFinder ANY_SUBJECT = eg -> JenaUtils.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY).mapWith(Triple::getSubject));
+    OntFinder ANY_SUBJECT_AND_OBJECT = eg -> JenaUtils.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY))
+            .map(t -> Stream.of(t.getSubject(), t.getObject()))
+            .flatMap(Function.identity()).distinct();
+    OntFinder ANYTHING = eg -> JenaUtils.asStream(eg.asGraph().find(Node.ANY, Node.ANY, Node.ANY))
+            .map(t -> Stream.of(t.getSubject(), t.getPredicate(), t.getObject()))
+            .flatMap(Function.identity()).distinct();
     OntFinder TYPED = new ByPredicate(RDF.type);
 
     Stream<Node> find(EnhGraph eg);

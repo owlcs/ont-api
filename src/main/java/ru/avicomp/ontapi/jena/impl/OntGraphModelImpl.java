@@ -352,4 +352,48 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         throw new OntException.Unsupported(OntCE.NaryDataSomeValuesFrom.class);
     }
 
+    @Override
+    public OntSWRL.Variable createSWRLVariable(String uri) {
+        return OntSWRLImpl.createVariable(this, uri);
+    }
+
+    @Override
+    public OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Stream<OntSWRL.DArg> arguments) {
+        return OntSWRLImpl.createBuiltInAtom(this, predicate, arguments);
+    }
+
+    @Override
+    public OntSWRL.Atom.OwlClass createClassSWRLAtom(OntCE clazz, OntSWRL.IArg arg) {
+        return OntSWRLImpl.createClassAtom(this, clazz, arg);
+    }
+
+    @Override
+    public OntSWRL.Atom.DataRange createDataRangeSWRLAtom(OntDR range, OntSWRL.DArg arg) {
+        return OntSWRLImpl.createDataRangeAtom(this, range, arg);
+    }
+
+    @Override
+    public OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP dataProperty, OntSWRL.DArg arg) {
+        return OntSWRLImpl.createDataPropertyAtom(this, dataProperty, arg);
+    }
+
+    @Override
+    public OntSWRL.Atom.ObjectProperty createObjectPropertySWRLAtom(OntOPE dataProperty, OntSWRL.IArg firstArg, OntSWRL.IArg secondArg) {
+        return OntSWRLImpl.createObjectPropertyAtom(this, dataProperty, firstArg, secondArg);
+    }
+
+    @Override
+    public OntSWRL.Atom.DifferentIndividuals createDifferentIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg) {
+        return OntSWRLImpl.createDifferentIndividualsAtom(this, firstArg, secondArg);
+    }
+
+    @Override
+    public OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg) {
+        return OntSWRLImpl.createSameIndividualsAtom(this, firstArg, secondArg);
+    }
+
+    @Override
+    public OntSWRL.Imp createSWRLImp(Stream<OntSWRL.Atom> head, Stream<OntSWRL.Atom> body) {
+        return OntSWRLImpl.createImp(this, head, body);
+    }
 }

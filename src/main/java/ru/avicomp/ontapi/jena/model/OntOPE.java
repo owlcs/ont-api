@@ -7,7 +7,6 @@ import org.apache.jena.vocabulary.RDFS;
 
 /**
  * Object Property Expression (i.e. for iri-object property entity and for inverseOf anonymous property expression)
- * TODO: owl:propertyChainAxiom
  * <p>
  * Created by @szuev on 08.11.2016.
  */

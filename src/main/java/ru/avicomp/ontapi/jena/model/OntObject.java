@@ -11,8 +11,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
- * TODO: add way to work with OntStatements.
- * Base Resource.
+ * Base Ont Resource.
  * <p>
  * Created by szuev on 01.11.2016.
  */

@@ -111,6 +111,31 @@ public interface OntGraphModel extends Model {
 
     /**
      * ===================================
+     * SWRL Objects (Variable, Atoms, Imp)
+     * ===================================
+     */
+
+    OntSWRL.Variable createSWRLVariable(String uri);
+
+    OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Stream<OntSWRL.DArg> arguments);
+
+    OntSWRL.Atom.OwlClass createClassSWRLAtom(OntCE clazz, OntSWRL.IArg arg);
+
+    OntSWRL.Atom.DataRange createDataRangeSWRLAtom(OntDR range, OntSWRL.DArg arg);
+
+    OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP dataProperty, OntSWRL.DArg arg);
+
+    OntSWRL.Atom.ObjectProperty createObjectPropertySWRLAtom(OntOPE dataProperty, OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
+
+    OntSWRL.Atom.DifferentIndividuals createDifferentIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
+
+    OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
+
+    OntSWRL.Imp createSWRLImp(Stream<OntSWRL.Atom> head, Stream<OntSWRL.Atom> body);
+
+
+    /**
+     * ===================================
      * default methods for simplification:
      * ===================================
      */

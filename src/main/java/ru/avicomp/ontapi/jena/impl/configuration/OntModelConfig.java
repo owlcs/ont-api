@@ -108,6 +108,22 @@ public class OntModelConfig {
             .register(OntDR.ComplementOf.class, OntDRImpl.complementOfDRFactory)
             .register(OntDR.UnionOf.class, OntDRImpl.unionOfDRFactory)
             .register(OntDR.IntersectionOf.class, OntDRImpl.intersectionOfDRFactory)
-            .register(OntDR.class, OntDRImpl.abstractDRFactory);
+            .register(OntDR.class, OntDRImpl.abstractDRFactory)
+
+            // SWRL objects
+            .register(OntSWRL.Variable.class, OntSWRLImpl.variableSWRLFactory)
+            .register(OntSWRL.IArg.class, OntSWRLImpl.iArgSWRLFactory)
+            .register(OntSWRL.DArg.class, OntSWRLImpl.dArgSWRLFactory)
+            .register(OntSWRL.Arg.class, OntSWRLImpl.abstractArgSWRLFactory)
+            .register(OntSWRL.Atom.BuiltIn.class, OntSWRLImpl.builtInAtomSWRLFactory)
+            .register(OntSWRL.Atom.OwlClass.class, OntSWRLImpl.classAtomSWRLFactory)
+            .register(OntSWRL.Atom.DataRange.class, OntSWRLImpl.dataRangeAtomSWRLFactory)
+            .register(OntSWRL.Atom.ObjectProperty.class, OntSWRLImpl.individualAtomSWRLFactory)
+            .register(OntSWRL.Atom.DataProperty.class, OntSWRLImpl.dataValuedAtomSWRLFactory)
+            .register(OntSWRL.Atom.DifferentIndividuals.class, OntSWRLImpl.differentIndividualsAtomSWRLFactory)
+            .register(OntSWRL.Atom.SameIndividuals.class, OntSWRLImpl.sameIndividualsAtomSWRLFactory)
+            .register(OntSWRL.Atom.class, OntSWRLImpl.abstractAtomSWRLFactory)
+            .register(OntSWRL.Imp.class, OntSWRLImpl.impSWRLFactory)
+            .register(OntSWRL.class, OntSWRLImpl.abstractSWRLFactory);
 
 }

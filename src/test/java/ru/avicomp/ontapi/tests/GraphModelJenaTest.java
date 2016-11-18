@@ -19,6 +19,7 @@ import org.junit.Test;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -272,6 +273,50 @@ public class GraphModelJenaTest {
         Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFR.class).count());
         Assert.assertEquals("Incorrect count of data ranges", 4, m.ontObjects(OntDR.class).count());
         Assert.assertEquals("Incorrect count of entities", 5, m.ontObjects(OntEntity.class).count());
+    }
+
+    @Test
+    public void testCreateSWRL() {
+        String uri = "http://test.com/graph/4";
+        String ns = uri + "#";
+
+        OntGraphModel m = new OntGraphModelImpl();
+        m.setID(uri);
+        m.setNsPrefix("test", ns);
+        m.setNsPrefix("SWRL", SWRL.NS);
+        setDefaultPrefixes(m);
+
+        OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
+        OntClass cl2 = m.createOntEntity(OntClass.class, ns + "Class2");
+        OntIndividual i1 = cl1.createIndividual(ns + "Individual1");
+
+        OntCE.UnionOf cl3 = m.createUnionOf(Stream.of(cl1, cl2));
+        OntIndividual i2 = cl3.createIndividual();
+
+        OntSWRL.Variable var1 = m.createSWRLVariable(ns + "Variable1");
+        OntSWRL.DArg dArg1 = ResourceFactory.createTypedLiteral(12).inModel(m).as(OntSWRL.DArg.class);
+        OntSWRL.DArg dArg2 = var1.as(OntSWRL.DArg.class);
+
+        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(ResourceFactory.createResource(ns + "AtomPredicate1"), Stream.of(dArg1, dArg2));
+        OntSWRL.Atom.OwlClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
+        OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class), var1.as(OntSWRL.IArg.class));
+
+        OntSWRL.Imp imp = m.createSWRLImp(Stream.of(atom1), Stream.of(atom2, atom3));
+        imp.addComment("This is SWRL Imp", null).addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
+
+        ReadWriteUtils.print(m);
+        LOGGER.debug("All D-Args");
+        m.ontObjects(OntSWRL.DArg.class).forEach(LOGGER::debug);
+        LOGGER.debug("All I-Args");
+        m.ontObjects(OntSWRL.IArg.class).forEach(LOGGER::debug);
+        Assert.assertEquals("Incorrect count of atoms", 3, m.ontObjects(OntSWRL.Atom.class).count());
+        Assert.assertEquals("Incorrect count of variables", 1, m.ontObjects(OntSWRL.Variable.class).count());
+        Assert.assertEquals("Incorrect count of SWRL:Imp", 1, m.ontObjects(OntSWRL.Imp.class).count());
+        Assert.assertEquals("Incorrect count of SWRL Objects", 5, m.ontObjects(OntSWRL.class).count());
+        // literals(2) and variables(1):
+        Assert.assertEquals("Incorrect count of SWRL D-Arg", 3, m.ontObjects(OntSWRL.DArg.class).count());
+        // individuals(2 anonymous, 1 named) and variables(1):
+        Assert.assertEquals("Incorrect count of SWRL I-Arg", 4, m.ontObjects(OntSWRL.IArg.class).count());
     }
 }
 
