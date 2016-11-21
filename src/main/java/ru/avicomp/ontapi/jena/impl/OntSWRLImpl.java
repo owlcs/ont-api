@@ -37,7 +37,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     public static OntObjectFactory abstractArgSWRLFactory = new MultiOntObjectFactory(dArgSWRLFactory, iArgSWRLFactory);
 
     public static OntObjectFactory builtInAtomSWRLFactory = makeAtomFactory(BuiltInAtomImpl.class, SWRL.BuiltinAtom);
-    public static OntObjectFactory classAtomSWRLFactory = makeAtomFactory(OwlClassAtomImpl.class, SWRL.ClassAtom);
+    public static OntObjectFactory classAtomSWRLFactory = makeAtomFactory(OntClassAtomImpl.class, SWRL.ClassAtom);
     public static OntObjectFactory dataRangeAtomSWRLFactory = makeAtomFactory(DataRangeAtomImpl.class, SWRL.DataRangeAtom);
     public static OntObjectFactory dataValuedAtomSWRLFactory = makeAtomFactory(DataPropertyAtomImpl.class, SWRL.DatavaluedPropertyAtom);
     public static OntObjectFactory individualAtomSWRLFactory = makeAtomFactory(ObjectPropertyAtomImpl.class, SWRL.IndividualPropertyAtom);
@@ -72,14 +72,14 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.getNodeAs(res.asNode(), Atom.BuiltIn.class);
     }
 
-    public static Atom.OwlClass createClassAtom(OntGraphModelImpl model, OntCE clazz, IArg arg) {
+    public static Atom.OntClass createClassAtom(OntGraphModelImpl model, OntCE clazz, IArg arg) {
         OntException.notNull(clazz, "Null class");
         OntException.notNull(arg, "Null i-arg");
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.ClassAtom);
         model.add(res, SWRL.classPredicate, clazz);
         model.add(res, SWRL.argument1, arg);
-        return model.getNodeAs(res.asNode(), Atom.OwlClass.class);
+        return model.getNodeAs(res.asNode(), Atom.OntClass.class);
     }
 
     public static Atom.DataRange createDataRangeAtom(OntGraphModelImpl model, OntDR range, DArg arg) {
@@ -184,8 +184,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
     }
 
-    public static class OwlClassAtomImpl extends AtomImpl<OntCE> implements Atom.OwlClass {
-        public OwlClassAtomImpl(Node n, EnhGraph m) {
+    public static class OntClassAtomImpl extends AtomImpl<OntCE> implements Atom.OntClass {
+        public OntClassAtomImpl(Node n, EnhGraph m) {
             super(n, m);
         }
 

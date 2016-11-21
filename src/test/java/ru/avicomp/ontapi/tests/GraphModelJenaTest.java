@@ -13,6 +13,7 @@ import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
+import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -298,7 +299,7 @@ public class GraphModelJenaTest {
         OntSWRL.DArg dArg2 = var1.as(OntSWRL.DArg.class);
 
         OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(ResourceFactory.createResource(ns + "AtomPredicate1"), Stream.of(dArg1, dArg2));
-        OntSWRL.Atom.OwlClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
+        OntSWRL.Atom.OntClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
         OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class), var1.as(OntSWRL.IArg.class));
 
         OntSWRL.Imp imp = m.createSWRLImp(Stream.of(atom1), Stream.of(atom2, atom3));
@@ -317,6 +318,38 @@ public class GraphModelJenaTest {
         Assert.assertEquals("Incorrect count of SWRL D-Arg", 3, m.ontObjects(OntSWRL.DArg.class).count());
         // individuals(2 anonymous, 1 named) and variables(1):
         Assert.assertEquals("Incorrect count of SWRL I-Arg", 4, m.ontObjects(OntSWRL.IArg.class).count());
+    }
+
+    @Test
+    public void testCreateImports() {
+        String baseURI = "http://test.com/graph/5";
+        String baseNS = baseURI + "#";
+        OntGraphModel base = new OntGraphModelImpl();
+        setDefaultPrefixes(base);
+        base.setID(baseURI);
+        OntClass cl1 = base.createOntEntity(OntClass.class, baseNS + "Class1");
+        OntClass cl2 = base.createOntEntity(OntClass.class, baseNS + "Class2");
+
+        String childURI = "http://test.com/graph/6";
+        String childNS = childURI + "#";
+        OntGraphModel child = new OntGraphModelImpl();
+        setDefaultPrefixes(child);
+        child.setID(childURI);
+        child.addImport(base);
+        OntClass cl3 = child.createOntEntity(OntClass.class, childNS + "Class3");
+        cl3.addSubClassOf(child.createIntersectionOf(Stream.of(cl1, cl2)));
+        cl3.createIndividual(childNS + "Individual1");
+
+        LOGGER.info("Base:");
+        base = child.models().findFirst().orElse(null);
+        Assert.assertNotNull("Null base", base);
+        ReadWriteUtils.print(base);
+        LOGGER.info("Child:");
+        ReadWriteUtils.print(child);
+        Set<String> imports = child.imports().map(Resource::getURI).collect(Collectors.toSet());
+        Assert.assertThat("Incorrect imports", imports, IsEqual.equalTo(Stream.of(baseURI).collect(Collectors.toSet())));
+        Assert.assertEquals("Incorrect count of entities", 4, child.ontEntities().count());
+        Assert.assertEquals("Incorrect count of local entities", 2, child.ontEntities().filter(OntEntity::isLocal).count());
     }
 }
 

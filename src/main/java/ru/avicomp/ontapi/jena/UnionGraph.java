@@ -1,5 +1,8 @@
 package ru.avicomp.ontapi.jena;
 
+import java.util.Iterator;
+import java.util.stream.Stream;
+
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.Dyadic;
@@ -19,15 +22,15 @@ public class UnionGraph extends Dyadic {
      * @param base Graph
      */
     public UnionGraph(Graph base) {
-        super(base, new MultiUnion());
+        super(base, new OntMultiUnion());
     }
 
     public Graph getBaseGraph() {
         return L;
     }
 
-    protected MultiUnion getSubGraphs() {
-        return (MultiUnion) R;
+    public OntMultiUnion getUnderlying() {
+        return (OntMultiUnion) R;
     }
 
     @Override
@@ -52,11 +55,28 @@ public class UnionGraph extends Dyadic {
     }
 
     public void addGraph(Graph graph) {
-        getSubGraphs().addGraph(graph);
+        getUnderlying().addGraph(graph);
     }
 
     public void removeGraph(Graph graph) {
-        getSubGraphs().removeGraph(graph);
+        getUnderlying().removeGraph(graph);
     }
 
+    public static class OntMultiUnion extends MultiUnion {
+        public OntMultiUnion() {
+            super();
+        }
+
+        public OntMultiUnion(Graph[] graphs) {
+            super(graphs);
+        }
+
+        public OntMultiUnion(Iterator<Graph> graphs) {
+            super(graphs);
+        }
+
+        public Stream<Graph> graphs() {
+            return m_subGraphs.stream();
+        }
+    }
 }

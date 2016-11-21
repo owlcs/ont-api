@@ -51,7 +51,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntID getID() {
-        List<Resource> prev = ontologies().collect(Collectors.toList());
+        List<Resource> prev = ontologyStatements().collect(Collectors.toList());
         Resource res;
         if (prev.isEmpty()) {
             res = createResource(); // anon id
@@ -64,7 +64,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntID setID(String uri) {
-        List<Statement> tmp = ontologies().map(s -> JenaUtils.asStream(listStatements(s, null, (RDFNode) null))).flatMap(Function.identity()).distinct().collect(Collectors.toList());
+        List<Statement> tmp = ontologyStatements().map(s -> JenaUtils.asStream(listStatements(s, null, (RDFNode) null))).flatMap(Function.identity()).distinct().collect(Collectors.toList());
         remove(tmp);
         Resource subject = uri == null ? createResource() : createResource(uri);
         add(subject, RDF.type, OWL2.Ontology);
@@ -72,18 +72,58 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return getNodeAs(subject.asNode(), OntID.class);
     }
 
-    private Stream<Resource> ontologies() {
+    private Stream<Resource> ontologyStatements() {
         return JenaUtils.asStream(listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject)).distinct();
     }
 
-    public void addImport(OntGraphModelImpl m) {
-        getGraph().addGraph(m.getBaseGraph());
-        // todo:
+    @Override
+    public void addImport(OntGraphModel m) {
+        if (!OntException.notNull(m, "Null model.").getID().isURIResource()) {
+            throw new OntException("Anonymous sub models are not allowed");
+        }
+        getGraph().addGraph(m.getGraph());
+        addImport(m.getID());
     }
 
-    public void removeImport(OntGraphModelImpl m) {
-        getGraph().removeGraph(m.getBaseGraph());
-        // todo:
+    @Override
+    public void removeImport(OntGraphModel m) {
+        getGraph().removeGraph(OntException.notNull(m, "Null model.").getGraph());
+        removeImport(m.getID());
+    }
+
+    @Override
+    public void addImport(String uri) {
+        addImport(createResource(uri));
+    }
+
+    public void addImport(Resource uri) {
+        add(getID(), OWL2.imports, uri);
+    }
+
+    public void removeImport(Resource uri) {
+        removeAll(getID(), OWL2.imports, uri);
+    }
+
+    @Override
+    public void removeImport(String uri) {
+        removeImport(createResource(uri));
+    }
+
+    @Override
+    public Stream<Resource> imports() {
+        return JenaUtils.asStream(listStatements(getID(), OWL2.imports, (RDFNode) null)
+                .mapWith(Statement::getObject)
+                .filterKeep(RDFNode::isURIResource)
+                .mapWith(RDFNode::asResource));
+    }
+
+    @Override
+    public Stream<OntGraphModel> models() {
+        return models(getPersonality());
+    }
+
+    public Stream<OntGraphModel> models(OntPersonality personality) {
+        return getGraph().getUnderlying().graphs().map(g -> new OntGraphModelImpl(g, personality));
     }
 
     @Override
@@ -363,7 +403,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntSWRL.Atom.OwlClass createClassSWRLAtom(OntCE clazz, OntSWRL.IArg arg) {
+    public OntSWRL.Atom.OntClass createClassSWRLAtom(OntCE clazz, OntSWRL.IArg arg) {
         return OntSWRLImpl.createClassAtom(this, clazz, arg);
     }
 

@@ -10,7 +10,8 @@ import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
 /**
- * This is our analogue of {@link org.apache.jena.ontology.OntModel} to work in accordance with OWL2 DL specification.
+ * This is our analogue of {@link org.apache.jena.ontology.OntModel} to work with Ontology graph in accordance with OWL2 DL specification.
+ * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf'>OWL2 RDF mapping</a>.
  * Encapsulates {@link org.apache.jena.graph.Graph} and extends {@link Model}
  * <p>
  * Created by @szuev on 11.11.2016.
@@ -22,6 +23,18 @@ public interface OntGraphModel extends Model {
     OntID getID();
 
     OntID setID(String uri);
+
+    void addImport(String uri);
+
+    void addImport(OntGraphModel m);
+
+    void removeImport(String uri);
+
+    void removeImport(OntGraphModel m);
+
+    Stream<Resource> imports();
+
+    Stream<OntGraphModel> models();
 
     <T extends OntObject> Stream<T> ontObjects(Class<T> type);
 
@@ -119,7 +132,7 @@ public interface OntGraphModel extends Model {
 
     OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Stream<OntSWRL.DArg> arguments);
 
-    OntSWRL.Atom.OwlClass createClassSWRLAtom(OntCE clazz, OntSWRL.IArg arg);
+    OntSWRL.Atom.OntClass createClassSWRLAtom(OntCE clazz, OntSWRL.IArg arg);
 
     OntSWRL.Atom.DataRange createDataRangeSWRLAtom(OntDR range, OntSWRL.DArg arg);
 

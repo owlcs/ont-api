@@ -116,7 +116,7 @@ public class OntModelConfig {
             .register(OntSWRL.DArg.class, OntSWRLImpl.dArgSWRLFactory)
             .register(OntSWRL.Arg.class, OntSWRLImpl.abstractArgSWRLFactory)
             .register(OntSWRL.Atom.BuiltIn.class, OntSWRLImpl.builtInAtomSWRLFactory)
-            .register(OntSWRL.Atom.OwlClass.class, OntSWRLImpl.classAtomSWRLFactory)
+            .register(OntSWRL.Atom.OntClass.class, OntSWRLImpl.classAtomSWRLFactory)
             .register(OntSWRL.Atom.DataRange.class, OntSWRLImpl.dataRangeAtomSWRLFactory)
             .register(OntSWRL.Atom.ObjectProperty.class, OntSWRLImpl.individualAtomSWRLFactory)
             .register(OntSWRL.Atom.DataProperty.class, OntSWRLImpl.dataValuedAtomSWRLFactory)

@@ -55,7 +55,7 @@ public interface OntSWRL extends OntObject {
             Stream<DArg> arguments();
         }
 
-        interface OwlClass extends Unary<OntCE, IArg> {
+        interface OntClass extends Unary<OntCE, IArg> {
         }
 
         interface DataRange extends Unary<OntDR, DArg> {
