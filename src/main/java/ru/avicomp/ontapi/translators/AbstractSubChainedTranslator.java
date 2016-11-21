@@ -14,14 +14,14 @@ import org.semanticweb.owlapi.model.OWLObject;
  */
 abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom> extends AxiomTranslator<Axiom> {
 
-    public abstract OWLObject getSubject();
+    public abstract OWLObject getSubject(Axiom axiom);
 
     public abstract Property getPredicate();
 
-    public abstract Stream<? extends OWLObject> getObjects();
+    public abstract Stream<? extends OWLObject> getObjects(Axiom axiom);
 
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getSubject(), getPredicate(), getObjects(), getAxiom(), true);
+    public void write(Axiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, getSubject(axiom), getPredicate(), getObjects(axiom), axiom, true);
     }
 }

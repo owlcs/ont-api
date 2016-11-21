@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  */
 class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getSubClass(), RDFS.subClassOf, getAxiom().getSuperClass(), getAxiom());
+    public void write(OWLSubClassOfAxiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(), axiom);
     }
 }

@@ -16,7 +16,6 @@ import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
  * Created by @szuev on 28.09.2016.
  */
 class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom> {
-
     @Override
     public Property getPredicate() {
         return OWL.disjointWith;
@@ -31,5 +30,4 @@ class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjoint
     public Property getMembersPredicate() {
         return OWL2.members;
     }
-
 }

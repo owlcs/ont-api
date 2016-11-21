@@ -9,7 +9,7 @@ import org.semanticweb.owlapi.model.OWLPropertyAssertionAxiom;
  */
 abstract class AbstractPropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom> extends AxiomTranslator<Axiom> {
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getSubject(), getAxiom().getProperty(), getAxiom().getObject(), getAxiom());
+    public void write(Axiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, axiom.getSubject(), axiom.getProperty(), axiom.getObject(), axiom);
     }
 }

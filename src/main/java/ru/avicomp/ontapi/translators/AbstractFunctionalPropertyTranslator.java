@@ -15,8 +15,8 @@ import org.semanticweb.owlapi.model.OWLObject;
  */
 abstract class AbstractFunctionalPropertyTranslator<Axiom extends OWLAxiom & HasProperty> extends AbstractSingleTripleTranslator<Axiom> {
     @Override
-    public OWLObject getSubject() {
-        return getAxiom().getProperty();
+    public OWLObject getSubject(Axiom axiom) {
+        return axiom.getProperty();
     }
 
     @Override
@@ -25,7 +25,7 @@ abstract class AbstractFunctionalPropertyTranslator<Axiom extends OWLAxiom & Has
     }
 
     @Override
-    public RDFNode getObject() {
+    public RDFNode getObject(Axiom axiom) {
         return OWL.FunctionalProperty;
     }
 }

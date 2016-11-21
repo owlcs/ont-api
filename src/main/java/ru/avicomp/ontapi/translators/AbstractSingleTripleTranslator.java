@@ -23,15 +23,14 @@ import org.semanticweb.owlapi.model.OWLObject;
  */
 abstract class AbstractSingleTripleTranslator<Axiom extends OWLAxiom> extends AxiomTranslator<Axiom> {
 
-    public abstract OWLObject getSubject();
+    public abstract OWLObject getSubject(Axiom axiom);
 
     public abstract Property getPredicate();
 
-    public abstract RDFNode getObject();
+    public abstract RDFNode getObject(Axiom axiom);
 
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getSubject(), getPredicate(), getObject(), getAxiom(), true);
+    public void write(Axiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, getSubject(axiom), getPredicate(), getObject(axiom), axiom, true);
     }
-
 }

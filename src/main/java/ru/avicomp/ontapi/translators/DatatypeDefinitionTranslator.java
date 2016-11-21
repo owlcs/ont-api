@@ -12,7 +12,7 @@ import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
  */
 class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getDatatype(), OWL.equivalentClass, getAxiom().getDataRange(), getAxiom(), true);
+    public void write(OWLDatatypeDefinitionAxiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom, true);
     }
 }

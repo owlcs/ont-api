@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
  */
 class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAssertionAxiom> {
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getSubject(), getAxiom().getProperty(), getAxiom().getValue(), getAxiom());
+    public void write(OWLAnnotationAssertionAxiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom);
     }
 }

@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLSubPropertyAxiom;
  */
 abstract class AbstractSubPropertyTranslator<Axiom extends OWLSubPropertyAxiom> extends AxiomTranslator<Axiom> {
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getSubProperty(), RDFS.subPropertyOf, getAxiom().getSuperProperty(), getAxiom());
+    public void write(Axiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, axiom.getSubProperty(), RDFS.subPropertyOf, axiom.getSuperProperty(), axiom);
     }
 }

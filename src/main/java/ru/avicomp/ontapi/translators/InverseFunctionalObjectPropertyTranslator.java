@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
  */
 class InverseFunctionalObjectPropertyTranslator extends AbstractObjectPropertyTranslator<OWLInverseFunctionalObjectPropertyAxiom> {
     @Override
-    public RDFNode getObject() {
+    public RDFNode getObject(OWLInverseFunctionalObjectPropertyAxiom axiom) {
         return OWL.InverseFunctionalProperty;
     }
 }

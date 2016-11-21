@@ -367,7 +367,7 @@ public class OntologyModelImpl extends OWLOntologyImpl implements OntologyModel 
             Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
-                AxiomParserProvider.get(axiom).process(getUnionGraph());
+                AxiomParserProvider.get(axiom).write(axiom, getUnionGraph());
             } catch (Exception e) {
                 throw new OntException("Add axiom " + axiom, e);
             } finally {

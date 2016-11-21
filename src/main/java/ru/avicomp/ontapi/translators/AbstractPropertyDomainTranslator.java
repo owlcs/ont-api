@@ -14,7 +14,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
  */
 abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDomain & HasProperty> extends AxiomTranslator<Axiom> {
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getProperty(), RDFS.domain, getAxiom().getDomain(), getAxiom());
+    public void write(Axiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom);
     }
 }

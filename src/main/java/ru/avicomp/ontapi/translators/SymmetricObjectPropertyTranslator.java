@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
  */
 class SymmetricObjectPropertyTranslator extends AbstractObjectPropertyTranslator<OWLSymmetricObjectPropertyAxiom> {
     @Override
-    public RDFNode getObject() {
+    public RDFNode getObject(OWLSymmetricObjectPropertyAxiom axiom) {
         return OWL.SymmetricProperty;
     }
 }

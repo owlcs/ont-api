@@ -16,8 +16,8 @@ import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
  */
 class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPropertyChainOfAxiom> {
     @Override
-    public OWLObject getSubject() {
-        return getAxiom().getSuperProperty();
+    public OWLObject getSubject(OWLSubPropertyChainOfAxiom axiom) {
+        return axiom.getSuperProperty();
     }
 
     @Override
@@ -26,7 +26,7 @@ class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPr
     }
 
     @Override
-    public Stream<? extends OWLObject> getObjects() {
-        return getAxiom().getPropertyChain().stream();
+    public Stream<? extends OWLObject> getObjects(OWLSubPropertyChainOfAxiom axiom) {
+        return axiom.getPropertyChain().stream();
     }
 }

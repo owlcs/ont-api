@@ -14,16 +14,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
-    private Axiom axiom;
 
-    void init(Axiom axiom) {
-        this.axiom = axiom;
-    }
-
-    public final Axiom getAxiom() {
-        return axiom;
-    }
-
-    public abstract void process(Graph graph);
+    public abstract void write(Axiom axiom, Graph graph);
 
 }

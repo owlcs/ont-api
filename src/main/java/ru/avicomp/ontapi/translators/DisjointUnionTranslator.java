@@ -16,8 +16,8 @@ import org.semanticweb.owlapi.model.OWLObject;
  */
 class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUnionAxiom> {
     @Override
-    public OWLObject getSubject() {
-        return getAxiom().getOWLClass();
+    public OWLObject getSubject(OWLDisjointUnionAxiom axiom) {
+        return axiom.getOWLClass();
     }
 
     @Override
@@ -26,7 +26,7 @@ class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUn
     }
 
     @Override
-    public Stream<? extends OWLObject> getObjects() {
-        return getAxiom().classExpressions();
+    public Stream<? extends OWLObject> getObjects(OWLDisjointUnionAxiom axiom) {
+        return axiom.classExpressions();
     }
 }

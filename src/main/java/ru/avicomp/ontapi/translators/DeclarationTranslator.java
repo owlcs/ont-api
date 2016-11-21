@@ -13,8 +13,8 @@ import org.semanticweb.owlapi.model.OWLEntity;
  */
 class DeclarationTranslator extends AbstractSingleTripleTranslator<OWLDeclarationAxiom> {
     @Override
-    public OWLEntity getSubject() {
-        return getAxiom().getEntity();
+    public OWLEntity getSubject(OWLDeclarationAxiom axiom) {
+        return axiom.getEntity();
     }
 
     @Override
@@ -23,7 +23,7 @@ class DeclarationTranslator extends AbstractSingleTripleTranslator<OWLDeclaratio
     }
 
     @Override
-    public RDFNode getObject() {
-        return TranslationHelper.getType(getSubject());
+    public RDFNode getObject(OWLDeclarationAxiom axiom) {
+        return TranslationHelper.getType(getSubject(axiom));
     }
 }

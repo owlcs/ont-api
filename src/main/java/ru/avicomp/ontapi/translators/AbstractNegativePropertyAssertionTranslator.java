@@ -19,8 +19,7 @@ import ru.avicomp.ontapi.NodeIRIUtils;
  */
 abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom> extends AxiomTranslator<Axiom> {
     @Override
-    public void process(Graph graph) {
-        OWLPropertyAssertionAxiom axiom = getAxiom();
+    public void write(Axiom axiom, Graph graph) {
         Node root = NodeIRIUtils.toNode();
         graph.add(Triple.create(root, RDF.type.asNode(), OWL2.NegativePropertyAssertion.asNode()));
         graph.add(Triple.create(root, OWL2.sourceIndividual.asNode(), NodeIRIUtils.toNode(axiom.getSubject())));

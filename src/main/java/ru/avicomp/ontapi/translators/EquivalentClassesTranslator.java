@@ -12,7 +12,6 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
  * Created by @szuev on 29.09.2016.
  */
 class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom> {
-
     @Override
     public Property getPredicate() {
         return OWL.equivalentClass;

@@ -14,7 +14,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
  */
 abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty & HasRange> extends AxiomTranslator<Axiom> {
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getProperty(), RDFS.range, getAxiom().getRange(), getAxiom());
+    public void write(Axiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom);
     }
 }

@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
  */
 class TransitiveObjectPropertyTranslator extends AbstractObjectPropertyTranslator<OWLTransitiveObjectPropertyAxiom> {
     @Override
-    public RDFNode getObject() {
+    public RDFNode getObject(OWLTransitiveObjectPropertyAxiom axiom) {
         return OWL.TransitiveProperty;
     }
 }

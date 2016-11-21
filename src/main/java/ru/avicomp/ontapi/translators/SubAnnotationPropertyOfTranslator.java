@@ -10,7 +10,7 @@ import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
  */
 class SubAnnotationPropertyOfTranslator extends AxiomTranslator<OWLSubAnnotationPropertyOfAxiom> {
     @Override
-    public void process(Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getAxiom().getSubProperty(), RDFS.subPropertyOf, getAxiom().getSuperProperty(), getAxiom());
+    public void write(OWLSubAnnotationPropertyOfAxiom axiom, Graph graph) {
+        TranslationHelper.processAnnotatedTriple(graph, axiom.getSubProperty(), RDFS.subPropertyOf, axiom.getSuperProperty(), axiom);
     }
 }

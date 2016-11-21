@@ -17,8 +17,8 @@ import org.semanticweb.owlapi.model.OWLObject;
  */
 class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom> {
     @Override
-    public OWLObject getSubject() {
-        return getAxiom().getClassExpression();
+    public OWLObject getSubject(OWLHasKeyAxiom axiom) {
+        return axiom.getClassExpression();
     }
 
     @Override
@@ -27,7 +27,7 @@ class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom> {
     }
 
     @Override
-    public Stream<? extends OWLObject> getObjects() {
-        return getAxiom().propertyExpressions();
+    public Stream<? extends OWLObject> getObjects(OWLHasKeyAxiom axiom) {
+        return axiom.propertyExpressions();
     }
 }

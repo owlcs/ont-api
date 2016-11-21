@@ -17,15 +17,15 @@ import ru.avicomp.ontapi.jena.vocabulary.SWRL;
  */
 class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     @Override
-    public void process(Graph graph) {
+    public void write(SWRLRule axiom, Graph graph) {
         Model model = TranslationHelper.createModel(graph);
         Resource root = model.createResource();
         root.addProperty(RDF.type, SWRL.Imp);
-        root.addProperty(SWRL.head, JenaUtils.createTypedList(model, SWRL.AtomList, getAxiom().head().map(a -> TranslationHelper.addRDFNode(model, a))));
-        root.addProperty(SWRL.body, JenaUtils.createTypedList(model, SWRL.AtomList, getAxiom().body().map(a -> TranslationHelper.addRDFNode(model, a))));
+        root.addProperty(SWRL.head, JenaUtils.createTypedList(model, SWRL.AtomList, axiom.head().map(a -> TranslationHelper.addRDFNode(model, a))));
+        root.addProperty(SWRL.body, JenaUtils.createTypedList(model, SWRL.AtomList, axiom.body().map(a -> TranslationHelper.addRDFNode(model, a))));
         // annotation as for anonymous node.
         // WARNING: this way is correct, but OWL-API can't handle correctly complex annotations.
         // TODO: need to change OWL-loader
-        TranslationHelper.addAnnotations(graph, root.asNode(), getAxiom());
+        TranslationHelper.addAnnotations(graph, root.asNode(), axiom);
     }
 }

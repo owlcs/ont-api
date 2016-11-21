@@ -12,7 +12,7 @@ import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
  */
 class ReflexiveObjectPropertyTranslator extends AbstractObjectPropertyTranslator<OWLReflexiveObjectPropertyAxiom> {
     @Override
-    public RDFNode getObject() {
+    public RDFNode getObject(OWLReflexiveObjectPropertyAxiom axiom) {
         return OWL2.ReflexiveProperty;
     }
 }

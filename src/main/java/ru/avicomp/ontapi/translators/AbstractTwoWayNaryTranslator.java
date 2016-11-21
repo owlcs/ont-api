@@ -23,9 +23,9 @@ import ru.avicomp.ontapi.OntException;
  * Created by szuev on 12.10.2016.
  */
 abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<? extends IsAnonymous>> extends AxiomTranslator<Axiom> {
+
     @Override
-    public void process(Graph graph) {
-        OWLNaryAxiom<? extends IsAnonymous> axiom = getAxiom();
+    public void write(Axiom axiom, Graph graph) {
         long count = axiom.operands().count();
         if (count < 2) throw new OntException("Should be at least two entities " + axiom);
         if (count == 2) { // single triple classic way

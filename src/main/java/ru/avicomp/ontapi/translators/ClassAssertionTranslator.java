@@ -14,15 +14,15 @@ import org.semanticweb.owlapi.model.OWLIndividual;
  */
 class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
     @Override
-    public void process(Graph graph) {
+    public void write(OWLClassAssertionAxiom axiom, Graph graph) {
         Model model = ModelFactory.createModelForGraph(graph);
-        OWLIndividual individual = getAxiom().getIndividual();
+        OWLIndividual individual = axiom.getIndividual();
         Resource subject = individual.isAnonymous() ?
                 TranslationHelper.toResource(individual) :
                 TranslationHelper.addRDFNode(model, individual).asResource();
-        RDFNode object = TranslationHelper.addRDFNode(model, getAxiom().getClassExpression());
+        RDFNode object = TranslationHelper.addRDFNode(model, axiom.getClassExpression());
         Property predicate = RDF.type;
         model.add(subject, predicate, object);
-        TranslationHelper.addAnnotations(model, subject, predicate, object, getAxiom());
+        TranslationHelper.addAnnotations(model, subject, predicate, object, axiom);
     }
 }

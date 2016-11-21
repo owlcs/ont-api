@@ -18,8 +18,8 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
  */
 abstract class AbstractObjectPropertyTranslator<Axiom extends OWLAxiom & HasProperty<? extends OWLObjectPropertyExpression>> extends AbstractSingleTripleTranslator<Axiom> {
     @Override
-    public OWLObjectPropertyExpression getSubject() {
-        return getAxiom().getProperty();
+    public OWLObjectPropertyExpression getSubject(Axiom axiom) {
+        return axiom.getProperty();
     }
 
     @Override
