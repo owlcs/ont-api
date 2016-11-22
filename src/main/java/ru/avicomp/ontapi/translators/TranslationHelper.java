@@ -35,10 +35,6 @@ import ru.avicomp.ontapi.jena.vocabulary.SWRL;
  */
 public class TranslationHelper {
 
-    public static Model createModel(Graph graph) {
-        return ModelFactory.createModelForGraph(graph);
-    }
-
     public static RDFNode toRDFNode(OWLObject object) {
         if (object instanceof OWLLiteral) {
             return toLiteral((OWLLiteral) object);
@@ -77,7 +73,7 @@ public class TranslationHelper {
         return new LiteralImpl(NodeIRIUtils.toLiteralNode(literal), null);
     }
 
-    private static Iterator<? extends RDFNode> toResourceIterator(Model model, Stream<? extends OWLObject> stream) {
+    private static Iterator<? extends RDFNode> toResourceIterator(OntGraphModel model, Stream<? extends OWLObject> stream) {
         return stream.map(o -> addRDFNode(model, o)).iterator();
     }
 
@@ -98,38 +94,35 @@ public class TranslationHelper {
         throw new OntException("Unsupported " + entity);
     }
 
-    public static void processAnnotatedTriple(Graph graph, OWLObject subject, OWLObject predicate, OWLObject object, OWLAxiom axiom) {
-        processAnnotatedTriple(graph, subject, toProperty(predicate), object, axiom);
+    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, OWLObject predicate, OWLObject object, OWLAxiom axiom) {
+        processAnnotatedTriple(model, subject, toProperty(predicate), object, axiom);
     }
 
-    public static void processAnnotatedTriple(Graph graph, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom) {
-        processAnnotatedTriple(graph, subject, predicate, object, axiom, false);
+    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom) {
+        processAnnotatedTriple(model, subject, predicate, object, axiom, false);
     }
 
-    public static void processAnnotatedTriple(Graph graph, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom, boolean addSubject) {
-        Model model = createModel(graph);
+    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom, boolean addSubject) {
         Resource _subject = addSubject ? addRDFNode(model, subject).asResource() : toResource(subject);
         RDFNode _object = addRDFNode(model, object);
         model.add(_subject, predicate, _object);
         addAnnotations(model, _subject, predicate, _object, axiom);
     }
 
-    public static void processAnnotatedTriple(Graph graph, OWLObject subject, Property predicate, RDFNode object, OWLAxiom axiom, boolean addSubject) {
-        Model model = createModel(graph);
+    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, OWLAxiom axiom, boolean addSubject) {
         Resource _subject = addSubject ? addRDFNode(model, subject).asResource() : toResource(subject);
         model.add(_subject, predicate, object);
         addAnnotations(model, _subject, predicate, object, axiom);
     }
 
-    public static void processAnnotatedTriple(Graph graph, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, OWLAxiom axiom, boolean addSubject) {
-        Model model = createModel(graph);
+    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, OWLAxiom axiom, boolean addSubject) {
         Resource _subject = addSubject ? addRDFNode(model, subject).asResource() : toResource(subject);
         RDFNode _object = addRDFList(model, objects);
         model.add(_subject, predicate, _object);
         addAnnotations(model, _subject, predicate, _object, axiom);
     }
 
-    public static RDFList addRDFList(Model model, Stream<? extends OWLObject> objects) {
+    public static RDFList addRDFList(OntGraphModel model, Stream<? extends OWLObject> objects) {
         return model.createList(toResourceIterator(model, objects));
     }
 
@@ -140,7 +133,7 @@ public class TranslationHelper {
      * @param o     {@link OWLObject}
      * @return {@link RDFNode} node, attached to the model.
      */
-    public static RDFNode addRDFNode(Model model, OWLObject o) {
+    public static RDFNode addRDFNode(OntGraphModel model, OWLObject o) {
         if (OWLEntity.class.isInstance(o)) {
             OWLEntity entity = (OWLEntity) o;
             Resource res = toResource(entity);
@@ -180,7 +173,7 @@ public class TranslationHelper {
         return toRDFNode(o).inModel(model);
     }
 
-    public static RDFNode addRDFNode(Model model, SWRLObject o) {
+    public static RDFNode addRDFNode(OntGraphModel model, SWRLObject o) {
         if (SWRLAtom.class.isInstance(o)) {
             return SWRLAtomTranslator.add(model, (SWRLAtom) o);
         } else if (SWRLArgument.class.isInstance(o)) {
@@ -223,17 +216,17 @@ public class TranslationHelper {
      * in last case call this method for each of triple from inner axiom.
      * <p>
      *
-     * @param graph Graph
+     * @param model Graph
      * @param axiom OWLAxiom
      */
-    public static void addAnnotations(Graph graph, Triple triple, OWLAxiom axiom) {
+    public static void addAnnotations(OntGraphModel model, Statement statement, OWLAxiom axiom) {
         if (!axiom.isAnnotated()) return;
-        Node blank = NodeIRIUtils.toNode();
-        graph.add(Triple.create(blank, RDF.type.asNode(), OWL2.Axiom.asNode()));
-        graph.add(Triple.create(blank, OWL2.annotatedSource.asNode(), triple.getSubject()));
-        graph.add(Triple.create(blank, OWL2.annotatedProperty.asNode(), triple.getPredicate()));
-        graph.add(Triple.create(blank, OWL2.annotatedTarget.asNode(), triple.getObject()));
-        addAnnotations(graph, blank, axiom);
+        Resource blank = model.createResource();
+        model.add(blank, RDF.type, OWL2.Axiom);
+        model.add(blank, OWL2.annotatedSource, statement.getSubject());
+        model.add(blank, OWL2.annotatedProperty, statement.getPredicate());
+        model.add(blank, OWL2.annotatedTarget, statement.getObject());
+        addAnnotations(model, blank, axiom);
     }
 
     /**
@@ -247,37 +240,37 @@ public class TranslationHelper {
      * DifferentIndividuals.
      * (see {@link AbstractTwoWayNaryTranslator})
      *
-     * @param graph Graph
+     * @param model Graph
      * @param root  {@link org.apache.jena.graph.Node_Blank} anonymous node
      * @param axiom OWLAxiom
      */
-    public static void addAnnotations(Graph graph, Node root, OWLAxiom axiom) {
-        addAnnotations(graph, root, axiom.annotations().collect(Collectors.toSet()));
+    public static void addAnnotations(OntGraphModel model, Resource root, OWLAxiom axiom) {
+        addAnnotations(model, root, axiom.annotations().collect(Collectors.toSet()));
     }
 
-    public static void addAnnotations(Graph graph, Node root, Collection<OWLAnnotation> annotations) {
+    public static void addAnnotations(OntGraphModel model, Resource root, Collection<OWLAnnotation> annotations) {
         if (annotations.isEmpty()) return;
         annotations.forEach(a -> {
-            graph.add(Triple.create(root, toNode(graph, a.getProperty()), NodeIRIUtils.toNode(a.getValue())));
+            model.add(root, addRDFNode(model, a.getProperty()).as(Property.class), toRDFNode(a.getValue()));
         });
-        annotations.forEach(a -> translateAnnotation(graph, root, a));
+        annotations.forEach(a -> translateAnnotation(model, root, a));
     }
 
-    public static void addAnnotations(Model model, Resource subject, Property predicate, RDFNode object, OWLAxiom axiom) {
-        addAnnotations(model.getGraph(), Triple.create(subject.asNode(), predicate.asNode(), object.asNode()), axiom);
+    public static void addAnnotations(OntGraphModel model, Resource subject, Property predicate, RDFNode object, OWLAxiom axiom) {
+        addAnnotations(model, model.createStatement(subject, predicate, object), axiom);
     }
 
-    private static void translateAnnotation(Graph graph, Node source, OWLAnnotation annotation) {
+    private static void translateAnnotation(OntGraphModel model, Resource source, OWLAnnotation annotation) {
         if (annotation.annotations().count() == 0) return;
-        Node blank = NodeIRIUtils.toNode();
-        graph.add(Triple.create(blank, RDF.type.asNode(), OWL2.Annotation.asNode()));
-        graph.add(Triple.create(blank, OWL2.annotatedSource.asNode(), source));
-        graph.add(Triple.create(blank, OWL2.annotatedProperty.asNode(), NodeIRIUtils.toNode(annotation.getProperty())));
-        graph.add(Triple.create(blank, OWL2.annotatedTarget.asNode(), NodeIRIUtils.toNode(annotation.getValue())));
+        Resource blank = model.createResource();
+        model.add(blank, RDF.type, OWL2.Annotation);
+        model.add(blank, OWL2.annotatedSource, source);
+        model.add(blank, OWL2.annotatedProperty, toRDFNode(annotation.getProperty()));
+        model.add(blank, OWL2.annotatedTarget, toRDFNode(annotation.getValue()));
         annotation.annotations().forEach(child -> {
-            graph.add(Triple.create(blank, toNode(graph, child.getProperty()), NodeIRIUtils.toNode(child.getValue())));
+            model.add(blank, addRDFNode(model, child.getProperty()).as(Property.class), toRDFNode(child.getValue()));
         });
-        annotation.annotations().filter(a -> a.annotations().count() != 0).forEach(a -> translateAnnotation(graph, blank, a));
+        annotation.annotations().filter(a -> a.annotations().count() != 0).forEach(a -> translateAnnotation(model, blank, a));
     }
 
     private static Node toNode(Graph graph, OWLAnnotationProperty property) {
@@ -314,18 +307,18 @@ public class TranslationHelper {
             return null;
         }
 
-        public static Resource add(Model model, SWRLAtom atom) {
+        public static Resource add(OntGraphModel model, SWRLAtom atom) {
             SWRLAtomTranslator swrlt = OntException.notNull(valueOf(atom), "Unsupported swrl-atom " + atom);
             return swrlt.translator.add(model, atom);
         }
 
         private static abstract class Translator<Atom extends SWRLAtom> {
             @SuppressWarnings("unchecked")
-            private Resource add(Model model, SWRLAtom atom) {
+            private Resource add(OntGraphModel model, SWRLAtom atom) {
                 return translate(model, (Atom) atom);
             }
 
-            abstract Resource translate(Model model, Atom atom);
+            abstract Resource translate(OntGraphModel model, Atom atom);
         }
 
         private static class BuiltIn extends Translator<SWRLBuiltInAtom> {
@@ -337,7 +330,7 @@ public class TranslationHelper {
              * @return Resource
              */
             @Override
-            Resource translate(Model model, SWRLBuiltInAtom atom) {
+            Resource translate(OntGraphModel model, SWRLBuiltInAtom atom) {
                 // todo: it differs from OWL-API output.
                 Resource res = model.createResource();
                 model.add(res, RDF.type, SWRL.BuiltinAtom);
@@ -351,7 +344,7 @@ public class TranslationHelper {
 
         private static class OWLClass extends Translator<SWRLClassAtom> {
             @Override
-            Resource translate(Model model, SWRLClassAtom atom) {
+            Resource translate(OntGraphModel model, SWRLClassAtom atom) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, SWRL.ClassAtom);
                 model.add(res, SWRL.classPredicate, addRDFNode(model, atom.getPredicate()));
@@ -362,7 +355,7 @@ public class TranslationHelper {
 
         private static class DataProperty extends Translator<SWRLDataPropertyAtom> {
             @Override
-            Resource translate(Model model, SWRLDataPropertyAtom atom) {
+            Resource translate(OntGraphModel model, SWRLDataPropertyAtom atom) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, SWRL.DatavaluedPropertyAtom);
                 model.add(res, SWRL.propertyPredicate, addRDFNode(model, atom.getPredicate()));
@@ -374,7 +367,7 @@ public class TranslationHelper {
 
         private static class DataRange extends Translator<SWRLDataRangeAtom> {
             @Override
-            Resource translate(Model model, SWRLDataRangeAtom atom) {
+            Resource translate(OntGraphModel model, SWRLDataRangeAtom atom) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, SWRL.DataRangeAtom);
                 model.add(res, SWRL.dataRange, addRDFNode(model, atom.getPredicate()));
@@ -385,7 +378,7 @@ public class TranslationHelper {
 
         private static class DifferentIndividuals extends Translator<SWRLDifferentIndividualsAtom> {
             @Override
-            Resource translate(Model model, SWRLDifferentIndividualsAtom atom) {
+            Resource translate(OntGraphModel model, SWRLDifferentIndividualsAtom atom) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, SWRL.DifferentIndividualsAtom);
                 model.add(res, SWRL.argument1, addRDFNode(model, atom.getFirstArgument()));
@@ -396,7 +389,7 @@ public class TranslationHelper {
 
         private static class ObjectProperty extends Translator<SWRLObjectPropertyAtom> {
             @Override
-            Resource translate(Model model, SWRLObjectPropertyAtom atom) {
+            Resource translate(OntGraphModel model, SWRLObjectPropertyAtom atom) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, SWRL.IndividualPropertyAtom);
                 model.add(res, SWRL.propertyPredicate, addRDFNode(model, atom.getPredicate()));
@@ -408,7 +401,7 @@ public class TranslationHelper {
 
         private static class SameIndividuals extends Translator<SWRLSameIndividualAtom> {
             @Override
-            Resource translate(Model model, SWRLSameIndividualAtom atom) {
+            Resource translate(OntGraphModel model, SWRLSameIndividualAtom atom) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, SWRL.SameIndividualAtom);
                 model.add(res, SWRL.argument1, addRDFNode(model, atom.getFirstArgument()));
@@ -452,7 +445,7 @@ public class TranslationHelper {
             return null;
         }
 
-        public static Resource add(Model model, OWLDataRange expression) {
+        public static Resource add(OntGraphModel model, OWLDataRange expression) {
             DataRangeType type = expression.getDataRangeType();
             DRTranslator drt = OntException.notNull(valueOf(type), "Unsupported data-range expression " + expression + "/" + type);
             return drt.translator.add(model, expression);
@@ -460,16 +453,16 @@ public class TranslationHelper {
 
         private static abstract class Translator<DR extends OWLDataRange> {
             @SuppressWarnings("unchecked")
-            private Resource add(Model model, OWLDataRange expression) {
+            private Resource add(OntGraphModel model, OWLDataRange expression) {
                 return translate(model, (DR) expression);
             }
 
-            abstract Resource translate(Model model, DR expression);
+            abstract Resource translate(OntGraphModel model, DR expression);
         }
 
         private static class OneOf extends Translator<OWLDataOneOf> {
             @Override
-            Resource translate(Model model, OWLDataOneOf expression) {
+            Resource translate(OntGraphModel model, OWLDataOneOf expression) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, RDFS.Datatype);
                 model.add(res, OWL.oneOf, addRDFList(model, expression.values()));
@@ -479,7 +472,7 @@ public class TranslationHelper {
 
         private static class DatatypeRestriction extends Translator<OWLDatatypeRestriction> {
             @Override
-            Resource translate(Model model, OWLDatatypeRestriction expression) {
+            Resource translate(OntGraphModel model, OWLDatatypeRestriction expression) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, RDFS.Datatype);
                 model.add(res, OWL2.onDatatype, addRDFNode(model, expression.getDatatype()));
@@ -490,7 +483,7 @@ public class TranslationHelper {
 
         private static class ComplementOf extends Translator<OWLDataComplementOf> {
             @Override
-            Resource translate(Model model, OWLDataComplementOf expression) {
+            Resource translate(OntGraphModel model, OWLDataComplementOf expression) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, RDFS.Datatype);
                 model.add(res, OWL2.datatypeComplementOf, addRDFNode(model, expression.getDataRange()));
@@ -500,7 +493,7 @@ public class TranslationHelper {
 
         private static abstract class NaryDataRange<NaryDR extends OWLNaryDataRange> extends Translator<NaryDR> {
             @Override
-            Resource translate(Model model, NaryDR expression) {
+            Resource translate(OntGraphModel model, NaryDR expression) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, RDFS.Datatype);
                 model.add(res, getPredicate(), addRDFList(model, expression.operands()));
@@ -633,7 +626,7 @@ public class TranslationHelper {
             return null;
         }
 
-        public static Resource add(Model model, OWLClassExpression expression) {
+        public static Resource add(OntGraphModel model, OWLClassExpression expression) {
             ClassExpressionType type = expression.getClassExpressionType();
             CETranslator cet = OntException.notNull(valueOf(type), "Unsupported class-expression " + expression + "/" + type);
             return cet.translator.add(model, expression);
@@ -641,18 +634,18 @@ public class TranslationHelper {
 
         private static abstract class Translator<CE extends OWLClassExpression> {
             @SuppressWarnings("unchecked")
-            private Resource add(Model model, OWLClassExpression expression) {
+            private Resource add(OntGraphModel model, OWLClassExpression expression) {
                 return translate(model, (CE) expression);
             }
 
-            abstract Resource translate(Model model, CE expression);
+            abstract Resource translate(OntGraphModel model, CE expression);
 
             abstract Property getPredicate();
         }
 
         private static abstract class Restriction<RestrictionCE extends OWLRestriction> extends Translator<RestrictionCE> {
             @Override
-            Resource translate(Model model, RestrictionCE expression) {
+            Resource translate(OntGraphModel model, RestrictionCE expression) {
                 RDFNode object;
                 if (ClassExpressionType.OBJECT_HAS_SELF.equals(expression.getClassExpressionType())) {
                     Node literal = NodeIRIUtils.toLiteralNode(String.valueOf(Boolean.TRUE), null, XSDVocabulary.BOOLEAN.getIRI());
@@ -678,7 +671,7 @@ public class TranslationHelper {
             }
 
             @Override
-            Resource translate(Model model, RestrictionCardinalityCE expression) {
+            Resource translate(OntGraphModel model, RestrictionCardinalityCE expression) {
                 OWLPropertyExpression property = expression.getProperty();
                 Resource res = model.createResource();
                 model.add(res, RDF.type, OWL.Restriction);
@@ -690,7 +683,7 @@ public class TranslationHelper {
 
         private static abstract class DataRestrictionCardinality<DataRestrictionCardinalityCE extends OWLDataCardinalityRestriction> extends RestrictionCardinality<DataRestrictionCardinalityCE> {
             @Override
-            Resource translate(Model model, DataRestrictionCardinalityCE expression) {
+            Resource translate(OntGraphModel model, DataRestrictionCardinalityCE expression) {
                 Resource res = super.translate(model, expression);
                 model.add(res, OWL2.onDataRange, addRDFNode(model, expression.getFiller()));
                 return res;
@@ -699,7 +692,7 @@ public class TranslationHelper {
 
         private static abstract class CollectionOf<OperandsCE extends OWLClassExpression & HasOperands<? extends OWLObject>> extends Translator<OperandsCE> {
             @Override
-            Resource translate(Model model, OperandsCE expression) {
+            Resource translate(OntGraphModel model, OperandsCE expression) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, OWL.Class);
                 model.add(res, getPredicate(), addRDFList(model, expression.operands()));
@@ -709,7 +702,7 @@ public class TranslationHelper {
 
         private static abstract class ComponentsOf extends Translator<OWLObjectComplementOf> {
             @Override
-            Resource translate(Model model, OWLObjectComplementOf expression) {
+            Resource translate(OntGraphModel model, OWLObjectComplementOf expression) {
                 Resource res = model.createResource();
                 model.add(res, RDF.type, OWL.Class);
                 model.add(res, getPredicate(), addRDFNode(model, expression.getOperand()));

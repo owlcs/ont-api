@@ -1,10 +1,11 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
+
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
  * Base class for parse axiom which is related to single triplet.
@@ -30,7 +31,7 @@ abstract class AbstractSingleTripleTranslator<Axiom extends OWLAxiom> extends Ax
     public abstract RDFNode getObject(Axiom axiom);
 
     @Override
-    public void write(Axiom axiom, Graph graph) {
+    public void write(Axiom axiom, OntGraphModel graph) {
         TranslationHelper.processAnnotatedTriple(graph, getSubject(axiom), getPredicate(), getObject(axiom), axiom, true);
     }
 }

@@ -18,6 +18,7 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
  * Created by szuev on 24.10.2016.
  */
 public interface OntologyManager extends OWLOntologyManager {
+    @Deprecated
     OntModelSpec getSpec();
 
     OntologyModel getOntology(@Nullable IRI ontologyIRI);

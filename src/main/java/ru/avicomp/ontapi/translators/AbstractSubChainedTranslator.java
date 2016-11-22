@@ -2,10 +2,11 @@ package ru.avicomp.ontapi.translators;
 
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
+
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
  * base class for {@link HasKeyTranslator}, {@link SubPropertyChainOfTranslator}, {@link DisjointUnionTranslator}
@@ -21,7 +22,7 @@ abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom> exten
     public abstract Stream<? extends OWLObject> getObjects(Axiom axiom);
 
     @Override
-    public void write(Axiom axiom, Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, getSubject(axiom), getPredicate(), getObjects(axiom), axiom, true);
+    public void write(Axiom axiom, OntGraphModel model) {
+        TranslationHelper.processAnnotatedTriple(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom, true);
     }
 }

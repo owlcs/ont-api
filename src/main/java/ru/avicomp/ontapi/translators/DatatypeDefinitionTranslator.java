@@ -1,8 +1,9 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
+
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
  * example:
@@ -12,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
  */
 class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
     @Override
-    public void write(OWLDatatypeDefinitionAxiom axiom, Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom, true);
+    public void write(OWLDatatypeDefinitionAxiom axiom, OntGraphModel model) {
+        TranslationHelper.processAnnotatedTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom, true);
     }
 }

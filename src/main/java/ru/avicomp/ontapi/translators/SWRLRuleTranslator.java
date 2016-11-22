@@ -1,12 +1,11 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.SWRLRule;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
 /**
@@ -17,8 +16,7 @@ import ru.avicomp.ontapi.jena.vocabulary.SWRL;
  */
 class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     @Override
-    public void write(SWRLRule axiom, Graph graph) {
-        Model model = TranslationHelper.createModel(graph);
+    public void write(SWRLRule axiom, OntGraphModel model) {
         Resource root = model.createResource();
         root.addProperty(RDF.type, SWRL.Imp);
         root.addProperty(SWRL.head, JenaUtils.createTypedList(model, SWRL.AtomList, axiom.head().map(a -> TranslationHelper.addRDFNode(model, a))));
@@ -26,6 +24,6 @@ class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
         // annotation as for anonymous node.
         // WARNING: this way is correct, but OWL-API can't handle correctly complex annotations.
         // TODO: need to change OWL-loader
-        TranslationHelper.addAnnotations(graph, root.asNode(), axiom);
+        TranslationHelper.addAnnotations(model, root, axiom);
     }
 }

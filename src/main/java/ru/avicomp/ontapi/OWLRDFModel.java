@@ -12,7 +12,7 @@ import ru.avicomp.ontapi.jena.model.OntID;
  * New strategy here.
  * Buffer RDF-OWL model.
  * TODO: Now there's nothing here
- * TODO: This is GraphModel with methods to work with the axioms. It combines jena(Graph) model and owl(OWLAxiom).
+ * TODO: This is {@link OntGraphModel} with methods to work with the axioms. It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways.
  * TODO: will be used to load and write from {@link ru.avicomp.ontapi.OntologyModel}.
  * <p>
  * Created by @szuev on 26.10.2016.
@@ -26,6 +26,10 @@ public class OWLRDFModel extends OntGraphModelImpl implements OntGraphModel {
     public OWLRDFModel(Graph base) {
         super(base);
         this.eventStore = new OntGraphEventStore();
+    }
+
+    public OntGraphEventStore getEventStore() {
+        return eventStore;
     }
 
     public OWLOntologyID getOwlID() {
@@ -49,9 +53,4 @@ public class OWLRDFModel extends OntGraphModelImpl implements OntGraphModel {
         IRI versionIRI = id.getVersionIRI().orElse(null);
         setID(iri == null ? null : iri.getIRIString()).setVersionIRI(versionIRI == null ? null : versionIRI.getIRIString());
     }
-
-    public OntGraphEventStore getEventStore() {
-        return eventStore;
-    }
-
 }

@@ -1,10 +1,11 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.HasDomain;
 import org.semanticweb.owlapi.model.HasProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
+
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
  * base class for {@link ObjectPropertyDomainTranslator} and {@link DataPropertyDomainTranslator} and {@link AnnotationPropertyDomainTranslator}
@@ -14,7 +15,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
  */
 abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDomain & HasProperty> extends AxiomTranslator<Axiom> {
     @Override
-    public void write(Axiom axiom, Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom);
+    public void write(Axiom axiom, OntGraphModel model) {
+        TranslationHelper.processAnnotatedTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom);
     }
 }

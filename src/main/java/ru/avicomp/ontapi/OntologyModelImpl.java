@@ -168,15 +168,6 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
      * WARNING: High Coupling with {@link OntGraph}, {@link OntologyFactoryImpl} and this {@link OntologyModelImpl}!
      */
     class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
-//        private final OntGraphEventStore eventStore;
-//        private final Graph inner;
-//        private Node nodeIRI;
-
-        RDFChangeProcessor() {
-//            this.eventStore = base.getEventStore();
-//            this.inner = base.getBaseGraph();
-//            initOntologyID();
-        }
 
         OntGraphEventStore eventStore() {
             return base.getEventStore();
@@ -202,18 +193,6 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
             return base.getBaseGraph();
         }
 
-//        /**
-//         * {@link MultiUnion} graph adds triple to base graph even it is present inside some sub-graph.
-//         * so we use {@link DisjointUnion} graph
-//         *
-//         * @return Graph.
-//         */
-//        private Graph getUnionGraph() {
-//            UnionGraph res = new UnionGraph(inner);
-//            getOntology().ontologies().forEach(i -> res.addGraph(i.getRDFChangeProcessor().getGraph()));
-//            return res;
-//        }
-
         /**
          * returns {@link Node} (blank for anonymous) for associated {@link OWLOntologyID}.
          *
@@ -221,27 +200,8 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
          */
         Node nodeIRI() {
             return base.getID().asNode();
-            /*if (nodeIRI != null) return nodeIRI;
-            return nodeIRI = createNodeIRI(getOntologyID());*/
         }
 
-//        private Node createNodeIRI(OWLOntologyID id) {
-//            return id.isAnonymous() ? NodeIRIUtils.toNode() : NodeIRIUtils.toNode(id.getOntologyIRI().orElse(null));
-//        }
-
-        /*private void initOntologyID() {
-            GraphListener listener = OntGraphListener.create(eventStore(), OntGraphEventStore.createChange(getOntologyID()));
-            Graph inner = getGraph();
-            try {
-                inner.getEventManager().register(listener);
-                inner.add(Triple.create(nodeIRI(), RDF.type.asNode(), OWL.Ontology.asNode()));
-                IRI versionIRI = getOntologyID().getVersionIRI().orElse(null);
-                if (versionIRI == null) return;
-                inner.add(Triple.create(nodeIRI(), OWL2.versionIRI.asNode(), NodeIRIUtils.toNode(versionIRI)));
-            } finally {
-                inner.getEventManager().unregister(listener);
-            }
-        }*/
 
         /**
          * puts axioms to this OWLOntology inner graph from external graph
@@ -359,7 +319,7 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
             Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
-                TranslationHelper.addAnnotations(inner, nodeIRI(), Stream.of(annotation).collect(Collectors.toList()));
+                TranslationHelper.addAnnotations(base, base.getID(), Stream.of(annotation).collect(Collectors.toList()));
             } finally {
                 eventStore().clear(event.reverse());
                 inner.getEventManager().unregister(listener);
@@ -388,7 +348,7 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
             Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
-                AxiomParserProvider.get(axiom).write(axiom, base.getGraph());
+                AxiomParserProvider.get(axiom).write(axiom, base);
             } catch (Exception e) {
                 throw new OntException("Add axiom " + axiom, e);
             } finally {

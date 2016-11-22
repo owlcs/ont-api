@@ -1,7 +1,8 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
  * Examples:
@@ -13,7 +14,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
  */
 class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAssertionAxiom> {
     @Override
-    public void write(OWLAnnotationAssertionAxiom axiom, Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom);
+    public void write(OWLAnnotationAssertionAxiom axiom, OntGraphModel model) {
+        TranslationHelper.processAnnotatedTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom);
     }
 }

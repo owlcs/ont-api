@@ -1,8 +1,9 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
+
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
  * see {@link AbstractSubPropertyTranslator}
@@ -10,7 +11,7 @@ import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
  */
 class SubAnnotationPropertyOfTranslator extends AxiomTranslator<OWLSubAnnotationPropertyOfAxiom> {
     @Override
-    public void write(OWLSubAnnotationPropertyOfAxiom axiom, Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, axiom.getSubProperty(), RDFS.subPropertyOf, axiom.getSuperProperty(), axiom);
+    public void write(OWLSubAnnotationPropertyOfAxiom axiom, OntGraphModel model) {
+        TranslationHelper.processAnnotatedTriple(model, axiom.getSubProperty(), RDFS.subPropertyOf, axiom.getSuperProperty(), axiom);
     }
 }

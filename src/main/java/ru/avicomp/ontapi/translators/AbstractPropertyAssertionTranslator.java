@@ -1,7 +1,8 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.OWLPropertyAssertionAxiom;
+
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
  * see {@link DataPropertyAssertionTranslator} and {@link ObjectPropertyAssertionTranslator}
@@ -9,7 +10,7 @@ import org.semanticweb.owlapi.model.OWLPropertyAssertionAxiom;
  */
 abstract class AbstractPropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom> extends AxiomTranslator<Axiom> {
     @Override
-    public void write(Axiom axiom, Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, axiom.getSubject(), axiom.getProperty(), axiom.getObject(), axiom);
+    public void write(Axiom axiom, OntGraphModel model) {
+        TranslationHelper.processAnnotatedTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getObject(), axiom);
     }
 }

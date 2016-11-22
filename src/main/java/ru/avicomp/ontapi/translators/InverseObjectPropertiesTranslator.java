@@ -1,8 +1,9 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
+
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
  * example:
@@ -12,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
  */
 class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObjectPropertiesAxiom> {
     @Override
-    public void write(OWLInverseObjectPropertiesAxiom axiom, Graph graph) {
-        TranslationHelper.processAnnotatedTriple(graph, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(), axiom);
+    public void write(OWLInverseObjectPropertiesAxiom axiom, OntGraphModel model) {
+        TranslationHelper.processAnnotatedTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(), axiom);
     }
 }
