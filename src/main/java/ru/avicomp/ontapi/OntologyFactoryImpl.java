@@ -42,6 +42,12 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
                                                @Nonnull IRI documentIRI,
                                                @Nonnull OWLOntologyCreationHandler handler) {
         return (OntologyModelImpl) super.createOWLOntology(manager, ontologyID, documentIRI, handler);
+        /*OntologyManager _manager = (OntologyManager) manager;
+        OntologyModelImpl ont = new OntologyModelImpl(_manager, ontologyID);
+        handler.ontologyCreated(ont);
+        handler.setOntologyFormat(ont, new RDFXMLDocumentFormat());
+        return ont;*/
+
     }
 
     @Override

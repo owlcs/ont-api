@@ -66,7 +66,12 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     public OntID setID(String uri) {
         List<Statement> tmp = ontologyStatements().map(s -> JenaUtils.asStream(listStatements(s, null, (RDFNode) null))).flatMap(Function.identity()).distinct().collect(Collectors.toList());
         remove(tmp);
-        Resource subject = uri == null ? createResource() : createResource(uri);
+        Resource subject;
+        if (uri == null) {
+            subject = tmp.stream().map(Statement::getSubject).filter(Resource::isAnon).findFirst().orElse(createResource());
+        } else {
+            subject = createResource(uri);
+        }
         add(subject, RDF.type, OWL2.Ontology);
         tmp.forEach(s -> add(subject, s.getPredicate(), s.getObject()));
         return getNodeAs(subject.asNode(), OntID.class);

@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.rdf.turtle.parser.OWLRDFConsumerAdapter;
 import ru.avicomp.ontapi.translators.AxiomTranslator;
 
 /**
+ * TODO: Will be removed later
  * Graph wrapper.
  * <p>
  * There are two graphs underling.
@@ -33,6 +34,7 @@ import ru.avicomp.ontapi.translators.AxiomTranslator;
  * <p>
  * Created by @szuev on 02.10.2016.
  */
+@Deprecated
 public class OntGraph implements Graph {
     private static final OntLoaderConfiguration ONT_LOADER_CONFIGURATION = new OntLoaderConfiguration();
     // graph, that is attached to jena graph ont-model
@@ -288,7 +290,9 @@ public class OntGraph implements Graph {
 
         public void addTriple(Triple t) {
             OntTriple triple = new OntTriple(t);
-            triples.add(triple);
+            if (!triple.isVersionIRI() || !getOntology().getOntologyID().isAnonymous()) {
+                triples.add(triple);
+            }
             handleTriples();
         }
 

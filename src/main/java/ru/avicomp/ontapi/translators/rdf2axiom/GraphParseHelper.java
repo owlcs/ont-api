@@ -21,6 +21,7 @@ import uk.ac.manchester.cs.owl.owlapi.*;
  * see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_RDF_Graphs_to_the_Structural_Specification'>Mapping from RDF Graphs to the Structural Specification</a>
  * Created by szuev on 25.10.2016.
  */
+@Deprecated
 public class GraphParseHelper {
 
     public static OWLOntologyID getOWLOntologyID(Graph graph) {
