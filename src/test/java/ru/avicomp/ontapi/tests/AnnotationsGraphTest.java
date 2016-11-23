@@ -86,9 +86,24 @@ public class AnnotationsGraphTest extends GraphTestBase {
                 )),
                 factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))
         ).collect(Collectors.toSet()));
+
+        LOGGER.info("Current axioms:");
+        owl.axioms().forEach(LOGGER::debug);
         TestUtils.compareAxioms(Stream.of(expected), owl.axioms());
 
-        checkAxioms(owl);
+        LOGGER.info("Reload ontology.");
+        OWLOntology reload = TestUtils.loadOWLOntologyFromIOStream(OntManagerFactory.createOWLManager(), jena, null);
+        LOGGER.info("Axioms after reload:");
+        reload.axioms().forEach(LOGGER::debug);
+
+        Stream<OWLAxiom> expectedAxioms = Stream.of(
+                factory.getOWLAnnotationAssertionAxiom(clazzIRI, factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty)),
+                factory.getOWLAnnotationAssertionAxiom(clazzIRI, factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))),
+                factory.getOWLDeclarationAxiom(factory.getOWLClass(clazzIRI), Stream.of(factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(comment, commentLang), Stream.of(
+                        factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty),
+                        factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))
+                ))).collect(Collectors.toSet())));
+        TestUtils.compareAxioms(expectedAxioms, reload.axioms());
     }
 
     /**
@@ -105,8 +120,9 @@ public class AnnotationsGraphTest extends GraphTestBase {
         LOGGER.info("Create ontology " + id1);
         OntologyModel owl1 = TestUtils.createModel(manager, id1);
 
-        OWLAnnotation simple1 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("PLAIN-1"));
-        OWLAnnotation simple2 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("PLAIN-2"));
+        // plain annotations will go as assertion annotation axioms after reloading owl. so disable
+        //OWLAnnotation simple1 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("PLAIN-1"));
+        //OWLAnnotation simple2 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("PLAIN-2"));
 
         OWLAnnotation root1child2child1child1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("ROOT1->CHILD2->CHILD1->CHILD1 (NIL)"));
         OWLAnnotation root1child2child1child2 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("ROOT1->CHILD2->CHILD1->CHILD2 (NIL)"));
@@ -123,7 +139,9 @@ public class AnnotationsGraphTest extends GraphTestBase {
         OWLAnnotation root2 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("ROOT2"), root2child1);
 
         OWLClass owlClass = factory.getOWLClass(iri.addFragment("SomeClass1"));
-        OWLAxiom axiom = factory.getOWLDeclarationAxiom(owlClass, Stream.of(root1, root2, simple2, simple1).collect(Collectors.toSet()));
+        OWLAxiom axiom = factory.getOWLDeclarationAxiom(owlClass, Stream.of(root1, root2
+                //        , simple2, simple1
+        ).collect(Collectors.toSet()));
         owl1.applyChange(new AddAxiom(owl1, axiom));
 
         OWLAnnotation indiAnn = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("INDI-ANN"));

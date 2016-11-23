@@ -58,7 +58,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     boolean hasType(Resource type) {
-        return types().filter(type::equals).findAny().isPresent();
+        return types().anyMatch(type::equals);
     }
 
     OntStatement addType(Resource type) {
@@ -90,7 +90,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public OntStatement getRoot() {
         List<Resource> types = types().collect(Collectors.toList());
         if (types.isEmpty()) {
-            throw new OntApiException("Can't determine main triple: no types.");
+            //throw new OntApiException("Can't determine main triple, no types: " + this);
+            return null;
         }
         return new OntStatementImpl.RootImpl(this, RDF.type, types.get(0), getModel());
     }
@@ -102,9 +103,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntStatement addStatement(Property property, RDFNode value) {
-        OntStatement res = toOntStatement(getRoot(), getModel().createStatement(this, OntApiException.notNull(property, "Null property."), OntApiException.notNull(value, "Null value.")));
-        getModel().add(res);
-        return res;
+        Statement st = getModel().createStatement(this,
+                OntApiException.notNull(property, "Null property."),
+                OntApiException.notNull(value, "Null value."));
+        getModel().add(st);
+        return toOntStatement(getRoot(), st);
     }
 
     @Override
@@ -125,7 +128,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     private OntStatement toOntStatement(OntStatement main, Statement st) {
         if (st.equals(main)) return main;
-        if (st.getPredicate().canAs(OntNAP.class)) {
+        if (main != null && st.getPredicate().canAs(OntNAP.class)) {
             // if subject is anon -> general annotation wrapper.
             return main.getSubject().isURIResource() ? new OntStatementImpl.AssertionAnnotationImpl(main, st.getPredicate().as(OntNAP.class), st.getObject()) :
                     new OntStatementImpl.CommonAnnotationImpl(main.getSubject(), st.getPredicate().as(OntNAP.class), st.getObject(), main.getModel());

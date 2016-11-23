@@ -60,8 +60,12 @@ public class TestUtils {
         return manager.createOntology(id);
     }
 
-    public static OntologyModel loadOntologyFromIOStream(OntologyManager manager, OntModel model, OntFormat convertFormat) {
+    public static OntologyModel loadOntologyFromIOStream(OntologyManager manager, Model model, OntFormat convertFormat) {
         if (manager == null) manager = OntManagerFactory.createONTManager();
+        return (OntologyModel) loadOWLOntologyFromIOStream(manager, model, convertFormat);
+    }
+
+    public static OWLOntology loadOWLOntologyFromIOStream(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
         String uri = getURI(model);
         LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
         try (InputStream is = ReadWriteUtils.toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {
@@ -69,7 +73,7 @@ public class TestUtils {
         } catch (IOException | OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }
-        OntologyModel res = manager.getOntology(IRI.create(uri));
+        OWLOntology res = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, res);
         return res;
     }

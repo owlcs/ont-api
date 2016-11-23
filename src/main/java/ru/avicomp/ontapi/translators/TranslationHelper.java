@@ -130,6 +130,10 @@ public class TranslationHelper {
         throw new OntApiException("Unsupported " + facet);
     }
 
+    public static OntObject fetchOntObject(OntGraphModel model, OWLObject object, boolean doAdd) {
+        return doAdd ? addRDFNode(model, object).as(OntObject.class) : toResource(object).inModel(model).as(OntObject.class);
+    }
+
     public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, OWLObject predicate, OWLObject object, OWLAxiom axiom) {
         processAnnotatedTriple(model, subject, toProperty(predicate), object, axiom);
     }
@@ -139,27 +143,27 @@ public class TranslationHelper {
     }
 
     public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom, boolean addSubject) {
-        Resource _subject = addSubject ? addRDFNode(model, subject).asResource() : toResource(subject);
-        RDFNode _object = addRDFNode(model, object);
-        model.add(_subject, predicate, _object);
-        addAnnotations(model, _subject, predicate, _object, axiom);
+        OntObject obj = fetchOntObject(model, subject, addSubject);
+        addAnnotations(obj.addStatement(predicate, addRDFNode(model, object)), axiom.annotations());
     }
 
     public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, OWLAxiom axiom, boolean addSubject) {
-        Resource _subject = addSubject ? addRDFNode(model, subject).asResource() : toResource(subject);
-        model.add(_subject, predicate, object);
-        addAnnotations(model, _subject, predicate, object, axiom);
+        OntObject obj = fetchOntObject(model, subject, addSubject);
+        addAnnotations(obj.addStatement(predicate, object), axiom.annotations());
     }
 
     public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, OWLAxiom axiom, boolean addSubject) {
-        Resource _subject = addSubject ? addRDFNode(model, subject).asResource() : toResource(subject);
-        RDFNode _object = addRDFList(model, objects);
-        model.add(_subject, predicate, _object);
-        addAnnotations(model, _subject, predicate, _object, axiom);
+        OntObject obj = fetchOntObject(model, subject, addSubject);
+        addAnnotations(obj.addStatement(predicate, addRDFList(model, objects)), axiom.annotations());
     }
 
     public static RDFList addRDFList(OntGraphModel model, Stream<? extends OWLObject> objects) {
         return model.createList(objects.map(o -> addRDFNode(model, o)).iterator());
+    }
+
+    public static OntNAP addAnnotationProperty(OntGraphModel model, OWLEntity entity) {
+        String uri = entity.getIRI().getIRIString();
+        return model.fetchOntEntity(OntNAP.class, uri);
     }
 
     public static OntEntity addOntEntity(OntGraphModel model, OWLEntity entity) {
@@ -262,6 +266,23 @@ public class TranslationHelper {
     }
 
     /**
+     * pass annotations from owl-api to ont-api.
+     *
+     * @param statement   {@link OntStatement}
+     * @param annotations Stream of {@link OWLAnnotation}'s
+     */
+    public static void addAnnotations(OntStatement statement, Stream<OWLAnnotation> annotations) {
+        annotations.forEach(a -> {
+            OntStatement st = statement.addAnnotation(addAnnotationProperty(statement.getModel(), a.getProperty()), addRDFNode(statement.getModel(), a.getValue()));
+            addAnnotations(st, a.annotations());
+        });
+    }
+
+    public static void addAnnotations(OntObject object, Stream<OWLAnnotation> annotations) {
+        addAnnotations(OntApiException.notNull(object.getRoot(), "Can't determine root statement for " + object), annotations);
+    }
+
+    /**
      * recursive operator TANN
      * see specification:
      * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_Generate_a_Main_Triple'>2.3 Translation of Axioms with Annotations</a> and
@@ -288,6 +309,7 @@ public class TranslationHelper {
      * @param model {@link OntGraphModel}
      * @param axiom OWLAxiom
      */
+    @Deprecated
     public static void addAnnotations(OntGraphModel model, Statement statement, OWLAxiom axiom) {
         if (!axiom.isAnnotated()) return;
         Resource blank = model.createResource();
@@ -313,10 +335,12 @@ public class TranslationHelper {
      * @param root  {@link Resource} anonymous node
      * @param axiom OWLAxiom
      */
+    @Deprecated
     public static void addAnnotations(OntGraphModel model, Resource root, OWLAxiom axiom) {
         addAnnotations(model, root, axiom.annotations().collect(Collectors.toSet()));
     }
 
+    @Deprecated
     public static void addAnnotations(OntGraphModel model, Resource root, Collection<OWLAnnotation> annotations) {
         if (annotations.isEmpty()) return;
         annotations.forEach(a -> {
@@ -325,10 +349,12 @@ public class TranslationHelper {
         annotations.forEach(a -> translateAnnotation(model, root, a));
     }
 
+    @Deprecated
     public static void addAnnotations(OntGraphModel model, Resource subject, Property predicate, RDFNode object, OWLAxiom axiom) {
         addAnnotations(model, model.createStatement(subject, predicate, object), axiom);
     }
 
+    @Deprecated
     private static void translateAnnotation(OntGraphModel model, Resource source, OWLAnnotation annotation) {
         if (annotation.annotations().count() == 0) return;
         Resource blank = model.createResource();
