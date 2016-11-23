@@ -44,13 +44,13 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
         try {
             return (OntologyModel) super.createOntology(ontologyID);
         } catch (OWLOntologyCreationException e) {
-            throw new OntException(e);
+            throw new OntApiException(e);
         }
     }
 
     @Override
     public void setGraphFactory(GraphFactory factory) {
-        this.graphFactory = OntException.notNull(factory, "Null graph-factory");
+        this.graphFactory = OntApiException.notNull(factory, "Null graph-factory");
     }
 
     @Override

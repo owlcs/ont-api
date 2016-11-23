@@ -13,7 +13,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
@@ -40,7 +40,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
             if (canWrap(n, eg)) {
                 return new OntObjectImpl(n, eg);
             }
-            throw new OntException("Cannot convert node " + n + " to OntObject");
+            throw new OntApiException("Cannot convert node " + n + " to OntObject");
         }
 
         @Override
@@ -62,7 +62,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     OntStatement addType(Resource type) {
-        return addStatement(RDF.type, OntException.notNull(type, "Null rdf:type"));
+        return addStatement(RDF.type, OntApiException.notNull(type, "Null rdf:type"));
     }
 
     void removeType(Resource type) {
@@ -90,7 +90,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public OntStatement getRoot() {
         List<Resource> types = types().collect(Collectors.toList());
         if (types.isEmpty()) {
-            throw new OntException("Can't determine main triple: no types.");
+            throw new OntApiException("Can't determine main triple: no types.");
         }
         return new OntStatementImpl.RootImpl(this, RDF.type, types.get(0), getModel());
     }
@@ -102,14 +102,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntStatement addStatement(Property property, RDFNode value) {
-        OntStatement res = toOntStatement(getRoot(), getModel().createStatement(this, OntException.notNull(property, "Null property."), OntException.notNull(value, "Null value.")));
+        OntStatement res = toOntStatement(getRoot(), getModel().createStatement(this, OntApiException.notNull(property, "Null property."), OntApiException.notNull(value, "Null value.")));
         getModel().add(res);
         return res;
     }
 
     @Override
     public void remove(Property property, RDFNode value) {
-        getModel().removeAll(this, OntException.notNull(property, "Null property."), OntException.notNull(value, "Null value."));
+        getModel().removeAll(this, OntApiException.notNull(property, "Null property."), OntApiException.notNull(value, "Null value."));
     }
 
     @Override
@@ -190,16 +190,16 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     static Node checkNamed(Node res) {
-        if (OntException.notNull(res, "Null node").isURI()) {
+        if (OntApiException.notNull(res, "Null node").isURI()) {
             return res;
         }
-        throw new OntException("Not uri node " + res);
+        throw new OntApiException("Not uri node " + res);
     }
 
     static Resource checkNamed(Resource res) {
-        if (OntException.notNull(res, "Null resource").isURIResource()) {
+        if (OntApiException.notNull(res, "Null resource").isURIResource()) {
             return res;
         }
-        throw new OntException("Not uri resource " + res);
+        throw new OntApiException("Not uri resource " + res);
     }
 }

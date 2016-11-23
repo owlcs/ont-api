@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
@@ -26,11 +26,11 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
         long count = axiom.operands().count();
-        if (count < 2) throw new OntException("Should be at least two entities " + axiom);
+        if (count < 2) throw new OntApiException("Should be at least two entities " + axiom);
         if (count == 2) { // single triple classic way
             OWLObject entity = axiom.operands().filter(e -> !e.isAnonymous()).findFirst().orElse(null);
             if (entity == null)
-                throw new OntException("Can't find a single non-anonymous expression inside " + axiom);
+                throw new OntApiException("Can't find a single non-anonymous entity expression inside " + axiom);
             OWLObject rest = axiom.operands().filter((obj) -> !entity.equals(obj)).findFirst().orElse(null);
             TranslationHelper.processAnnotatedTriple(model, entity, getPredicate(), rest, axiom, true);
         } else { // OWL2 anonymous node

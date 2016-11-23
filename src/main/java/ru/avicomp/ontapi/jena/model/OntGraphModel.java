@@ -36,19 +36,19 @@ public interface OntGraphModel extends Model {
 
     Stream<OntGraphModel> models();
 
-    <T extends OntObject> Stream<T> ontObjects(Class<T> type);
+    <O extends OntObject> Stream<O> ontObjects(Class<O> type);
 
-    <T extends OntEntity> T getOntEntity(Class<T> type, String uri);
+    <E extends OntEntity> E getOntEntity(Class<E> type, String uri);
 
     Stream<OntEntity> ontEntities();
 
-    <T extends OntEntity> Stream<T> ontEntities(Class<T> type);
+    <E extends OntEntity> Stream<E> ontEntities(Class<E> type);
 
     void removeOntObject(OntObject obj);
 
-    <T extends OntEntity> T createOntEntity(Class<T> type, String uri);
+    <E extends OntEntity> E createOntEntity(Class<E> type, String uri);
 
-    <T extends OntFR> T createFacetRestriction(Class<T> view, Literal literal);
+    <F extends OntFR> F createFacetRestriction(Class<F> view, Literal literal);
 
     /**
      * ===========================
@@ -114,13 +114,15 @@ public interface OntGraphModel extends Model {
 
     OntCE.IntersectionOf createIntersectionOf(Stream<OntCE> classes);
 
-    OntCE.OneOf createOneOf(Stream<OntCE> classes);
+    OntCE.OneOf createOneOf(Stream<OntIndividual> individuals);
 
     OntCE.HasSelf createHasSelf(OntOPE onProperty);
 
     OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Stream<OntNDP> onProperties, OntDR other);
 
     OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Stream<OntNDP> onProperties, OntDR other);
+
+    OntCE.ComplementOf createComplementOf(OntCE other);
 
     /**
      * ===================================
@@ -136,7 +138,7 @@ public interface OntGraphModel extends Model {
 
     OntSWRL.Atom.DataRange createDataRangeSWRLAtom(OntDR range, OntSWRL.DArg arg);
 
-    OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP dataProperty, OntSWRL.DArg arg);
+    OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP dataProperty, OntSWRL.IArg firstArg, OntSWRL.DArg secondArg);
 
     OntSWRL.Atom.ObjectProperty createObjectPropertySWRLAtom(OntOPE dataProperty, OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
 
@@ -152,6 +154,11 @@ public interface OntGraphModel extends Model {
      * default methods for simplification:
      * ===================================
      */
+
+    default <E extends OntEntity> E fetchOntEntity(Class<E> type, String uri) {
+        E res = getOntEntity(type, uri);
+        return res == null ? createOntEntity(type, uri) : res;
+    }
 
     default Stream<OntClass> listClasses() {
         return ontEntities(OntClass.class);
@@ -177,7 +184,7 @@ public interface OntGraphModel extends Model {
         return ontEntities(OntIndividual.Named.class);
     }
 
-    default <T extends OntEntity> T getOntEntity(Class<T> type, Resource uri) {
+    default <E extends OntEntity> E getOntEntity(Class<E> type, Resource uri) {
         return getOntEntity(type, uri.getURI());
     }
 

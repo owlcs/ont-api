@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 import com.google.common.base.Strings;
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 
 /**
  * TODO
@@ -112,7 +112,7 @@ public class OntIRI extends IRI {
         return optional.map(IRI::getIRIString).orElse(null);
     }
 
-    private static class OntIRIException extends OntException {
+    private static class OntIRIException extends OntApiException {
         OntIRIException(String s) {
             super(s);
         }

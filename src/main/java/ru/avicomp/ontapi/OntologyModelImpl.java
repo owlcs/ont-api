@@ -7,7 +7,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.*;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphListener;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.impl.OntModelImpl;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -194,16 +195,6 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
         }
 
         /**
-         * returns {@link Node} (blank for anonymous) for associated {@link OWLOntologyID}.
-         *
-         * @return {@link Node_Blank} or {@link Node_URI}
-         */
-        Node nodeIRI() {
-            return base.getID().asNode();
-        }
-
-
-        /**
          * puts axioms to this OWLOntology inner graph from external graph
          * these graphs may be different (see specification
          * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Parsing_of_the_Ontology_Header_and_Declarations'>Parsing of the Ontology Header and Declarations</a>).
@@ -350,7 +341,7 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
                 inner.getEventManager().register(listener);
                 AxiomParserProvider.get(axiom).write(axiom, base);
             } catch (Exception e) {
-                throw new OntException("Add axiom " + axiom, e);
+                throw new OntApiException("Add axiom " + axiom, e);
             } finally {
                 eventStore().clear(event.reverse());
                 inner.getEventManager().unregister(listener);
@@ -365,7 +356,7 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
                 inner.getEventManager().register(listener);
                 removeAllTriples(inner, event.reverse());
             } catch (Exception e) {
-                throw new OntException("Remove axiom " + axiom, e);
+                throw new OntApiException("Remove axiom " + axiom, e);
             } finally {
                 eventStore().clear(event.reverse());
                 inner.getEventManager().unregister(listener);

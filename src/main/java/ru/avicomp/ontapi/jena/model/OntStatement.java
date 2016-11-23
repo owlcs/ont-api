@@ -7,6 +7,8 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 
+import ru.avicomp.ontapi.OntApiException;
+
 /**
  * Ont-statement
  * OWL2 Annotations could be attached to this statement recursively.
@@ -23,7 +25,7 @@ public interface OntStatement extends Statement {
      * @param property Named annotation property.
      * @param value    RDFNode (uri-resource, literal or anonymous individual)
      * @return OntStatement for newly added annotation.
-     * @throws ru.avicomp.ontapi.OntException in case input is incorrect.
+     * @throws OntApiException in case input is incorrect.
      */
     OntStatement addAnnotation(OntNAP property, RDFNode value);
 
@@ -39,7 +41,7 @@ public interface OntStatement extends Statement {
      *
      * @param property annotation property
      * @param value    uri-resource, literal or anonymous individual
-     * @throws ru.avicomp.ontapi.OntException in case input is incorrect.
+     * @throws OntApiException in case input is incorrect.
      */
     void deleteAnnotation(OntNAP property, RDFNode value);
 

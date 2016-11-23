@@ -10,6 +10,8 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
+import ru.avicomp.ontapi.OntApiException;
+
 /**
  * Base Ont Resource.
  * <p>
@@ -73,7 +75,7 @@ public interface OntObject extends Resource {
      * @param property Named annotation property.
      * @param value    RDFNode (uri-resource, literal or anonymous individual)
      * @return OntStatement for newly added annotation.
-     * @throws ru.avicomp.ontapi.OntException in case input is wrong.
+     * @throws OntApiException in case input is wrong.
      */
     default OntStatement addAnnotation(OntNAP property, RDFNode value) {
         return getRoot().addAnnotation(property, value);

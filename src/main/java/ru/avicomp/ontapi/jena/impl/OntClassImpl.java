@@ -7,7 +7,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
@@ -63,7 +63,7 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
 
     @Override
     public OntStatement addDisjointUnionOf(Stream<OntCE> classes) {
-        return addStatement(OWL2.disjointUnionOf, getModel().createList(OntException.notNull(classes, "Null classes stream.").iterator()));
+        return addStatement(OWL2.disjointUnionOf, getModel().createList(OntApiException.notNull(classes, "Null classes stream.").iterator()));
     }
 
     @Override

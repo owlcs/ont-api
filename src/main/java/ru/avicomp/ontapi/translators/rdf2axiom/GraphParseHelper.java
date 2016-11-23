@@ -13,7 +13,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import uk.ac.manchester.cs.owl.owlapi.*;
 
 /**
@@ -31,13 +31,13 @@ public class GraphParseHelper {
             return new OWLOntologyID();
         }
         // in case many ontologies in the single doc OWL-API gets the first one.
-        if (ontologies.size() != 1) throw new OntException("Multiple ontologies are not supported.");
+        if (ontologies.size() != 1) throw new OntApiException("Multiple ontologies are not supported.");
         Node subject = ontologies.get(0).getSubject();
         IRI iri = IRI.create(subject.getURI());
         IRI versionIRI = null;
         List<Triple> versions = graph.find(subject, OWL2.versionIRI.asNode(), Node.ANY).toList();
         if (!versions.isEmpty()) {
-            if (versions.size() != 1) throw new OntException("Should be one versionIRI triple.");
+            if (versions.size() != 1) throw new OntApiException("Should be one versionIRI triple.");
             versionIRI = IRI.create(versions.get(0).getObject().getURI());
         }
         return new OWLOntologyID(iri, versionIRI);

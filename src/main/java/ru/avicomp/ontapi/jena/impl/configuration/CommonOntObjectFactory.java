@@ -5,8 +5,9 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
+import org.apache.jena.ontology.ConversionException;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 
 /**
  * Default implementation of {@link OntObjectFactory}
@@ -19,9 +20,9 @@ public class CommonOntObjectFactory extends OntObjectFactory {
     private final OntFilter filter;
 
     public CommonOntObjectFactory(OntMaker maker, OntFinder finder, OntFilter primary, OntFilter... additional) {
-        this.maker = OntException.notNull(maker, "Null maker.");
-        this.finder = OntException.notNull(finder, "Null finder.");
-        this.filter = OntException.notNull(primary, "Null primary filter.").accumulate(additional);
+        this.maker = OntApiException.notNull(maker, "Null maker.");
+        this.finder = OntApiException.notNull(finder, "Null finder.");
+        this.filter = OntApiException.notNull(primary, "Null primary filter.").accumulate(additional);
     }
 
     public OntMaker getMaker() {
@@ -39,7 +40,7 @@ public class CommonOntObjectFactory extends OntObjectFactory {
     @Override
     public EnhNode wrap(Node node, EnhGraph eg) {
         if (!canWrap(node, eg))
-            throw new OntException(String.format("Cannot convert node %s to %s", node, maker.getInstanceClass().getSimpleName()));
+            throw new ConversionException(String.format("Cannot convert node %s to %s", node, maker.getInstanceClass().getSimpleName()));
         return maker.instance(node, eg);
     }
 

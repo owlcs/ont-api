@@ -9,7 +9,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 
 /**
@@ -39,12 +39,12 @@ public interface OntMaker {
          * @param impl {@link ru.avicomp.ontapi.jena.model.OntObject} implementation.
          */
         public Default(Class<? extends OntObjectImpl> impl) {
-            this.impl = OntException.notNull(impl, "Null implementation class.");
+            this.impl = OntApiException.notNull(impl, "Null implementation class.");
         }
 
         @Override
         public void make(Node node, EnhGraph eg) {
-            throw new OntException("Creation is not allowed for node " + node + " and class " + impl.getSimpleName());
+            throw new OntApiException("Creation is not allowed for node " + node + " and class " + impl.getSimpleName());
         }
 
         @Override
@@ -52,7 +52,7 @@ public interface OntMaker {
             try {
                 return impl.getDeclaredConstructor(Node.class, EnhGraph.class).newInstance(node, eg);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new OntException(e);
+                throw new OntApiException(e);
             }
         }
 
@@ -67,7 +67,7 @@ public interface OntMaker {
 
         public WithType(Class<? extends OntObjectImpl> impl, Resource type) {
             super(impl);
-            this.type = OntException.notNull(type, "Null type.").asNode();
+            this.type = OntApiException.notNull(type, "Null type.").asNode();
         }
 
         @Override

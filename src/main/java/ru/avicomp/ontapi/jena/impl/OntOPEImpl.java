@@ -12,7 +12,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
@@ -99,7 +99,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     @Override
     public OntStatement addSubPropertiesOf(Stream<OntOPE> chain) {
-        OntException.notNull(chain, "Null properties chain");
+        OntApiException.notNull(chain, "Null properties chain");
         return addStatement(OWL2.propertyChainAxiom, getModel().createList(chain.iterator()));
     }
 

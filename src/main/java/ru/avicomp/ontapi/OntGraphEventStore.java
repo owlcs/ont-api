@@ -141,7 +141,7 @@ public class OntGraphEventStore {
         private int hashCode;
 
         public BaseEvent(Action type, Object eventObject) {
-            this.type = OntException.notNull(type, "Null action type");
+            this.type = OntApiException.notNull(type, "Null action type");
             this.eventObject = eventObject;
         }
 

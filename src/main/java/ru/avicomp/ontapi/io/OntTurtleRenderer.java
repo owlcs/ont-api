@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.util.EscapeUtils;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 
 /**
  * todo: might be removed from project later.
@@ -216,7 +216,7 @@ public class OntTurtleRenderer extends RDFRendererBase {
                 write(" ");
                 pushTab();
                 for (Iterator<RDFNode> it = list.iterator(); it.hasNext(); ) {
-                    write(OntException.notNull(it.next(), "Null iteration element."));
+                    write(OntApiException.notNull(it.next(), "Null iteration element."));
                     if (it.hasNext()) {
                         writeNewLine();
                     }

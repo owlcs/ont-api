@@ -6,7 +6,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
@@ -24,9 +24,9 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<? ex
 
     private void process(Axiom parentAxiom, OWLNaryAxiom<? extends IsAnonymous> thisAxiom, OntGraphModel graph) {
         OWLObject first = thisAxiom.operands().filter(e -> !e.isAnonymous()).findFirst().
-                orElseThrow(() -> new OntException("Can't find a single non-anonymous expression inside " + thisAxiom));
+                orElseThrow(() -> new OntApiException("Can't find a single non-anonymous expression inside " + thisAxiom));
         OWLObject rest = thisAxiom.operands().filter((obj) -> !first.equals(obj)).findFirst().
-                orElseThrow(() -> new OntException("Should be at least two expressions inside " + thisAxiom));
+                orElseThrow(() -> new OntApiException("Should be at least two expressions inside " + thisAxiom));
         TranslationHelper.processAnnotatedTriple(graph, first, getPredicate(), rest, parentAxiom, true);
     }
 

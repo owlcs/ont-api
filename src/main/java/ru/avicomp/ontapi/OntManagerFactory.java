@@ -51,7 +51,7 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
     }
 
     public static void setProfile(ManagerProfile p) {
-        profile = OntException.notNull(p, "Null manager profile specified");
+        profile = OntApiException.notNull(p, "Null manager profile specified");
     }
 
     @Override
@@ -96,7 +96,7 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
 
         @Inject
         public ONTBuilder(ONTImplementationFactory implementationFactory) {
-            this.implementationFactory = OntException.notNull(implementationFactory);
+            this.implementationFactory = OntApiException.notNull(implementationFactory);
         }
 
         @Override
@@ -146,7 +146,7 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
         @Override
         public Injector createInjector() {
             //TODO
-            throw new OntException.Unsupported(getClass());
+            throw new OntApiException.Unsupported(getClass());
         }
     }
 

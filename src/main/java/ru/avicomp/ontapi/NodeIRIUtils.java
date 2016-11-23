@@ -15,12 +15,12 @@ import org.semanticweb.owlapi.model.*;
 public class NodeIRIUtils {
 
     public static IRI toIRI(OWLObject object) {
-        if (OntException.notNull(object, "Null owl-object specified.").isIRI()) return (IRI) object;
+        if (OntApiException.notNull(object, "Null owl-object specified.").isIRI()) return (IRI) object;
         if (HasIRI.class.isInstance(object)) {
             return ((HasIRI) object).getIRI();
         }
         if (OWLAnnotationObject.class.isInstance(object)) {
-            return ((OWLAnnotationObject) object).asIRI().orElseThrow(() -> new OntException("Not iri: " + object));
+            return ((OWLAnnotationObject) object).asIRI().orElseThrow(() -> new OntApiException("Not iri: " + object));
         }
         if (OWLClassExpression.class.isInstance(object)) {
             return toIRI((OWLClassExpression) object);
@@ -28,7 +28,7 @@ public class NodeIRIUtils {
         if (OWLPropertyExpression.class.isInstance(object)) {
             return toIRI((OWLPropertyExpression) object);
         }
-        throw new OntException("Unsupported owl-object: " + object);
+        throw new OntApiException("Unsupported owl-object: " + object);
     }
 
     private static IRI toIRI(OWLClassExpression expression) {
@@ -36,7 +36,7 @@ public class NodeIRIUtils {
         if (ClassExpressionType.OWL_CLASS.equals(expression.getClassExpressionType())) {
             res = (OWLClass) expression;
         }
-        return OntException.notNull(res, "Unsupported class-expression: " + expression).getIRI();
+        return OntApiException.notNull(res, "Unsupported class-expression: " + expression).getIRI();
     }
 
     private static IRI toIRI(OWLPropertyExpression expression) {
@@ -47,7 +47,7 @@ public class NodeIRIUtils {
         if (expression.isOWLAnnotationProperty()) {
             return expression.asOWLAnnotationProperty().getIRI();
         }
-        throw new OntException("Unsupported property-expression: " + expression);
+        throw new OntApiException("Unsupported property-expression: " + expression);
     }
 
     public static Node toNode() {
@@ -66,7 +66,7 @@ public class NodeIRIUtils {
     }
 
     private static Node toNode(IRI iri) {
-        return NodeFactory.createURI(OntException.notNull(iri, "Null IRI specified.").getIRIString());
+        return NodeFactory.createURI(OntApiException.notNull(iri, "Null IRI specified.").getIRIString());
     }
 
     public static Node toLiteralNode(OWLLiteral owlLiteral) {

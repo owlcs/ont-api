@@ -359,7 +359,7 @@ public class OntGraph implements Graph {
                 } else if (_node.isURI()) {
                     return IRI.create(_node.getURI());
                 }
-                throw new OntException("this should never happen.");
+                throw new OntApiException("this should never happen.");
             });
         }
 

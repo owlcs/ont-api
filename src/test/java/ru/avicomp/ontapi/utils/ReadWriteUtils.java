@@ -17,7 +17,7 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.io.OntFormat;
 
 /**
@@ -50,7 +50,7 @@ public class ReadWriteUtils {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
             return out.toString(StandardCharsets.UTF_8.name());
         } catch (OWLOntologyStorageException | IOException e) {
-            throw new OntException(e);
+            throw new OntApiException(e);
         }
     }
 
@@ -68,7 +68,7 @@ public class ReadWriteUtils {
         try {
             return IOUtils.toInputStream(toString(model, ext), StandardCharsets.UTF_8.name());
         } catch (IOException e) {
-            throw new OntException(e);
+            throw new OntApiException(e);
         }
     }
 
@@ -81,7 +81,7 @@ public class ReadWriteUtils {
             return m;
         } catch (IOException e) {
             LOGGER.fatal("Can't read model", e);
-            throw new OntException(e);
+            throw new OntApiException(e);
         }
     }
 

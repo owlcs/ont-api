@@ -5,26 +5,26 @@ package ru.avicomp.ontapi;
  * <p>
  * Created by @szuev on 27.09.2016.
  */
-public class OntException extends RuntimeException {
-    public OntException(String message, Throwable cause) {
+public class OntApiException extends RuntimeException {
+    public OntApiException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public OntException(String message) {
+    public OntApiException(String message) {
         super(message);
     }
 
-    public OntException(Throwable cause) {
+    public OntApiException(Throwable cause) {
         super(cause);
     }
 
-    public OntException() {
+    public OntApiException() {
         super();
     }
 
     public static <T> T notNull(T obj, String message) {
         if (obj == null)
-            throw message == null ? new OntException() : new OntException(message);
+            throw message == null ? new OntApiException() : new OntApiException(message);
         return obj;
     }
 
@@ -36,7 +36,7 @@ public class OntException extends RuntimeException {
      * for unsupported things
      * Created by @szuev on 29.09.2016.
      */
-    public static class Unsupported extends OntException {
+    public static class Unsupported extends OntApiException {
         public Unsupported(String message) {
             super(message);
         }

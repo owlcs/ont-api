@@ -19,7 +19,7 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
@@ -83,8 +83,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public void addImport(OntGraphModel m) {
-        if (!OntException.notNull(m, "Null model.").getID().isURIResource()) {
-            throw new OntException("Anonymous sub models are not allowed");
+        if (!OntApiException.notNull(m, "Null model.").getID().isURIResource()) {
+            throw new OntApiException("Anonymous sub models are not allowed");
         }
         getGraph().addGraph(m.getGraph());
         addImport(m.getID());
@@ -92,7 +92,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public void removeImport(OntGraphModel m) {
-        getGraph().removeGraph(OntException.notNull(m, "Null model.").getGraph());
+        getGraph().removeGraph(OntApiException.notNull(m, "Null model.").getGraph());
         removeImport(m.getID());
     }
 
@@ -213,7 +213,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public <T extends OntEntity> T getOntEntity(Class<T> type, String uri) {
-        Node n = NodeFactory.createURI(OntException.notNull(uri, "Null uri."));
+        Node n = NodeFactory.createURI(OntApiException.notNull(uri, "Null uri."));
         try { // returns not null in case it is present in graph or built-in.
             return getNodeAs(n, type);
         } catch (ConversionException ignore) {
@@ -376,8 +376,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntCE.OneOf createOneOf(Stream<OntCE> classes) {
-        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL2.oneOf, classes);
+    public OntCE.OneOf createOneOf(Stream<OntIndividual> individuals) {
+        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL2.oneOf, individuals);
     }
 
     @Override
@@ -388,13 +388,18 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     @Override
     public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Stream<OntNDP> onProperties, OntDR other) {
         //todo
-        throw new OntException.Unsupported(OntCE.NaryDataAllValuesFrom.class);
+        throw new OntApiException.Unsupported(OntCE.NaryDataAllValuesFrom.class);
     }
 
     @Override
     public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Stream<OntNDP> onProperties, OntDR other) {
         //todo
-        throw new OntException.Unsupported(OntCE.NaryDataSomeValuesFrom.class);
+        throw new OntApiException.Unsupported(OntCE.NaryDataSomeValuesFrom.class);
+    }
+
+    @Override
+    public OntCE.ComplementOf createComplementOf(OntCE other) {
+        return OntCEImpl.createComplementOf(this, other);
     }
 
     @Override
@@ -418,8 +423,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP dataProperty, OntSWRL.DArg arg) {
-        return OntSWRLImpl.createDataPropertyAtom(this, dataProperty, arg);
+    public OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP dataProperty, OntSWRL.IArg firstArg, OntSWRL.DArg secondArg) {
+        return OntSWRLImpl.createDataPropertyAtom(this, dataProperty, firstArg, secondArg);
     }
 
     @Override

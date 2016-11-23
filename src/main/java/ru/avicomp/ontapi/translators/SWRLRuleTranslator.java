@@ -19,8 +19,8 @@ class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     public void write(SWRLRule axiom, OntGraphModel model) {
         Resource root = model.createResource();
         root.addProperty(RDF.type, SWRL.Imp);
-        root.addProperty(SWRL.head, JenaUtils.createTypedList(model, SWRL.AtomList, axiom.head().map(a -> TranslationHelper.addRDFNode(model, a))));
-        root.addProperty(SWRL.body, JenaUtils.createTypedList(model, SWRL.AtomList, axiom.body().map(a -> TranslationHelper.addRDFNode(model, a))));
+        root.addProperty(SWRL.head, JenaUtils.createTypedList(model, SWRL.AtomList, axiom.head().map(a -> TranslationHelper.addSWRLObject(model, a))));
+        root.addProperty(SWRL.body, JenaUtils.createTypedList(model, SWRL.AtomList, axiom.body().map(a -> TranslationHelper.addSWRLObject(model, a))));
         // annotation as for anonymous node.
         // WARNING: this way is correct, but OWL-API can't handle correctly complex annotations.
         // TODO: need to change OWL-loader

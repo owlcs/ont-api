@@ -7,7 +7,7 @@ import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 
 /**
  * Extended {@link Implementation} factory, the class base for any OntObject factories.
@@ -23,10 +23,10 @@ public abstract class OntObjectFactory extends Implementation {
      * @param node The node to be wrapped
      * @param eg   The graph containing the node
      * @return A new enhanced node which wraps node but presents the interface(s) that this factory encapsulates.
-     * @throws OntException in case modification of graph is not allowed for the specified node.
+     * @throws OntApiException in case modification of graph is not allowed for the specified node.
      */
     public EnhNode create(Node node, EnhGraph eg) {
-        throw new OntException("Creation is not allowed: " + node);
+        throw new OntApiException("Creation is not allowed: " + node);
     }
 
     /**

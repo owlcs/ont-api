@@ -16,7 +16,7 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import com.google.common.reflect.ClassPath;
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 
 /**
  * Axiom Graph Translator loader.
@@ -31,12 +31,12 @@ public abstract class AxiomParserProvider {
     }
 
     public static <T extends OWLAxiom> AxiomTranslator<T> get(T axiom) {
-        return get(OntException.notNull(axiom, "Null axiom.").getAxiomType());
+        return get(OntApiException.notNull(axiom, "Null axiom.").getAxiomType());
     }
 
     @SuppressWarnings("unchecked")
     public static <T extends OWLAxiom> AxiomTranslator<T> get(AxiomType<?> type) {
-        return OntException.notNull(getParsers().get(OntException.notNull(type, "Null axiom type")), "Cam't find parser for axiom " + type.getActualClass());
+        return OntApiException.notNull(getParsers().get(OntApiException.notNull(type, "Null axiom type")), "Cam't find parser for axiom " + type.getActualClass());
     }
 
     private static class ParserHolder {
@@ -57,7 +57,7 @@ public abstract class AxiomParserProvider {
                 try {
                     res.put(type, parserClass.newInstance());
                 } catch (InstantiationException | IllegalAccessException e) {
-                    throw new OntException("Can't instance parser for type: " + type, e);
+                    throw new OntApiException("Can't instance parser for type: " + type, e);
                 }
             });
             return res;
@@ -67,7 +67,7 @@ public abstract class AxiomParserProvider {
             return classes.stream()
                     .filter(p -> isRelatedToAxiom(p, type.getActualClass()))
                     .findFirst()
-                    .orElseThrow(() -> new OntException("Can't find parser class for type " + type));
+                    .orElseThrow(() -> new OntApiException("Can't find parser class for type " + type));
         }
 
         private static boolean isRelatedToAxiom(Class<? extends AxiomTranslator> parserClass, Class<? extends OWLAxiom> actualClass) {
@@ -86,7 +86,7 @@ public abstract class AxiomParserProvider {
                 Stream<Class> res = classes.stream().map(ParserHolder::parserClass).filter(c -> !Modifier.isAbstract(c.getModifiers())).filter(AxiomTranslator.class::isAssignableFrom);
                 return res.map((Function<Class, Class<? extends AxiomTranslator>>) c -> c).collect(Collectors.toSet());
             } catch (IOException e) {
-                throw new OntException("Can't collect parsers classes", e);
+                throw new OntApiException("Can't collect parsers classes", e);
             }
         }
 
@@ -94,7 +94,7 @@ public abstract class AxiomParserProvider {
             try {
                 return Class.forName(info.getName());
             } catch (ClassNotFoundException e) {
-                throw new OntException("Can't find class " + info, e);
+                throw new OntApiException("Can't find class " + info, e);
             }
         }
     }

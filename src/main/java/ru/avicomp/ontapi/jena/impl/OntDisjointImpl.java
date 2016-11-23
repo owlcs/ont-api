@@ -14,7 +14,7 @@ import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -71,7 +71,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     public static Classes createDisjointClasses(OntGraphModelImpl model, Stream<OntCE> classes) {
-        OntException.notNull(classes, "Null classes stream.");
+        OntApiException.notNull(classes, "Null classes stream.");
         Resource res = model.createResource();
         res.addProperty(RDF.type, OWL2.AllDisjointClasses);
         res.addProperty(OWL2.members, model.createList(classes.iterator()));
@@ -79,7 +79,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     public static Individuals createDifferentIndividuals(OntGraphModelImpl model, Stream<OntIndividual> individuals) {
-        OntException.notNull(individuals, "Null individuals stream.");
+        OntApiException.notNull(individuals, "Null individuals stream.");
         Resource res = model.createResource();
         res.addProperty(RDF.type, OWL2.AllDifferent);
         res.addProperty(OWL2.distinctMembers, model.createList(individuals.iterator()));
@@ -87,7 +87,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     public static ObjectProperties createDisjointObjectProperties(OntGraphModelImpl model, Stream<OntOPE> properties) {
-        OntException.notNull(properties, "Null properties stream.");
+        OntApiException.notNull(properties, "Null properties stream.");
         Resource res = model.createResource();
         res.addProperty(RDF.type, OWL2.AllDisjointProperties);
         res.addProperty(OWL2.members, model.createList(properties.iterator()));
@@ -95,7 +95,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     public static DataProperties createDisjointDataProperties(OntGraphModelImpl model, Stream<OntNDP> properties) {
-        OntException.notNull(properties, "Null properties stream.");
+        OntApiException.notNull(properties, "Null properties stream.");
         Resource res = model.createResource();
         res.addProperty(RDF.type, OWL2.AllDisjointProperties);
         res.addProperty(OWL2.members, model.createList(properties.iterator()));

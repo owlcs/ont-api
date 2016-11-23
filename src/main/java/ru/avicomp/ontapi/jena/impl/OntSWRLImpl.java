@@ -12,7 +12,7 @@ import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntException;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
@@ -73,8 +73,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     }
 
     public static Atom.OntClass createClassAtom(OntGraphModelImpl model, OntCE clazz, IArg arg) {
-        OntException.notNull(clazz, "Null class");
-        OntException.notNull(arg, "Null i-arg");
+        OntApiException.notNull(clazz, "Null class");
+        OntApiException.notNull(arg, "Null i-arg");
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.ClassAtom);
         model.add(res, SWRL.classPredicate, clazz);
@@ -83,8 +83,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     }
 
     public static Atom.DataRange createDataRangeAtom(OntGraphModelImpl model, OntDR range, DArg arg) {
-        OntException.notNull(range, "Null data range");
-        OntException.notNull(arg, "Null d-arg");
+        OntApiException.notNull(range, "Null data range");
+        OntApiException.notNull(arg, "Null d-arg");
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.DataRangeAtom);
         model.add(res, SWRL.dataRange, range);
@@ -92,20 +92,22 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.getNodeAs(res.asNode(), Atom.DataRange.class);
     }
 
-    public static Atom.DataProperty createDataPropertyAtom(OntGraphModelImpl model, OntNDP dataProperty, DArg arg) {
-        OntException.notNull(dataProperty, "Null data property");
-        OntException.notNull(arg, "Null d-arg");
+    public static Atom.DataProperty createDataPropertyAtom(OntGraphModelImpl model, OntNDP dataProperty, IArg firstArg, DArg secondArg) {
+        OntApiException.notNull(dataProperty, "Null data property");
+        OntApiException.notNull(firstArg, "Null first i-arg");
+        OntApiException.notNull(secondArg, "Null second d-arg");
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.DatavaluedPropertyAtom);
         model.add(res, SWRL.propertyPredicate, dataProperty);
-        model.add(res, SWRL.argument1, arg);
+        model.add(res, SWRL.argument1, firstArg);
+        model.add(res, SWRL.argument2, secondArg);
         return model.getNodeAs(res.asNode(), Atom.DataProperty.class);
     }
 
     public static Atom.ObjectProperty createObjectPropertyAtom(OntGraphModelImpl model, OntOPE objectProperty, IArg firstArg, IArg secondArg) {
-        OntException.notNull(objectProperty, "Null object property");
-        OntException.notNull(firstArg, "Null first i-arg");
-        OntException.notNull(secondArg, "Null second i-arg");
+        OntApiException.notNull(objectProperty, "Null object property");
+        OntApiException.notNull(firstArg, "Null first i-arg");
+        OntApiException.notNull(secondArg, "Null second i-arg");
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.IndividualPropertyAtom);
         model.add(res, SWRL.propertyPredicate, objectProperty);
@@ -115,8 +117,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     }
 
     public static Atom.DifferentIndividuals createDifferentIndividualsAtom(OntGraphModelImpl model, IArg firstArg, IArg secondArg) {
-        OntException.notNull(firstArg, "Null first i-arg");
-        OntException.notNull(secondArg, "Null second i-arg");
+        OntApiException.notNull(firstArg, "Null first i-arg");
+        OntApiException.notNull(secondArg, "Null second i-arg");
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.DifferentIndividualsAtom);
         model.add(res, SWRL.argument1, firstArg);
@@ -125,8 +127,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     }
 
     public static Atom.SameIndividuals createSameIndividualsAtom(OntGraphModelImpl model, IArg firstArg, IArg secondArg) {
-        OntException.notNull(firstArg, "Null first i-arg");
-        OntException.notNull(secondArg, "Null second i-arg");
+        OntApiException.notNull(firstArg, "Null first i-arg");
+        OntApiException.notNull(secondArg, "Null second i-arg");
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.SameIndividualAtom);
         model.add(res, SWRL.argument1, firstArg);
@@ -135,8 +137,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     }
 
     public static Imp createImp(OntGraphModelImpl model, Stream<Atom> head, Stream<Atom> body) {
-        OntException.notNull(head, "Null head");
-        OntException.notNull(body, "Null body");
+        OntApiException.notNull(head, "Null head");
+        OntApiException.notNull(body, "Null body");
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.Imp);
         model.add(res, SWRL.head, JenaUtils.createTypedList(model, SWRL.AtomList, head));

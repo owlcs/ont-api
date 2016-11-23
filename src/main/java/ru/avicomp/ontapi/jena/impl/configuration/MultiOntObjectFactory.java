@@ -8,8 +8,7 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
-
-import ru.avicomp.ontapi.OntException;
+import org.apache.jena.ontology.ConversionException;
 
 /**
  * Factory to combine several factories.
@@ -33,7 +32,7 @@ public class MultiOntObjectFactory extends OntObjectFactory {
     public EnhNode wrap(Node node, EnhGraph eg) {
         EnhNode res = doWrap(node, eg);
         if (res != null) return res;
-        throw new OntException("Can't wrap node " + node + ". Use direct factory.");
+        throw new ConversionException("Can't wrap node " + node + ". Use direct factory.");
     }
 
     @Override
