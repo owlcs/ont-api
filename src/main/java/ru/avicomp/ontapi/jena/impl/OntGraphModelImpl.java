@@ -19,8 +19,8 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
@@ -83,8 +83,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public void addImport(OntGraphModel m) {
-        if (!OntApiException.notNull(m, "Null model.").getID().isURIResource()) {
-            throw new OntApiException("Anonymous sub models are not allowed");
+        if (!OntJenaException.notNull(m, "Null model.").getID().isURIResource()) {
+            throw new OntJenaException("Anonymous sub models are not allowed");
         }
         getGraph().addGraph(m.getGraph());
         addImport(m.getID());
@@ -92,7 +92,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public void removeImport(OntGraphModel m) {
-        getGraph().removeGraph(OntApiException.notNull(m, "Null model.").getGraph());
+        getGraph().removeGraph(OntJenaException.notNull(m, "Null model.").getGraph());
         removeImport(m.getID());
     }
 
@@ -213,7 +213,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public <T extends OntEntity> T getOntEntity(Class<T> type, String uri) {
-        Node n = NodeFactory.createURI(OntApiException.notNull(uri, "Null uri."));
+        Node n = NodeFactory.createURI(OntJenaException.notNull(uri, "Null uri."));
         try { // returns not null in case it is present in graph or built-in.
             return getNodeAs(n, type);
         } catch (ConversionException ignore) {
@@ -388,13 +388,13 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     @Override
     public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Stream<OntNDP> onProperties, OntDR other) {
         //todo
-        throw new OntApiException.Unsupported(OntCE.NaryDataAllValuesFrom.class);
+        throw new OntJenaException("Unsupported " + OntCE.NaryDataAllValuesFrom.class);
     }
 
     @Override
     public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Stream<OntNDP> onProperties, OntDR other) {
         //todo
-        throw new OntApiException.Unsupported(OntCE.NaryDataSomeValuesFrom.class);
+        throw new OntJenaException("Unsupported " + OntCE.NaryDataSomeValuesFrom.class);
     }
 
     @Override

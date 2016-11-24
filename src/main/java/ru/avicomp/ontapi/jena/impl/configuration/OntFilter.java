@@ -11,7 +11,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.OntJenaException;
 
 /**
  * To filter resources.
@@ -27,12 +27,12 @@ public interface OntFilter {
     boolean test(Node n, EnhGraph g);
 
     default OntFilter and(OntFilter other) {
-        OntApiException.notNull(other, "Null and-filter.");
+        OntJenaException.notNull(other, "Null and-filter.");
         return (Node t, EnhGraph u) -> test(t, u) && other.test(t, u);
     }
 
     default OntFilter or(OntFilter other) {
-        OntApiException.notNull(other, "Null or-filter.");
+        OntJenaException.notNull(other, "Null or-filter.");
         return (Node t, EnhGraph u) -> test(t, u) || other.test(t, u);
     }
 
@@ -61,7 +61,7 @@ public interface OntFilter {
         protected final Node predicate;
 
         public HasPredicate(Property predicate) {
-            this.predicate = OntApiException.notNull(predicate, "Null predicate.").asNode();
+            this.predicate = OntJenaException.notNull(predicate, "Null predicate.").asNode();
         }
 
         @Override
@@ -74,7 +74,7 @@ public interface OntFilter {
         protected final Node type;
 
         public HasType(Resource type) {
-            this.type = OntApiException.notNull(type, "Null type.").asNode();
+            this.type = OntJenaException.notNull(type, "Null type.").asNode();
         }
 
         @Override

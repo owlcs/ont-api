@@ -14,6 +14,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
     @Override
     public void write(OWLDatatypeDefinitionAxiom axiom, OntGraphModel model) {
-        TranslationHelper.processAnnotatedTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom, true);
+        TranslationHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom, true);
     }
 }

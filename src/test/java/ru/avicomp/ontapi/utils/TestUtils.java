@@ -139,6 +139,10 @@ public class TestUtils {
     }
 
     public static void compareAxioms(Map<AxiomType, List<OWLAxiom>> expected, Map<AxiomType, List<OWLAxiom>> actual) {
+        LOGGER.debug("[Compare] Expected axioms: ");
+        expected.values().forEach(LOGGER::debug);
+        LOGGER.debug("[Compare] Actual axioms: ");
+        actual.values().forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect axiom types:", expected.keySet(), actual.keySet());
         List<String> errors = new ArrayList<>();
         for (AxiomType type : expected.keySet()) {

@@ -13,8 +13,8 @@ import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -352,8 +352,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         ComponentsCEImpl(Node n, EnhGraph m, Property predicate, Class<O> view) {
             super(n, m);
-            this.predicate = OntApiException.notNull(predicate, "Null predicate.");
-            this.view = OntApiException.notNull(view, "Null view.");
+            this.predicate = OntJenaException.notNull(predicate, "Null predicate.");
+            this.view = OntJenaException.notNull(view, "Null view.");
         }
         @Override
         public Stream<O> components() {
@@ -419,8 +419,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
          */
         private ComponentRestrictionCEImpl(Node n, EnhGraph m, Property predicate, Class<O> objectView, Class<P> propertyView) {
             super(n, m, propertyView);
-            this.predicate = OntApiException.notNull(predicate, "Null predicate.");
-            this.objectView = OntApiException.notNull(objectView, "Null view.");
+            this.predicate = OntJenaException.notNull(predicate, "Null predicate.");
+            this.objectView = OntJenaException.notNull(objectView, "Null view.");
         }
 
         @Override
@@ -483,7 +483,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         private final RestrictionType type;
 
         private OnPropertyTypeFilter(RestrictionType type) {
-            this.type = OntApiException.notNull(type, "Null restriction type.");
+            this.type = OntJenaException.notNull(type, "Null restriction type.");
         }
 
         @Override
@@ -499,7 +499,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         private final CardinalityType type;
 
         private CardinalityPredicateFilter(CardinalityType type) {
-            this.type = OntApiException.notNull(type, "Null cardinality type.");
+            this.type = OntJenaException.notNull(type, "Null cardinality type.");
         }
 
         @Override
@@ -595,7 +595,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     private static Resource createOnPropertyRestriction(OntGraphModelImpl model, OntPE onProperty) {
-        OntApiException.notNull(onProperty, "Null property.");
+        OntJenaException.notNull(onProperty, "Null property.");
         Resource res = model.createResource();
         model.add(res, RDF.type, OWL2.Restriction);
         model.add(res, OWL2.onProperty, onProperty);
@@ -603,7 +603,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static <CE extends ComponentRestrictionCE> CE createComponentRestrictionCE(OntGraphModelImpl model, Class<CE> view, OntPE onProperty, RDFNode other, Property predicate) {
-        OntApiException.notNull(other, "Null expression.");
+        OntJenaException.notNull(other, "Null expression.");
         Resource res = createOnPropertyRestriction(model, onProperty);
         model.add(res, predicate, other);
         return model.getNodeAs(res.asNode(), view);
@@ -620,7 +620,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static <CE extends ComponentsCE> CE createComponentsCE(OntGraphModelImpl model, Class<CE> view, Property predicate, Stream<? extends OntObject> components) {
-        OntApiException.notNull(components, "Null components stream.");
+        OntJenaException.notNull(components, "Null components stream.");
         Resource res = model.createResource();
         model.add(res, RDF.type, OWL2.Class);
         model.add(res, predicate, model.createList(components.iterator()));
@@ -634,7 +634,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static OntCE.ComplementOf createComplementOf(OntGraphModelImpl model, OntCE other) {
-        OntApiException.notNull(other, "Null class expression.");
+        OntJenaException.notNull(other, "Null class expression.");
         Resource res = model.createResource();
         model.add(res, RDF.type, OWL2.Class);
         model.add(res, OWL2.complementOf, other);
@@ -648,7 +648,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static OntIndividual.Named createNamedIndividual(OntGraphModelImpl model, OntCE source, String uri) {
-        Resource res = model.createResource(OntApiException.notNull(uri, "Null uri"));
+        Resource res = model.createResource(OntJenaException.notNull(uri, "Null uri"));
         model.add(res, RDF.type, source);
         model.add(res, RDF.type, OWL2.NamedIndividual);
         return model.getNodeAs(res.asNode(), OntIndividual.Named.class);

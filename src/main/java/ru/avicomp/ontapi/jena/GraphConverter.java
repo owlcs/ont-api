@@ -20,8 +20,6 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 
-import ru.avicomp.ontapi.OntApiException;
-
 /**
  * Class to perform some transformation action on the specified graph.
  * Currently it is to convert the OWL-1/RDFS ontological graph to the OWL-2-DL graph.
@@ -257,9 +255,9 @@ public abstract class GraphConverter {
             properties.removeAll(BUILT_IN);
             for (Node prop : properties) {
                 Set<Resource> types = getPropertyTypes(prop);
-                if (types.isEmpty()) throw new OntApiException("Can't determine property type for " + prop);
+                if (types.isEmpty()) throw new OntJenaException("Can't determine property type for " + prop);
                 if (types.contains(OWL2.DatatypeProperty) && types.contains(OWL2.ObjectProperty)) {
-                    throw new OntApiException("Property " + prop + " can't be data and object at the same time.");
+                    throw new OntJenaException("Property " + prop + " can't be data and object at the same time.");
                 }
                 types.forEach(type -> addType(prop, type));
             }

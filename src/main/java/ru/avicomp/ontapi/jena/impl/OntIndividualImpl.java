@@ -9,8 +9,8 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -67,7 +67,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         public void detachClass(OntCE clazz) {
             if (classes().filter(c -> !clazz.equals(c)).count() == 0) {
                 // otherwise this would no longer be an individual
-                throw new OntApiException("Can't detach last class " + clazz);
+                throw new OntJenaException("Can't detach last class " + clazz);
             }
             super.detachClass(clazz);
         }

@@ -27,7 +27,7 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<? ex
                 orElseThrow(() -> new OntApiException("Can't find a single non-anonymous expression inside " + thisAxiom));
         OWLObject rest = thisAxiom.operands().filter((obj) -> !first.equals(obj)).findFirst().
                 orElseThrow(() -> new OntApiException("Should be at least two expressions inside " + thisAxiom));
-        TranslationHelper.processAnnotatedTriple(graph, first, getPredicate(), rest, parentAxiom, true);
+        TranslationHelper.writeTriple(graph, first, getPredicate(), rest, parentAxiom, true);
     }
 
     @Override

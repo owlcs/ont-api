@@ -16,6 +16,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDomain & HasProperty> extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        TranslationHelper.processAnnotatedTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom);
+        TranslationHelper.writeTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom);
     }
 }

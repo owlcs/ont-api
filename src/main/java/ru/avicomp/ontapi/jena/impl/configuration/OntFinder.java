@@ -10,8 +10,8 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
+import ru.avicomp.ontapi.jena.OntJenaException;
 
 /**
  * To perform the preliminary search resources in model,
@@ -37,7 +37,7 @@ public interface OntFinder {
         protected final Node type;
 
         public ByType(Resource type) {
-            this.type = OntApiException.notNull(type, "Null type.").asNode();
+            this.type = OntJenaException.notNull(type, "Null type.").asNode();
         }
 
         @Override
@@ -50,7 +50,7 @@ public interface OntFinder {
         protected final Node predicate;
 
         public ByPredicate(Property predicate) {
-            this.predicate = OntApiException.notNull(predicate, "Null predicate.").asNode();
+            this.predicate = OntJenaException.notNull(predicate, "Null predicate.").asNode();
         }
 
         @Override

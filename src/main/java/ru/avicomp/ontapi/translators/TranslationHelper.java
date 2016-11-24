@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.NodeFactory;
@@ -10,7 +8,6 @@ import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
@@ -20,8 +17,8 @@ import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
- * TODO: change to use {@link OntGraphModel} instead direct working with graph.
- * Helper for axiom parsing.
+ * Helper for the axioms translation to the rdf-form.
+ *
  * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2 Mapping from the Structural Specification to RDF Graphs</a>
  * for handling common graph triples (operator 'T') see chapter "2.1 Translation of Axioms without Annotations"
  * for handling annotations (operator 'TANN') see chapters "2.2 Translation of Annotations" and "2.3 Translation of Axioms with Annotations".
@@ -64,7 +61,7 @@ public class TranslationHelper {
         return ResourceFactory.createProperty(OntApiException.notNull(iri, "Null iri").getIRIString());
     }
 
-    private static Literal toLiteral(OWLLiteral literal) {
+    public static Literal toLiteral(OWLLiteral literal) {
         return new LiteralImpl(NodeIRIUtils.toLiteralNode(literal), null);
     }
 
@@ -134,25 +131,25 @@ public class TranslationHelper {
         return doAdd ? addRDFNode(model, object).as(OntObject.class) : toResource(object).inModel(model).as(OntObject.class);
     }
 
-    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, OWLObject predicate, OWLObject object, OWLAxiom axiom) {
-        processAnnotatedTriple(model, subject, toProperty(predicate), object, axiom);
+    public static void writeTriple(OntGraphModel model, OWLObject subject, OWLObject predicate, OWLObject object, OWLAxiom axiom) {
+        writeTriple(model, subject, toProperty(predicate), object, axiom);
     }
 
-    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom) {
-        processAnnotatedTriple(model, subject, predicate, object, axiom, false);
+    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom) {
+        writeTriple(model, subject, predicate, object, axiom, false);
     }
 
-    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom, boolean addSubject) {
+    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom, boolean addSubject) {
         OntObject obj = fetchOntObject(model, subject, addSubject);
         addAnnotations(obj.addStatement(predicate, addRDFNode(model, object)), axiom.annotations());
     }
 
-    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, OWLAxiom axiom, boolean addSubject) {
+    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, OWLAxiom axiom, boolean addSubject) {
         OntObject obj = fetchOntObject(model, subject, addSubject);
         addAnnotations(obj.addStatement(predicate, object), axiom.annotations());
     }
 
-    public static void processAnnotatedTriple(OntGraphModel model, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, OWLAxiom axiom, boolean addSubject) {
+    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, OWLAxiom axiom, boolean addSubject) {
         OntObject obj = fetchOntObject(model, subject, addSubject);
         addAnnotations(obj.addStatement(predicate, addRDFList(model, objects)), axiom.annotations());
     }
@@ -164,6 +161,19 @@ public class TranslationHelper {
     public static OntNAP addAnnotationProperty(OntGraphModel model, OWLEntity entity) {
         String uri = entity.getIRI().getIRIString();
         return model.fetchOntEntity(OntNAP.class, uri);
+    }
+
+    public static OntOPE addObjectProperty(OntGraphModel model, OWLObjectPropertyExpression ope) {
+        if (!ope.isOWLObjectProperty()) {
+            return addInverseOf(model, (OWLObjectInverseOf) ope);
+        }
+        return model.fetchOntEntity(OntNOP.class, ope.getNamedProperty().getIRI().getIRIString());
+    }
+
+    public static OntNDP addDataProperty(OntGraphModel model, OWLDataPropertyExpression dpe) {
+        if (!dpe.isOWLDataProperty()) throw new OntApiException("Unsupported " + dpe);
+        String uri = dpe.asOWLDataProperty().getIRI().getIRIString();
+        return model.fetchOntEntity(OntNDP.class, uri);
     }
 
     public static OntEntity addOntEntity(OntGraphModel model, OWLEntity entity) {
@@ -205,6 +215,12 @@ public class TranslationHelper {
             throw new OntApiException("Anonymous individuals should be created first.");
         }
         return res.inModel(model).as(OntIndividual.Anonymous.class);
+    }
+
+    public static OntIndividual addIndividual(OntGraphModel model, OWLIndividual i) {
+        if (i.isAnonymous()) return getAnonymousIndividual(model, i.asOWLAnonymousIndividual());
+        String uri = i.asOWLNamedIndividual().getIRI().getIRIString();
+        return model.fetchOntEntity(OntIndividual.Named.class, uri);
     }
 
     /**
@@ -283,90 +299,6 @@ public class TranslationHelper {
     }
 
     /**
-     * recursive operator TANN
-     * see specification:
-     * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_Generate_a_Main_Triple'>2.3 Translation of Axioms with Annotations</a> and
-     * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>
-     * <p>
-     * This is the case if ax' is of type
-     * SubClassOf,
-     * SubObjectPropertyOf without a property chain as the subproperty expression,
-     * SubDataPropertyOf, ObjectPropertyDomain, DataPropertyDomain, ObjectPropertyRange, DataPropertyRange,
-     * InverseObjectProperties, FunctionalObjectProperty, FunctionalDataProperty, InverseFunctionalObjectProperty,
-     * ReflexiveObjectProperty, IrreflexiveObjectProperty, SymmetricObjectProperty, AsymmetricObjectProperty,
-     * TransitiveObjectProperty, ClassAssertion, ObjectPropertyAssertion, DataPropertyAssertion, Declaration,
-     * DisjointObjectProperties with two properties,
-     * DisjointDataProperties with two properties,
-     * DisjointClasses with two classes,
-     * DifferentIndividuals with two individuals, or
-     * AnnotationAssertion.
-     * DisjointUnion, SubObjectPropertyOf with a subproperty chain, or HasKey
-     * Also for
-     * EquivalentClasses, EquivalentObjectProperties, EquivalentDataProperties, or SameIndividual (see {@link AbstractNaryTranslator});
-     * in last case call this method for each of triple from inner axiom.
-     * <p>
-     *
-     * @param model {@link OntGraphModel}
-     * @param axiom OWLAxiom
-     */
-    @Deprecated
-    public static void addAnnotations(OntGraphModel model, Statement statement, OWLAxiom axiom) {
-        if (!axiom.isAnnotated()) return;
-        Resource blank = model.createResource();
-        model.add(blank, RDF.type, OWL2.Axiom);
-        model.add(blank, OWL2.annotatedSource, statement.getSubject());
-        model.add(blank, OWL2.annotatedProperty, statement.getPredicate());
-        model.add(blank, OWL2.annotatedTarget, statement.getObject());
-        addAnnotations(model, blank, axiom);
-    }
-
-    /**
-     * see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_Represented_by_Blank_Nodes'>2.3.3 Axioms Represented by Blank Nodes </a>
-     * for following axioms with more than two entities:
-     * NegativeObjectPropertyAssertion,
-     * NegativeDataPropertyAssertion,
-     * DisjointClasses,
-     * DisjointObjectProperties,
-     * DisjointDataProperties,
-     * DifferentIndividuals.
-     * (see {@link AbstractTwoWayNaryTranslator})
-     *
-     * @param model {@link OntGraphModel}
-     * @param root  {@link Resource} anonymous node
-     * @param axiom OWLAxiom
-     */
-    @Deprecated
-    public static void addAnnotations(OntGraphModel model, Resource root, OWLAxiom axiom) {
-        addAnnotations(model, root, axiom.annotations().collect(Collectors.toSet()));
-    }
-
-    @Deprecated
-    public static void addAnnotations(OntGraphModel model, Resource root, Collection<OWLAnnotation> annotations) {
-        if (annotations.isEmpty()) return;
-        annotations.forEach(a -> {
-            model.add(root, addRDFNode(model, a.getProperty()).as(Property.class), toRDFNode(a.getValue()));
-        });
-        annotations.forEach(a -> translateAnnotation(model, root, a));
-    }
-
-    @Deprecated
-    public static void addAnnotations(OntGraphModel model, Resource subject, Property predicate, RDFNode object, OWLAxiom axiom) {
-        addAnnotations(model, model.createStatement(subject, predicate, object), axiom);
-    }
-
-    @Deprecated
-    private static void translateAnnotation(OntGraphModel model, Resource source, OWLAnnotation annotation) {
-        if (annotation.annotations().count() == 0) return;
-        Resource blank = model.createResource();
-        model.add(blank, RDF.type, OWL2.Annotation);
-        model.add(blank, OWL2.annotatedSource, source);
-        model.add(blank, OWL2.annotatedProperty, toRDFNode(annotation.getProperty()));
-        model.add(blank, OWL2.annotatedTarget, toRDFNode(annotation.getValue()));
-        annotation.annotations().forEach(child -> model.add(blank, addRDFNode(model, child.getProperty()).as(Property.class), toRDFNode(child.getValue())));
-        annotation.annotations().filter(a -> a.annotations().count() != 0).forEach(a -> translateAnnotation(model, blank, a));
-    }
-
-    /**
      * for SWRLAtom
      */
     private enum SWRLAtomTranslator {
@@ -387,7 +319,7 @@ public class TranslationHelper {
         DATA_PROPERTY(SWRLDataPropertyAtom.class, new Translator<SWRLDataPropertyAtom, OntSWRL.Atom.DataProperty>() {
             @Override
             OntSWRL.Atom.DataProperty translate(OntGraphModel model, SWRLDataPropertyAtom atom) {
-                return model.createDataPropertySWRLAtom(addOntEntity(model, atom.getPredicate().asOWLDataProperty()).as(OntNDP.class),
+                return model.createDataPropertySWRLAtom(addDataProperty(model, atom.getPredicate()),
                         addSWRLObject(model, atom.getFirstArgument()).as(OntSWRL.IArg.class),
                         addSWRLObject(model, atom.getSecondArgument()).as(OntSWRL.DArg.class));
             }
@@ -408,7 +340,7 @@ public class TranslationHelper {
         OBJECT_PROPERTY(SWRLObjectPropertyAtom.class, new Translator<SWRLObjectPropertyAtom, OntSWRL.Atom.ObjectProperty>() {
             @Override
             OntSWRL.Atom.ObjectProperty translate(OntGraphModel model, SWRLObjectPropertyAtom atom) {
-                return model.createObjectPropertySWRLAtom(addRDFNode(model, atom.getPredicate()).as(OntOPE.class),
+                return model.createObjectPropertySWRLAtom(addObjectProperty(model, atom.getPredicate()),
                         addSWRLObject(model, atom.getFirstArgument()).as(OntSWRL.IArg.class),
                         addSWRLObject(model, atom.getSecondArgument()).as(OntSWRL.IArg.class));
             }
@@ -513,7 +445,7 @@ public class TranslationHelper {
         OBJECT_MAX_CARDINALITY(ClassExpressionType.OBJECT_MAX_CARDINALITY, new Translator<OWLObjectMaxCardinality, OntCE.ObjectMaxCardinality>() {
             @Override
             OntCE.ObjectMaxCardinality translate(OntGraphModel model, OWLObjectMaxCardinality expression) {
-                OntOPE p = addRDFNode(model, expression.getProperty()).as(OntOPE.class);
+                OntOPE p = addObjectProperty(model, expression.getProperty());
                 OntCE c = expression.getFiller() == null ? null : addRDFNode(model, expression.getFiller()).as(OntCE.class);
                 return model.createObjectMaxCardinality(p, expression.getCardinality(), c);
             }
@@ -521,7 +453,7 @@ public class TranslationHelper {
         DATA_MAX_CARDINALITY(ClassExpressionType.DATA_MAX_CARDINALITY, new Translator<OWLDataMaxCardinality, OntCE.DataMaxCardinality>() {
             @Override
             OntCE.DataMaxCardinality translate(OntGraphModel model, OWLDataMaxCardinality expression) {
-                OntNDP p = addRDFNode(model, expression.getProperty()).as(OntNDP.class);
+                OntNDP p = addDataProperty(model, expression.getProperty());
                 OntDR d = expression.getFiller() == null ? null : addRDFNode(model, expression.getFiller()).as(OntDR.class);
                 return model.createDataMaxCardinality(p, expression.getCardinality(), d);
             }
@@ -529,7 +461,7 @@ public class TranslationHelper {
         OBJECT_MIN_CARDINALITY(ClassExpressionType.OBJECT_MIN_CARDINALITY, new Translator<OWLObjectMinCardinality, OntCE.ObjectMinCardinality>() {
             @Override
             OntCE.ObjectMinCardinality translate(OntGraphModel model, OWLObjectMinCardinality expression) {
-                OntOPE p = addRDFNode(model, expression.getProperty()).as(OntOPE.class);
+                OntOPE p = addObjectProperty(model, expression.getProperty());
                 OntCE c = expression.getFiller() == null ? null : addRDFNode(model, expression.getFiller()).as(OntCE.class);
                 return model.createObjectMinCardinality(p, expression.getCardinality(), c);
             }
@@ -537,7 +469,7 @@ public class TranslationHelper {
         DATA_MIN_CARDINALITY(ClassExpressionType.DATA_MIN_CARDINALITY, new Translator<OWLDataMinCardinality, OntCE.DataMinCardinality>() {
             @Override
             OntCE.DataMinCardinality translate(OntGraphModel model, OWLDataMinCardinality expression) {
-                OntNDP p = addRDFNode(model, expression.getProperty()).as(OntNDP.class);
+                OntNDP p = addDataProperty(model, expression.getProperty());
                 OntDR d = expression.getFiller() == null ? null : addRDFNode(model, expression.getFiller()).as(OntDR.class);
                 return model.createDataMinCardinality(p, expression.getCardinality(), d);
             }
@@ -545,7 +477,7 @@ public class TranslationHelper {
         OBJECT_EXACT_CARDINALITY(ClassExpressionType.OBJECT_EXACT_CARDINALITY, new Translator<OWLObjectExactCardinality, OntCE.ObjectCardinality>() {
             @Override
             OntCE.ObjectCardinality translate(OntGraphModel model, OWLObjectExactCardinality expression) {
-                OntOPE p = addRDFNode(model, expression.getProperty()).as(OntOPE.class);
+                OntOPE p = addObjectProperty(model, expression.getProperty());
                 OntCE c = expression.getFiller() == null ? null : addRDFNode(model, expression.getFiller()).as(OntCE.class);
                 return model.createObjectCardinality(p, expression.getCardinality(), c);
             }
@@ -553,7 +485,7 @@ public class TranslationHelper {
         DATA_EXACT_CARDINALITY(ClassExpressionType.DATA_EXACT_CARDINALITY, new Translator<OWLDataExactCardinality, OntCE.DataCardinality>() {
             @Override
             OntCE.DataCardinality translate(OntGraphModel model, OWLDataExactCardinality expression) {
-                OntNDP p = addRDFNode(model, expression.getProperty()).as(OntNDP.class);
+                OntNDP p = addDataProperty(model, expression.getProperty());
                 OntDR d = expression.getFiller() == null ? null : addRDFNode(model, expression.getFiller()).as(OntDR.class);
                 return model.createDataCardinality(p, expression.getCardinality(), d);
             }
@@ -561,7 +493,7 @@ public class TranslationHelper {
         OBJECT_ALL_VALUES_FROM(ClassExpressionType.OBJECT_ALL_VALUES_FROM, new Translator<OWLObjectAllValuesFrom, OntCE.ObjectAllValuesFrom>() {
             @Override
             OntCE.ObjectAllValuesFrom translate(OntGraphModel model, OWLObjectAllValuesFrom expression) {
-                OntOPE p = addRDFNode(model, expression.getProperty()).as(OntOPE.class);
+                OntOPE p = addObjectProperty(model, expression.getProperty());
                 OntCE c = addRDFNode(model, expression.getFiller()).as(OntCE.class);
                 return model.createObjectAllValuesFrom(p, c);
             }
@@ -569,7 +501,7 @@ public class TranslationHelper {
         DATA_ALL_VALUES_FROM(ClassExpressionType.DATA_ALL_VALUES_FROM, new Translator<OWLDataAllValuesFrom, OntCE.DataAllValuesFrom>() {
             @Override
             OntCE.DataAllValuesFrom translate(OntGraphModel model, OWLDataAllValuesFrom expression) {
-                OntNDP p = addRDFNode(model, expression.getProperty()).as(OntNDP.class);
+                OntNDP p = addDataProperty(model, expression.getProperty());
                 OntDR d = addRDFNode(model, expression.getFiller()).as(OntDR.class);
                 return model.createDataAllValuesFrom(p, d);
             }
@@ -577,7 +509,7 @@ public class TranslationHelper {
         OBJECT_SOME_VALUES_FROM(ClassExpressionType.OBJECT_SOME_VALUES_FROM, new Translator<OWLObjectSomeValuesFrom, OntCE.ObjectSomeValuesFrom>() {
             @Override
             OntCE.ObjectSomeValuesFrom translate(OntGraphModel model, OWLObjectSomeValuesFrom expression) {
-                OntOPE p = addRDFNode(model, expression.getProperty()).as(OntOPE.class);
+                OntOPE p = addObjectProperty(model, expression.getProperty());
                 OntCE c = addRDFNode(model, expression.getFiller()).as(OntCE.class);
                 return model.createObjectSomeValuesFrom(p, c);
             }
@@ -585,7 +517,7 @@ public class TranslationHelper {
         DATA_SOME_VALUES_FROM(ClassExpressionType.DATA_SOME_VALUES_FROM, new Translator<OWLDataSomeValuesFrom, OntCE.DataSomeValuesFrom>() {
             @Override
             OntCE.DataSomeValuesFrom translate(OntGraphModel model, OWLDataSomeValuesFrom expression) {
-                OntNDP p = addRDFNode(model, expression.getProperty()).as(OntNDP.class);
+                OntNDP p = addDataProperty(model, expression.getProperty());
                 OntDR d = addRDFNode(model, expression.getFiller()).as(OntDR.class);
                 return model.createDataSomeValuesFrom(p, d);
             }
@@ -593,15 +525,15 @@ public class TranslationHelper {
         OBJECT_HAS_VALUE(ClassExpressionType.OBJECT_HAS_VALUE, new Translator<OWLObjectHasValue, OntCE.ObjectHasValue>() {
             @Override
             OntCE.ObjectHasValue translate(OntGraphModel model, OWLObjectHasValue expression) {
-                OntOPE p = addRDFNode(model, expression.getProperty()).as(OntOPE.class);
-                OntIndividual i = addRDFNode(model, expression.getFiller()).as(OntIndividual.class);
+                OntOPE p = addObjectProperty(model, expression.getProperty());
+                OntIndividual i = addIndividual(model, expression.getFiller());
                 return model.createObjectHasValue(p, i);
             }
         }),
         DATA_HAS_VALUE(ClassExpressionType.DATA_HAS_VALUE, new Translator<OWLDataHasValue, OntCE.DataHasValue>() {
             @Override
             OntCE.DataHasValue translate(OntGraphModel model, OWLDataHasValue expression) {
-                OntNDP p = addRDFNode(model, expression.getProperty()).as(OntNDP.class);
+                OntNDP p = addDataProperty(model, expression.getProperty());
                 Literal l = toLiteral(expression.getFiller());
                 return model.createDataHasValue(p, l);
             }
@@ -609,7 +541,7 @@ public class TranslationHelper {
         HAS_SELF(ClassExpressionType.OBJECT_HAS_SELF, new Translator<OWLObjectHasSelf, OntCE.HasSelf>() {
             @Override
             OntCE.HasSelf translate(OntGraphModel model, OWLObjectHasSelf expression) {
-                return model.createHasSelf(addRDFNode(model, expression.getProperty()).as(OntOPE.class));
+                return model.createHasSelf(addObjectProperty(model, expression.getProperty()));
             }
         }),
         UNION_OF(ClassExpressionType.OBJECT_UNION_OF, new Translator<OWLObjectUnionOf, OntCE.UnionOf>() {
@@ -627,7 +559,7 @@ public class TranslationHelper {
         ONE_OF(ClassExpressionType.OBJECT_ONE_OF, new Translator<OWLObjectOneOf, OntCE.OneOf>() {
             @Override
             OntCE.OneOf translate(OntGraphModel model, OWLObjectOneOf expression) {
-                return model.createOneOf(expression.operands().map(ce -> addRDFNode(model, ce).as(OntIndividual.class)));
+                return model.createOneOf(expression.operands().map(i -> addIndividual(model, i)));
             }
         }),
         COMPLEMENT_OF(ClassExpressionType.OBJECT_COMPLEMENT_OF, new Translator<OWLObjectComplementOf, OntCE.ComplementOf>() {

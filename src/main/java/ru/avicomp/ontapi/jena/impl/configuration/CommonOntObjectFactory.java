@@ -7,7 +7,7 @@ import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
 
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.OntJenaException;
 
 /**
  * Default implementation of {@link OntObjectFactory}
@@ -20,9 +20,9 @@ public class CommonOntObjectFactory extends OntObjectFactory {
     private final OntFilter filter;
 
     public CommonOntObjectFactory(OntMaker maker, OntFinder finder, OntFilter primary, OntFilter... additional) {
-        this.maker = OntApiException.notNull(maker, "Null maker.");
-        this.finder = OntApiException.notNull(finder, "Null finder.");
-        this.filter = OntApiException.notNull(primary, "Null primary filter.").accumulate(additional);
+        this.maker = OntJenaException.notNull(maker, "Null maker.");
+        this.finder = OntJenaException.notNull(finder, "Null finder.");
+        this.filter = OntJenaException.notNull(primary, "Null primary filter.").accumulate(additional);
     }
 
     public OntMaker getMaker() {

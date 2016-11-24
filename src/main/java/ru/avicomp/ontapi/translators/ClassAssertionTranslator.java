@@ -1,13 +1,13 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
 
+import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntIndividual;
 
 /**
  * creating individual (both named and anonymous):
@@ -18,13 +18,12 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
     @Override
     public void write(OWLClassAssertionAxiom axiom, OntGraphModel model) {
+        OntCE ce = TranslationHelper.addClassExpression(model, axiom.getClassExpression());
         OWLIndividual individual = axiom.getIndividual();
         Resource subject = individual.isAnonymous() ?
                 TranslationHelper.toResource(individual) :
-                TranslationHelper.addRDFNode(model, individual).asResource();
-        RDFNode object = TranslationHelper.addRDFNode(model, axiom.getClassExpression());
-        Property predicate = RDF.type;
-        model.add(subject, predicate, object);
-        TranslationHelper.addAnnotations(model, subject, predicate, object, axiom);
+                TranslationHelper.addIndividual(model, individual);
+        model.add(subject, RDF.type, ce);
+        TranslationHelper.addAnnotations(subject.inModel(model).as(OntIndividual.class), axiom.annotations());
     }
 }

@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.OntJenaException;
 
 /**
  * Ont-statement
@@ -25,7 +25,7 @@ public interface OntStatement extends Statement {
      * @param property Named annotation property.
      * @param value    RDFNode (uri-resource, literal or anonymous individual)
      * @return OntStatement for newly added annotation.
-     * @throws OntApiException in case input is incorrect.
+     * @throws OntJenaException in case input is incorrect.
      */
     OntStatement addAnnotation(OntNAP property, RDFNode value);
 
@@ -41,7 +41,7 @@ public interface OntStatement extends Statement {
      *
      * @param property annotation property
      * @param value    uri-resource, literal or anonymous individual
-     * @throws OntApiException in case input is incorrect.
+     * @throws OntJenaException in case input is incorrect.
      */
     void deleteAnnotation(OntNAP property, RDFNode value);
 

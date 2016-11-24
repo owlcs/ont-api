@@ -23,6 +23,6 @@ abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom> exten
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        TranslationHelper.processAnnotatedTriple(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom, true);
+        TranslationHelper.writeTriple(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom, true);
     }
 }

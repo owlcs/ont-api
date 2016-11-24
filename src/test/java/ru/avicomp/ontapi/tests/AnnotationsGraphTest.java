@@ -144,7 +144,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         ).collect(Collectors.toSet()));
         owl1.applyChange(new AddAxiom(owl1, axiom));
 
-        OWLAnnotation indiAnn = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("INDI-ANN"));
+        OWLAnnotation indiAnn = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("INDI-ANN"), factory.getRDFSComment("indi-comment"));
         OWLAxiom indiAxiom = factory.getOWLClassAssertionAxiom(owlClass, factory.getOWLNamedIndividual(iri.addFragment("Indi")), Stream.of(indiAnn).collect(Collectors.toSet()));
         owl1.applyChange(new AddAxiom(owl1, indiAxiom));
 
@@ -232,8 +232,9 @@ public class AnnotationsGraphTest extends GraphTestBase {
         debug(owl);
 
         // TODO: WARNING: ANNOTATIONS is not supported for DifferentIndividuals AXIOM by the OWL API (version 5.0.3)
+        // TODO: Also for class-assertion if it binds anonymous individual
         // TODO: need to rewrite owl-loader to fix it.
-        checkAxioms(owl, AxiomType.DIFFERENT_INDIVIDUALS);
+        checkAxioms(owl, AxiomType.DIFFERENT_INDIVIDUALS, AxiomType.CLASS_ASSERTION);
     }
 
     /**
@@ -391,13 +392,13 @@ public class AnnotationsGraphTest extends GraphTestBase {
         // TODO: need fix OWL-API graph loader also.
         OWLAnnotation _ann1 = factory.getOWLAnnotation(factory.getRDFSLabel(), label);
         OWLAnnotation _ann2 = factory.getOWLAnnotation(factory.getRDFSComment(), comment, _ann1);
-        OWLAnnotation annotation1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), link, Stream.of(_ann1, _ann2));
+        OWLAnnotation seeAlsoAnnotation = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), link, Stream.of(_ann1, _ann2));
 
-        OWLAnnotation annotation2 = factory.getOWLAnnotation(property, someLiteral);
+        OWLAnnotation customPropertyAnnotation = factory.getOWLAnnotation(property, someLiteral);
 
         LOGGER.info("Annotate ontology.");
-        owl.applyChanges(new AddOntologyAnnotation(owl, annotation1));
-        owl.applyChanges(new AddOntologyAnnotation(owl, annotation2));
+        owl.applyChanges(new AddOntologyAnnotation(owl, seeAlsoAnnotation));
+        owl.applyChanges(new AddOntologyAnnotation(owl, customPropertyAnnotation));
 
         debug(owl);
         ReadWriteUtils.print(owl, OntFormat.FUNCTIONAL_SYNTAX);
@@ -406,17 +407,24 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         // checking
         OntModel jena = owl.asGraphModel();
-        // test annotation1:
+        // test annotation see-also:
         Assert.assertTrue("Can't find rdfs:comment " + comment, jena.contains(null, RDFS.comment, TranslationHelper.toRDFNode(comment)));
         Assert.assertTrue("Can't find owl:annotatedTarget " + comment, jena.contains(null, OWL2.annotatedTarget, TranslationHelper.toRDFNode(comment)));
         Assert.assertEquals("Should be at least two rdf:label " + label, 2, jena.listStatements(null, RDFS.label, TranslationHelper.toRDFNode(label)).toList().size());
-        Assert.assertTrue("Can't find rdfs:seeAlso " + link, jena.contains(iri.toResource(), RDFS.seeAlso, TranslationHelper.toResource(link)));
-        // test annotation2:
+        Assert.assertFalse("There is rdfs:seeAlso " + link + " attached to ontology.", jena.contains(iri.toResource(), RDFS.seeAlso, TranslationHelper.toResource(link)));
+        Resource seeAlsoRoot = jena.listStatements(null, RDFS.seeAlso, TranslationHelper.toResource(link))
+                .mapWith(Statement::getSubject).filterKeep(Resource::isAnon).toList().stream().findAny().orElse(null);
+        Assert.assertNotNull("Can't find rdfs:seeAlso entrance.", seeAlsoRoot);
+        Assert.assertTrue("Can't find owl:annotatedProperty", jena.contains(null, OWL2.annotatedProperty, RDFS.seeAlso));
+        Assert.assertTrue("Can't find owl:annotatedSource", jena.contains(null, OWL2.annotatedSource, seeAlsoRoot));
+        Assert.assertTrue("Can't find owl:annotatedTarget", jena.contains(null, OWL2.annotatedTarget, TranslationHelper.toResource(link)));
+
+        // test annotation with custom property:
         Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), TranslationHelper.toProperty(property), TranslationHelper.toRDFNode(someLiteral)));
         Assert.assertTrue("Can't find declaration of " + property, jena.contains(TranslationHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
 
-        LOGGER.info("Remove " + annotation1);
-        owl.applyChanges(new RemoveOntologyAnnotation(owl, annotation1));
+        LOGGER.info("Remove " + seeAlsoAnnotation);
+        owl.applyChanges(new RemoveOntologyAnnotation(owl, seeAlsoAnnotation));
         debug(owl);
         // test annotation1:
         Assert.assertFalse("There is rdfs:comment " + comment, jena.contains(null, RDFS.comment, TranslationHelper.toRDFNode(comment)));
@@ -427,14 +435,14 @@ public class AnnotationsGraphTest extends GraphTestBase {
         Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), TranslationHelper.toProperty(property), TranslationHelper.toRDFNode(someLiteral)));
         Assert.assertTrue("Can't find declaration of " + property, jena.contains(TranslationHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
 
-        LOGGER.info("Remove " + annotation2);
-        owl.applyChanges(new RemoveOntologyAnnotation(owl, annotation2));
+        LOGGER.info("Remove " + customPropertyAnnotation);
+        owl.applyChanges(new RemoveOntologyAnnotation(owl, customPropertyAnnotation));
         debug(owl);
         Assert.assertEquals("Expected only single triplet", 1, jena.listStatements().toList().size());
     }
 
     @Override
-    Stream<OWLAxiom> filterAxioms(OntologyModel ontology, AxiomType... excluded) {
+    Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType... excluded) {
         List<OWLAxiom> res = new ArrayList<>();
         super.filterAxioms(ontology, excluded).filter(OWLAxiom::isAnnotated).forEach(axiom -> {
             if (axiom instanceof OWLNaryAxiom) {

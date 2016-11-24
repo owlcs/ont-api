@@ -7,7 +7,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntFR;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -73,7 +73,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
         if (FractionDigits.class.equals(view)) return XSD.fractionDigits;
         if (Pattern.class.equals(view)) return XSD.pattern;
         if (LangRange.class.equals(view)) return XSD.langRange;
-        throw new OntApiException("Unsupported facet restriction " + view);
+        throw new OntJenaException("Unsupported facet restriction " + view);
     }
 
     public static <T extends OntFR> T create(OntGraphModelImpl model, Class<T> view, Literal literal) {

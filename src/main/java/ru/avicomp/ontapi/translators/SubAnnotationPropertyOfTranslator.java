@@ -12,6 +12,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 class SubAnnotationPropertyOfTranslator extends AxiomTranslator<OWLSubAnnotationPropertyOfAxiom> {
     @Override
     public void write(OWLSubAnnotationPropertyOfAxiom axiom, OntGraphModel model) {
-        TranslationHelper.processAnnotatedTriple(model, axiom.getSubProperty(), RDFS.subPropertyOf, axiom.getSuperProperty(), axiom);
+        TranslationHelper.writeTriple(model, axiom.getSubProperty(), RDFS.subPropertyOf, axiom.getSuperProperty(), axiom);
     }
 }

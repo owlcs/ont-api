@@ -6,7 +6,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.OWL2;
 
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntID;
 
@@ -21,7 +21,7 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
             if (canWrap(node, eg)) {
                 return new OntIDImpl(node, eg);
             }
-            throw new OntApiException("Not an ontology node " + node);
+            throw new OntJenaException("Not an ontology node " + node);
         }
 
         @Override

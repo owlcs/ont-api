@@ -310,7 +310,7 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
             Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
-                TranslationHelper.addAnnotations(base, base.getID(), Stream.of(annotation).collect(Collectors.toList()));
+                TranslationHelper.addAnnotations(base.getID(), Stream.of(annotation));
             } finally {
                 eventStore().clear(event.reverse());
                 inner.getEventManager().unregister(listener);

@@ -4,7 +4,7 @@ import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.rdf.model.RDFNode;
 
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
 /**
@@ -25,7 +25,7 @@ public class OntPersonality extends Personality<RDFNode> {
      * @param factory Factory to crete object
      */
     public OntPersonality register(Class<? extends OntObject> view, OntObjectFactory factory) {
-        return (OntPersonality) super.add(OntApiException.notNull(view, "Null view."), OntApiException.notNull(factory, "Null factory."));
+        return (OntPersonality) super.add(OntJenaException.notNull(view, "Null view."), OntJenaException.notNull(factory, "Null factory."));
     }
 
     /**
@@ -44,7 +44,7 @@ public class OntPersonality extends Personality<RDFNode> {
      * @return {@link OntObjectFactory} factory.
      */
     public OntObjectFactory getOntImplementation(Class<? extends OntObject> view) {
-        return (OntObjectFactory) OntApiException.notNull(getImplementation(view), "Can't find factory for object " + view);
+        return (OntObjectFactory) OntJenaException.notNull(getImplementation(view), "Can't find factory for object " + view);
     }
 
 

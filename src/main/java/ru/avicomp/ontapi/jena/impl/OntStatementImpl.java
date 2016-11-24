@@ -13,8 +13,8 @@ import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
@@ -55,7 +55,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         if (root == null) return;
         if (getModel().contains(root, property, value)) {
             CommonAnnotationImpl res = new CommonAnnotationImpl(root, property, value, getModel());
-            if (res.hasAnnotations()) throw new OntApiException("Can't delete " + res + ": it has children");
+            if (res.hasAnnotations()) throw new OntJenaException("Can't delete " + res + ": it has children");
             getModel().removeAll(root, property, value);
         }
         if (children(root, getModel()).count() == 0) { // if no children remove whole parent section.
@@ -64,19 +64,19 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     protected void checkAnnotationInput(OntNAP property, RDFNode value) {
-        OntApiException.notNull(property, "Null property.");
-        if (OntApiException.notNull(value, "Null value.").isResource()) {
+        OntJenaException.notNull(property, "Null property.");
+        if (OntJenaException.notNull(value, "Null value.").isResource()) {
             if (value.isURIResource()) return;
             if (value.canAs(OntIndividual.Anonymous.class)) return;
-            throw new OntApiException("Incorrect resource specified " + value + ": should be either uri-resource or anonymous individual.");
+            throw new OntJenaException("Incorrect resource specified " + value + ": should be either uri-resource or anonymous individual.");
         } else if (value.isLiteral()) {
             return;
         }
-        throw new OntApiException("It never happens.");
+        throw new OntJenaException("It never happens.");
     }
 
     protected void changeSubject(Resource resource) {
-        this.subject = OntApiException.notNull(resource, "Null subject.").inModel(getModel());
+        this.subject = OntJenaException.notNull(resource, "Null subject.").inModel(getModel());
     }
 
     protected Resource getAnnotationRoot() {

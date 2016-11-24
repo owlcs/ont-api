@@ -10,7 +10,7 @@ import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntDT;
@@ -49,15 +49,15 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     }
 
     public static OneOf createOneOf(OntGraphModelImpl model, Stream<Literal> values) {
-        OntApiException.notNull(values, "Null values stream.");
+        OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model);
         model.add(res, OWL2.oneOf, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), OneOf.class);
     }
 
     public static Restriction createRestriction(OntGraphModelImpl model, OntDR property, Stream<OntFR> values) {
-        OntApiException.notNull(property, "Null property.");
-        OntApiException.notNull(values, "Null values stream.");
+        OntJenaException.notNull(property, "Null property.");
+        OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model);
         model.add(res, OWL2.onDatatype, property);
         model.add(res, OWL2.withRestrictions, model.createList(values.iterator()));
@@ -65,21 +65,21 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     }
 
     public static ComplementOf createComplementOf(OntGraphModelImpl model, OntDR other) {
-        OntApiException.notNull(other, "Null data range.");
+        OntJenaException.notNull(other, "Null data range.");
         Resource res = create(model);
         model.add(res, OWL2.datatypeComplementOf, other);
         return model.getNodeAs(res.asNode(), ComplementOf.class);
     }
 
     public static UnionOf createUnionOf(OntGraphModelImpl model, Stream<OntDR> values) {
-        OntApiException.notNull(values, "Null values stream.");
+        OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model);
         model.add(res, OWL2.unionOf, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), UnionOf.class);
     }
 
     public static IntersectionOf createIntersectionOf(OntGraphModelImpl model, Stream<OntDR> values) {
-        OntApiException.notNull(values, "Null values stream.");
+        OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model);
         model.add(res, OWL2.intersectionOf, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), IntersectionOf.class);

@@ -16,6 +16,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty & HasRange> extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntGraphModel graph) {
-        TranslationHelper.processAnnotatedTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom);
+        TranslationHelper.writeTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom);
     }
 }

@@ -18,7 +18,6 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 /**
@@ -125,7 +124,7 @@ public class JenaUtils {
         try {
             return type.cast(field.get(null));
         } catch (IllegalAccessException e) {
-            throw new OntApiException(e);
+            throw new OntJenaException(e);
         }
     }
 
