@@ -17,13 +17,13 @@ import ru.avicomp.ontapi.jena.model.OntID;
  * <p>
  * Created by @szuev on 26.10.2016.
  */
-public class OWLRDFModel extends OntGraphModelImpl implements OntGraphModel {
+public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     private final OWLOntologyID anonOntologyID = new OWLOntologyID();
 
     private final OntGraphEventStore eventStore;
 
-    public OWLRDFModel(Graph base) {
+    public OntInternalModel(Graph base) {
         super(base);
         this.eventStore = new OntGraphEventStore();
     }

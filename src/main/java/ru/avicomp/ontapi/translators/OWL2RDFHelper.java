@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.jena.model.*;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public class TranslationHelper {
+public class OWL2RDFHelper {
 
     public static RDFNode toRDFNode(OWLObject object) {
         if (object instanceof OWLLiteral) {
@@ -131,27 +131,27 @@ public class TranslationHelper {
         return doAdd ? addRDFNode(model, object).as(OntObject.class) : toResource(object).inModel(model).as(OntObject.class);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, OWLObject predicate, OWLObject object, OWLAxiom axiom) {
-        writeTriple(model, subject, toProperty(predicate), object, axiom);
+    public static void writeTriple(OntGraphModel model, OWLObject subject, OWLObject predicate, OWLObject object, Stream<OWLAnnotation> annotations) {
+        writeTriple(model, subject, toProperty(predicate), object, annotations);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom) {
-        writeTriple(model, subject, predicate, object, axiom, false);
+    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, Stream<OWLAnnotation> annotations) {
+        writeTriple(model, subject, predicate, object, annotations, false);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, OWLAxiom axiom, boolean addSubject) {
+    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, Stream<OWLAnnotation> annotations, boolean addSubject) {
         OntObject obj = fetchOntObject(model, subject, addSubject);
-        addAnnotations(obj.addStatement(predicate, addRDFNode(model, object)), axiom.annotations());
+        addAnnotations(obj.addStatement(predicate, addRDFNode(model, object)), annotations);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, OWLAxiom axiom, boolean addSubject) {
+    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, Stream<OWLAnnotation> annotations, boolean addSubject) {
         OntObject obj = fetchOntObject(model, subject, addSubject);
-        addAnnotations(obj.addStatement(predicate, object), axiom.annotations());
+        addAnnotations(obj.addStatement(predicate, object), annotations);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, OWLAxiom axiom, boolean addSubject) {
+    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, Stream<OWLAnnotation> annotations, boolean addSubject) {
         OntObject obj = fetchOntObject(model, subject, addSubject);
-        addAnnotations(obj.addStatement(predicate, addRDFList(model, objects)), axiom.annotations());
+        addAnnotations(obj.addStatement(predicate, addRDFList(model, objects)), annotations);
     }
 
     public static RDFList addRDFList(OntGraphModel model, Stream<? extends OWLObject> objects) {
@@ -385,7 +385,7 @@ public class TranslationHelper {
         ONE_OF(DataRangeType.DATA_ONE_OF, new Translator<OWLDataOneOf, OntDR.OneOf>() {
             @Override
             OntDR.OneOf translate(OntGraphModel model, OWLDataOneOf expression) {
-                return model.createOneOfDataRange(expression.values().map(TranslationHelper::toLiteral));
+                return model.createOneOfDataRange(expression.values().map(OWL2RDFHelper::toLiteral));
             }
         }),
         RESTRICTION(DataRangeType.DATATYPE_RESTRICTION, new Translator<OWLDatatypeRestriction, OntDR.Restriction>() {

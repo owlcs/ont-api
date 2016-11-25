@@ -16,8 +16,8 @@ import ru.avicomp.ontapi.jena.model.OntSWRL;
 class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     @Override
     public void write(SWRLRule axiom, OntGraphModel model) {
-        Stream<OntSWRL.Atom> head = axiom.head().map(atom -> TranslationHelper.addSWRLAtom(model, atom));
-        Stream<OntSWRL.Atom> body = axiom.body().map(atom -> TranslationHelper.addSWRLAtom(model, atom));
-        TranslationHelper.addAnnotations(model.createSWRLImp(head, body), axiom.annotations());
+        Stream<OntSWRL.Atom> head = axiom.head().map(atom -> OWL2RDFHelper.addSWRLAtom(model, atom));
+        Stream<OntSWRL.Atom> body = axiom.body().map(atom -> OWL2RDFHelper.addSWRLAtom(model, atom));
+        OWL2RDFHelper.addAnnotations(model.createSWRLImp(head, body), axiom.annotations());
     }
 }

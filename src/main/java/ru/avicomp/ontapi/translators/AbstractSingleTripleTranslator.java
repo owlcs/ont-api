@@ -32,6 +32,6 @@ abstract class AbstractSingleTripleTranslator<Axiom extends OWLAxiom> extends Ax
 
     @Override
     public void write(Axiom axiom, OntGraphModel graph) {
-        TranslationHelper.writeTriple(graph, getSubject(axiom), getPredicate(), getObject(axiom), axiom, true);
+        OWL2RDFHelper.writeTriple(graph, getSubject(axiom), getPredicate(), getObject(axiom), axiom.annotations(), true);
     }
 }

@@ -4,7 +4,7 @@ import org.semanticweb.owlapi.model.OWLNegativeObjectPropertyAssertionAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
-import static ru.avicomp.ontapi.translators.TranslationHelper.*;
+import static ru.avicomp.ontapi.translators.OWL2RDFHelper.*;
 
 /**
  * example:

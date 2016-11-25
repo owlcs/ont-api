@@ -24,6 +24,6 @@ class DeclarationTranslator extends AbstractSingleTripleTranslator<OWLDeclaratio
 
     @Override
     public RDFNode getObject(OWLDeclarationAxiom axiom) {
-        return TranslationHelper.getType(getSubject(axiom));
+        return OWL2RDFHelper.getType(getSubject(axiom));
     }
 }

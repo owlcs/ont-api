@@ -33,12 +33,12 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
             if (entity == null)
                 throw new OntApiException("Can't find a single non-anonymous entity expression inside " + axiom);
             OWLObject rest = axiom.operands().filter((obj) -> !entity.equals(obj)).findFirst().orElse(null);
-            TranslationHelper.writeTriple(model, entity, getPredicate(), rest, axiom, true);
+            OWL2RDFHelper.writeTriple(model, entity, getPredicate(), rest, axiom.annotations(), true);
         } else { // OWL2 anonymous node
             Resource root = model.createResource();
             model.add(root, RDF.type, getMembersType());
-            model.add(root, getMembersPredicate(), TranslationHelper.addRDFList(model, axiom.operands()));
-            TranslationHelper.addAnnotations(root.as(OntDisjoint.class), axiom.annotations());
+            model.add(root, getMembersPredicate(), OWL2RDFHelper.addRDFList(model, axiom.operands()));
+            OWL2RDFHelper.addAnnotations(root.as(OntDisjoint.class), axiom.annotations());
         }
     }
 

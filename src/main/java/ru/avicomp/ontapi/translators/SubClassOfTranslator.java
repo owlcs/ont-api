@@ -15,6 +15,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     @Override
     public void write(OWLSubClassOfAxiom axiom, OntGraphModel model) {
-        TranslationHelper.writeTriple(model, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(), axiom);
+        OWL2RDFHelper.writeTriple(model, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(), axiom.annotations());
     }
 }

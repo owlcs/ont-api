@@ -1,7 +1,10 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.stream.Stream;
+
 import org.semanticweb.owlapi.model.OWLAxiom;
 
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
@@ -14,4 +17,10 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     public abstract void write(Axiom axiom, OntGraphModel model);
+
+    public Stream<Axiom> read(OntGraphModel model) {
+        //TODO: change input arg to OntInternalModel
+        //TODO: implement body
+        throw new OntApiException.Unsupported(getClass(), "read");
+    }
 }

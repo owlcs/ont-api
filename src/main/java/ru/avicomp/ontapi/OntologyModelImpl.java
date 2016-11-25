@@ -18,7 +18,7 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import com.google.inject.assistedinject.Assisted;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
-import ru.avicomp.ontapi.translators.TranslationHelper;
+import ru.avicomp.ontapi.translators.OWL2RDFHelper;
 import ru.avicomp.ontapi.translators.rdf2axiom.GraphParseHelper;
 import uk.ac.manchester.cs.owl.owlapi.Internals;
 import uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl;
@@ -33,7 +33,7 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
 public class OntologyModelImpl extends OWLImmutableOntologyImpl implements OntologyModel {
     private final RDFChangeProcessor rdfProcessor;
     private transient OntGraph outer;
-    private final OWLRDFModel base;
+    private final OntInternalModel base;
 
     /**
      * @param manager    ontology manager
@@ -42,12 +42,12 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
     @Inject
     public OntologyModelImpl(@Assisted OntologyManager manager, @Assisted OWLOntologyID ontologyID) {
         super(manager, ontologyID);
-        base = new OWLRDFModel(manager.getGraphFactory().create());
+        base = new OntInternalModel(manager.getGraphFactory().create());
         base.setOwlID(ontologyID);
         rdfProcessor = new RDFChangeProcessor();
     }
 
-    public OntologyModelImpl(OntologyManager manager, OWLRDFModel base) {
+    public OntologyModelImpl(OntologyManager manager, OntInternalModel base) {
         super(manager, base.getOwlID());
         this.base = base;
         rdfProcessor = new RDFChangeProcessor();
@@ -310,7 +310,7 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
             Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
-                TranslationHelper.addAnnotations(base.getID(), Stream.of(annotation));
+                OWL2RDFHelper.addAnnotations(base.getID(), Stream.of(annotation));
             } finally {
                 eventStore().clear(event.reverse());
                 inner.getEventManager().unregister(listener);

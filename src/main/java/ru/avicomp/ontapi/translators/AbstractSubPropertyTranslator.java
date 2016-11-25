@@ -15,6 +15,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 abstract class AbstractSubPropertyTranslator<Axiom extends OWLSubPropertyAxiom> extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        TranslationHelper.writeTriple(model, axiom.getSubProperty(), RDFS.subPropertyOf, axiom.getSuperProperty(), axiom);
+        OWL2RDFHelper.writeTriple(model, axiom.getSubProperty(), RDFS.subPropertyOf, axiom.getSuperProperty(), axiom.annotations());
     }
 }
