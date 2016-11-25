@@ -1,8 +1,6 @@
 package ru.avicomp.ontapi.tests;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -109,7 +107,7 @@ public class GraphModelJenaTest {
     }
 
     private static Graph loadGraph(String file) {
-        return ReadWriteUtils.load(ReadWriteUtils.getResourceURI(file), null).getGraph();
+        return ReadWriteUtils.loadFromTTL(file).getGraph();
     }
 
     private static void setDefaultPrefixes(OntGraphModel m) {
@@ -176,10 +174,12 @@ public class GraphModelJenaTest {
         Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL2.Annotation));
 
         LOGGER.info("7) Annotate sub-class-of");
-        OntStatement subClassOfAnnotation = cl.addSubClassOf(m.getOWLThing())
+        OntStatement subClassOf = cl.addSubClassOf(m.getOWLThing());
+        OntStatement subClassOfAnnotation = subClassOf
                 .addAnnotation(nap1, ResourceFactory.createPlainLiteral("test"));
         subClassOfAnnotation.addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("test2"))
                 .addAnnotation(m.getRDFSComment(), ResourceFactory.createPlainLiteral("test3"));
+
         ReadWriteUtils.print(m);
         cl.annotations().forEach(LOGGER::debug);
         Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL2.Annotation).toList().size());
@@ -210,7 +210,7 @@ public class GraphModelJenaTest {
         OntClass cl3 = m.createOntEntity(OntClass.class, ns + "Class3");
         OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "AnnotationProperty1");
 
-        OntDisjoint.Classes disjointClasses = m.createDisjointClasses(Stream.of(cl1, cl2, cl3));
+        OntDisjoint.Classes disjointClasses = m.createDisjointClasses(Arrays.asList(cl1, cl2, cl3));
         Assert.assertEquals("Incorrect owl:AllDisjointClasses number", 1, m.ontObjects(OntDisjoint.Classes.class).count());
 
         disjointClasses.addLabel("label1", "en");
@@ -253,11 +253,11 @@ public class GraphModelJenaTest {
         OntFR fr1 = m.createFacetRestriction(OntFR.MaxExclusive.class, ResourceFactory.createTypedLiteral(12));
         OntFR fr2 = m.createFacetRestriction(OntFR.LangRange.class, ResourceFactory.createStringLiteral("\\d+"));
 
-        OntDR dr1 = m.createRestrictionDataRange(dt1, Stream.of(fr1, fr2));
+        OntDR dr1 = m.createRestrictionDataRange(dt1, Arrays.asList(fr1, fr2));
 
         OntCE ce1 = m.createDataSomeValuesFrom(ndp1, dr1);
 
-        OntDR dr2 = m.createIntersectionOfDataRange(Stream.of(dt1, dt2));
+        OntDR dr2 = m.createIntersectionOfDataRange(Arrays.asList(dt1, dt2));
         OntIndividual i1 = ce1.createIndividual(ns + "individual1");
         OntCE ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
         i1.attachClass(ce2);
@@ -291,18 +291,17 @@ public class GraphModelJenaTest {
         OntClass cl2 = m.createOntEntity(OntClass.class, ns + "Class2");
         OntIndividual i1 = cl1.createIndividual(ns + "Individual1");
 
-        OntCE.UnionOf cl3 = m.createUnionOf(Stream.of(cl1, cl2));
+        OntCE.UnionOf cl3 = m.createUnionOf(Arrays.asList(cl1, cl2));
         OntIndividual i2 = cl3.createIndividual();
 
         OntSWRL.Variable var1 = m.createSWRLVariable(ns + "Variable1");
         OntSWRL.DArg dArg1 = ResourceFactory.createTypedLiteral(12).inModel(m).as(OntSWRL.DArg.class);
         OntSWRL.DArg dArg2 = var1.as(OntSWRL.DArg.class);
 
-        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(ResourceFactory.createResource(ns + "AtomPredicate1"), Stream.of(dArg1, dArg2));
+        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(ResourceFactory.createResource(ns + "AtomPredicate1"), Arrays.asList(dArg1, dArg2));
         OntSWRL.Atom.OntClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
         OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class), var1.as(OntSWRL.IArg.class));
-
-        OntSWRL.Imp imp = m.createSWRLImp(Stream.of(atom1), Stream.of(atom2, atom3));
+        OntSWRL.Imp imp = m.createSWRLImp(Collections.singletonList(atom1), Arrays.asList(atom2, atom3));
         imp.addComment("This is SWRL Imp", null).addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
 
         ReadWriteUtils.print(m);
@@ -337,7 +336,7 @@ public class GraphModelJenaTest {
         child.setID(childURI);
         child.addImport(base);
         OntClass cl3 = child.createOntEntity(OntClass.class, childNS + "Class3");
-        cl3.addSubClassOf(child.createIntersectionOf(Stream.of(cl1, cl2)));
+        cl3.addSubClassOf(child.createIntersectionOf(Arrays.asList(cl1, cl2)));
         cl3.createIndividual(childNS + "Individual1");
 
         LOGGER.info("Base:");

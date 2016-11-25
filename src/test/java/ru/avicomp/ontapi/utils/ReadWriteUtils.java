@@ -12,12 +12,11 @@ import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.log4j.Logger;
+import org.junit.Assert;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.io.OntFormat;
 
 /**
@@ -72,6 +71,10 @@ public class ReadWriteUtils {
         }
     }
 
+    public static Model loadFromTTL(String file) {
+        return load(getResourceURI(file), null);
+    }
+
     public static Model load(URI file, OntFormat f) {
         String format = f == null ? "ttl" : f.getType();
         Model m = ModelFactory.createDefaultModel();
@@ -85,7 +88,7 @@ public class ReadWriteUtils {
         }
     }
 
-    public static OntModel load(OntModelSpec spec, File file, OntFormat f) {
+    public static OntModel loadJenaOntModel(OntModelSpec spec, File file, OntFormat f) {
         return ModelFactory.createOntologyModel(spec, load(file.toURI(), f));
     }
 
@@ -155,4 +158,37 @@ public class ReadWriteUtils {
         }
     }
 
+    public static OWLOntology loadOWLOntology(OWLOntologyManager manager, IRI fileIRI) {
+        LOGGER.info("Load ontology model from " + fileIRI + ".");
+        OWLOntology owl = null;
+        try {
+            owl = manager.loadOntology(fileIRI);
+        } catch (OWLOntologyCreationException e) {
+            Assert.fail(e.getMessage());
+        }
+        Assert.assertEquals("incorrect class " + owl.getClass(), OntologyModelImpl.class, owl.getClass());
+        return owl;
+    }
+
+    public static OntologyModel loadOntologyFromIOStream(OntologyManager manager, Model model, OntFormat convertFormat) {
+        if (manager == null) manager = OntManagerFactory.createONTManager();
+        return (OntologyModel) loadOWLOntologyFromIOStream(manager, model, convertFormat);
+    }
+
+    public static OWLOntology loadOWLOntologyFromIOStream(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
+        String uri = TestUtils.getURI(model);
+        LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
+        try (InputStream is = toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {
+            manager.loadOntologyFromOntologyDocument(is);
+        } catch (IOException | OWLOntologyCreationException e) {
+            throw new AssertionError(e);
+        }
+        OWLOntology res = manager.getOntology(IRI.create(uri));
+        Assert.assertNotNull("Can't find ontology " + uri, res);
+        return res;
+    }
+
+    public static OntologyModel loadOntologyFromIOStream(OntModel model) {
+        return loadOntologyFromIOStream(null, model, null);
+    }
 }

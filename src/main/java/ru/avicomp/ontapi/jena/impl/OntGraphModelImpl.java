@@ -2,6 +2,7 @@ package ru.avicomp.ontapi.jena.impl;
 
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -268,23 +269,23 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntDisjoint.Classes createDisjointClasses(Stream<OntCE> classes) {
-        return OntDisjointImpl.createDisjointClasses(this, classes);
+    public OntDisjoint.Classes createDisjointClasses(Collection<OntCE> classes) {
+        return OntDisjointImpl.createDisjointClasses(this, classes.stream());
     }
 
     @Override
-    public OntDisjoint.Individuals createDifferentIndividuals(Stream<OntIndividual> individuals) {
-        return OntDisjointImpl.createDifferentIndividuals(this, individuals);
+    public OntDisjoint.Individuals createDifferentIndividuals(Collection<OntIndividual> individuals) {
+        return OntDisjointImpl.createDifferentIndividuals(this, individuals.stream());
     }
 
     @Override
-    public OntDisjoint.ObjectProperties createDisjointObjectProperties(Stream<OntOPE> properties) {
-        return OntDisjointImpl.createDisjointObjectProperties(this, properties);
+    public OntDisjoint.ObjectProperties createDisjointObjectProperties(Collection<OntOPE> properties) {
+        return OntDisjointImpl.createDisjointObjectProperties(this, properties.stream());
     }
 
     @Override
-    public OntDisjoint.DataProperties createDisjointDataProperties(Stream<OntNDP> properties) {
-        return OntDisjointImpl.createDisjointDataProperties(this, properties);
+    public OntDisjoint.DataProperties createDisjointDataProperties(Collection<OntNDP> properties) {
+        return OntDisjointImpl.createDisjointDataProperties(this, properties.stream());
     }
 
     @Override
@@ -293,13 +294,13 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntDR.OneOf createOneOfDataRange(Stream<Literal> values) {
-        return OntDRImpl.createOneOf(this, values);
+    public OntDR.OneOf createOneOfDataRange(Collection<Literal> values) {
+        return OntDRImpl.createOneOf(this, values.stream());
     }
 
     @Override
-    public OntDR.Restriction createRestrictionDataRange(OntDR property, Stream<OntFR> values) {
-        return OntDRImpl.createRestriction(this, property, values);
+    public OntDR.Restriction createRestrictionDataRange(OntDR property, Collection<OntFR> values) {
+        return OntDRImpl.createRestriction(this, property, values.stream());
     }
 
     @Override
@@ -308,13 +309,13 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntDR.UnionOf createUnionOfDataRange(Stream<OntDR> values) {
-        return OntDRImpl.createUnionOf(this, values);
+    public OntDR.UnionOf createUnionOfDataRange(Collection<OntDR> values) {
+        return OntDRImpl.createUnionOf(this, values.stream());
     }
 
     @Override
-    public OntDR.IntersectionOf createIntersectionOfDataRange(Stream<OntDR> values) {
-        return OntDRImpl.createIntersectionOf(this, values);
+    public OntDR.IntersectionOf createIntersectionOfDataRange(Collection<OntDR> values) {
+        return OntDRImpl.createIntersectionOf(this, values.stream());
     }
 
     @Override
@@ -378,18 +379,18 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntCE.UnionOf createUnionOf(Stream<OntCE> classes) {
-        return OntCEImpl.createComponentsCE(this, OntCE.UnionOf.class, OWL2.unionOf, classes);
+    public OntCE.UnionOf createUnionOf(Collection<OntCE> classes) {
+        return OntCEImpl.createComponentsCE(this, OntCE.UnionOf.class, OWL2.unionOf, classes.stream());
     }
 
     @Override
-    public OntCE.IntersectionOf createIntersectionOf(Stream<OntCE> classes) {
-        return OntCEImpl.createComponentsCE(this, OntCE.IntersectionOf.class, OWL2.intersectionOf, classes);
+    public OntCE.IntersectionOf createIntersectionOf(Collection<OntCE> classes) {
+        return OntCEImpl.createComponentsCE(this, OntCE.IntersectionOf.class, OWL2.intersectionOf, classes.stream());
     }
 
     @Override
-    public OntCE.OneOf createOneOf(Stream<OntIndividual> individuals) {
-        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL2.oneOf, individuals);
+    public OntCE.OneOf createOneOf(Collection<OntIndividual> individuals) {
+        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL2.oneOf, individuals.stream());
     }
 
     @Override
@@ -398,13 +399,13 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Stream<OntNDP> onProperties, OntDR other) {
+    public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> onProperties, OntDR other) {
         //todo
         throw new OntJenaException("Unsupported " + OntCE.NaryDataAllValuesFrom.class);
     }
 
     @Override
-    public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Stream<OntNDP> onProperties, OntDR other) {
+    public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> onProperties, OntDR other) {
         //todo
         throw new OntJenaException("Unsupported " + OntCE.NaryDataSomeValuesFrom.class);
     }
@@ -420,8 +421,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Stream<OntSWRL.DArg> arguments) {
-        return OntSWRLImpl.createBuiltInAtom(this, predicate, arguments);
+    public OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Collection<OntSWRL.DArg> arguments) {
+        return OntSWRLImpl.createBuiltInAtom(this, predicate, arguments.stream());
     }
 
     @Override
@@ -455,7 +456,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntSWRL.Imp createSWRLImp(Stream<OntSWRL.Atom> head, Stream<OntSWRL.Atom> body) {
-        return OntSWRLImpl.createImp(this, head, body);
+    public OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body) {
+        return OntSWRLImpl.createImp(this, head.stream(), body.stream());
     }
 }

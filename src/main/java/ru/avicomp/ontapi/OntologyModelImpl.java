@@ -222,25 +222,7 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
             Graph inner = getGraph();
             try {
                 inner.getEventManager().register(listener);
-                Set<OWLImportsDeclaration> imports = getOntology().importsDeclarations().collect(Collectors.toSet());
-                Set<OWLAnnotation> annotations = getOntology().annotations().collect(Collectors.toSet());
-                // first remove imports and annotations
-                imports.forEach(this::removeImport);
-                annotations.forEach(this::removeAnnotation);
-                // remove ontology whole triplet set
                 base.setOwlID(id);
-                /*inner.remove(nodeIRI, Node.ANY, Node.ANY);
-                // change version iri:
-                IRI version = id.getVersionIRI().orElse(null);
-                if (version != null) {
-                    inner.add(Triple.create(nodeIRI, OWL2.versionIRI.asNode(), NodeIRIUtils.toNode(version)));
-                }
-                // add new one owl:Ontology
-                inner.add(Triple.create(nodeIRI = createNodeIRI(id), RDF.type.asNode(), OWL.Ontology.asNode()));*/
-                // return back imports:
-                imports.forEach(this::addImport);
-                // return back annotations:
-                annotations.forEach(this::addAnnotation);
                 setOntologyID(base.getOwlID());
             } finally {
                 inner.getEventManager().unregister(listener);

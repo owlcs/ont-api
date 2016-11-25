@@ -36,7 +36,7 @@ public abstract class LoadTestBase {
         LOGGER.info("The file " + fileIRI);
 
         OntologyManager manager = OntManagerFactory.createONTManager();
-        OntologyModel ontology = TestUtils.load(manager, fileIRI);
+        OntologyModel ontology = (OntologyModel) ReadWriteUtils.loadOWLOntology(manager, fileIRI);
         OWLOntologyID id = ontology.getOntologyID();
         IRI iri = id.getOntologyIRI().orElse(null);
         Assert.assertNotNull("Null ont-iri " + id, iri);
@@ -51,7 +51,7 @@ public abstract class LoadTestBase {
         String copyOntIRI = ontIRI + ".copy";
         OntModel copyOntModel = TestUtils.copyOntModel(ontModel, copyOntIRI);
 
-        OntologyModel copyOntology = TestUtils.loadOntologyFromIOStream(manager, copyOntModel, convertFormat());
+        OntologyModel copyOntology = ReadWriteUtils.loadOntologyFromIOStream(manager, copyOntModel, convertFormat());
         long ontologiesCount = manager.ontologies().count();
         LOGGER.debug("Number of ontologies inside manager: " + ontologiesCount);
         Assert.assertTrue("Incorrect number of ontologies inside manager (" + ontologiesCount + ")", ontologiesCount >= 2);

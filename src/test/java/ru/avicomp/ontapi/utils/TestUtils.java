@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,8 +19,6 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.OntologyModelImpl;
-import ru.avicomp.ontapi.io.OntFormat;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
 
 /**
@@ -35,18 +31,6 @@ public class TestUtils {
 
     private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(NodeID.getNodeID());
 
-    public static OntologyModel load(OntologyManager manager, IRI fileIRI) {
-        LOGGER.info("Load ontology model from " + fileIRI + ".");
-        OWLOntology owl = null;
-        try {
-            owl = manager.loadOntology(fileIRI);
-        } catch (OWLOntologyCreationException e) {
-            Assert.fail(e.getMessage());
-        }
-        Assert.assertEquals("incorrect class " + owl.getClass(), OntologyModelImpl.class, owl.getClass());
-        return (OntologyModelImpl) owl;
-    }
-
     public static OntologyModel createModel(OntIRI iri) {
         return createModel(iri.toOwlOntologyID());
     }
@@ -58,28 +42,6 @@ public class TestUtils {
     public static OntologyModel createModel(OntologyManager manager, OWLOntologyID id) {
         LOGGER.info("Create ontology " + id);
         return manager.createOntology(id);
-    }
-
-    public static OntologyModel loadOntologyFromIOStream(OntologyManager manager, Model model, OntFormat convertFormat) {
-        if (manager == null) manager = OntManagerFactory.createONTManager();
-        return (OntologyModel) loadOWLOntologyFromIOStream(manager, model, convertFormat);
-    }
-
-    public static OWLOntology loadOWLOntologyFromIOStream(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
-        String uri = getURI(model);
-        LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
-        try (InputStream is = ReadWriteUtils.toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {
-            manager.loadOntologyFromOntologyDocument(is);
-        } catch (IOException | OWLOntologyCreationException e) {
-            throw new AssertionError(e);
-        }
-        OWLOntology res = manager.getOntology(IRI.create(uri));
-        Assert.assertNotNull("Can't find ontology " + uri, res);
-        return res;
-    }
-
-    public static OntologyModel loadOntologyFromIOStream(OntModel model) {
-        return loadOntologyFromIOStream(null, model, null);
     }
 
     public static OntModel copyOntModel(OntModel original, String newURI) {

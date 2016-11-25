@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.NodeFactory;
@@ -306,7 +307,7 @@ public class OWL2RDFHelper {
             @Override
             OntSWRL.Atom.BuiltIn translate(OntGraphModel model, SWRLBuiltInAtom atom) {
                 return model.createBuiltInSWRLAtom(model.createResource(atom.getPredicate().getIRIString()),
-                        atom.arguments().map(a -> addSWRLObject(model, a).as(OntSWRL.DArg.class)));
+                        atom.arguments().map(a -> addSWRLObject(model, a).as(OntSWRL.DArg.class)).collect(Collectors.toList()));
             }
         }),
         OWL_CLASS(SWRLClassAtom.class, new Translator<SWRLClassAtom, OntSWRL.Atom.OntClass>() {
@@ -385,14 +386,14 @@ public class OWL2RDFHelper {
         ONE_OF(DataRangeType.DATA_ONE_OF, new Translator<OWLDataOneOf, OntDR.OneOf>() {
             @Override
             OntDR.OneOf translate(OntGraphModel model, OWLDataOneOf expression) {
-                return model.createOneOfDataRange(expression.values().map(OWL2RDFHelper::toLiteral));
+                return model.createOneOfDataRange(expression.values().map(OWL2RDFHelper::toLiteral).collect(Collectors.toList()));
             }
         }),
         RESTRICTION(DataRangeType.DATATYPE_RESTRICTION, new Translator<OWLDatatypeRestriction, OntDR.Restriction>() {
             @Override
             OntDR.Restriction translate(OntGraphModel model, OWLDatatypeRestriction expression) {
                 return model.createRestrictionDataRange(addRDFNode(model, expression.getDatatype()).as(OntDR.class),
-                        expression.facetRestrictions().map(f -> addFacetRestriction(model, f)));
+                        expression.facetRestrictions().map(f -> addFacetRestriction(model, f)).collect(Collectors.toList()));
             }
         }),
         COMPLEMENT_OF(DataRangeType.DATA_COMPLEMENT_OF, new Translator<OWLDataComplementOf, OntDR.ComplementOf>() {
@@ -404,13 +405,13 @@ public class OWL2RDFHelper {
         UNION_OF(DataRangeType.DATA_UNION_OF, new Translator<OWLDataUnionOf, OntDR.UnionOf>() {
             @Override
             OntDR.UnionOf translate(OntGraphModel model, OWLDataUnionOf expression) {
-                return model.createUnionOfDataRange(expression.operands().map(owlDataRange -> addRDFNode(model, owlDataRange).as(OntDR.class)));
+                return model.createUnionOfDataRange(expression.operands().map(dr -> addRDFNode(model, dr).as(OntDR.class)).collect(Collectors.toList()));
             }
         }),
         INTERSECTION_OF(DataRangeType.DATA_INTERSECTION_OF, new Translator<OWLDataIntersectionOf, OntDR.IntersectionOf>() {
             @Override
             OntDR.IntersectionOf translate(OntGraphModel model, OWLDataIntersectionOf expression) {
-                return model.createIntersectionOfDataRange(expression.operands().map(owlDataRange -> addRDFNode(model, owlDataRange).as(OntDR.class)));
+                return model.createIntersectionOfDataRange(expression.operands().map(dr -> addRDFNode(model, dr).as(OntDR.class)).collect(Collectors.toList()));
             }
         }),;
         private final DataRangeType type;
@@ -547,19 +548,19 @@ public class OWL2RDFHelper {
         UNION_OF(ClassExpressionType.OBJECT_UNION_OF, new Translator<OWLObjectUnionOf, OntCE.UnionOf>() {
             @Override
             OntCE.UnionOf translate(OntGraphModel model, OWLObjectUnionOf expression) {
-                return model.createUnionOf(expression.operands().map(ce -> addRDFNode(model, ce).as(OntCE.class)));
+                return model.createUnionOf(expression.operands().map(ce -> addRDFNode(model, ce).as(OntCE.class)).collect(Collectors.toList()));
             }
         }),
         INTERSECTION_OF(ClassExpressionType.OBJECT_INTERSECTION_OF, new Translator<OWLObjectIntersectionOf, OntCE.IntersectionOf>() {
             @Override
             OntCE.IntersectionOf translate(OntGraphModel model, OWLObjectIntersectionOf expression) {
-                return model.createIntersectionOf(expression.operands().map(ce -> addRDFNode(model, ce).as(OntCE.class)));
+                return model.createIntersectionOf(expression.operands().map(ce -> addRDFNode(model, ce).as(OntCE.class)).collect(Collectors.toList()));
             }
         }),
         ONE_OF(ClassExpressionType.OBJECT_ONE_OF, new Translator<OWLObjectOneOf, OntCE.OneOf>() {
             @Override
             OntCE.OneOf translate(OntGraphModel model, OWLObjectOneOf expression) {
-                return model.createOneOf(expression.operands().map(i -> addIndividual(model, i)));
+                return model.createOneOf(expression.operands().map(i -> addIndividual(model, i)).collect(Collectors.toList()));
             }
         }),
         COMPLEMENT_OF(ClassExpressionType.OBJECT_COMPLEMENT_OF, new Translator<OWLObjectComplementOf, OntCE.ComplementOf>() {

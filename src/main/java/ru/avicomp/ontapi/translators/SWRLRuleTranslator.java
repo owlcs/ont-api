@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.SWRLRule;
@@ -18,6 +19,6 @@ class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     public void write(SWRLRule axiom, OntGraphModel model) {
         Stream<OntSWRL.Atom> head = axiom.head().map(atom -> OWL2RDFHelper.addSWRLAtom(model, atom));
         Stream<OntSWRL.Atom> body = axiom.body().map(atom -> OWL2RDFHelper.addSWRLAtom(model, atom));
-        OWL2RDFHelper.addAnnotations(model.createSWRLImp(head, body), axiom.annotations());
+        OWL2RDFHelper.addAnnotations(model.createSWRLImp(head.collect(Collectors.toList()), body.collect(Collectors.toList())), axiom.annotations());
     }
 }

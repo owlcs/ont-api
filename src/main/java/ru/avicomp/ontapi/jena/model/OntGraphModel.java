@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.model;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
@@ -56,13 +57,13 @@ public interface OntGraphModel extends Model {
      * ===========================
      */
 
-    OntDisjoint.Classes createDisjointClasses(Stream<OntCE> classes);
+    OntDisjoint.Classes createDisjointClasses(Collection<OntCE> classes);
 
-    OntDisjoint.Individuals createDifferentIndividuals(Stream<OntIndividual> individuals);
+    OntDisjoint.Individuals createDifferentIndividuals(Collection<OntIndividual> individuals);
 
-    OntDisjoint.ObjectProperties createDisjointObjectProperties(Stream<OntOPE> properties);
+    OntDisjoint.ObjectProperties createDisjointObjectProperties(Collection<OntOPE> properties);
 
-    OntDisjoint.DataProperties createDisjointDataProperties(Stream<OntNDP> properties);
+    OntDisjoint.DataProperties createDisjointDataProperties(Collection<OntNDP> properties);
 
     /**
      * =====================
@@ -70,15 +71,15 @@ public interface OntGraphModel extends Model {
      * =====================
      */
 
-    OntDR.OneOf createOneOfDataRange(Stream<Literal> values);
+    OntDR.OneOf createOneOfDataRange(Collection<Literal> values);
 
-    OntDR.Restriction createRestrictionDataRange(OntDR property, Stream<OntFR> values);
+    OntDR.Restriction createRestrictionDataRange(OntDR property, Collection<OntFR> values);
 
     OntDR.ComplementOf createComplementOfDataRange(OntDR other);
 
-    OntDR.UnionOf createUnionOfDataRange(Stream<OntDR> values);
+    OntDR.UnionOf createUnionOfDataRange(Collection<OntDR> values);
 
-    OntDR.IntersectionOf createIntersectionOfDataRange(Stream<OntDR> values);
+    OntDR.IntersectionOf createIntersectionOfDataRange(Collection<OntDR> values);
 
     /**
      * ===========================
@@ -110,17 +111,17 @@ public interface OntGraphModel extends Model {
 
     OntCE.DataCardinality createDataCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
 
-    OntCE.UnionOf createUnionOf(Stream<OntCE> classes);
+    OntCE.UnionOf createUnionOf(Collection<OntCE> classes);
 
-    OntCE.IntersectionOf createIntersectionOf(Stream<OntCE> classes);
+    OntCE.IntersectionOf createIntersectionOf(Collection<OntCE> classes);
 
-    OntCE.OneOf createOneOf(Stream<OntIndividual> individuals);
+    OntCE.OneOf createOneOf(Collection<OntIndividual> individuals);
 
     OntCE.HasSelf createHasSelf(OntOPE onProperty);
 
-    OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Stream<OntNDP> onProperties, OntDR other);
+    OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> onProperties, OntDR other);
 
-    OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Stream<OntNDP> onProperties, OntDR other);
+    OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> onProperties, OntDR other);
 
     OntCE.ComplementOf createComplementOf(OntCE other);
 
@@ -132,7 +133,7 @@ public interface OntGraphModel extends Model {
 
     OntSWRL.Variable createSWRLVariable(String uri);
 
-    OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Stream<OntSWRL.DArg> arguments);
+    OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Collection<OntSWRL.DArg> arguments);
 
     OntSWRL.Atom.OntClass createClassSWRLAtom(OntCE clazz, OntSWRL.IArg arg);
 
@@ -146,7 +147,7 @@ public interface OntGraphModel extends Model {
 
     OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
 
-    OntSWRL.Imp createSWRLImp(Stream<OntSWRL.Atom> head, Stream<OntSWRL.Atom> body);
+    OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body);
 
 
     /**
