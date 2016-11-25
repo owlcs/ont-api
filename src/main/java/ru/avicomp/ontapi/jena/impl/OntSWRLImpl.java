@@ -68,6 +68,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.BuiltinAtom);
         model.add(res, SWRL.builtin, predicate);
+        model.add(predicate, RDF.type, SWRL.Builtin); // ?
         model.add(res, SWRL.arguments, model.createList(arguments.iterator()));
         return model.getNodeAs(res.asNode(), Atom.BuiltIn.class);
     }

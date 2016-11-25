@@ -132,7 +132,7 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
     }
 
     /**
-     * todo replace with base.
+     * todo replace with base model.
      * don't forget to call {@link OntModel#rebind()} after adding bulk axiom.
      *
      * @return OntModel

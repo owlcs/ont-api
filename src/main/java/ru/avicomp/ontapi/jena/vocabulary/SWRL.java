@@ -5,8 +5,9 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
- * SWRL vocabulary.
- * See <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>.
+ * Vocabulary definition for the
+ * <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>.
+ * See <a href='https://www.w3.org/Submission/SWRL/swrl.rdf'>schema</a>
  * See also {@link org.semanticweb.owlapi.vocab.SWRLVocabulary}
  * <p>
  * Created by szuev on 20.10.2016.

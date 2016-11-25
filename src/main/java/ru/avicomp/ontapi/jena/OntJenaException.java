@@ -3,7 +3,7 @@ package ru.avicomp.ontapi.jena;
 import org.apache.jena.shared.JenaException;
 
 /**
- * To use only inside package {@link ru.avicomp.ontapi.jena}.
+ * To use inside ont-jena subsystem (package {@link ru.avicomp.ontapi.jena}).
  * <p>
  * Created by @szuev on 24.11.2016.
  */

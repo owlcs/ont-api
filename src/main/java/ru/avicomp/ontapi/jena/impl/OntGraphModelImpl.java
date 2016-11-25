@@ -46,7 +46,18 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     public OntGraphModelImpl(Graph graph, OntPersonality personality) {
+        this(graph, personality, true);
+    }
+
+    public OntGraphModelImpl(Graph graph, OntPersonality personality, boolean syncImports) {
         super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), personality);
+        if (syncImports)
+            syncGraphRefs(personality);
+    }
+
+    protected void syncGraphRefs(OntPersonality personality) {
+        removeAll(getID(), OWL2.imports, null);
+        models(personality).map(OntGraphModel::getID).filter(Resource::isURIResource).forEach(id -> addImport(id.getURI()));
     }
 
     @Override
@@ -116,7 +127,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public Stream<Resource> imports() {
-        return JenaUtils.asStream(listStatements(getID(), OWL2.imports, (RDFNode) null)
+        return JenaUtils.asStream(listStatements(null, OWL2.imports, (RDFNode) null)
+                .filterKeep(this::isInBaseModel)
                 .mapWith(Statement::getObject)
                 .filterKeep(RDFNode::isURIResource)
                 .mapWith(RDFNode::asResource));
