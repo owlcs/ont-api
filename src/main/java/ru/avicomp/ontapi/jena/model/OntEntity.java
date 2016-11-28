@@ -9,13 +9,6 @@ package ru.avicomp.ontapi.jena.model;
 public interface OntEntity extends OntObject {
 
     /**
-     * Determines is entity-resource local defined.
-     *
-     * @return true if this resource is local to the base graph.
-     */
-    boolean isLocal();
-
-    /**
      * Determines if this entity is a built in entity. The entity is a built in entity if it is:
      * - a class and the URI corresponds to owl:Thing or owl:Nothing
      * - an object property and the URI corresponds to owl:topObjectProperty or owl:bottomObjectProperty

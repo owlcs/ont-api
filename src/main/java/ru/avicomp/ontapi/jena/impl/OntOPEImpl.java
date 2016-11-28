@@ -10,7 +10,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -43,11 +42,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         }
 
         @Override
-        public boolean isLocal() {
-            return getModel().isInBaseModel(this, RDF.type, OWL2.ObjectProperty);
-        }
-
-        @Override
         public boolean isBuiltIn() {
             return OntEntityImpl.BUILT_IN_OBJECT_PROPERTIES.contains(this);
         }
@@ -67,6 +61,16 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         public InverseProperty(Node n, EnhGraph g) {
             super(n, g);
+        }
+
+        @Override
+        public OntStatement getRoot() {
+            return new OntStatementImpl.RootImpl(this, OWL2.inverseOf, getDirect(), getModel());
+        }
+
+        @Override
+        public OntOPE getDirect() {
+            return getRequiredOntProperty(OWL2.inverseOf, OntOPE.class);
         }
 
         static class Finder implements OntFinder {

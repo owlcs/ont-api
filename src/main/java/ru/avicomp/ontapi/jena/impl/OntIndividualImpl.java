@@ -6,8 +6,6 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -45,11 +43,6 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
     public static class NamedImpl extends OntIndividualImpl implements OntIndividual.Named {
         public NamedImpl(Node n, EnhGraph m) {
             super(OntObjectImpl.checkNamed(n), m);
-        }
-
-        @Override
-        public boolean isLocal() {
-            return getModel().isInBaseModel(this, RDF.type, OWL2.NamedIndividual);
         }
 
         @Override

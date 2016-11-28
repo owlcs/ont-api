@@ -5,7 +5,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
 
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -25,11 +24,6 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
     @Override
     public Class<OntNDP> getActualClass() {
         return OntNDP.class;
-    }
-
-    @Override
-    public Resource getRDFType() {
-        return OWL2.DatatypeProperty;
     }
 
     @Override

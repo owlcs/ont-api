@@ -89,11 +89,17 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public OntStatement getRoot() {
         List<Resource> types = types().collect(Collectors.toList());
-        if (types.isEmpty()) {
-            //throw new OntJenaException("Can't determine main triple, no types: " + this);
-            return null;
-        }
-        return new OntStatementImpl.RootImpl(this, RDF.type, types.get(0), getModel());
+        return types.isEmpty() ? null : new OntStatementImpl.RootImpl(this, RDF.type, types.get(0), getModel());
+    }
+
+    @Override
+    public boolean isLocal() {
+        return getModel().isInBaseModel(OntJenaException.notNull(getRoot(), "Null main statement."));
+    }
+
+    @Override
+    public OntStatement getStatement(Property property) {
+        return statements(property).findFirst().orElse(null);
     }
 
     @Override

@@ -23,6 +23,13 @@ public interface OntObject extends Resource {
     OntGraphModel getModel();
 
     /**
+     * Determines is ont-object resource local defined (i.e. does not belong to any graph from imports).
+     *
+     * @return true if this resource is local to the base graph.
+     */
+    boolean isLocal();
+
+    /**
      * returns root triplet statement,
      * usually it is declaration with predicate rdf:type
      * @return OntStatement
@@ -32,6 +39,8 @@ public interface OntObject extends Resource {
     OntStatement addStatement(Property property, RDFNode value);
 
     OntStatement getStatement(Property property, RDFNode object);
+
+    OntStatement getStatement(Property property);
 
     void remove(Property property, RDFNode object);
 

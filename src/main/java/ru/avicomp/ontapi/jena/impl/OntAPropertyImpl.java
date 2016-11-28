@@ -8,7 +8,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntNAP;
@@ -28,11 +27,6 @@ public class OntAPropertyImpl extends OntEntityImpl implements OntNAP {
     @Override
     public Class<OntNAP> getActualClass() {
         return OntNAP.class;
-    }
-
-    @Override
-    public Resource getRDFType() {
-        return OWL2.AnnotationProperty;
     }
 
     @Override

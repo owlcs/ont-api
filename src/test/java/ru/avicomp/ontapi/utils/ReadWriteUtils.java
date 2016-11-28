@@ -188,7 +188,7 @@ public class ReadWriteUtils {
         return res;
     }
 
-    public static OntologyModel loadOntologyFromIOStream(OntModel model) {
+    public static OntologyModel loadOntologyFromIOStream(Model model) {
         return loadOntologyFromIOStream(null, model, null);
     }
 }

@@ -1,6 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.stream.Stream;
+import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
 
@@ -18,9 +18,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     public abstract void write(Axiom axiom, OntGraphModel model);
 
-    public Stream<Axiom> read(OntGraphModel model) {
-        //TODO: change input arg to OntInternalModel
+    public Set<OWLTripleSet<Axiom>> read(OntGraphModel model) {
         //TODO: implement body
         throw new OntApiException.Unsupported(getClass(), "read");
     }
+
 }

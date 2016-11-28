@@ -10,7 +10,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
@@ -46,14 +45,7 @@ public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
         super(n, g);
     }
 
-    @Override
-    public boolean isLocal() {
-        return getModel().isInBaseModel(this, RDF.type, getRDFType());
-    }
-
     public abstract Class<? extends OntEntity> getActualClass();
-
-    public abstract Resource getRDFType();
 
     private static class EntityFactory extends CommonOntObjectFactory {
         private EntityFactory(Class<? extends OntObjectImpl> impl, Resource type, Set<Resource> builtInTypes) {

@@ -26,8 +26,12 @@ import ru.avicomp.ontapi.OntApiException;
 public abstract class AxiomParserProvider {
     private static final Logger LOGGER = Logger.getLogger(AxiomParserProvider.class);
 
-    public static Map<AxiomType, AxiomTranslator> getParsers() {
+    public static Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> getParsers() {
         return ParserHolder.PARSERS;
+    }
+
+    public static <T extends OWLAxiom> AxiomTranslator<T> get(Class<T> type) {
+        return get(AxiomType.getTypeForClass(type));
     }
 
     public static <T extends OWLAxiom> AxiomTranslator<T> get(T axiom) {
@@ -36,11 +40,11 @@ public abstract class AxiomParserProvider {
 
     @SuppressWarnings("unchecked")
     public static <T extends OWLAxiom> AxiomTranslator<T> get(AxiomType<?> type) {
-        return OntApiException.notNull(getParsers().get(OntApiException.notNull(type, "Null axiom type")), "Cam't find parser for axiom " + type.getActualClass());
+        return OntApiException.notNull((AxiomTranslator<T>) getParsers().get(OntApiException.notNull(type, "Null axiom type")), "Can't find parser for axiom " + type.getActualClass());
     }
 
     private static class ParserHolder {
-        private static final Map<AxiomType, AxiomTranslator> PARSERS = init();
+        private static final Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> PARSERS = init();
 
         static {
             if (LOGGER.isDebugEnabled()) {
@@ -49,8 +53,8 @@ public abstract class AxiomParserProvider {
             }
         }
 
-        private static Map<AxiomType, AxiomTranslator> init() {
-            Map<AxiomType, AxiomTranslator> res = new HashMap<>();
+        private static Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> init() {
+            Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> res = new HashMap<>();
             Set<Class<? extends AxiomTranslator>> parserClasses = collectParserClasses();
             AxiomType.AXIOM_TYPES.forEach(type -> {
                 Class<? extends AxiomTranslator> parserClass = findParserClass(parserClasses, type);

@@ -1,12 +1,18 @@
 package ru.avicomp.ontapi.translators;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntApiException;
@@ -65,26 +71,50 @@ public class RDF2OWLHelper {
     }
 
     public static OWLAnnotationProperty getAnnotationProperty(OntNAP nap) {
-        return new OWLAnnotationPropertyImpl(IRI.create(OntApiException.notNull(nap, "Null annotation property.").getURI()));
+        IRI iri = IRI.create(OntApiException.notNull(nap, "Null annotation property.").getURI());
+        return new OWLAnnotationPropertyImpl(iri);
     }
 
-    public static Collection<OWLAnnotation> getBulkAnnotations(OntObject object) {
+    public static OWLDataProperty getDataProperty(OntNDP nap) {
+        IRI iri = IRI.create(OntApiException.notNull(nap, "Null data property.").getURI());
+        return new OWLDataPropertyImpl(iri);
+    }
+
+    public static OWLObjectPropertyExpression getObjectProperty(OntOPE ope) {
+        OntApiException.notNull(ope, "Null object property.");
+        OWLObjectPropertyExpression res;
+        if (ope.isAnon()) { //todo: handle inverse of inverseOf
+            OWLObjectProperty op = new OWLObjectPropertyImpl(IRI.create(ope.as(OntOPE.Inverse.class).getDirect().getURI()));
+            res = op.getInverseProperty();
+        } else {
+            res = new OWLObjectPropertyImpl(IRI.create(ope.getURI()));
+        }
+        return res;
+    }
+
+    public static Set<OWLTripleSet<OWLAnnotation>> getBulkAnnotations(OntObject object) {
         return getBulkAnnotations(OntApiException.notNull(object, "Null ont-object.").getRoot());
     }
 
-    public static Collection<OWLAnnotation> getBulkAnnotations(OntStatement statement) {
+    public static Set<OWLTripleSet<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
         return statement.annotations()
                 .filter(OntStatement::hasAnnotations)
-                .map(RDF2OWLHelper::toOWLAnnotation).collect(Collectors.toSet());
+                .map(RDF2OWLHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
     }
 
-    public static Stream<OWLAnnotation> annotations(OntStatement statement) {
-        return OntApiException.notNull(statement, "Null ont-statement.")
-                .annotations()
-                .map(RDF2OWLHelper::toOWLAnnotation);
+    private static OWLTripleSet<OWLAnnotation> getHierarchicalAnnotations(OntStatement a) {
+        OntObject ann = a.getSubject().as(OntObject.class);
+        Set<Triple> triples = new HashSet<>();
+        Stream.of(RDF.type, OWL2.annotatedSource, OWL2.annotatedProperty, OWL2.annotatedTarget)
+                .forEach(p -> triples.add(ann.getRequiredProperty(p).asTriple()));
+        triples.add(a.asTriple());
+
+        OWLAnnotationProperty p = getAnnotationProperty(a.getPredicate().as(OntNAP.class));
+        OWLAnnotationValue v = getAnnotationValue(a.getObject());
+        Set<OWLTripleSet<OWLAnnotation>> children = a.annotations().map(RDF2OWLHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
+        OWLAnnotation res = new OWLAnnotationImpl(p, v, children.stream().map(OWLTripleSet::getObject));
+        triples.addAll(children.stream().map(OWLTripleSet::getTriples).map(Collection::stream).flatMap(Function.identity()).collect(Collectors.toSet()));
+        return new OWLTripleSet<>(res, triples);
     }
 
-    private static OWLAnnotation toOWLAnnotation(OntStatement s) {
-        return new OWLAnnotationImpl(getAnnotationProperty(s.getPredicate().as(OntNAP.class)), getAnnotationValue(s.getObject()), annotations(s));
-    }
 }

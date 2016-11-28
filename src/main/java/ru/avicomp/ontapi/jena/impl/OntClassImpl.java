@@ -4,7 +4,6 @@ import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -29,11 +28,6 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
     @Override
     public Class<OntClass> getActualClass() {
         return OntClass.class;
-    }
-
-    @Override
-    public Resource getRDFType() {
-        return OWL2.Class;
     }
 
     @Override

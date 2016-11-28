@@ -24,7 +24,7 @@ public interface OntOPE extends OntPE {
      * anonymous triple "_:x owl:inverseOf PN"
      */
     interface Inverse extends OntOPE {
-
+        OntOPE getDirect();
     }
 
     OntOPE getInverseOf();

@@ -1,17 +1,20 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.vocabulary.RDF;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLObject;
 
-import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntObject;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 
 /**
@@ -36,8 +39,12 @@ class DeclarationTranslator extends AbstractSingleTripleTranslator<OWLDeclaratio
     }
 
     @Override
-    public Stream<OWLDeclarationAxiom> read(OntGraphModel model) {
-        List<OntEntity> entities = model.ontEntities().filter(OntEntity::isLocal).collect(Collectors.toList());
-        return entities.stream().map(e -> new OWLDeclarationAxiomImpl(RDF2OWLHelper.getEntity(e), RDF2OWLHelper.getBulkAnnotations(e)));
+    Map<OWLObject, OntStatement> find(OntGraphModel model) {
+        return model.ontEntities().filter(OntObject::isLocal).collect(Collectors.toMap(RDF2OWLHelper::getEntity, OntObject::getRoot));
+    }
+
+    @Override
+    OWLDeclarationAxiom create(OWLObject object, Set<OWLAnnotation> annotations) {
+        return new OWLDeclarationAxiomImpl((OWLEntity) object, annotations);
     }
 }
