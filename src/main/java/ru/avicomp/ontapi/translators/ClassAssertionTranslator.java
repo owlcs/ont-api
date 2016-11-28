@@ -18,7 +18,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionAxiomImpl;
 
 /**
- * creating individual (both named and anonymous):
+ * Creating individual (both named and anonymous):
  * pizza:France rdf:type owl:NamedIndividual, pizza:Country, owl:Thing.
  * <p>
  * Created by @szuev on 28.09.2016.
@@ -29,10 +29,11 @@ class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
         OntCE ce = OWL2RDFHelper.addClassExpression(model, axiom.getClassExpression());
         OWLIndividual individual = axiom.getIndividual();
         Resource subject = individual.isAnonymous() ?
-                OWL2RDFHelper.toResource(individual) :
+                OWL2RDFHelper.toResource(individual).inModel(model) :
                 OWL2RDFHelper.addIndividual(model, individual);
         model.add(subject, RDF.type, ce);
-        OWL2RDFHelper.addAnnotations(subject.inModel(model).as(OntIndividual.class), axiom.annotations());
+        OntIndividual res = subject.inModel(model).as(OntIndividual.class);
+        OWL2RDFHelper.addAnnotations(res.getStatement(RDF.type, ce), axiom.annotations());
     }
 
     @Override
