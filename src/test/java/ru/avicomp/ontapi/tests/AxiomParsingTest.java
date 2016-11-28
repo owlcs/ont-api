@@ -37,7 +37,11 @@ public class AxiomParsingTest {
                 , OWLAsymmetricObjectPropertyAxiom.class
                 , OWLSymmetricObjectPropertyAxiom.class
                 , OWLTransitiveObjectPropertyAxiom.class
-                , OWLIrreflexiveObjectPropertyAxiom.class).forEach(view -> check(model, view));
+                , OWLIrreflexiveObjectPropertyAxiom.class
+                , OWLAnnotationAssertionAxiom.class
+                , OWLClassAssertionAxiom.class
+                , OWLSubClassOfAxiom.class
+        ).forEach(view -> check(model, view));
     }
 
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {

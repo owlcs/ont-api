@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
@@ -68,5 +69,10 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
     @Override
     public Stream<OntCE> disjointUnionOf() {
         return rdfList(OWL2.disjointUnionOf, OntCE.class);
+    }
+
+    @Override
+    public OntStatement getRoot() {
+        return getRoot(RDF.type, OWL2.Class);
     }
 }

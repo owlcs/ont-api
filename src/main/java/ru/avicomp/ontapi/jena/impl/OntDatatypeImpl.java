@@ -2,8 +2,11 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntDT;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * rdfs:Datatype
@@ -25,4 +28,10 @@ public class OntDatatypeImpl extends OntEntityImpl implements OntDT {
     public boolean isBuiltIn() {
         return BUILT_IN_DATATYPES.contains(this);
     }
+
+    @Override
+    public OntStatement getRoot() {
+        return getRoot(RDF.type, RDFS.Datatype);
+    }
+
 }

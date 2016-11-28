@@ -10,6 +10,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -54,6 +55,11 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         @Override
         public Property inModel(Model m) {
             return getModel() == m ? this : m.createProperty(getURI());
+        }
+
+        @Override
+        public OntStatement getRoot() {
+            return getRoot(RDF.type, OWL2.ObjectProperty);
         }
     }
 

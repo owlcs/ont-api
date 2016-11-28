@@ -62,6 +62,11 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
+    protected OntPersonality getPersonality() {
+        return (OntPersonality) super.getPersonality();
+    }
+
+    @Override
     public OntID getID() {
         List<Resource> prev = ontologyStatements().collect(Collectors.toList());
         Resource res;
@@ -194,6 +199,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return getBaseModel().write(out, lang, base);
     }
 
+    @Override
     public boolean isInBaseModel(Statement stmt) {
         return isInBaseModel(stmt.getSubject(), stmt.getPredicate(), stmt.getObject());
     }
@@ -264,8 +270,18 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    protected OntPersonality getPersonality() {
-        return (OntPersonality) super.getPersonality();
+    public Stream<OntStatement> statements() {
+        return JenaUtils.asStream(listStatements()).map(s -> toOntStatement(null, s));
+    }
+
+    protected OntStatement toOntStatement(OntStatement main, Statement st) {
+        if (st.equals(main)) return main;
+        if (main != null && st.getPredicate().canAs(OntNAP.class)) {
+            // if subject is anon -> general annotation wrapper.
+            return main.getSubject().isURIResource() ? new OntStatementImpl.AssertionAnnotationImpl(main, st.getPredicate().as(OntNAP.class), st.getObject()) :
+                    new OntStatementImpl.CommonAnnotationImpl(main.getSubject(), st.getPredicate().as(OntNAP.class), st.getObject(), main.getModel());
+        }
+        return new OntStatementImpl(st.getSubject(), st.getPredicate(), st.getObject(), this);
     }
 
     @Override

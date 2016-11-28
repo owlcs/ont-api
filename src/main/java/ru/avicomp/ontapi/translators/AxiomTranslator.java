@@ -2,6 +2,7 @@ package ru.avicomp.ontapi.translators;
 
 import java.util.Set;
 
+import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import ru.avicomp.ontapi.OntApiException;
@@ -21,6 +22,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     public Set<OWLTripleSet<Axiom>> read(OntGraphModel model) {
         //TODO: implement body
         throw new OntApiException.Unsupported(getClass(), "read");
+    }
+
+    OWLTripleSet<Axiom> wrap(Axiom axiom, Set<Triple> triples) {
+        return new OWLTripleSet<>(axiom, triples);
     }
 
 }

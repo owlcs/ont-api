@@ -21,7 +21,8 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 /**
- * to work with {@link org.apache.jena.rdf.model.Model}
+ * helper to work with jena
+ *
  * Created by szuev on 20.10.2016.
  */
 public class JenaUtils {
@@ -117,7 +118,7 @@ public class JenaUtils {
     }
 
     private static <T> Stream<T> constants(Class vocabulary, Class<T> type) {
-        return fields(vocabulary, type).map(field -> getValue(field, type)).filter(v -> v != null);
+        return fields(vocabulary, type).map(field -> getValue(field, type)).filter(Objects::nonNull);
     }
 
     private static <T> T getValue(Field field, Class<T> type) {
@@ -142,4 +143,11 @@ public class JenaUtils {
         return distinct ? res.distinct() : res;
     }
 
+    public static Set<Statement> getAssociatedStatements(Resource inModel) {
+        Set<Statement> statements = inModel.listProperties().toSet();
+        Set<Statement> res = new HashSet<>(statements);
+        statements.stream().map(Statement::getObject).filter(RDFNode::isAnon).map(RDFNode::asResource)
+                .forEach(r -> res.addAll(getAssociatedStatements(r)));
+        return res;
+    }
 }

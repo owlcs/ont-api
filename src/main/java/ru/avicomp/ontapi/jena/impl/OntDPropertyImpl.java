@@ -6,10 +6,12 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntNPA;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * owl:DatatypeProperty
@@ -50,4 +52,10 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
     public Property inModel(Model m) {
         return getModel() == m ? this : m.createProperty(getURI());
     }
+
+    @Override
+    public OntStatement getRoot() {
+        return getRoot(RDF.type, OWL2.DatatypeProperty);
+    }
+
 }

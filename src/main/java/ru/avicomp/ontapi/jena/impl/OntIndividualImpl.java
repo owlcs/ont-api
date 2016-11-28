@@ -6,6 +6,8 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -48,6 +50,11 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         @Override
         public boolean isBuiltIn() {
             return false;
+        }
+
+        @Override
+        public OntStatement getRoot() {
+            return getRoot(RDF.type, OWL2.NamedIndividual);
         }
     }
 

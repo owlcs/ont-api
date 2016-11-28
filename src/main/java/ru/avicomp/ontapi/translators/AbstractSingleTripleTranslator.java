@@ -47,14 +47,8 @@ abstract class AbstractSingleTripleTranslator<Axiom extends OWLAxiom> extends Ax
         Map<OWLObject, OntStatement> map = find(model);
         Set<OWLTripleSet<Axiom>> res = new HashSet<>();
         for (OWLObject key : map.keySet()) {
-            Set<Triple> triples = new HashSet<>();
-            triples.add(map.get(key).asTriple());
-            Set<OWLAnnotation> annotations = new HashSet<>();
-            RDF2OWLHelper.getBulkAnnotations(map.get(key)).forEach(a -> {
-                triples.addAll(a.getTriples());
-                annotations.add(a.getObject());
-            });
-            res.add(createAndWrap(key, annotations, triples));
+            RDF2OWLHelper.StatementContent content = new RDF2OWLHelper.StatementContent(map.get(key));
+            res.add(createAndWrap(key, content.getAnnotations(), content.getTriples()));
         }
         return res;
     }
@@ -64,6 +58,6 @@ abstract class AbstractSingleTripleTranslator<Axiom extends OWLAxiom> extends Ax
     abstract Axiom create(OWLObject object, Set<OWLAnnotation> annotations);
 
     private OWLTripleSet<Axiom> createAndWrap(OWLObject object, Set<OWLAnnotation> annotations, Set<Triple> triples) {
-        return new OWLTripleSet<>(create(object, annotations), triples);
+        return wrap(create(object, annotations), triples);
     }
 }

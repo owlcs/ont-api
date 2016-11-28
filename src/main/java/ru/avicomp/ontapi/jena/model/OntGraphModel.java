@@ -7,6 +7,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 
@@ -44,6 +45,10 @@ public interface OntGraphModel extends Model {
     Stream<OntEntity> ontEntities();
 
     <E extends OntEntity> Stream<E> ontEntities(Class<E> type);
+
+    Stream<OntStatement> statements();
+
+    boolean isInBaseModel(Statement statement);
 
     void removeOntObject(OntObject obj);
 

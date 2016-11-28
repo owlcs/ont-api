@@ -17,7 +17,6 @@ import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
-import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -92,6 +91,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return types.isEmpty() ? null : new OntStatementImpl.RootImpl(this, RDF.type, types.get(0), getModel());
     }
 
+    protected OntStatement getRoot(Property property, Resource type) {
+        return hasProperty(property, type) ? new OntStatementImpl.RootImpl(this, property, type, getModel()) : null;
+    }
+
     @Override
     public boolean isLocal() {
         return getModel().isInBaseModel(OntJenaException.notNull(getRoot(), "Null main statement."));
@@ -113,7 +116,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 OntJenaException.notNull(property, "Null property."),
                 OntJenaException.notNull(value, "Null value."));
         getModel().add(st);
-        return toOntStatement(getRoot(), st);
+        return getModel().toOntStatement(getRoot(), st);
     }
 
     @Override
@@ -129,17 +132,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public Stream<OntStatement> statements() {
         OntStatement main = getRoot();
-        return JenaUtils.asStream(listProperties()).map(s -> toOntStatement(main, s));
-    }
-
-    private OntStatement toOntStatement(OntStatement main, Statement st) {
-        if (st.equals(main)) return main;
-        if (main != null && st.getPredicate().canAs(OntNAP.class)) {
-            // if subject is anon -> general annotation wrapper.
-            return main.getSubject().isURIResource() ? new OntStatementImpl.AssertionAnnotationImpl(main, st.getPredicate().as(OntNAP.class), st.getObject()) :
-                    new OntStatementImpl.CommonAnnotationImpl(main.getSubject(), st.getPredicate().as(OntNAP.class), st.getObject(), main.getModel());
-        }
-        return new OntStatementImpl(st.getSubject(), st.getPredicate(), st.getObject(), getModel());
+        return JenaUtils.asStream(listProperties()).map(s -> getModel().toOntStatement(main, s));
     }
 
     /**
