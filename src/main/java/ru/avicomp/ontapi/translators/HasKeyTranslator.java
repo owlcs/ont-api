@@ -1,11 +1,19 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.vocabulary.OWL2;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLHasKeyAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
+
+import ru.avicomp.ontapi.jena.model.OntCE;
+import ru.avicomp.ontapi.jena.model.OntStatement;
+import uk.ac.manchester.cs.owl.owlapi.OWLHasKeyAxiomImpl;
 
 /**
  * base class : {@link AbstractSubChainedTranslator}
@@ -15,19 +23,31 @@ import org.semanticweb.owlapi.model.OWLObject;
  * <p>
  * Created by @szuev on 17.10.2016.
  */
-class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom> {
+class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntCE> {
     @Override
-    public OWLObject getSubject(OWLHasKeyAxiom axiom) {
+    OWLObject getSubject(OWLHasKeyAxiom axiom) {
         return axiom.getClassExpression();
     }
 
     @Override
-    public Property getPredicate() {
+    Property getPredicate() {
         return OWL2.hasKey;
     }
 
     @Override
-    public Stream<? extends OWLObject> getObjects(OWLHasKeyAxiom axiom) {
+    Stream<? extends OWLObject> getObjects(OWLHasKeyAxiom axiom) {
         return axiom.propertyExpressions();
+    }
+
+    @Override
+    Class<OntCE> getView() {
+        return OntCE.class;
+    }
+
+    @Override
+    OWLHasKeyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
+        OntCE subject = statement.getSubject().as(OntCE.class);
+        Set<OWLPropertyExpression> properties = subject.hasKey().map(RDF2OWLHelper::getProperty).collect(Collectors.toSet());
+        return new OWLHasKeyAxiomImpl(RDF2OWLHelper.getClassExpression(subject), properties, annotations);
     }
 }

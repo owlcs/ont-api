@@ -37,7 +37,7 @@ public interface OntSWRL extends OntObject {
     }
 
     /**
-     * wrapper for Literal and OntIndividual
+     * wrapper for OntIndividual and Variable
      */
     interface IArg extends Arg {
     }

@@ -14,11 +14,11 @@ public interface OntOPE extends OntPE {
 
     OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
 
-    OntStatement addSubPropertiesOf(Stream<OntOPE> chain);
+    OntStatement addSuperPropertyOf(Stream<OntOPE> chain);
 
-    void removeSubPropertiesOf();
+    void removeSuperPropertyOf();
 
-    Stream<OntOPE> subPropertiesOf();
+    Stream<OntOPE> superPropertyOf();
 
     /**
      * anonymous triple "_:x owl:inverseOf PN"

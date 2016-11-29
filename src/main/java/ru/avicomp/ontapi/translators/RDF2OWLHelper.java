@@ -33,6 +33,8 @@ import uk.ac.manchester.cs.owl.owlapi.*;
  */
 public class RDF2OWLHelper {
 
+    public static final OWLDataFactory OWL_DATA_FACTORY = new OWLDataFactoryImpl();
+
     public static OWLEntity getEntity(OntEntity entity) {
         IRI iri = IRI.create(OntApiException.notNull(entity, "Null entity.").getURI());
         if (OntClass.class.isInstance(entity)) {
@@ -91,6 +93,19 @@ public class RDF2OWLHelper {
             return getAnonymousIndividual(node.as(OntIndividual.Anonymous.class));
         }
         throw new OntApiException("Not an OWLAnnotationValue " + node);
+    }
+
+    public static OWLPropertyExpression getProperty(OntPE property) {
+        if (OntApiException.notNull(property, "Null property.").canAs(OntNAP.class)) {
+            return RDF2OWLHelper.getAnnotationProperty(property.as(OntNAP.class));
+        }
+        if (property.canAs(OntNDP.class)) {
+            return RDF2OWLHelper.getDataProperty(property.as(OntNDP.class));
+        }
+        if (property.canAs(OntOPE.class)) {
+            return RDF2OWLHelper.getObjectProperty(property.as(OntOPE.class));
+        }
+        throw new OntApiException("Unsupported property " + property);
     }
 
     public static OWLAnnotationProperty getAnnotationProperty(OntNAP nap) {
@@ -282,6 +297,70 @@ public class RDF2OWLHelper {
             return new OWLObjectComplementOfImpl(getClassExpression(_ce.getValue()));
         }
         throw new OntApiException("Unsupported class expression " + ce);
+    }
+
+    public static SWRLVariable getSWRLVariable(OntSWRL.Variable var) {
+        if (!OntApiException.notNull(var, "Null swrl var").isURIResource()) {
+            throw new OntApiException("Anonymous swrl var " + var);
+        }
+        // not public access:
+        return OWL_DATA_FACTORY.getSWRLVariable(IRI.create(var.getURI()));
+    }
+
+    public static SWRLDArgument getSWRLiteralDArg(OntSWRL.DArg arg) {
+        if (OntApiException.notNull(arg, "Null SWRL-D arg").isLiteral()) {
+            return new SWRLLiteralArgumentImpl(getLiteral(arg.asLiteral()));
+        }
+        if (arg.canAs(OntSWRL.Variable.class)) {
+            return getSWRLVariable(arg.as(OntSWRL.Variable.class));
+        }
+        throw new OntApiException("Unsupported SWRL-D arg " + arg);
+    }
+
+    public static SWRLIArgument getSWRLIndividualArg(OntSWRL.IArg arg) {
+        if (OntApiException.notNull(arg, "Null SWRL-I arg").canAs(OntIndividual.class)) {
+            return new SWRLIndividualArgumentImpl(getIndividual(arg.as(OntIndividual.class)));
+        }
+        if (arg.canAs(OntSWRL.Variable.class)) {
+            return getSWRLVariable(arg.as(OntSWRL.Variable.class));
+        }
+        throw new OntApiException("Unsupported SWRL-I arg " + arg);
+    }
+
+    public static SWRLAtom getSWRLAtom(OntSWRL.Atom atom) {
+        OntApiException.notNull(atom, "Null SWRL atom");
+        if (OntSWRL.Atom.BuiltIn.class.isInstance(atom)) {
+            OntSWRL.Atom.BuiltIn a = (OntSWRL.Atom.BuiltIn) atom;
+            IRI i = IRI.create(a.getPredicate().getURI());
+            return new SWRLBuiltInAtomImpl(i, a.arguments().map(RDF2OWLHelper::getSWRLiteralDArg).collect(Collectors.toList()));
+        }
+        if (OntSWRL.Atom.OntClass.class.isInstance(atom)) {
+            OntSWRL.Atom.OntClass a = (OntSWRL.Atom.OntClass) atom;
+            return new SWRLClassAtomImpl(getClassExpression(a.getPredicate()), getSWRLIndividualArg(a.getArg()));
+        }
+        if (OntSWRL.Atom.DataProperty.class.isInstance(atom)) {
+            OntSWRL.Atom.DataProperty a = (OntSWRL.Atom.DataProperty) atom;
+            return new SWRLDataPropertyAtomImpl(getDataProperty(a.getPredicate()), getSWRLIndividualArg(a.getFirstArg()), getSWRLiteralDArg(a.getSecondArg()));
+        }
+        if (OntSWRL.Atom.ObjectProperty.class.isInstance(atom)) {
+            OntSWRL.Atom.ObjectProperty a = (OntSWRL.Atom.ObjectProperty) atom;
+            return new SWRLObjectPropertyAtomImpl(getObjectProperty(a.getPredicate()), getSWRLIndividualArg(a.getFirstArg()), getSWRLIndividualArg(a.getSecondArg()));
+        }
+        if (OntSWRL.Atom.DataRange.class.isInstance(atom)) {
+            OntSWRL.Atom.DataRange a = (OntSWRL.Atom.DataRange) atom;
+            return new SWRLDataRangeAtomImpl(getDataRange(a.getPredicate()), getSWRLiteralDArg(a.getArg()));
+        }
+        if (OntSWRL.Atom.DifferentIndividuals.class.isInstance(atom)) {
+            OntSWRL.Atom.DifferentIndividuals a = (OntSWRL.Atom.DifferentIndividuals) atom;
+            OWLObjectProperty property = getObjectProperty(a.getPredicate().as(OntNOP.class)).getNamedProperty();
+            return new SWRLDifferentIndividualsAtomImpl(property, getSWRLIndividualArg(a.getFirstArg()), getSWRLIndividualArg(a.getSecondArg()));
+        }
+        if (OntSWRL.Atom.SameIndividuals.class.isInstance(atom)) {
+            OntSWRL.Atom.SameIndividuals a = (OntSWRL.Atom.SameIndividuals) atom;
+            OWLObjectProperty property = getObjectProperty(a.getPredicate().as(OntNOP.class)).getNamedProperty();
+            return new SWRLSameIndividualAtomImpl(property, getSWRLIndividualArg(a.getFirstArg()), getSWRLIndividualArg(a.getSecondArg()));
+        }
+        throw new OntApiException("Unsupported SWRL atom " + atom);
     }
 
     /**
