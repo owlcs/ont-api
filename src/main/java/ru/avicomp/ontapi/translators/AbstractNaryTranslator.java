@@ -35,5 +35,5 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<? ex
         axiom.asPairwiseAxioms().forEach(a -> process(axiom, a, model));
     }
 
-    public abstract Property getPredicate();
+    abstract Property getPredicate();
 }

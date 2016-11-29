@@ -15,17 +15,17 @@ import org.semanticweb.owlapi.model.OWLDisjointDataPropertiesAxiom;
  */
 class DisjointDataPropertiesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointDataPropertiesAxiom> {
     @Override
-    public Property getPredicate() {
+    Property getPredicate() {
         return OWL2.propertyDisjointWith;
     }
 
     @Override
-    public Resource getMembersType() {
+    Resource getMembersType() {
         return OWL2.AllDisjointProperties;
     }
 
     @Override
-    public Property getMembersPredicate() {
+    Property getMembersPredicate() {
         return OWL2.members;
     }
 }

@@ -61,6 +61,9 @@ public class AxiomParsingTest {
 
                 , OWLDatatypeDefinitionAxiom.class
 
+                , OWLNegativeDataPropertyAssertionAxiom.class
+                , OWLNegativeObjectPropertyAssertionAxiom.class
+
                 , SWRLRule.class
         ).forEach(view -> check(model, view));
     }

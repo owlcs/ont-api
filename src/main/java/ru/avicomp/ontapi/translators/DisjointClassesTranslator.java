@@ -16,17 +16,17 @@ import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
  */
 class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom> {
     @Override
-    public Property getPredicate() {
+    Property getPredicate() {
         return OWL2.disjointWith;
     }
 
     @Override
-    public Resource getMembersType() {
+    Resource getMembersType() {
         return OWL2.AllDisjointClasses;
     }
 
     @Override
-    public Property getMembersPredicate() {
+    Property getMembersPredicate() {
         return OWL2.members;
     }
 }

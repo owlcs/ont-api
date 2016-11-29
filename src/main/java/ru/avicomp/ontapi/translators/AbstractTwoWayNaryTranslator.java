@@ -43,9 +43,9 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
         }
     }
 
-    public abstract Property getPredicate();
+    abstract Property getPredicate();
 
-    public abstract Resource getMembersType();
+    abstract Resource getMembersType();
 
-    public abstract Property getMembersPredicate();
+    abstract Property getMembersPredicate();
 }

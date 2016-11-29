@@ -15,17 +15,17 @@ import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
  */
 class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDifferentIndividualsAxiom> {
     @Override
-    public Property getPredicate() {
+    Property getPredicate() {
         return OWL2.differentFrom;
     }
 
     @Override
-    public Resource getMembersType() {
+    Resource getMembersType() {
         return OWL2.AllDifferent;
     }
 
     @Override
-    public Property getMembersPredicate() {
+    Property getMembersPredicate() {
         return OWL2.distinctMembers;
     }
 }
