@@ -1,15 +1,15 @@
 package ru.avicomp.ontapi.translators;
 
 import java.util.Set;
-import java.util.stream.Stream;
 
-import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 
-import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.model.OntCE;
+import ru.avicomp.ontapi.jena.model.OntOPE;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyRangeAxiomImpl;
 
 /**
@@ -17,16 +17,16 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyRangeAxiomImpl;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class ObjectPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLObjectPropertyRangeAxiom> {
+class ObjectPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLObjectPropertyRangeAxiom, OntOPE> {
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
-        return statements(model, OntOPE.class);
+    Class<OntOPE> getView() {
+        return OntOPE.class;
     }
 
     @Override
-    OWLObjectPropertyRangeAxiom create(OntPE property, Resource range, Set<OWLAnnotation> annotations) {
-        OWLObjectPropertyExpression p = RDF2OWLHelper.getObjectProperty(property.as(OntOPE.class));
-        OWLClassExpression ce = RDF2OWLHelper.getClassExpression(range.as(OntCE.class));
+    OWLObjectPropertyRangeAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
+        OWLObjectPropertyExpression p = RDF2OWLHelper.getObjectProperty(statement.getSubject().as(OntOPE.class));
+        OWLClassExpression ce = RDF2OWLHelper.getClassExpression(statement.getObject().as(OntCE.class));
         return new OWLObjectPropertyRangeAxiomImpl(p, ce, annotations);
     }
 }

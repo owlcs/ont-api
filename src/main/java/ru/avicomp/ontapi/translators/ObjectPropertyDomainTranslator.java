@@ -1,15 +1,15 @@
 package ru.avicomp.ontapi.translators;
 
 import java.util.Set;
-import java.util.stream.Stream;
 
-import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
-import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.model.OntCE;
+import ru.avicomp.ontapi.jena.model.OntOPE;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyDomainAxiomImpl;
 
 /**
@@ -17,17 +17,16 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyDomainAxiomImpl;
  * <p>
  * Created by @szuev on 29.09.2016.
  */
-class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLObjectPropertyDomainAxiom> {
-
+class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLObjectPropertyDomainAxiom, OntOPE> {
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
-        return statements(model, OntOPE.class);
+    Class<OntOPE> getView() {
+        return OntOPE.class;
     }
 
     @Override
-    OWLObjectPropertyDomainAxiom create(OntPE property, Resource domain, Set<OWLAnnotation> annotations) {
-        OWLObjectPropertyExpression p = RDF2OWLHelper.getObjectProperty(property.as(OntOPE.class));
-        OWLClassExpression ce = RDF2OWLHelper.getClassExpression(domain.as(OntCE.class));
+    OWLObjectPropertyDomainAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
+        OWLObjectPropertyExpression p = RDF2OWLHelper.getObjectProperty(statement.getSubject().as(OntOPE.class));
+        OWLClassExpression ce = RDF2OWLHelper.getClassExpression(statement.getObject().as(OntCE.class));
         return new OWLObjectPropertyDomainAxiomImpl(p, ce, annotations);
     }
 }

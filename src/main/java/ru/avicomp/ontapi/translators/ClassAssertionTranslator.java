@@ -1,12 +1,12 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -37,19 +37,17 @@ class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
     }
 
     @Override
-    public Set<OWLTripleSet<OWLClassAssertionAxiom>> read(OntGraphModel model) {
-        Stream<OntStatement> assertions = model.ontObjects(OntIndividual.class)
+    Stream<OntStatement> statements(OntGraphModel model) {
+        return model.ontObjects(OntIndividual.class)
                 .map(i -> i.classes().map(ce -> i.getStatement(RDF.type, ce)))
                 .flatMap(Function.identity())
                 .filter(OntStatement::isLocal);
-        Set<OWLTripleSet<OWLClassAssertionAxiom>> res = new HashSet<>();
-        assertions.forEach(s -> {
-            RDF2OWLHelper.StatementContent content = new RDF2OWLHelper.StatementContent(s);
-            OWLIndividual i = RDF2OWLHelper.getIndividual(s.getSubject().as(OntIndividual.class));
-            OWLClassExpression ce = RDF2OWLHelper.getClassExpression(s.getObject().as(OntCE.class));
-            OWLClassAssertionAxiom axiom = new OWLClassAssertionAxiomImpl(i, ce, content.getAnnotations());
-            res.add(wrap(axiom, content.getTriples()));
-        });
-        return res;
+    }
+
+    @Override
+    OWLClassAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
+        OWLIndividual i = RDF2OWLHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
+        OWLClassExpression ce = RDF2OWLHelper.getClassExpression(statement.getObject().as(OntCE.class));
+        return new OWLClassAssertionAxiomImpl(i, ce, annotations);
     }
 }

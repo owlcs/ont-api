@@ -124,41 +124,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public boolean isInverseFunctional() {
-        return hasType(OWL2.InverseFunctionalProperty);
-    }
-
-    @Override
-    public boolean isTransitive() {
-        return hasType(OWL2.TransitiveProperty);
-    }
-
-    @Override
-    public boolean isFunctional() {
-        return hasType(OWL2.FunctionalProperty);
-    }
-
-    @Override
-    public boolean isSymmetric() {
-        return hasType(OWL2.SymmetricProperty);
-    }
-
-    @Override
-    public boolean isAsymmetric() {
-        return hasType(OWL2.AsymmetricProperty);
-    }
-
-    @Override
-    public boolean isReflexive() {
-        return hasType(OWL2.ReflexiveProperty);
-    }
-
-    @Override
-    public boolean isIrreflexive() {
-        return hasType(OWL2.IrreflexiveProperty);
-    }
-
-    @Override
     public void setFunctional(boolean functional) {
         changeType(OWL2.FunctionalProperty, functional);
     }

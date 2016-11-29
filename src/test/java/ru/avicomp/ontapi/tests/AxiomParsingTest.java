@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.tests;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -13,7 +14,6 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
-import ru.avicomp.ontapi.translators.OWLTripleSet;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
@@ -53,10 +53,10 @@ public class AxiomParsingTest {
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {
         LOGGER.debug("=========================");
         LOGGER.info(view.getSimpleName() + ":");
-        Set<OWLTripleSet<Axiom>> axioms = AxiomParserProvider.get(view).read(model);
-        axioms.forEach(a -> {
-            Axiom axiom = a.getObject();
-            Set<Triple> triples = a.getTriples();
+        Map<Axiom, Set<Triple>> axioms = AxiomParserProvider.get(view).read(model);
+        axioms.entrySet().forEach(e -> {
+            Axiom axiom = e.getKey();
+            Set<Triple> triples = e.getValue();
             Assert.assertNotNull("Null axiom", axiom);
             Assert.assertTrue("No associated triples", triples != null && !triples.isEmpty());
             LOGGER.debug(axiom + " " + triples);

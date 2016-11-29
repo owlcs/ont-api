@@ -31,31 +31,17 @@ public interface OntOPE extends OntPE {
 
     void setReflexive(boolean reflexive);
 
-    boolean isReflexive();
-
     void setIrreflexive(boolean irreflexive);
-
-    boolean isIrreflexive();
 
     void setSymmetric(boolean symmetric);
 
-    boolean isSymmetric();
-
     void setAsymmetric(boolean asymmetric);
-
-    boolean isAsymmetric();
 
     void setTransitive(boolean transitive);
 
-    boolean isTransitive();
-
     void setFunctional(boolean functional);
 
-    boolean isFunctional();
-
     void setInverseFunctional(boolean inverseFunctional);
-
-    boolean isInverseFunctional();
 
     default Stream<OntNPA.ObjectAssertion> negativeAssertions() {
         return getModel().ontObjects(OntNPA.ObjectAssertion.class).filter(a -> OntOPE.this.equals(a.getProperty()));
@@ -122,5 +108,33 @@ public interface OntOPE extends OntPE {
 
     default OntStatement addSubPropertyOf(OntOPE superProperty) {
         return addStatement(RDFS.subPropertyOf, superProperty);
+    }
+
+    default boolean isInverseFunctional() {
+        return hasType(OWL2.InverseFunctionalProperty);
+    }
+
+    default boolean isTransitive() {
+        return hasType(OWL2.TransitiveProperty);
+    }
+
+    default boolean isFunctional() {
+        return hasType(OWL2.FunctionalProperty);
+    }
+
+    default boolean isSymmetric() {
+        return hasType(OWL2.SymmetricProperty);
+    }
+
+    default boolean isAsymmetric() {
+        return hasType(OWL2.AsymmetricProperty);
+    }
+
+    default boolean isReflexive() {
+        return hasType(OWL2.ReflexiveProperty);
+    }
+
+    default boolean isIrreflexive() {
+        return hasType(OWL2.IrreflexiveProperty);
     }
 }

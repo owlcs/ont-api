@@ -120,17 +120,17 @@ public class RDF2OWLHelper {
         return new OWLDatatypeImpl(iri);
     }
 
-    public static Set<OWLTripleSet<OWLAnnotation>> getBulkAnnotations(OntObject object) {
+    public static Set<TripleSet<OWLAnnotation>> getBulkAnnotations(OntObject object) {
         return getBulkAnnotations(OntApiException.notNull(object, "Null ont-object.").getRoot());
     }
 
-    public static Set<OWLTripleSet<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
+    public static Set<TripleSet<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
         return statement.annotations()
                 .filter(OntStatement::hasAnnotations)
                 .map(RDF2OWLHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
     }
 
-    private static OWLTripleSet<OWLAnnotation> getHierarchicalAnnotations(OntStatement a) {
+    private static TripleSet<OWLAnnotation> getHierarchicalAnnotations(OntStatement a) {
         OntObject ann = a.getSubject().as(OntObject.class);
         Set<Triple> triples = new HashSet<>();
         Stream.of(RDF.type, OWL2.annotatedSource, OWL2.annotatedProperty, OWL2.annotatedTarget)
@@ -139,10 +139,10 @@ public class RDF2OWLHelper {
 
         OWLAnnotationProperty p = getAnnotationProperty(a.getPredicate().as(OntNAP.class));
         OWLAnnotationValue v = getAnnotationValue(a.getObject());
-        Set<OWLTripleSet<OWLAnnotation>> children = a.annotations().map(RDF2OWLHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
-        OWLAnnotation res = new OWLAnnotationImpl(p, v, children.stream().map(OWLTripleSet::getObject));
-        triples.addAll(children.stream().map(OWLTripleSet::getTriples).map(Collection::stream).flatMap(Function.identity()).collect(Collectors.toSet()));
-        return new OWLTripleSet<>(res, triples);
+        Set<TripleSet<OWLAnnotation>> children = a.annotations().map(RDF2OWLHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
+        OWLAnnotation res = new OWLAnnotationImpl(p, v, children.stream().map(TripleSet::getObject));
+        triples.addAll(children.stream().map(TripleSet::getTriples).map(Collection::stream).flatMap(Function.identity()).collect(Collectors.toSet()));
+        return new TripleSet<>(res, triples);
     }
 
     public static Set<Triple> getAssociatedTriples(RDFNode root) {
@@ -284,16 +284,20 @@ public class RDF2OWLHelper {
         throw new OntApiException("Unsupported class expression " + ce);
     }
 
-    public static class StatementContent {
+    /**
+     * To find all related triples and annotations.
+     */
+    public static class StatementProcessor {
         private final OntStatement statement;
         private final Set<Triple> triples;
         private final Set<OWLAnnotation> annotations;
 
-        public StatementContent(OntStatement statement) {
+        public StatementProcessor(OntStatement statement) {
             this.statement = OntApiException.notNull(statement, "Null statement.");
             this.triples = new HashSet<>();
             this.annotations = new HashSet<>();
             triples.add(statement.asTriple());
+            triples.addAll(getAssociatedTriples(statement.getSubject())); // for anonymous axioms
             triples.addAll(getAssociatedTriples(statement.getObject()));
             getBulkAnnotations(statement).forEach(a -> {
                 triples.addAll(a.getTriples());
@@ -311,6 +315,54 @@ public class RDF2OWLHelper {
 
         public Set<OWLAnnotation> getAnnotations() {
             return annotations;
+        }
+    }
+
+    /**
+     * Container for OWLObject and associated with it set of rdf-triples.
+     * <p>
+     * Created by @szuev on 27.11.2016.
+     */
+    public static class TripleSet<O extends OWLObject> {
+        private final O object;
+        private final Set<Triple> triples;
+        private int hashCode;
+
+        public TripleSet(O object, Set<Triple> triples) {
+            this.object = object;
+            this.triples = Collections.unmodifiableSet(triples);
+        }
+
+        public TripleSet(O object) {
+            this.object = object;
+            this.triples = Collections.emptySet();
+        }
+
+        public TripleSet(O object, Triple triple) {
+            this.object = object;
+            this.triples = Collections.singleton(triple);
+        }
+
+        public O getObject() {
+            return object;
+        }
+
+        public Set<Triple> getTriples() {
+            return triples;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            TripleSet<?> that = (TripleSet<?>) o;
+            return object.equals(that.object);
+        }
+
+        @Override
+        public int hashCode() {
+            if (hashCode != 0) return hashCode;
+            return hashCode = object.hashCode();
         }
     }
 }

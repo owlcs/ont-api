@@ -1,13 +1,9 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationSubject;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -30,21 +26,19 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
     }
 
     @Override
-    public Set<OWLTripleSet<OWLAnnotationAssertionAxiom>> read(OntGraphModel model) {
-        Stream<OntStatement> assertions = model.statements()
+    Stream<OntStatement> statements(OntGraphModel model) {
+        return model.statements()
                 .filter(OntStatement::isLocal)
                 .filter(OntStatement::isAnnotation)
                 .filter(s -> s.getSubject().isURIResource() || s.getSubject().canAs(OntIndividual.Anonymous.class));
-        Set<OWLTripleSet<OWLAnnotationAssertionAxiom>> res = new HashSet<>();
-        assertions.forEach(assertion -> {
-            RDF2OWLHelper.StatementContent content = new RDF2OWLHelper.StatementContent(assertion);
-
-            OWLAnnotationSubject subject = RDF2OWLHelper.getAnnotationSubject(assertion.getSubject());
-            OWLAnnotationProperty property = RDF2OWLHelper.getAnnotationProperty(assertion.getPredicate().as(OntNAP.class));
-            OWLAnnotationValue value = RDF2OWLHelper.getAnnotationValue(assertion.getObject());
-
-            res.add(wrap(new OWLAnnotationAssertionAxiomImpl(subject, property, value, content.getAnnotations()), content.getTriples()));
-        });
-        return res;
     }
+
+    @Override
+    OWLAnnotationAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
+        OWLAnnotationSubject subject = RDF2OWLHelper.getAnnotationSubject(statement.getSubject());
+        OWLAnnotationProperty property = RDF2OWLHelper.getAnnotationProperty(statement.getPredicate().as(OntNAP.class));
+        OWLAnnotationValue value = RDF2OWLHelper.getAnnotationValue(statement.getObject());
+        return new OWLAnnotationAssertionAxiomImpl(subject, property, value, annotations);
+    }
+
 }

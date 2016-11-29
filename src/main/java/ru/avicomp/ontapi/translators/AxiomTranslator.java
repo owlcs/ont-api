@@ -1,15 +1,19 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
- * TODO: add way to extract an Axiom collection from GraphModel into + change signature of direct method.
  * Base class for any Axiom Graph Translator (operator 'T').
  * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>
  * <p>
@@ -19,13 +23,20 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     public abstract void write(Axiom axiom, OntGraphModel model);
 
-    public Set<OWLTripleSet<Axiom>> read(OntGraphModel model) {
-        //TODO: implement body
-        throw new OntApiException.Unsupported(getClass(), "read");
+    Stream<OntStatement> statements(OntGraphModel model) {
+        //todo:
+        throw new OntApiException.Unsupported(getClass(), "statements");
     }
 
-    OWLTripleSet<Axiom> wrap(Axiom axiom, Set<Triple> triples) {
-        return new OWLTripleSet<>(axiom, triples);
+    Axiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
+        //todo:
+        throw new OntApiException.Unsupported(getClass(), "create");
     }
 
+    public Map<Axiom, Set<Triple>> read(OntGraphModel model) {
+        return statements(model)
+                .map(RDF2OWLHelper.StatementProcessor::new)
+                .collect(Collectors.toMap(c -> create(c.getStatement(), c.getAnnotations()),
+                        RDF2OWLHelper.StatementProcessor::getTriples));
+    }
 }

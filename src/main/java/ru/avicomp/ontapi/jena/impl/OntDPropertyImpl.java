@@ -39,11 +39,6 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
     }
 
     @Override
-    public boolean isFunctional() {
-        return hasType(OWL2.FunctionalProperty);
-    }
-
-    @Override
     public boolean isBuiltIn() {
         return BUILT_IN_DATA_PROPERTIES.contains(this);
     }

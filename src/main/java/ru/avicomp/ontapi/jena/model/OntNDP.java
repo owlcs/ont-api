@@ -18,7 +18,9 @@ public interface OntNDP extends OntPE, OntEntity, Property {
 
     void setFunctional(boolean functional);
 
-    boolean isFunctional();
+    default boolean isFunctional() {
+        return hasType(OWL2.FunctionalProperty);
+    }
 
     @Override
     default Stream<OntCE> domain() {

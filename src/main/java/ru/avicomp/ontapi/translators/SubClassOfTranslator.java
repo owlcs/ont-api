@@ -1,11 +1,11 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
@@ -28,19 +28,17 @@ class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public Set<OWLTripleSet<OWLSubClassOfAxiom>> read(OntGraphModel model) {
-        Stream<OntStatement> statements = model.ontObjects(OntCE.class)
+    Stream<OntStatement> statements(OntGraphModel model) {
+        return model.ontObjects(OntCE.class)
                 .map(subj -> subj.subClassOf().map(obj -> subj.getStatement(RDFS.subClassOf, obj)))
                 .flatMap(Function.identity())
                 .filter(OntStatement::isLocal);
-        Set<OWLTripleSet<OWLSubClassOfAxiom>> res = new HashSet<>();
-        statements.forEach(s -> {
-            RDF2OWLHelper.StatementContent content = new RDF2OWLHelper.StatementContent(s);
-            OWLClassExpression sub = RDF2OWLHelper.getClassExpression(s.getSubject().as(OntCE.class));
-            OWLClassExpression sup = RDF2OWLHelper.getClassExpression(s.getObject().as(OntCE.class));
-            OWLSubClassOfAxiom axiom = new OWLSubClassOfAxiomImpl(sub, sup, content.getAnnotations());
-            res.add(wrap(axiom, content.getTriples()));
-        });
-        return res;
+    }
+
+    @Override
+    OWLSubClassOfAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
+        OWLClassExpression sub = RDF2OWLHelper.getClassExpression(statement.getSubject().as(OntCE.class));
+        OWLClassExpression sup = RDF2OWLHelper.getClassExpression(statement.getObject().as(OntCE.class));
+        return new OWLSubClassOfAxiomImpl(sub, sup, annotations);
     }
 }

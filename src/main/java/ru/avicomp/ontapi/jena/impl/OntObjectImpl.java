@@ -52,14 +52,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         super(n, m);
     }
 
-    public Stream<Resource> types() {
-        return objects(RDF.type, Resource.class);
-    }
-
-    boolean hasType(Resource type) {
-        return types().anyMatch(type::equals);
-    }
-
     OntStatement addType(Resource type) {
         return addStatement(RDF.type, OntJenaException.notNull(type, "Null rdf:type"));
     }

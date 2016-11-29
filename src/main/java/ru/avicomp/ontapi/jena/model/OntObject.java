@@ -9,6 +9,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 
@@ -75,6 +76,14 @@ public interface OntObject extends Resource {
      */
     default Stream<OntStatement> annotations() {
         return statements().map(OntStatement::annotations).flatMap(Function.identity());
+    }
+
+    default Stream<Resource> types() {
+        return objects(RDF.type, Resource.class);
+    }
+
+    default boolean hasType(Resource type) {
+        return types().anyMatch(type::equals);
     }
 
     /**
