@@ -7,7 +7,6 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
@@ -68,15 +67,15 @@ public class OWL2RDFHelper {
 
     public static Resource getType(OWLEntity entity) {
         if (entity.isOWLClass()) {
-            return OWL.Class;
+            return OWL2.Class;
         } else if (entity.isOWLDataProperty()) {
-            return OWL.DatatypeProperty;
+            return OWL2.DatatypeProperty;
         } else if (entity.isOWLObjectProperty()) {
-            return OWL.ObjectProperty;
+            return OWL2.ObjectProperty;
         } else if (entity.isOWLNamedIndividual()) {
             return OWL2.NamedIndividual;
         } else if (entity.isOWLAnnotationProperty()) {
-            return OWL.AnnotationProperty;
+            return OWL2.AnnotationProperty;
         } else if (entity.isOWLDatatype()) {
             return RDFS.Datatype;
         }

@@ -25,13 +25,13 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty, View extends OntPE> extends AxiomTranslator<Axiom> {
+abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty, P extends OntPE> extends AxiomTranslator<Axiom> {
 
     abstract Resource getType();
 
-    abstract Class<View> getView();
+    abstract Class<P> getView();
 
-    View getSubject(OntStatement s) {
+    P getSubject(OntStatement s) {
         return s.getSubject().as(getView());
     }
 

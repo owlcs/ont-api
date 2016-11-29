@@ -1,6 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -14,6 +14,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObjectPropertiesAxiom> {
     @Override
     public void write(OWLInverseObjectPropertiesAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(), axiom.annotations());
+        OWL2RDFHelper.writeTriple(model, axiom.getFirstProperty(), OWL2.inverseOf, axiom.getSecondProperty(), axiom.annotations());
     }
 }

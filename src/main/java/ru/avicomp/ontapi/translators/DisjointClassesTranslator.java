@@ -2,7 +2,6 @@ package ru.avicomp.ontapi.translators;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.OWL2;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 
@@ -18,7 +17,7 @@ import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom> {
     @Override
     public Property getPredicate() {
-        return OWL.disjointWith;
+        return OWL2.disjointWith;
     }
 
     @Override

@@ -2,7 +2,7 @@ package ru.avicomp.ontapi.translators;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
 
 /**
@@ -16,16 +16,16 @@ import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
 class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDifferentIndividualsAxiom> {
     @Override
     public Property getPredicate() {
-        return OWL.differentFrom;
+        return OWL2.differentFrom;
     }
 
     @Override
     public Resource getMembersType() {
-        return OWL.AllDifferent;
+        return OWL2.AllDifferent;
     }
 
     @Override
     public Property getMembersPredicate() {
-        return OWL.distinctMembers;
+        return OWL2.distinctMembers;
     }
 }

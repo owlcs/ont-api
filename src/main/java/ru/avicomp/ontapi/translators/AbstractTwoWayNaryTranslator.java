@@ -14,16 +14,17 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
  * This is for following axioms with two or more than two entities:
+ *
  * DisjointClasses ({@link DisjointClassesTranslator}),
  * DisjointObjectProperties ({@link DisjointObjectPropertiesTranslator}),
  * DisjointDataProperties ({@link DisjointDataPropertiesTranslator}),
  * DifferentIndividuals ({@link DifferentIndividualsTranslator}).
+ *
  * Each of these axioms could be written in two ways: as single triple (or sequence of single triples) or as special anonymous node with rdf:List inside.
  * <p>
  * Created by szuev on 12.10.2016.
  */
 abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<? extends IsAnonymous>> extends AxiomTranslator<Axiom> {
-
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
         long count = axiom.operands().count();

@@ -3,7 +3,7 @@ package ru.avicomp.ontapi.translators;
 import java.util.Set;
 
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 
@@ -25,7 +25,7 @@ class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<O
 
     @Override
     Resource getType() {
-        return OWL.SymmetricProperty;
+        return OWL2.SymmetricProperty;
     }
 
     @Override

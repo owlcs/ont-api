@@ -18,13 +18,13 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty & HasRange, View extends OntPE> extends AxiomTranslator<Axiom> {
+abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty & HasRange, P extends OntPE> extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntGraphModel graph) {
         OWL2RDFHelper.writeTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom.annotations());
     }
 
-    abstract Class<View> getView();
+    abstract Class<P> getView();
 
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(getView())

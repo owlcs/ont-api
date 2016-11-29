@@ -15,7 +15,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by @szuev on 18.10.2016.
  */
-abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, View extends OntObject> extends AxiomTranslator<Axiom> {
+abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, O extends OntObject> extends AxiomTranslator<Axiom> {
 
     abstract OWLObject getSubject(Axiom axiom);
 
@@ -23,7 +23,7 @@ abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, View 
 
     abstract Stream<? extends OWLObject> getObjects(Axiom axiom);
 
-    abstract Class<View> getView();
+    abstract Class<O> getView();
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {

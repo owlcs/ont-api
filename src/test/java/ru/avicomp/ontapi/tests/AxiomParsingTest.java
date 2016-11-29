@@ -28,7 +28,7 @@ public class AxiomParsingTest {
     public void simple() {
         Model m = ReadWriteUtils.loadFromTTL("pizza.ttl");
         OntGraphModel model = new OntGraphModelImpl(m.getGraph());
-        // 23(39):
+        // 27(39):
         Stream.of(OWLDeclarationAxiom.class
                 , OWLFunctionalDataPropertyAxiom.class
                 , OWLFunctionalObjectPropertyAxiom.class
@@ -54,6 +54,12 @@ public class AxiomParsingTest {
                 , OWLHasKeyAxiom.class
                 , OWLDisjointUnionAxiom.class
                 , OWLSubPropertyChainOfAxiom.class
+
+                , OWLSubAnnotationPropertyOfAxiom.class
+                , OWLSubObjectPropertyOfAxiom.class
+                , OWLSubDataPropertyOfAxiom.class
+
+                , OWLDatatypeDefinitionAxiom.class
 
                 , SWRLRule.class
         ).forEach(view -> check(model, view));

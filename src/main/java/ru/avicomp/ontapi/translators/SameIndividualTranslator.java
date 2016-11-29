@@ -1,7 +1,7 @@
 package ru.avicomp.ontapi.translators;
 
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 
 /**
@@ -14,6 +14,6 @@ import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualAxiom> {
     @Override
     public Property getPredicate() {
-        return OWL.sameAs;
+        return OWL2.sameAs;
     }
 }

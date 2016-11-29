@@ -1,9 +1,20 @@
 package ru.avicomp.ontapi.translators;
 
-import org.apache.jena.vocabulary.OWL;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import org.apache.jena.vocabulary.OWL2;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLDataRange;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
 
+import ru.avicomp.ontapi.jena.model.OntDR;
+import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntStatement;
+import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 
 /**
  * example:
@@ -14,6 +25,21 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
     @Override
     public void write(OWLDatatypeDefinitionAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom.annotations(), true);
+        OWL2RDFHelper.writeTriple(model, axiom.getDatatype(), OWL2.equivalentClass, axiom.getDataRange(), axiom.annotations(), true);
+    }
+
+    @Override
+    Stream<OntStatement> statements(OntGraphModel model) {
+        return model.ontObjects(OntDT.class)
+                .map(p -> p.equivalentClass().map(r -> p.getStatement(OWL2.equivalentClass, r)))
+                .flatMap(Function.identity())
+                .filter(OntStatement::isLocal);
+    }
+
+    @Override
+    OWLDatatypeDefinitionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
+        OWLDatatype dt = RDF2OWLHelper.getDatatype(statement.getSubject().as(OntDT.class));
+        OWLDataRange dr = RDF2OWLHelper.getDataRange(statement.getObject().as(OntDR.class));
+        return new OWLDatatypeDefinitionAxiomImpl(dt, dr, annotations);
     }
 }

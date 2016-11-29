@@ -1,7 +1,7 @@
 package ru.avicomp.ontapi.translators;
 
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.semanticweb.owlapi.model.OWLNaryPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
@@ -14,6 +14,6 @@ import org.semanticweb.owlapi.model.OWLPropertyExpression;
 abstract class AbstractEquivalentPropertiesTranslator<Axiom extends OWLNaryPropertyAxiom<? extends OWLPropertyExpression>> extends AbstractNaryTranslator<Axiom> {
     @Override
     public Property getPredicate() {
-        return OWL.equivalentProperty;
+        return OWL2.equivalentProperty;
     }
 }
