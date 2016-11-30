@@ -1,9 +1,20 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL2;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLDisjointDataPropertiesAxiom;
+
+import ru.avicomp.ontapi.jena.model.OntDisjoint;
+import ru.avicomp.ontapi.jena.model.OntNDP;
+import ru.avicomp.ontapi.jena.model.OntStatement;
+import uk.ac.manchester.cs.owl.owlapi.OWLDisjointDataPropertiesAxiomImpl;
 
 /**
  * see {@link AbstractTwoWayNaryTranslator}
@@ -13,10 +24,20 @@ import org.semanticweb.owlapi.model.OWLDisjointDataPropertiesAxiom;
  * <p>
  * Created by szuev on 12.10.2016.
  */
-class DisjointDataPropertiesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointDataPropertiesAxiom> {
+class DisjointDataPropertiesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointDataPropertiesAxiom, OWLDataPropertyExpression, OntNDP> {
     @Override
     Property getPredicate() {
         return OWL2.propertyDisjointWith;
+    }
+
+    @Override
+    Class<OntNDP> getView() {
+        return OntNDP.class;
+    }
+
+    @Override
+    OWLDisjointDataPropertiesAxiom create(Stream<OWLDataPropertyExpression> components, Set<OWLAnnotation> annotations) {
+        return new OWLDisjointDataPropertiesAxiomImpl(components.collect(Collectors.toSet()), annotations);
     }
 
     @Override
@@ -27,5 +48,15 @@ class DisjointDataPropertiesTranslator extends AbstractTwoWayNaryTranslator<OWLD
     @Override
     Property getMembersPredicate() {
         return OWL2.members;
+    }
+
+    @Override
+    Class<OntDisjoint.DataProperties> getDisjointView() {
+        return OntDisjoint.DataProperties.class;
+    }
+
+    @Override
+    OWLDisjointDataPropertiesAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
+        return create(components(statement).map(RDF2OWLHelper::getDataProperty), annotations);
     }
 }

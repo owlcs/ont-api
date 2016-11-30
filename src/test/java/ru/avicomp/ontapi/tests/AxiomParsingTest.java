@@ -28,7 +28,7 @@ public class AxiomParsingTest {
     public void simple() {
         Model m = ReadWriteUtils.loadFromTTL("pizza.ttl");
         OntGraphModel model = new OntGraphModelImpl(m.getGraph());
-        // 27(39):
+        // 39 axiom types:
         Stream.of(OWLDeclarationAxiom.class
                 , OWLFunctionalDataPropertyAxiom.class
                 , OWLFunctionalObjectPropertyAxiom.class
@@ -63,6 +63,18 @@ public class AxiomParsingTest {
 
                 , OWLNegativeDataPropertyAssertionAxiom.class
                 , OWLNegativeObjectPropertyAssertionAxiom.class
+
+                , OWLInverseObjectPropertiesAxiom.class
+
+                , OWLEquivalentClassesAxiom.class
+                , OWLEquivalentObjectPropertiesAxiom.class
+                , OWLEquivalentDataPropertiesAxiom.class
+                , OWLSameIndividualAxiom.class
+
+                , OWLDisjointClassesAxiom.class
+                , OWLDisjointObjectPropertiesAxiom.class
+                , OWLDisjointDataPropertiesAxiom.class
+                , OWLDifferentIndividualsAxiom.class
 
                 , SWRLRule.class
         ).forEach(view -> check(model, view));

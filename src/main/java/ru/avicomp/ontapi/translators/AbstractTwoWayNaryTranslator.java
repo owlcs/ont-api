@@ -1,5 +1,7 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.stream.Stream;
+
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
@@ -11,6 +13,8 @@ import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntObject;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * This is for following axioms with two or more than two entities:
@@ -24,7 +28,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
  * <p>
  * Created by szuev on 12.10.2016.
  */
-abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<? extends IsAnonymous>> extends AxiomTranslator<Axiom> {
+abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>, OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AbstractNaryTranslator<Axiom, OWL, ONT> {
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
         long count = axiom.operands().count();
@@ -43,9 +47,23 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
         }
     }
 
-    abstract Property getPredicate();
+    @Override
+    Stream<OntStatement> statements(OntGraphModel model) {
+        return Stream.concat(super.statements(model),
+                model.ontObjects(getDisjointView()).filter(OntObject::isLocal).map(OntObject::getRoot));
+    }
+
+    @Override
+    Stream<ONT> components(OntStatement statement) {
+        if (statement.getSubject().canAs(getDisjointView())) {
+            return statement.getSubject().as(getDisjointView()).members();
+        }
+        return super.components(statement);
+    }
 
     abstract Resource getMembersType();
 
     abstract Property getMembersPredicate();
+
+    abstract Class<? extends OntDisjoint<ONT>> getDisjointView();
 }

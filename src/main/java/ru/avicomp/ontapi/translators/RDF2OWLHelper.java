@@ -17,6 +17,7 @@ import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
@@ -361,6 +362,20 @@ public class RDF2OWLHelper {
             return new SWRLSameIndividualAtomImpl(property, getSWRLIndividualArg(a.getFirstArg()), getSWRLIndividualArg(a.getSecondArg()));
         }
         throw new OntApiException("Unsupported SWRL atom " + atom);
+    }
+
+    /**
+     * answers true if two nary axioms intersect, i.e. they have the same annotations and some components are included in both axioms.
+     *
+     * @param left  OWLNaryAxiom left axiom
+     * @param right OWLNaryAxiom right axiom
+     * @return true if axioms intersect.
+     */
+    public static boolean isIntersect(OWLNaryAxiom left, OWLNaryAxiom right) {
+        if (!OWLAPIStreamUtils.equalStreams(left.annotations(), right.annotations())) return false;
+        Set set1 = ((Stream<?>) left.operands()).collect(Collectors.toSet());
+        Set set2 = ((Stream<?>) right.operands()).collect(Collectors.toSet());
+        return !Collections.disjoint(set1, set2);
     }
 
     /**

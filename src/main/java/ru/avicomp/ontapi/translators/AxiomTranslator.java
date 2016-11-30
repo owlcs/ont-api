@@ -9,7 +9,6 @@ import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -23,15 +22,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     public abstract void write(Axiom axiom, OntGraphModel model);
 
-    Stream<OntStatement> statements(OntGraphModel model) {
-        //todo:
-        throw new OntApiException.Unsupported(getClass(), "statements");
-    }
+    abstract Stream<OntStatement> statements(OntGraphModel model);
 
-    Axiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        //todo:
-        throw new OntApiException.Unsupported(getClass(), "create");
-    }
+    abstract Axiom create(OntStatement statement, Set<OWLAnnotation> annotations);
 
     public Map<Axiom, Set<Triple>> read(OntGraphModel model) {
         return statements(model)
