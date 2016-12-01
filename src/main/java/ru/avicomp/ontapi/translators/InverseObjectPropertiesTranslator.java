@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.translators;
 
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.vocabulary.OWL2;
@@ -9,7 +10,6 @@ import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
-import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import uk.ac.manchester.cs.owl.owlapi.OWLInverseObjectPropertiesAxiomImpl;
 
@@ -27,7 +27,10 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontObjects(OntOPE.Inverse.class).filter(OntObject::isLocal).map(OntObject::getRoot);
+        return model.ontObjects(OntOPE.class)
+                .map(subj -> subj.inverseOf().map(obj -> subj.getStatement(OWL2.inverseOf, obj)))
+                .flatMap(Function.identity())
+                .filter(OntStatement::isLocal);
     }
 
     @Override
