@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
@@ -15,7 +14,8 @@ import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.OWLAxiom;
 
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -35,59 +35,7 @@ public class AxiomParsingTest {
         Model m = ReadWriteUtils.loadFromTTL("pizza.ttl");
         OntGraphModel model = new OntGraphModelImpl(m.getGraph());
         // 39 axiom types:
-        Set<Class<? extends OWLAxiom>> types = Stream.of(
-                OWLDeclarationAxiom.class
-                , OWLFunctionalDataPropertyAxiom.class
-                , OWLFunctionalObjectPropertyAxiom.class
-                , OWLReflexiveObjectPropertyAxiom.class
-                , OWLIrreflexiveObjectPropertyAxiom.class
-                , OWLAsymmetricObjectPropertyAxiom.class
-                , OWLSymmetricObjectPropertyAxiom.class
-                , OWLTransitiveObjectPropertyAxiom.class
-                , OWLInverseFunctionalObjectPropertyAxiom.class
-
-                , OWLSubClassOfAxiom.class
-
-                , OWLObjectPropertyDomainAxiom.class
-                , OWLDataPropertyDomainAxiom.class
-                , OWLAnnotationPropertyDomainAxiom.class
-
-                , OWLObjectPropertyRangeAxiom.class
-                , OWLDataPropertyRangeAxiom.class
-                , OWLAnnotationPropertyRangeAxiom.class
-
-                , OWLClassAssertionAxiom.class
-                , OWLAnnotationAssertionAxiom.class
-                , OWLObjectPropertyAssertionAxiom.class
-                , OWLDataPropertyAssertionAxiom.class
-
-                , OWLHasKeyAxiom.class
-                , OWLDisjointUnionAxiom.class
-                , OWLSubPropertyChainOfAxiom.class
-
-                , OWLSubAnnotationPropertyOfAxiom.class
-                , OWLSubObjectPropertyOfAxiom.class
-                , OWLSubDataPropertyOfAxiom.class
-
-                , OWLDatatypeDefinitionAxiom.class
-
-                , OWLNegativeDataPropertyAssertionAxiom.class
-                , OWLNegativeObjectPropertyAssertionAxiom.class
-
-                , OWLInverseObjectPropertiesAxiom.class
-
-                , OWLEquivalentClassesAxiom.class
-                , OWLEquivalentObjectPropertiesAxiom.class
-                , OWLEquivalentDataPropertiesAxiom.class
-                , OWLSameIndividualAxiom.class
-
-                , OWLDisjointClassesAxiom.class
-                , OWLDisjointObjectPropertiesAxiom.class
-                , OWLDisjointDataPropertiesAxiom.class
-                , OWLDifferentIndividualsAxiom.class
-
-                , SWRLRule.class
-        ).collect(Collectors.toSet());
+        Set<Class<? extends OWLAxiom>> types = AxiomType.AXIOM_TYPES.stream().map(AxiomType::getActualClass).collect(Collectors.toSet());
 
         types.forEach(view -> check(model, view));
 

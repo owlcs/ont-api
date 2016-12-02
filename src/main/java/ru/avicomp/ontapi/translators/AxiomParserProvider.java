@@ -30,16 +30,16 @@ public abstract class AxiomParserProvider {
         return ParserHolder.PARSERS;
     }
 
-    public static <T extends OWLAxiom> AxiomTranslator<T> get(Class<T> type) {
+    public static <A extends OWLAxiom> AxiomTranslator<A> get(Class<A> type) {
         return get(AxiomType.getTypeForClass(type));
     }
 
-    public static <T extends OWLAxiom> AxiomTranslator<T> get(T axiom) {
+    public static <A extends OWLAxiom> AxiomTranslator<A> get(A axiom) {
         return get(OntApiException.notNull(axiom, "Null axiom.").getAxiomType());
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends OWLAxiom> AxiomTranslator<T> get(AxiomType<?> type) {
+    public static <T extends OWLAxiom> AxiomTranslator<T> get(AxiomType<? extends OWLAxiom> type) {
         return OntApiException.notNull((AxiomTranslator<T>) getParsers().get(OntApiException.notNull(type, "Null axiom type")), "Can't find parser for axiom " + type.getActualClass());
     }
 

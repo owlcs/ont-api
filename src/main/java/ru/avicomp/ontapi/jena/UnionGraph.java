@@ -4,9 +4,11 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.MultiUnion;
+import org.apache.jena.graph.impl.SimpleEventManager;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
 /**
@@ -49,6 +51,12 @@ public class UnionGraph extends Dyadic {
     }
 
     @Override
+    public OntEventManager getEventManager() {
+        if (gem == null) gem = new OntEventManager();
+        return (OntEventManager) gem;
+    }
+
+    @Override
     public void performAdd(Triple t) {
         if (!R.contains(t))
             L.add(t);
@@ -77,6 +85,17 @@ public class UnionGraph extends Dyadic {
 
         public Stream<Graph> graphs() {
             return m_subGraphs.stream();
+        }
+    }
+
+    public static class OntEventManager extends SimpleEventManager {
+
+        public Stream<GraphListener> listeners() {
+            return listeners.stream();
+        }
+
+        public boolean hasListeners(Class<? extends GraphListener> view) {
+            return listeners().anyMatch(l -> view.isAssignableFrom(l.getClass()));
         }
     }
 }
