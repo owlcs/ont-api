@@ -2,20 +2,25 @@ package ru.avicomp.ontapi;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.jena.impl.OntEntityImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntID;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
 import ru.avicomp.ontapi.translators.OWL2RDFHelper;
+import ru.avicomp.ontapi.translators.RDF2OWLHelper;
+import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
  * New strategy here.
@@ -32,7 +37,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     @Deprecated
     private final OntGraphEventStore eventStore;
-    private final Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomStore = new HashMap<>();
+    private final Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomStores = new HashMap<>();
     private final TripleStore<OWLAnnotation> annotationStore = new TripleStore<>();
 
     public OntInternalModel(Graph base) {
@@ -68,7 +73,69 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         setID(iri == null ? null : iri.getIRIString()).setVersionIRI(versionIRI == null ? null : versionIRI.getIRIString());
     }
 
-    public void add(OWLAnnotation annotation) {
+    public Stream<OWLImportsDeclaration> importDeclarations() {
+        return super.imports().map(Resource::getURI).map(IRI::create).map(OWLImportsDeclarationImpl::new);
+    }
+
+    public boolean isEmpty() {
+        return axiomStores.values().stream().allMatch(TripleStore::isEmpty) && annotationStore.isEmpty();
+    }
+
+    public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
+        return ontObjects(OntIndividual.Anonymous.class).filter(OntObject::isLocal).map(RDF2OWLHelper::getAnonymousIndividual);
+    }
+
+    public Stream<OWLNamedIndividual> individuals() {
+        return ontEntities(OntIndividual.Named.class).filter(OntObject::isLocal).map(RDF2OWLHelper::getIndividual).map(AsOWLNamedIndividual::asOWLNamedIndividual);
+    }
+
+    private <P extends OntEntity & OntPE> Stream<P> builtInProperties(Set<Resource> candidates, Class<P> view) {
+        Predicate<Resource> predicateTester = r -> getBaseGraph().contains(Node.ANY, r.asNode(), Node.ANY); // property assertions
+        Predicate<Resource> objectTester = r -> getBaseGraph().contains(Node.ANY, Node.ANY, r.asNode());
+        return candidates.stream()
+                .filter(predicateTester.or(objectTester))
+                .map(Resource::getURI)
+                .map(u -> getOntEntity(view, u));
+    }
+
+    private <E extends OntEntity> Stream<E> builtInEntities(Set<Resource> candidates, Class<E> view) {
+        return candidates.stream()
+                .filter(r -> getBaseGraph().contains(Node.ANY, Node.ANY, r.asNode()))
+                .map(Resource::getURI)
+                .map(u -> getOntEntity(view, u));
+    }
+
+    public Stream<OWLClass> classes() {
+        Stream<OntClass> local = ontEntities(OntClass.class).filter(OntObject::isLocal);
+        Stream<OntClass> builtIn = builtInEntities(OntEntityImpl.BUILT_IN_CLASSES, OntClass.class);
+        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getClassExpression).map(AsOWLClass::asOWLClass);
+    }
+
+    public Stream<OWLDataProperty> dataProperties() {
+        Stream<OntNDP> local = ontEntities(OntNDP.class).filter(OntObject::isLocal);
+        Stream<OntNDP> builtIn = builtInProperties(OntEntityImpl.BUILT_IN_DATA_PROPERTIES, OntNDP.class);
+        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getDataProperty);
+    }
+
+    public Stream<OWLObjectProperty> objectProperties() {
+        Stream<OntNOP> local = ontEntities(OntNOP.class).filter(OntObject::isLocal);
+        Stream<OntNOP> builtIn = builtInProperties(OntEntityImpl.BUILT_IN_OBJECT_PROPERTIES, OntNOP.class);
+        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getObjectProperty).map(AsOWLObjectProperty::asOWLObjectProperty);
+    }
+
+    public Stream<OWLAnnotationProperty> annotationProperties() {
+        Stream<OntNAP> local = ontEntities(OntNAP.class).filter(OntObject::isLocal);
+        Stream<OntNAP> builtIn = builtInProperties(OntEntityImpl.BUILT_IN_ANNOTATION_PROPERTIES, OntNAP.class);
+        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getAnnotationProperty);
+    }
+
+    public Stream<OWLDatatype> datatypes() {
+        Stream<OntDT> local = ontEntities(OntDT.class).filter(OntObject::isLocal);
+        Stream<OntDT> builtIn = builtInEntities(OntEntityImpl.BUILT_IN_DATATYPES, OntDT.class);
+        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getDatatype);
+    }
+
+    public void add(OWLAnnotation annotation) { //todo: change
         ObjectListener<OWLAnnotation> listener = annotationStore.createListener(annotation);
         try {
             getGraph().getEventManager().register(listener);
@@ -78,17 +145,21 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         }
     }
 
-    public void remove(OWLAnnotation annotation) {
+    public void remove(OWLAnnotation annotation) { //todo: change
         annotationStore.get(annotation).forEach(triple -> getGraph().delete(triple));
         annotationStore.clear(annotation);
     }
 
+    public Set<OWLAnnotation> getAnnotations() {
+        return annotationStore.getObjects();
+    }
+
     public <C extends OWLAxiom> Set<C> getAxioms(Class<C> v) {
-        return getAxiomTripleStore(v).objects();
+        return getAxiomTripleStore(v).getObjects();
     }
 
     public <C extends OWLAxiom> Set<C> getAxioms(AxiomType<C> type) {
-        return getAxiomTripleStore(type.getActualClass()).objects();
+        return getAxiomTripleStore(type.getActualClass()).getObjects();
     }
 
     public <A extends OWLAxiom> void add(A axiom) {
@@ -109,7 +180,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     private Set<Class<? extends OWLAxiom>> getAxiomTypes(Triple triple) {
-        return axiomStore.values().stream()
+        return axiomStores.values().stream()
                 .map(s -> s.get(triple).stream())
                 .flatMap(Function.identity())
                 .map(OWLAxiom::getClass)
@@ -118,7 +189,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     private boolean isSingleton(Triple triple) {
         int count = 0;
-        for (TripleStore<? extends OWLAxiom> store : axiomStore.values()) {
+        for (TripleStore<? extends OWLAxiom> store : axiomStores.values()) {
             count += store.get(triple).size();
             if (count > 1) return false;
         }
@@ -132,12 +203,12 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     @SuppressWarnings("unchecked")
     private <A extends OWLAxiom> TripleStore<A> getAxiomTripleStore(Class<A> type) {
-        return (TripleStore<A>) axiomStore.computeIfAbsent(type, c -> new TripleStore<>(AxiomParserProvider.get(type).read(this)));
+        return (TripleStore<A>) axiomStores.computeIfAbsent(type, c -> new TripleStore<>(AxiomParserProvider.get(type).read(this)));
     }
 
     @Override
     public Model removeAll() {
-        axiomStore.clear();
+        axiomStores.clear();
         annotationStore.clear();
         return super.removeAll();
     }
@@ -189,12 +260,12 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
             return cache.isEmpty();
         }
 
-        public Set<O> objects() {
+        public Set<O> getObjects() {
             return cache.keySet();
         }
 
         public ObjectListener<O> createListener(O obj) {
-            return new ObjectListener<O>(this, obj);
+            return new ObjectListener<>(this, obj);
         }
     }
 
@@ -227,13 +298,13 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         @Override
         protected void addEvent(Triple t) {
             if (!can()) return; // we don't know which axiom would own this triple, so we clear whole cache.
-            axiomStore.clear();
+            axiomStores.clear();
         }
 
         @Override
         protected void deleteEvent(Triple t) {
             if (!can()) return;
-            getAxiomTypes(t).forEach(axiomStore::remove);
+            getAxiomTypes(t).forEach(axiomStores::remove);
         }
     }
 
