@@ -2,21 +2,21 @@ package ru.avicomp.ontapi;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.jena.impl.OntEntityImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
-import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntID;
+import ru.avicomp.ontapi.jena.model.OntNAP;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
 import ru.avicomp.ontapi.translators.OWL2RDFHelper;
 import ru.avicomp.ontapi.translators.RDF2OWLHelper;
@@ -81,57 +81,64 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
-        return ontObjects(OntIndividual.Anonymous.class).filter(OntObject::isLocal).map(RDF2OWLHelper::getAnonymousIndividual);
+        return objects(OWLAnonymousIndividual.class);
     }
 
     public Stream<OWLNamedIndividual> individuals() {
-        return ontEntities(OntIndividual.Named.class).filter(OntObject::isLocal).map(RDF2OWLHelper::getIndividual).map(AsOWLNamedIndividual::asOWLNamedIndividual);
-    }
-
-    private <P extends OntEntity & OntPE> Stream<P> builtInProperties(Set<Resource> candidates, Class<P> view) {
-        Predicate<Resource> predicateTester = r -> getBaseGraph().contains(Node.ANY, r.asNode(), Node.ANY); // property assertions
-        Predicate<Resource> objectTester = r -> getBaseGraph().contains(Node.ANY, Node.ANY, r.asNode());
-        return candidates.stream()
-                .filter(predicateTester.or(objectTester))
-                .map(Resource::getURI)
-                .map(u -> getOntEntity(view, u));
-    }
-
-    private <E extends OntEntity> Stream<E> builtInEntities(Set<Resource> candidates, Class<E> view) {
-        return candidates.stream()
-                .filter(r -> getBaseGraph().contains(Node.ANY, Node.ANY, r.asNode()))
-                .map(Resource::getURI)
-                .map(u -> getOntEntity(view, u));
+        return objects(OWLNamedIndividual.class);
     }
 
     public Stream<OWLClass> classes() {
-        Stream<OntClass> local = ontEntities(OntClass.class).filter(OntObject::isLocal);
-        Stream<OntClass> builtIn = builtInEntities(OntEntityImpl.BUILT_IN_CLASSES, OntClass.class);
-        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getClassExpression).map(AsOWLClass::asOWLClass);
+        return objects(OWLClass.class);
     }
 
     public Stream<OWLDataProperty> dataProperties() {
-        Stream<OntNDP> local = ontEntities(OntNDP.class).filter(OntObject::isLocal);
-        Stream<OntNDP> builtIn = builtInProperties(OntEntityImpl.BUILT_IN_DATA_PROPERTIES, OntNDP.class);
-        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getDataProperty);
+        return objects(OWLDataProperty.class);
     }
 
     public Stream<OWLObjectProperty> objectProperties() {
-        Stream<OntNOP> local = ontEntities(OntNOP.class).filter(OntObject::isLocal);
-        Stream<OntNOP> builtIn = builtInProperties(OntEntityImpl.BUILT_IN_OBJECT_PROPERTIES, OntNOP.class);
-        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getObjectProperty).map(AsOWLObjectProperty::asOWLObjectProperty);
+        return objects(OWLObjectProperty.class);
     }
 
     public Stream<OWLAnnotationProperty> annotationProperties() {
-        Stream<OntNAP> local = ontEntities(OntNAP.class).filter(OntObject::isLocal);
-        Stream<OntNAP> builtIn = builtInProperties(OntEntityImpl.BUILT_IN_ANNOTATION_PROPERTIES, OntNAP.class);
-        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getAnnotationProperty);
+        return objects(OWLAnnotationProperty.class);
     }
 
     public Stream<OWLDatatype> datatypes() {
-        Stream<OntDT> local = ontEntities(OntDT.class).filter(OntObject::isLocal);
-        Stream<OntDT> builtIn = builtInEntities(OntEntityImpl.BUILT_IN_DATATYPES, OntDT.class);
-        return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getDatatype);
+        return objects(OWLDatatype.class);
+    }
+
+    public static <T extends OWLObject> Stream<T> parseComponents(Class<T> view, HasComponents structure) {
+        return structure.componentsWithoutAnnotations().map(o -> toStream(view, o)).flatMap(Function.identity());
+    }
+
+    public static <T extends OWLObject> Stream<T> parseAnnotations(Class<T> view, HasAnnotations structure) {
+        return structure.annotations().map(o -> toStream(view, o)).flatMap(Function.identity());
+    }
+
+    public static <R extends OWLObject, S extends HasAnnotations & HasComponents> Stream<R> parse(Class<R> view, S container) {
+        return Stream.concat(parseComponents(view, container), parseAnnotations(view, container));
+    }
+
+    private static <T extends OWLObject> Stream<T> toStream(Class<T> view, Object o) {
+        if (view.isInstance(o)) {
+            return Stream.of(view.cast(o));
+        }
+        if (o instanceof HasComponents) {
+            return parseComponents(view, (HasComponents) o);
+        }
+        if (o instanceof HasAnnotations) {
+            return parseAnnotations(view, (HasAnnotations) o);
+        }
+        if (o instanceof Stream) {
+            return ((Stream<?>) o).map(_o -> toStream(view, _o)).flatMap(Function.identity());
+        }
+        return Stream.empty();
+    }
+
+    public <E extends OWLObject> Stream<E> objects(Class<E> view) {
+        return Stream.concat(annotations().map(annotation -> parse(view, annotation)).flatMap(Function.identity()),
+                axioms().map(axiom -> parse(view, axiom)).flatMap(Function.identity())).distinct();
     }
 
     public void add(OWLAnnotation annotation) {
@@ -164,6 +171,16 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     public Set<OWLAnnotation> getAnnotations() {
         return annotations().collect(Collectors.toSet());
+    }
+
+    public Set<OWLAxiom> getAxioms() {
+        return axioms().collect(Collectors.toSet());
+    }
+
+    public Stream<OWLAxiom> axioms() {
+        return AxiomType.AXIOM_TYPES.stream()
+                .map(this::getAxioms)
+                .map(Collection::stream).flatMap(Function.identity());
     }
 
     public <C extends OWLAxiom> Set<C> getAxioms(Class<C> v) {

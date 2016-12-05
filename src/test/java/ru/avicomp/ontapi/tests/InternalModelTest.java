@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.tests;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -7,6 +8,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -20,6 +22,8 @@ import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.io.OntFormat;
+import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
@@ -30,8 +34,8 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
  * <p>
  * Created by @szuev on 27.11.2016.
  */
-public class AxiomParsingTest {
-    private static final Logger LOGGER = Logger.getLogger(AxiomParsingTest.class);
+public class InternalModelTest {
+    private static final Logger LOGGER = Logger.getLogger(InternalModelTest.class);
 
     @Test
     public void testAxiomRead() {
@@ -68,6 +72,7 @@ public class AxiomParsingTest {
         OWLDataFactory factory = OntManagerFactory.createDataFactory();
 
         OntInternalModel model = new OntInternalModel(ReadWriteUtils.loadFromTTL("pizza.ttl").getGraph());
+
         Set<OWLAnnotation> annotations = model.getAnnotations();
         annotations.forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
@@ -99,6 +104,21 @@ public class AxiomParsingTest {
         Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
     }
 
+    @Test
+    public void testPizzaEntities() {
+        testEntities("pizza.ttl", OntFormat.TTL_RDF);
+    }
+
+    @Test
+    public void testFoafEntities() {
+        testEntities("foaf.rdf", OntFormat.XML_RDF);
+    }
+
+    @Test
+    public void testGoodrelationsEntities() {
+        testEntities("goodrelations.rdf", OntFormat.XML_RDF);
+    }
+
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {
         LOGGER.debug("=========================");
         LOGGER.info(view.getSimpleName() + ":");
@@ -110,6 +130,67 @@ public class AxiomParsingTest {
             Assert.assertTrue("No associated triples", triples != null && !triples.isEmpty());
             LOGGER.debug(axiom + " " + triples);
         });
+    }
+
+    private void testEntities(String file, OntFormat format) {
+        OWLOntology owl = loadOWLOntology(file);
+        OntInternalModel jena = loadInternalModel(file, format);
+
+        LOGGER.info("OWLClass:");
+        Set<OWLClass> classes1 = owl.classesInSignature().collect(Collectors.toSet());
+        Set<OWLClass> classes2 = jena.classes().collect(Collectors.toSet());
+        LOGGER.debug(classes1.size() + " ::: " + classes2.size());
+        Assert.assertThat("Incorrect classes", classes2, IsEqual.equalTo(classes1));
+
+        LOGGER.info("OWLDatatype:");
+        Set<OWLDatatype> datatypes1 = owl.datatypesInSignature().collect(Collectors.toSet());
+        Set<OWLDatatype> datatypes2 = jena.datatypes().collect(Collectors.toSet());
+        LOGGER.debug(datatypes1.size() + " ::: " + datatypes2.size());
+        Assert.assertThat("Incorrect datatypes", datatypes2, IsEqual.equalTo(datatypes1));
+
+        LOGGER.info("OWLNamedIndividual:");
+        Set<OWLNamedIndividual> individuals1 = owl.individualsInSignature().collect(Collectors.toSet());
+        Set<OWLNamedIndividual> individuals2 = jena.individuals().collect(Collectors.toSet());
+        LOGGER.debug(individuals1.size() + " ::: " + individuals2.size());
+        Assert.assertThat("Incorrect named individuals", individuals2, IsEqual.equalTo(individuals1));
+
+        LOGGER.info("OWLAnonymousIndividual:");
+        Set<OWLAnonymousIndividual> anonymous1 = owl.anonymousIndividuals().collect(Collectors.toSet());
+        Set<OWLAnonymousIndividual> anonymous2 = jena.anonymousIndividuals().collect(Collectors.toSet());
+        LOGGER.debug(anonymous1.size() + " ::: " + anonymous2.size());
+        Assert.assertThat("Incorrect anonymous individuals", anonymous2, IsEqual.equalTo(anonymous1));
+
+        LOGGER.info("OWLAnnotationProperty:");
+        Set<OWLAnnotationProperty> annotationProperties1 = owl.annotationPropertiesInSignature().collect(Collectors.toSet());
+        Set<OWLAnnotationProperty> annotationProperties2 = jena.annotationProperties().collect(Collectors.toSet());
+        LOGGER.debug(annotationProperties1.size() + " ::: " + annotationProperties2.size());
+        Assert.assertThat("Incorrect annotation properties", annotationProperties2, IsEqual.equalTo(annotationProperties1));
+
+        LOGGER.info("OWLObjectProperty:");
+        Set<OWLObjectProperty> objectProperties1 = owl.objectPropertiesInSignature().collect(Collectors.toSet());
+        Set<OWLObjectProperty> objectProperties2 = jena.objectProperties().collect(Collectors.toSet());
+        LOGGER.debug(objectProperties1.size() + " ::: " + objectProperties2.size());
+        Assert.assertThat("Incorrect object properties", objectProperties2, IsEqual.equalTo(objectProperties1));
+
+        LOGGER.info("OWLDataProperty:");
+        Set<OWLDataProperty> dataProperties1 = owl.dataPropertiesInSignature().collect(Collectors.toSet());
+        Set<OWLDataProperty> dataProperties2 = jena.dataProperties().collect(Collectors.toSet());
+        LOGGER.debug(dataProperties1.size() + " ::: " + dataProperties2.size());
+        Assert.assertThat("Incorrect data properties", dataProperties2, IsEqual.equalTo(dataProperties1));
+    }
+
+    private OWLOntology loadOWLOntology(String file) {
+        URI fileURI = ReadWriteUtils.getResourceURI(file);
+        OWLOntologyManager manager = OntManagerFactory.createOWLManager();
+        LOGGER.info("Load pure owl from " + fileURI);
+        return ReadWriteUtils.loadOWLOntology(manager, IRI.create(fileURI));
+    }
+
+    private OntInternalModel loadInternalModel(String file, OntFormat format) {
+        URI fileURI = ReadWriteUtils.getResourceURI(file);
+        LOGGER.info("Load jena model from " + fileURI);
+        Graph graph = GraphConverter.convert(ReadWriteUtils.load(fileURI, format).getGraph());
+        return new OntInternalModel(graph);
     }
 
 }
