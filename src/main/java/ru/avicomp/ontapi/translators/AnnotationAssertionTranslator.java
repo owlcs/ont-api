@@ -3,12 +3,10 @@ package ru.avicomp.ontapi.translators;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntNAP;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 
 /**
@@ -27,10 +25,15 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
+        OntID id = model.getID();
         return model.statements()
                 .filter(OntStatement::isLocal)
                 .filter(OntStatement::isAnnotation)
-                .filter(s -> s.getSubject().isURIResource() || s.getSubject().canAs(OntIndividual.Anonymous.class));
+                .filter(s -> testAnnotationSubject(s.getSubject(), id));
+    }
+
+    private static boolean testAnnotationSubject(Resource candidate, OntID id) {
+        return !candidate.equals(id) && (candidate.isURIResource() || candidate.canAs(OntIndividual.Anonymous.class));
     }
 
     @Override

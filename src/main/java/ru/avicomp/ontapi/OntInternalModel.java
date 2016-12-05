@@ -38,7 +38,6 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     @Deprecated
     private final OntGraphEventStore eventStore;
     private final Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomStores = new HashMap<>();
-    private final TripleStore<OWLAnnotation> annotationStore = new TripleStore<>();
 
     public OntInternalModel(Graph base) {
         super(base);
@@ -77,8 +76,8 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return super.imports().map(Resource::getURI).map(IRI::create).map(OWLImportsDeclarationImpl::new);
     }
 
-    public boolean isEmpty() {
-        return axiomStores.values().stream().allMatch(TripleStore::isEmpty) && annotationStore.isEmpty();
+    public boolean isOntologyEmpty() {
+        return axiomStores.values().stream().allMatch(TripleStore::isEmpty) && getAnnotations().isEmpty();
     }
 
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
@@ -135,23 +134,36 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return Stream.concat(local, builtIn).distinct().map(RDF2OWLHelper::getDatatype);
     }
 
-    public void add(OWLAnnotation annotation) { //todo: change
-        ObjectListener<OWLAnnotation> listener = annotationStore.createListener(annotation);
-        try {
-            getGraph().getEventManager().register(listener);
-            OWL2RDFHelper.addAnnotations(getID(), Stream.of(annotation));
-        } finally {
-            getGraph().getEventManager().unregister(listener);
-        }
+    public void add(OWLAnnotation annotation) {
+        OWL2RDFHelper.addAnnotations(getID(), Stream.of(annotation));
     }
 
-    public void remove(OWLAnnotation annotation) { //todo: change
-        annotationStore.get(annotation).forEach(triple -> getGraph().delete(triple));
-        annotationStore.clear(annotation);
+    public void remove(OWLAnnotation annotation) {
+        Set<Triple> triples = new HashSet<>();
+        if (annotation.annotations().count() == 0) { // plain annotation
+            OntStatement ontAnnotation = getID().annotations().filter(a -> !a.hasAnnotations())
+                    .filter(a -> RDF2OWLHelper.getAnnotationProperty(a.getPredicate().as(OntNAP.class)).equals(annotation.getProperty()))
+                    .filter(a -> RDF2OWLHelper.getAnnotationValue(a.getObject()).equals(annotation.getValue())).findFirst().orElse(null);
+            if (ontAnnotation != null) {
+                triples.add(ontAnnotation.asTriple());
+                triples.addAll(RDF2OWLHelper.getAssociatedTriples(ontAnnotation.getObject())); // as value there could be anonymous individual
+            }
+        } else { // bulk annotation
+            RDF2OWLHelper.TripleSet<OWLAnnotation> set = RDF2OWLHelper.getBulkAnnotations(getID())
+                    .stream().filter(t -> t.getObject().equals(annotation)).findFirst().orElse(null);
+            if (set != null) {
+                triples.addAll(set.getTriples());
+            }
+        }
+        triples.stream().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
+    }
+
+    public Stream<OWLAnnotation> annotations() {
+        return RDF2OWLHelper.annotations(getID());
     }
 
     public Set<OWLAnnotation> getAnnotations() {
-        return annotationStore.getObjects();
+        return annotations().collect(Collectors.toSet());
     }
 
     public <C extends OWLAxiom> Set<C> getAxioms(Class<C> v) {
@@ -175,8 +187,8 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     public <A extends OWLAxiom> void remove(A axiom) {
         TripleStore<A> store = getAxiomTripleStore(axiom.getAxiomType());
         Set<Triple> triples = store.get(axiom);
-        triples.stream().filter(this::isSingleton).forEach(triple -> getGraph().delete(triple));
         store.clear(axiom);
+        triples.stream().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
     }
 
     private Set<Class<? extends OWLAxiom>> getAxiomTypes(Triple triple) {
@@ -187,13 +199,19 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
                 .collect(Collectors.toSet());
     }
 
-    private boolean isSingleton(Triple triple) {
+    /**
+     * checks if it is possible to delete triple from the graph.
+     *
+     * @param triple Triple
+     * @return true if there are no axiom which includes this triple, otherwise false.
+     */
+    private boolean canDelete(Triple triple) {
         int count = 0;
         for (TripleStore<? extends OWLAxiom> store : axiomStores.values()) {
             count += store.get(triple).size();
             if (count > 1) return false;
         }
-        return count == 1;
+        return count == 0;
     }
 
     @SuppressWarnings("unchecked")
@@ -208,9 +226,12 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     @Override
     public Model removeAll() {
-        axiomStores.clear();
-        annotationStore.clear();
+        clearCache();
         return super.removeAll();
+    }
+
+    private void clearCache() {
+        axiomStores.clear();
     }
 
     public class TripleStore<O extends OWLObject> {
@@ -297,8 +318,9 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
         @Override
         protected void addEvent(Triple t) {
-            if (!can()) return; // we don't know which axiom would own this triple, so we clear whole cache.
-            axiomStores.clear();
+            if (!can()) return;
+            // we don't know which axiom would own this triple, so we clear whole cache.
+            clearCache();
         }
 
         @Override

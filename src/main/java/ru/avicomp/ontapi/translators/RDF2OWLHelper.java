@@ -136,6 +136,17 @@ public class RDF2OWLHelper {
         return new OWLDatatypeImpl(iri);
     }
 
+    public static Stream<OWLAnnotation> annotations(OntObject object) {
+        return annotations(OntApiException.notNull(object, "Null ont-object.").getRoot());
+    }
+
+    public static Stream<OWLAnnotation> annotations(OntStatement statement) {
+        return statement.annotations()
+                .map(a -> new OWLAnnotationImpl(getAnnotationProperty(a.getPredicate().as(OntNAP.class)),
+                        getAnnotationValue(a.getObject()),
+                        annotations(a)));
+    }
+
     public static Set<TripleSet<OWLAnnotation>> getBulkAnnotations(OntObject object) {
         return getBulkAnnotations(OntApiException.notNull(object, "Null ont-object.").getRoot());
     }

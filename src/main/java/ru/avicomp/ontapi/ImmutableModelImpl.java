@@ -73,7 +73,7 @@ public class ImmutableModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public boolean isEmpty() {
-        return base.isEmpty();
+        return base.isOntologyEmpty();
     }
 
     @Override

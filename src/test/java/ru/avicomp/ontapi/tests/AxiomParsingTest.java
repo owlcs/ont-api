@@ -5,18 +5,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntInternalModel;
+import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
@@ -31,7 +34,7 @@ public class AxiomParsingTest {
     private static final Logger LOGGER = Logger.getLogger(AxiomParsingTest.class);
 
     @Test
-    public void simple() {
+    public void testAxiomRead() {
         Model m = ReadWriteUtils.loadFromTTL("pizza.ttl");
         OntGraphModel model = new OntGraphModelImpl(m.getGraph());
         // 39 axiom types:
@@ -60,6 +63,42 @@ public class AxiomParsingTest {
         Assert.assertThat("Incorrect statements (actual=" + actual.size() + ", expected=" + expected.size() + ")", actual, IsEqual.equalTo(expected));
     }
 
+    @Test
+    public void testOntologyAnnotations() {
+        OWLDataFactory factory = OntManagerFactory.createDataFactory();
+
+        OntInternalModel model = new OntInternalModel(ReadWriteUtils.loadFromTTL("pizza.ttl").getGraph());
+        Set<OWLAnnotation> annotations = model.getAnnotations();
+        annotations.forEach(LOGGER::debug);
+        Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
+
+        LOGGER.info("Create bulk annotation.");
+        OWLAnnotation bulk = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("the label"),
+                Stream.of(factory.getRDFSComment("just comment to ontology annotation")));
+        model.add(bulk);
+        annotations = model.getAnnotations();
+        annotations.forEach(LOGGER::debug);
+        Assert.assertEquals("Incorrect annotations count", 5, annotations.size());
+
+        LOGGER.info("Create plain(assertion) annotation.");
+        OWLAnnotation plain = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), IRI.create("http://please.click.me/"));
+        model.add(plain);
+        annotations = model.getAnnotations();
+        annotations.forEach(LOGGER::debug);
+        Assert.assertEquals("Incorrect annotations count", 6, annotations.size());
+
+        LOGGER.info("Remove annotations.");
+        OWLAnnotation comment = annotations.stream().filter(a -> a.getProperty().getIRI().toString().equals(RDFS.comment.getURI())).findFirst().orElse(null);
+        LOGGER.info("Delete " + bulk);
+        model.remove(bulk);
+        LOGGER.info("Delete " + comment);
+        model.remove(comment);
+
+        annotations = model.getAnnotations();
+        annotations.forEach(LOGGER::debug);
+        Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
+    }
+
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {
         LOGGER.debug("=========================");
         LOGGER.info(view.getSimpleName() + ":");
@@ -73,9 +112,4 @@ public class AxiomParsingTest {
         });
     }
 
-    private static void print(OWLAxiom axiom, Set<Triple> triples) {
-        Assert.assertNotNull("Null axiom", axiom);
-        Assert.assertTrue("No associated triples", triples != null && !triples.isEmpty());
-        LOGGER.debug(axiom + " " + triples);
-    }
 }
