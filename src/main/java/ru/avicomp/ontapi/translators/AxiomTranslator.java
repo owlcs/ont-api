@@ -30,6 +30,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         return statements(model)
                 .map(RDF2OWLHelper.StatementProcessor::new)
                 .collect(Collectors.toMap(c -> create(c.getStatement(), c.getAnnotations()),
-                        RDF2OWLHelper.StatementProcessor::getTriples));
+                        RDF2OWLHelper.StatementProcessor::getTriples,
+                        (tripleSet1, tripleSet2) -> {
+                            tripleSet1.addAll(tripleSet2);
+                            return tripleSet1;
+                        }));
     }
 }

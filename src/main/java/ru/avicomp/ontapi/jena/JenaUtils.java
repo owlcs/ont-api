@@ -26,13 +26,24 @@ import ru.avicomp.ontapi.jena.vocabulary.XSD;
  * Created by szuev on 20.10.2016.
  */
 public class JenaUtils {
+    public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (o1, o2) -> NodeUtils.compareRDFTerms(o1.asNode(), o2.asNode());
 
     public static final Set<Property> BUILT_IN_PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL2.class);
     public static final Set<Resource> BUILT_IN_RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL2.class);
+    public static final Set<Resource> BUILT_IN_ALL = Stream.of(BUILT_IN_PROPERTIES, BUILT_IN_RESOURCES).flatMap(Collection::stream).collect(Collectors.toSet());
 
-    public static final Set<RDFDatatype> BUILT_IN_DATATYPES = createBuiltInTypes();
+    public static final Set<RDFDatatype> BUILT_IN_RDF_DATATYPES = createBuiltInTypes();
 
-    public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (o1, o2) -> NodeUtils.compareRDFTerms(o1.asNode(), o2.asNode());
+    public static final Set<Resource> BUILT_IN_DATATYPES = BUILT_IN_RDF_DATATYPES.stream().map(RDFDatatype::getURI).
+            map(ResourceFactory::createResource).collect(Collectors.toSet());
+    public static final Set<Resource> BUILT_IN_CLASSES = Stream.of(OWL2.Nothing, OWL2.Thing).collect(Collectors.toSet());
+    public static final Set<Resource> BUILT_IN_ANNOTATION_PROPERTIES = Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy,
+            OWL2.versionInfo, OWL2.backwardCompatibleWith, OWL2.priorVersion, OWL2.incompatibleWith, OWL2.deprecated).collect(Collectors.toSet());
+    public static final Set<Resource> BUILT_IN_DATA_PROPERTIES = Stream.of(OWL2.topDataProperty, OWL2.bottomDataProperty).collect(Collectors.toSet());
+    public static final Set<Resource> BUILT_IN_OBJECT_PROPERTIES = Stream.of(OWL2.topObjectProperty, OWL2.bottomObjectProperty).collect(Collectors.toSet());
+    public static final Set<Resource> BUILT_IN_ENTITIES = Stream.of(BUILT_IN_CLASSES, BUILT_IN_DATATYPES,
+            BUILT_IN_ANNOTATION_PROPERTIES, BUILT_IN_DATA_PROPERTIES, BUILT_IN_OBJECT_PROPERTIES)
+            .flatMap(Collection::stream).collect(Collectors.toSet());
 
     /**
      * creates typed list: the anonymous section which is built using the same rules as true rdf:List,

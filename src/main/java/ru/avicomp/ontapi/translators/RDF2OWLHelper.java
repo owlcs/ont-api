@@ -402,7 +402,10 @@ public class RDF2OWLHelper {
             this.triples = new HashSet<>();
             this.annotations = new HashSet<>();
             triples.add(statement.asTriple());
-            triples.addAll(getAssociatedTriples(statement.getSubject())); // for anonymous axioms
+            Resource subject = statement.getSubject();
+            if (subject.isAnon() && !subject.canAs(OntIndividual.Anonymous.class)) { // for anonymous axioms
+                triples.addAll(getAssociatedTriples(subject));
+            }
             triples.addAll(getAssociatedTriples(statement.getObject()));
             getBulkAnnotations(statement).forEach(a -> {
                 triples.addAll(a.getTriples());

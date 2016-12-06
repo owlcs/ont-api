@@ -1,9 +1,6 @@
 package ru.avicomp.ontapi.jena;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -12,8 +9,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -29,7 +25,12 @@ import org.apache.log4j.Logger;
  */
 public abstract class GraphConverter {
     private static final Logger LOGGER = Logger.getLogger(GraphConverter.class);
-    public static final FactoryStore CONVERTERS = new FactoryStore().add(RDFStoOWL::new).add(OWL1toOWL2DL::new);
+    public static final FactoryStore CONVERTERS = new FactoryStore()
+            .add(RDFStoOWL::new)
+            .add(OWLtoOWL2DL::new)
+            .add(ObjectReferenceFixer::new)
+            .add(NamedIndividualFixer::new)
+            .add(PropertyTypeFixer::new);
 
     public static Graph convert(Graph graph) {
         CONVERTERS.stream(graph).forEach(TransformAction::process);
@@ -100,7 +101,11 @@ public abstract class GraphConverter {
         }
 
         protected void addType(Node subject, Resource type) {
-            getGraph().add(Triple.create(subject, RDF_TYPE, type.asNode()));
+            addType(subject, type.asNode());
+        }
+
+        protected void addType(Node subject, Node type) {
+            getGraph().add(Triple.create(subject, RDF_TYPE, type));
         }
 
         protected void deleteType(Node subject, Resource type) {
@@ -110,14 +115,18 @@ public abstract class GraphConverter {
         protected boolean containsType(Resource type) {
             return getBaseGraph().contains(Node.ANY, RDF_TYPE, type.asNode());
         }
+
+        protected Set<Node> getTypes(Node subject) {
+            return getGraph().find(subject, RDF_TYPE, Node.ANY).mapWith(Triple::getObject).toSet();
+        }
     }
 
     /**
      * OWL 1 DL -> OWL 2 DL
      * see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Parsing_of_the_Ontology_Header_and_Declarations'>Chapter 3, Table 5 and Table 6</a>
      */
-    private static class OWL1toOWL2DL extends TransformAction {
-        private OWL1toOWL2DL(Graph graph) {
+    private static class OWLtoOWL2DL extends TransformAction {
+        private OWLtoOWL2DL(Graph graph) {
             super(graph);
         }
 
@@ -144,20 +153,20 @@ public abstract class GraphConverter {
     }
 
     /**
+     * TODO: rewrite
      * Class to convert the RDFS ontological graph to the OWL2 ontological graph.
      * <p>
      * see <a href='https://www.w3.org/TR/rdf-schema'>RDFS specification</a>
      */
     private static class RDFStoOWL extends TransformAction {
-        private static final Set<Node> DATATYPES = JenaUtils.BUILT_IN_DATATYPES.stream().
-                map(t -> NodeFactory.createURI(t.getURI())).collect(Collectors.toSet());
-        private static final Set<Node> BUILT_IN = Stream.concat(JenaUtils.BUILT_IN_PROPERTIES.stream(), JenaUtils.BUILT_IN_RESOURCES.stream()).map(Function.identity()).
-                map(t -> NodeFactory.createURI(t.getURI())).collect(Collectors.toSet());
+        private static final Set<Node> DATATYPES = JenaUtils.BUILT_IN_RDF_DATATYPES.stream()
+                .map(t -> NodeFactory.createURI(t.getURI())).collect(Collectors.toSet());
+        private static final Set<Node> BUILT_IN = JenaUtils.BUILT_IN_ALL.stream()
+                .map(t -> NodeFactory.createURI(t.getURI())).collect(Collectors.toSet());
         private static final Set<Node> NOT_INDIVIDUAL_TYPES = Stream.of(RDFS.Class, OWL2.Class,
                 RDFS.Datatype, OWL2.DataRange,
                 RDF.Property, OWL2.DatatypeProperty, OWL2.AnnotationProperty, OWL2.ObjectProperty,
-                OWL2.Ontology, OWL2.NamedIndividual).
-                map(Resource::asNode).collect(Collectors.toSet());
+                OWL2.Ontology, OWL2.NamedIndividual).map(Resource::asNode).collect(Collectors.toSet());
 
         private RDFStoOWL(Graph graph) {
             super(graph);
@@ -267,6 +276,184 @@ public abstract class GraphConverter {
             Set<Node> individuals = getBaseGraph().find(Node.ANY, RDF_TYPE, Node.ANY).mapWith(Triple::getSubject).
                     filterKeep(Node::isURI).filterKeep(RDFStoOWL.this::isIndividual).toSet();
             individuals.forEach(node -> addType(node, OWL2.NamedIndividual));
+        }
+    }
+
+    /**
+     * To fix missed declarations in the right side of triple.
+     * For owl:Class, owl:Datatype, owl:ObjectProperties and owl:DatatypeProperty
+     * example:
+     * If we have triple "C1 owl:equivalentClass C2" where C1 has type owl:Class and C2 is untyped uri-resource,
+     * then we add the same type (owl:Class) to graph for C2 (i.e. declare C2 as separated class in owl-model).
+     */
+    private static class ObjectReferenceFixer extends TransformAction {
+
+        private ObjectReferenceFixer(Graph graph) {
+            super(graph);
+        }
+
+        @Override
+        public void perform() {
+            Model m = ModelFactory.createModelForGraph(getGraph());
+            fixClasses(m);
+            fixProperties(m);
+            // domain is always class for object and data properties
+            m.listStatements(null, RDFS.domain, (RDFNode) null)
+                    .filterKeep(s -> chooseType(types(s.getSubject()).collect(Collectors.toSet()), OWL2.ObjectProperty, OWL2.DatatypeProperty) != null).
+                    mapWith(Statement::getObject).forEachRemaining(o -> fixType(o, OWL2.Class));
+        }
+
+        private void fixClasses(Model m) {
+            fixSimpleTriples(m, OWL2.equivalentClass, OWL2.Class, RDFS.Datatype);
+
+            Stream.of(RDFS.subClassOf, OWL2.disjointWith)
+                    .forEach(predicate -> fixSimpleTriples(m, predicate, OWL2.Class));
+
+            // owl:disjointUnionOf:
+            if (getBaseGraph().contains(Node.ANY, OWL2.disjointUnionOf.asNode(), Node.ANY)) {
+                m.listStatements(null, OWL2.disjointUnionOf, (RDFNode) null).forEachRemaining(this::fixClassList);
+            }
+            // owl:AllDisjointClasses:
+            if (getBaseGraph().contains(Node.ANY, RDF_TYPE, OWL2.AllDisjointClasses.asNode())) {
+                m.listStatements(null, RDF.type, OWL2.AllDisjointClasses).mapWith(Statement::getSubject)
+                        .mapWith(main -> m.getProperty(main, OWL2.members))
+                        .forEachRemaining(this::fixClassList);
+            }
+        }
+
+        private void fixProperties(Model m) {
+            fixSimpleTriples(m, OWL2.inverseOf, OWL2.ObjectProperty);
+            Stream.of(RDFS.subPropertyOf, OWL2.equivalentProperty, OWL2.propertyDisjointWith)
+                    .forEach(predicate -> fixSimpleTriples(m, predicate, OWL2.ObjectProperty, OWL2.DatatypeProperty));
+
+            // owl:AllDisjointProperties (object or data properties)
+            if (getBaseGraph().contains(Node.ANY, RDF_TYPE, OWL2.AllDisjointProperties.asNode())) {
+                m.listStatements(null, RDF.type, OWL2.AllDisjointProperties).mapWith(Statement::getSubject)
+                        .mapWith(main -> m.getProperty(main, OWL2.members))
+                        .forEachRemaining(this::fixPropertyList);
+            }
+        }
+
+        private void fixSimpleTriples(Model m, Property predicate, Resource... allowedTypes) {
+            m.listStatements(null, predicate, (RDFNode) null)
+                    .forEachRemaining(s -> {
+                        Resource type = chooseType(types(s.getSubject()).collect(Collectors.toSet()), allowedTypes);
+                        if (type == null) return;
+                        fixType(s.getObject(), type);
+                    });
+        }
+
+        private Resource chooseType(Set<Resource> candidates, Resource... oneOf) {
+            Set<Resource> res = Stream.of(oneOf).collect(Collectors.toSet());
+            res.retainAll(candidates);
+            return res.size() == 1 ? (Resource) res.toArray()[0] : null;
+        }
+
+        private void fixClassList(Statement statement) {
+            if (statement == null) return;
+            if (!statement.getObject().canAs(RDFList.class)) return;
+            RDFList list = statement.getObject().as(RDFList.class);
+            list.asJavaList().forEach(r -> fixType(r, OWL2.Class));
+        }
+
+        private void fixPropertyList(Statement statement) {
+            if (statement == null) return;
+            if (!statement.getObject().canAs(RDFList.class)) return;
+            RDFList list = statement.getObject().as(RDFList.class);
+            List<RDFNode> members = list.asJavaList();
+            Set<Resource> types = members.stream().map(this::types).flatMap(Function.identity()).collect(Collectors.toSet());
+            Resource type = chooseType(types, OWL2.ObjectProperty, OWL2.DatatypeProperty);
+            if (type == null) return;
+            members.forEach(r -> fixType(r, type));
+        }
+
+        private void fixType(RDFNode object, Resource type) {
+            if (type == null) return;
+            if (!object.isURIResource()) { // if it is not uri then nothing has been missed.
+                return;
+            }
+            if (types(object).count() != 0) { // don't touch if it has already some types (even they wrong)
+                return;
+            }
+            if (JenaUtils.BUILT_IN_ALL.contains(object.asResource())) { // example : sp:ElementList rdfs:subClassOf rdf:List
+                return;
+            }
+            addType(object.asNode(), type);
+        }
+
+        protected Stream<Resource> types(RDFNode inModel) {
+            return !inModel.isURIResource() ? Stream.empty() :
+                    JenaUtils.asStream(inModel.getModel().listStatements(inModel.asResource(), RDF.type, (RDFNode) null)
+                            .mapWith(Statement::getObject)
+                            .filterKeep(RDFNode::isURIResource).mapWith(RDFNode::asResource));
+        }
+    }
+
+    /**
+     * To fix missed owl:NamedIndividual declaration
+     */
+    private static class NamedIndividualFixer extends TransformAction {
+        private NamedIndividualFixer(Graph graph) {
+            super(graph);
+        }
+
+        @Override
+        public void perform() {
+            Set<Node> individuals = getBaseGraph().find(Node.ANY, RDF_TYPE, Node.ANY)
+                    .filterKeep(triple -> triple.getSubject().isURI())
+                    .filterKeep(triple -> getTypes(triple.getObject()).contains(OWL2.Class.asNode())).mapWith(Triple::getSubject).toSet();
+            individuals.forEach(node -> addType(node, OWL2.NamedIndividual));
+        }
+    }
+
+    /**
+     * To fix missed property owl type declarations
+     */
+    private static class PropertyTypeFixer extends TransformAction {
+        private static final Set<Node> BUILT_IN_ANNOTATION_PROPERTIES = JenaUtils.BUILT_IN_ANNOTATION_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
+        private static final Set<Node> BUILT_IN_OBJECT_PROPERTIES = JenaUtils.BUILT_IN_OBJECT_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
+        private static final Set<Node> BUILT_IN_DATA_PROPERTIES = JenaUtils.BUILT_IN_DATA_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
+
+        private PropertyTypeFixer(Graph graph) {
+            super(graph);
+        }
+
+        @Override
+        public void perform() {
+            getBaseGraph().find(Node.ANY, RDF_TYPE, OWL2.DatatypeProperty.asNode()).mapWith(Triple::getSubject).filterKeep(this::isAnnotationProperty)
+                    .forEachRemaining(node -> addType(node, OWL2.AnnotationProperty));
+            getBaseGraph().find(Node.ANY, RDF_TYPE, OWL2.ObjectProperty.asNode()).mapWith(Triple::getSubject).filterKeep(this::isAnnotationProperty)
+                    .forEachRemaining(node -> addType(node, OWL2.ObjectProperty));
+
+            getBaseGraph().find(Node.ANY, RDF_TYPE, OWL2.AnnotationProperty.asNode()).mapWith(Triple::getSubject)
+                    .forEachRemaining(node -> {
+                        if (isObjectProperty(node)) {
+                            addType(node, OWL2.ObjectProperty);
+                        } else if (isDataProperty(node)) {
+                            addType(node, OWL2.DatatypeProperty);
+                        }
+                    });
+        }
+
+        boolean isAnnotationProperty(Node node) {
+            return BUILT_IN_ANNOTATION_PROPERTIES.contains(node) ||
+                    getTypes(node).contains(OWL2.AnnotationProperty.asNode()) ||
+                    JenaUtils.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
+                            anyMatch(this::isAnnotationProperty);
+        }
+
+        boolean isObjectProperty(Node node) {
+            return BUILT_IN_OBJECT_PROPERTIES.contains(node) ||
+                    getTypes(node).contains(OWL2.ObjectProperty.asNode()) ||
+                    JenaUtils.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
+                            anyMatch(this::isObjectProperty);
+        }
+
+        boolean isDataProperty(Node node) {
+            return BUILT_IN_DATA_PROPERTIES.contains(node) ||
+                    getTypes(node).contains(OWL2.DatatypeProperty.asNode()) ||
+                    JenaUtils.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
+                            anyMatch(this::isDataProperty);
         }
     }
 

@@ -44,7 +44,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public boolean isBuiltIn() {
-            return OntEntityImpl.BUILT_IN_OBJECT_PROPERTIES.contains(this);
+            return JenaUtils.BUILT_IN_OBJECT_PROPERTIES.contains(this);
         }
 
         @Override

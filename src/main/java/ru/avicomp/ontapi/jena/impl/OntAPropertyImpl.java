@@ -12,6 +12,7 @@ import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -53,7 +54,7 @@ public class OntAPropertyImpl extends OntEntityImpl implements OntNAP {
 
     @Override
     public boolean isBuiltIn() {
-        return BUILT_IN_ANNOTATION_PROPERTIES.contains(this);
+        return JenaUtils.BUILT_IN_ANNOTATION_PROPERTIES.contains(this);
     }
 
     @Override

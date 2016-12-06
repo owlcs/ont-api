@@ -8,6 +8,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntNPA;
@@ -40,7 +41,7 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
 
     @Override
     public boolean isBuiltIn() {
-        return BUILT_IN_DATA_PROPERTIES.contains(this);
+        return JenaUtils.BUILT_IN_DATA_PROPERTIES.contains(this);
     }
 
     @Override

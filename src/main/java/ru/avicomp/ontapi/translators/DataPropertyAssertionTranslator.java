@@ -36,7 +36,7 @@ class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataPropertyAss
 
     @Override
     OWLDataPropertyAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLIndividual i = RDF2OWLHelper.getIndividual(statement.getObject().as(OntIndividual.class));
+        OWLIndividual i = RDF2OWLHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
         OWLDataProperty p = RDF2OWLHelper.getDataProperty(statement.getPredicate().as(OntNDP.class));
         OWLLiteral l = RDF2OWLHelper.getLiteral(statement.getObject().asLiteral());
         return new OWLDataPropertyAssertionAxiomImpl(i, p, l, annotations);

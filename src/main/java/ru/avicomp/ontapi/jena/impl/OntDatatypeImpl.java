@@ -5,6 +5,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -26,7 +27,7 @@ public class OntDatatypeImpl extends OntEntityImpl implements OntDT {
 
     @Override
     public boolean isBuiltIn() {
-        return BUILT_IN_DATATYPES.contains(this);
+        return JenaUtils.BUILT_IN_DATATYPES.contains(this);
     }
 
     @Override
