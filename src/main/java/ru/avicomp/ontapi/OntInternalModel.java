@@ -13,10 +13,7 @@ import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntID;
-import ru.avicomp.ontapi.jena.model.OntNAP;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
 import ru.avicomp.ontapi.translators.OWL2RDFHelper;
 import ru.avicomp.ontapi.translators.RDF2OWLHelper;
@@ -108,6 +105,31 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return objects(OWLDatatype.class);
     }
 
+    public List<OWLEntity> getEntities(IRI iri) {
+        if (iri == null) return Collections.emptyList();
+        OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
+        List<OWLEntity> res = new ArrayList<>();
+        if (e.canAs(OntClass.class)) {
+            res.add(RDF2OWLHelper.getClassExpression(e.as(OntClass.class)).asOWLClass());
+        }
+        if (e.canAs(OntDT.class)) {
+            res.add(RDF2OWLHelper.getDatatype(e.as(OntDT.class)));
+        }
+        if (e.canAs(OntNAP.class)) {
+            res.add(RDF2OWLHelper.getAnnotationProperty(e.as(OntNAP.class)));
+        }
+        if (e.canAs(OntNDP.class)) {
+            res.add(RDF2OWLHelper.getDataProperty(e.as(OntNDP.class)));
+        }
+        if (e.canAs(OntNOP.class)) {
+            res.add(RDF2OWLHelper.getObjectProperty(e.as(OntNOP.class)).asOWLObjectProperty());
+        }
+        if (e.canAs(OntIndividual.Named.class)) {
+            res.add(RDF2OWLHelper.getIndividual(e.as(OntIndividual.Named.class)).asOWLNamedIndividual());
+        }
+        return res;
+    }
+
     public static <T extends OWLObject> Stream<T> parseComponents(Class<T> view, HasComponents structure) {
         return structure.componentsWithoutAnnotations().map(o -> toStream(view, o)).flatMap(Function.identity());
     }
@@ -116,7 +138,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return structure.annotations().map(o -> toStream(view, o)).flatMap(Function.identity());
     }
 
-    public static <R extends OWLObject, S extends HasAnnotations & HasComponents> Stream<R> parse(Class<R> view, S container) {
+    public static <R extends OWLObject, S extends HasAnnotations & HasComponents> Stream<R> objects(Class<R> view, S container) {
         return Stream.concat(parseComponents(view, container), parseAnnotations(view, container));
     }
 
@@ -137,8 +159,8 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public <E extends OWLObject> Stream<E> objects(Class<E> view) {
-        return Stream.concat(annotations().map(annotation -> parse(view, annotation)).flatMap(Function.identity()),
-                axioms().map(axiom -> parse(view, axiom)).flatMap(Function.identity())).distinct();
+        return Stream.concat(annotations().map(annotation -> objects(view, annotation)).flatMap(Function.identity()),
+                axioms().map(axiom -> objects(view, axiom)).flatMap(Function.identity())).distinct();
     }
 
     public void add(OWLAnnotation annotation) {
@@ -177,18 +199,82 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return axioms().collect(Collectors.toSet());
     }
 
+    public Set<OWLAxiom> getAxioms(Set<AxiomType<? extends OWLAxiom>> types) {
+        return axioms(types).collect(Collectors.toSet());
+    }
+
     public Stream<OWLAxiom> axioms() {
-        return AxiomType.AXIOM_TYPES.stream()
+        return axioms(AxiomType.AXIOM_TYPES);
+    }
+
+    public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
+        return types.stream()
                 .map(this::getAxioms)
                 .map(Collection::stream).flatMap(Function.identity());
     }
 
-    public <C extends OWLAxiom> Set<C> getAxioms(Class<C> v) {
-        return getAxiomTripleStore(v).getObjects();
+    public Stream<OWLClassAxiom> classAxioms() {
+        return Stream.of(OWLDisjointClassesAxiom.class, OWLDisjointUnionAxiom.class, OWLEquivalentClassesAxiom.class, OWLSubClassOfAxiom.class)
+                .map(this::getAxioms).map(Collection::stream).flatMap(Function.identity());
     }
 
-    public <C extends OWLAxiom> Set<C> getAxioms(AxiomType<C> type) {
-        return getAxiomTripleStore(type.getActualClass()).getObjects();
+    public Stream<OWLObjectPropertyAxiom> objectPropertyAxioms() {
+        return Stream.of(
+                OWLObjectPropertyDomainAxiom.class,
+                OWLObjectPropertyRangeAxiom.class,
+
+                OWLDisjointObjectPropertiesAxiom.class,
+                OWLSubPropertyChainOfAxiom.class,
+                OWLEquivalentObjectPropertiesAxiom.class,
+                OWLInverseObjectPropertiesAxiom.class,
+
+                OWLTransitiveObjectPropertyAxiom.class,
+                OWLIrreflexiveObjectPropertyAxiom.class,
+                OWLReflexiveObjectPropertyAxiom.class,
+                OWLSymmetricObjectPropertyAxiom.class,
+                OWLFunctionalObjectPropertyAxiom.class,
+                OWLInverseFunctionalObjectPropertyAxiom.class,
+                OWLAsymmetricObjectPropertyAxiom.class
+        ).map(this::getAxioms).map(Collection::stream).flatMap(Function.identity());
+    }
+
+    public Stream<OWLDataPropertyAxiom> dataPropertyAxioms() {
+        return Stream.of(
+                OWLDataPropertyDomainAxiom.class,
+                OWLDataPropertyRangeAxiom.class,
+
+                OWLDisjointDataPropertiesAxiom.class,
+                OWLSubDataPropertyOfAxiom.class,
+                OWLEquivalentDataPropertiesAxiom.class,
+
+                OWLFunctionalDataPropertyAxiom.class
+        ).map(this::getAxioms).map(Collection::stream).flatMap(Function.identity());
+    }
+
+    public Stream<OWLIndividualAxiom> individualAxioms() {
+        return Stream.of(
+                OWLClassAssertionAxiom.class,
+                OWLObjectPropertyAssertionAxiom.class,
+                OWLDataPropertyAssertionAxiom.class,
+
+                OWLNegativeObjectPropertyAssertionAxiom.class,
+                OWLNegativeDataPropertyAssertionAxiom.class,
+
+                OWLSameIndividualAxiom.class,
+                OWLDifferentIndividualsAxiom.class
+        ).map(this::getAxioms).map(Collection::stream).flatMap(Function.identity());
+    }
+
+    public Stream<OWLLogicalAxiom> logicalAxioms() {
+        return axioms(AxiomType.AXIOM_TYPES.stream().filter(AxiomType::isLogical).collect(Collectors.toSet())).map(OWLLogicalAxiom.class::cast);
+    }
+
+    public <A extends OWLAxiom> Set<A> getAxioms(Class<A> view) {
+        return getAxiomTripleStore(view).getObjects();
+    }
+
+    public <A extends OWLAxiom> Set<A> getAxioms(AxiomType<A> type) {
+        return type == null ? Collections.emptySet() : getAxiomTripleStore(type.getActualClass()).getObjects();
     }
 
     public <A extends OWLAxiom> void add(A axiom) {

@@ -5,7 +5,9 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
@@ -17,21 +19,23 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
 
 /**
  * TODO:
+ * It's our analogy of {@link uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl}
+ *
  * Created by @szuev on 03.12.2016.
  */
-public class ImmutableModelImpl extends OWLObjectImpl implements OWLOntology {
+public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     private final OntInternalModel base;
     private OWLOntologyManager manager;
 
-    public ImmutableModelImpl(OntologyManager manager, OWLOntologyID ontologyID) {
+    public OntBaseModelImpl(OntologyManager manager, OWLOntologyID ontologyID) {
         OntApiException.notNull(ontologyID, "Null OWL-ID.");
         this.manager = OntApiException.notNull(manager, "Null manager.");
         this.base = new OntInternalModel(manager.getGraphFactory().create());
         base.setOwlID(ontologyID);
     }
 
-    public ImmutableModelImpl(OntologyManager manager, OntInternalModel base) {
+    public OntBaseModelImpl(OntologyManager manager, OntInternalModel base) {
         this.manager = OntApiException.notNull(manager, "Null manager.");
         this.base = OntApiException.notNull(base, "Null internal model.");
     }
@@ -159,127 +163,134 @@ public class ImmutableModelImpl extends OWLObjectImpl implements OWLOntology {
     }
 
     @Override
-    public Stream<OWLEntity> entitiesInSignature(IRI entityIRI) { //TODO:
-        return null;
+    public Stream<OWLEntity> entitiesInSignature(@Nullable IRI entityIRI) {
+        return base.getEntities(entityIRI).stream();
     }
 
     @Override
     public int getAxiomCount() {
-        return 0;
+        return (int) axioms().count();
     }
 
     @Override
-    public int getAxiomCount(Imports includeImportsClosure) {
-        return 0;
+    public int getAxiomCount(@Nonnull Imports imports) {
+        return imports.stream(this).mapToInt(OWLAxiomCollection::getAxiomCount).sum();
     }
 
     @Override
     public int getLogicalAxiomCount() {
-        return 0;
+        return (int) logicalAxioms().count();
     }
 
     @Override
-    public int getLogicalAxiomCount(Imports includeImportsClosure) {
-        return 0;
+    public int getLogicalAxiomCount(@Nonnull Imports imports) {
+        return imports.stream(this).mapToInt(OWLAxiomCollection::getLogicalAxiomCount).sum();
     }
 
     @Override
-    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
-        return 0;
+    public <T extends OWLAxiom> int getAxiomCount(@Nullable AxiomType<T> axiomType) {
+        return base.getAxioms(axiomType).size();
     }
 
     @Override
-    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType, Imports includeImportsClosure) {
-        return 0;
+    public <T extends OWLAxiom> int getAxiomCount(@Nonnull AxiomType<T> axiomType, @Nonnull Imports imports) {
+        return imports.stream(this).mapToInt(o -> o.getAxiomCount(axiomType)).sum();
     }
 
     @Override
-    public boolean containsAxiom(OWLAxiom axiom, Imports includeImportsClosure, AxiomAnnotations ignoreAnnotations) {
-        return false;
+    public boolean containsAxiom(@Nullable OWLAxiom axiom) {
+        return base.axioms().anyMatch(a -> a.equals(axiom));
     }
 
     @Override
-    public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom) {
-        return false;
+    public boolean containsAxiom(@Nonnull OWLAxiom axiom, @Nonnull Imports imports, @Nonnull AxiomAnnotations ignoreAnnotations) {
+        return imports.stream(this).anyMatch(o -> ignoreAnnotations.contains(o, axiom));
     }
 
     @Override
-    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom axiom) {
-        return null;
+    public boolean containsAxiomIgnoreAnnotations(@Nonnull OWLAxiom axiom) {
+        return containsAxiom(axiom) || axioms(axiom.getAxiomType()).anyMatch(ax -> ax.equalsIgnoreAnnotations(axiom));
     }
 
     @Override
-    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom axiom, Imports includeImportsClosure) {
-        return null;
+    public Stream<OWLAxiom> axiomsIgnoreAnnotations(@Nonnull OWLAxiom axiom) {
+        return axioms(axiom.getAxiomType()).map(OWLAxiom.class::cast).filter(ax -> ax.equalsIgnoreAnnotations(axiom));
     }
 
     @Override
-    public Stream<OWLAxiom> referencingAxioms(OWLPrimitive owlEntity) {
-        return null;
+    public Stream<OWLAxiom> axiomsIgnoreAnnotations(@Nonnull OWLAxiom axiom, @Nonnull Imports imports) {
+        return imports.stream(this).flatMap(o -> o.axiomsIgnoreAnnotations(axiom));
     }
 
     @Override
-    public Stream<OWLClassAxiom> axioms(OWLClass cls) {
-        return null;
+    public Stream<OWLAxiom> referencingAxioms(@Nonnull OWLPrimitive primitive) {
+        return axioms().filter(a -> OntInternalModel.objects(OWLPrimitive.class, a).anyMatch(primitive::equals));
     }
 
     @Override
-    public Stream<OWLObjectPropertyAxiom> axioms(OWLObjectPropertyExpression property) {
-        return null;
+    public Stream<OWLClassAxiom> axioms(@Nonnull OWLClass clazz) {
+        return base.classAxioms().filter(a -> OntInternalModel.objects(OWLClass.class, a).anyMatch(clazz::equals));
     }
 
     @Override
-    public Stream<OWLDataPropertyAxiom> axioms(OWLDataProperty property) {
-        return null;
+    public Stream<OWLObjectPropertyAxiom> axioms(@Nonnull OWLObjectPropertyExpression property) {
+        return base.objectPropertyAxioms().filter(a -> OntInternalModel.objects(OWLObjectPropertyExpression.class, a).anyMatch(property::equals));
     }
 
     @Override
-    public Stream<OWLIndividualAxiom> axioms(OWLIndividual individual) {
-        return null;
+    public Stream<OWLDataPropertyAxiom> axioms(@Nonnull OWLDataProperty property) {
+        return base.dataPropertyAxioms().filter(a -> OntInternalModel.objects(OWLDataProperty.class, a).anyMatch(property::equals));
     }
 
     @Override
-    public Stream<OWLDatatypeDefinitionAxiom> axioms(OWLDatatype datatype) {
-        return null;
+    public Stream<OWLIndividualAxiom> axioms(@Nonnull OWLIndividual individual) {
+        return base.individualAxioms().filter(a -> OntInternalModel.objects(OWLIndividual.class, a).anyMatch(individual::equals));
+    }
+
+    @Override
+    public Stream<OWLDatatypeDefinitionAxiom> axioms(@Nonnull OWLDatatype datatype) {
+        return base.getAxioms(OWLDatatypeDefinitionAxiom.class).stream().filter(a -> datatype.equals(a.getDatatype()));
     }
 
     @Override
     public Stream<OWLAxiom> axioms() {
-        return null;
-    }
-
-    @Override
-    public boolean containsAxiom(OWLAxiom axiom) {
-        return false;
+        return base.axioms();
     }
 
     @Override
     public Stream<OWLLogicalAxiom> logicalAxioms() {
-        return null;
+        return base.logicalAxioms();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends OWLAxiom> Stream<T> axioms(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key) {
+        return (Stream<T>) base.axioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)
+                .map(type -> (AxiomType<T>) type)
+                .collect(Collectors.toSet())).filter(a -> filter.pass(a, key));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends OWLAxiom> Stream<T> axioms(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key, @Nonnull Imports imports) {
+        return imports.stream(this).flatMap(o -> (Stream<T>) o.axioms(filter, key));
     }
 
     @Override
-    public <T extends OWLAxiom> Stream<T> axioms(OWLAxiomSearchFilter filter, Object key, Imports includeImportsClosure) {
-        return null;
+    public boolean contains(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key) {
+        return base.axioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)
+                .map(type -> type)
+                .collect(Collectors.toSet())).anyMatch(a -> filter.pass(a, key));
     }
 
     @Override
-    public <T extends OWLAxiom> Stream<T> axioms(OWLAxiomSearchFilter filter, Object key) {
-        return null;
-    }
-
-    @Override
-    public boolean contains(OWLAxiomSearchFilter filter, Object key) {
-        return false;
-    }
-
-    @Override
-    public boolean contains(OWLAxiomSearchFilter filter, Object key, Imports includeImportsClosure) {
-        return false;
+    public boolean contains(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key, @Nonnull Imports imports) {
+        return imports.stream(this).anyMatch(o -> o.contains(filter, key));
     }
 
     @Override
     public <T extends OWLAxiom> Stream<T> axioms(Class<T> type, Class<? extends OWLObject> explicitClass, OWLObject entity, Navigation forSubPosition) {
+        //TODO:
         return null;
     }
 

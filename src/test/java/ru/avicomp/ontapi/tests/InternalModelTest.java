@@ -12,7 +12,10 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
@@ -24,6 +27,7 @@ import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.jena.GraphConverter;
+import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
@@ -138,7 +142,20 @@ public class InternalModelTest {
     private void testEntities(String file, OntFormat format) {
         OWLOntology owl = loadOWLOntology(file);
         OntInternalModel jena = loadInternalModel(file, format);
+
+        ReadWriteUtils.print(owl);
+        LOGGER.debug("==============================");
         ReadWriteUtils.print(jena);
+        LOGGER.debug("==============================");
+
+        // foaf contains wrong properties (both owl:DatatypeProperty and owl:ObjectProperty, example: <http://xmlns.com/foaf/0.1/msnChatID>)
+        Set<Resource> wrong = JenaUtils.asStream(jena.listStatements(null, RDF.type, OWL2.ObjectProperty)
+                .filterKeep(statement -> jena.contains(statement.getSubject(), RDF.type, OWL2.DatatypeProperty))
+                .mapWith(Statement::getSubject)).distinct().collect(Collectors.toSet());
+        if (!wrong.isEmpty())
+            LOGGER.info("Wrong properties:");
+        wrong.forEach(LOGGER::warn);
+
 
         LOGGER.info("OWLClass:");
         Set<OWLClass> classes1 = owl.classesInSignature().collect(Collectors.toSet());

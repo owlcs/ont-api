@@ -264,8 +264,10 @@ public abstract class GraphConverter {
             properties.removeAll(BUILT_IN);
             for (Node prop : properties) {
                 Set<Resource> types = getPropertyTypes(prop);
-                if (types.isEmpty()) throw new OntJenaException("Can't determine property type for " + prop);
-                if (types.contains(OWL2.DatatypeProperty) && types.contains(OWL2.ObjectProperty)) {
+                if (types.isEmpty()) { //todo: ignore?
+                    throw new OntJenaException("Can't determine property type for " + prop);
+                }
+                if (types.contains(OWL2.DatatypeProperty) && types.contains(OWL2.ObjectProperty)) { // todo: ignore?
                     throw new OntJenaException("Property " + prop + " can't be data and object at the same time.");
                 }
                 types.forEach(type -> addType(prop, type));
