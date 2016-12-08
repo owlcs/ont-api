@@ -20,11 +20,9 @@ import ru.avicomp.ontapi.translators.RDF2OWLHelper;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
- * New strategy here.
- * Buffer RDF-OWL model.
- * TODO: Now there's nothing here
- * TODO: This is {@link OntGraphModel} with methods to work with the axioms. It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways.
- * TODO: will be used to load and write from {@link ru.avicomp.ontapi.OntologyModel}.
+ * New strategy here. Buffer RDF-OWL model.
+ * This is {@link OntGraphModel} with methods to work with the axioms. It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways.
+ * Is used to load and write from {@link ru.avicomp.ontapi.OntologyModel}.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
@@ -130,6 +128,12 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return res;
     }
 
+    public Stream<OntEntity> ambiguousEntities(boolean withImports) {
+        Set<Class<? extends OntEntity>> types = Stream.of(OntClass.class, OntDT.class, OntNAP.class, OntNDP.class, OntNOP.class, OntIndividual.Named.class).collect(Collectors.toSet());
+        return ontEntities().filter(e -> withImports || e.isLocal()).filter(e -> types.stream()
+                .filter(view -> e.canAs(view) && (withImports || e.as(view).isLocal())).count() > 1);
+    }
+
     public static <T extends OWLObject> Stream<T> parseComponents(Class<T> view, HasComponents structure) {
         return structure.componentsWithoutAnnotations().map(o -> toStream(view, o)).flatMap(Function.identity());
     }
@@ -213,8 +217,15 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
                 .map(Collection::stream).flatMap(Function.identity());
     }
 
+    public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
+        return getAxioms(view).stream();
+    }
+
     public Stream<OWLClassAxiom> classAxioms() {
-        return Stream.of(OWLDisjointClassesAxiom.class, OWLDisjointUnionAxiom.class, OWLEquivalentClassesAxiom.class, OWLSubClassOfAxiom.class)
+        return Stream.of(OWLDisjointClassesAxiom.class,
+                OWLDisjointUnionAxiom.class,
+                OWLEquivalentClassesAxiom.class,
+                OWLSubClassOfAxiom.class)
                 .map(this::getAxioms).map(Collection::stream).flatMap(Function.identity());
     }
 
