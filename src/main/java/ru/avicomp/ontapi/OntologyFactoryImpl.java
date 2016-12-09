@@ -14,7 +14,6 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
 import com.google.inject.Inject;
-import ru.avicomp.ontapi.translators.rdf2axiom.GraphParseHelper;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
 /**
@@ -108,10 +107,12 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
     }
 
     private OntologyModel parse(OntologyManager manager, Graph graph, IRI docIRI, OWLOntologyCreationHandler handler) {
-        OWLOntologyID id = GraphParseHelper.getOWLOntologyID(graph);
+        /*OWLOntologyID id = GraphParseHelper.getOWLOntologyID(graph);
         OntologyModelImpl res = createOWLOntology(manager, id, docIRI, handler);
         res.getRDFChangeProcessor().load(graph);
-        return res;
+        return res;*/
+        //TODO
+        return null;
     }
 
 }

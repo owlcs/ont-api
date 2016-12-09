@@ -19,7 +19,6 @@ import com.google.inject.assistedinject.Assisted;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
 import ru.avicomp.ontapi.translators.OWL2RDFHelper;
-import ru.avicomp.ontapi.translators.rdf2axiom.GraphParseHelper;
 import uk.ac.manchester.cs.owl.owlapi.Internals;
 import uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl;
 
@@ -194,21 +193,6 @@ public class OntologyModelImpl extends OWLImmutableOntologyImpl implements Ontol
             return base.getBaseGraph();
         }
 
-        /**
-         * puts axioms to this OWLOntology inner graph from external graph
-         * these graphs may be different (see specification
-         * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Parsing_of_the_Ontology_Header_and_Declarations'>Parsing of the Ontology Header and Declarations</a>).
-         *
-         * @param external Graph from.
-         */
-        @Deprecated
-        void load(Graph external) {
-            GraphParseHelper.imports(getOntologyID(), external).forEachRemaining(this::addImport);
-            GraphParseHelper.declarationAxioms(external).forEachRemaining(axiom -> {
-                getInternals().addAxiom(axiom);
-                RDFChangeProcessor.this.addAxiom(axiom);
-            });
-        }
 
         /**
          * changes ontology id.
