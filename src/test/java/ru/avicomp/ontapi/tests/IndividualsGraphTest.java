@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.tests;
 
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
@@ -11,6 +10,9 @@ import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
+import ru.avicomp.ontapi.jena.model.OntClass;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -28,7 +30,7 @@ public class IndividualsGraphTest extends GraphTestBase {
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         OntologyModel owl = manager.createOntology(iri.toOwlOntologyID());
-        OntModel jena = owl.asGraphModel();
+        OntGraphModel jena = owl.asGraphModel();
 
         OntIRI class1 = iri.addFragment("ClassN1");
         OntIRI class2 = iri.addFragment("ClassN2");
@@ -50,9 +52,9 @@ public class IndividualsGraphTest extends GraphTestBase {
         debug(owl);
 
         Assert.assertEquals("OWL: incorrect classes count", classesCount, owl.axioms(AxiomType.DECLARATION).count());
-        Assert.assertEquals("Jena: incorrect classes count.", classesCount, jena.listClasses().toList().size());
+        Assert.assertEquals("Jena: incorrect classes count.", classesCount, jena.ontEntities(OntClass.class).count());
         Assert.assertEquals("OWL: incorrect individuals count", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
-        Assert.assertEquals("Jena: incorrect individuals count.", individualsCount, jena.listIndividuals().toList().size());
+        Assert.assertEquals("Jena: incorrect individuals count.", individualsCount, jena.ontObjects(OntIndividual.class).count());
 
         LOGGER.info("Remove individuals");
         jena.removeAll(individual3.toResource(), null, null);
@@ -61,7 +63,7 @@ public class IndividualsGraphTest extends GraphTestBase {
 
         ReadWriteUtils.print(jena, OntFormat.TTL_RDF);
         Assert.assertEquals("OWL: incorrect individuals count after removing", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
-        Assert.assertEquals("Jena: incorrect individuals count after removing.", individualsCount, jena.listIndividuals().toList().size());
+        Assert.assertEquals("Jena: incorrect individuals count after removing.", individualsCount, jena.ontObjects(OntIndividual.class).count());
         debug(owl);
     }
 

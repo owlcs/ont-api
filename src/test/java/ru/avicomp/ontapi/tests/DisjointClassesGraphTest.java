@@ -2,10 +2,6 @@ package ru.avicomp.ontapi.tests;
 
 import java.util.stream.Stream;
 
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.SomeValuesFromRestriction;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
@@ -21,6 +17,10 @@ import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.OntologyModelImpl;
 import ru.avicomp.ontapi.io.OntFormat;
+import ru.avicomp.ontapi.jena.model.OntCE;
+import ru.avicomp.ontapi.jena.model.OntClass;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
@@ -43,20 +43,21 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
         OntologyModel result = OntManagerFactory.createONTManager().createOntology(iri.toOwlOntologyID());
-        OntModel jena = result.asGraphModel();
+        OntGraphModel jena = result.asGraphModel();
         jena.setNsPrefix("", iri.getIRIString() + "#");
-        jena.add(jena.getOntology(iri.getIRIString()), OWL2.versionIRI, ver.toResource());
+        jena.getID().setVersionIRI(ver.getIRIString());
 
-        OntClass simple1 = jena.createClass(iri.addFragment("Simple1").getIRIString());
-        OntClass simple2 = jena.createClass(iri.addFragment("Simple2").getIRIString());
-        OntClass complex1 = jena.createClass(iri.addFragment("Complex1").getIRIString());
-        OntClass complex2 = jena.createClass(iri.addFragment("Complex2").getIRIString());
+        OntClass simple1 = jena.createOntEntity(OntClass.class, iri.addFragment("Simple1").getIRIString());
+        OntClass simple2 = jena.createOntEntity(OntClass.class, iri.addFragment("Simple2").getIRIString());
+        OntClass complex1 = jena.createOntEntity(OntClass.class, iri.addFragment("Complex1").getIRIString());
+        OntClass complex2 = jena.createOntEntity(OntClass.class, iri.addFragment("Complex2").getIRIString());
 
-        ObjectProperty property = jena.createObjectProperty(iri.addFragment("hasSimple1").getIRIString(), true);
+        OntNOP property = jena.createOntEntity(OntNOP.class, iri.addFragment("hasSimple1").getIRIString());
+        property.setFunctional(true);
         property.addRange(simple1);
-        SomeValuesFromRestriction restriction = jena.createSomeValuesFromRestriction(null, property, simple2);
-        complex2.addSuperClass(restriction);
-        complex2.addSuperClass(complex1);
+        OntCE.ObjectSomeValuesFrom restriction = jena.createObjectSomeValuesFrom(property, simple2);
+        complex2.addSubClassOf(restriction);
+        complex2.addSubClassOf(complex1);
         complex2.addComment("comment1", "es");
         complex1.addDisjointWith(simple1);
 
@@ -65,7 +66,6 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         jena.add(anon, RDF.type, OWL2.AllDisjointClasses);
         jena.add(anon, OWL2.members, jena.createList(Stream.of(complex2, simple1, simple2).iterator()));
 
-        jena.rebind(); // rebind because we have several bulk axioms.
         LOGGER.info("After rebind.");
         ReadWriteUtils.print(jena, OntFormat.TTL_RDF);
 

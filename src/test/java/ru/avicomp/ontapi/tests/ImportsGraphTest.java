@@ -3,8 +3,6 @@ package ru.avicomp.ontapi.tests;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -18,6 +16,8 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
@@ -35,18 +35,18 @@ public class ImportsGraphTest extends GraphTestBase {
         OntologyModel owl = TestUtils.createModel(iri);
         OntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
-        OntModel jena = owl.asGraphModel();
+        OntGraphModel jena = owl.asGraphModel();
         int importsCount = 4;
-        Ontology jenaOnt = jena.getOntology(iri.getIRIString());
+        OntID jenaOnt = jena.setID(iri.getIRIString());
         LOGGER.info("Add imports.");
         OntIRI import1 = OntIRI.create("http://dummy-imports.com/first");
         OntIRI import2 = OntIRI.create("http://dummy-imports.com/second");
         OntIRI import3 = OntIRI.create(ReadWriteUtils.getResourceURI("foaf.rdf"));
         OntIRI import4 = OntIRI.create(ReadWriteUtils.getResourceURI("pizza.ttl"));
         manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(import1)));
-        jenaOnt.addImport(import2.toResource());
+        jena.addImport(import2.getIRIString());
         manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(import3)));
-        jenaOnt.addImport(import4.toResource());
+        jena.addImport(import4.getIRIString());
 
         debug(owl);
 
@@ -55,12 +55,12 @@ public class ImportsGraphTest extends GraphTestBase {
         Assert.assertEquals("Jena: incorrect imports count.", importsCount, jena.listStatements(iri.toResource(), OWL.imports, (RDFNode) null).toList().size());
 
         LOGGER.info("Remove imports.");
-        jenaOnt.removeImport(import4.toResource());
+        jena.removeImport(import4.getIRIString());
         manager.applyChange(new RemoveImport(owl, factory.getOWLImportsDeclaration(import1)));
         debug(owl);
         importsCount = 2;
         Assert.assertEquals("OWL: incorrect imports count after removing.", importsCount, owl.importsDeclarations().count());
-        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount, jenaOnt.listImports().toList().size());
+        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount, jena.imports().count());
 
         debug(owl);
     }
@@ -157,16 +157,16 @@ public class ImportsGraphTest extends GraphTestBase {
         checkTripleAbsence(child.asGraphModel(), dataTypeIRI.toResource(), RDF.type, RDFS.Datatype);
     }
 
-    private static void checkTriple(OntModel base, OntModel child, Resource subject, Property predicate, RDFNode object) {
+    private static void checkTriple(OntGraphModel base, OntGraphModel child, Resource subject, Property predicate, RDFNode object) {
         checkTriplePresence(base, subject, predicate, object);
         checkTripleAbsence(child, subject, predicate, object);
     }
 
-    private static void checkTriplePresence(OntModel model, Resource subject, Property predicate, RDFNode object) {
+    private static void checkTriplePresence(OntGraphModel model, Resource subject, Property predicate, RDFNode object) {
         Assert.assertTrue("Can't find the triple " + TestUtils.createTriple(subject, predicate, object), model.contains(subject, predicate, object));
     }
 
-    private static void checkTripleAbsence(OntModel model, Resource subject, Property predicate, RDFNode object) {
+    private static void checkTripleAbsence(OntGraphModel model, Resource subject, Property predicate, RDFNode object) {
         Assert.assertFalse("There is the triple " + TestUtils.createTriple(subject, predicate, object), model.contains(subject, predicate, object));
     }
 }

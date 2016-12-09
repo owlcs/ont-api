@@ -45,7 +45,7 @@ public class OntGraph implements Graph {
     private final OntTripleHandler tripleHandler;
 
     public OntGraph(OntologyModelImpl owlOntology) {
-        this(owlOntology.getRDFChangeProcessor().getGraph(), new OntTripleHandler(owlOntology, ONT_LOADER_CONFIGURATION));
+        this(owlOntology.getInnerGraph(), new OntTripleHandler(owlOntology, ONT_LOADER_CONFIGURATION));
     }
 
     public OntGraph(Graph base, OntTripleHandler tripletHandler) {

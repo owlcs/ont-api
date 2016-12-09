@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -25,6 +23,8 @@ import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
+import ru.avicomp.ontapi.jena.model.OntClass;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.translators.OWL2RDFHelper;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -51,8 +51,8 @@ public class AnnotationsGraphTest extends GraphTestBase {
         OntologyModel owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
 
-        OntModel jena = owl.asGraphModel();
-        OntClass ontClass = jena.createClass(clazzIRI.getIRIString());
+        OntGraphModel jena = owl.asGraphModel();
+        OntClass ontClass = jena.createOntEntity(OntClass.class, clazzIRI.getIRIString());
 
         LOGGER.info("Assemble annotations using jena.");
         Resource commentURI;
@@ -73,7 +73,6 @@ public class AnnotationsGraphTest extends GraphTestBase {
         jena.add(anon, RDFS.label, label2);
         jena.add(anon, RDFS.label, label4);
 
-        jena.rebind();
         debug(owl);
 
         LOGGER.info("Check");
@@ -156,12 +155,11 @@ public class AnnotationsGraphTest extends GraphTestBase {
         Assert.assertEquals("Incorrect number of ontologies.", count + 2, manager.ontologies().count());
 
         LOGGER.info("Pass all content from " + id1 + " to " + id2 + " using jena");
-        OntModel source = owl1.asGraphModel();
-        OntModel target = owl2.asGraphModel();
+        OntGraphModel source = owl1.asGraphModel();
+        OntGraphModel target = owl2.asGraphModel();
         Iterator<Statement> toCopy = source.getBaseModel().listStatements().filterDrop(statement -> iri.toResource().equals(statement.getSubject()));
         toCopy.forEachRemaining(target::add);
         target.setNsPrefixes(source.getNsPrefixMap()); // just in case
-        target.rebind();
         debug(owl2);
 
         LOGGER.info("Compare axioms"); // note! there is one more axiom in new ontology: Declaration(NamedIndividual(<http://test.org/annotations/2#Indi>))
@@ -406,7 +404,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         owl.annotations().forEach(LOGGER::debug);
 
         // checking
-        OntModel jena = owl.asGraphModel();
+        OntGraphModel jena = owl.asGraphModel();
         // test annotation see-also:
         Assert.assertTrue("Can't find rdfs:comment " + comment, jena.contains(null, RDFS.comment, OWL2RDFHelper.toRDFNode(comment)));
         Assert.assertTrue("Can't find owl:annotatedTarget " + comment, jena.contains(null, OWL2.annotatedTarget, OWL2RDFHelper.toRDFNode(comment)));

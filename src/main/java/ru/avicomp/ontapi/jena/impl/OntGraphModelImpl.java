@@ -159,6 +159,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return getGraph().getBaseGraph();
     }
 
+    @Override
     public Model getBaseModel() {
         return ModelFactory.createModelForGraph(getBaseGraph());
     }

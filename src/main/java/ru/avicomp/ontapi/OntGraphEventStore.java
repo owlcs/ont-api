@@ -16,6 +16,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * <p>
  * Created by @szuev on 04.10.2016.
  */
+@Deprecated
 public class OntGraphEventStore {
     private Map<OWLEvent, Set<TripleEvent>> direct = new HashMap<>();
     private Map<TripleEvent, Set<OWLEvent>> inverse = new HashMap<>();

@@ -7,12 +7,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,8 +21,10 @@ import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.JenaUtils;
+import ru.avicomp.ontapi.jena.model.OntClass;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.utils.OntIRI;
-import ru.avicomp.ontapi.utils.TestUtils;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImplNotAnnotated;
 
 /**
@@ -33,18 +34,18 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImplNotAnnotated;
  */
 public class ChangeIDGraphTest extends GraphTestBase {
 
-    private static void testIRIChanged(OntologyModel owl, OntModel jena, OWLOntologyID id, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
+    private static void testIRIChanged(OntologyModel owl, OntGraphModel jena, OWLOntologyID owlID, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
         debug(owl);
-        String iri = id.getOntologyIRI().isPresent() ? id.getOntologyIRI().orElse(null).getIRIString() : null;
-        Ontology ont = TestUtils.getOntology(jena);
-        Assert.assertNotNull("Can't find new ontology for iri " + id, ont);
-        Assert.assertNotNull("Can't find new ontology in jena", TestUtils.getOntology(owl.asGraphModel()));
-        Assert.assertEquals("Incorrect jena id-iri", iri, ont.getURI());
-        Assert.assertTrue("Incorrect owl id-iri", (id.isAnonymous() && owl.getOntologyID().isAnonymous()) || owl.getOntologyID().equals(id));
+        String iri = owlID.getOntologyIRI().isPresent() ? owlID.getOntologyIRI().orElse(null).getIRIString() : null;
+        OntID ontID = jena.getID();
+        Assert.assertNotNull("Can't find new ontology for iri " + owlID, ontID);
+        Assert.assertNotNull("Can't find new ontology in jena", owl.asGraphModel().getID());
+        Assert.assertEquals("Incorrect jena id-iri", iri, ontID.getURI());
+        Assert.assertTrue("Incorrect owl id-iri", (owlID.isAnonymous() && owl.getOntologyID().isAnonymous()) || owl.getOntologyID().equals(owlID));
         // check imports:
         List<String> expected = imports.stream().map(Resource::getURI).sorted().collect(Collectors.toList());
         List<String> actualOwl = owl.importsDeclarations().map(OWLImportsDeclaration::getIRI).map(IRI::getIRIString).sorted().collect(Collectors.toList());
-        List<String> actualJena = ont.listImports().mapWith(Resource::getURI).toList().stream().sorted().collect(Collectors.toList());
+        List<String> actualJena = jena.imports().map(Resource::getURI).sorted().collect(Collectors.toList());
         Assert.assertEquals("Incorrect owl imports", expected, actualOwl);
         Assert.assertEquals("Incorrect jena imports", expected, actualJena);
         // check owl-annotations:
@@ -53,24 +54,24 @@ public class ChangeIDGraphTest extends GraphTestBase {
             count += annotations.get(property).size();
             annotations.get(property).forEach(node -> {
                 OWLAnnotation a = toOWLAnnotation(property, node);
-                Assert.assertTrue("Can't find annotation " + a, owl.annotations().filter(a::equals).findFirst().isPresent());
+                Assert.assertTrue("Can't find annotation " + a, owl.annotations().anyMatch(a::equals));
             });
         }
         Assert.assertEquals("Incorrect annotation count", count, owl.annotations().count());
         // check jena annotations:
         for (Property property : annotations.keySet()) {
-            List<RDFNode> actualList = jena.listStatements(ont, property, (RDFNode) null).mapWith(Statement::getObject).
+            List<RDFNode> actualList = jena.listStatements(ontID, property, (RDFNode) null).mapWith(Statement::getObject).
                     toList().stream().sorted(JenaUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
             List<RDFNode> expectedList = annotations.get(property).stream().sorted(JenaUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
             Assert.assertEquals("Incorrect list of annotations", expectedList, actualList);
         }
     }
 
-    private static void testHasClass(OntologyModel owl, OntModel jena, IRI classIRI) {
+    private static void testHasClass(OntologyModel owl, OntGraphModel jena, IRI classIRI) {
         OWLDeclarationAxiom axiom = owl.axioms(AxiomType.DECLARATION).findFirst().orElse(null);
         Assert.assertNotNull("Can't find any owl-class", axiom);
         Assert.assertEquals("Incorrect owl-class uri", classIRI, axiom.getEntity().getIRI());
-        List<OntClass> classes = jena.listClasses().toList();
+        List<OntClass> classes = jena.ontEntities(OntClass.class).collect(Collectors.toList());
         Assert.assertFalse("Can't find any jena-class", classes.isEmpty());
         Assert.assertEquals("Incorrect jena-class uri", classIRI.getIRIString(), classes.get(0).getURI());
     }
@@ -108,7 +109,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
 
         // anon ontology
         OntologyModel anon = manager.createOntology();
-        Assert.assertEquals("Should be one ontology inside jena-graph", 1, anon.asGraphModel().listOntologies().toList().size());
+        Assert.assertEquals("Should be one ontology inside jena-graph", 1, anon.asGraphModel().listStatements(null, RDF.type, OWL2.Ontology).toList().size());
 
         LOGGER.info("Create owl ontology.");
         OntIRI iri = OntIRI.create("http://test.test/change-id");
@@ -125,7 +126,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
         OWLAnnotationProperty ap1 = factory.getOWLAnnotationProperty(iri.addFragment("annotation-property-1"));
         OWLAnnotation a1 = factory.getOWLAnnotation(ap1, factory.getOWLLiteral("tess-annotation-1"));
         manager.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(factory.getOWLClass(clazz), Stream.of(a1).collect(Collectors.toList()))));
-        OntModel jena = owl.asGraphModel();
+        OntGraphModel jena = owl.asGraphModel();
         debug(owl);
 
         long numOfOnt = manager.ontologies().count();
@@ -135,14 +136,14 @@ public class ChangeIDGraphTest extends GraphTestBase {
         owl.applyChanges(new SetOntologyID(owl, test1));
         testIRIChanged(owl, jena, test1, imports, annotations);
         testHasClass(owl, jena, clazz);
-        Ontology ontology = jena.listOntologies().toList().get(0);
+        Resource ontology = jena.listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject).toList().get(0);
 
         OWLOntologyID test2 = iri.addPath("test2").toOwlOntologyID(test1.getVersionIRI().orElse(null));
         LOGGER.info("2)Change ontology iri to " + test2 + " through jena.");
         ResourceUtils.renameResource(ontology, OntIRI.toStringIRI(test2));
         testIRIChanged(owl, jena, test2, imports, annotations);
         testHasClass(owl, jena, clazz);
-        ontology = jena.listOntologies().toList().get(0);
+        ontology = jena.listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject).toList().get(0);
 
         // anon:
         OWLOntologyID test3 = new OWLOntologyID(); //iri.addPath("test3").toOwlOntologyID();

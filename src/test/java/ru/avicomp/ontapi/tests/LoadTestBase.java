@@ -3,7 +3,7 @@ package ru.avicomp.ontapi.tests;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.ontology.OntModel;
+import org.apache.jena.rdf.model.Model;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
@@ -15,6 +15,7 @@ import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
@@ -42,14 +43,14 @@ public abstract class LoadTestBase {
         Assert.assertNotNull("Null ont-iri " + id, iri);
 
         Assert.assertEquals("Incorrect count of axioms", getTotalNumberOfAxioms(), ontology.getAxiomCount());
-        OntModel ontModel = ontology.asGraphModel();
+        OntGraphModel ontModel = ontology.asGraphModel();
         String ontIRI = iri.getIRIString();
         ontModel.setNsPrefix("", ontIRI + "#");
         ReadWriteUtils.print(ontModel, OntFormat.TTL_RDF);
-        Assert.assertNotNull("Null jena ontology ", ontModel.getOntology(ontIRI));
+        Assert.assertEquals("Can't find ontology " + ontIRI, ontIRI, ontModel.getID().getURI());
 
         String copyOntIRI = ontIRI + ".copy";
-        OntModel copyOntModel = TestUtils.copyOntModel(ontModel, copyOntIRI);
+        Model copyOntModel = TestUtils.copyOntModel(ontModel, copyOntIRI);
 
         OntologyModel copyOntology = ReadWriteUtils.loadOntologyFromIOStream(manager, copyOntModel, convertFormat());
         long ontologiesCount = manager.ontologies().count();

@@ -22,6 +22,8 @@ public interface OntGraphModel extends Model {
 
     Graph getBaseGraph();
 
+    Model getBaseModel();
+
     OntID getID();
 
     OntID setID(String uri);

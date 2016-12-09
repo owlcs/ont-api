@@ -8,7 +8,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.log4j.Logger;
@@ -19,6 +18,8 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
 
 /**
@@ -44,13 +45,13 @@ public class TestUtils {
         return manager.createOntology(id);
     }
 
-    public static OntModel copyOntModel(OntModel original, String newURI) {
+    public static OntGraphModel copyOntModel(OntGraphModel original, String newURI) {
         String oldURI = getURI(original);
         if (newURI == null) newURI = oldURI + ".copy";
-        OntModel res = ModelFactory.createOntologyModel(original.getSpecification());
+        OntGraphModel res = new OntGraphModelImpl();
         res.setNsPrefix("", newURI + "#");
         res.add(original.getBaseModel().listStatements());
-        ResourceUtils.renameResource(res.getOntology(oldURI), newURI);
+        res.setID(newURI);
         return res;
     }
 

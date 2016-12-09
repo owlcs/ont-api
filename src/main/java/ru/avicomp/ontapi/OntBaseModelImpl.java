@@ -64,6 +64,15 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         this.manager = OntApiException.notNull(manager, "Null manager.");
     }
 
+    OntInternalModel getBase() {
+        return base;
+    }
+
+    @Override
+    public Stream<OWLAnnotation> annotations() {
+        return base.annotations();
+    }
+
     /**
      * =============================
      * Methods to work with imports:
