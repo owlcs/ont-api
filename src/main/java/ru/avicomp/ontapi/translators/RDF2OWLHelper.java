@@ -152,9 +152,16 @@ public class RDF2OWLHelper {
     }
 
     public static Set<TripleSet<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
-        return statement.annotations()
-                .filter(OntStatement::hasAnnotations)
-                .map(RDF2OWLHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
+        return statement.annotations().anyMatch(OntStatement::hasAnnotations) ?
+                statement.annotations()
+                        .map(a -> a.hasAnnotations() ? getHierarchicalAnnotations(a) : getPlainAnnotation(a)).collect(Collectors.toSet()) :
+                Collections.emptySet();
+    }
+
+    private static TripleSet<OWLAnnotation> getPlainAnnotation(OntStatement a) {
+        OWLAnnotation res = new OWLAnnotationImpl(getAnnotationProperty(a.getPredicate().as(OntNAP.class)),
+                getAnnotationValue(a.getObject()), Stream.empty());
+        return new TripleSet<>(res, a.asTriple());
     }
 
     private static TripleSet<OWLAnnotation> getHierarchicalAnnotations(OntStatement a) {

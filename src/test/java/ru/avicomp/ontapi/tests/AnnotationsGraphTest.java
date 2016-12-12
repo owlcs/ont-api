@@ -50,8 +50,11 @@ public class AnnotationsGraphTest extends GraphTestBase {
         LOGGER.info("Create fresh ontology (" + iri + ").");
         OntologyModel owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
+        OWLDataFactory factory = manager.getOWLDataFactory();
 
         OntGraphModel jena = owl.asGraphModel();
+        TestUtils.setDefaultPrefixes(jena);
+
         OntClass ontClass = jena.createOntEntity(OntClass.class, clazzIRI.getIRIString());
 
         LOGGER.info("Assemble annotations using jena.");
@@ -74,9 +77,8 @@ public class AnnotationsGraphTest extends GraphTestBase {
         jena.add(anon, RDFS.label, label4);
 
         debug(owl);
-
         LOGGER.info("Check");
-        OWLDataFactory factory = manager.getOWLDataFactory();
+
         OWLAxiom expected = factory.getOWLDeclarationAxiom(factory.getOWLClass(clazzIRI), Stream.of(
                 factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty),
                 factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(comment, commentLang), Stream.of(
@@ -94,15 +96,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         OWLOntology reload = ReadWriteUtils.loadOWLOntologyFromIOStream(OntManagerFactory.createOWLManager(), jena, null);
         LOGGER.info("Axioms after reload:");
         reload.axioms().forEach(LOGGER::debug);
-
-        Stream<OWLAxiom> expectedAxioms = Stream.of(
-                factory.getOWLAnnotationAssertionAxiom(clazzIRI, factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty)),
-                factory.getOWLAnnotationAssertionAxiom(clazzIRI, factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))),
-                factory.getOWLDeclarationAxiom(factory.getOWLClass(clazzIRI), Stream.of(factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(comment, commentLang), Stream.of(
-                        factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty),
-                        factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))
-                ))).collect(Collectors.toSet())));
-        TestUtils.compareAxioms(expectedAxioms, reload.axioms());
+        TestUtils.compareAxioms(Stream.of(expected), reload.axioms());
     }
 
     /**
@@ -435,6 +429,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         LOGGER.info("Remove " + customPropertyAnnotation);
         owl.applyChanges(new RemoveOntologyAnnotation(owl, customPropertyAnnotation));
+        owl.remove(factory.getOWLDeclarationAxiom(property));
         debug(owl);
         Assert.assertEquals("Expected only single triplet", 1, jena.listStatements().toList().size());
     }

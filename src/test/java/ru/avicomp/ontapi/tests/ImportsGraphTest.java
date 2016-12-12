@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.tests;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -134,15 +135,21 @@ public class ImportsGraphTest extends GraphTestBase {
         LOGGER.info("Reload models.");
         OntologyManager newManager = OntManagerFactory.createONTManager();
         OntologyModel newBase = ReadWriteUtils.loadOntologyFromIOStream(newManager, base.asGraphModel(), null);
-        OntologyModel newChild = ReadWriteUtils.loadOntologyFromIOStream(newManager, child.asGraphModel(), null);
+        OntologyModel newChild = //ReadWriteUtils.loadOntologyFromIOStream(newManager, child.asGraphModel(), null);
+                newManager.createOntology(child.getOntologyID()); // WARNING: this way reloading to avoid origin OWL-loader (currently we don't have our own)
+        newChild.asGraphModel().addImport(newBase.asGraphModel());
+        child.asGraphModel().getBaseModel().listStatements().forEachRemaining(st -> newChild.asGraphModel().add(st));
+
         Assert.assertEquals("Incorrect imports count", 1, newChild.imports().count());
         Assert.assertEquals("Should be the same number of statements",
                 child.asGraphModel().listStatements().toList().size(),
                 newChild.asGraphModel().listStatements().toList().size());
         TestUtils.compareAxioms(base.axioms(), newBase.axioms());
 
-        LOGGER.debug("Check axioms after reload:");
+        LOGGER.info("Check axioms after reload:");
+        LOGGER.debug("Origin ont");
         child.axioms().forEach(LOGGER::debug);
+        LOGGER.debug("Reloaded ont");
         newChild.axioms().forEach(LOGGER::debug);
         TestUtils.compareAxioms(child.axioms(), newChild.axioms());
 
@@ -163,10 +170,12 @@ public class ImportsGraphTest extends GraphTestBase {
     }
 
     private static void checkTriplePresence(OntGraphModel model, Resource subject, Property predicate, RDFNode object) {
-        Assert.assertTrue("Can't find the triple " + TestUtils.createTriple(subject, predicate, object), model.contains(subject, predicate, object));
+        Triple t = TestUtils.createTriple(subject, predicate, object);
+        Assert.assertTrue("Can't find the triple " + t, model.getBaseGraph().contains(t));
     }
 
     private static void checkTripleAbsence(OntGraphModel model, Resource subject, Property predicate, RDFNode object) {
-        Assert.assertFalse("There is the triple " + TestUtils.createTriple(subject, predicate, object), model.contains(subject, predicate, object));
+        Triple t = TestUtils.createTriple(subject, predicate, object);
+        Assert.assertFalse("There is the triple " + t, model.getBaseGraph().contains(t));
     }
 }

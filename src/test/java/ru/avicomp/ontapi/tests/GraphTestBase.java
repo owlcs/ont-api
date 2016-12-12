@@ -25,14 +25,16 @@ import ru.avicomp.ontapi.utils.TestUtils;
 abstract class GraphTestBase {
     static final Logger LOGGER = Logger.getLogger(GraphTestBase.class);
 
-    static void debug(OntologyModel ontology) {
+    static void debug(OWLOntology ontology) {
         LOGGER.info("DEBUG:");
         LOGGER.debug("OWL: ");
         ReadWriteUtils.print(ontology, OntFormat.TTL_RDF);
         LOGGER.debug("Axioms:");
         ontology.axioms().forEach(LOGGER::debug);
-        LOGGER.debug("Jena: ");
-        ReadWriteUtils.print(ontology.asGraphModel(), OntFormat.TTL_RDF);
+        if (ontology instanceof OntologyModel) {
+            LOGGER.debug("Jena: ");
+            ReadWriteUtils.print(((OntologyModel) ontology).asGraphModel(), OntFormat.TTL_RDF);
+        }
     }
 
     Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType... excluded) {
