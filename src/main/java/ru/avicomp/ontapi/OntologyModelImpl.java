@@ -7,8 +7,6 @@ import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.impl.OntModelImpl;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -20,12 +18,12 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY;
 
 /**
- * TODO:
+ * The main ontology model. Editable. Provides access to {@link OntGraphModel}
+ *
  * Created by @szuev on 27.09.2016.
  */
 public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel {
-    private final RDFChangeProcessor rdfProcessor;
-    private transient OntGraph outer;
+    private RDFChangeProcessor changer;
 
     /**
      * @param manager ontology manager
@@ -34,26 +32,16 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     @Inject
     public OntologyModelImpl(@Assisted OntologyManager manager, @Assisted OWLOntologyID id) {
         super(manager, id);
-        rdfProcessor = new RDFChangeProcessor();
+
     }
 
     public OntologyModelImpl(OntologyManager manager, OntInternalModel base) {
         super(manager, base);
-        rdfProcessor = new RDFChangeProcessor();
-    }
-
-    @Deprecated
-    public OntGraphEventStore getEventStore() {
-        return base.getEventStore();
     }
 
     @Override
     public ChangeApplied applyDirectChange(OWLOntologyChange change) {
-        ChangeApplied res = change.accept(getRDFChangeProcessor());
-        if (SUCCESSFULLY.equals(res)) {
-            sync();
-        }
-        return res;
+        return change.accept(getRDFChangeProcessor());
     }
 
     @Override
@@ -62,9 +50,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         for (OWLOntologyChange change : changes) {
             ChangeApplied result = applyDirectChange(change);
             if (SUCCESSFULLY.equals(appliedChanges)) {
-                // overwrite only if appliedChanges is still successful. If one
-                // change has been unsuccessful, we want to preserve that
-                // information
                 appliedChanges = result;
             }
         }
@@ -77,20 +62,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     }
 
     private RDFChangeProcessor getRDFChangeProcessor() {
-        return rdfProcessor;
+        return changer == null ? changer = new RDFChangeProcessor() : changer;
     }
 
-    private OntGraph getOntGraph() {
-        return outer == null ? outer = new OntGraph(this) : outer;
-    }
-
+    @Deprecated
     Graph getInnerGraph() {
         return base.getBaseGraph();
-    }
-
-    private void sync() {
-        if (outer != null)
-            outer.sync();
     }
 
     /**
@@ -101,25 +78,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      */
     public OntGraphModel asGraphModel() {
         return getBase();
-    }
-
-
-    @Deprecated
-    private static class DeprecatedOntGraphModel extends OntModelImpl {
-        DeprecatedOntGraphModel(OntologyModelImpl ontology) {
-            super(ontology.getOWLOntologyManager().getSpec(), ModelFactory.createModelForGraph(ontology.getOntGraph()));
-        }
-
-        @Override
-        public OntGraph getBaseGraph() {
-            return (OntGraph) super.getBaseGraph();
-        }
-
-        @Override
-        public void rebind() {
-            super.rebind();
-            getBaseGraph().flush();
-        }
     }
 
     private class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
@@ -215,11 +173,11 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         @Override
         public ChangeApplied visit(@Nonnull SetOntologyID change) {
             OWLOntologyID id = change.getNewOntologyID();
-            if (!getOntologyID().equals(id)) {
-                base.setOwlID(id);
-                return SUCCESSFULLY;
+            if (getOntologyID().equals(id)) {
+                return NO_OPERATION;
             }
-            return NO_OPERATION;
+            base.setOwlID(id);
+            return SUCCESSFULLY;
         }
     }
 }

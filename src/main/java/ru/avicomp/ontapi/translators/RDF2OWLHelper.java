@@ -392,22 +392,22 @@ public class RDF2OWLHelper {
     /**
      * To find all related triples and annotations.
      */
-    public static class StatementProcessor {
+    public static class AxiomStatement {
         private final OntStatement statement;
         private final Set<Triple> triples;
         private final Set<OWLAnnotation> annotations;
 
-        public StatementProcessor(OntStatement statement) {
-            this.statement = OntApiException.notNull(statement, "Null statement.");
+        public AxiomStatement(OntStatement main) {
+            this.statement = OntApiException.notNull(main, "Null statement.");
             this.triples = new HashSet<>();
             this.annotations = new HashSet<>();
-            triples.add(statement.asTriple());
-            Resource subject = statement.getSubject();
+            triples.add(main.asTriple());
+            Resource subject = main.getSubject();
             if (subject.isAnon() && !subject.canAs(OntIndividual.Anonymous.class)) { // for anonymous axioms
                 triples.addAll(getAssociatedTriples(subject));
             }
-            triples.addAll(getAssociatedTriples(statement.getObject()));
-            getBulkAnnotations(statement).forEach(a -> {
+            triples.addAll(getAssociatedTriples(main.getObject()));
+            getBulkAnnotations(main).forEach(a -> {
                 triples.addAll(a.getTriples());
                 annotations.add(a.getObject());
             });
@@ -423,6 +423,10 @@ public class RDF2OWLHelper {
 
         public Set<OWLAnnotation> getAnnotations() {
             return annotations;
+        }
+
+        public void addTriple(Triple t) {
+            triples.add(t);
         }
     }
 

@@ -26,11 +26,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     abstract Axiom create(OntStatement statement, Set<OWLAnnotation> annotations);
 
+    Stream<RDF2OWLHelper.AxiomStatement> axiomStatements(OntGraphModel model) {
+        return statements(model).map(RDF2OWLHelper.AxiomStatement::new);
+    }
+
     public Map<Axiom, Set<Triple>> read(OntGraphModel model) {
-        return statements(model)
-                .map(RDF2OWLHelper.StatementProcessor::new)
+        return axiomStatements(model)
                 .collect(Collectors.toMap(c -> create(c.getStatement(), c.getAnnotations()),
-                        RDF2OWLHelper.StatementProcessor::getTriples,
+                        RDF2OWLHelper.AxiomStatement::getTriples,
                         (tripleSet1, tripleSet2) -> {
                             tripleSet1.addAll(tripleSet2);
                             return tripleSet1;

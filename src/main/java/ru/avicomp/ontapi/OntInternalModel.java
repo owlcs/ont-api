@@ -30,19 +30,11 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     private final OWLOntologyID anonOntologyID = new OWLOntologyID();
 
-    @Deprecated
-    private final OntGraphEventStore eventStore;
     private final Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomStores = new HashMap<>();
 
     public OntInternalModel(Graph base) {
         super(base);
-        this.eventStore = new OntGraphEventStore();
         getGraph().getEventManager().register(new DirectListener());
-    }
-
-    @Deprecated
-    public OntGraphEventStore getEventStore() {
-        return eventStore;
     }
 
     public OWLOntologyID getOwlID() {
@@ -309,7 +301,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return axiomStores.values().stream()
                 .map(s -> s.get(triple).stream())
                 .flatMap(Function.identity())
-                .map(OWLAxiom::getClass)
+                .map(a -> a.getAxiomType().getActualClass())
                 .collect(Collectors.toSet());
     }
 
@@ -346,6 +338,10 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     private void clearCache() {
         axiomStores.clear();
+    }
+
+    private void clearCache(Triple triple) {
+        getAxiomTypes(triple).forEach(axiomStores::remove);
     }
 
     public class TripleStore<O extends OWLObject> {
@@ -440,7 +436,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         @Override
         protected void deleteEvent(Triple t) {
             if (!can()) return;
-            getAxiomTypes(t).forEach(axiomStores::remove);
+            clearCache(t);
         }
     }
 

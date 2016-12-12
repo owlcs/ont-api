@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.tests;
 
 import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
 import org.junit.Test;
@@ -9,12 +10,10 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.io.OntFormat;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.utils.OntIRI;
-import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
  * test individuals using jena-graph and owl-api
@@ -45,26 +44,33 @@ public class IndividualsGraphTest extends GraphTestBase {
         jena.add(class2.toResource(), RDF.type, OWL.Class);
 
         LOGGER.info("Add individuals.");
+        LOGGER.debug("Add individuals using OWL");
         manager.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(factory.getOWLClass(class1), factory.getOWLNamedIndividual(individual1))));
+        LOGGER.debug("Add individuals using ONT");
         jena.add(individual2.toResource(), RDF.type, class1.toResource());
-        jena.add(individual3.toResource(), RDF.type, class2.toResource());
+        jena.add(individual2.toResource(), RDF.type, OWL2.NamedIndividual);
+        jena.getOntEntity(OntClass.class, class2.getIRIString()).createIndividual(individual3.getIRIString());
 
         debug(owl);
 
-        Assert.assertEquals("OWL: incorrect classes count", classesCount, owl.axioms(AxiomType.DECLARATION).count());
+        Assert.assertEquals("OWL: incorrect classes count", classesCount + individualsCount, owl.axioms(AxiomType.DECLARATION).count());
         Assert.assertEquals("Jena: incorrect classes count.", classesCount, jena.ontEntities(OntClass.class).count());
         Assert.assertEquals("OWL: incorrect individuals count", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
         Assert.assertEquals("Jena: incorrect individuals count.", individualsCount, jena.ontObjects(OntIndividual.class).count());
 
         LOGGER.info("Remove individuals");
+        // remove class assertion and declaration:
         jena.removeAll(individual3.toResource(), null, null);
+        // remove class-assertion:
         manager.applyChange(new RemoveAxiom(owl, factory.getOWLClassAssertionAxiom(factory.getOWLClass(class1), factory.getOWLNamedIndividual(individual1))));
+        // remove declaration:
+        owl.remove(factory.getOWLDeclarationAxiom(factory.getOWLNamedIndividual(individual1)));
         individualsCount = 1;
 
-        ReadWriteUtils.print(jena, OntFormat.TTL_RDF);
+        debug(owl);
+
         Assert.assertEquals("OWL: incorrect individuals count after removing", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
         Assert.assertEquals("Jena: incorrect individuals count after removing.", individualsCount, jena.ontObjects(OntIndividual.class).count());
-        debug(owl);
     }
 
 }

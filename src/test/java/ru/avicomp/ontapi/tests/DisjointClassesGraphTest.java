@@ -85,9 +85,6 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         list.removeList();
         jena.removeAll(anon, null, null);
 
-        LOGGER.info("Events");
-        ((OntologyModelImpl) result).getEventStore().getLogs().forEach(LOGGER::debug);
-
         LOGGER.info("Compare axioms.");
         result.axioms().forEach(LOGGER::debug);
         TestUtils.compareAxioms(original.axioms().filter(axiom -> !AxiomType.DISJOINT_CLASSES.equals(axiom.getAxiomType())), result.axioms());
