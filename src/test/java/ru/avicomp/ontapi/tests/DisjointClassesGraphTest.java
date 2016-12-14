@@ -81,9 +81,10 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         jena.removeAll(ontComplex1, OWL.disjointWith, null);
         ReadWriteUtils.print(result.asGraphModel(), OntFormat.TTL_RDF);
         actual = result.axioms().sorted().collect(Collectors.toList());
-        expected = original.axioms()
-                .map(axiom -> AxiomType.DISJOINT_CLASSES.equals(axiom.getAxiomType()) ? factory.getOWLDisjointClassesAxiom(owlComplex2, owlSimple1, owlSimple2) : axiom)
-                .sorted().collect(Collectors.toList());
+        expected = original.axioms().sorted().collect(Collectors.toList());
+        expected.remove(factory.getOWLDisjointClassesAxiom(owlComplex1, owlSimple1));
+
+        expected.forEach(LOGGER::debug);
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
         LOGGER.info("Remove OWL:AllDisjointClasses");
@@ -96,7 +97,7 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         LOGGER.info("Compare axioms.");
         actual = result.axioms().sorted().collect(Collectors.toList());
         expected = original.axioms().filter(axiom -> !AxiomType.DISJOINT_CLASSES.equals(axiom.getAxiomType())).sorted().collect(Collectors.toList());
-        ;
+
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
     }

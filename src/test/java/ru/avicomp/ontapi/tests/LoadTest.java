@@ -2,19 +2,22 @@ package ru.avicomp.ontapi.tests;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
+import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
+import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
@@ -91,4 +94,45 @@ public class LoadTest {
         Assert.assertTrue(String.valueOf(errors), errors.isEmpty());
     }
 
+    //todo: just test 4 test. remove it.
+    public static void main(String... a) throws OWLOntologyCreationException {
+        IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("pizza.ttl"));
+        OntologyManager m1 = OntManagerFactory.createONTManager();
+        Model init = ReadWriteUtils.load(fileIRI.toURI(), OntFormat.TTL_RDF);
+        Graph graph = GraphConverter.convert(init.getGraph());
+        OntInternalModel base = new OntInternalModel(graph);
+        OntologyModel ont = m1.createOntology(base.getOwlID());
+        base.listStatements().forEachRemaining(statement -> ont.asGraphModel().add(statement));
+        //OntologyModel ont = (OntologyModel) m1.loadOntologyFromOntologyDocument(fileIRI);
+        LOGGER.info("ONT (" + ont.getAxiomCount() + ")");
+        //ont.axioms().forEach(LOGGER::debug);
+
+        LOGGER.info("============================================");
+        OWLOntologyManager m2 = OntManagerFactory.createOWLManager();
+        OWLOntology owl = m2.loadOntologyFromOntologyDocument(fileIRI);
+        LOGGER.info("OWL (" + owl.getAxiomCount() + ")");
+        //owl.axioms().forEach(LOGGER::debug);
+
+        LOGGER.info("============================================");
+        LOGGER.info(owl.getAxiomCount() + "|" + ont.getAxiomCount() + "|||" + axioms(owl).count() + "|" + axioms(ont).count());
+        LOGGER.info("============================================");
+        LOGGER.info("============================================");
+        //getAxioms(ont).forEach(LOGGER::debug);
+        /*List<OWLAxiom> owlList = owl.axioms().sorted().collect(Collectors.toList());
+        List<OWLAxiom> ontList = axioms(ont).sorted().collect(Collectors.toList());
+        owlList.forEach(LOGGER::debug);
+        LOGGER.info("============================================");
+        ontList.forEach(LOGGER::debug);
+        Assert.assertThat("Axioms", ontList, IsEqual.equalTo(owlList));*/
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Stream<OWLAxiom> axioms(OWLOntology o) {
+        return o.axioms().map(axiom -> {
+            if (axiom instanceof OWLNaryAxiom) {
+                return (Stream<OWLAxiom>) ((OWLNaryAxiom) axiom).splitToAnnotatedPairs().stream();
+            }
+            return Stream.of(axiom);
+        }).flatMap(Function.identity()).distinct();
+    }
 }
