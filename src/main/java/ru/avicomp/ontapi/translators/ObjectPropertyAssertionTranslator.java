@@ -38,7 +38,7 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
 
     @Override
     OWLObjectPropertyAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLIndividual subject = RDF2OWLHelper.getIndividual(statement.getObject().as(OntIndividual.class));
+        OWLIndividual subject = RDF2OWLHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
         OWLObjectPropertyExpression property = RDF2OWLHelper.getObjectProperty(statement.getPredicate().as(OntOPE.class));
         OWLIndividual object = RDF2OWLHelper.getIndividual(statement.getObject().as(OntIndividual.class));
         return new OWLObjectPropertyAssertionAxiomImpl(subject, property, object, annotations);
