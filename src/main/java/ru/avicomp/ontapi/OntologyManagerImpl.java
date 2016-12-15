@@ -18,6 +18,7 @@ import com.google.inject.Inject;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
 /**
+ * TODO:
  * Created by @szuev on 03.10.2016.
  */
 public class OntologyManagerImpl extends OWLOntologyManagerImpl implements OntologyManager {

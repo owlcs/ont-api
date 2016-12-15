@@ -1,19 +1,24 @@
 package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Optional;
+import java.util.Objects;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
+import org.apache.jena.vocabulary.OWL2;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
 import com.google.inject.Inject;
+import ru.avicomp.ontapi.jena.GraphConverter;
+import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
 /**
@@ -25,7 +30,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
  */
 public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOntologyFactory {
     private static final Logger LOGGER = Logger.getLogger(OntologyFactoryImpl.class);
-    private static boolean disableGraphLoading = true;
 
     /**
      * @param ontologyBuilder ontology builder
@@ -36,83 +40,78 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
     }
 
     @Override
-    public OntologyModelImpl createOWLOntology(@Nonnull OWLOntologyManager manager,
-                                               @Nonnull OWLOntologyID ontologyID,
-                                               @Nonnull IRI documentIRI,
-                                               @Nonnull OWLOntologyCreationHandler handler) {
-        return (OntologyModelImpl) super.createOWLOntology(manager, ontologyID, documentIRI, handler);
-        /*OntologyManager _manager = (OntologyManager) manager;
-        OntologyModelImpl ont = new OntologyModelImpl(_manager, ontologyID);
-        handler.ontologyCreated(ont);
-        handler.setOntologyFormat(ont, new RDFXMLDocumentFormat());
-        return ont;*/
-
+    public OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager,
+                                           @Nonnull OWLOntologyID ontologyID,
+                                           @Nonnull IRI documentIRI,
+                                           @Nonnull OWLOntologyCreationHandler handler) {
+        return (OntologyModel) super.createOWLOntology(manager, ontologyID, documentIRI, handler);
     }
 
     @Override
     public OntologyModel loadOWLOntology(@Nonnull OWLOntologyManager manager,
-                                         @Nonnull OWLOntologyDocumentSource documentSource,
+                                         @Nonnull OWLOntologyDocumentSource source,
                                          @Nonnull OWLOntologyCreationHandler handler,
                                          @Nonnull OWLOntologyLoaderConfiguration configuration) throws OWLOntologyCreationException {
-        if (disableGraphLoading) {
-            return (OntologyModel) super.loadOWLOntology(manager, documentSource, handler, configuration);
-        }
-        //TODO:
-        OntologyManager _manager = (OntologyManager) manager;
-        Graph graph = loadGraph(_manager, documentSource);
-        return graph == null ?
-                (OntologyModel) super.loadOWLOntology(_manager, documentSource, handler, configuration) :
-                parse(_manager, graph, documentSource.getDocumentIRI(), handler);
+        OntologyManagerImpl _manager = (OntologyManagerImpl) manager;
+        Graph graph = GraphConverter.convert(loadGraph(_manager, source));
+        UnionGraph union = new UnionGraph(graph);
+        graph.find(Node.ANY, OWL2.imports.asNode(), Node.ANY)
+                .mapWith(Triple::getObject)
+                .filterKeep(Node::isURI)
+                .mapWith(Node::getURI)
+                .mapWith(IRI::create)
+                .mapWith(manager::getOntology)
+                .filterKeep(Objects::nonNull)
+                .mapWith(OntologyModel.class::cast)
+                .mapWith(OntologyModel::asGraphModel)
+                .mapWith(OntGraphModel::getGraph)
+                .forEachRemaining(union::addGraph);
+        OntInternalModel base = new OntInternalModel(union);
+        OntologyModel res = new OntologyModelImpl(_manager, base);
+        _manager.ontologyCreated(res);
+        return res;
     }
 
-    private Graph loadGraph(OntologyManager manager, OWLOntologyDocumentSource documentSource) throws OWLOntologyCreationException {
-        Optional<InputStream> opt = documentSource.getInputStream();
-        if (!opt.isPresent()) return null;
-        Model m = ModelFactory.createModelForGraph(manager.getGraphFactory().create());
-        try (InputStream is = opt.get()) {
-            for (JenaFormats format : JenaFormats.values()) {
-                if (LOGGER.isDebugEnabled())
-                    LOGGER.debug("try:::" + format);
-                try {
-                    return m.read(is, "http://dummy", format.getId()).getGraph();
-                } catch (RiotException re) {
-                    if (LOGGER.isDebugEnabled())
-                        LOGGER.debug(format + ":::" + re);
-                }
+    public static Graph loadGraph(OntologyManager manager, OWLOntologyDocumentSource source) throws OWLOntologyCreationException {
+        IRI iri = OntApiException.notNull(source, "Null OWLOntologyDocumentSource.").getDocumentIRI();
+        if (LOGGER.isDebugEnabled())
+            LOGGER.debug("Load ONT Model from " + iri);
+        Graph g = manager.getGraphFactory().create();
+        try {
+            if (source.getInputStream().isPresent()) {
+                read(g, source);
+            } else {
+                RDFDataMgr.read(g, iri.getIRIString(), guessLang(source));
             }
-        } catch (IOException e) {
-            throw new OWLOntologyCreationException(e);
+        } catch (RiotException | OntApiException e) {
+            throw new OWLOntologyCreationException("Can't parse " + source, e);
         }
-        throw new OWLOntologyCreationException("Can't parse " + documentSource);
+        return g;
     }
 
-
-    private enum JenaFormats {
-        TTL_RDF("ttl"),
-        XML_RDF("rdf"),
-        JSON_LD_RDF("json"),
-        JSON_RDF("json"),
-        NTRIPLES("nt"),
-        TRIG("trig"),;
-
-        public String getId() {
-            return id;
+    private static void read(Graph graph, OWLOntologyDocumentSource source) {
+        if (!source.getInputStream().isPresent()) {
+            throw new OntApiException("No input stream inside " + source);
         }
-
-        String id;
-
-        JenaFormats(String id) {
-            this.id = id;
+        for (Lang lang : RDFLanguages.getRegisteredLanguages()) {
+            try {
+                if (LOGGER.isDebugEnabled())
+                    LOGGER.debug("Try <<" + lang + ">> for " + source.getDocumentIRI());
+                RDFDataMgr.read(graph, source.getInputStream().get(), lang);
+                return;
+            } catch (RiotException e) {
+                if (LOGGER.isDebugEnabled())
+                    LOGGER.debug("Can't read " + lang + "::" + e.getMessage());
+            }
         }
+        throw new OntApiException("Can't read " + source);
     }
 
-    private OntologyModel parse(OntologyManager manager, Graph graph, IRI docIRI, OWLOntologyCreationHandler handler) {
-        /*OWLOntologyID id = GraphParseHelper.getOWLOntologyID(graph);
-        OntologyModelImpl res = createOWLOntology(manager, id, docIRI, handler);
-        res.getRDFChangeProcessor().load(graph);
-        return res;*/
-        //TODO
-        return null;
+    public static Lang guessLang(OWLOntologyDocumentSource source) {
+        if (OntApiException.notNull(source, "Null OWLOntologyDocumentSource.").getMIMEType().isPresent()) {
+            return RDFLanguages.contentTypeToLang(source.getMIMEType().get());
+        }
+        return RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
     }
 
 }
