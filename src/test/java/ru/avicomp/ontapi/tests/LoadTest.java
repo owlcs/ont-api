@@ -6,20 +6,16 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
 import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.io.OntFormat;
-import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
@@ -151,13 +147,14 @@ public class LoadTest {
     public OntologyModel load(IRI file, OntFormat format) {
         LOGGER.info("[ONT]Load " + file + "[" + format + "]");
         OntologyManager m = OntManagerFactory.createONTManager();
-        Model init = ReadWriteUtils.load(file.toURI(), format);
-        Graph graph = GraphConverter.convert(init.getGraph());
-        OntInternalModel base = new OntInternalModel(graph);
-        OntologyModel res = m.createOntology(base.getOwlID());
-        base.listStatements().forEachRemaining(statement -> res.asGraphModel().add(statement));
-        TestUtils.setDefaultPrefixes(res.asGraphModel());
-        return res;
+        try {
+            OntologyModel res = (OntologyModel) m.loadOntologyFromOntologyDocument(file);
+            TestUtils.setDefaultPrefixes(res.asGraphModel());
+            return res;
+        } catch (OWLOntologyCreationException e) {
+            throw new AssertionError(e);
+        }
+
     }
 
     public OWLOntology load(IRI file) {

@@ -135,10 +135,7 @@ public class ImportsGraphTest extends GraphTestBase {
         LOGGER.info("Reload models.");
         OntologyManager newManager = OntManagerFactory.createONTManager();
         OntologyModel newBase = ReadWriteUtils.loadOntologyFromIOStream(newManager, base.asGraphModel(), null);
-        OntologyModel newChild = //ReadWriteUtils.loadOntologyFromIOStream(newManager, child.asGraphModel(), null);
-                newManager.createOntology(child.getOntologyID()); // WARNING: this way reloading to avoid origin OWL-loader (currently we don't have our own)
-        newChild.asGraphModel().addImport(newBase.asGraphModel());
-        child.asGraphModel().getBaseModel().listStatements().forEachRemaining(st -> newChild.asGraphModel().add(st));
+        OntologyModel newChild = ReadWriteUtils.loadOntologyFromIOStream(newManager, child.asGraphModel(), null);
 
         Assert.assertEquals("Incorrect imports count", 1, newChild.imports().count());
         Assert.assertEquals("Should be the same number of statements",
