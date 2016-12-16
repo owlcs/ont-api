@@ -26,7 +26,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     abstract Axiom create(OntStatement statement, Set<OWLAnnotation> annotations);
 
-    Stream<RDF2OWLHelper.AxiomStatement> axiomStatements(OntGraphModel model) {
+    protected Stream<RDF2OWLHelper.AxiomStatement> axiomStatements(OntGraphModel model) {
         return statements(model).map(RDF2OWLHelper.AxiomStatement::new);
     }
 

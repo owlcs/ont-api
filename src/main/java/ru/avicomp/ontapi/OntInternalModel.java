@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -204,7 +205,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
-        return types.stream()
+        return StreamSupport.stream(types.spliterator(), axiomStores.isEmpty())
                 .map(this::getAxioms)
                 .map(Collection::stream).flatMap(Function.identity());
     }

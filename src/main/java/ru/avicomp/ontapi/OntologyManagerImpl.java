@@ -2,6 +2,7 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.jena.graph.Factory;
@@ -9,10 +10,9 @@ import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.ProfileRegistry;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.io.OWLParserFactory;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.PriorityCollection;
 
 import com.google.inject.Inject;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
@@ -67,5 +67,20 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     @Override
     public OntologyModel getOntology(@Nonnull OWLOntologyID ontologyID) {
         return (OntologyModel) super.getOntology(ontologyID);
+    }
+
+    @Override
+    protected void fixIllegalPunnings(OWLOntology o) {
+        // nothing here. use ru.avicomp.ontapi.jena.GraphConverter to some fixing
+    }
+
+    @Override
+    public void setOntologyParsers(@Nullable Set<OWLParserFactory> parsers) {
+        throw new OntApiException.Unsupported(getClass(), "setOntologyParsers");
+    }
+
+    @Override
+    public PriorityCollection<OWLParserFactory> getOntologyParsers() {
+        throw new OntApiException.Unsupported(getClass(), "getOntologyParsers");
     }
 }

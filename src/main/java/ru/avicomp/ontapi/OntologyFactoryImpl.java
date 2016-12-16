@@ -60,7 +60,7 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
                 .filterKeep(Node::isURI)
                 .mapWith(Node::getURI)
                 .mapWith(IRI::create)
-                .mapWith(manager::getOntology)
+                .mapWith(manager::getOntology) // todo: load recursively if absents
                 .filterKeep(Objects::nonNull)
                 .mapWith(OntologyModel.class::cast)
                 .mapWith(OntologyModel::asGraphModel)
@@ -79,17 +79,27 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
         Graph g = manager.getGraphFactory().create();
         try {
             if (source.getInputStream().isPresent()) {
-                read(g, source);
+                readFromStream(g, source);
             } else {
-                RDFDataMgr.read(g, iri.getIRIString(), guessLang(source));
+                readFromDocumentIRI(g, source);
             }
-        } catch (RiotException | OntApiException e) {
+        } catch (OntApiException e) {
             throw new OWLOntologyCreationException("Can't parse " + source, e);
         }
         return g;
     }
 
-    private static void read(Graph graph, OWLOntologyDocumentSource source) {
+    private static void readFromDocumentIRI(Graph graph, OWLOntologyDocumentSource source) {
+        Lang lang = guessLang(source);
+        String uri = source.getDocumentIRI().getIRIString();
+        try {
+            RDFDataMgr.read(graph, uri, lang);
+        } catch (RiotException e) {
+            throw new OntApiException("Can't read " + lang + " from iri <" + uri + ">", e);
+        }
+    }
+
+    private static void readFromStream(Graph graph, OWLOntologyDocumentSource source) {
         if (!source.getInputStream().isPresent()) {
             throw new OntApiException("No input stream inside " + source);
         }
@@ -104,7 +114,7 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
                     LOGGER.debug("Can't read " + lang + "::" + e.getMessage());
             }
         }
-        throw new OntApiException("Can't read " + source);
+        throw new OntApiException("Can't read from stream.");
     }
 
     public static Lang guessLang(OWLOntologyDocumentSource source) {
