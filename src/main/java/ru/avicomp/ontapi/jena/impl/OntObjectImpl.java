@@ -89,7 +89,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public boolean isLocal() {
-        return getModel().isInBaseModel(OntJenaException.notNull(getRoot(), "Null main statement."));
+        return OntJenaException.notNull(getRoot(), "Null main statement.").isLocal();
     }
 
     @Override

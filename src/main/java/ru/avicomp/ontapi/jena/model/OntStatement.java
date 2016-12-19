@@ -45,9 +45,7 @@ public interface OntStatement extends Statement {
      */
     void deleteAnnotation(OntNAP property, RDFNode value);
 
-    default boolean isLocal() {
-        return getModel().isInBaseModel(this);
-    }
+    boolean isLocal();
 
     default boolean isAnnotation() {
         return getPredicate().canAs(OntNAP.class);

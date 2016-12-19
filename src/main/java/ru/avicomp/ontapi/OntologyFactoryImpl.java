@@ -81,7 +81,7 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
             if (source.getInputStream().isPresent()) {
                 readFromStream(g, source);
             } else {
-                readFromDocumentIRI(g, source);
+                readFromDocument(g, source);
             }
         } catch (OntApiException e) {
             throw new OWLOntologyCreationException("Can't parse " + source, e);
@@ -89,7 +89,7 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
         return g;
     }
 
-    private static void readFromDocumentIRI(Graph graph, OWLOntologyDocumentSource source) {
+    private static void readFromDocument(Graph graph, OWLOntologyDocumentSource source) {
         Lang lang = guessLang(source);
         String uri = source.getDocumentIRI().getIRIString();
         try {

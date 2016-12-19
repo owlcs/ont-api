@@ -20,6 +20,7 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
@@ -47,16 +48,14 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     public OntGraphModelImpl(Graph graph, OntPersonality personality) {
-        this(graph, personality, true);
-    }
-
-    public OntGraphModelImpl(Graph graph, OntPersonality personality, boolean syncImports) {
         super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), personality);
-        if (syncImports)
-            syncGraphRefs(personality);
     }
 
-    protected void syncGraphRefs(OntPersonality personality) {
+    public void syncImports() {
+        syncImports(getPersonality());
+    }
+
+    protected void syncImports(OntPersonality personality) {
         removeAll(getID(), OWL2.imports, null);
         models(personality).map(OntGraphModel::getID).filter(Resource::isURIResource).forEach(id -> addImport(id.getURI()));
     }
@@ -202,7 +201,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public boolean isInBaseModel(Statement stmt) {
-        return isInBaseModel(stmt.getSubject(), stmt.getPredicate(), stmt.getObject());
+        return isInBaseModel(OntApiException.notNull(stmt, "Null statement.").getSubject(), stmt.getPredicate(), stmt.getObject());
     }
 
     protected boolean isInBaseModel(Resource s, Property p, RDFNode o) {
@@ -213,11 +212,6 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     public OntGraphModelImpl remove(Resource s, Property p, RDFNode o) { // todo: removing is allowed only for base graph
         graph.delete(Triple.create(s.asNode(), p.asNode(), o.asNode()));
         return this;
-    }
-
-    @Override
-    public Stream<OntEntity> ontEntities() {
-        return ontObjects(OntEntity.class);
     }
 
     /**
@@ -263,11 +257,6 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     public void removeOntObject(OntObject obj) {
         obj.clearAnnotations();
         removeAll(obj, null, null);
-    }
-
-    @Override
-    public <T extends OntEntity> Stream<T> ontEntities(Class<T> type) {
-        return ontObjects(type);
     }
 
     @Override

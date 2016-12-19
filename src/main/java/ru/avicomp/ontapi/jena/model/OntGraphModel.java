@@ -44,10 +44,6 @@ public interface OntGraphModel extends Model {
 
     <E extends OntEntity> E getOntEntity(Class<E> type, String uri);
 
-    Stream<OntEntity> ontEntities();
-
-    <E extends OntEntity> Stream<E> ontEntities(Class<E> type);
-
     Stream<OntStatement> statements();
 
     boolean isInBaseModel(Statement statement);
@@ -162,6 +158,14 @@ public interface OntGraphModel extends Model {
      * default methods for simplification:
      * ===================================
      */
+
+    default Stream<OntEntity> ontEntities() {
+        return ontObjects(OntEntity.class);
+    }
+
+    default <E extends OntEntity> Stream<E> ontEntities(Class<E> type) {
+        return ontObjects(type);
+    }
 
     default <E extends OntEntity> E fetchOntEntity(Class<E> type, String uri) {
         E res = getOntEntity(type, uri);

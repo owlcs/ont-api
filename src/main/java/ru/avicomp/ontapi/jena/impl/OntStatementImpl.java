@@ -15,6 +15,7 @@ import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
@@ -33,6 +34,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     @Override
     public OntGraphModel getModel() {
         return (OntGraphModel) super.getModel();
+    }
+
+    @Override
+    public boolean isLocal() {
+        return !((UnionGraph) getModel().getGraph()).getUnderlying().hasSubGraphs() || getModel().isInBaseModel(this);
     }
 
     @Override

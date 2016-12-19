@@ -31,11 +31,26 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     private final OWLOntologyID anonOntologyID = new OWLOntologyID();
 
-    private final Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomStores = new HashMap<>();
+    // axioms store
+    private final Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomsCache = new HashMap<>();
+    // "cache" to improve performance:
+    private final Map<Class<?>, Set<?>> objectsCache = new HashMap<>();
 
     public OntInternalModel(Graph base) {
         super(base);
         getGraph().getEventManager().register(new DirectListener());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <O extends OntObject> Stream<O> ontObjects(Class<O> type) {
+        return (Stream<O>) objectsCache.computeIfAbsent(type, c -> OntInternalModel.super.ontObjects(type).collect(Collectors.toSet())).stream();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Stream<OntStatement> statements() {
+        return (Stream<OntStatement>) objectsCache.computeIfAbsent(OntStatement.class, c -> OntInternalModel.super.statements().collect(Collectors.toSet())).stream();
     }
 
     public OWLOntologyID getOwlID() {
@@ -65,7 +80,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public boolean isOntologyEmpty() {
-        return axiomStores.values().stream().allMatch(TripleStore::isEmpty) && getAnnotations().isEmpty();
+        return getAxioms().isEmpty() && getAnnotations().isEmpty();
     }
 
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
@@ -155,9 +170,11 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return Stream.empty();
     }
 
+    @SuppressWarnings("unchecked")
     public <E extends OWLObject> Stream<E> objects(Class<E> view) {
-        return Stream.concat(annotations().map(annotation -> objects(view, annotation)).flatMap(Function.identity()),
-                axioms().map(axiom -> objects(view, axiom)).flatMap(Function.identity())).distinct();
+        return (Stream<E>) objectsCache.computeIfAbsent(view, c ->
+                Stream.concat(annotations().map(annotation -> objects(view, annotation)).flatMap(Function.identity()),
+                        axioms().map(axiom -> objects(view, axiom)).flatMap(Function.identity())).collect(Collectors.toSet())).stream();
     }
 
     public void add(OWLAnnotation annotation) {
@@ -205,7 +222,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
-        return StreamSupport.stream(types.spliterator(), axiomStores.isEmpty())
+        return StreamSupport.stream(types.spliterator(), axiomsCache.isEmpty())
                 .map(this::getAxioms)
                 .map(Collection::stream).flatMap(Function.identity());
     }
@@ -299,7 +316,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     private Set<Class<? extends OWLAxiom>> getAxiomTypes(Triple triple) {
-        return axiomStores.values().stream()
+        return axiomsCache.values().stream()
                 .map(s -> s.get(triple).stream())
                 .flatMap(Function.identity())
                 .map(a -> a.getAxiomType().getActualClass())
@@ -314,7 +331,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
      */
     private boolean canDelete(Triple triple) {
         int count = 0;
-        for (TripleStore<? extends OWLAxiom> store : axiomStores.values()) {
+        for (TripleStore<? extends OWLAxiom> store : axiomsCache.values()) {
             count += store.get(triple).size();
             if (count > 1) return false;
         }
@@ -328,7 +345,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     @SuppressWarnings("unchecked")
     private <A extends OWLAxiom> TripleStore<A> getAxiomTripleStore(Class<A> type) {
-        return (TripleStore<A>) axiomStores.computeIfAbsent(type, c -> new TripleStore<>(AxiomParserProvider.get(type).read(this)));
+        return (TripleStore<A>) axiomsCache.computeIfAbsent(type, c -> new TripleStore<>(AxiomParserProvider.get(type).read(this)));
     }
 
     @Override
@@ -337,12 +354,14 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return super.removeAll();
     }
 
-    private void clearCache() {
-        axiomStores.clear();
+    public void clearCache() {
+        axiomsCache.clear();
+        objectsCache.clear();
     }
 
-    private void clearCache(Triple triple) {
-        getAxiomTypes(triple).forEach(axiomStores::remove);
+    public void clearCache(Triple triple) {
+        getAxiomTypes(triple).forEach(axiomsCache::remove);
+        objectsCache.clear();
     }
 
     public class TripleStore<O extends OWLObject> {

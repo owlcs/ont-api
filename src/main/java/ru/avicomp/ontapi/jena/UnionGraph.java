@@ -86,6 +86,10 @@ public class UnionGraph extends Dyadic {
         public Stream<Graph> graphs() {
             return m_subGraphs.stream();
         }
+
+        public boolean hasSubGraphs() {
+            return !m_subGraphs.isEmpty();
+        }
     }
 
     public static class OntEventManager extends SimpleEventManager {
