@@ -31,33 +31,29 @@ public class PerformanceTester {
         load(fileIRI, OntFormat.TTL_RDF);
         System.gc();
 
-        final int num = 2000;
+        final int num = 50;
         final int innerNum = 1;
         final boolean loadAxioms = true;
         final boolean testPureJena = true;
-        float res;
+        Stopwatch stopwatch;
 
-        res = 0;
+        stopwatch = Stopwatch.createStarted();
         for (int i = 0; i < num; i++) {
             LOGGER.info("[ONT]Iter #" + i);
-            Stopwatch stopwatch = Stopwatch.createStarted();
             testONT(fileIRI, loadAxioms, testPureJena, innerNum);
-            stopwatch.stop();
-            res += stopwatch.elapsed(TimeUnit.MILLISECONDS);
             System.gc();
         }
-        float ontAverage = res / num;
+        stopwatch.stop();
+        float ontAverage = stopwatch.elapsed(TimeUnit.MILLISECONDS) / num;
 
-        res = 0;
+        stopwatch = Stopwatch.createStarted();
         for (int i = 0; i < num; i++) {
             LOGGER.info("[OWL]Iter #" + i);
-            Stopwatch stopwatch = Stopwatch.createStarted();
             testOWL(fileIRI, loadAxioms, innerNum);
-            stopwatch.stop();
-            res += stopwatch.elapsed(TimeUnit.MILLISECONDS);
             System.gc();
         }
-        float owlAverage = res / num;
+        stopwatch.stop();
+        float owlAverage = stopwatch.elapsed(TimeUnit.MILLISECONDS) / num;
 
 
         LOGGER.info("ONT = " + ontAverage);

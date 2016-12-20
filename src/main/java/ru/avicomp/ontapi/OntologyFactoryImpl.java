@@ -52,39 +52,50 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
                                          @Nonnull OWLOntologyDocumentSource source,
                                          @Nonnull OWLOntologyCreationHandler handler,
                                          @Nonnull OWLOntologyLoaderConfiguration configuration) throws OWLOntologyCreationException {
-        OntologyManagerImpl _manager = (OntologyManagerImpl) manager;
-        Graph graph = GraphConverter.convert(loadGraph(_manager, source));
+        OntologyManagerImpl m = (OntologyManagerImpl) manager;
+        Graph graph;
+        try {
+            graph = GraphConverter.convert(loadGraph(m, source));
+        } catch (OntApiException e) { // maybe it is no jena format
+            LOGGER.warn("Can't load from " + source + " ::: " + e);
+            return (OntologyModel) super.loadOWLOntology(manager, source, handler, configuration);
+        }
         UnionGraph union = new UnionGraph(graph);
         graph.find(Node.ANY, OWL2.imports.asNode(), Node.ANY)
                 .mapWith(Triple::getObject)
                 .filterKeep(Node::isURI)
                 .mapWith(Node::getURI)
                 .mapWith(IRI::create)
-                .mapWith(manager::getOntology) // todo: load recursively if absents
+                .mapWith(iri -> fetchOntology(m, iri))
                 .filterKeep(Objects::nonNull)
-                .mapWith(OntologyModel.class::cast)
                 .mapWith(OntologyModel::asGraphModel)
                 .mapWith(OntGraphModel::getGraph)
                 .forEachRemaining(union::addGraph);
         OntInternalModel base = new OntInternalModel(union);
-        OntologyModel res = new OntologyModelImpl(_manager, base);
-        _manager.ontologyCreated(res);
+        OntologyModel res = new OntologyModelImpl(m, base);
+        m.ontologyCreated(res);
         return res;
     }
 
-    public static Graph loadGraph(OntologyManager manager, OWLOntologyDocumentSource source) throws OWLOntologyCreationException {
+    private OntologyModel fetchOntology(OntologyManagerImpl manager, IRI iri) {
+        if (manager.contains(iri)) return manager.getOntology(iri);
+        try {
+            return (OntologyModel) manager.loadOntology(iri);
+        } catch (OWLOntologyCreationException e) {
+            LOGGER.warn(e);
+        }
+        return null;
+    }
+
+    public static Graph loadGraph(OntologyManager manager, OWLOntologyDocumentSource source) throws OntApiException {
         IRI iri = OntApiException.notNull(source, "Null OWLOntologyDocumentSource.").getDocumentIRI();
         if (LOGGER.isDebugEnabled())
             LOGGER.debug("Load ONT Model from " + iri);
         Graph g = manager.getGraphFactory().create();
-        try {
-            if (source.getInputStream().isPresent()) {
-                readFromStream(g, source);
-            } else {
-                readFromDocument(g, source);
-            }
-        } catch (OntApiException e) {
-            throw new OWLOntologyCreationException("Can't parse " + source, e);
+        if (source.getInputStream().isPresent()) {
+            readFromStream(g, source);
+        } else {
+            readFromDocument(g, source);
         }
         return g;
     }
@@ -95,7 +106,7 @@ public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOn
         try {
             RDFDataMgr.read(graph, uri, lang);
         } catch (RiotException e) {
-            throw new OntApiException("Can't read " + lang + " from iri <" + uri + ">", e);
+            throw new OntApiException("Can't read lang=" + lang + " from iri <" + uri + ">", e);
         }
     }
 
