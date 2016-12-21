@@ -9,14 +9,14 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.UniqueFilter;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * base class for any class-expression.
@@ -30,7 +30,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
     private static final OntFilter ON_PROPERTY_DATA_FILTER = new OnPropertyTypeFilter(RestrictionType.DATA);
     private static final OntFilter ON_PROPERTY_OBJECT_FILTER = new OnPropertyTypeFilter(RestrictionType.OBJECT);
-    private static final OntFinder CE_FINDER = g -> JenaUtils.asStream(g.asGraph().find(Node.ANY, RDF_TYPE, OWL_CLASS).
+    private static final OntFinder CE_FINDER = g -> Models.asStream(g.asGraph().find(Node.ANY, RDF_TYPE, OWL_CLASS).
             andThen(g.asGraph().find(Node.ANY, RDF_TYPE, OWL_RESTRICTION)).mapWith(Triple::getSubject)).distinct();
 
     public static OntObjectFactory unionOfCEFactory = new CEFactory(UnionOfImpl.class, OWL2.Class, OWL2.unionOf);

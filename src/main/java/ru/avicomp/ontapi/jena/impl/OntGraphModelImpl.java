@@ -17,16 +17,16 @@ import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.shared.PrefixMapping;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Base model to work through jena only.
@@ -80,7 +80,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntID setID(String uri) {
-        List<Statement> tmp = ontologyStatements().map(s -> JenaUtils.asStream(listStatements(s, null, (RDFNode) null))).flatMap(Function.identity()).distinct().collect(Collectors.toList());
+        List<Statement> tmp = ontologyStatements().map(s -> Models.asStream(listStatements(s, null, (RDFNode) null))).flatMap(Function.identity()).distinct().collect(Collectors.toList());
         remove(tmp);
         Resource subject;
         if (uri == null) {
@@ -94,7 +94,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     private Stream<Resource> ontologyStatements() {
-        return JenaUtils.asStream(listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject)).distinct();
+        return Models.asStream(listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject)).distinct();
     }
 
     @Override
@@ -132,7 +132,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public Stream<Resource> imports() {
-        return JenaUtils.asStream(listStatements(null, OWL2.imports, (RDFNode) null)
+        return Models.asStream(listStatements(null, OWL2.imports, (RDFNode) null)
                 .filterKeep(this::isInBaseModel)
                 .mapWith(Statement::getObject)
                 .filterKeep(RDFNode::isURIResource)
@@ -261,7 +261,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public Stream<OntStatement> statements() {
-        return JenaUtils.asStream(listStatements()).map(s -> toOntStatement(null, s));
+        return Models.asStream(listStatements()).map(s -> toOntStatement(null, s));
     }
 
     protected OntStatement toOntStatement(OntStatement main, Statement st) {

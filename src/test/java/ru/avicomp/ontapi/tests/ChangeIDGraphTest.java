@@ -10,8 +10,6 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,10 +18,12 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntID;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.OntIRI;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImplNotAnnotated;
 
@@ -61,8 +61,8 @@ public class ChangeIDGraphTest extends GraphTestBase {
         // check jena annotations:
         for (Property property : annotations.keySet()) {
             List<RDFNode> actualList = jena.listStatements(ontID, property, (RDFNode) null).mapWith(Statement::getObject).
-                    toList().stream().sorted(JenaUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
-            List<RDFNode> expectedList = annotations.get(property).stream().sorted(JenaUtils.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+                    toList().stream().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+            List<RDFNode> expectedList = annotations.get(property).stream().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
             Assert.assertEquals("Incorrect list of annotations", expectedList, actualList);
         }
     }

@@ -2,8 +2,9 @@ package ru.avicomp.ontapi.jena.model;
 
 import java.util.stream.Stream;
 
-import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
+
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
 
 /**
  * Object Property Expression (i.e. for iri-object property entity and for inverseOf anonymous property expression)

@@ -14,16 +14,16 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.out.NodeFmtLib;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import uk.ac.manchester.cs.owl.owlapi.*;
 
 /**
@@ -180,7 +180,7 @@ public class RDF2OWLHelper {
     }
 
     public static Set<Triple> getAssociatedTriples(RDFNode root) {
-        return root.isAnon() ? JenaUtils.getAssociatedStatements(root.asResource()).stream().map(Statement::asTriple).collect(Collectors.toSet()) : Collections.emptySet();
+        return root.isAnon() ? Models.getAssociatedStatements(root.asResource()).stream().map(Statement::asTriple).collect(Collectors.toSet()) : Collections.emptySet();
     }
 
     public static OWLFacetRestriction getFacetRestriction(OntFR fr) {

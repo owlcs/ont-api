@@ -9,13 +9,13 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
 /**
@@ -142,8 +142,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         OntJenaException.notNull(body, "Null body");
         Resource res = model.createResource();
         model.add(res, RDF.type, SWRL.Imp);
-        model.add(res, SWRL.head, JenaUtils.createTypedList(model, SWRL.AtomList, head));
-        model.add(res, SWRL.body, JenaUtils.createTypedList(model, SWRL.AtomList, body));
+        model.add(res, SWRL.head, Models.createTypedList(model, SWRL.AtomList, head));
+        model.add(res, SWRL.body, Models.createTypedList(model, SWRL.AtomList, body));
         return model.getNodeAs(res.asNode(), Imp.class);
     }
 
@@ -314,7 +314,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
             if (st == null || !st.getObject().isResource())
                 return Stream.empty();
             Resource list = st.getObject().asResource();
-            return JenaUtils.rdfListContent(getModel(), list).filter(n -> n.canAs(Atom.class)).map(n -> n.as(Atom.class)).distinct();
+            return Models.rdfListContent(getModel(), list).filter(n -> n.canAs(Atom.class)).map(n -> n.as(Atom.class)).distinct();
         }
 
         @Override

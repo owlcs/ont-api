@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi.io;
+package ru.avicomp.ontapi;
 
 import java.util.Objects;
 import java.util.stream.Stream;

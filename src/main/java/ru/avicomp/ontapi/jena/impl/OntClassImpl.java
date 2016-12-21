@@ -4,12 +4,12 @@ import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * owl:Class Implementation
@@ -24,7 +24,7 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
 
     @Override
     public boolean isBuiltIn() {
-        return JenaUtils.BUILT_IN_CLASSES.contains(this);
+        return BuiltIn.CLASSES.contains(this);
     }
 
     @Override

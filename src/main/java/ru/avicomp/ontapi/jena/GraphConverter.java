@@ -5,21 +5,25 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
+
+import ru.avicomp.ontapi.OntBuildingFactoryImpl;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Class to perform some transformation action on the specified graph.
  * Currently it is to convert the OWL-1/RDFS ontological graph to the OWL-2-DL graph.
- * Use it after loading inside {@link ru.avicomp.ontapi.OntologyFactoryImpl}
+ * Use it after loading inside {@link OntBuildingFactoryImpl}
  * <p>
  * Created by szuev on 28.10.2016.
  */
@@ -159,10 +163,8 @@ public abstract class GraphConverter {
      * see <a href='https://www.w3.org/TR/rdf-schema'>RDFS specification</a>
      */
     private static class RDFStoOWL extends TransformAction {
-        private static final Set<Node> DATATYPES = JenaUtils.BUILT_IN_RDF_DATATYPES.stream()
-                .map(t -> NodeFactory.createURI(t.getURI())).collect(Collectors.toSet());
-        private static final Set<Node> BUILT_IN = JenaUtils.BUILT_IN_ALL.stream()
-                .map(t -> NodeFactory.createURI(t.getURI())).collect(Collectors.toSet());
+        private static final Set<Node> DATATYPES = BuiltIn.DATATYPES.stream().map(FrontsNode::asNode).collect(Collectors.toSet());
+        private static final Set<Node> BUILT_IN = BuiltIn.ALL.stream().map(FrontsNode::asNode).collect(Collectors.toSet());
         private static final Set<Node> NOT_INDIVIDUAL_TYPES = Stream.of(RDFS.Class, OWL2.Class,
                 RDFS.Datatype, OWL2.DataRange,
                 RDF.Property, OWL2.DatatypeProperty, OWL2.AnnotationProperty, OWL2.ObjectProperty,
@@ -186,7 +188,7 @@ public abstract class GraphConverter {
         }
 
         private Set<Resource> getPropertyTypes(Node subject) {
-            Set<Resource> res = new TreeSet<>(JenaUtils.RDF_NODE_COMPARATOR);
+            Set<Resource> res = new TreeSet<>(Models.RDF_NODE_COMPARATOR);
             Set<Node> ranges = getGraph().find(subject, RDFS.range.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
             Set<Node> domains = getGraph().find(subject, RDFS.domain.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
             Set<Node> superProperties = getGraph().find(subject, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
@@ -377,7 +379,7 @@ public abstract class GraphConverter {
             if (types(object).count() != 0) { // don't touch if it has already some types (even they wrong)
                 return;
             }
-            if (JenaUtils.BUILT_IN_ALL.contains(object.asResource())) { // example : sp:ElementList rdfs:subClassOf rdf:List
+            if (BuiltIn.ALL.contains(object.asResource())) { // example : sp:ElementList rdfs:subClassOf rdf:List
                 return;
             }
             addType(object.asNode(), type);
@@ -385,7 +387,7 @@ public abstract class GraphConverter {
 
         protected Stream<Resource> types(RDFNode inModel) {
             return !inModel.isURIResource() ? Stream.empty() :
-                    JenaUtils.asStream(inModel.getModel().listStatements(inModel.asResource(), RDF.type, (RDFNode) null)
+                    Models.asStream(inModel.getModel().listStatements(inModel.asResource(), RDF.type, (RDFNode) null)
                             .mapWith(Statement::getObject)
                             .filterKeep(RDFNode::isURIResource).mapWith(RDFNode::asResource));
         }
@@ -412,9 +414,9 @@ public abstract class GraphConverter {
      * To fix missed property owl type declarations
      */
     private static class PropertyTypeFixer extends TransformAction {
-        private static final Set<Node> BUILT_IN_ANNOTATION_PROPERTIES = JenaUtils.BUILT_IN_ANNOTATION_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
-        private static final Set<Node> BUILT_IN_OBJECT_PROPERTIES = JenaUtils.BUILT_IN_OBJECT_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
-        private static final Set<Node> BUILT_IN_DATA_PROPERTIES = JenaUtils.BUILT_IN_DATA_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
+        private static final Set<Node> BUILT_IN_ANNOTATION_PROPERTIES = BuiltIn.ANNOTATION_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
+        private static final Set<Node> BUILT_IN_OBJECT_PROPERTIES = BuiltIn.OBJECT_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
+        private static final Set<Node> BUILT_IN_DATA_PROPERTIES = BuiltIn.DATA_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
 
         private PropertyTypeFixer(Graph graph) {
             super(graph);
@@ -440,21 +442,21 @@ public abstract class GraphConverter {
         boolean isAnnotationProperty(Node node) {
             return BUILT_IN_ANNOTATION_PROPERTIES.contains(node) ||
                     getTypes(node).contains(OWL2.AnnotationProperty.asNode()) ||
-                    JenaUtils.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
+                    Models.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
                             anyMatch(this::isAnnotationProperty);
         }
 
         boolean isObjectProperty(Node node) {
             return BUILT_IN_OBJECT_PROPERTIES.contains(node) ||
                     getTypes(node).contains(OWL2.ObjectProperty.asNode()) ||
-                    JenaUtils.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
+                    Models.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
                             anyMatch(this::isObjectProperty);
         }
 
         boolean isDataProperty(Node node) {
             return BUILT_IN_DATA_PROPERTIES.contains(node) ||
                     getTypes(node).contains(OWL2.DatatypeProperty.asNode()) ||
-                    JenaUtils.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
+                    Models.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
                             anyMatch(this::isDataProperty);
         }
     }

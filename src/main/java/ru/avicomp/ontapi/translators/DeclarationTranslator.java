@@ -3,7 +3,6 @@ package ru.avicomp.ontapi.translators;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -12,6 +11,7 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 
 /**

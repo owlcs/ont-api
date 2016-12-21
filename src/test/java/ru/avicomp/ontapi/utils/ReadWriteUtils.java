@@ -16,11 +16,7 @@ import org.junit.Assert;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OntManagerFactory;
-import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.io.OntFormat;
+import ru.avicomp.ontapi.*;
 
 /**
  * Created by @szuev on 27.09.2016.

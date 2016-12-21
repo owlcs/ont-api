@@ -3,13 +3,13 @@ package ru.avicomp.ontapi.translators;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.HasProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Base class to read and write axiom which is related to simple typed triple associated with object or data property.

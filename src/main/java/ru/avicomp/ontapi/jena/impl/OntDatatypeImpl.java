@@ -2,12 +2,12 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * rdfs:Datatype
@@ -27,7 +27,7 @@ public class OntDatatypeImpl extends OntEntityImpl implements OntDT {
 
     @Override
     public boolean isBuiltIn() {
-        return JenaUtils.BUILT_IN_DATATYPES.contains(this);
+        return BuiltIn.DATATYPES.contains(this);
     }
 
     @Override

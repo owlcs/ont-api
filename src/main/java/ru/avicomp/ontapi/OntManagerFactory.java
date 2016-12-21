@@ -78,7 +78,7 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
             bind(OWLOntologyBuilder.class).to(ONTBuilder.class);
             bind(OWLOntologyBuilder.class).annotatedWith(NonConcurrentDelegate.class).to(ONTBuilder.class);
             install(new FactoryModuleBuilder().implement(OntologyModel.class, OntologyModelImpl.class).build(ONTImplementationFactory.class));
-            multibind(OWLOntologyFactory.class, OntologyFactoryImpl.class);
+            multibind(OWLOntologyFactory.class, OntBuildingFactoryImpl.class);
         }
 
         @SafeVarargs

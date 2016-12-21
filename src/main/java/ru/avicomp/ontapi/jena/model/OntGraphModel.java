@@ -8,8 +8,9 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
+
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
 
 /**
  * This is our analogue of {@link org.apache.jena.ontology.OntModel} to work with Ontology graph in accordance with OWL2 DL specification.

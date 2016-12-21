@@ -10,7 +10,6 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
-import org.apache.jena.vocabulary.OWL2;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
@@ -19,6 +18,7 @@ import com.google.inject.Inject;
 import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
 /**
@@ -28,14 +28,14 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
  * <p>
  * Created by szuev on 24.10.2016.
  */
-public class OntologyFactoryImpl extends OWLOntologyFactoryImpl implements OWLOntologyFactory {
-    private static final Logger LOGGER = Logger.getLogger(OntologyFactoryImpl.class);
+public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OWLOntologyFactory {
+    private static final Logger LOGGER = Logger.getLogger(OntBuildingFactoryImpl.class);
 
     /**
      * @param ontologyBuilder ontology builder
      */
     @Inject
-    public OntologyFactoryImpl(OWLOntologyBuilder ontologyBuilder) {
+    public OntBuildingFactoryImpl(OWLOntologyBuilder ontologyBuilder) {
         super(ontologyBuilder);
     }
 

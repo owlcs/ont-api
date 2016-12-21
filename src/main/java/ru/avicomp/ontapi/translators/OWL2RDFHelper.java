@@ -7,7 +7,6 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
@@ -15,6 +14,7 @@ import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
 
 /**
  * Helper for the axioms translation to the rdf-form.

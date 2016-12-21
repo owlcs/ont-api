@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.vocabulary.OWL2;
 import org.semanticweb.owlapi.model.HasAnnotations;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -18,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
 import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
 
 /**

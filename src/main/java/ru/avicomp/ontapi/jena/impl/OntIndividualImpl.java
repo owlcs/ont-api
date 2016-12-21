@@ -6,15 +6,15 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * both for anon and named individuals.
@@ -75,7 +75,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         static class Finder implements OntFinder {
             @Override
             public Stream<Node> find(EnhGraph eg) {
-                return JenaUtils.asStream(eg.asGraph().find(Node.ANY, RDF_TYPE, Node.ANY).
+                return Models.asStream(eg.asGraph().find(Node.ANY, RDF_TYPE, Node.ANY).
                         filterKeep(t -> t.getSubject().isBlank()).
                         filterKeep(t -> isOntClass(t.getObject(), eg)).mapWith(Triple::getSubject));
             }

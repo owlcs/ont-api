@@ -22,8 +22,7 @@ import org.semanticweb.owlapi.io.OWLOntologyStorageIOException;
 import org.semanticweb.owlapi.model.*;
 
 import com.google.inject.Inject;
-import ru.avicomp.ontapi.io.OntFormat;
-import ru.avicomp.ontapi.jena.JenaUtils;
+import ru.avicomp.ontapi.jena.utils.Models;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
 /**
@@ -121,10 +120,10 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
             newPrefixes.put("", ontology.getOntologyID().getOntologyIRI().get().getIRIString() + "#");
         Map<String, String> initPrefixes = model.getNsPrefixMap();
         try {
-            JenaUtils.setNsPrefixes(model, newPrefixes);
+            Models.setNsPrefixes(model, newPrefixes);
             RDFDataMgr.write(os, model, format.getLang());
         } finally {
-            JenaUtils.setNsPrefixes(model, initPrefixes);
+            Models.setNsPrefixes(model, initPrefixes);
         }
     }
 }

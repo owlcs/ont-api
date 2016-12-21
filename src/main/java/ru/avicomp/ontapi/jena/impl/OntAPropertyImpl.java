@@ -8,13 +8,13 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * owl:AnnotationProperty
@@ -54,7 +54,7 @@ public class OntAPropertyImpl extends OntEntityImpl implements OntNAP {
 
     @Override
     public boolean isBuiltIn() {
-        return JenaUtils.BUILT_IN_ANNOTATION_PROPERTIES.contains(this);
+        return BuiltIn.ANNOTATION_PROPERTIES.contains(this);
     }
 
     @Override

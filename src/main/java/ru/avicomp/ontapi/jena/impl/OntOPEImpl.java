@@ -9,14 +9,15 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * owl:ObjectProperty (could be also Annotation, InverseFunctional, Transitive, SymmetricProperty, etc)
@@ -44,7 +45,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public boolean isBuiltIn() {
-            return JenaUtils.BUILT_IN_OBJECT_PROPERTIES.contains(this);
+            return BuiltIn.OBJECT_PROPERTIES.contains(this);
         }
 
         @Override
@@ -82,7 +83,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         static class Finder implements OntFinder {
             @Override
             public Stream<Node> find(EnhGraph eg) {
-                return JenaUtils.asStream(eg.asGraph().find(Node.ANY, OWL2.inverseOf.asNode(), Node.ANY)
+                return Models.asStream(eg.asGraph().find(Node.ANY, OWL2.inverseOf.asNode(), Node.ANY)
                         .filterKeep(t -> t.getSubject().isBlank() && isObjectPropertyNode(t.getObject(), eg))
                         .mapWith(Triple::getSubject));
             }

@@ -4,8 +4,9 @@ import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
+
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
 
 /**
  * (Named) Datatype Property here.

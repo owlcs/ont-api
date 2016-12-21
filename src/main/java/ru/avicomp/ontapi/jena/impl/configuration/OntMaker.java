@@ -7,10 +7,10 @@ import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * To make some preparation while creating (create main triple).

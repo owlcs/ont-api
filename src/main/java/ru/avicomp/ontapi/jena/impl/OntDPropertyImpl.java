@@ -5,14 +5,14 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDF;
 
-import ru.avicomp.ontapi.jena.JenaUtils;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * owl:DatatypeProperty
@@ -41,7 +41,7 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
 
     @Override
     public boolean isBuiltIn() {
-        return JenaUtils.BUILT_IN_DATA_PROPERTIES.contains(this);
+        return BuiltIn.DATA_PROPERTIES.contains(this);
     }
 
     @Override
