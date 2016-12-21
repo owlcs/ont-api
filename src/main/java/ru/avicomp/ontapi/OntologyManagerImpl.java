@@ -12,10 +12,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.jena.graph.Factory;
 import org.apache.jena.ontology.OntDocumentManager;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.ProfileRegistry;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.io.OWLOntologyStorageIOException;
@@ -27,10 +24,10 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
 /**
  * TODO:
+ *
  * Created by @szuev on 03.10.2016.
  */
 public class OntologyManagerImpl extends OWLOntologyManagerImpl implements OntologyManager {
-    private OntModelSpec spec;
     private GraphFactory graphFactory = DEFAULT_GRAPH_FACTORY;
 
     private static final GraphFactory DEFAULT_GRAPH_FACTORY = Factory::createGraphMem;
@@ -40,18 +37,12 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
         super(dataFactory, readWriteLock);
         OntDocumentManager documentManager = new OntDocumentManager();
         documentManager.setProcessImports(false);
-        this.spec = new OntModelSpec(ModelFactory.createMemModelMaker(), documentManager, null, ProfileRegistry.OWL_DL_LANG);
     }
 
     @Override
-    public OntModelSpec getSpec() {
-        return spec;
-    }
-
-    @Override
-    public OntologyModel createOntology(@Nonnull OWLOntologyID ontologyID) {
+    public OntologyModel createOntology(@Nonnull OWLOntologyID id) {
         try {
-            return (OntologyModel) super.createOntology(ontologyID);
+            return (OntologyModel) super.createOntology(id);
         } catch (OWLOntologyCreationException e) {
             throw new OntApiException(e);
         }
@@ -68,13 +59,13 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     }
 
     @Override
-    public OntologyModel getOntology(@Nullable IRI ontologyIRI) {
-        return (OntologyModel) super.getOntology(ontologyIRI);
+    public OntologyModel getOntology(@Nullable IRI iri) {
+        return (OntologyModel) super.getOntology(iri);
     }
 
     @Override
-    public OntologyModel getOntology(@Nonnull OWLOntologyID ontologyID) {
-        return (OntologyModel) super.getOntology(ontologyID);
+    public OntologyModel getOntology(@Nonnull OWLOntologyID id) {
+        return (OntologyModel) super.getOntology(id);
     }
 
     @Override
