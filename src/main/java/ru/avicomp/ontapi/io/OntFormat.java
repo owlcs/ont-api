@@ -1,25 +1,20 @@
 package ru.avicomp.ontapi.io;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.apache.jena.riot.Lang;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
-import org.semanticweb.owlapi.model.OWLDocumentFormatImpl;
 
 /**
- * todo: might be removed from project later.
+ * Map between jena and OWL-API languages.
  *
  * Created by @szuev on 27.09.2016.
  */
 public enum OntFormat {
     XML_RDF("rdf", Lang.RDFXML, new RDFXMLDocumentFormat()),
-    TTL_RDF("ttl", Lang.TURTLE, new OWLDocumentFormatImpl() {
-        @Override
-        public String getKey() {
-            return OntTurtleStoreFactory.ONT_TURTLE_SYNTAX_KEY;
-        }
-    }),
+    TTL_RDF("ttl", Lang.TURTLE, new TurtleDocumentFormat()),
     JSON_LD_RDF("json", Lang.JSONLD, new RDFJsonLDDocumentFormat()),
     JSON_RDF("json", Lang.RDFJSON, new RDFJsonDocumentFormat()),
     NTRIPLES("nt", Lang.NTRIPLES, new NTriplesDocumentFormat()),
@@ -102,5 +97,12 @@ public enum OntFormat {
 
     public static Stream<OntFormat> jenaOnly() {
         return all().filter(OntFormat::isJena).filter(f -> !f.isOWL());
+    }
+
+    public static OntFormat get(OWLDocumentFormat owl) {
+        for (OntFormat r : values()) {
+            if (Objects.equals(r.owl, owl)) return r;
+        }
+        return null;
     }
 }

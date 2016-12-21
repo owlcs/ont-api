@@ -12,6 +12,7 @@ import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
@@ -99,6 +100,11 @@ public class JenaUtils {
         Stream<RDFNode> a = Stream.of(first);
         Stream<RDFNode> b = rest.isResource() ? rdfListContent(model, rest.asResource()) : Stream.of(rest);
         return Stream.concat(a, b);
+    }
+
+    public static void setNsPrefixes(PrefixMapping mapping, Map<String, String> prefixes) {
+        mapping.getNsPrefixMap().keySet().forEach(mapping::removeNsPrefix);
+        prefixes.forEach((p, u) -> mapping.setNsPrefix(p.replaceAll(":$", ""), u));
     }
 
     private static Set<RDFDatatype> createBuiltInTypes() {

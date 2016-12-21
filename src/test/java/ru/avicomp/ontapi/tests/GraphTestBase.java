@@ -27,14 +27,9 @@ abstract class GraphTestBase {
 
     static void debug(OWLOntology ontology) {
         LOGGER.info("DEBUG:");
-        LOGGER.debug("OWL: ");
         ReadWriteUtils.print(ontology, OntFormat.TTL_RDF);
         LOGGER.debug("Axioms:");
         ontology.axioms().forEach(LOGGER::debug);
-        if (ontology instanceof OntologyModel) {
-            LOGGER.debug("Jena: ");
-            ReadWriteUtils.print(((OntologyModel) ontology).asGraphModel(), OntFormat.TTL_RDF);
-        }
     }
 
     Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType... excluded) {
