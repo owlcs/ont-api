@@ -30,7 +30,7 @@ public class FormatsTest {
      */
     @Test
     public void test() {
-        OWLDataFactory factory = OntManagerFactory.createDataFactory();
+        OWLDataFactory factory = OntManagerFactory.getDataFactory();
         String file = "test2";
 
         OntIRI iri = OntIRI.create("http://test/formats");

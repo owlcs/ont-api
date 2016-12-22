@@ -44,7 +44,7 @@ public class LoadTest {
     public void testGoodrelations() {
         String fileName = "goodrelations.rdf";
         OntFormat format = OntFormat.XML_RDF;
-        OWLDataFactory factory = OntManagerFactory.createDataFactory();
+        OWLDataFactory factory = OntManagerFactory.getDataFactory();
 
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.info("The file " + fileIRI);

@@ -15,15 +15,15 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 public enum OntFormat {
     XML_RDF("rdf", Lang.RDFXML, new RDFXMLDocumentFormat()),
     TTL_RDF("ttl", Lang.TURTLE, new TurtleDocumentFormat()),
-    JSON_LD_RDF("json", Lang.JSONLD, new RDFJsonLDDocumentFormat()),
-    JSON_RDF("json", Lang.RDFJSON, new RDFJsonDocumentFormat()),
+    JSON_LD_RDF("jsonld", Lang.JSONLD, new RDFJsonLDDocumentFormat()),
+    JSON_RDF("rj", Lang.RDFJSON, new RDFJsonDocumentFormat()),
     NTRIPLES("nt", Lang.NTRIPLES, new NTriplesDocumentFormat()),
     NQUADS("nq", Lang.NQUADS, new NQuadsDocumentFormat()),
     TRIG("trig", Lang.TRIG, new TrigDocumentFormat()),
     TRIX("trix", Lang.TRIX, new TrixDocumentFormat()),
     // jena only:
     THRIF("trdf", Lang.RDFTHRIFT, null),
-    CSV("csv", Lang.CSV, null),
+    CSV("csv", "CSV", Lang.CSV, null, true),
     // owl-api formats only:
     OWL_XML_RDF("owl", "OWL/XML", null, new OWLXMLDocumentFormat()),
     MANCHESTER_SYNTAX("omn", "ManchesterSyntax", null, new ManchesterSyntaxDocumentFormat()),
@@ -33,6 +33,8 @@ public enum OntFormat {
     OBO("obo", "OBO", null, new OBODocumentFormat()),
     KRSS2("krss2", "KRSS2", null, new KRSS2DocumentFormat(), true),
     DL("dl", "DL", null, new DLSyntaxDocumentFormat(), true),;
+
+
     private final String id;
     private String ext;
     private Lang jena;

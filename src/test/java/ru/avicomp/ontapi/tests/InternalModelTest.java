@@ -73,7 +73,7 @@ public class InternalModelTest {
 
     @Test
     public void testOntologyAnnotations() {
-        OWLDataFactory factory = OntManagerFactory.createDataFactory();
+        OWLDataFactory factory = OntManagerFactory.getDataFactory();
 
         OntInternalModel model = new OntInternalModel(ReadWriteUtils.loadFromTTL("pizza.ttl").getGraph());
 

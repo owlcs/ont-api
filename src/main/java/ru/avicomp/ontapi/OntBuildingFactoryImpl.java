@@ -11,6 +11,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
@@ -22,9 +23,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL2;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
 /**
- * Ontology loader.
- * TODO:
- * see {@link OWLOntologyFactory}
+ * Ontology building factory.
+ * See base class  {@link OWLOntologyFactory}.
  * <p>
  * Created by szuev on 24.10.2016.
  */
@@ -44,7 +44,12 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
                                            @Nonnull OWLOntologyID ontologyID,
                                            @Nonnull IRI documentIRI,
                                            @Nonnull OWLOntologyCreationHandler handler) {
-        return (OntologyModel) super.createOWLOntology(manager, ontologyID, documentIRI, handler);
+        OntologyManagerImpl m = (OntologyManagerImpl) manager;
+        OntologyModelImpl ont = new OntologyModelImpl(m, ontologyID);
+        OntologyModel res = m.isConcurrent() ? ont.toConcurrentModel() : ont;
+        handler.ontologyCreated(res);
+        handler.setOntologyFormat(res, new RDFXMLDocumentFormat());
+        return res;
     }
 
     @Override
@@ -72,7 +77,8 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
                 .mapWith(OntGraphModel::getGraph)
                 .forEachRemaining(union::addGraph);
         OntInternalModel base = new OntInternalModel(union);
-        OntologyModel res = new OntologyModelImpl(m, base);
+        OntologyModelImpl ont = new OntologyModelImpl(m, base);
+        OntologyModel res = m.isConcurrent() ? ont.toConcurrentModel() : ont;
         m.ontologyCreated(res);
         return res;
     }
@@ -80,7 +86,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
     private OntologyModel fetchOntology(OntologyManagerImpl manager, IRI iri) {
         if (manager.contains(iri)) return manager.getOntology(iri);
         try {
-            return (OntologyModel) manager.loadOntology(iri);
+            return manager.loadOntology(iri);
         } catch (OWLOntologyCreationException e) {
             LOGGER.warn(e);
         }

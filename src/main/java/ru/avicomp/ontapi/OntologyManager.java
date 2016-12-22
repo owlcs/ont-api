@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
@@ -22,23 +23,29 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
  */
 public interface OntologyManager extends OWLOntologyManager {
 
+    void setGraphFactory(GraphFactory factory);
+
+    GraphFactory getGraphFactory();
+
     OntologyModel getOntology(@Nullable IRI iri);
 
     OntologyModel getOntology(@Nonnull OWLOntologyID id);
 
     OntologyModel createOntology(@Nonnull OWLOntologyID id);
 
-    void setGraphFactory(GraphFactory factory);
+    OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException;
 
-    GraphFactory getGraphFactory();
+    default OntGraphModel loadGraphModel(@Nonnull String source) throws OWLOntologyCreationException {
+        return loadOntology(IRI.create(source)).asGraphModel();
+    }
 
     default OntGraphModel getGraphModel(@Nullable String uri) {
         OntologyModel res = getOntology(uri == null ? null : IRI.create(uri));
         return res == null ? null : res.asGraphModel();
     }
 
-    default OntGraphModel createGraphModel(String uri) {
-        return createOntology(IRI.create(uri)).asGraphModel();
+    default OntGraphModel createGraphModel(@Nullable String uri) {
+        return createOntology(uri == null ? null : IRI.create(uri)).asGraphModel();
     }
 
     default OntologyModel createOntology() {

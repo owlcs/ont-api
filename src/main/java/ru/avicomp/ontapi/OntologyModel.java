@@ -6,7 +6,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
- * Overwritten {@link OWLOntology}
+ * OWL 2 Ontology.
+ * See base class {@link OWLOntology}
  *
  * Created by szuev on 24.10.2016.
  */

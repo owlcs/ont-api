@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.jena.graph.Factory;
-import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
@@ -21,22 +20,31 @@ import org.semanticweb.owlapi.model.*;
 import com.google.inject.Inject;
 import ru.avicomp.ontapi.jena.utils.Models;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
+import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 /**
- * TODO:
+ * Ontology Manager implementation.
  *
  * Created by @szuev on 03.10.2016.
  */
 public class OntologyManagerImpl extends OWLOntologyManagerImpl implements OntologyManager {
-    private GraphFactory graphFactory = DEFAULT_GRAPH_FACTORY;
+    public static final GraphFactory DEFAULT_GRAPH_FACTORY = Factory::createGraphMem;
 
-    private static final GraphFactory DEFAULT_GRAPH_FACTORY = Factory::createGraphMem;
+    private GraphFactory graphFactory = DEFAULT_GRAPH_FACTORY;
+    protected final ReadWriteLock lock;
 
     @Inject
     public OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
         super(dataFactory, readWriteLock);
-        OntDocumentManager documentManager = new OntDocumentManager();
-        documentManager.setProcessImports(false);
+        this.lock = readWriteLock;
+    }
+
+    public boolean isConcurrent() {
+        return !NoOpReadWriteLock.class.isInstance(lock);
+    }
+
+    public ReadWriteLock getLock() {
+        return lock;
     }
 
     @Override
@@ -46,6 +54,11 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
         } catch (OWLOntologyCreationException e) {
             throw new OntApiException(e);
         }
+    }
+
+    @Override
+    public OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException {
+        return (OntologyModel) super.loadOntology(source);
     }
 
     @Override
@@ -87,26 +100,35 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     @Override
     public void saveOntology(@Nonnull OWLOntology ontology, @Nonnull OWLDocumentFormat ontologyFormat, @Nonnull OWLOntologyDocumentTarget documentTarget)
             throws OWLOntologyStorageException {
-        OntFormat format = OntFormat.get(ontologyFormat);
+        try {
+            lock.readLock().lock();
+            write(ontology, ontologyFormat, documentTarget);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    protected void write(OWLOntology ontology, OWLDocumentFormat documentFormat, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
+        OntFormat format = OntFormat.get(documentFormat);
         if (format == null || !format.isJena() || !OntologyModel.class.isInstance(ontology)) {
-            super.saveOntology(ontology, ontologyFormat, documentTarget);
+            super.saveOntology(ontology, documentFormat, target);
             return;
         }
         OutputStream os = null;
-        if (documentTarget.getDocumentIRI().isPresent()) {
+        if (target.getOutputStream().isPresent()) {
+            os = target.getOutputStream().get();
+        } else if (target.getDocumentIRI().isPresent()) {
             try {
-                os = documentTarget.getDocumentIRI().get().toURI().toURL().openConnection().getOutputStream();
+                os = target.getDocumentIRI().get().toURI().toURL().openConnection().getOutputStream();
             } catch (IOException e) {
                 throw new OWLOntologyStorageIOException(e);
             }
-        } else if (documentTarget.getOutputStream().isPresent()) {
-            os = documentTarget.getOutputStream().get();
         }
         if (os == null) {
-            throw new OWLOntologyStorageException("Null output stream, format = " + ontologyFormat);
+            throw new OWLOntologyStorageException("Null output stream, format = " + documentFormat);
         }
         Model model = ((OntologyModel) ontology).asGraphModel().getBaseModel();
-        Map<String, String> newPrefixes = new HashMap<>(PrefixManager.class.isInstance(ontologyFormat) ? ((PrefixManager) ontologyFormat).getPrefixName2PrefixMap() : Collections.emptyMap());
+        Map<String, String> newPrefixes = new HashMap<>(PrefixManager.class.isInstance(documentFormat) ? ((PrefixManager) documentFormat).getPrefixName2PrefixMap() : Collections.emptyMap());
         if (ontology.getOntologyID().getOntologyIRI().isPresent())
             newPrefixes.put("", ontology.getOntologyID().getOntologyIRI().get().getIRIString() + "#");
         Map<String, String> initPrefixes = model.getNsPrefixMap();

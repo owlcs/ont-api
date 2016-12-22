@@ -5,21 +5,20 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.ontology.OntModel;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
 import com.google.inject.assistedinject.Assisted;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
 
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION;
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY;
 
 /**
  * The main ontology model. Editable. Provides access to {@link OntGraphModel}
- *
+ * <p>
  * Created by @szuev on 27.09.2016.
  */
 public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel {
@@ -56,28 +55,28 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         return appliedChanges;
     }
 
-    @Override //todo:
-    public OntologyManager getOWLOntologyManager() {
-        return (OntologyManager) super.getOWLOntologyManager();
+    @Override
+    public OntologyManagerImpl getOWLOntologyManager() {
+        return (OntologyManagerImpl) super.getOWLOntologyManager();
     }
 
     private RDFChangeProcessor getRDFChangeProcessor() {
         return changer == null ? changer = new RDFChangeProcessor() : changer;
     }
 
-    @Deprecated
-    Graph getInnerGraph() {
-        return base.getBaseGraph();
-    }
-
     /**
-     * todo replace with base model.
-     * don't forget to call {@link OntModel#rebind()} after adding bulk axiom.
+     * returns jena model shadow.
      *
-     * @return OntModel
+     * @return {@link OntGraphModel}
      */
     public OntGraphModel asGraphModel() {
         return getBase();
+    }
+
+    public OntologyModel toConcurrentModel() {
+        OntologyManagerImpl manager = getOWLOntologyManager();
+        if (!manager.isConcurrent()) throw new OntApiException.Unsupported("Concurrency is not allowed");
+        return new Concurrent();
     }
 
     private class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
@@ -178,6 +177,27 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             }
             base.setOwlID(id);
             return SUCCESSFULLY;
+        }
+    }
+
+    /**
+     * Analogue of {@link ConcurrentOWLOntologyImpl}
+     * <p>
+     * Created by szuev on 22.12.2016.
+     */
+    public class Concurrent extends ConcurrentOWLOntologyImpl implements OntologyModel {
+        private Concurrent() {
+            super(OntologyModelImpl.this, OntologyModelImpl.this.getOWLOntologyManager().getLock());
+        }
+
+        @Override
+        public OntGraphModel asGraphModel() { // todo: not concurrent
+            return OntologyModelImpl.this.asGraphModel();
+        }
+
+        @Override
+        public OntologyManager getOWLOntologyManager() {
+            return (OntologyManager) super.getOWLOntologyManager();
         }
     }
 }

@@ -33,7 +33,7 @@ public class DisjointClassesGraphTest extends GraphTestBase {
 
     @Test
     public void test() throws OWLOntologyCreationException {
-        OWLDataFactory factory = OntManagerFactory.createDataFactory();
+        OWLDataFactory factory = OntManagerFactory.getDataFactory();
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("test1.ttl"));
         LOGGER.info("Load ontology from file " + fileIRI);
         OWLOntology original = OntManagerFactory.createONTManager().loadOntology(fileIRI);

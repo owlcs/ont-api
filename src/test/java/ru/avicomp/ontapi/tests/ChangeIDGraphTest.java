@@ -86,7 +86,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
     }
 
     private static OWLAnnotation toOWLAnnotation(Property property, RDFNode node) {
-        return toOWLAnnotation(OntManagerFactory.createDataFactory(), property, node);
+        return toOWLAnnotation(OntManagerFactory.getDataFactory(), property, node);
     }
 
     private static OWLAnnotation toOWLAnnotation(OWLDataFactory factory, Property property, RDFNode node) {
