@@ -100,7 +100,7 @@ public class ReadWriteUtils {
     }
 
     public static File getResourceFile(String projectDirName, String fileName) throws URISyntaxException, FileNotFoundException {
-        URL url = ReadWriteUtils.class.getResource(projectDirName.startsWith("/") ? projectDirName : "/" + projectDirName);
+        URL url = ReadWriteUtils.class.getResource(projectDirName.startsWith("/owlapi/") ? projectDirName : "/owlapi/" + projectDirName);
         if (url == null)
             throw new IllegalArgumentException("Can't find project " + projectDirName + ".");
         File dir = new File(url.toURI());

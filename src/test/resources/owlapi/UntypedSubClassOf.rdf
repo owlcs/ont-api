@@ -1,0 +1,11 @@
+<rdf:RDF
+        xml:base="http://www.semanticweb.org/owlapi/test"
+        xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+
+    <rdf:Description rdf:about="#A">
+        <rdfs:subClassOf rdf:resource="#B"/>
+    </rdf:Description>
+
+</rdf:RDF>
