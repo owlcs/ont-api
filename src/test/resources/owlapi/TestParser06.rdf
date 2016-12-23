@@ -11,11 +11,15 @@
 
 
 <rdf:RDF
+        xmlns:x="&x;"
+        xmlns:y="&y;"
         xmlns:owl="&owl;"
         xmlns:rdf="&rdf;"
         xmlns:rdfs="&rdfs;"
+        xmlns:xsd="&xsd;"
+        xmlns="&y;"
         xml:base="&home;/Y.owl"
->
+        >
 
 
     <owl:Ontology rdf:about=""/>

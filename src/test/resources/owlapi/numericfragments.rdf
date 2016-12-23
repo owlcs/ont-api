@@ -11,14 +11,17 @@
         ]>
 
 
-<rdf:RDF
-        xml:base="http://ontology.dumontierlab.com/test2"
-        xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-        xmlns:owl="http://www.w3.org/2002/07/owl#"
-        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<rdf:RDF xmlns="http://ontology.dumontierlab.com/test2#"
+         xml:base="http://ontology.dumontierlab.com/test2"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:sgd="urn:lsid:sgd:#"
+         xmlns:dip="urn:lsid:dip:#"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <owl:Ontology rdf:about="">
         <rdfs:comment rdf:datatype="&xsd;string"
-        >Testing LSIDs.
+                >Testing LSIDs.
         </rdfs:comment>
     </owl:Ontology>
 
