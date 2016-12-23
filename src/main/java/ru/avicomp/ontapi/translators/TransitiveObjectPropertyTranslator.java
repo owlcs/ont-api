@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLTransitiveObjectPropertyAxiomImpl;
 
 /**
@@ -25,7 +25,7 @@ class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<
 
     @Override
     Resource getType() {
-        return OWL2.TransitiveProperty;
+        return OWL.TransitiveProperty;
     }
 
     @Override

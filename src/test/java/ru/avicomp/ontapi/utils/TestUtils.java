@@ -8,7 +8,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
@@ -20,7 +19,7 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
@@ -82,7 +81,7 @@ public class TestUtils {
         if (OntModel.class.isInstance(model)) {
             return getOntology((OntModel) model);
         }
-        List<Statement> statements = model.listStatements(null, RDF.type, OWL.Ontology).toList();
+        List<Statement> statements = model.listStatements(null, RDF.type, org.apache.jena.vocabulary.OWL.Ontology).toList();
         return statements.size() != 1 ? null : statements.get(0).getSubject();
     }
 
@@ -156,7 +155,7 @@ public class TestUtils {
     }
 
     public static void setDefaultPrefixes(OntGraphModel m) {
-        m.setNsPrefix("owl", OWL2.getURI());
+        m.setNsPrefix("owl", OWL.getURI());
         m.setNsPrefix("rdfs", RDFS.getURI());
         m.setNsPrefix("rdf", RDF.getURI());
         m.setNsPrefix("xsd", XSD.getURI());

@@ -10,7 +10,7 @@ import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLInverseObjectPropertiesAxiomImpl;
 
 /**
@@ -22,13 +22,13 @@ import uk.ac.manchester.cs.owl.owlapi.OWLInverseObjectPropertiesAxiomImpl;
 class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObjectPropertiesAxiom> {
     @Override
     public void write(OWLInverseObjectPropertiesAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getFirstProperty(), OWL2.inverseOf, axiom.getSecondProperty(), axiom.annotations());
+        OWL2RDFHelper.writeTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(), axiom.annotations());
     }
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(OntOPE.class)
-                .map(subj -> subj.inverseOf().map(obj -> subj.getStatement(OWL2.inverseOf, obj)))
+                .map(subj -> subj.inverseOf().map(obj -> subj.getStatement(OWL.inverseOf, obj)))
                 .flatMap(Function.identity())
                 .filter(OntStatement::isLocal);
     }

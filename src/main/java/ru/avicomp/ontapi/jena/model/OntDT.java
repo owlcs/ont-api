@@ -2,7 +2,7 @@ package ru.avicomp.ontapi.jena.model;
 
 import java.util.stream.Stream;
 
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * Datatype Resource.
@@ -12,14 +12,14 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL2;
 public interface OntDT extends OntEntity, OntDR {
 
     default Stream<OntDR> equivalentClass() {
-        return objects(OWL2.equivalentClass, OntDR.class);
+        return objects(OWL.equivalentClass, OntDR.class);
     }
 
     default OntStatement addEquivalentClass(OntDR other) {
-        return addStatement(OWL2.equivalentClass, other);
+        return addStatement(OWL.equivalentClass, other);
     }
 
     default void removeEquivalentClass(OntDR other) {
-        remove(OWL2.equivalentClass, other);
+        remove(OWL.equivalentClass, other);
     }
 }

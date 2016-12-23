@@ -22,7 +22,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import uk.ac.manchester.cs.owl.owlapi.*;
 
@@ -167,7 +167,7 @@ public class RDF2OWLHelper {
     private static TripleSet<OWLAnnotation> getHierarchicalAnnotations(OntStatement a) {
         OntObject ann = a.getSubject().as(OntObject.class);
         Set<Triple> triples = new HashSet<>();
-        Stream.of(RDF.type, OWL2.annotatedSource, OWL2.annotatedProperty, OWL2.annotatedTarget)
+        Stream.of(RDF.type, OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
                 .forEach(p -> triples.add(ann.getRequiredProperty(p).asTriple()));
         triples.add(a.asTriple());
 

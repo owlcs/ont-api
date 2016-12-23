@@ -8,7 +8,7 @@ import org.apache.jena.graph.Node;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -49,31 +49,31 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
 
     @Override
     public void removeHasKey() {
-        clearAll(OWL2.hasKey);
+        clearAll(OWL.hasKey);
     }
 
     @Override
     public Stream<OntPE> hasKey() {
-        return rdfList(OWL2.hasKey, OntPE.class);
+        return rdfList(OWL.hasKey, OntPE.class);
     }
 
     @Override
     public OntStatement addDisjointUnionOf(Stream<OntCE> classes) {
-        return addStatement(OWL2.disjointUnionOf, getModel().createList(OntJenaException.notNull(classes, "Null classes stream.").iterator()));
+        return addStatement(OWL.disjointUnionOf, getModel().createList(OntJenaException.notNull(classes, "Null classes stream.").iterator()));
     }
 
     @Override
     public void removeDisjointUnionOf() {
-        clearAll(OWL2.disjointUnionOf);
+        clearAll(OWL.disjointUnionOf);
     }
 
     @Override
     public Stream<OntCE> disjointUnionOf() {
-        return rdfList(OWL2.disjointUnionOf, OntCE.class);
+        return rdfList(OWL.disjointUnionOf, OntCE.class);
     }
 
     @Override
     public OntStatement getRoot() {
-        return getRoot(RDF.type, OWL2.Class);
+        return getRoot(RDF.type, OWL.Class);
     }
 }

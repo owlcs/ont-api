@@ -13,7 +13,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntFR;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -26,15 +26,15 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     private static final OntFilter DR_FILTER = OntFilter.BLANK.and(new OntFilter.HasType(RDFS.Datatype));
 
     public static OntObjectFactory oneOfDRFactory = new CommonOntObjectFactory(new OntMaker.Default(OneOfImpl.class), DR_FINDER,
-            DR_FILTER.and(new OntFilter.HasPredicate(OWL2.oneOf)));
+            DR_FILTER.and(new OntFilter.HasPredicate(OWL.oneOf)));
     public static OntObjectFactory restrictionDRFactory = new CommonOntObjectFactory(new OntMaker.Default(RestrictionImpl.class), DR_FINDER,
-            DR_FILTER.and(new OntFilter.HasPredicate(OWL2.onDatatype)).and(new OntFilter.HasPredicate(OWL2.withRestrictions)));
+            DR_FILTER.and(new OntFilter.HasPredicate(OWL.onDatatype)).and(new OntFilter.HasPredicate(OWL.withRestrictions)));
     public static OntObjectFactory complementOfDRFactory = new CommonOntObjectFactory(new OntMaker.Default(ComplementOfImpl.class), DR_FINDER,
-            DR_FILTER.and(new OntFilter.HasPredicate(OWL2.datatypeComplementOf)));
+            DR_FILTER.and(new OntFilter.HasPredicate(OWL.datatypeComplementOf)));
     public static OntObjectFactory unionOfDRFactory = new CommonOntObjectFactory(new OntMaker.Default(UnionOfImpl.class), DR_FINDER,
-            DR_FILTER.and(new OntFilter.HasPredicate(OWL2.unionOf)));
+            DR_FILTER.and(new OntFilter.HasPredicate(OWL.unionOf)));
     public static OntObjectFactory intersectionOfDRFactory = new CommonOntObjectFactory(new OntMaker.Default(IntersectionOfImpl.class), DR_FINDER,
-            DR_FILTER.and(new OntFilter.HasPredicate(OWL2.intersectionOf)));
+            DR_FILTER.and(new OntFilter.HasPredicate(OWL.intersectionOf)));
     public static OntObjectFactory abstractDRFactory = new MultiOntObjectFactory(DR_FINDER,
             OntEntityImpl.datatypeFactory, oneOfDRFactory, restrictionDRFactory, complementOfDRFactory, unionOfDRFactory, intersectionOfDRFactory);
 
@@ -51,7 +51,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     public static OneOf createOneOf(OntGraphModelImpl model, Stream<Literal> values) {
         OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model);
-        model.add(res, OWL2.oneOf, model.createList(values.iterator()));
+        model.add(res, OWL.oneOf, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), OneOf.class);
     }
 
@@ -59,29 +59,29 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model);
-        model.add(res, OWL2.onDatatype, property);
-        model.add(res, OWL2.withRestrictions, model.createList(values.iterator()));
+        model.add(res, OWL.onDatatype, property);
+        model.add(res, OWL.withRestrictions, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), Restriction.class);
     }
 
     public static ComplementOf createComplementOf(OntGraphModelImpl model, OntDR other) {
         OntJenaException.notNull(other, "Null data range.");
         Resource res = create(model);
-        model.add(res, OWL2.datatypeComplementOf, other);
+        model.add(res, OWL.datatypeComplementOf, other);
         return model.getNodeAs(res.asNode(), ComplementOf.class);
     }
 
     public static UnionOf createUnionOf(OntGraphModelImpl model, Stream<OntDR> values) {
         OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model);
-        model.add(res, OWL2.unionOf, model.createList(values.iterator()));
+        model.add(res, OWL.unionOf, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), UnionOf.class);
     }
 
     public static IntersectionOf createIntersectionOf(OntGraphModelImpl model, Stream<OntDR> values) {
         OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model);
-        model.add(res, OWL2.intersectionOf, model.createList(values.iterator()));
+        model.add(res, OWL.intersectionOf, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), IntersectionOf.class);
     }
 
@@ -92,7 +92,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<Literal> values() {
-            return rdfList(OWL2.oneOf, Literal.class);
+            return rdfList(OWL.oneOf, Literal.class);
         }
     }
 
@@ -108,12 +108,12 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public OntDT getDatatype() {
-            return getRequiredOntProperty(OWL2.onDatatype, OntDT.class);
+            return getRequiredOntProperty(OWL.onDatatype, OntDT.class);
         }
 
         @Override
         public Stream<OntFR> facetRestrictions() {
-            return rdfList(OWL2.withRestrictions, OntFR.class);
+            return rdfList(OWL.withRestrictions, OntFR.class);
         }
     }
 
@@ -124,7 +124,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public OntDR getDataRange() {
-            return getRequiredOntProperty(OWL2.datatypeComplementOf, OntDR.class);
+            return getRequiredOntProperty(OWL.datatypeComplementOf, OntDR.class);
         }
     }
 
@@ -135,7 +135,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntDR> dataRanges() {
-            return rdfList(OWL2.unionOf, OntDR.class);
+            return rdfList(OWL.unionOf, OntDR.class);
         }
     }
 
@@ -146,7 +146,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntDR> dataRanges() {
-            return rdfList(OWL2.intersectionOf, OntDR.class);
+            return rdfList(OWL.intersectionOf, OntDR.class);
         }
     }
 }

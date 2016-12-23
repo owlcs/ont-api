@@ -12,7 +12,7 @@ import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLHasKeyAxiomImpl;
 
 /**
@@ -31,7 +31,7 @@ class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntC
 
     @Override
     Property getPredicate() {
-        return OWL2.hasKey;
+        return OWL.hasKey;
     }
 
     @Override

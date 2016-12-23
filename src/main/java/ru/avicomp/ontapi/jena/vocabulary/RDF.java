@@ -11,4 +11,5 @@ import org.apache.jena.rdf.model.Resource;
 public class RDF extends org.apache.jena.vocabulary.RDF {
 
     public final static Resource PlainLiteral = resource("PlainLiteral");
+
 }

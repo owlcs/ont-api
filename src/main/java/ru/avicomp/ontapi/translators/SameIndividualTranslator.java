@@ -17,7 +17,7 @@ import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
 
 /**
@@ -30,7 +30,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
 class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualAxiom, OWLIndividual, OntIndividual> {
     @Override
     public Property getPredicate() {
-        return OWL2.sameAs;
+        return OWL.sameAs;
     }
 
     @Override

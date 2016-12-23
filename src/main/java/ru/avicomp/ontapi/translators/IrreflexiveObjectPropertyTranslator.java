@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLIrreflexiveObjectPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLIrreflexiveObjectPropertyAxiomImpl;
 
 /**
@@ -26,7 +26,7 @@ class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator
 
     @Override
     Resource getType() {
-        return OWL2.IrreflexiveProperty;
+        return OWL.IrreflexiveProperty;
     }
 
     @Override

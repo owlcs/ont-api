@@ -28,7 +28,7 @@ import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -149,8 +149,8 @@ public class InternalModelTest {
         LOGGER.debug("==============================");
 
         // foaf contains wrong properties (both owl:DatatypeProperty and owl:ObjectProperty, example: <http://xmlns.com/foaf/0.1/msnChatID>)
-        Set<Resource> wrong = Models.asStream(jena.listStatements(null, RDF.type, OWL2.ObjectProperty)
-                .filterKeep(statement -> jena.contains(statement.getSubject(), RDF.type, OWL2.DatatypeProperty))
+        Set<Resource> wrong = Models.asStream(jena.listStatements(null, RDF.type, OWL.ObjectProperty)
+                .filterKeep(statement -> jena.contains(statement.getSubject(), RDF.type, OWL.DatatypeProperty))
                 .mapWith(Statement::getSubject)).distinct().collect(Collectors.toSet());
         if (!wrong.isEmpty())
             LOGGER.info("Wrong properties:");

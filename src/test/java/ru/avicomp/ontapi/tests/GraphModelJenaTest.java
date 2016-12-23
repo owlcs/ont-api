@@ -16,7 +16,7 @@ import org.junit.Test;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
@@ -38,7 +38,7 @@ public class GraphModelJenaTest {
         LOGGER.info("Ontology: " + m.getID());
 
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
-        int expectedClassesCount = m.listStatements(null, RDF.type, OWL2.Class).mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).toSet().size();
+        int expectedClassesCount = m.listStatements(null, RDF.type, OWL.Class).mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).toSet().size();
         int actualClassesCount = classes.size();
         LOGGER.info("Classes Count = " + actualClassesCount);
         Assert.assertEquals("Incorrect Classes count", expectedClassesCount, actualClassesCount);
@@ -46,13 +46,13 @@ public class GraphModelJenaTest {
         LOGGER.info("Class Expressions:");
         List<OntCE> ces = m.ontObjects(OntCE.class).collect(Collectors.toList());
         ces.forEach(LOGGER::debug);
-        int expectedCEsCount = m.listStatements(null, RDF.type, OWL2.Class).andThen(m.listStatements(null, RDF.type, OWL2.Restriction)).toSet().size();
+        int expectedCEsCount = m.listStatements(null, RDF.type, OWL.Class).andThen(m.listStatements(null, RDF.type, OWL.Restriction)).toSet().size();
         int actualCEsCount = ces.size();
         LOGGER.info("Class Expressions Count = " + actualCEsCount);
         Assert.assertEquals("Incorrect CE's count", expectedCEsCount, actualCEsCount);
 
         List<OntCE.RestrictionCE> restrictionCEs = m.ontObjects(OntCE.RestrictionCE.class).collect(Collectors.toList());
-        Assert.assertEquals("Incorrect count of restrictions ", m.listStatements(null, RDF.type, OWL2.Restriction).toSet().size(), restrictionCEs.size());
+        Assert.assertEquals("Incorrect count of restrictions ", m.listStatements(null, RDF.type, OWL.Restriction).toSet().size(), restrictionCEs.size());
 
         List<OntCE.ObjectSomeValuesFrom> objectSomeValuesFromCEs = m.ontObjects(OntCE.ObjectSomeValuesFrom.class).collect(Collectors.toList());
         List<OntCE.ObjectAllValuesFrom> objectAllValuesFromCEs = m.ontObjects(OntCE.ObjectAllValuesFrom.class).collect(Collectors.toList());
@@ -63,14 +63,14 @@ public class GraphModelJenaTest {
         List<OntCE.OneOf> oneOfCEs = m.ontObjects(OntCE.OneOf.class).collect(Collectors.toList());
         List<OntCE.ObjectMinCardinality> objectMinCardinalityCEs = m.ontObjects(OntCE.ObjectMinCardinality.class).collect(Collectors.toList());
 
-        testPizzaCEs(m, OWL2.someValuesFrom, objectSomeValuesFromCEs);
-        testPizzaCEs(m, OWL2.allValuesFrom, objectAllValuesFromCEs);
-        testPizzaCEs(m, OWL2.hasValue, objectHasValueCEs);
-        testPizzaCEs(m, OWL2.unionOf, unionOfCEs);
-        testPizzaCEs(m, OWL2.intersectionOf, intersectionOfCEs);
-        testPizzaCEs(m, OWL2.complementOf, complementOfCEs);
-        testPizzaCEs(m, OWL2.oneOf, oneOfCEs);
-        testPizzaCEs(m, OWL2.minCardinality, objectMinCardinalityCEs);
+        testPizzaCEs(m, OWL.someValuesFrom, objectSomeValuesFromCEs);
+        testPizzaCEs(m, OWL.allValuesFrom, objectAllValuesFromCEs);
+        testPizzaCEs(m, OWL.hasValue, objectHasValueCEs);
+        testPizzaCEs(m, OWL.unionOf, unionOfCEs);
+        testPizzaCEs(m, OWL.intersectionOf, intersectionOfCEs);
+        testPizzaCEs(m, OWL.complementOf, complementOfCEs);
+        testPizzaCEs(m, OWL.oneOf, oneOfCEs);
+        testPizzaCEs(m, OWL.minCardinality, objectMinCardinalityCEs);
     }
 
     @Test
@@ -80,7 +80,7 @@ public class GraphModelJenaTest {
         List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
         actual.forEach(LOGGER::debug);
         Set<Resource> expected = new HashSet<>();
-        Stream.of(OWL2.AnnotationProperty, OWL2.DatatypeProperty, OWL2.ObjectProperty)
+        Stream.of(OWL.AnnotationProperty, OWL.DatatypeProperty, OWL.ObjectProperty)
                 .forEach(r -> expected.addAll(m.listStatements(null, RDF.type, r).mapWith(Statement::getSubject).toSet()));
         Assert.assertEquals("Incorrect number of properties", expected.size(), actual.size());
     }
@@ -92,10 +92,10 @@ public class GraphModelJenaTest {
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
         individuals.forEach(i -> LOGGER.debug(i + " classes: " + i.classes().collect(Collectors.toSet())));
 
-        Set<Resource> namedIndividuals = m.listSubjectsWithProperty(RDF.type, OWL2.NamedIndividual).toSet();
+        Set<Resource> namedIndividuals = m.listSubjectsWithProperty(RDF.type, OWL.NamedIndividual).toSet();
         Set<Resource> anonIndividuals = m.listStatements(null, RDF.type, (RDFNode) null)
                 .filterKeep(s -> s.getSubject().isAnon())
-                .filterKeep(s -> s.getObject().isResource() && m.contains(s.getObject().asResource(), RDF.type, OWL2.Class))
+                .filterKeep(s -> s.getObject().isResource() && m.contains(s.getObject().asResource(), RDF.type, OWL.Class))
                 .mapWith(Statement::getSubject).toSet();
         Set<Resource> expected = new HashSet<>(namedIndividuals);
         expected.addAll(anonIndividuals);
@@ -138,34 +138,34 @@ public class GraphModelJenaTest {
         OntStatement labelForLabel2 = label2.addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label"));
         ReadWriteUtils.print(m);
         cl.annotations().forEach(LOGGER::debug);
-        Assert.assertTrue("Can't find owl:Axiom section.", m.contains(null, RDF.type, OWL2.Axiom));
-        Assert.assertTrue("Can't find owl:Annotation section.", m.contains(null, RDF.type, OWL2.Annotation));
+        Assert.assertTrue("Can't find owl:Axiom section.", m.contains(null, RDF.type, OWL.Axiom));
+        Assert.assertTrue("Can't find owl:Annotation section.", m.contains(null, RDF.type, OWL.Annotation));
 
         LOGGER.info("4) Create annotation property and annotate " + seeAlsoForLabel2 + " and " + labelForLabel2);
         OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "annotation-prop-1");
         seeAlsoForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see also"));
         OntStatement annotationForLabelForLabel2 = labelForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see label"));
         ReadWriteUtils.print(m);
-        Assert.assertEquals("Expected two roots with owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL2.Annotation)
+        Assert.assertEquals("Expected two roots with owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation)
                 .filterKeep(s -> !m.contains(null, null, s.getSubject())).filterKeep(new UniqueFilter<>()).toList().size());
-        Assert.assertEquals("Expected three owl:Annotation.", 3, m.listStatements(null, RDF.type, OWL2.Annotation).toList().size());
-        Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL2.Axiom).toList().size());
+        Assert.assertEquals("Expected three owl:Annotation.", 3, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
         LOGGER.info("5) Delete annotations for " + labelForLabel2);
         labelForLabel2.deleteAnnotation(annotationForLabelForLabel2.getPredicate().as(OntNAP.class), annotationForLabelForLabel2.getObject());
         ReadWriteUtils.print(m);
-        Assert.assertEquals("Expected one root with owl:Annotation.", 1, m.listStatements(null, RDF.type, OWL2.Annotation)
+        Assert.assertEquals("Expected one root with owl:Annotation.", 1, m.listStatements(null, RDF.type, OWL.Annotation)
                 .filterKeep(s -> !m.contains(null, null, s.getSubject())).filterKeep(new UniqueFilter<>()).toList().size());
-        Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL2.Annotation).toList().size());
-        Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL2.Axiom).toList().size());
+        Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
 
         LOGGER.info("6) Delete all annotations for " + label2);
         label2.clearAnnotations();
         ReadWriteUtils.print(m);
         Assert.assertEquals("Incorrect count of labels.", 2, m.listObjectsOfProperty(cl, RDFS.label).toList().size());
-        Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL2.Axiom));
-        Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL2.Annotation));
+        Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
+        Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL.Annotation));
 
         LOGGER.info("7) Annotate sub-class-of");
         OntStatement subClassOf = cl.addSubClassOf(m.getOWLThing());
@@ -176,8 +176,8 @@ public class GraphModelJenaTest {
 
         ReadWriteUtils.print(m);
         cl.annotations().forEach(LOGGER::debug);
-        Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL2.Annotation).toList().size());
-        Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL2.Axiom).toList().size());
+        Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
         Assert.assertEquals("Expected 3 root annotations for class " + cl, 3, cl.annotations().count());
 
         LOGGER.info("8) Deleter all annotations for class " + cl);
@@ -185,8 +185,8 @@ public class GraphModelJenaTest {
         ReadWriteUtils.print(m);
         cl.annotations().forEach(LOGGER::debug);
         Assert.assertEquals("Found annotations for class " + cl, 0, cl.annotations().count());
-        Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL2.Axiom));
-        Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL2.Annotation));
+        Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
+        Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL.Annotation));
     }
 
     @Test
@@ -211,8 +211,8 @@ public class GraphModelJenaTest {
         disjointClasses.addLabel("comment", "kjpopo").addAnnotation(nap1, ResourceFactory.createStringLiteral("some txt"));
         ReadWriteUtils.print(m);
 
-        Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL2.Axiom));
-        Assert.assertEquals("Should be single owl:Annotation", 1, m.listStatements(null, RDF.type, OWL2.Annotation).toList().size());
+        Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
+        Assert.assertEquals("Should be single owl:Annotation", 1, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
 
         OntNOP nop1 = m.createOntEntity(OntNOP.class, ns + "ObjectProperty1");
         OntIndividual.Named ind1 = cl1.createIndividual(ns + "Individual1");
@@ -223,7 +223,7 @@ public class GraphModelJenaTest {
         nopa.addLabel("label1", null)
                 .addAnnotation(m.getRDFSLabel(), ResourceFactory.createStringLiteral("label2"))
                 .addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label3"));
-        Assert.assertEquals("Should be 3 owl:Annotation", 3, m.listStatements(null, RDF.type, OWL2.Annotation).toList().size());
+        Assert.assertEquals("Should be 3 owl:Annotation", 3, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
 
         ReadWriteUtils.print(m);
     }

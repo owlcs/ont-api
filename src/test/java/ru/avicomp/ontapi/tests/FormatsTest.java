@@ -53,7 +53,7 @@ public class FormatsTest {
             LOGGER.info("Load ontology " + fileIRI);
             OntologyModel o;
             try {
-                o = (OntologyModel) OntManagerFactory.createONTManager().loadOntology(fileIRI);
+                o = OntManagerFactory.createONTManager().loadOntology(fileIRI);
             } catch (OWLOntologyCreationException e) {
                 throw new AssertionError("Can't load " + fileIRI + "[" + f + "] :: ", e);
             }

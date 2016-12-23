@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLFunctionalDataPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLFunctionalDataPropertyAxiomImpl;
 
 /**
@@ -20,7 +20,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLFunctionalDataPropertyAxiomImpl;
 class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTranslator<OWLFunctionalDataPropertyAxiom, OntNDP> {
     @Override
     Resource getType() {
-        return OWL2.FunctionalProperty;
+        return OWL.FunctionalProperty;
     }
 
     @Override

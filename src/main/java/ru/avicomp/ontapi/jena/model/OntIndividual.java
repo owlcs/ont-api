@@ -2,7 +2,7 @@ package ru.avicomp.ontapi.jena.model;
 
 import java.util.stream.Stream;
 
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -21,27 +21,27 @@ public interface OntIndividual extends OntObject {
     }
 
     default Stream<OntIndividual> sameAs() {
-        return objects(OWL2.sameAs, OntIndividual.class);
+        return objects(OWL.sameAs, OntIndividual.class);
     }
 
     default OntStatement addSameAs(OntIndividual other) {
-        return addStatement(OWL2.sameAs, other);
+        return addStatement(OWL.sameAs, other);
     }
 
     default void removeSameAs(OntIndividual other) {
-        remove(OWL2.sameAs, other);
+        remove(OWL.sameAs, other);
     }
 
     default Stream<OntIndividual> differentFrom() {
-        return objects(OWL2.differentFrom, OntIndividual.class);
+        return objects(OWL.differentFrom, OntIndividual.class);
     }
 
     default OntStatement addDifferentFrom(OntIndividual other) {
-        return addStatement(OWL2.differentFrom, other);
+        return addStatement(OWL.differentFrom, other);
     }
 
     default void removeDifferentFrom(OntIndividual other) {
-        remove(OWL2.differentFrom, other);
+        remove(OWL.differentFrom, other);
     }
 
     /**

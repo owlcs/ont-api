@@ -6,7 +6,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * Common interface for Class Expressions.
@@ -178,27 +178,27 @@ public interface OntCE extends OntObject {
     }
 
     default Stream<OntCE> disjointWith() {
-        return objects(OWL2.disjointWith, OntCE.class);
+        return objects(OWL.disjointWith, OntCE.class);
     }
 
     default OntStatement addDisjointWith(OntCE other) {
-        return addStatement(OWL2.disjointWith, other);
+        return addStatement(OWL.disjointWith, other);
     }
 
     default void removeDisjointWith(OntCE other) {
-        remove(OWL2.disjointWith, other);
+        remove(OWL.disjointWith, other);
     }
 
     default Stream<OntCE> equivalentClass() {
-        return objects(OWL2.equivalentClass, OntCE.class);
+        return objects(OWL.equivalentClass, OntCE.class);
     }
 
     default OntStatement addEquivalentClass(OntCE other) {
-        return addStatement(OWL2.equivalentClass, other);
+        return addStatement(OWL.equivalentClass, other);
     }
 
     default void removeEquivalentClass(OntCE other) {
-        remove(OWL2.equivalentClass, other);
+        remove(OWL.equivalentClass, other);
     }
 
 }

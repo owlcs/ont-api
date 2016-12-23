@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.ResourceUtils;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,7 +21,7 @@ import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.OntIRI;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImplNotAnnotated;
@@ -109,7 +108,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
 
         // anon ontology
         OntologyModel anon = manager.createOntology();
-        Assert.assertEquals("Should be one ontology inside jena-graph", 1, anon.asGraphModel().listStatements(null, RDF.type, OWL2.Ontology).toList().size());
+        Assert.assertEquals("Should be one ontology inside jena-graph", 1, anon.asGraphModel().listStatements(null, RDF.type, OWL.Ontology).toList().size());
 
         LOGGER.info("Create owl ontology.");
         OntIRI iri = OntIRI.create("http://test.test/change-id");
@@ -118,7 +117,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
         Map<Property, List<RDFNode>> annotations = new HashMap<>();
         annotations.computeIfAbsent(RDFS.comment, p -> new ArrayList<>()).add(ResourceFactory.createLangLiteral("Some comment N1", "xyx"));
         annotations.computeIfAbsent(RDFS.comment, p -> new ArrayList<>()).add(ResourceFactory.createPlainLiteral("Some comment N2"));
-        annotations.computeIfAbsent(OWL.incompatibleWith, p -> new ArrayList<>()).add(ResourceFactory.createResource("http://yyy/zzz"));
+        annotations.computeIfAbsent(org.apache.jena.vocabulary.OWL.incompatibleWith, p -> new ArrayList<>()).add(ResourceFactory.createResource("http://yyy/zzz"));
 
         OWLDataFactory factory = manager.getOWLDataFactory();
         OntologyModel owl = manager.createOntology(iri.toOwlOntologyID());
@@ -136,14 +135,14 @@ public class ChangeIDGraphTest extends GraphTestBase {
         owl.applyChanges(new SetOntologyID(owl, test1));
         testIRIChanged(owl, jena, test1, imports, annotations);
         testHasClass(owl, jena, clazz);
-        Resource ontology = jena.listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject).toList().get(0);
+        Resource ontology = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
 
         OWLOntologyID test2 = iri.addPath("test2").toOwlOntologyID(test1.getVersionIRI().orElse(null));
         LOGGER.info("2)Change ontology iri to " + test2 + " through jena.");
         ResourceUtils.renameResource(ontology, OntIRI.toStringIRI(test2));
         testIRIChanged(owl, jena, test2, imports, annotations);
         testHasClass(owl, jena, clazz);
-        ontology = jena.listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject).toList().get(0);
+        ontology = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
 
         // anon:
         OWLOntologyID test3 = new OWLOntologyID(); //iri.addPath("test3").toOwlOntologyID();

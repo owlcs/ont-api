@@ -13,7 +13,7 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -64,6 +64,6 @@ public class OntAPropertyImpl extends OntEntityImpl implements OntNAP {
 
     @Override
     public OntStatement getRoot() {
-        return getRoot(RDF.type, OWL2.AnnotationProperty);
+        return getRoot(RDF.type, OWL.AnnotationProperty);
     }
 }

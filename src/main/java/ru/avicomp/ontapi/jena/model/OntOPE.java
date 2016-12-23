@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * Object Property Expression (i.e. for iri-object property entity and for inverseOf anonymous property expression)
@@ -67,39 +67,39 @@ public interface OntOPE extends OntPE {
     }
 
     default Stream<OntOPE> disjointWith() {
-        return objects(OWL2.propertyDisjointWith, OntOPE.class);
+        return objects(OWL.propertyDisjointWith, OntOPE.class);
     }
 
     default OntStatement addDisjointWith(OntOPE other) {
-        return addStatement(OWL2.propertyDisjointWith, other);
+        return addStatement(OWL.propertyDisjointWith, other);
     }
 
     default void removeDisjointWith(OntOPE other) {
-        remove(OWL2.propertyDisjointWith, other);
+        remove(OWL.propertyDisjointWith, other);
     }
 
     default Stream<OntOPE> equivalentProperty() {
-        return objects(OWL2.equivalentProperty, OntOPE.class);
+        return objects(OWL.equivalentProperty, OntOPE.class);
     }
 
     default OntStatement addEquivalentProperty(OntOPE other) {
-        return addStatement(OWL2.equivalentProperty, other);
+        return addStatement(OWL.equivalentProperty, other);
     }
 
     default void removeEquivalentProperty(OntOPE other) {
-        remove(OWL2.equivalentProperty, other);
+        remove(OWL.equivalentProperty, other);
     }
 
     default Stream<OntOPE> inverseOf() {
-        return objects(OWL2.inverseOf, OntOPE.class);
+        return objects(OWL.inverseOf, OntOPE.class);
     }
 
     default OntStatement addInverseOf(OntOPE other) {
-        return addStatement(OWL2.inverseOf, other);
+        return addStatement(OWL.inverseOf, other);
     }
 
     default void removeInverseOf(OntOPE other) {
-        remove(OWL2.inverseOf, other);
+        remove(OWL.inverseOf, other);
     }
 
     @Override
@@ -112,30 +112,30 @@ public interface OntOPE extends OntPE {
     }
 
     default boolean isInverseFunctional() {
-        return hasType(OWL2.InverseFunctionalProperty);
+        return hasType(OWL.InverseFunctionalProperty);
     }
 
     default boolean isTransitive() {
-        return hasType(OWL2.TransitiveProperty);
+        return hasType(OWL.TransitiveProperty);
     }
 
     default boolean isFunctional() {
-        return hasType(OWL2.FunctionalProperty);
+        return hasType(OWL.FunctionalProperty);
     }
 
     default boolean isSymmetric() {
-        return hasType(OWL2.SymmetricProperty);
+        return hasType(OWL.SymmetricProperty);
     }
 
     default boolean isAsymmetric() {
-        return hasType(OWL2.AsymmetricProperty);
+        return hasType(OWL.AsymmetricProperty);
     }
 
     default boolean isReflexive() {
-        return hasType(OWL2.ReflexiveProperty);
+        return hasType(OWL.ReflexiveProperty);
     }
 
     default boolean isIrreflexive() {
-        return hasType(OWL2.IrreflexiveProperty);
+        return hasType(OWL.IrreflexiveProperty);
     }
 }

@@ -16,7 +16,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -39,7 +39,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         @Override
         public Inverse createInverse() {
             Resource res = getModel().createResource();
-            getModel().add(res, OWL2.inverseOf, this);
+            getModel().add(res, OWL.inverseOf, this);
             return new InverseProperty(res.asNode(), getModel());
         }
 
@@ -60,7 +60,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public OntStatement getRoot() {
-            return getRoot(RDF.type, OWL2.ObjectProperty);
+            return getRoot(RDF.type, OWL.ObjectProperty);
         }
     }
 
@@ -72,18 +72,18 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public OntStatement getRoot() {
-            return new OntStatementImpl.RootImpl(this, OWL2.inverseOf, getDirect(), getModel());
+            return new OntStatementImpl.RootImpl(this, OWL.inverseOf, getDirect(), getModel());
         }
 
         @Override
         public OntOPE getDirect() {
-            return getRequiredOntProperty(OWL2.inverseOf, OntOPE.class);
+            return getRequiredOntProperty(OWL.inverseOf, OntOPE.class);
         }
 
         static class Finder implements OntFinder {
             @Override
             public Stream<Node> find(EnhGraph eg) {
-                return Models.asStream(eg.asGraph().find(Node.ANY, OWL2.inverseOf.asNode(), Node.ANY)
+                return Models.asStream(eg.asGraph().find(Node.ANY, OWL.inverseOf.asNode(), Node.ANY)
                         .filterKeep(t -> t.getSubject().isBlank() && isObjectPropertyNode(t.getObject(), eg))
                         .mapWith(Triple::getSubject));
             }
@@ -93,7 +93,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
             @Override
             public boolean test(Node node, EnhGraph graph) {
                 if (!node.isBlank()) return false;
-                Set<Node> nodes = graph.asGraph().find(node, OWL2.inverseOf.asNode(), Node.ANY).mapWith(Triple::getObject).filterKeep(n -> isObjectPropertyNode(n, graph)).toSet();
+                Set<Node> nodes = graph.asGraph().find(node, OWL.inverseOf.asNode(), Node.ANY).mapWith(Triple::getObject).filterKeep(n -> isObjectPropertyNode(n, graph)).toSet();
                 return !nodes.isEmpty();
             }
         }
@@ -111,57 +111,57 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     @Override
     public OntStatement addSuperPropertyOf(Stream<OntOPE> chain) {
         OntJenaException.notNull(chain, "Null properties chain");
-        return addStatement(OWL2.propertyChainAxiom, getModel().createList(chain.iterator()));
+        return addStatement(OWL.propertyChainAxiom, getModel().createList(chain.iterator()));
     }
 
     @Override
     public void removeSuperPropertyOf() {
-        clearAll(OWL2.propertyChainAxiom);
+        clearAll(OWL.propertyChainAxiom);
     }
 
     @Override
     public Stream<OntOPE> superPropertyOf() {
-        return rdfList(OWL2.propertyChainAxiom, OntOPE.class);
+        return rdfList(OWL.propertyChainAxiom, OntOPE.class);
     }
 
     @Override
     public void setFunctional(boolean functional) {
-        changeType(OWL2.FunctionalProperty, functional);
+        changeType(OWL.FunctionalProperty, functional);
     }
 
     @Override
     public void setInverseFunctional(boolean inverseFunctional) {
-        changeType(OWL2.InverseFunctionalProperty, inverseFunctional);
+        changeType(OWL.InverseFunctionalProperty, inverseFunctional);
     }
 
     @Override
     public void setAsymmetric(boolean asymmetric) {
-        changeType(OWL2.AsymmetricProperty, asymmetric);
+        changeType(OWL.AsymmetricProperty, asymmetric);
     }
 
     @Override
     public void setTransitive(boolean transitive) {
-        changeType(OWL2.TransitiveProperty, transitive);
+        changeType(OWL.TransitiveProperty, transitive);
     }
 
     @Override
     public void setReflexive(boolean reflexive) {
-        changeType(OWL2.ReflexiveProperty, reflexive);
+        changeType(OWL.ReflexiveProperty, reflexive);
     }
 
     @Override
     public void setIrreflexive(boolean irreflexive) {
-        changeType(OWL2.IrreflexiveProperty, irreflexive);
+        changeType(OWL.IrreflexiveProperty, irreflexive);
     }
 
     @Override
     public void setSymmetric(boolean symmetric) {
-        changeType(OWL2.SymmetricProperty, symmetric);
+        changeType(OWL.SymmetricProperty, symmetric);
     }
 
     @Override
     public OntOPE getInverseOf() {
-        return getOntProperty(OWL2.inverseOf, OntOPE.class);
+        return getOntProperty(OWL.inverseOf, OntOPE.class);
     }
 }
 

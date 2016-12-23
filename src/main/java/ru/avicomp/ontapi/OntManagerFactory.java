@@ -32,7 +32,7 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
 
     private static final ONTManagerProfile DEFAULT_PROFILE = new ONTManagerProfile();
 
-    private static ManagerProfile profile = DEFAULT_PROFILE;
+    private static ManagerProfile<? extends OWLOntologyManager> profile = DEFAULT_PROFILE;
 
     public static OWLDataFactory getDataFactory() {
         return DEFAULT_PROFILE.getOWLDataFactory();
@@ -54,11 +54,11 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
         return new OWLConcurrentManagerProfile().createManager();
     }
 
-    public static ManagerProfile getProfile() {
+    public static ManagerProfile<? extends OWLOntologyManager> getProfile() {
         return profile;
     }
 
-    public static void setProfile(ManagerProfile p) {
+    public static void setProfile(ManagerProfile<? extends OWLOntologyManager> p) {
         profile = OntApiException.notNull(p, "Null manager profile specified.");
     }
 

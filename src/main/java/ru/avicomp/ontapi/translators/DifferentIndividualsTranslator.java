@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLIndividual;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
 
 /**
@@ -27,7 +27,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
 class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDifferentIndividualsAxiom, OWLIndividual, OntIndividual> {
     @Override
     Property getPredicate() {
-        return OWL2.differentFrom;
+        return OWL.differentFrom;
     }
 
     @Override
@@ -42,12 +42,12 @@ class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDif
 
     @Override
     Resource getMembersType() {
-        return OWL2.AllDifferent;
+        return OWL.AllDifferent;
     }
 
     @Override
     Property getMembersPredicate() {
-        return OWL2.distinctMembers;
+        return OWL.distinctMembers;
     }
 
     @Override

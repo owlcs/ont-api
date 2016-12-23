@@ -14,7 +14,7 @@ import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * Helper for the axioms translation to the rdf-form.
@@ -67,15 +67,15 @@ public class OWL2RDFHelper {
 
     public static Resource getType(OWLEntity entity) {
         if (entity.isOWLClass()) {
-            return OWL2.Class;
+            return OWL.Class;
         } else if (entity.isOWLDataProperty()) {
-            return OWL2.DatatypeProperty;
+            return OWL.DatatypeProperty;
         } else if (entity.isOWLObjectProperty()) {
-            return OWL2.ObjectProperty;
+            return OWL.ObjectProperty;
         } else if (entity.isOWLNamedIndividual()) {
-            return OWL2.NamedIndividual;
+            return OWL.NamedIndividual;
         } else if (entity.isOWLAnnotationProperty()) {
-            return OWL2.AnnotationProperty;
+            return OWL.AnnotationProperty;
         } else if (entity.isOWLDatatype()) {
             return RDFS.Datatype;
         }

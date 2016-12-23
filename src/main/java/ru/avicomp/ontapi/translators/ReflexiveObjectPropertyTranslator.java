@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLReflexiveObjectPropertyAxiomImpl;
 
 /**
@@ -20,7 +20,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLReflexiveObjectPropertyAxiomImpl;
 class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLReflexiveObjectPropertyAxiom, OntOPE> {
     @Override
     Resource getType() {
-        return OWL2.ReflexiveProperty;
+        return OWL.ReflexiveProperty;
     }
 
     @Override

@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLSymmetricObjectPropertyAxiomImpl;
 
 /**
@@ -25,7 +25,7 @@ class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<O
 
     @Override
     Resource getType() {
-        return OWL2.SymmetricProperty;
+        return OWL.SymmetricProperty;
     }
 
     @Override

@@ -11,7 +11,7 @@ import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -36,7 +36,7 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
 
     @Override
     public void setFunctional(boolean functional) {
-        changeType(OWL2.FunctionalProperty, functional);
+        changeType(OWL.FunctionalProperty, functional);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
 
     @Override
     public OntStatement getRoot() {
-        return getRoot(RDF.type, OWL2.DatatypeProperty);
+        return getRoot(RDF.type, OWL.DatatypeProperty);
     }
 
 }

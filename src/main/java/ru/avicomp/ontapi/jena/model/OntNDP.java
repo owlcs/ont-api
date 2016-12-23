@@ -6,7 +6,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * (Named) Datatype Property here.
@@ -20,7 +20,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     void setFunctional(boolean functional);
 
     default boolean isFunctional() {
-        return hasType(OWL2.FunctionalProperty);
+        return hasType(OWL.FunctionalProperty);
     }
 
     @Override
@@ -51,27 +51,27 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     default Stream<OntNDP> disjointWith() {
-        return objects(OWL2.propertyDisjointWith, OntNDP.class);
+        return objects(OWL.propertyDisjointWith, OntNDP.class);
     }
 
     default OntStatement addDisjointWith(OntNDP other) {
-        return addStatement(OWL2.propertyDisjointWith, other);
+        return addStatement(OWL.propertyDisjointWith, other);
     }
 
     default void removeDisjointWith(OntNDP other) {
-        remove(OWL2.propertyDisjointWith, other);
+        remove(OWL.propertyDisjointWith, other);
     }
 
     default Stream<OntNDP> equivalentProperty() {
-        return objects(OWL2.equivalentProperty, OntNDP.class);
+        return objects(OWL.equivalentProperty, OntNDP.class);
     }
 
     default OntStatement addEquivalentProperty(OntNDP other) {
-        return addStatement(OWL2.equivalentProperty, other);
+        return addStatement(OWL.equivalentProperty, other);
     }
 
     default void removeEquivalentProperty(OntNDP other) {
-        remove(OWL2.equivalentProperty, other);
+        remove(OWL.equivalentProperty, other);
     }
 
     default Stream<OntNPA.DataAssertion> negativeAssertions() {

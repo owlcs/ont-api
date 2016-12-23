@@ -6,7 +6,6 @@ import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,7 +18,7 @@ import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNOP;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -67,8 +66,8 @@ public class DisjointClassesGraphTest extends GraphTestBase {
 
         // bulk disjoint instead adding one by one (to have the same list of axioms):
         Resource anon = jena.createResource();
-        jena.add(anon, RDF.type, OWL2.AllDisjointClasses);
-        jena.add(anon, OWL2.members, jena.createList(Stream.of(ontComplex2, ontSimple1, ontSimple2).iterator()));
+        jena.add(anon, RDF.type, OWL.AllDisjointClasses);
+        jena.add(anon, OWL.members, jena.createList(Stream.of(ontComplex2, ontSimple1, ontSimple2).iterator()));
 
         debug(result);
 
@@ -78,7 +77,7 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
         LOGGER.info("Remove OWL:disjointWith for " + ontComplex1 + " & " + ontSimple1 + " pair.");
-        jena.removeAll(ontComplex1, OWL.disjointWith, null);
+        jena.removeAll(ontComplex1, org.apache.jena.vocabulary.OWL.disjointWith, null);
         ReadWriteUtils.print(result.asGraphModel(), OntFormat.TTL_RDF);
         actual = result.axioms().sorted().collect(Collectors.toList());
         expected = original.axioms().sorted().collect(Collectors.toList());
@@ -88,8 +87,8 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
         LOGGER.info("Remove OWL:AllDisjointClasses");
-        anon = jena.listResourcesWithProperty(RDF.type, OWL2.AllDisjointClasses).toList().get(0);
-        RDFList list = jena.listObjectsOfProperty(anon, OWL2.members).mapWith(n -> n.as(RDFList.class)).toList().get(0);
+        anon = jena.listResourcesWithProperty(RDF.type, OWL.AllDisjointClasses).toList().get(0);
+        RDFList list = jena.listObjectsOfProperty(anon, OWL.members).mapWith(n -> n.as(RDFList.class)).toList().get(0);
         list.removeList();
         jena.removeAll(anon, null, null);
 

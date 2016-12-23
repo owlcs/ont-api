@@ -19,7 +19,7 @@ import com.google.inject.Inject;
 import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
 /**
@@ -66,7 +66,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             return (OntologyModel) super.loadOWLOntology(manager, source, handler, configuration);
         }
         UnionGraph union = new UnionGraph(graph);
-        graph.find(Node.ANY, OWL2.imports.asNode(), Node.ANY)
+        graph.find(Node.ANY, OWL.imports.asNode(), Node.ANY)
                 .mapWith(Triple::getObject)
                 .filterKeep(Node::isURI)
                 .mapWith(Node::getURI)

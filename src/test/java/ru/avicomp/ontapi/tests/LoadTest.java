@@ -14,10 +14,8 @@ import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagerFactory;
-import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
-import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
  * for testing pizza, foaf and googrelations ontologies.
@@ -29,7 +27,7 @@ public class LoadTest {
 
     @Test
     public void testPizza() {
-        test("pizza.ttl", OntFormat.TTL_RDF);
+        test("pizza.ttl");
     }
 
     @Test
@@ -37,7 +35,7 @@ public class LoadTest {
         // WARNING: OWL-API works wrong with this ontology.
         // Also ontology 'foaf' is wrong in itself: there 6 entities which are DataProperty and ObjectProperty simultaneously.
         // todo: add testing for excluded axioms.
-        test("foaf.rdf", OntFormat.XML_RDF, AxiomType.DECLARATION, AxiomType.ANNOTATION_PROPERTY_RANGE, AxiomType.DATA_PROPERTY_DOMAIN, AxiomType.ANNOTATION_PROPERTY_DOMAIN);
+        test("foaf.rdf", AxiomType.DECLARATION, AxiomType.ANNOTATION_PROPERTY_RANGE, AxiomType.DATA_PROPERTY_DOMAIN, AxiomType.ANNOTATION_PROPERTY_DOMAIN);
     }
 
     @Test
@@ -49,8 +47,8 @@ public class LoadTest {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.info("The file " + fileIRI);
 
-        OntologyModel ont = load(fileIRI, format);
-        OWLOntology owl = load(fileIRI);
+        OntologyModel ont = loadONT(fileIRI);
+        OWLOntology owl = loadOWL(fileIRI);
 
         List<OWLAxiom> owlList = axioms(owl).sorted().collect(Collectors.toList());
         List<OWLAxiom> ontList = axioms(ont).sorted().collect(Collectors.toList());
@@ -114,12 +112,12 @@ public class LoadTest {
     }
 
 
-    private void test(String fileName, OntFormat format, AxiomType... toExclude) {
+    private void test(String fileName, AxiomType... toExclude) {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.info("The file " + fileIRI);
 
-        OntologyModel ont = load(fileIRI, format);
-        OWLOntology owl = load(fileIRI);
+        OntologyModel ont = loadONT(fileIRI);
+        OWLOntology owl = loadOWL(fileIRI);
 
         List<OWLAxiom> owlList = axioms(owl).sorted().collect(Collectors.toList());
         List<OWLAxiom> ontList = axioms(ont).sorted().collect(Collectors.toList());
@@ -144,24 +142,20 @@ public class LoadTest {
         });
     }
 
-    public OntologyModel load(IRI file, OntFormat format) {
-        LOGGER.info("[ONT]Load " + file + "[" + format + "]");
-        OntologyManager m = OntManagerFactory.createONTManager();
+    public OntologyModel loadONT(IRI file) {
+        LOGGER.info("[ONT]Load " + file);
         try {
-            OntologyModel res = (OntologyModel) m.loadOntologyFromOntologyDocument(file);
-            TestUtils.setDefaultPrefixes(res.asGraphModel());
-            return res;
+            return (OntologyModel) OntManagerFactory.createONTManager().loadOntologyFromOntologyDocument(file);
         } catch (OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }
 
     }
 
-    public OWLOntology load(IRI file) {
+    public OWLOntology loadOWL(IRI file) {
         LOGGER.info("[OWL]Load " + file);
-        OWLOntologyManager m = OntManagerFactory.createOWLManager();
         try {
-            return m.loadOntologyFromOntologyDocument(file);
+            return OntManagerFactory.createOWLManager().loadOntologyFromOntologyDocument(file);
         } catch (OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }

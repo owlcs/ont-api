@@ -11,7 +11,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointUnionAxiomImpl;
 
 /**
@@ -29,7 +29,7 @@ class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUn
 
     @Override
     public Property getPredicate() {
-        return OWL2.disjointUnionOf;
+        return OWL.disjointUnionOf;
     }
 
     @Override

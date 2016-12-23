@@ -16,7 +16,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
@@ -29,7 +29,7 @@ public class BuiltIn {
     // list of datatypes from owl-2 specification (35 types):
     public static final Set<Resource> OWL2_DATATYPES =
             Stream.of(RDF.xmlLiteral, RDF.PlainLiteral, RDF.langString,
-                    RDFS.Literal, OWL2.real, OWL2.rational, XSD.xstring, XSD.normalizedString,
+                    RDFS.Literal, OWL.real, OWL.rational, XSD.xstring, XSD.normalizedString,
                     XSD.token, XSD.language, XSD.Name, XSD.NCName, XSD.NMTOKEN, XSD.decimal, XSD.integer,
                     XSD.xdouble, XSD.xfloat, XSD.xboolean,
                     XSD.nonNegativeInteger, XSD.nonPositiveInteger, XSD.positiveInteger, XSD.negativeInteger,
@@ -43,22 +43,22 @@ public class BuiltIn {
     // full list of datatypes:
     public static final Set<Resource> DATATYPES = RDF_DATATYPE_SET.stream().map(RDFDatatype::getURI).
             map(ResourceFactory::createResource).collect(Collectors.toSet());
-    public static final Set<Resource> CLASSES = Stream.of(OWL2.Nothing, OWL2.Thing).collect(Collectors.toSet());
+    public static final Set<Resource> CLASSES = Stream.of(OWL.Nothing, OWL.Thing).collect(Collectors.toSet());
     public static final Set<Resource> ANNOTATION_PROPERTIES = Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy,
-            OWL2.versionInfo, OWL2.backwardCompatibleWith, OWL2.priorVersion, OWL2.incompatibleWith, OWL2.deprecated).collect(Collectors.toSet());
-    public static final Set<Resource> DATA_PROPERTIES = Stream.of(OWL2.topDataProperty, OWL2.bottomDataProperty).collect(Collectors.toSet());
-    public static final Set<Resource> OBJECT_PROPERTIES = Stream.of(OWL2.topObjectProperty, OWL2.bottomObjectProperty).collect(Collectors.toSet());
+            OWL.versionInfo, OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated).collect(Collectors.toSet());
+    public static final Set<Resource> DATA_PROPERTIES = Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Collectors.toSet());
+    public static final Set<Resource> OBJECT_PROPERTIES = Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Collectors.toSet());
     public static final Set<Resource> ENTITIES =
             Stream.of(CLASSES, DATATYPES, ANNOTATION_PROPERTIES, DATA_PROPERTIES, OBJECT_PROPERTIES)
                     .flatMap(Collection::stream).collect(Collectors.toSet());
 
-    public static final Set<Property> PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL2.class);
-    public static final Set<Resource> RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL2.class);
+    public static final Set<Property> PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL.class);
+    public static final Set<Resource> RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL.class);
     public static final Set<Resource> ALL = Stream.of(PROPERTIES, RESOURCES).flatMap(Collection::stream).collect(Collectors.toSet());
 
     private static Set<RDFDatatype> createBuiltInTypes() {
         TypeMapper mapper = TypeMapper.getInstance();
-        Stream.of(OWL2.real, OWL2.rational).forEach(d -> mapper.registerDatatype(new BaseDatatype(d.getURI()) {
+        Stream.of(OWL.real, OWL.rational).forEach(d -> mapper.registerDatatype(new BaseDatatype(d.getURI()) {
             @Override
             public Class<?> getJavaClass() {
                 return Double.class;

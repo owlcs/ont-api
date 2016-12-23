@@ -11,7 +11,7 @@ import org.semanticweb.owlapi.model.OWLEquivalentDataPropertiesAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentDataPropertiesAxiomImpl;
 
 /**
@@ -23,7 +23,7 @@ class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<OWLEquiv
 
     @Override
     Property getPredicate() {
-        return OWL2.equivalentProperty;
+        return OWL.equivalentProperty;
     }
 
     @Override

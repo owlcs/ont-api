@@ -10,7 +10,7 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * Entity.
@@ -18,12 +18,12 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL2;
  */
 public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
 
-    public static OntObjectFactory classFactory = new EntityFactory(OntClassImpl.class, OWL2.Class, BuiltIn.CLASSES);
-    public static OntObjectFactory annotationPropertyFactory = new EntityFactory(OntAPropertyImpl.class, OWL2.AnnotationProperty, BuiltIn.ANNOTATION_PROPERTIES);
-    public static OntObjectFactory dataPropertyFactory = new EntityFactory(OntDPropertyImpl.class, OWL2.DatatypeProperty, BuiltIn.DATA_PROPERTIES);
-    public static OntObjectFactory objectPropertyFactory = new EntityFactory(OntOPEImpl.NamedProperty.class, OWL2.ObjectProperty, BuiltIn.OBJECT_PROPERTIES);
+    public static OntObjectFactory classFactory = new EntityFactory(OntClassImpl.class, OWL.Class, BuiltIn.CLASSES);
+    public static OntObjectFactory annotationPropertyFactory = new EntityFactory(OntAPropertyImpl.class, OWL.AnnotationProperty, BuiltIn.ANNOTATION_PROPERTIES);
+    public static OntObjectFactory dataPropertyFactory = new EntityFactory(OntDPropertyImpl.class, OWL.DatatypeProperty, BuiltIn.DATA_PROPERTIES);
+    public static OntObjectFactory objectPropertyFactory = new EntityFactory(OntOPEImpl.NamedProperty.class, OWL.ObjectProperty, BuiltIn.OBJECT_PROPERTIES);
     public static OntObjectFactory datatypeFactory = new EntityFactory(OntDatatypeImpl.class, RDFS.Datatype, BuiltIn.DATATYPES);
-    public static OntObjectFactory individualFactory = new EntityFactory(OntIndividualImpl.NamedImpl.class, OWL2.NamedIndividual);
+    public static OntObjectFactory individualFactory = new EntityFactory(OntIndividualImpl.NamedImpl.class, OWL.NamedIndividual);
 
     public static OntObjectFactory abstractEntityFactory =
             new MultiOntObjectFactory(OntFinder.TYPED,

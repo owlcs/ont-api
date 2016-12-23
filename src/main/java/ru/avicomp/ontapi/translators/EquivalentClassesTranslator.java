@@ -11,7 +11,7 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
 
 /**
@@ -24,7 +24,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
 class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntCE> {
     @Override
     public Property getPredicate() {
-        return OWL2.equivalentClass;
+        return OWL.equivalentClass;
     }
 
     @Override

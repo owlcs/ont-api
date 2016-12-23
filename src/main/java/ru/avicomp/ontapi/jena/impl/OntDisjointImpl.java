@@ -15,7 +15,7 @@ import org.apache.jena.util.iterator.UniqueFilter;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -26,14 +26,14 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl implements OntDisjoint<O> {
 
     public static OntObjectFactory disjointClassesFactory = new CommonOntObjectFactory(new OntMaker.Default(ClassesImpl.class),
-            new OntFinder.ByType(OWL2.AllDisjointClasses), makeFilter(OWL2.members, OntCE.class));
+            new OntFinder.ByType(OWL.AllDisjointClasses), makeFilter(OWL.members, OntCE.class));
     public static OntObjectFactory differentIndividualsFactory = new CommonOntObjectFactory(new OntMaker.Default(IndividualsImpl.class),
-            new OntFinder.ByType(OWL2.AllDifferent), makeFilter(OWL2.distinctMembers, OntIndividual.class));
+            new OntFinder.ByType(OWL.AllDifferent), makeFilter(OWL.distinctMembers, OntIndividual.class));
     public static OntObjectFactory objectPropertiesFactory = new CommonOntObjectFactory(new OntMaker.Default(ObjectPropertiesImpl.class),
-            new OntFinder.ByType(OWL2.AllDisjointProperties), makeFilter(OWL2.members, OntOPE.class));
+            new OntFinder.ByType(OWL.AllDisjointProperties), makeFilter(OWL.members, OntOPE.class));
     public static OntObjectFactory dataPropertiesFactory = new CommonOntObjectFactory(new OntMaker.Default(DataPropertiesImpl.class),
-            new OntFinder.ByType(OWL2.AllDisjointProperties), makeFilter(OWL2.members, OntNDP.class));
-    public static OntObjectFactory abstractPropertiesFactory = new MultiOntObjectFactory(new OntFinder.ByType(OWL2.AllDisjointProperties),
+            new OntFinder.ByType(OWL.AllDisjointProperties), makeFilter(OWL.members, OntNDP.class));
+    public static OntObjectFactory abstractPropertiesFactory = new MultiOntObjectFactory(new OntFinder.ByType(OWL.AllDisjointProperties),
             objectPropertiesFactory, dataPropertiesFactory);
     public static OntObjectFactory abstractDisjointFactory = new MultiOntObjectFactory(OntFinder.TYPED, disjointClassesFactory,
             differentIndividualsFactory, objectPropertiesFactory, dataPropertiesFactory);
@@ -73,32 +73,32 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     public static Classes createDisjointClasses(OntGraphModelImpl model, Stream<OntCE> classes) {
         OntJenaException.notNull(classes, "Null classes stream.");
         Resource res = model.createResource();
-        res.addProperty(RDF.type, OWL2.AllDisjointClasses);
-        res.addProperty(OWL2.members, model.createList(classes.iterator()));
+        res.addProperty(RDF.type, OWL.AllDisjointClasses);
+        res.addProperty(OWL.members, model.createList(classes.iterator()));
         return model.getNodeAs(res.asNode(), Classes.class);
     }
 
     public static Individuals createDifferentIndividuals(OntGraphModelImpl model, Stream<OntIndividual> individuals) {
         OntJenaException.notNull(individuals, "Null individuals stream.");
         Resource res = model.createResource();
-        res.addProperty(RDF.type, OWL2.AllDifferent);
-        res.addProperty(OWL2.distinctMembers, model.createList(individuals.iterator()));
+        res.addProperty(RDF.type, OWL.AllDifferent);
+        res.addProperty(OWL.distinctMembers, model.createList(individuals.iterator()));
         return model.getNodeAs(res.asNode(), Individuals.class);
     }
 
     public static ObjectProperties createDisjointObjectProperties(OntGraphModelImpl model, Stream<OntOPE> properties) {
         OntJenaException.notNull(properties, "Null properties stream.");
         Resource res = model.createResource();
-        res.addProperty(RDF.type, OWL2.AllDisjointProperties);
-        res.addProperty(OWL2.members, model.createList(properties.iterator()));
+        res.addProperty(RDF.type, OWL.AllDisjointProperties);
+        res.addProperty(OWL.members, model.createList(properties.iterator()));
         return model.getNodeAs(res.asNode(), ObjectProperties.class);
     }
 
     public static DataProperties createDisjointDataProperties(OntGraphModelImpl model, Stream<OntNDP> properties) {
         OntJenaException.notNull(properties, "Null properties stream.");
         Resource res = model.createResource();
-        res.addProperty(RDF.type, OWL2.AllDisjointProperties);
-        res.addProperty(OWL2.members, model.createList(properties.iterator()));
+        res.addProperty(RDF.type, OWL.AllDisjointProperties);
+        res.addProperty(OWL.members, model.createList(properties.iterator()));
         return model.getNodeAs(res.asNode(), DataProperties.class);
     }
 
@@ -109,7 +109,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
 
         @Override
         protected Property predicate() {
-            return OWL2.members;
+            return OWL.members;
         }
 
         @Override
@@ -125,7 +125,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
 
         @Override
         protected Property predicate() {
-            return OWL2.distinctMembers;
+            return OWL.distinctMembers;
         }
 
         @Override
@@ -141,7 +141,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
 
         @Override
         protected Property predicate() {
-            return OWL2.members;
+            return OWL.members;
         }
     }
 

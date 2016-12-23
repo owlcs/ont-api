@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -56,7 +56,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     protected void syncImports(OntPersonality personality) {
-        removeAll(getID(), OWL2.imports, null);
+        removeAll(getID(), OWL.imports, null);
         models(personality).map(OntGraphModel::getID).filter(Resource::isURIResource).forEach(id -> addImport(id.getURI()));
     }
 
@@ -71,7 +71,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         Resource res;
         if (prev.isEmpty()) {
             res = createResource(); // anon id
-            add(res, RDF.type, OWL2.Ontology);
+            add(res, RDF.type, OWL.Ontology);
         } else {
             res = prev.get(0); // choose first.
         }
@@ -88,13 +88,13 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         } else {
             subject = createResource(uri);
         }
-        add(subject, RDF.type, OWL2.Ontology);
+        add(subject, RDF.type, OWL.Ontology);
         tmp.forEach(s -> add(subject, s.getPredicate(), s.getObject()));
         return getNodeAs(subject.asNode(), OntID.class);
     }
 
     private Stream<Resource> ontologyStatements() {
-        return Models.asStream(listStatements(null, RDF.type, OWL2.Ontology).mapWith(Statement::getSubject)).distinct();
+        return Models.asStream(listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject)).distinct();
     }
 
     @Override
@@ -118,11 +118,11 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     public void addImport(Resource uri) {
-        add(getID(), OWL2.imports, uri);
+        add(getID(), OWL.imports, uri);
     }
 
     public void removeImport(Resource uri) {
-        removeAll(getID(), OWL2.imports, uri);
+        removeAll(getID(), OWL.imports, uri);
     }
 
     @Override
@@ -132,7 +132,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public Stream<Resource> imports() {
-        return Models.asStream(listStatements(null, OWL2.imports, (RDFNode) null)
+        return Models.asStream(listStatements(null, OWL.imports, (RDFNode) null)
                 .filterKeep(this::isInBaseModel)
                 .mapWith(Statement::getObject)
                 .filterKeep(RDFNode::isURIResource)
@@ -326,32 +326,32 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntCE.ObjectSomeValuesFrom createObjectSomeValuesFrom(OntOPE onProperty, OntCE other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectSomeValuesFrom.class, onProperty, other, OWL2.someValuesFrom);
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectSomeValuesFrom.class, onProperty, other, OWL.someValuesFrom);
     }
 
     @Override
     public OntCE.DataSomeValuesFrom createDataSomeValuesFrom(OntNDP onProperty, OntDR other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataSomeValuesFrom.class, onProperty, other, OWL2.someValuesFrom);
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataSomeValuesFrom.class, onProperty, other, OWL.someValuesFrom);
     }
 
     @Override
     public OntCE.ObjectAllValuesFrom createObjectAllValuesFrom(OntOPE onProperty, OntCE other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectAllValuesFrom.class, onProperty, other, OWL2.allValuesFrom);
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectAllValuesFrom.class, onProperty, other, OWL.allValuesFrom);
     }
 
     @Override
     public OntCE.DataAllValuesFrom createDataAllValuesFrom(OntNDP onProperty, OntDR other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataAllValuesFrom.class, onProperty, other, OWL2.allValuesFrom);
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataAllValuesFrom.class, onProperty, other, OWL.allValuesFrom);
     }
 
     @Override
     public OntCE.ObjectHasValue createObjectHasValue(OntOPE onProperty, OntIndividual other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectHasValue.class, onProperty, other, OWL2.hasValue);
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectHasValue.class, onProperty, other, OWL.hasValue);
     }
 
     @Override
     public OntCE.DataHasValue createDataHasValue(OntNDP onProperty, Literal other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataHasValue.class, onProperty, other, OWL2.hasValue);
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataHasValue.class, onProperty, other, OWL.hasValue);
     }
 
     @Override
@@ -386,17 +386,17 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntCE.UnionOf createUnionOf(Collection<OntCE> classes) {
-        return OntCEImpl.createComponentsCE(this, OntCE.UnionOf.class, OWL2.unionOf, classes.stream());
+        return OntCEImpl.createComponentsCE(this, OntCE.UnionOf.class, OWL.unionOf, classes.stream());
     }
 
     @Override
     public OntCE.IntersectionOf createIntersectionOf(Collection<OntCE> classes) {
-        return OntCEImpl.createComponentsCE(this, OntCE.IntersectionOf.class, OWL2.intersectionOf, classes.stream());
+        return OntCEImpl.createComponentsCE(this, OntCE.IntersectionOf.class, OWL.intersectionOf, classes.stream());
     }
 
     @Override
     public OntCE.OneOf createOneOf(Collection<OntIndividual> individuals) {
-        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL2.oneOf, individuals.stream());
+        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL.oneOf, individuals.stream());
     }
 
     @Override

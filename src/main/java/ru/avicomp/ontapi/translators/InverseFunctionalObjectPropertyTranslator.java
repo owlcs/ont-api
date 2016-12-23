@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLInverseFunctionalObjectPropertyAxiomImpl;
 
 /**
@@ -25,7 +25,7 @@ class InverseFunctionalObjectPropertyTranslator extends AbstractPropertyTypeTran
 
     @Override
     Resource getType() {
-        return OWL2.InverseFunctionalProperty;
+        return OWL.InverseFunctionalProperty;
     }
 
     @Override

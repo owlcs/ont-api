@@ -15,7 +15,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -86,7 +86,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     protected Resource getAnnotationRoot() {
-        return OWL2.Axiom;
+        return OWL.Axiom;
     }
 
     /**
@@ -105,9 +105,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     public static Stream<OntStatement> children(Resource root, OntGraphModel model) {
         return Models.asStream(root.listProperties()
                 .filterDrop(s -> RDF.type.equals(s.getPredicate()))
-                .filterDrop(s -> OWL2.annotatedSource.equals(s.getPredicate()))
-                .filterDrop(s -> OWL2.annotatedProperty.equals(s.getPredicate()))
-                .filterDrop(s -> OWL2.annotatedTarget.equals(s.getPredicate()))
+                .filterDrop(s -> OWL.annotatedSource.equals(s.getPredicate()))
+                .filterDrop(s -> OWL.annotatedProperty.equals(s.getPredicate()))
+                .filterDrop(s -> OWL.annotatedTarget.equals(s.getPredicate()))
                 .filterKeep(s -> s.getPredicate().canAs(OntNAP.class))
                 .mapWith(s -> new CommonAnnotationImpl(s.getSubject(), s.getPredicate().as(OntNAP.class), s.getObject(), model))
                 .mapWith(OntStatement.class::cast)).distinct();
@@ -140,11 +140,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      */
     public static Resource findAnnotation(OntStatement base, Resource type) {
         OntGraphModel model = base.getModel();
-        List<Resource> candidates = model.listStatements(null, OWL2.annotatedSource, base.getSubject()).mapWith(Statement::getSubject).filterKeep(new UniqueFilter<>()).toList();
+        List<Resource> candidates = model.listStatements(null, OWL.annotatedSource, base.getSubject()).mapWith(Statement::getSubject).filterKeep(new UniqueFilter<>()).toList();
         for (Resource res : candidates) {
             if (!model.contains(res, RDF.type, type)) continue;
-            if (!model.contains(res, OWL2.annotatedProperty, base.getPredicate())) continue;
-            if (!model.contains(res, OWL2.annotatedTarget, base.getObject())) continue;
+            if (!model.contains(res, OWL.annotatedProperty, base.getPredicate())) continue;
+            if (!model.contains(res, OWL.annotatedTarget, base.getObject())) continue;
             return res;
         }
         return null;
@@ -160,9 +160,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     public static Resource createAnnotation(OntStatement base, Resource type) {
         Resource res = base.getModel().createResource();
         res.addProperty(RDF.type, type);
-        res.addProperty(OWL2.annotatedSource, base.getSubject());
-        res.addProperty(OWL2.annotatedProperty, base.getPredicate());
-        res.addProperty(OWL2.annotatedTarget, base.getObject());
+        res.addProperty(OWL.annotatedSource, base.getSubject());
+        res.addProperty(OWL.annotatedProperty, base.getPredicate());
+        res.addProperty(OWL.annotatedTarget, base.getObject());
         return res;
     }
 
@@ -183,7 +183,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
         @Override
         protected Resource getAnnotationRoot() {
-            return OWL2.Annotation;
+            return OWL.Annotation;
         }
 
         @Override
@@ -251,7 +251,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
             checkAnnotationInput(property, value);
             if (isAssertion()) {
                 // expand to owl:Axiom form
-                CommonAnnotationImpl annotation = OntStatementImpl.addAnnotation(base, OWL2.Axiom, getPredicate(), getObject());
+                CommonAnnotationImpl annotation = OntStatementImpl.addAnnotation(base, OWL.Axiom, getPredicate(), getObject());
                 getModel().remove(this);
                 changeSubject(annotation.getSubject());
             }

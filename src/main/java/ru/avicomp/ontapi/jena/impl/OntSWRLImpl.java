@@ -14,7 +14,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
@@ -269,7 +269,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public Property getPredicate() {
-            return OWL2.differentFrom;
+            return OWL.differentFrom;
         }
 
         @Override
@@ -290,7 +290,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public Property getPredicate() {
-            return OWL2.sameAs;
+            return OWL.sameAs;
         }
 
         @Override

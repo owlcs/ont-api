@@ -13,7 +13,7 @@ import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 
 /**
@@ -25,13 +25,13 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
     @Override
     public void write(OWLDatatypeDefinitionAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getDatatype(), OWL2.equivalentClass, axiom.getDataRange(), axiom.annotations(), true);
+        OWL2RDFHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom.annotations(), true);
     }
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(OntDT.class)
-                .map(p -> p.equivalentClass().map(r -> p.getStatement(OWL2.equivalentClass, r)))
+                .map(p -> p.equivalentClass().map(r -> p.getStatement(OWL.equivalentClass, r)))
                 .flatMap(Function.identity())
                 .filter(OntStatement::isLocal);
     }

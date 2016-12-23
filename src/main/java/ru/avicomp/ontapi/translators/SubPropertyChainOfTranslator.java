@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLSubPropertyChainAxiomImpl;
 
 /**
@@ -31,7 +31,7 @@ class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPr
 
     @Override
     Property getPredicate() {
-        return OWL2.propertyChainAxiom;
+        return OWL.propertyChainAxiom;
     }
 
     @Override

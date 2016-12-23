@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointClassesAxiomImpl;
 
 /**
@@ -28,7 +28,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDisjointClassesAxiomImpl;
 class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom, OWLClassExpression, OntCE> {
     @Override
     Property getPredicate() {
-        return OWL2.disjointWith;
+        return OWL.disjointWith;
     }
 
     @Override
@@ -43,12 +43,12 @@ class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjoint
 
     @Override
     Resource getMembersType() {
-        return OWL2.AllDisjointClasses;
+        return OWL.AllDisjointClasses;
     }
 
     @Override
     Property getMembersPredicate() {
-        return OWL2.members;
+        return OWL.members;
     }
 
     @Override

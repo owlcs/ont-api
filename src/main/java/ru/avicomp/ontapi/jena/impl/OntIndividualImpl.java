@@ -13,7 +13,7 @@ import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -54,7 +54,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
         @Override
         public OntStatement getRoot() {
-            return getRoot(RDF.type, OWL2.NamedIndividual);
+            return getRoot(RDF.type, OWL.NamedIndividual);
         }
     }
 

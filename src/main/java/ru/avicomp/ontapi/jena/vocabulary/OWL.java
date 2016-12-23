@@ -9,8 +9,9 @@ import org.apache.jena.rdf.model.Resource;
  * <p>
  * Created by @szuev on 21.12.2016.
  */
-public class OWL2 extends org.apache.jena.vocabulary.OWL2 {
+public class OWL extends org.apache.jena.vocabulary.OWL2 {
 
     public final static Resource real = resource("real");
     public final static Resource rational = resource("rational");
+
 }

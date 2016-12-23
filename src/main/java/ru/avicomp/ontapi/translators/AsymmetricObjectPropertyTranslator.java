@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLAsymmetricObjectPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLAsymmetricObjectPropertyAxiomImpl;
 
 /**
@@ -24,7 +24,7 @@ class AsymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<
 
     @Override
     Resource getType() {
-        return OWL2.AsymmetricProperty;
+        return OWL.AsymmetricProperty;
     }
 
     @Override

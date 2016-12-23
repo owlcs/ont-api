@@ -8,7 +8,7 @@ import org.apache.jena.rdf.model.Statement;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntID;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * Ontology ID
@@ -26,7 +26,7 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
 
         @Override
         public boolean canWrap(Node node, EnhGraph eg) {
-            return eg.asGraph().contains(node, RDF_TYPE, OWL2.Ontology.asNode());
+            return eg.asGraph().contains(node, RDF_TYPE, OWL.Ontology.asNode());
         }
     };
 
@@ -36,16 +36,16 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
 
     @Override
     public String getVersionIRI() {
-        Statement st = getProperty(OWL2.versionIRI);
+        Statement st = getProperty(OWL.versionIRI);
         if (st == null || !st.getObject().isURIResource()) return null;
         return st.getObject().asResource().getURI();
     }
 
     @Override
     public void setVersionIRI(String uri) {
-        removeAll(OWL2.versionIRI);
+        removeAll(OWL.versionIRI);
         if (uri != null) {
-            addProperty(OWL2.versionIRI, getModel().createResource(uri));
+            addProperty(OWL.versionIRI, getModel().createResource(uri));
         }
     }
 }

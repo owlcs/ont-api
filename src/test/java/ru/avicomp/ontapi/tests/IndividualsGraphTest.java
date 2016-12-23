@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.tests;
 
-import org.apache.jena.vocabulary.OWL;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
@@ -11,7 +10,7 @@ import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.vocabulary.OWL2;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.OntIRI;
 
@@ -41,14 +40,14 @@ public class IndividualsGraphTest extends GraphTestBase {
 
         LOGGER.info("Add classes.");
         manager.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(factory.getOWLClass(class1))));
-        jena.add(class2.toResource(), RDF.type, OWL.Class);
+        jena.add(class2.toResource(), RDF.type, org.apache.jena.vocabulary.OWL.Class);
 
         LOGGER.info("Add individuals.");
         LOGGER.debug("Add individuals using OWL");
         manager.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(factory.getOWLClass(class1), factory.getOWLNamedIndividual(individual1))));
         LOGGER.debug("Add individuals using ONT");
         jena.add(individual2.toResource(), RDF.type, class1.toResource());
-        jena.add(individual2.toResource(), RDF.type, OWL2.NamedIndividual);
+        jena.add(individual2.toResource(), RDF.type, OWL.NamedIndividual);
         jena.getOntEntity(OntClass.class, class2.getIRIString()).createIndividual(individual3.getIRIString());
 
         debug(owl);
