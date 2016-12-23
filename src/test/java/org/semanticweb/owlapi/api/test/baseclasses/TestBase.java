@@ -26,7 +26,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.Timeout;
 import org.semanticweb.owlapi.api.test.anonymous.AnonymousIndividualsNormaliser;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFJsonLDDocumentFormat;
@@ -39,8 +38,10 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
+import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyManager;
+import ru.avicomp.ontapi.OntologyManagerImpl;
+import ru.avicomp.ontapi.OntologyModelImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 import static org.junit.Assert.*;
@@ -61,12 +62,10 @@ public abstract class TestBase {
     }
 
     protected static final Logger logger = LoggerFactory.getLogger(TestBase.class);
-    protected final
     @Nonnull
-    File RESOURCES = resources();
-    protected final
+    protected final File RESOURCES = resources();
     @Nonnull
-    OWLOntologyBuilder builder = (om, id) -> new OWLOntologyImpl(om, id);
+    protected final OWLOntologyBuilder builder = (om, id) -> new OntologyModelImpl((OntologyManager) om, id);
 
     protected <T> T get(Optional<T> t) {
         return t.get();
@@ -78,8 +77,7 @@ public abstract class TestBase {
 
     protected OWLOntology ontologyFromClasspathFile(String fileName, OWLOntologyLoaderConfiguration configuration) {
         try {
-            return m1.loadOntologyFromOntologyDocument(new StreamDocumentSource(getClass().getResourceAsStream("/owlapi/"
-                    + fileName)), configuration);
+            return m1.loadOntologyFromOntologyDocument(new StreamDocumentSource(getClass().getResourceAsStream("/owlapi/" + fileName)), configuration);
         } catch (OWLOntologyCreationException e) {
             throw new OWLRuntimeException(e);
         }
@@ -119,7 +117,7 @@ public abstract class TestBase {
 
     @BeforeClass
     public static void setupManagers() {
-        masterManager = OWLManager.createOWLOntologyManager();
+        masterManager = OntManagerFactory.createONTManager();
         df = masterManager.getOWLDataFactory();
     }
 
@@ -130,7 +128,7 @@ public abstract class TestBase {
     }
 
     protected static OWLOntologyManager setupManager() {
-        OWLOntologyManager manager = new OWLOntologyManagerImpl(df, new NoOpReadWriteLock());
+        OWLOntologyManager manager = new OntologyManagerImpl(df, new NoOpReadWriteLock());
         manager.getOntologyFactories().set(masterManager.getOntologyFactories());
         manager.getOntologyParsers().set(masterManager.getOntologyParsers());
         manager.getOntologyStorers().set(masterManager.getOntologyStorers());
@@ -307,8 +305,7 @@ public abstract class TestBase {
     }
 
     protected OWLAxiom reannotate(OWLAxiom ax) {
-        OWLAxiom reannotated = ax.getAxiomWithoutAnnotations().getAnnotatedAxiom(reannotate(ax.annotations()));
-        return reannotated;
+        return ax.getAxiomWithoutAnnotations().getAnnotatedAxiom(reannotate(ax.annotations()));
     }
 
     private static Set<OWLAnnotation> reannotate(Stream<OWLAnnotation> anns) {

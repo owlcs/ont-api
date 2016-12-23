@@ -1,8 +1,12 @@
 package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -100,6 +104,8 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         Graph g = manager.getGraphFactory().create();
         if (source.getInputStream().isPresent()) {
             readFromStream(g, source);
+        } else if (source.getReader().isPresent()) {
+            readFromReader(g, source);
         } else {
             readFromDocument(g, source);
         }
@@ -120,18 +126,40 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         if (!source.getInputStream().isPresent()) {
             throw new OntApiException("No input stream inside " + source);
         }
-        for (Lang lang : RDFLanguages.getRegisteredLanguages()) {
-            try {
-                if (LOGGER.isDebugEnabled())
-                    LOGGER.debug("Try <<" + lang + ">> for " + source.getDocumentIRI());
-                RDFDataMgr.read(graph, source.getInputStream().get(), lang);
-                return;
-            } catch (RiotException e) {
-                if (LOGGER.isDebugEnabled())
-                    LOGGER.debug("Can't read " + lang + "::" + e.getMessage());
-            }
+        if (OntFormat.all()
+                .filter(OntFormat::isJena)
+                .map(OntFormat::getLang)
+                .map(lang -> read(source.getInputStream().get(), graph, lang)).anyMatch(b -> b)) {
+            return;
         }
-        throw new OntApiException("Can't read from stream.");
+        throw new OntApiException("Can't read from stream (source=" + source + ").");
+    }
+
+    private static void readFromReader(Graph graph, OWLOntologyDocumentSource source) {
+        if (!source.getReader().isPresent()) {
+            throw new OntApiException("No reader inside " + source);
+        }
+        final Charset en = StandardCharsets.UTF_8;
+        if (OntFormat.all()
+                .filter(OntFormat::isJena)
+                .map(OntFormat::getLang)
+                .map(lang -> read(new ReaderInputStream(source.getReader().get(), en), graph, lang)).anyMatch(b -> b)) {
+            return;
+        }
+        throw new OntApiException("Can't read from reader (source=" + source + ").");
+    }
+
+    private static boolean read(InputStream is, Graph graph, Lang lang) {
+        try {
+            if (LOGGER.isDebugEnabled())
+                LOGGER.debug("Try <<" + lang + ">>");
+            RDFDataMgr.read(graph, is, lang);
+            return true;
+        } catch (Exception e) {
+            if (LOGGER.isDebugEnabled())
+                LOGGER.debug("Can't read " + lang + "::" + e.getMessage());
+            return false;
+        }
     }
 
     public static Lang guessLang(OWLOntologyDocumentSource source) {

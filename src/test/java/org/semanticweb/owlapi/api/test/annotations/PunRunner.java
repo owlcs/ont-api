@@ -17,6 +17,8 @@ import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
+import ru.avicomp.ontapi.OntManagerFactory;
+
 import static org.junit.Assert.assertEquals;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.pairs;
@@ -56,7 +58,7 @@ public class PunRunner extends org.junit.runner.Runner {
 
     private void addAllTests() {
         DefaultPrefixManager pm = new DefaultPrefixManager("http://localhost#");
-        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager m = OntManagerFactory.createONTManager();
         OWLDataFactory df = m.getOWLDataFactory();
         List<? extends OWLEntity> entities = Arrays.asList(df.getOWLClass("a", pm), df.getOWLDatatype("a", pm),
                 df.getOWLAnnotationProperty("a", pm), df.getOWLDataProperty("a", pm), df.getOWLObjectProperty("a", pm),

@@ -4,10 +4,10 @@ import java.lang.reflect.Field;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+import ru.avicomp.ontapi.OntManagerFactory;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
 
@@ -26,7 +26,7 @@ public class OWLManagerTestCase {
 
     @Before
     public void setUp() throws Exception {
-        manager = OWLManager.createOWLOntologyManager();
+        manager = OntManagerFactory.createONTManager();
         ontology = manager.createOntology();
     }
 

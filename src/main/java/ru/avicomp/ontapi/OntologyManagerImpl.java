@@ -4,12 +4,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 
+import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Factory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
@@ -123,6 +125,8 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
             } catch (IOException e) {
                 throw new OWLOntologyStorageIOException(e);
             }
+        } else if (target.getWriter().isPresent()) {
+            os = new WriterOutputStream(target.getWriter().get(), StandardCharsets.UTF_8);
         }
         if (os == null) {
             throw new OWLOntologyStorageException("Null output stream, format = " + documentFormat);

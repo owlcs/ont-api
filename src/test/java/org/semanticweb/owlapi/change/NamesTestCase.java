@@ -13,7 +13,6 @@
 package org.semanticweb.owlapi.change;
 
 import org.junit.Test;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.functional.parser.OWLFunctionalSyntaxOWLParser;
 import org.semanticweb.owlapi.krss1.parser.KRSSOWLParser;
 import org.semanticweb.owlapi.krss2.parser.KRSS2OWLParser;
@@ -24,6 +23,8 @@ import org.semanticweb.owlapi.owlxml.parser.OWLXMLParser;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParser;
 import org.semanticweb.owlapi.rdf.turtle.parser.TurtleOntologyParser;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+
+import ru.avicomp.ontapi.OntManagerFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -53,7 +54,7 @@ public class NamesTestCase {
         assertEquals("OWLXMLParser", new OWLXMLParser().getName());
         assertEquals("RDFXMLParser", new RDFXMLParser().getName());
         assertEquals("TurtleOntologyParser", new TurtleOntologyParser().getName());
-        OWLOntology createOntology = OWLManager.createOWLOntologyManager().createOntology();
+        OWLOntology createOntology = OntManagerFactory.createONTManager().createOntology();
         assertEquals("Average number of named superclasses", new AverageAssertedNamedSuperclassCount(createOntology)
                 .getName());
         assertEquals("Axiom", new AxiomCount(createOntology).getName());

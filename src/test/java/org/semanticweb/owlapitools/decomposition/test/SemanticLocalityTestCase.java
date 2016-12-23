@@ -13,6 +13,8 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapitools.decomposition.AxiomWrapper;
 import org.semanticweb.owlapitools.decomposition.SemanticLocalityChecker;
 
+import ru.avicomp.ontapi.OntManagerFactory;
+
 import static org.junit.Assert.assertEquals;
 
 @Ignore
@@ -492,7 +494,7 @@ public class SemanticLocalityTestCase {
     @Before
     public void setUp() {
         // XXX add a reasoner factory
-        testSubject = new SemanticLocalityChecker(null, OWLManager.createOWLOntologyManager());
+        testSubject = new SemanticLocalityChecker(null, OntManagerFactory.createONTManager());
     }
 
     private void set(OWLEntity... entities) {

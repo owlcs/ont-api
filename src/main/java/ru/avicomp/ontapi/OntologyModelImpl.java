@@ -31,7 +31,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     @Inject
     public OntologyModelImpl(@Assisted OntologyManager manager, @Assisted OWLOntologyID id) {
         super(manager, id);
-
     }
 
     public OntologyModelImpl(OntologyManager manager, OntInternalModel base) {

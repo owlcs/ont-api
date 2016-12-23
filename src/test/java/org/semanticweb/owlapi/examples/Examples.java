@@ -20,7 +20,6 @@ import java.util.*;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
@@ -36,6 +35,7 @@ import org.semanticweb.owlapi.util.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
+import ru.avicomp.ontapi.OntManagerFactory;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
@@ -93,7 +93,7 @@ public class Examples extends TestBase {
      */
     public void shouldLoad() throws Exception {
         // Get hold of an ontology manager
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         OWLOntology ontology = load(manager);
         // We can always obtain the location where an ontology was loaded from;
         // for this test, though, since the ontology was loaded from a string,
@@ -135,7 +135,7 @@ public class Examples extends TestBase {
     @Test
     public void shouldSaveOntologies() throws Exception {
         // Get hold of an ontology manager
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         OWLOntology ontology = load(manager);
         // Now save a local copy of the ontology. (Specify a path appropriate to
         // your setup)
@@ -180,7 +180,7 @@ public class Examples extends TestBase {
     public void shouldAccessEntities() throws Exception {
         // In order to create objects that represent entities we need a
         // data factory.
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         // We can get a reference to a data factory from an OWLOntologyManager.
         OWLDataFactory factory = manager.getOWLDataFactory();
         // In OWL, entities are named objects that are used to build class
@@ -231,7 +231,7 @@ public class Examples extends TestBase {
         // Data ranges are used as the types of literals, as the ranges for data
         // properties, as filler for data reatrictions. Get hold of a manager to
         // work with
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
         // OWLDatatype represents named datatypes in OWL. These are a bit like
         // classes whose instances are data values OWLDatatype objects are
@@ -302,7 +302,7 @@ public class Examples extends TestBase {
      */
     @Test
     public void shouldUseDataranges() throws Exception {
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         String base = "http://org.semanticweb.datarangeexample#";
         OWLOntology ontology = manager.createOntology(IRI.create(base, ""));
         // We want to add an axiom to our ontology that states that adults have
@@ -343,7 +343,7 @@ public class Examples extends TestBase {
 
     @Test
     public void shouldInstantiateLiterals() {
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
         // Get an plain literal with an empty language tag
         OWLLiteral literal1 = factory.getOWLLiteral("My string literal", "");
@@ -373,7 +373,7 @@ public class Examples extends TestBase {
         // manages a set of ontologies. An ontology is unique within an ontology
         // manager. Each ontology knows its ontology manager. To load multiple
         // copies of an ontology, multiple managers would have to be used.
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         // In this test we don't rely on a remote ontology and load it from
         // a string
         OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(KOALA));
@@ -392,7 +392,7 @@ public class Examples extends TestBase {
     @Test
     public void shouldAddAxiom() throws Exception {
         // Create the manager that we will use to load ontologies.
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         // Ontologies can have an IRI, which is used to identify the ontology.
         // You should think of the ontology IRI as the "name" of the ontology.
         // This IRI frequently resembles a Web address (i.e. http://...), but it
@@ -461,7 +461,7 @@ public class Examples extends TestBase {
         // default ontology manager with the OWLManager class. This provides a
         // common setup of an ontology manager. It registers parsers etc. for
         // loading ontologies in a variety of syntaxes
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         // In OWL 2, an ontology may be named with an IRI (Internationalised
         // Resource Identifier) We can create an instance of the IRI class as
         // follows:
@@ -525,7 +525,7 @@ public class Examples extends TestBase {
     public void shouldCreatePropertyAssertions() throws Exception {
         // We can specify the properties of an individual using property
         // assertions Get a copy of an ontology manager
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         IRI ontologyIRI = IRI.create("http://example.com/owl/families/", "");
         OWLOntology ontology = manager.createOntology(ontologyIRI);
         // Get hold of a data factory from the manager and set up a prefix
@@ -575,7 +575,7 @@ public class Examples extends TestBase {
         // suppose we wanted to specify that :Mary is an instance of the class
         // :Person. First we need to obtain the individual :Mary and the class
         // :Person Create an ontology manager to work with
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         OWLDataFactory dataFactory = manager.getOWLDataFactory();
         // The IRIs used here are taken from the OWL 2 Primer
         String base = "http://example.com/owl/families/";
@@ -603,7 +603,7 @@ public class Examples extends TestBase {
      */
     @Test
     public void shouldCreateAndSaveOntology() throws Exception {
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         // Let's create an ontology and name it
         // "http://www.co-ode.org/ontologies/testont.owl" We need to set up a
         // mapping which points to a concrete file where the ontology will be
@@ -651,7 +651,7 @@ public class Examples extends TestBase {
      */
     @Test
     public void shouldAddObjectPropertyAssertions() throws Exception {
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         String base = "http://www.semanticweb.org/ontologies/individualsexample";
         OWLOntology ont = man.createOntology(IRI.create(base, ""));
         OWLDataFactory dataFactory = man.getOWLDataFactory();
@@ -697,7 +697,7 @@ public class Examples extends TestBase {
     public void shouldDeleteIndividuals() throws Exception {
         // The Koala ontology contains an individual of type Degree.
         // In this example we will delete it..
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         OWLOntology ont = load(man);
         // We can't directly delete individuals, properties or classes from an
         // ontology because ontologies don't directly contain entities -- they
@@ -743,7 +743,7 @@ public class Examples extends TestBase {
      */
     @Test
     public void shouldCreateRestrictions() throws Exception {
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         String base = "http://org.semanticweb.restrictionexample";
         OWLOntology ont = man.createOntology(IRI.create(base, ""));
         // In this example we will add an axiom to state that all Heads have
@@ -785,7 +785,7 @@ public class Examples extends TestBase {
     @Test
     public void shouldUseReasoner() throws Exception {
         // Create our ontology manager in the usual way.
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         OWLOntology ont = load(manager);
         // We need to create an instance of OWLReasoner. An OWLReasoner provides
         // the basic query functionality that we need, for example the ability
@@ -953,7 +953,7 @@ public class Examples extends TestBase {
     @Test
     public void shouldLookAtRestrictions() throws Exception {
         // Create our manager
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         // Load the Koala ontology
         OWLOntology ont = load(man);
         // We want to examine the restrictions on Quokka. To do this,
@@ -1033,7 +1033,7 @@ public class Examples extends TestBase {
     @Test
     public void shouldCreateAndReadAnnotations() throws Exception {
         // Create our manager
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         // Load the Koala ontology
         OWLOntology ont = load(man);
         // We want to add a comment to the Quokka class. First, we need to
@@ -1097,7 +1097,7 @@ public class Examples extends TestBase {
         // Uncomment the line below reasonerFactory = new
         // PelletReasonerFactory(); Load an example ontology - for the purposes
         // of the example, we will just load the ontology.
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         OWLOntology ont = load(man);
         // Create the reasoner and classify the ontology
         OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(ont);
@@ -1132,7 +1132,7 @@ public class Examples extends TestBase {
     @Test
     public void shouldMergeOntologies() throws Exception {
         // Just load two arbitrary ontologies for the purposes of this example
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         load(man);
         OWLOntology o = man.createOntology(IRI.create("urn:test", ""));
         man.addAxiom(o, man.getOWLDataFactory().getOWLDeclarationAxiom(man.getOWLDataFactory().getOWLClass("urn:test#",
@@ -1160,7 +1160,7 @@ public class Examples extends TestBase {
         // a some values from (existential restriction) we can use the walker to
         // do this. We'll use the Koala ontology as an example. Load the
         // ontology from the web:
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         OWLOntology ont = load(man);
         // Create the walker. Pass in the koala ontology - we need to put it
         // into a set though, so we just create a singleton set in this case.
@@ -1196,7 +1196,7 @@ public class Examples extends TestBase {
     @Test
     public void shouldQueryWithReasoner() throws Exception {
         // We will load the Koala ontology and query it using a reasoner
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         OWLOntology ont = load(man);
         // For this particular ontology, we know that all class, properties
         // names etc. have IRIs that is made up of the ontology IRI plus # plus
@@ -1252,7 +1252,7 @@ public class Examples extends TestBase {
         IRI protegeOntologyIri = IRI.create("http://protege.stanford.edu/plugins/owl/", "protege");
         IRI tonesRepositoryIri = IRI.create("http://owl.cs.manchester.ac.uk/repository/", "download");
         // Create a manager to work with
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         // Load the MGED ontology. There is a copy of the MGED ontology located
         // at the address pointed to by its ontology IRI (this is good practice
         // and is recommended in the OWL 2 spec).
@@ -1272,7 +1272,7 @@ public class Examples extends TestBase {
         IRI protegeOntologyDocumentIRI = getTONESRepositoryDocumentIRI(protegeOntologyIri, tonesRepositoryIri);
         OWLOntologyIRIMapper iriMapper = new SimpleIRIMapper(protegeOntologyIri, protegeOntologyDocumentIRI);
         // Create a new manager that we will use to load the MGED ontology
-        OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager2 = OntManagerFactory.createONTManager();
         // Register our mapper with the manager
         manager2.getIRIMappers().add(iriMapper);
         // Now load our MGED ontology
@@ -1344,7 +1344,7 @@ public class Examples extends TestBase {
     @Test
     public void shouldExtractModules() throws Exception {
         // Create our manager
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = OntManagerFactory.createONTManager();
         // Load the Koala ontology
         OWLOntology ont = load(man);
         // We want to extract a module for all toppings. We therefore have to
@@ -1398,7 +1398,7 @@ public class Examples extends TestBase {
         // an instance of this using the OWLManager class, which will set up
         // commonly used options (such as which parsers are registered etc.
         // etc.)
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
         // We want to create an ontology that corresponds to the ontology used
         // in the OWL Primer. Every ontology has a IRI that uniquely identifies
         // the ontology. The IRI is essentially a name for the ontology. Note
