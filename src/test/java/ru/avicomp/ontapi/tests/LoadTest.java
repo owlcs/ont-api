@@ -12,7 +12,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -35,13 +34,13 @@ public class LoadTest {
         // WARNING: OWL-API works wrong with this ontology.
         // Also ontology 'foaf' is wrong in itself: there 6 entities which are DataProperty and ObjectProperty simultaneously.
         // todo: add testing for excluded axioms.
-        test("foaf.rdf", AxiomType.DECLARATION, AxiomType.ANNOTATION_PROPERTY_RANGE, AxiomType.DATA_PROPERTY_DOMAIN, AxiomType.ANNOTATION_PROPERTY_DOMAIN);
+        test("foaf.rdf", AxiomType.DECLARATION, AxiomType.ANNOTATION_PROPERTY_RANGE, AxiomType.ANNOTATION_PROPERTY_DOMAIN,
+                AxiomType.DATA_PROPERTY_DOMAIN, AxiomType.EQUIVALENT_OBJECT_PROPERTIES);
     }
 
     @Test
     public void testGoodrelations() {
         String fileName = "goodrelations.rdf";
-        OntFormat format = OntFormat.XML_RDF;
         OWLDataFactory factory = OntManagerFactory.getDataFactory();
 
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
@@ -131,13 +130,13 @@ public class LoadTest {
 
     private void test(List<OWLAxiom> owlList, List<OWLAxiom> ontList, Set<AxiomType> excluded) {
         AxiomType.AXIOM_TYPES.forEach(type -> {
-            LOGGER.debug("Test type <" + type + ">");
             if (excluded.contains(type)) {
                 LOGGER.warn("Skip <" + type + ">");
                 return;
             }
             List<OWLAxiom> actual = ontList.stream().filter(axiom -> type.equals(axiom.getAxiomType())).collect(Collectors.toList());
             List<OWLAxiom> expected = owlList.stream().filter(axiom -> type.equals(axiom.getAxiomType())).collect(Collectors.toList());
+            LOGGER.debug("Test type <" + type + ">" + " ::: " + expected.size());
             Assert.assertThat("Incorrect axioms for type <" + type + "> (actual=" + actual.size() + ", expected=" + expected.size() + ")", actual, IsEqual.equalTo(expected));
         });
     }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,8 @@ import ru.avicomp.ontapi.OntApiException;
  */
 public abstract class AxiomParserProvider {
     private static final Logger LOGGER = Logger.getLogger(AxiomParserProvider.class);
+
+    public static final Config DEFAULT_CONFIG = new Config();
 
     public static Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> getParsers() {
         return ParserHolder.PARSERS;
@@ -100,6 +103,31 @@ public abstract class AxiomParserProvider {
             } catch (ClassNotFoundException e) {
                 throw new OntApiException("Can't find class " + info, e);
             }
+        }
+    }
+
+    public static class Config {
+        private final EnumMap<Option, Object> options = new EnumMap<>(Option.class);
+
+        public boolean isCompressNaryAxioms() {
+            return is(Option.COMPRESS_NARY_AXIOMS);
+        }
+
+        public Config setCompressNaryAxioms(boolean compressNaryAxioms) {
+            return set(Option.COMPRESS_NARY_AXIOMS, compressNaryAxioms);
+        }
+
+        public boolean is(Option key) {
+            return Boolean.TRUE.equals(options.getOrDefault(key, Boolean.FALSE));
+        }
+
+        public Config set(Option key, boolean val) {
+            options.put(key, val);
+            return this;
+        }
+
+        public enum Option {
+            COMPRESS_NARY_AXIOMS,
         }
     }
 

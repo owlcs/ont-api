@@ -88,6 +88,9 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
      * @return shrunken map of axioms.
      */
     Map<Axiom, Set<Triple>> shrink(Map<Axiom, Set<Triple>> init) {
+        if (init.size() < 2) {
+            return new HashMap<>(init);
+        }
         Map<Set<OWLAnnotation>, Set<Axiom>> groupedByAnnotations =
                 init.keySet().stream().collect(Collectors.groupingBy(a -> a.annotations().collect(Collectors.toSet()), Collectors.toSet()));
         Map<Axiom, Set<Triple>> res = new HashMap<>();
@@ -116,8 +119,12 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
      */
     private Set<Axiom> shrink(Set<Axiom> init, Set<OWLAnnotation> annotations) {
         if (init.isEmpty()) return Collections.emptySet();
-        List<Axiom> split = new LinkedList<>(init);
         Set<Axiom> res = new HashSet<>();
+        if (init.size() == 1) {
+            res.addAll(init);
+            return res;
+        }
+        List<Axiom> split = new LinkedList<>(init);
         Axiom first = create(split.remove(0).operands(), annotations);
         while (!split.isEmpty()) {
             Axiom next = split.remove(0);
@@ -142,6 +149,6 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
 
     @Override
     public Map<Axiom, Set<Triple>> read(OntGraphModel model) {
-        return shrink(readPairwiseAxioms(model));
+        return getConfig().isCompressNaryAxioms() ? shrink(readPairwiseAxioms(model)) : super.read(model);
     }
 }

@@ -19,7 +19,6 @@ import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
-import com.google.inject.Inject;
 import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -35,12 +34,8 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OWLOntologyFactory {
     private static final Logger LOGGER = Logger.getLogger(OntBuildingFactoryImpl.class);
 
-    /**
-     * @param ontologyBuilder ontology builder
-     */
-    @Inject
-    public OntBuildingFactoryImpl(OWLOntologyBuilder ontologyBuilder) {
-        super(ontologyBuilder);
+    public OntBuildingFactoryImpl() {
+        super(new Builder());
     }
 
     @Override
@@ -167,6 +162,13 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             return RDFLanguages.contentTypeToLang(source.getMIMEType().get());
         }
         return RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
+    }
+
+    public static class Builder implements OWLOntologyBuilder {
+        @Override
+        public OWLOntology createOWLOntology(@Nonnull OWLOntologyManager manager, @Nonnull OWLOntologyID ontologyID) {
+            return new OntologyModelImpl((OntologyManager) manager, ontologyID);
+        }
     }
 
 }

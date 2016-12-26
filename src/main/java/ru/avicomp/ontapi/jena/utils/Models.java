@@ -102,11 +102,14 @@ public class Models {
         return distinct ? res.distinct() : res;
     }
 
-    public static Set<Statement> getAssociatedStatements(Resource inModel) {
-        Set<Statement> statements = inModel.listProperties().toSet();
-        Set<Statement> res = new HashSet<>(statements);
-        statements.stream().map(Statement::getObject).filter(RDFNode::isAnon).map(RDFNode::asResource)
-                .forEach(r -> res.addAll(getAssociatedStatements(r)));
+    public static Set<Statement> getAssociatedStatements(Resource inModel) { // todo: replace with not recursive method
+        Set<Statement> res = new HashSet<>();
+        inModel.listProperties().forEachRemaining(s -> {
+            res.add(s);
+            if (s.getObject().isAnon()) {
+                res.addAll(getAssociatedStatements(s.getObject().asResource()));
+            }
+        });
         return res;
     }
 }

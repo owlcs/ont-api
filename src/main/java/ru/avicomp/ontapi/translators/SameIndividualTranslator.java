@@ -63,6 +63,9 @@ class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualA
      */
     @Override
     Map<OWLSameIndividualAxiom, Set<Triple>> shrink(Map<OWLSameIndividualAxiom, Set<Triple>> init) {
+        if (init.size() < 2) {
+            return new HashMap<>(init);
+        }
         Set<OWLSameIndividualAxiom> unique = extractStandaloneAxioms(init.keySet());
         Map<OWLSameIndividualAxiom, Set<Triple>> res = new HashMap<>();
         unique.forEach(a -> res.put(a, init.get(a)));

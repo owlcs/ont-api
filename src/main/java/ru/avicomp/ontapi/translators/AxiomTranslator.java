@@ -9,6 +9,7 @@ import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -19,6 +20,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
+    private AxiomParserProvider.Config config = AxiomParserProvider.DEFAULT_CONFIG;
 
     public abstract void write(Axiom axiom, OntGraphModel model);
 
@@ -39,4 +41,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
                             return tripleSet1;
                         }));
     }
+
+    public AxiomParserProvider.Config getConfig() {
+        return config;
+    }
+
+    public void setConfig(AxiomParserProvider.Config config) {
+        this.config = OntApiException.notNull(config, "Null config.");
+    }
+
 }

@@ -1,20 +1,19 @@
 package ru.avicomp.ontapi;
 
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import java.io.Serializable;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.semanticweb.owlapi.OWLAPIParsersModule;
 import org.semanticweb.owlapi.OWLAPIServiceLoaderModule;
 import org.semanticweb.owlapi.annotations.OwlapiModule;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLOntologyFactory;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyManagerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
 import uk.ac.manchester.cs.owl.owlapi.CompressionEnabled;
 import uk.ac.manchester.cs.owl.owlapi.OWLAPIImplModule;
@@ -89,9 +88,6 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
             bind(OWLOntologyManager.class).to(OntologyManagerImpl.class).asEagerSingleton();
             bind(OntologyManager.class).to(OntologyManagerImpl.class).asEagerSingleton();
             bind(OntologyManager.class).annotatedWith(NonConcurrentDelegate.class).to(OntologyManagerImpl.class).asEagerSingleton();
-            bind(OWLOntologyBuilder.class).to(ONTBuilder.class); //<--todo
-            bind(OWLOntologyBuilder.class).annotatedWith(NonConcurrentDelegate.class).to(ONTBuilder.class);
-            install(new FactoryModuleBuilder().implement(OntologyModel.class, OntologyModelImpl.class).build(ONTImplementationFactory.class));
             multibind(OWLOntologyFactory.class, OntBuildingFactoryImpl.class);
         }
 
@@ -103,25 +99,6 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
             }
             return binder;
         }
-    }
-
-    private static class ONTBuilder implements OWLOntologyBuilder {
-        private final transient ONTImplementationFactory implementationFactory;
-
-        @Inject
-        public ONTBuilder(ONTImplementationFactory implementationFactory) {
-            this.implementationFactory = OntApiException.notNull(implementationFactory);
-        }
-
-        @Override
-        public OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager, @Nonnull OWLOntologyID ontologyID) {
-            return implementationFactory.createOWLOntology((OntologyManager) manager, ontologyID);
-        }
-    }
-
-    @FunctionalInterface
-    interface ONTImplementationFactory extends Serializable {
-        OntologyModel createOWLOntology(OntologyManager manager, OWLOntologyID ontologyID);
     }
 
     public interface ManagerProfile<M extends OWLOntologyManager> {
