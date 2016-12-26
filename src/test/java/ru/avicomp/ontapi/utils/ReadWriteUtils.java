@@ -46,7 +46,7 @@ public class ReadWriteUtils {
 
     private static String toString(OWLOntology ontology, OntFormat type) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.getOwlFormat();
+            OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
             return out.toString(StandardCharsets.UTF_8.name());
         } catch (OWLOntologyStorageException | IOException e) {
@@ -151,7 +151,7 @@ public class ReadWriteUtils {
     public static void save(OWLOntology ontology, String name, OntFormat type) {
         File dst = getFileToSave(name, type);
         LOGGER.debug("Save owl-ontology to " + dst.toURI() + " (" + (type == null ? "TURTLE" : type.getType()) + ")");
-        OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.getOwlFormat();
+        OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
         try (FileOutputStream out = new FileOutputStream(dst)) {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
         } catch (OWLOntologyStorageException | IOException e) {

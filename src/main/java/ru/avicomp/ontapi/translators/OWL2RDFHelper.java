@@ -53,7 +53,7 @@ public class OWL2RDFHelper {
         return ResourceFactory.createResource(OntApiException.notNull(iri, "Null iri").getIRIString());
     }
 
-    public static Property toProperty(OWLObject object) {
+    public static Property toProperty(OWLPropertyExpression object) {
         return toProperty(NodeIRIUtils.toIRI(object));
     }
 
@@ -131,7 +131,7 @@ public class OWL2RDFHelper {
         return doAdd ? addRDFNode(model, object).as(OntObject.class) : toResource(object).inModel(model).as(OntObject.class);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, OWLObject predicate, OWLObject object, Stream<OWLAnnotation> annotations) {
+    public static void writeTriple(OntGraphModel model, OWLObject subject, OWLPropertyExpression predicate, OWLObject object, Stream<OWLAnnotation> annotations) {
         writeTriple(model, subject, toProperty(predicate), object, annotations);
     }
 

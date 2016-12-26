@@ -13,47 +13,47 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
  * Created by @szuev on 27.09.2016.
  */
 public enum OntFormat {
-    XML_RDF("rdf", Lang.RDFXML, new RDFXMLDocumentFormat()),
-    TTL_RDF("ttl", Lang.TURTLE, new TurtleDocumentFormat()),
-    JSON_LD_RDF("jsonld", Lang.JSONLD, new RDFJsonLDDocumentFormat()),
-    JSON_RDF("rj", Lang.RDFJSON, new RDFJsonDocumentFormat()),
-    NTRIPLES("nt", Lang.NTRIPLES, new NTriplesDocumentFormat()),
-    NQUADS("nq", Lang.NQUADS, new NQuadsDocumentFormat()),
-    TRIG("trig", Lang.TRIG, new TrigDocumentFormat()),
-    TRIX("trix", Lang.TRIX, new TrixDocumentFormat()),
+    XML_RDF("rdf", Lang.RDFXML, RDFXMLDocumentFormat.class),
+    TTL_RDF("ttl", Lang.TURTLE, TurtleDocumentFormat.class),
+    JSON_LD_RDF("jsonld", Lang.JSONLD, RDFJsonLDDocumentFormat.class),
+    JSON_RDF("rj", Lang.RDFJSON, RDFJsonDocumentFormat.class),
+    NTRIPLES("nt", Lang.NTRIPLES, NTriplesDocumentFormat.class),
+    NQUADS("nq", Lang.NQUADS, NQuadsDocumentFormat.class),
+    TRIG("trig", Lang.TRIG, TrigDocumentFormat.class),
+    TRIX("trix", Lang.TRIX, TrixDocumentFormat.class),
     // jena only:
     THRIF("trdf", Lang.RDFTHRIFT, null),
     CSV("csv", "CSV", Lang.CSV, null, true),
     // owl-api formats only:
-    OWL_XML_RDF("owl", "OWL/XML", null, new OWLXMLDocumentFormat()),
-    MANCHESTER_SYNTAX("omn", "ManchesterSyntax", null, new ManchesterSyntaxDocumentFormat()),
-    FUNCTIONAL_SYNTAX("fss", "FunctionalSyntax", null, new FunctionalSyntaxDocumentFormat()),
-    BINARY("brf", "BinaryRDF", null, new BinaryRDFDocumentFormat(), true),
-    RDFA("html", "RDFA", null, new RDFaDocumentFormat(), true),
-    OBO("obo", "OBO", null, new OBODocumentFormat()),
-    KRSS2("krss2", "KRSS2", null, new KRSS2DocumentFormat(), true),
-    DL("dl", "DL", null, new DLSyntaxDocumentFormat(), true),;
+    OWL_XML_RDF("owl", "OWL/XML", null, OWLXMLDocumentFormat.class),
+    MANCHESTER_SYNTAX("omn", "ManchesterSyntax", null, ManchesterSyntaxDocumentFormat.class),
+    FUNCTIONAL_SYNTAX("fss", "FunctionalSyntax", null, FunctionalSyntaxDocumentFormat.class),
+    BINARY("brf", "BinaryRDF", null, BinaryRDFDocumentFormat.class, true),
+    RDFA("html", "RDFA", null, RDFaDocumentFormat.class, true),
+    OBO("obo", "OBO", null, OBODocumentFormat.class),
+    KRSS2("krss2", "KRSS2", null, KRSS2DocumentFormat.class, true),
+    DL("dl", "DL", null, DLSyntaxDocumentFormat.class, true),;
 
 
     private final String id;
-    private String ext;
-    private Lang jena;
-    private OWLDocumentFormat owl;
+    private String ext; // primary extension.
+    private Lang jenaType;
+    private Class<? extends OWLDocumentFormat> owlType;
     private boolean disabled;
 
-    OntFormat(String ext, Lang jena, OWLDocumentFormat owl) {
+    OntFormat(String ext, Lang jena, Class<? extends OWLDocumentFormat> owl) {
         this(ext, jena.getLabel(), jena, owl);
     }
 
-    OntFormat(String ext, String id, Lang jena, OWLDocumentFormat owl) {
+    OntFormat(String ext, String id, Lang jena, Class<? extends OWLDocumentFormat> owl) {
         this(ext, id, jena, owl, false);
     }
 
-    OntFormat(String ext, String id, Lang jena, OWLDocumentFormat owl, boolean disabled) {
-        this.id = id;
-        this.jena = jena;
+    OntFormat(String ext, String id, Lang jena, Class<? extends OWLDocumentFormat> owl, boolean disabled) {
+        this.id = OntApiException.notNull(id, "Id is required.");
+        this.jenaType = jena;
         this.ext = ext;
-        this.owl = owl;
+        this.owlType = owl;
         this.disabled = disabled;
     }
 
@@ -65,12 +65,16 @@ public enum OntFormat {
         return ext;
     }
 
-    public OWLDocumentFormat getOwlFormat() {
-        return owl;
+    public OWLDocumentFormat createOwlFormat() {
+        try {
+            return owlType.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new OntApiException(e);
+        }
     }
 
     public Lang getLang() {
-        return jena;
+        return jenaType;
     }
 
     public boolean isSupported() {
@@ -78,11 +82,11 @@ public enum OntFormat {
     }
 
     public boolean isJena() {
-        return jena != null;
+        return jenaType != null;
     }
 
     public boolean isOWL() {
-        return owl != null;
+        return owlType != null;
     }
 
     public boolean isXML() {
@@ -101,9 +105,18 @@ public enum OntFormat {
         return all().filter(OntFormat::isJena).filter(f -> !f.isOWL());
     }
 
-    public static OntFormat get(OWLDocumentFormat owl) {
+    public static OntFormat get(OWLDocumentFormat documentFormat) {
+        OntApiException.notNull(documentFormat, "Null owl-document-format specified.");
         for (OntFormat r : values()) {
-            if (Objects.equals(r.owl, owl)) return r;
+            if (Objects.equals(r.owlType, documentFormat.getClass())) return r;
+        }
+        return null;
+    }
+
+    public static OntFormat get(Lang lang) {
+        OntApiException.notNull(lang, "Null jena-language specified.");
+        for (OntFormat r : values()) {
+            if (Objects.equals(r.jenaType, lang)) return r;
         }
         return null;
     }

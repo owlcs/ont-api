@@ -20,9 +20,17 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyAssertionAxiomImpl;
  * Created by @szuev on 01.10.2016.
  */
 class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropertyAssertionAxiom> {
+
+    /**
+     * Note: ObjectPropertyAssertion(ObjectInverseOf(P) S O) = ObjectPropertyAssertion(P O S)
+     *
+     * @param axiom {@link OWLObjectPropertyAssertionAxiom}
+     * @param model {@link OntGraphModel}
+     */
     @Override
     public void write(OWLObjectPropertyAssertionAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getObject(), axiom.annotations());
+        OWLObjectPropertyExpression property = axiom.getProperty().isAnonymous() ? axiom.getProperty().getInverseProperty() : axiom.getProperty();
+        OWL2RDFHelper.writeTriple(model, axiom.getSubject(), property, axiom.getObject(), axiom.annotations());
     }
 
     @Override
