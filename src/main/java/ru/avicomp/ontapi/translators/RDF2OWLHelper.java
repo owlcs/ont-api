@@ -55,7 +55,12 @@ public class RDF2OWLHelper {
     }
 
     public static OWLAnonymousIndividual getAnonymousIndividual(OntIndividual.Anonymous individual) {
-        String label = NodeFmtLib.encodeBNodeLabel(OntApiException.notNull(individual, "Null individual.").asNode().getBlankNodeLabel());
+        return getAnonymousIndividual((RDFNode) OntApiException.notNull(individual, "Null individual."));
+    }
+
+    private static OWLAnonymousIndividual getAnonymousIndividual(RDFNode anon) {
+        if (!anon.isAnon()) throw new OntApiException("Not anon " + anon);
+        String label = NodeFmtLib.encodeBNodeLabel(anon.asNode().getBlankNodeLabel());
         return new OWLAnonymousIndividualImpl(NodeID.getNodeID(label));
     }
 

@@ -86,6 +86,8 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         if (PrefixManager.class.isInstance(owlFormat)) {
             PrefixManager prefixes = (PrefixManager) owlFormat;
             graph.getPrefixMapping().getNsPrefixMap().entrySet().forEach(e -> prefixes.setPrefix(e.getKey(), e.getValue()));
+            if (ont.getOntologyID().getOntologyIRI().isPresent())
+                prefixes.setPrefix("", ont.getOntologyID().getOntologyIRI().get().getIRIString());
         }
         m.setOntologyFormat(res, owlFormat);
         return res;

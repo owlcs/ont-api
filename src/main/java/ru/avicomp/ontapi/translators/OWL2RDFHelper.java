@@ -45,7 +45,7 @@ public class OWL2RDFHelper {
         return individual.isAnonymous() ? toResource(individual.asOWLAnonymousIndividual().getID()) : toResource(individual.asOWLNamedIndividual().getIRI());
     }
 
-    private static Resource toResource(NodeID id) {
+    public static Resource toResource(NodeID id) {
         return new ResourceImpl(NodeFactory.createBlankNode(id.getID()), null);
     }
 
@@ -210,9 +210,9 @@ public class OWL2RDFHelper {
     }
 
     public static OntIndividual.Anonymous getAnonymousIndividual(OntGraphModel model, OWLAnonymousIndividual ai) {
-        Resource res = toResource(ai.getID());
+        Resource res = toResource(OntApiException.notNull(ai, "Null anonymous individual.").getID());
         if (!model.contains(res, null, (RDFNode) null)) {
-            throw new OntApiException("Anonymous individuals should be created first.");
+            throw new OntApiException("Anonymous individual should be created first: " + ai + ".");
         }
         return res.inModel(model).as(OntIndividual.Anonymous.class);
     }

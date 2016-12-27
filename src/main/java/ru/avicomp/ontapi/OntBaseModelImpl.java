@@ -50,6 +50,11 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     }
 
     @Override
+    public boolean isAnonymous() {
+        return base.getID().isAnon();
+    }
+
+    @Override
     public boolean isEmpty() {
         return base.isOntologyEmpty();
     }
@@ -61,7 +66,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public void setOWLOntologyManager(OWLOntologyManager manager) {
-        this.manager = OntApiException.notNull(manager, "Null manager.");
+        this.manager = manager; // could be null when OWLOntologyManager.clearOntologies
     }
 
     OntInternalModel getBase() {

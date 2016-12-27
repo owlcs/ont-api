@@ -8,6 +8,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyModelImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
 
@@ -17,6 +18,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 10/04/15
+ *
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings("javadoc")
 public class OWLManagerTestCase {
@@ -26,7 +29,8 @@ public class OWLManagerTestCase {
 
     @Before
     public void setUp() throws Exception {
-        manager = OntManagerFactory.createONTManager();
+        manager = // OWLManager.createOWLOntologyManager();
+                OntManagerFactory.createONTConcurrentManager();
         ontology = manager.createOntology();
     }
 
@@ -37,7 +41,8 @@ public class OWLManagerTestCase {
 
     @Test
     public void shouldCreateConcurrentOntologyByDefault() {
-        assertThat(ontology, is(instanceOf(ConcurrentOWLOntologyImpl.class)));
+        //assertThat(ontology, is(instanceOf(OntologyModelImpl.Concurrent.class)));
+        assertThat(ontology, is(instanceOf(OntologyModelImpl.Concurrent.class)));
     }
 
     @Test
