@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -12,6 +13,9 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
 
+import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
+import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -79,6 +83,23 @@ public class Models {
     }
 
     /**
+     * converts rdf-node to anonymous individual.
+     * The result anonymous individual could be true (instance of some owl class) or fake (any blank node).
+     *
+     * @param node {@link RDFNode}
+     * @return {@link OntIndividual.Anonymous}
+     * @throws OntJenaException if node can be present as anonymous individual
+     */
+    public static OntIndividual.Anonymous asAnonymousIndividual(RDFNode node) {
+        if (OntJenaException.notNull(node, "Null node.").canAs(OntIndividual.Anonymous.class))
+            return node.as(OntIndividual.Anonymous.class);
+        if (node.isAnon()) {
+            return new OntIndividualImpl.AnonymousImpl(node.asNode(), (EnhGraph) node.getModel());
+        }
+        throw new OntJenaException(node + " could not be " + OntIndividual.Anonymous.class);
+    }
+
+    /**
      * replaces namespaces map with new one.
      *
      * @param mapping  {@link PrefixMapping} object
@@ -106,9 +127,11 @@ public class Models {
         Set<Statement> res = new HashSet<>();
         inModel.listProperties().forEachRemaining(s -> {
             res.add(s);
-            if (s.getObject().isAnon()) {
-                res.addAll(getAssociatedStatements(s.getObject().asResource()));
-            }
+            if (!s.getObject().isAnon()) return;
+            Resource obj = s.getObject().asResource();
+            if (res.stream().anyMatch(_s -> obj.equals(_s.getSubject()))) // to avoid cycles
+                return;
+            res.addAll(getAssociatedStatements(obj));
         });
         return res;
     }

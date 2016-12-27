@@ -79,13 +79,13 @@ public class RDF2OWLHelper {
     }
 
     public static OWLAnnotationSubject getAnnotationSubject(Resource resource) {
-        if (resource.isURIResource()) {
+        if (OntApiException.notNull(resource, "Null resource").isURIResource()) {
             return IRI.create(resource.getURI());
         }
-        if (resource.canAs(OntIndividual.Anonymous.class)) {
-            return getAnonymousIndividual(resource.as(OntIndividual.Anonymous.class));
+        if (resource.isAnon()) {
+            return getAnonymousIndividual(Models.asAnonymousIndividual(resource));
         }
-        throw new OntApiException("Not an OWLAnnotationSubject " + resource);
+        throw new OntApiException("Not an AnnotationSubject " + resource);
     }
 
     public static OWLAnnotationValue getAnnotationValue(RDFNode node) {
@@ -95,10 +95,10 @@ public class RDF2OWLHelper {
         if (node.isURIResource()) {
             return IRI.create(node.asResource().getURI());
         }
-        if (node.canAs(OntIndividual.Anonymous.class)) {
-            return getAnonymousIndividual(node.as(OntIndividual.Anonymous.class));
+        if (node.isAnon()) {
+            return getAnonymousIndividual(Models.asAnonymousIndividual(node));
         }
-        throw new OntApiException("Not an OWLAnnotationValue " + node);
+        throw new OntApiException("Not an AnnotationValue " + node);
     }
 
     public static OWLPropertyExpression getProperty(OntPE property) {

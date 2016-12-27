@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
@@ -210,11 +211,12 @@ public class OWL2RDFHelper {
     }
 
     public static OntIndividual.Anonymous getAnonymousIndividual(OntGraphModel model, OWLAnonymousIndividual ai) {
-        Resource res = toResource(OntApiException.notNull(ai, "Null anonymous individual.").getID());
-        if (!model.contains(res, null, (RDFNode) null)) {
-            throw new OntApiException("Anonymous individual should be created first: " + ai + ".");
+        Resource res = toResource(OntApiException.notNull(ai, "Null anonymous individual.").getID()).inModel(model);
+        if (!res.canAs(OntIndividual.Anonymous.class)) {
+            //throw new OntApiException("Anonymous individual should be created first: " + ai + ".");
+            return Models.asAnonymousIndividual(res);
         }
-        return res.inModel(model).as(OntIndividual.Anonymous.class);
+        return res.as(OntIndividual.Anonymous.class);
     }
 
     public static OntIndividual addIndividual(OntGraphModel model, OWLIndividual i) {
