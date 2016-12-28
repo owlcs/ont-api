@@ -33,9 +33,9 @@ public abstract class AbstractFileRoundTrippingTestCase extends
     @Override
     protected OWLOntology createOntology() {
         OWLOntology o = ontologyFromClasspathFile(fileName);
-        if (logger.isTraceEnabled()) {
-            logger.trace("ontology as parsed from input file:");
-            o.axioms().forEach(ax -> logger.trace(ax.toString()));
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("ontology as parsed from input file:");
+            o.axioms().forEach(ax -> LOGGER.trace(ax.toString()));
         }
         return o;
     }

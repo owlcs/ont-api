@@ -44,6 +44,8 @@ import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
 import org.semanticweb.owlapi.rdf.turtle.parser.TurtleOntologyParserFactory;
 import org.semanticweb.owlapi.rdf.turtle.renderer.TurtleStorerFactory;
 
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
@@ -70,17 +72,23 @@ public class ParsersStorersTestCase extends TestBase {
 
     public void test(OWLStorerFactory s, OWLParserFactory p, OWLDocumentFormat ontologyFormat, boolean expectParse,
                      boolean expectRoundtrip) throws Exception {
+        LOGGER.info("Test object: " + object);
         StringDocumentTarget target = new StringDocumentTarget();
-        s.createStorer().storeOntology(ont(), target, ontologyFormat);
+        OWLOntology data = ont();
+        LOGGER.debug("Test Data:");
+        ReadWriteUtils.print(data);
+
+        s.createStorer().storeOntology(data, target, ontologyFormat);
         OWLOntology o = getAnonymousOWLOntology();
+
         try {
             p.createParser().parse(new StringDocumentSource(target), o, new OWLOntologyLoaderConfiguration());
         } catch (OWLParserException e) {
             if (expectParse) {
-                System.out.println("ParsersStorersTestCase.test() " + target);
+                LOGGER.debug("ParsersStorersTestCase.test() " + target);
                 throw e;
             } else {
-                System.out.println("parse fail: " + ontologyFormat.getKey() + " " + object);
+                LOGGER.debug("parse fail: " + ontologyFormat.getKey() + " " + object);
                 return;
             }
         }
@@ -99,16 +107,16 @@ public class ParsersStorersTestCase extends TestBase {
                     }
                 }
                 if (!condition) {
-                    System.out.println(target.toString());
-                    System.out.println(ontologyFormat + " " + axiom);
+                    LOGGER.debug(target.toString());
+                    LOGGER.debug(ontologyFormat + " " + axiom);
                     for (OWLAxiom ax : asUnorderedSet(o.axioms())) {
                         String a = ax.toString().replaceAll("_:genid[0-9]+", "");
-                        System.out.println(ontologyFormat + " parsed " + a);
+                        LOGGER.debug(ontologyFormat + " parsed " + a);
                     }
                 }
                 assertTrue(object.toString() + "\t" + o, condition);
             } else {
-                System.out.println("roundtrip fail: " + ontologyFormat.getKey() + " " + object);
+                LOGGER.debug("roundtrip fail: " + ontologyFormat.getKey() + " " + object);
             }
         }
     }
