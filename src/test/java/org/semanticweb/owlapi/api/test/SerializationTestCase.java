@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hamcrest.core.IsEqual;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
@@ -27,71 +28,58 @@ import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
-import static org.junit.Assert.assertTrue;
+import static java.util.stream.Collectors.toSet;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
+/**
+ * TODO:
+ *
+ * @szuev: modified for ONT-API
+ */
 @SuppressWarnings({"javadoc"})
 public class SerializationTestCase extends TestBase {
 
-    private final
     @Nonnull
-    OWL2Datatype owl2datatype = OWL2Datatype.XSD_INT;
-    private final
+    private final OWL2Datatype owl2datatype = OWL2Datatype.XSD_INT;
     @Nonnull
-    OWLDataProperty dp = df.getOWLDataProperty("urn:test#", "dp");
-    private final
+    private final OWLDataProperty dp = df.getOWLDataProperty("urn:test#", "dp");
     @Nonnull
-    OWLObjectProperty op = df.getOWLObjectProperty("urn:test#", "op");
-    private final
+    private final OWLObjectProperty op = df.getOWLObjectProperty("urn:test#", "op");
     @Nonnull
-    IRI iri = IRI.create("urn:test#", "iri");
-    private final
+    private final IRI iri = IRI.create("urn:test#", "iri");
     @Nonnull
-    OWLLiteral owlliteral = df.getOWLLiteral(true);
-    private final
+    private final OWLLiteral owlliteral = df.getOWLLiteral(true);
     @Nonnull
-    OWLAnnotationSubject as = IRI.create("urn:test#", "i");
-    private final
+    private final OWLAnnotationSubject as = IRI.create("urn:test#", "i");
     @Nonnull
-    OWLDatatype owldatatype = df.getOWLDatatype(owl2datatype);
-    private final
+    private final OWLDatatype owldatatype = df.getOWLDatatype(owl2datatype);
     @Nonnull
-    OWLDataRange dr = df.getOWLDatatypeRestriction(owldatatype);
-    private final
+    private final OWLDataRange dr = df.getOWLDatatypeRestriction(owldatatype);
     @Nonnull
-    OWLAnnotationProperty ap = df.getOWLAnnotationProperty("urn:test#", "ap");
-    private final
+    private final OWLAnnotationProperty ap = df.getOWLAnnotationProperty("urn:test#", "ap");
     @Nonnull
-    OWLFacet owlfacet = OWLFacet.MIN_EXCLUSIVE;
-    private final
+    private final OWLFacet owlfacet = OWLFacet.MIN_EXCLUSIVE;
     @Nonnull
-    String string = "testString";
-    private final
+    private final String string = "testString";
     @Nonnull
-    OWLClassExpression c = df.getOWLClass("urn:test#", "classexpression");
-    private final
+    private final OWLClassExpression c = df.getOWLClass("urn:test#", "classexpression");
     @Nonnull
-    PrefixManager prefixmanager = new DefaultPrefixManager();
-    private final
+    private final PrefixManager prefixmanager = new DefaultPrefixManager();
     @Nonnull
-    OWLIndividual ai = df.getOWLAnonymousIndividual();
-    private final
+    private final OWLIndividual ai = df.getOWLAnonymousIndividual();
     @Nonnull
-    OWLAnnotationValue owlannotationvalue = owlliteral;
-    private final
+    private final OWLAnnotationValue owlannotationvalue = owlliteral;
     @Nonnull
-    Set<OWLObjectPropertyExpression> setop = new HashSet<>();
-    private final
+    private final Set<OWLObjectPropertyExpression> setop = new HashSet<>();
     @Nonnull
-    Set<OWLDataPropertyExpression> setdp = new HashSet<>();
-    private final
+    private final Set<OWLDataPropertyExpression> setdp = new HashSet<>();
     @Nonnull
-    List<OWLObjectPropertyExpression> listowlobjectproperties = new ArrayList<>();
-    private final
+    private final List<OWLObjectPropertyExpression> listowlobjectproperties = new ArrayList<>();
     @Nonnull
-    Set<OWLIndividual> setowlindividual = new HashSet<>();
-    private final
+    private final Set<OWLIndividual> setowlindividual = new HashSet<>();
     @Nonnull
-    Set<OWLPropertyExpression> setowlpropertyexpression = new HashSet<>();
+    private final Set<OWLPropertyExpression> setowlpropertyexpression = new HashSet<>();
 
     @SuppressWarnings("null")
     @Test
@@ -149,8 +137,7 @@ public class SerializationTestCase extends TestBase {
         o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDataUnionOf(dr)));
         o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDataIntersectionOf(dr)));
         o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDatatypeRestriction(owldatatype, owlfacet, owlliteral)));
-        o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDatatypeRestriction(owldatatype, df.getOWLFacetRestriction(
-                owlfacet, 1))));
+        o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDatatypeRestriction(owldatatype, df.getOWLFacetRestriction(owlfacet, 1))));
         o.add(sub(c, df.getOWLObjectIntersectionOf(c, df.getOWLClass(string, prefixmanager))));
         o.add(sub(c, df.getOWLDataSomeValuesFrom(dp, dr)));
         o.add(sub(c, df.getOWLDataAllValuesFrom(dp, dr)));
@@ -162,18 +149,32 @@ public class SerializationTestCase extends TestBase {
         o.add(sub(c, df.getOWLObjectHasValue(op, ai)));
         o.add(sub(c, df.getOWLObjectUnionOf(df.getOWLClass(iri))));
         o.add(df.getOWLAnnotationAssertionAxiom(iri, df.getOWLAnnotation(ap, owlannotationvalue)));
-        o.add(df.getOWLAnnotationAssertionAxiom(df.getOWLNamedIndividual(iri).getIRI(), df.getOWLAnnotation(ap,
-                owlannotationvalue)));
+        o.add(df.getOWLAnnotationAssertionAxiom(df.getOWLNamedIndividual(iri).getIRI(), df.getOWLAnnotation(ap, owlannotationvalue)));
+
+        LOGGER.info("Total axioms(pizza) count: " + o.getAxiomCount());
+        LOGGER.info("Total ontologies count: " + m.ontologies().count());
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ObjectOutputStream stream = new ObjectOutputStream(out);
         stream.writeObject(m);
         stream.flush();
-        // System.out.println(out.toString());
+
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         ObjectInputStream inStream = new ObjectInputStream(in);
         OWLOntologyManager copy = (OWLOntologyManager) inStream.readObject();
-        copy.ontologies().forEach(ont -> assertTrue("Troubles with ontology " + ont.getOntologyID(), m.getOntology(get(
-                ont.getOntologyID().getOntologyIRI())).equalAxioms(ont)));
+        copy.ontologies().forEach(ont -> {
+            OWLOntologyID id = ont.getOntologyID();
+            LOGGER.debug("Test " + id);
+            OWLOntology init = m.getOntology(id);
+            assertNotNull("Can't find init ontology with id " + id, init);
+            AxiomType.AXIOM_TYPES.forEach(t -> {
+                Set<OWLAxiom> expected = init.axioms(t).collect(toSet());
+                Set<OWLAxiom> actual = ont.axioms(t).collect(toSet());
+                assertThat("Incorrect axioms for type <" + t + "> (expected=" + expected.size() + ", actual=" + actual.size() + ")",
+                        actual, IsEqual.equalTo(expected));
+            });
+            //assertTrue("Troubles with ontology " + id, init.equalAxioms(ont));
+        });
     }
 
     protected OWLAxiom sub(OWLClassExpression cl, OWLClassExpression d) {

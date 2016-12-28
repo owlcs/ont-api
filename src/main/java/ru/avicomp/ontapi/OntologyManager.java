@@ -2,6 +2,7 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.Serializable;
 
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.IRI;
@@ -56,7 +57,7 @@ public interface OntologyManager extends OWLOntologyManager {
         return createOntology(new OWLOntologyID(optional(iri), emptyOptional(IRI.class)));
     }
 
-    interface GraphFactory {
+    interface GraphFactory extends Serializable {
         Graph create();
     }
 }

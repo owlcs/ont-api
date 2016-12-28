@@ -57,7 +57,7 @@ public enum OntFormat {
         this.disabled = disabled;
     }
 
-    public String getType() {
+    public String getID() {
         return id;
     }
 

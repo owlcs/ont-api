@@ -22,7 +22,8 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
  * Created by @szuev on 27.09.2016.
  */
 public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel {
-    private RDFChangeProcessor changer;
+
+    private transient RDFChangeProcessor changer;
 
     /**
      * @param manager ontology manager

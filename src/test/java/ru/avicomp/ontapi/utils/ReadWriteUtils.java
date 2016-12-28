@@ -60,7 +60,7 @@ public class ReadWriteUtils {
 
     public static StringWriter toStringWriter(Model model, OntFormat ext) {
         StringWriter sw = new StringWriter();
-        model.write(sw, (ext == null ? OntFormat.TTL_RDF : ext).getType(), null);
+        model.write(sw, (ext == null ? OntFormat.TTL_RDF : ext).getID(), null);
         return sw;
     }
 
@@ -77,7 +77,7 @@ public class ReadWriteUtils {
     }
 
     public static Model load(URI file, OntFormat f) {
-        String format = f == null ? "ttl" : f.getType();
+        String format = f == null ? "ttl" : f.getID();
         Model m = ModelFactory.createDefaultModel();
         LOGGER.debug("Load model from " + file);
         try (InputStream in = file.toURL().openStream()) {
@@ -140,9 +140,9 @@ public class ReadWriteUtils {
 
     public static void save(Model model, String name, OntFormat type) {
         File dst = getFileToSave(name, type);
-        LOGGER.debug("Save model to " + dst.toURI() + " (" + type.getType() + ")");
+        LOGGER.debug("Save model to " + dst.toURI() + " (" + type.getID() + ")");
         try (FileWriter out = new FileWriter(dst)) {
-            model.write(out, type.getType());
+            model.write(out, type.getID());
         } catch (IOException e) {
             LOGGER.fatal("Unable to save model " + name, e);
         }
@@ -150,7 +150,7 @@ public class ReadWriteUtils {
 
     public static void save(OWLOntology ontology, String name, OntFormat type) {
         File dst = getFileToSave(name, type);
-        LOGGER.debug("Save owl-ontology to " + dst.toURI() + " (" + (type == null ? "TURTLE" : type.getType()) + ")");
+        LOGGER.debug("Save owl-ontology to " + dst.toURI() + " (" + (type == null ? "TURTLE" : type.getID()) + ")");
         OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
         try (FileOutputStream out = new FileOutputStream(dst)) {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);

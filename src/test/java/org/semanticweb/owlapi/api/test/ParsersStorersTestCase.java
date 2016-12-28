@@ -49,6 +49,9 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
+/**
+ * @szuev: modified for ONT-API
+ */
 @SuppressWarnings({"javadoc"})
 @RunWith(Parameterized.class)
 public class ParsersStorersTestCase extends TestBase {

@@ -12,6 +12,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
+import org.apache.jena.util.iterator.ExtendedIterator;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
@@ -113,11 +114,11 @@ public class Models {
         return init;
     }
 
-    public static <T> Stream<T> asStream(Iterator<T> iterator) {
+    public static <T> Stream<T> asStream(ExtendedIterator<T> iterator) {
         return asStream(iterator, true, false);
     }
 
-    public static <T> Stream<T> asStream(Iterator<T> iterator, boolean distinct, boolean parallel) {
+    static <T> Stream<T> asStream(Iterator<T> iterator, boolean distinct, boolean parallel) {
         Iterable<T> iterable = () -> iterator;
         Stream<T> res = StreamSupport.stream(iterable.spliterator(), parallel);
         return distinct ? res.distinct() : res;

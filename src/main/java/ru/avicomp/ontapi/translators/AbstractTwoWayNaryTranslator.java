@@ -32,7 +32,10 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
         long count = axiom.operands().count();
-        if (count < 2) throw new OntApiException("Should be at least two entities " + axiom);
+        if (count == 0 && axiom.annotations().count() == 0) return;
+        if (count < 2) {
+            throw new OntApiException("Should be at least two entities " + axiom);
+        }
         if (count == 2) { // single triple classic way
             OWLObject entity = axiom.operands().filter(e -> !e.isAnonymous()).findFirst().orElse(null);
             if (entity == null)

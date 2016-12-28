@@ -26,6 +26,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.Timeout;
 import org.semanticweb.owlapi.api.test.anonymous.AnonymousIndividualsNormaliser;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFJsonLDDocumentFormat;
@@ -42,6 +43,8 @@ import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyManagerImpl;
 import ru.avicomp.ontapi.OntologyModelImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 import static org.junit.Assert.*;
@@ -52,9 +55,12 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health
  *         Informatics Group
  * @since 2.2.0
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings({"javadoc", "null"})
 public abstract class TestBase {
+
+    private static final boolean DEBUG_USE_OWL = Boolean.parseBoolean(System.getProperty("debug.use.owl", Boolean.FALSE.toString()));
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(TestBase.class);
     @Nonnull
@@ -66,7 +72,7 @@ public abstract class TestBase {
     @Nonnull
     protected static final File RESOURCES = resources();
     @Nonnull
-    protected final OWLOntologyBuilder builder = (om, id) -> new OntologyModelImpl((OntologyManager) om, id);
+    protected final OWLOntologyBuilder builder = DEBUG_USE_OWL ? (OWLOntologyBuilder) OWLOntologyImpl::new : (m, id) -> new OntologyModelImpl((OntologyManager) m, id);
     @Nonnull
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -92,12 +98,14 @@ public abstract class TestBase {
 
     @BeforeClass
     public static void setupManagers() {
-        masterManager = OntManagerFactory.createONTManager();
+        masterManager = DEBUG_USE_OWL ? OWLManager.createOWLOntologyManager() : OntManagerFactory.createONTManager();
         df = masterManager.getOWLDataFactory();
     }
 
     protected static OWLOntologyManager setupManager() {
-        OWLOntologyManager manager = new OntologyManagerImpl(df, new NoOpReadWriteLock());
+        OWLOntologyManager manager = DEBUG_USE_OWL ?
+                new OWLOntologyManagerImpl(df, new NoOpReadWriteLock()) :
+                new OntologyManagerImpl(df, new NoOpReadWriteLock());
         manager.getOntologyFactories().set(masterManager.getOntologyFactories());
         manager.getOntologyParsers().set(masterManager.getOntologyParsers());
         manager.getOntologyStorers().set(masterManager.getOntologyStorers());

@@ -1,5 +1,9 @@
 package ru.avicomp.ontapi;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -22,19 +26,22 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
  * New strategy here. Buffer RDF-OWL model.
- * This is {@link OntGraphModel} with methods to work with the axioms. It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways.
- * Is used to load and write from {@link ru.avicomp.ontapi.OntologyModel}.
+ * This is {@link OntGraphModel} but with methods to work with the axioms and entities.
+ * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
+ * it is used to read and write structural info by {@link ru.avicomp.ontapi.OntologyModel}.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
-public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel {
+public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel, Serializable {
 
     private final OWLOntologyID anonOntologyID = new OWLOntologyID();
 
+    private static final String DEFAULT_SERIALIZATION_FORMAT = OntFormat.TTL_RDF.getID();
+
     // axioms store
-    private final Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomsCache = new HashMap<>();
+    private transient Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomsCache = new HashMap<>();
     // "cache" to improve performance:
-    private final Map<Class<?>, Set<?>> objectsCache = new HashMap<>();
+    private transient Map<Class<?>, Set<?>> objectsCache = new HashMap<>();
 
     public OntInternalModel(Graph base) {
         super(base);
@@ -164,8 +171,15 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         if (o instanceof HasAnnotations) {
             return parseAnnotations(view, (HasAnnotations) o);
         }
+        Stream<?> stream = null;
         if (o instanceof Stream) {
-            return ((Stream<?>) o).map(_o -> toStream(view, _o)).flatMap(Function.identity());
+            stream = ((Stream<?>) o);
+        }
+        if (o instanceof Collection) {
+            stream = ((Collection<?>) o).stream();
+        }
+        if (stream != null) {
+            return stream.map(_o -> toStream(view, _o)).flatMap(Function.identity());
         }
         return Stream.empty();
     }
@@ -359,9 +373,25 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         objectsCache.clear();
     }
 
+    public void resetCache() {
+        objectsCache = new HashMap<>();
+        axiomsCache = new HashMap<>();
+    }
+
     public void clearCache(Triple triple) {
         getAxiomTypes(triple).forEach(axiomsCache::remove);
         objectsCache.clear();
+    }
+
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        read(stream, null, DEFAULT_SERIALIZATION_FORMAT);
+        resetCache();
+    }
+
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+        write(stream, DEFAULT_SERIALIZATION_FORMAT, null);
     }
 
     public class TripleStore<O extends OWLObject> {

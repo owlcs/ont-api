@@ -26,7 +26,7 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 /**
  * Ontology Manager implementation.
- *
+ * <p>
  * Created by @szuev on 03.10.2016.
  */
 public class OntologyManagerImpl extends OWLOntologyManagerImpl implements OntologyManager {
@@ -133,8 +133,9 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
         }
         Model model = ((OntologyModel) ontology).asGraphModel().getBaseModel();
         Map<String, String> newPrefixes = new HashMap<>(PrefixManager.class.isInstance(documentFormat) ? ((PrefixManager) documentFormat).getPrefixName2PrefixMap() : Collections.emptyMap());
-        if (ontology.getOntologyID().getOntologyIRI().isPresent())
-            newPrefixes.put("", ontology.getOntologyID().getOntologyIRI().get().getIRIString() + "#");
+        String uri = ontology.getOntologyID().getOntologyIRI().isPresent() ? ontology.getOntologyID().getOntologyIRI().get().getIRIString() : null;
+        if (uri != null)
+            newPrefixes.put("", uri + "#");
         Map<String, String> initPrefixes = model.getNsPrefixMap();
         try {
             Models.setNsPrefixes(model, newPrefixes);
