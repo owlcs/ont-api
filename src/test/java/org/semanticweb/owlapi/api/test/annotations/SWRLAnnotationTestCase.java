@@ -13,9 +13,12 @@
 package org.semanticweb.owlapi.api.test.annotations;
 
 import javax.annotation.Nonnull;
+import java.io.StringReader;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
@@ -24,16 +27,23 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntFormat;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
 
+/**
+ * TODO:
+ *
+ * @szuev: modified for ONT-API
+ */
 @SuppressWarnings({"javadoc", "null"})
 public class SWRLAnnotationTestCase extends TestBase {
 
-    private static final
     @Nonnull
-    String NS = "http://protege.org/ontologies/SWRLAnnotation.owl";
+    private static final String NS = "http://protege.org/ontologies/SWRLAnnotation.owl";
     private static final String HEAD = "<?xml version=\"1.0\"?>\n"
             + "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:protege=\"http://protege.stanford.edu/plugins/owl/protege#\" xmlns=\"urn:test#\" xmlns:xsp=\"http://www.owl-ontologies.com/2005/08/07/xsp.owl#\"\n"
             + "    xmlns:owl=\"http://www.w3.org/2002/07/owl#\" xmlns:sqwrl=\"http://sqwrl.stanford.edu/ontologies/built-ins/3.4/sqwrl.owl#\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\" xmlns:swrl=\"http://www.w3.org/2003/11/swrl#\"\n"
@@ -53,15 +63,11 @@ public class SWRLAnnotationTestCase extends TestBase {
             + "    <swrla:isRuleEnabled rdf:datatype=\"http://www.w3.org/2001/XMLSchema#boolean\">true</swrla:isRuleEnabled>\n"
             + "    <rdfs:comment rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">:i62, :i61</rdfs:comment></swrl:Imp>\n"
             + "</rdf:RDF>";
-    protected
     @Nonnull
-    OWLClass a = Class(IRI(NS + "#", "A"));
-    protected
+    protected OWLClass a = Class(IRI(NS + "#", "A"));
     @Nonnull
-    OWLClass b = Class(IRI(NS + "#", "B"));
-    protected
-    @Nonnull
-    OWLAxiom axiom;
+    protected OWLClass b = Class(IRI(NS + "#", "B"));
+    protected OWLAxiom axiom;
 
     @Before
     public void setUpAtoms() {
@@ -105,8 +111,16 @@ public class SWRLAnnotationTestCase extends TestBase {
     @Test
     public void replicateSuccess() throws Exception {
         String input = HEAD + TAIL;
+        Model m = ModelFactory.createDefaultModel();
+        m.read(new StringReader(input), OntFormat.XML_RDF.getID());
+        LOGGER.debug("Initial model: ");
+        ReadWriteUtils.print(m);
+
         OWLOntology ontology = loadOntologyFromString(new StringDocumentSource(input, "test",
                 new RDFXMLDocumentFormat(), null));
+        LOGGER.debug("Result model: "); // there is converting
+        ReadWriteUtils.print(ontology);
+
         assertTrue(ontology.axioms(AxiomType.SWRL_RULE).anyMatch(ax -> ax.toString().contains(
                 "DLSafeRule(Annotation(<http://swrl.stanford.edu/ontologies/3.3/swrla.owl#isRuleEnabled> \"true\"^^xsd:boolean) Annotation(rdfs:comment \":i62, :i61\"^^xsd:string)  Body() Head(ObjectPropertyAtom(<#drives> <#i61> <#i62>)) )")));
     }

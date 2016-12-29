@@ -384,13 +384,13 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        stream.defaultReadObject();
+        stream.defaultReadObject(); // todo: handle situation when there are imported sub-graphs
         read(stream, null, DEFAULT_SERIALIZATION_FORMAT);
         resetCache();
     }
 
     private void writeObject(ObjectOutputStream stream) throws IOException {
-        stream.defaultWriteObject();
+        stream.defaultWriteObject(); // todo: handle situation when there are imported sub-graphs
         write(stream, DEFAULT_SERIALIZATION_FORMAT, null);
     }
 

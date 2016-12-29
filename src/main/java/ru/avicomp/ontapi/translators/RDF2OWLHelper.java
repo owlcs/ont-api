@@ -376,12 +376,12 @@ public class RDF2OWLHelper {
         }
         if (OntSWRL.Atom.DifferentIndividuals.class.isInstance(atom)) {
             OntSWRL.Atom.DifferentIndividuals a = (OntSWRL.Atom.DifferentIndividuals) atom;
-            OWLObjectProperty property = getObjectProperty(a.getPredicate().as(OntNOP.class)).getNamedProperty();
+            OWLObjectProperty property = new OWLObjectPropertyImpl(IRI.create(OWL.differentFrom.getURI())); // it is not true object property.
             return new SWRLDifferentIndividualsAtomImpl(property, getSWRLIndividualArg(a.getFirstArg()), getSWRLIndividualArg(a.getSecondArg()));
         }
         if (OntSWRL.Atom.SameIndividuals.class.isInstance(atom)) {
             OntSWRL.Atom.SameIndividuals a = (OntSWRL.Atom.SameIndividuals) atom;
-            OWLObjectProperty property = getObjectProperty(a.getPredicate().as(OntNOP.class)).getNamedProperty();
+            OWLObjectProperty property = new OWLObjectPropertyImpl(IRI.create(OWL.sameAs.getURI())); // it is not true object property.
             return new SWRLSameIndividualAtomImpl(property, getSWRLIndividualArg(a.getFirstArg()), getSWRLIndividualArg(a.getSecondArg()));
         }
         throw new OntApiException("Unsupported SWRL atom " + atom);

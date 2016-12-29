@@ -491,7 +491,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             List<Node> nodes = g.asGraph().find(n, OWL_ON_PROPERTY, Node.ANY).mapWith(Triple::getObject).filterKeep(new UniqueFilter<>()).toList();
             if (nodes.size() != 1) return false;
             Node node = nodes.get(0);
-            return RestrictionType.DATA.equals(type) ? OntEntityImpl.dataPropertyFactory.canWrap(node, g) : !RestrictionType.OBJECT.equals(type) || OntEntityImpl.objectPropertyFactory.canWrap(node, g);
+            return RestrictionType.DATA.equals(type) ?
+                    OntEntityImpl.dataPropertyFactory.canWrap(node, g) :
+                    !RestrictionType.OBJECT.equals(type) || OntPEImpl.abstractOPEFactory.canWrap(node, g);
         }
     }
 

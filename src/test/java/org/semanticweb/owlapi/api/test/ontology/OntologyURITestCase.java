@@ -16,6 +16,8 @@ import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntApiException;
+
 import static org.junit.Assert.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
@@ -26,6 +28,7 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
  * @author Matthew Horridge, The University Of Manchester, Information
  *         Management Group
  * @since 2.2.0
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings("javadoc")
 public class OntologyURITestCase extends TestBase {
@@ -66,10 +69,15 @@ public class OntologyURITestCase extends TestBase {
     }
 
     @Test(expected = OWLOntologyAlreadyExistsException.class)
-    public void testDuplicateOntologyURI() throws OWLOntologyCreationException {
+    public void testDuplicateOntologyURI() throws Throwable {
         IRI uri = IRI.getNextDocumentIRI("http://www.another.com/ont");
         getOWLOntology(uri);
-        getOWLOntology(uri);
+        try {
+            getOWLOntology(uri);
+        } catch (OntApiException e) {
+            LOGGER.debug("Exception " + e);
+            throw e.getCause();
+        }
     }
 
     @Test

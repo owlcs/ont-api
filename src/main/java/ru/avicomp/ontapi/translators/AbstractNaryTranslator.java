@@ -32,17 +32,22 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  */
 abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>, OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AxiomTranslator<Axiom> {
 
-    private void write(OWLNaryAxiom<OWL> thisAxiom, Stream<OWLAnnotation> annotations, OntGraphModel model) {
-        OWLObject first = thisAxiom.operands().filter(e -> !e.isAnonymous()).findFirst().
-                orElseThrow(() -> new OntApiException("Can't find a single non-anonymous expression inside " + thisAxiom));
-        OWLObject rest = thisAxiom.operands().filter((obj) -> !first.equals(obj)).findFirst().
-                orElseThrow(() -> new OntApiException("Should be at least two expressions inside " + thisAxiom));
-        OWL2RDFHelper.writeTriple(model, first, getPredicate(), rest, annotations, true);
+    private final Comparator<OWL> uriFirstComparator = (a, b) -> a.isAnonymous() == b.isAnonymous() ? 0 : a.isAnonymous() ? -1 : 1;
+
+    private void write(OWLNaryAxiom<OWL> thisAxiom, Set<OWLAnnotation> annotations, OntGraphModel model) {
+        List<OWL> operands = thisAxiom.operands().sorted(uriFirstComparator).distinct().collect(Collectors.toList());
+        if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip
+            return;
+        }
+        if (operands.size() != 2) {
+            throw new OntApiException("Should be two operands inside " + thisAxiom);
+        }
+        OWL2RDFHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations.stream(), true);
     }
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        axiom.asPairwiseAxioms().forEach(a -> write(a, axiom.annotations(), model));
+        axiom.asPairwiseAxioms().forEach(a -> write(a, axiom.annotations().collect(Collectors.toSet()), model));
     }
 
     @Override

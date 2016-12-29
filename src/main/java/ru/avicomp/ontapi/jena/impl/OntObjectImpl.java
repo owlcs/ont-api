@@ -127,6 +127,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return Models.asStream(listProperties()).map(s -> getModel().toOntStatement(main, s));
     }
 
+    @Override
+    public Literal asLiteral() {
+        return as(Literal.class);
+    }
+
     /**
      * gets rdf:List content as Stream of RDFNode's.
      * if object is not rdf:List empty stream expected.

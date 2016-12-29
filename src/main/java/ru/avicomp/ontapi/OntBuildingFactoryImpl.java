@@ -62,7 +62,6 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         try {
             Lang lang = loadGraph(graph, m, source);
             format = OntApiException.notNull(OntFormat.get(lang), "Can't determine language.");
-            graph = GraphConverter.convert(graph);
         } catch (OntApiException e) { // maybe it is not jena format
             LOGGER.warn("Can't load from " + source + " ::: " + e);
             return (OntologyModel) super.loadOWLOntology(manager, source, handler, configuration);
@@ -78,7 +77,9 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
                 .mapWith(OntologyModel::asGraphModel)
                 .mapWith(OntGraphModel::getGraph)
                 .forEachRemaining(union::addGraph);
-        OntInternalModel base = new OntInternalModel(union);
+
+        OntInternalModel base = new OntInternalModel(GraphConverter.convert(union));
+
         OntologyModelImpl ont = new OntologyModelImpl(m, base);
         OntologyModel res = m.isConcurrent() ? ont.toConcurrentModel() : ont;
         m.ontologyCreated(res);

@@ -65,9 +65,7 @@ public abstract class TestBase {
     protected static final Logger LOGGER = LoggerFactory.getLogger(TestBase.class);
     @Nonnull
     protected static final String uriBase = "http://www.semanticweb.org/owlapi/test";
-    @Nonnull
     protected static OWLDataFactory df;
-    @Nonnull
     protected static OWLOntologyManager masterManager;
     @Nonnull
     protected static final File RESOURCES = resources();
@@ -83,9 +81,7 @@ public abstract class TestBase {
     public Timeout timeout = new Timeout(1000000, TimeUnit.MILLISECONDS);
     @Nonnull
     protected OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
-    @Nonnull
     protected OWLOntologyManager m;
-    @Nonnull
     protected OWLOntologyManager m1;
 
     private static File resources() {

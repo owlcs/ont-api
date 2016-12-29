@@ -33,6 +33,7 @@ public abstract class GraphConverter {
             .add(RDFStoOWL::new)
             .add(OWLtoOWL2DL::new)
             .add(ObjectReferenceFixer::new)
+            .add(OwlClassFixer::new)
             .add(NamedIndividualFixer::new)
             .add(PropertyTypeFixer::new);
 
@@ -69,6 +70,8 @@ public abstract class GraphConverter {
      */
     public static abstract class TransformAction {
         static final Node RDF_TYPE = RDF.type.asNode();
+        static final Set<Node> BUILT_IN = BuiltIn.ALL.stream().map(FrontsNode::asNode).collect(Collectors.toSet());
+
         protected Graph graph;
 
         protected TransformAction(Graph graph) {
@@ -164,7 +167,6 @@ public abstract class GraphConverter {
      */
     private static class RDFStoOWL extends TransformAction {
         private static final Set<Node> DATATYPES = BuiltIn.DATATYPES.stream().map(FrontsNode::asNode).collect(Collectors.toSet());
-        private static final Set<Node> BUILT_IN = BuiltIn.ALL.stream().map(FrontsNode::asNode).collect(Collectors.toSet());
         private static final Set<Node> NOT_INDIVIDUAL_TYPES = Stream.of(RDFS.Class, OWL.Class,
                 RDFS.Datatype, OWL.DataRange,
                 RDF.Property, OWL.DatatypeProperty, OWL.AnnotationProperty, OWL.ObjectProperty,
@@ -393,6 +395,26 @@ public abstract class GraphConverter {
         }
     }
 
+    /**
+     * any uri-resources from right part should be declared as owl:Class if there is no other declarations.
+     */
+    private static class OwlClassFixer extends TransformAction {
+
+        protected OwlClassFixer(Graph graph) {
+            super(graph);
+        }
+
+        @Override
+        public void perform() {
+            Set<Node> nodes = getBaseGraph().find(Node.ANY, RDF_TYPE, Node.ANY)
+                    .mapWith(Triple::getObject)
+                    .filterKeep(Node::isURI)
+                    .filterDrop(BUILT_IN::contains)
+                    .filterDrop(node -> getGraph().contains(node, Node.ANY, Node.ANY))
+                    .toSet();
+            nodes.forEach(node -> addType(node, OWL.Class));
+        }
+    }
     /**
      * To fix missed owl:NamedIndividual declaration
      */
