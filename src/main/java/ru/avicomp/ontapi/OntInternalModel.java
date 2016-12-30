@@ -317,6 +317,8 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         try {
             getGraph().getEventManager().register(listener);
             AxiomParserProvider.get(axiom.getAxiomType()).write(axiom, this);
+        } catch (Exception e) {
+            throw new OntApiException(String.format("Axiom: %s, message: %s", axiom, e.getMessage()), e);
         } finally {
             getGraph().getEventManager().unregister(listener);
         }

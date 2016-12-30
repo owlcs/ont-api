@@ -32,6 +32,22 @@ public interface OntologyManager extends OWLOntologyManager {
 
     OntologyModel getOntology(@Nonnull OWLOntologyID id);
 
+    /**
+     * Creates an ontology.
+     * <p>
+     * Note: this method doesn't throw a checked exception {@link OWLOntologyCreationException} like OWL-API.
+     * Instead it there is an unchecked exception {@link OntApiException} which may wrap {@link OWLOntologyCreationException}.
+     * OWL-API and ONT-API work in different ways.
+     * So i see it is impossible to save the same places for exceptions.
+     * For example in OWL-API you could expect some kind of exception during saving ontology,
+     * but in ONT-API there would be another kind of exception during adding axiom.
+     * So there is no reasons to save the same behaviour with exceptions everywhere.
+     * The return type is also changed from {@link org.semanticweb.owlapi.model.OWLOntology} to our class {@link OntologyModel}.
+     *
+     * @param id {@link OWLOntologyID}
+     * @return ontology {@link OntologyModel}
+     * @throws OntApiException in case something wrong.
+     */
     OntologyModel createOntology(@Nonnull OWLOntologyID id);
 
     OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException;

@@ -23,6 +23,8 @@ import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParser;
 
+import ru.avicomp.ontapi.OntApiException;
+
 import static org.junit.Assert.assertEquals;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
@@ -34,13 +36,14 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
  * being imported.
  *
  * @author Peter Ansell p_ansell@yahoo.com
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings({"javadoc"})
 public class MultipleDistinctOntologyLoadsTestCase extends TestBase {
 
-    IRI jb = IRI("http://example.purl.org.au/domainontology/", "JB_000007");
-    IRI v1 = IRI("http://test.example.org/ontology/0139/", "version:1");
-    IRI v2 = IRI("http://test.example.org/ontology/0139/", "version:2");
+    private IRI jb = IRI("http://example.purl.org.au/domainontology/", "JB_000007");
+    private IRI v1 = IRI("http://test.example.org/ontology/0139/", "version:1");
+    private IRI v2 = IRI("http://test.example.org/ontology/0139/", "version:2");
 
     @Test(expected = OWLOntologyAlreadyExistsException.class)
     public void testMultipleVersionLoadChangeIRI() throws Exception {
@@ -52,7 +55,8 @@ public class MultipleDistinctOntologyLoadsTestCase extends TestBase {
         OWLOntologyID secondUniqueOWLOntologyID = new OWLOntologyID(optional(jb), optional(v2));
         try {
             m.createOntology(secondUniqueOWLOntologyID);
-        } catch (OWLOntologyAlreadyExistsException e) {
+        } catch (OntApiException ex) {
+            OWLOntologyAlreadyExistsException e = (OWLOntologyAlreadyExistsException) ex.getCause();
             assertEquals(new OWLOntologyID(optional(jb), optional(v2)), e.getOntologyID());
             throw e;
         }
@@ -73,7 +77,8 @@ public class MultipleDistinctOntologyLoadsTestCase extends TestBase {
         OWLOntologyID secondUniqueOWLOntologyID = new OWLOntologyID(optional(jb), optional(v1));
         try {
             m.createOntology(secondUniqueOWLOntologyID);
-        } catch (OWLOntologyAlreadyExistsException e) {
+        } catch (OntApiException ex) {
+            OWLOntologyAlreadyExistsException e = (OWLOntologyAlreadyExistsException) ex.getCause();
             assertEquals(expected, e.getOntologyID());
             throw e;
         }

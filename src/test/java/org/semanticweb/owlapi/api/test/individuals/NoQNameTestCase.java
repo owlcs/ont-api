@@ -22,14 +22,16 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
+import ru.avicomp.ontapi.OntApiException;
+
 import static org.junit.Assert.fail;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information
  *         Management Group
- * @since 3.0.0
  * @szuev: modified for ONT-API
+ * @since 3.0.0
  */
 @SuppressWarnings("javadoc")
 public class NoQNameTestCase extends AxiomsRoundTrippingBase {
@@ -47,21 +49,28 @@ public class NoQNameTestCase extends AxiomsRoundTrippingBase {
         });
     }
 
+    /**
+     * OWL-API throws a checked exception {@link org.semanticweb.owlapi.model.OWLOntologyStorageException}
+     * (caused by {@link org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException})
+     * while store ontology (during {@link org.semanticweb.owlapi.model.OWLOntologyManager#saveOntology}.
+     * <p>
+     * ONT-API throws an unchecked exception {@link OntApiException} (caused by {@link InvalidPropertyURIException}) while adding axioms (while {@link org.semanticweb.owlapi.model.OWLOntology#addAxioms}).
+     * So we can't make behaviour the same for ONT-API. And i'm not sure we really need it.
+     *
+     * @throws Exception
+     */
     @Override
     @Test
     public void testRDFXML() throws Exception {
         try {
             super.testRDFXML();
             fail("Expected an exception specifying that a QName could not be generated");
-        } catch (InvalidPropertyURIException e) { // ONT-API:
+        } catch (OntApiException e) {
             LOGGER.info("Exception " + e);
-        }
-        // old OWL-API way:
-        /*} catch (OWLOntologyStorageException e) {
-            if (!(e.getCause() instanceof IllegalElementNameException)) {
+            if (!(e.getCause() instanceof InvalidPropertyURIException)) {
                 throw e;
             }
-        }*/
+        }
     }
 
     @Override

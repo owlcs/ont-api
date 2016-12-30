@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -145,7 +146,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .mapWith(Statement::getObject)
                 .filterKeep(n -> n.canAs(RDFList.class))
                 .mapWith(n -> n.as(RDFList.class)))
-                .map(list -> list.asJavaList().stream())
+                .map(RDFList::asJavaList)
+                .map(Collection::stream)
                 .flatMap(Function.identity()).distinct();
     }
 

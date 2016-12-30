@@ -38,7 +38,8 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
             Resource root = model.createResource();
             model.add(root, RDF.type, getMembersType());
             model.add(root, getMembersPredicate(), OWL2RDFHelper.addRDFList(model, axiom.operands()));
-            OWL2RDFHelper.addAnnotations(root.as(OntDisjoint.class), axiom.annotations());
+            OntDisjoint<ONT> res = root.as(getDisjointView());
+            OWL2RDFHelper.addAnnotations(res, axiom.annotations());
         }
     }
 

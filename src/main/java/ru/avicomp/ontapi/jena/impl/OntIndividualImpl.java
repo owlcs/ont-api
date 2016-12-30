@@ -1,11 +1,16 @@
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.Set;
+import java.util.Collection;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.impl.RDFListImpl;
+import org.apache.jena.util.iterator.ExtendedIterator;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
@@ -75,23 +80,41 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         static class Finder implements OntFinder {
             @Override
             public Stream<Node> find(EnhGraph eg) {
-                return Models.asStream(eg.asGraph().find(Node.ANY, RDF_TYPE, Node.ANY).
-                        filterKeep(t -> t.getSubject().isBlank()).
-                        filterKeep(t -> isOntClass(t.getObject(), eg)).mapWith(Triple::getSubject));
+                Stream<Node> declarations = Models.asStream(getDeclarations(Node.ANY, eg).mapWith(Triple::getSubject).filterKeep(Node::isBlank));
+                Stream<Node> disjoint = disjointAnonIndividuals(eg);
+                return Stream.concat(declarations, disjoint).distinct();
             }
         }
 
         static class Filter implements OntFilter {
             @Override
             public boolean test(Node node, EnhGraph graph) {
-                if (!node.isBlank()) return false;
-                Set<Node> nodes = graph.asGraph().find(node, RDF_TYPE, Node.ANY).mapWith(Triple::getObject).filterKeep(n -> isOntClass(n, graph)).toSet();
-                return !nodes.isEmpty();
+                return node.isBlank() &&
+                        (!getDeclarations(node, graph).mapWith(Triple::getObject).toSet().isEmpty() || disjointAnonIndividuals(graph).anyMatch(node::equals));
             }
         }
 
         private static boolean isOntClass(Node node, EnhGraph eg) {
             return OntCEImpl.abstractCEFactory.canWrap(node, eg);
+        }
+
+        private static ExtendedIterator<Triple> getDeclarations(Node node, EnhGraph eg) {
+            return eg.asGraph().find(node, RDF_TYPE, Node.ANY).
+                    filterKeep(t -> isOntClass(t.getObject(), eg));
+        }
+
+        private static Stream<Node> disjointAnonIndividuals(EnhGraph eg) {
+            Stream<Node> roots = Models.asStream(eg.asGraph().find(Node.ANY, RDF.type.asNode(), OWL.AllDifferent.asNode()).mapWith(Triple::getSubject).filterKeep(Node::isBlank));
+            return roots.map(root -> Models.asStream(eg.asGraph().find(root, OWL.distinctMembers.asNode(), Node.ANY).mapWith(Triple::getObject)))
+                    .flatMap(Function.identity())
+                    .filter(node -> RDFListImpl.factory.canWrap(node, eg))
+                    .map(node -> RDFListImpl.factory.wrap(node, eg))
+                    .map(enhNode -> enhNode.as(RDFList.class))
+                    .map(RDFList::asJavaList)
+                    .map(Collection::stream)
+                    .flatMap(Function.identity())
+                    .map(FrontsNode::asNode)
+                    .filter(Node::isBlank);
         }
     }
 }

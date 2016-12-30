@@ -17,6 +17,8 @@ import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
+import ru.avicomp.ontapi.OntApiException;
+
 import static org.junit.Assert.*;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 
@@ -24,6 +26,7 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
  * @author Matthew Horridge, The University of Manchester, Information
  *         Management Group
  * @since 3.0.0
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings("javadoc")
 public class OWLOntologyManagerTestCase extends TestBase {
@@ -32,14 +35,11 @@ public class OWLOntologyManagerTestCase extends TestBase {
     public void testCreateAnonymousOntology() {
         OWLOntology ontology = getAnonymousOWLOntology();
         assertNotNull("ontology should not be null", ontology);
-        assertNotNull("ontology id should not be null", ontology
-                .getOntologyID());
-        assertFalse(ontology.getOntologyID().getDefaultDocumentIRI()
-                .isPresent());
+        assertNotNull("ontology id should not be null", ontology.getOntologyID());
+        assertFalse(ontology.getOntologyID().getDefaultDocumentIRI().isPresent());
         assertFalse(ontology.getOntologyID().getOntologyIRI().isPresent());
         assertFalse(ontology.getOntologyID().getVersionIRI().isPresent());
-        assertNotNull("iri should not be null", m.getOntologyDocumentIRI(
-                ontology));
+        assertNotNull("iri should not be null", m.getOntologyDocumentIRI(ontology));
     }
 
     @Test
@@ -126,29 +126,36 @@ public class OWLOntologyManagerTestCase extends TestBase {
 
     @Test(expected = OWLOntologyAlreadyExistsException.class)
     public void testCreateDuplicateOntologyWithIRI()
-            throws OWLOntologyCreationException {
+            throws Throwable {
         IRI ontologyIRI = IRI.getNextDocumentIRI(
                 "http://www.semanticweb.org/ontologies/ontology");
         getOWLOntology(ontologyIRI);
-        getOWLOntology(ontologyIRI);
+        try {
+            getOWLOntology(ontologyIRI);
+        } catch (OntApiException e) {
+            throw e.getCause();
+        }
     }
 
     @Test(expected = OWLOntologyAlreadyExistsException.class)
     public void testCreateDuplicateOntologyWithIRIAndVersionIRI()
-            throws OWLOntologyCreationException {
+            throws Throwable {
         IRI ontologyIRI = IRI.getNextDocumentIRI(
                 "http://www.semanticweb.org/ontologies/ontology");
         IRI versionIRI = IRI.getNextDocumentIRI(
                 "http://www.semanticweb.org/ontologies/ontology");
         getOWLOntology(new OWLOntologyID(optional(ontologyIRI), optional(
                 versionIRI)));
-        getOWLOntology(new OWLOntologyID(optional(ontologyIRI), optional(
-                versionIRI)));
+        try {
+            getOWLOntology(new OWLOntologyID(optional(ontologyIRI), optional(
+                    versionIRI)));
+        } catch (OntApiException e) {
+            throw e.getCause();
+        }
     }
 
     @Test(expected = OWLOntologyDocumentAlreadyExistsException.class)
-    public void testCreateDuplicatedDocumentIRI()
-            throws OWLOntologyCreationException {
+    public void testCreateDuplicatedDocumentIRI() throws Throwable {
         IRI ontologyIRI = IRI.getNextDocumentIRI(
                 "http://www.semanticweb.org/ontologies/ontology");
         IRI ontologyIRI2 = IRI.getNextDocumentIRI(
@@ -156,9 +163,11 @@ public class OWLOntologyManagerTestCase extends TestBase {
         IRI documentIRI = IRI.getNextDocumentIRI("file:documentIRI");
         m.getIRIMappers().add(new SimpleIRIMapper(ontologyIRI, documentIRI));
         m.getIRIMappers().add(new SimpleIRIMapper(ontologyIRI2, documentIRI));
-        getOWLOntology(new OWLOntologyID(optional(ontologyIRI), optional(
-                (IRI) null)));
-        getOWLOntology(new OWLOntologyID(optional(ontologyIRI2), optional(
-                (IRI) null)));
+        getOWLOntology(new OWLOntologyID(optional(ontologyIRI), optional(null)));
+        try {
+            getOWLOntology(new OWLOntologyID(optional(ontologyIRI2), optional(null)));
+        } catch (OntApiException e) {
+            throw e.getCause();
+        }
     }
 }

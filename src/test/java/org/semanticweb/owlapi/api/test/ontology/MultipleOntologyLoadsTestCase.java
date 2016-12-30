@@ -12,7 +12,6 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 package org.semanticweb.owlapi.api.test.ontology;
 
-import javax.annotation.Nonnull;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -25,6 +24,8 @@ import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParser;
 
+import ru.avicomp.ontapi.OntApiException;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
@@ -32,25 +33,18 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 
 /**
  * @author Peter Ansell p_ansell@yahoo.com
+ * @szuev: modified for ONT-API
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings("ALL")
 public class MultipleOntologyLoadsTestCase extends TestBase {
 
-    private final
-    @Nonnull
-    Optional<IRI> v2 = optional(
+    private final Optional<IRI> v2 = optional(
             IRI.getNextDocumentIRI("http://test.example.org/ontology/0139/version:2"));
-    private final
-    @Nonnull
-    Optional<IRI> v1 = optional(
+    private final Optional<IRI> v1 = optional(
             IRI.getNextDocumentIRI("http://test.example.org/ontology/0139/version:1"));
-    private final
-    @Nonnull
-    Optional<IRI> i139 = optional(
+    private final Optional<IRI> i139 = optional(
             IRI.getNextDocumentIRI("http://test.example.org/ontology/0139"));
-    private final
-    @Nonnull
-    String INPUT = "<?xml version=\"1.0\"?>\n" + "<rdf:RDF\n"
+    private final String INPUT = "<?xml version=\"1.0\"?>\n" + "<rdf:RDF\n"
             + "    xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
             + "    xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\"\n"
             + "    xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n"
@@ -61,7 +55,7 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
             + "</rdf:RDF>";
 
     @Test
-    public void testMultipleVersionLoadChangeIRI() throws Exception {
+    public void testMultipleVersionLoadChangeIRI() throws Throwable {
         OWLOntologyID initialUniqueOWLOntologyID = new OWLOntologyID(i139, v2);
         OWLOntology initialOntology = getOWLOntology(initialUniqueOWLOntologyID);
         OWLParser initialParser = new RDFXMLParser();
@@ -70,13 +64,15 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         try {
             getOWLOntology(secondUniqueOWLOntologyID);
             fail("Did not receive expected OWLOntologyDocumentAlreadyExistsException");
-        } catch (OWLOntologyAlreadyExistsException e) {
-            assertEquals(new OWLOntologyID(i139, v2), e.getOntologyID());
+        } catch (OntApiException ex) {
+            Throwable e = ex.getCause();
+            assertEquals(OWLOntologyAlreadyExistsException.class, e.getClass());
+            assertEquals(new OWLOntologyID(i139, v2), ((OWLOntologyAlreadyExistsException) e).getOntologyID());
         }
     }
 
     @Test
-    public void testMultipleVersionLoadNoChange() throws Exception {
+    public void testMultipleVersionLoadNoChange() throws Throwable {
         OWLOntologyID initialUniqueOWLOntologyID = new OWLOntologyID(i139, v1);
         OWLOntology initialOntology = getOWLOntology(initialUniqueOWLOntologyID);
         OWLParser parser = new RDFXMLParser();
@@ -85,8 +81,10 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         try {
             getOWLOntology(secondUniqueOWLOntologyID);
             fail("Did not receive expected OWLOntologyAlreadyExistsException");
-        } catch (OWLOntologyAlreadyExistsException e) {
-            assertEquals(new OWLOntologyID(i139, v1), e.getOntologyID());
+        } catch (OntApiException ex) {
+            Throwable e = ex.getCause();
+            assertEquals(OWLOntologyAlreadyExistsException.class, e.getClass());
+            assertEquals(new OWLOntologyID(i139, v1), ((OWLOntologyAlreadyExistsException) e).getOntologyID());
         }
     }
 
