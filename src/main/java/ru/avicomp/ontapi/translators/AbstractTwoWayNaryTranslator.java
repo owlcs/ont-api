@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
@@ -9,7 +10,6 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -33,11 +33,7 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
     public void write(Axiom axiom, OntGraphModel model) {
         long count = axiom.operands().count();
         if (count == 2) { // single triple classic way
-            OWLObject entity = axiom.operands().filter(e -> !e.isAnonymous()).findFirst().orElse(null);
-            if (entity == null)
-                throw new OntApiException("Can't find a single non-anonymous entity expression inside " + axiom);
-            OWLObject rest = axiom.operands().filter((obj) -> !entity.equals(obj)).findFirst().orElse(null);
-            OWL2RDFHelper.writeTriple(model, entity, getPredicate(), rest, axiom.annotations(), true);
+            write(axiom, axiom.annotations().collect(Collectors.toSet()), model);
         } else { // OWL2 anonymous node
             Resource root = model.createResource();
             model.add(root, RDF.type, getMembersType());

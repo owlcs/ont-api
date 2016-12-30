@@ -23,6 +23,8 @@ import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParser;
 
+import ru.avicomp.ontapi.OntApiException;
+
 import static org.junit.Assert.assertEquals;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
@@ -34,6 +36,7 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
  * that is being imported.
  *
  * @author Peter Ansell p_ansell@yahoo.com
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings({"javadoc"})
 public class MultipleOntologyLoadsTestCase extends TestBase {
@@ -43,7 +46,7 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
     private static final IRI CREATE0139 = IRI("http://test.example.org/ontology/0139", "");
 
     @Test(expected = OWLOntologyAlreadyExistsException.class)
-    public void testMultipleVersionLoadChangeIRI() throws Exception {
+    public void testMultipleVersionLoadChangeIRI() throws Throwable {
         // given
         OWLOntologyDocumentSource initialDocumentSource = getDocumentSource();
         OWLOntologyID expected = new OWLOntologyID(optional(CREATE0139), optional(CREATEV2));
@@ -54,15 +57,16 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         // when
         try {
             getOWLOntology(secondUniqueOWLOntologyID);
-        } catch (OWLOntologyAlreadyExistsException e) {
-            // then
-            assertEquals(expected, e.getOntologyID());
+        } catch (OntApiException ex) {
+            Throwable e = ex.getCause();
+            assertEquals("Incorrect cause.", OWLOntologyAlreadyExistsException.class, e.getClass());
+            assertEquals("Incorrect ontology id.", expected, ((OWLOntologyAlreadyExistsException) e).getOntologyID());
             throw e;
         }
     }
 
     @Test(expected = OWLOntologyAlreadyExistsException.class)
-    public void testMultipleVersionLoadNoChange() throws Exception {
+    public void testMultipleVersionLoadNoChange() throws Throwable {
         // given
         OWLOntologyDocumentSource documentSource = getDocumentSource();
         OWLOntologyID expected = new OWLOntologyID(optional(CREATE0139), optional(CREATEV1));
@@ -73,9 +77,10 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         // when
         try {
             getOWLOntology(secondUniqueOWLOntologyID);
-        } catch (OWLOntologyAlreadyExistsException e) {
-            // then
-            assertEquals(expected, e.getOntologyID());
+        } catch (OntApiException ex) {
+            Throwable e = ex.getCause();
+            assertEquals("Incorrect cause.", OWLOntologyAlreadyExistsException.class, e.getClass());
+            assertEquals("Incorrect ontology id.", expected, ((OWLOntologyAlreadyExistsException) e).getOntologyID());
             throw e;
         }
     }

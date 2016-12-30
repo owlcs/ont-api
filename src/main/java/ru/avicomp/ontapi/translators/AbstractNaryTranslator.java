@@ -34,7 +34,7 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
 
     private final Comparator<OWL> uriFirstComparator = (a, b) -> a.isAnonymous() == b.isAnonymous() ? 0 : a.isAnonymous() ? -1 : 1;
 
-    private void write(OWLNaryAxiom<OWL> thisAxiom, Set<OWLAnnotation> annotations, OntGraphModel model) {
+    void write(OWLNaryAxiom<OWL> thisAxiom, Set<OWLAnnotation> annotations, OntGraphModel model) {
         List<OWL> operands = thisAxiom.operands().sorted(uriFirstComparator).distinct().collect(Collectors.toList());
         if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip
             return;

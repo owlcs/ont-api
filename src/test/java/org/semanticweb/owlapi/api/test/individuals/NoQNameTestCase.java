@@ -15,13 +15,12 @@ package org.semanticweb.owlapi.api.test.individuals;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.jena.shared.InvalidPropertyURIException;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.AxiomsRoundTrippingBase;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException;
 
 import static org.junit.Assert.fail;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
@@ -30,6 +29,7 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
  * @author Matthew Horridge, The University of Manchester, Information
  *         Management Group
  * @since 3.0.0
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings("javadoc")
 public class NoQNameTestCase extends AxiomsRoundTrippingBase {
@@ -53,11 +53,15 @@ public class NoQNameTestCase extends AxiomsRoundTrippingBase {
         try {
             super.testRDFXML();
             fail("Expected an exception specifying that a QName could not be generated");
-        } catch (OWLOntologyStorageException e) {
+        } catch (InvalidPropertyURIException e) { // ONT-API:
+            LOGGER.info("Exception " + e);
+        }
+        // old OWL-API way:
+        /*} catch (OWLOntologyStorageException e) {
             if (!(e.getCause() instanceof IllegalElementNameException)) {
                 throw e;
             }
-        }
+        }*/
     }
 
     @Override
