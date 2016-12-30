@@ -15,7 +15,7 @@
                        <rdf:rest>
                            <rdf:List>
                                <rdf:first rdf:resource="#C"/>
-                               <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nill"/>
+                               <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
                            </rdf:List>
                        </rdf:rest>
                    </rdf:List>

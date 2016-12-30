@@ -48,7 +48,7 @@ Tests parsing of data restriction.
                                        <xsd:maxInclusive rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">30</xsd:maxInclusive>
                                    </rdf:Description>
                                </rdf:first>
-                               <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nill"/>
+                               <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
                            </rdf:List>
                        </rdf:rest>
                    </rdf:List>
