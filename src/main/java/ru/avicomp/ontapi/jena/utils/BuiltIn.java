@@ -18,6 +18,7 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 /**
@@ -52,8 +53,8 @@ public class BuiltIn {
             Stream.of(CLASSES, DATATYPES, ANNOTATION_PROPERTIES, DATA_PROPERTIES, OBJECT_PROPERTIES)
                     .flatMap(Collection::stream).collect(Collectors.toSet());
 
-    public static final Set<Property> PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL.class);
-    public static final Set<Resource> RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL.class);
+    public static final Set<Property> PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);
+    public static final Set<Resource> RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);
     public static final Set<Resource> ALL = Stream.of(PROPERTIES, RESOURCES).flatMap(Collection::stream).collect(Collectors.toSet());
 
     private static Set<RDFDatatype> createBuiltInTypes() {

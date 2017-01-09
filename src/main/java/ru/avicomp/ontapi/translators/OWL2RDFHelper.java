@@ -3,6 +3,9 @@ package ru.avicomp.ontapi.translators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.datatypes.TypeMapper;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
@@ -11,7 +14,6 @@ import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
-import ru.avicomp.ontapi.NodeIRIUtils;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
@@ -39,7 +41,7 @@ public class OWL2RDFHelper {
         if (OWLIndividual.class.isInstance(object)) {
             return toResource((OWLIndividual) object);
         }
-        return toResource(NodeIRIUtils.toIRI(object));
+        return toResource(toIRI(object));
     }
 
     private static Resource toResource(OWLIndividual individual) {
@@ -55,7 +57,7 @@ public class OWL2RDFHelper {
     }
 
     public static Property toProperty(OWLPropertyExpression object) {
-        return toProperty(NodeIRIUtils.toIRI(object));
+        return toProperty(toIRI(object));
     }
 
     private static Property toProperty(IRI iri) {
@@ -63,7 +65,7 @@ public class OWL2RDFHelper {
     }
 
     public static Literal toLiteral(OWLLiteral literal) {
-        return new LiteralImpl(NodeIRIUtils.toLiteralNode(literal), null);
+        return new LiteralImpl(toLiteralNode(literal), null);
     }
 
     public static Resource getType(OWLEntity entity) {
@@ -298,6 +300,55 @@ public class OWL2RDFHelper {
 
     public static void addAnnotations(OntObject object, Stream<OWLAnnotation> annotations) {
         addAnnotations(OntApiException.notNull(object.getRoot(), "Can't determine root statement for " + object), annotations);
+    }
+
+    public static IRI toIRI(OWLObject object) {
+        if (OntApiException.notNull(object, "Null owl-object specified.").isIRI()) return (IRI) object;
+        if (HasIRI.class.isInstance(object)) {
+            return ((HasIRI) object).getIRI();
+        }
+        if (OWLAnnotationObject.class.isInstance(object)) {
+            return ((OWLAnnotationObject) object).asIRI().orElseThrow(() -> new OntApiException("Not iri: " + object));
+        }
+        if (OWLClassExpression.class.isInstance(object)) {
+            return toIRI((OWLClassExpression) object);
+        }
+        if (OWLPropertyExpression.class.isInstance(object)) {
+            return toIRI((OWLPropertyExpression) object);
+        }
+        throw new OntApiException("Unsupported owl-object: " + object);
+    }
+
+    private static IRI toIRI(OWLClassExpression expression) {
+        HasIRI res = null;
+        if (ClassExpressionType.OWL_CLASS.equals(expression.getClassExpressionType())) {
+            res = (OWLClass) expression;
+        }
+        return OntApiException.notNull(res, "Unsupported class-expression: " + expression).getIRI();
+    }
+
+    private static IRI toIRI(OWLPropertyExpression expression) {
+        if (expression.isOWLDataProperty())
+            return expression.asOWLDataProperty().getIRI();
+        if (expression.isOWLObjectProperty())
+            return expression.asOWLObjectProperty().getIRI();
+        if (expression.isOWLAnnotationProperty()) {
+            return expression.asOWLAnnotationProperty().getIRI();
+        }
+        throw new OntApiException("Unsupported property-expression: " + expression);
+    }
+
+    public static Node toLiteralNode(OWLLiteral owlLiteral) {
+        return toLiteralNode(owlLiteral.getLiteral(), owlLiteral.getLang(), owlLiteral.getDatatype().getIRI());
+    }
+
+    public static Node toLiteralNode(String value, String lang, String datatypeURI) {
+        RDFDatatype type = TypeMapper.getInstance().getTypeByName(datatypeURI);
+        return NodeFactory.createLiteral(value, lang, type);
+    }
+
+    public static Node toLiteralNode(String value, String lang, IRI dataTypeIRI) {
+        return toLiteralNode(value, lang, dataTypeIRI.getIRIString());
     }
 
     /**
