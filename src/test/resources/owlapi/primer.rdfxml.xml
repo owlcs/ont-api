@@ -30,7 +30,7 @@
 
    <owl:Class rdf:about="Woman"><rdfs:subClassOf rdf:resource="Person"/></owl:Class>
    <owl:Class rdf:about="Mother"><rdfs:subClassOf rdf:resource="Woman"/><owl:equivalentClass><owl:Class><owl:intersectionOf rdf:parseType="Collection"><owl:Class rdf:about="Woman"/><owl:Class rdf:about="Parent"/></owl:intersectionOf></owl:Class></owl:equivalentClass></owl:Class>
-   <owl:Class rdf:about="Person"><rdfs:comment>Represents the set of all people.</rdfs:comment><owl:equivalentClass rdf:resource="Human"/><owl:hasKey rdf:parseType="Collection"><owl:DataProperty rdf:about="hasSSN"/></owl:hasKey></owl:Class>
+   <owl:Class rdf:about="Person"><rdfs:comment>Represents the set of all people.</rdfs:comment><owl:equivalentClass rdf:resource="Human"/><owl:hasKey rdf:parseType="Collection"><owl:DatatypeProperty rdf:about="hasSSN"/></owl:hasKey></owl:Class>
    <owl:Class rdf:about="Parent"><owl:equivalentClass><owl:Class><owl:unionOf rdf:parseType="Collection"><owl:Class rdf:about="Mother"/><owl:Class rdf:about="Father"/></owl:unionOf></owl:Class></owl:equivalentClass><owl:equivalentClass><owl:Restriction><owl:onProperty rdf:resource="hasChild"/><owl:someValuesFrom rdf:resource="Person"/></owl:Restriction></owl:equivalentClass></owl:Class>
    <owl:Class rdf:about="ChildlessPerson"><owl:equivalentClass><owl:Class><owl:intersectionOf rdf:parseType="Collection"><owl:Class rdf:about="Person"/><owl:Class><owl:complementOf rdf:resource="Parent"/></owl:Class></owl:intersectionOf></owl:Class></owl:equivalentClass></owl:Class>
    <owl:Class rdf:about="Grandfather"><rdfs:subClassOf><owl:Class><owl:intersectionOf rdf:parseType="Collection"><owl:Class rdf:about="Man"/><owl:Class rdf:about="Parent"/></owl:intersectionOf></owl:Class></rdfs:subClassOf></owl:Class>
