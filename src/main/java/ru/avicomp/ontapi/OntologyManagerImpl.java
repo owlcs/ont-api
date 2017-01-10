@@ -120,8 +120,9 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
         if (target.getOutputStream().isPresent()) {
             os = target.getOutputStream().get();
         } else if (target.getDocumentIRI().isPresent()) {
+            IRI iri = target.getDocumentIRI().get();
             try {
-                os = target.getDocumentIRI().get().toURI().toURL().openConnection().getOutputStream();
+                os = iri.toURI().toURL().openConnection().getOutputStream();
             } catch (IOException e) {
                 throw new OWLOntologyStorageIOException(e);
             }

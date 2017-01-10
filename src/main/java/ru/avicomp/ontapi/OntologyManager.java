@@ -41,7 +41,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * So i see it is impossible to save the same places for exceptions.
      * For example in OWL-API you could expect some kind of exception during saving ontology,
      * but in ONT-API there would be another kind of exception during adding axiom.
-     * So there is no reasons to save the same behaviour with exceptions everywhere.
+     * I believe there is no reasons to save the same behaviour with exceptions everywhere.
      * The return type is also changed from {@link org.semanticweb.owlapi.model.OWLOntology} to our class {@link OntologyModel}.
      *
      * @param id {@link OWLOntologyID}

@@ -118,13 +118,23 @@ public class Models {
         return asStream(iterator, true, false);
     }
 
-    static <T> Stream<T> asStream(Iterator<T> iterator, boolean distinct, boolean parallel) {
+    public static <T> Stream<T> asStream(Iterator<T> iterator, boolean distinct, boolean parallel) {
         Iterable<T> iterable = () -> iterator;
         Stream<T> res = StreamSupport.stream(iterable.spliterator(), parallel);
         return distinct ? res.distinct() : res;
     }
 
-    public static Set<Statement> getAssociatedStatements(Resource inModel) { // todo: replace with not recursive method
+    /**
+     * gets all statements which have the specified resource as subject,
+     * and all statements which have as subject the objects from the top level statements
+     * and all other related statements recursively.
+     * todo: replace it with not recursive method to avoid stack overflow,
+     * it may happen in case of rdf:List with a large number of members (1000+).
+     *
+     * @param inModel Resource with associated model inside.
+     * @return the Set of {@link Statement}
+     */
+    public static Set<Statement> getAssociatedStatements(Resource inModel) {
         Set<Statement> res = new HashSet<>();
         inModel.listProperties().forEachRemaining(s -> {
             res.add(s);

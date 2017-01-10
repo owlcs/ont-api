@@ -78,7 +78,7 @@ public abstract class TestBase {
     public ExpectedException expectedException = ExpectedException.none();
     @Nonnull
     @Rule
-    public Timeout timeout = new Timeout(1000000, TimeUnit.MILLISECONDS);
+    public Timeout timeout = new Timeout(1_000_000, TimeUnit.MILLISECONDS);
     @Nonnull
     protected OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
     protected OWLOntologyManager m;
@@ -158,6 +158,7 @@ public abstract class TestBase {
         return IRI(uriBase + '#', name);
     }
 
+    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalGetWithoutIsPresent"})
     protected <T> T get(Optional<T> t) {
         return t.get();
     }

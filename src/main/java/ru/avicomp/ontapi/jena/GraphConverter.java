@@ -21,7 +21,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Class to perform some transformation action on the specified graph.
- * Currently it is to convert the OWL-1/RDFS ontological graph to the OWL-2-DL graph and to fix missed declarations.
+ * Currently it is to convert the OWL1/RDFS ontological graph to the OWL2DL graph and to fix missed declarations.
  * Use it to fix "mistakes" in graph after loading from io-stream according OWL2 specification and before using common API.
  * <p>
  * Created by szuev on 28.10.2016.
@@ -31,8 +31,15 @@ public abstract class GraphConverter {
     public static final FactoryStore CONVERTERS = new FactoryStore()
             .add(RDFStoOWLFixer::new)
             .add(OWLtoOWL2DLFixer::new)
-            .add(OWLDeclarationFixer::new);
+            .add(OwlDeclarationFixer::new);
 
+    /**
+     * the main method to perform conversion one {@link Graph} to another.
+     * Note: currently it returns the same graph, not a fixed copy.
+     *
+     * @param graph input graph
+     * @return output graph
+     */
     public static Graph convert(Graph graph) {
         CONVERTERS.stream(graph).forEach(TransformAction::process);
         return graph;
@@ -123,6 +130,28 @@ public abstract class GraphConverter {
         protected Set<Node> getTypes(Node subject) {
             return getGraph().find(subject, RDF_TYPE, Node.ANY).mapWith(Triple::getObject).toSet();
         }
+
+        public Model getModel() {
+            return ModelFactory.createModelForGraph(getGraph());
+        }
+
+        /**
+         * returns Stream of types for specified {@link RDFNode}, or empty stream if the input is not uri-resource.
+         *
+         * @param node node, attached to model.
+         * @return Stream of {@link Resource}s
+         */
+        protected Stream<Resource> types(RDFNode node) {
+            return types(node, true);
+        }
+
+        protected Stream<Resource> types(RDFNode node, boolean requireURI) {
+            return requireURI && !node.isURIResource() ? Stream.empty() :
+                    Models.asStream(node.asResource().listProperties(RDF.type)
+                            .mapWith(Statement::getObject)
+                            .filterKeep(RDFNode::isURIResource)
+                            .mapWith(RDFNode::asResource));
+        }
     }
 
     /**
@@ -145,7 +174,7 @@ public abstract class GraphConverter {
             Stream.of(OWL.InverseFunctionalProperty, OWL.TransitiveProperty, OWL.SymmetricProperty).
                     forEach(type -> findByType(type).forEachRemaining(node -> addType(node, OWL.ObjectProperty)));
             // TODO: merge several owl:Ontology to single one.
-            // TODO: if there is no any owl:Ontology - add it?
+            // TODO: if there is no any owl:Ontology -> add new anonymous owl:Ontology
         }
 
         @Override
@@ -288,15 +317,18 @@ public abstract class GraphConverter {
      * Class to perform the final tuning of the ontology: mostly for fixing missed owl-declarations where it is possible.
      * Consists of several other converters.
      */
-    public static class OWLDeclarationFixer extends TransformAction {
+    public static class OwlDeclarationFixer extends TransformAction {
         private final List<TransformAction> inner;
 
-        public OWLDeclarationFixer(Graph graph) {
+        public OwlDeclarationFixer(Graph graph) {
             super(graph);
             inner = Stream.of(
-                    new ObjectTripleDeclarationFixer(graph)
-                    , new OwlPropertyFixer(graph)
-                    , new StandaloneURIFixer(graph)
+                    new StandaloneURIFixer(graph)
+
+                    , new ObjectTripleDeclarationFixer(graph)
+                    , new SubjectTripleDeclarationFixer(graph)
+                    , new HierarchicalPropertyFixer(graph)
+
                     , new NamedIndividualFixer(graph)
             ).collect(Collectors.toList());
         }
@@ -315,7 +347,7 @@ public abstract class GraphConverter {
      * <p>
      * Example:
      * If we have triple "C1 owl:equivalentClass C2" where C1 has type owl:Class and C2 is untyped uri-resource,
-     * then we know exactly that C2 is a class and so we can add the same type (owl:Class) to graph for C2 (i.e.
+     * then we know exactly that C2 is a class also and so we can add the same type (owl:Class) to graph for C2 (i.e.
      * declare C2 as separated class in owl-model).
      */
     private static class ObjectTripleDeclarationFixer extends TransformAction {
@@ -326,23 +358,20 @@ public abstract class GraphConverter {
 
         @Override
         public void perform() {
-            Model m = ModelFactory.createModelForGraph(getGraph());
-            fixDatatypes(m);
-            fixClasses(m);
+            Model m = getModel();
+            fixClassesAndDatatypes(m);
             fixOwlProperties(m);
             fixNamedIndividuals(m);
             // domain is always class for object and datatype properties
             m.listStatements(null, RDFS.domain, (RDFNode) null)
                     .filterKeep(s -> chooseTypeFrom(types(s.getSubject()), OWL.ObjectProperty, OWL.DatatypeProperty) != null).
-                    mapWith(Statement::getObject).forEachRemaining(o -> fixType(o, OWL.Class));
+                    mapWith(Statement::getObject).forEachRemaining(o -> declare(o, OWL.Class, true));
         }
 
-        private void fixDatatypes(Model m) {
-            fixSimpleTriples(m, OWL.equivalentClass, RDFS.Datatype);
-        }
 
         private void fixNamedIndividuals(Model m) {
-            Stream.of(OWL.sameAs, OWL.differentFrom).forEach(p -> fixSimpleTriples(m, p, OWL.NamedIndividual));
+            Stream.of(OWL.sameAs, OWL.differentFrom)
+                    .forEach(p -> fixExplicitTypes(m, p, OWL.NamedIndividual));
 
             // triple with owl:hasValue has always individual or literal as object
             // owl:targetIndividual, owl:sourceIndividual has always individual in the right part of triple
@@ -351,7 +380,7 @@ public abstract class GraphConverter {
                             .mapWith(Statement::getObject)
                             .filterKeep(RDFNode::isURIResource)
                             .mapWith(RDFNode::asResource)
-                            .forEachRemaining(r -> fixType(r, OWL.NamedIndividual)));
+                            .forEachRemaining(r -> declare(r, OWL.NamedIndividual, true)));
             //if (containsType(OWL.oneOf))
             m.listStatements(null, OWL.oneOf, (RDFNode) null).forEachRemaining(s -> fixList(s, OWL.NamedIndividual));
             //if (containsType(OWL.AllDifferent))
@@ -360,35 +389,70 @@ public abstract class GraphConverter {
                     .forEachRemaining(s -> fixList(s, OWL.NamedIndividual));
         }
 
-        private void fixClasses(Model m) {
-            fixSimpleTriples(m, OWL.equivalentClass, OWL.Class);
+        private void fixClassesAndDatatypes(Model m) {
+            fixAmbiguousTypes(m, OWL.equivalentClass, OWL.Class, RDFS.Datatype);
 
-            Stream.of(RDFS.subClassOf, OWL.disjointWith, OWL.onClass).forEach(p -> fixSimpleTriples(m, p, OWL.Class));
+            Stream.of(RDFS.subClassOf, OWL.disjointWith, OWL.onClass).forEach(p -> fixExplicitTypes(m, p, OWL.Class));
             //if (containsType(OWL.disjointUnionOf))
             m.listStatements(null, OWL.disjointUnionOf, (RDFNode) null).forEachRemaining(s -> fixList(s, OWL.Class));
             //if (containsType(OWL.AllDisjointClasses))
             m.listStatements(null, RDF.type, OWL.AllDisjointClasses).mapWith(Statement::getSubject)
                     .mapWith(main -> m.getProperty(main, OWL.members))
                     .forEachRemaining(s -> fixList(s, OWL.Class));
+
+            fixRestrictions(m);
+        }
+
+        private void fixRestrictions(Model m) {
+            // fix allValuesFrom, someValuesFrom by onProperty
+            Stream.of(OWL.allValuesFrom, OWL.someValuesFrom)
+                    .forEach(predicate -> m.listStatements(null, predicate, (RDFNode) null)
+                            .forEachRemaining(s -> {
+                                Set<Resource> propertyTypes = Models.asStream(m.listStatements(s.getSubject(), OWL.onProperty, (RDFNode) null)
+                                        .mapWith(Statement::getObject))
+                                        .map(n -> types(n, false))
+                                        .flatMap(Function.identity())
+                                        .collect(Collectors.toSet());
+                                Resource type = propertyTypes.contains(OWL.ObjectProperty) ? OWL.Class :
+                                        propertyTypes.contains(OWL.DatatypeProperty) ? RDFS.Datatype : null;
+                                declare(s.getObject(), type, false);
+                            }));
         }
 
         private void fixOwlProperties(Model m) {
-            fixSimpleTriples(m, OWL.inverseOf, OWL.ObjectProperty);
+            fixExplicitTypes(m, OWL.inverseOf, OWL.ObjectProperty);
             Stream.of(RDFS.subPropertyOf, OWL.equivalentProperty, OWL.propertyDisjointWith)
-                    .forEach(predicate -> fixSimpleTriples(m, predicate, OWL.ObjectProperty, OWL.DatatypeProperty));
+                    .forEach(predicate -> fixAmbiguousTypes(m, predicate, OWL.ObjectProperty, OWL.DatatypeProperty));
             //if (containsType(OWL.AllDisjointProperties))
             m.listStatements(null, RDF.type, OWL.AllDisjointProperties).mapWith(Statement::getSubject)
                     .mapWith(main -> m.getProperty(main, OWL.members))
                     .forEachRemaining(this::fixPropertyList);
+
+            // Restriction 'hasSelf' has always ObjectProperty assigned.
+            Literal _true = ResourceFactory.createTypedLiteral(true);
+            m.listStatements(null, OWL.onProperty, (RDFNode) null)
+                    .filterKeep(s -> m.contains(s.getSubject(), OWL.hasSelf, _true))
+                    .mapWith(Statement::getObject)
+                    .forEachRemaining(n -> declare(n, OWL.ObjectProperty, true));
         }
 
-        private void fixSimpleTriples(Model m, Property predicateForSearch, Resource... candidateTypes) {
-            m.listStatements(null, predicateForSearch, (RDFNode) null)
-                    .forEachRemaining(s -> {
-                        Resource type = chooseTypeFrom(types(s.getSubject()), candidateTypes);
-                        if (type == null) return;
-                        fixType(s.getObject(), type);
-                    });
+        /**
+         * fix for ambiguous situations when the predicate is used for different types.
+         * e.g. owl:equivalentClass can be used to define Datatype and Class both,
+         * so we have to choose the correct type from the specified array.
+         *
+         * @param m              Model
+         * @param predicate      Property
+         * @param candidateTypes Array of types to choose.
+         */
+        private void fixAmbiguousTypes(Model m, Property predicate, Resource... candidateTypes) {
+            m.listStatements(null, predicate, (RDFNode) null)
+                    .forEachRemaining(s -> declare(s.getObject(), chooseTypeFrom(types(s.getSubject()), candidateTypes), false));
+        }
+
+        private void fixExplicitTypes(Model m, Property predicate, Resource type) {
+            m.listStatements(null, predicate, (RDFNode) null)
+                    .forEachRemaining(s -> declare(s.getObject(), type, true));
         }
 
         private Resource chooseTypeFrom(Stream<Resource> stream, Resource... oneOf) {
@@ -400,7 +464,7 @@ public abstract class GraphConverter {
             if (statement == null) return;
             if (!statement.getObject().canAs(RDFList.class)) return;
             RDFList list = statement.getObject().as(RDFList.class);
-            list.asJavaList().forEach(r -> fixType(r, type));
+            list.asJavaList().forEach(r -> declare(r, type, true));
         }
 
         private void fixPropertyList(Statement statement) {
@@ -411,7 +475,7 @@ public abstract class GraphConverter {
             Stream<Resource> types = members.stream().map(this::types).flatMap(Function.identity());
             Resource type = chooseTypeFrom(types, OWL.ObjectProperty, OWL.DatatypeProperty);
             if (type == null) return;
-            members.forEach(r -> fixType(r, type));
+            members.forEach(r -> declare(r, type, false));
         }
 
         /**
@@ -420,13 +484,14 @@ public abstract class GraphConverter {
          *
          * @param object the subject of new triple.
          * @param type   the object of new triple.
+         * @param force  if true don't check previous assigned types.
          */
-        private void fixType(RDFNode object, Resource type) {
+        void declare(RDFNode object, Resource type, boolean force) {
             if (type == null) return;
             if (!object.isURIResource()) { // if it is not uri then nothing has been missed.
                 return;
             }
-            if (types(object).count() != 0) { // don't touch if it has already some types (even they wrong)
+            if (!force && types(object).count() != 0) { // don't touch if it has already some types (even they wrong)
                 return;
             }
             if (BuiltIn.ALL.contains(object.asResource())) { // example : sp:ElementList rdfs:subClassOf rdf:List
@@ -434,12 +499,25 @@ public abstract class GraphConverter {
             }
             addType(object.asNode(), type);
         }
+    }
 
-        protected Stream<Resource> types(RDFNode inModel) {
-            return !inModel.isURIResource() ? Stream.empty() :
-                    Models.asStream(inModel.getModel().listStatements(inModel.asResource(), RDF.type, (RDFNode) null)
-                            .mapWith(Statement::getObject)
-                            .filterKeep(RDFNode::isURIResource).mapWith(RDFNode::asResource));
+    private static class SubjectTripleDeclarationFixer extends TransformAction {
+        SubjectTripleDeclarationFixer(Graph graph) {
+            super(graph);
+        }
+
+        @Override
+        public void perform() {
+            fixObjectProperties();
+        }
+
+        private void fixObjectProperties() {
+            Stream.of(OWL.InverseFunctionalProperty, OWL.ReflexiveProperty, OWL.IrreflexiveProperty,
+                    OWL.SymmetricProperty, OWL.AsymmetricProperty, OWL.TransitiveProperty)
+                    .forEach(type -> getGraph().find(Node.ANY, RDF_TYPE, type.asNode())
+                            .mapWith(Triple::getSubject)
+                            .filterKeep(Node::isURI)
+                            .forEachRemaining(r -> addType(r, OWL.ObjectProperty)));
         }
     }
 
@@ -455,7 +533,8 @@ public abstract class GraphConverter {
 
         @Override
         public void perform() {
-            Set<Node> nodes = getBaseGraph().find(Node.ANY, RDF_TYPE, Node.ANY)
+            Set<Node> nodes = getBaseGraph()
+                    .find(Node.ANY, RDF_TYPE, Node.ANY)
                     .andThen(getBaseGraph().find(Node.ANY, RDF.first.asNode(), Node.ANY))
                     .mapWith(Triple::getObject)
                     .filterKeep(Node::isURI)
@@ -487,23 +566,30 @@ public abstract class GraphConverter {
     /**
      * To fix missed owl-property type declarations.
      */
-    private static class OwlPropertyFixer extends TransformAction {
+    private static class HierarchicalPropertyFixer extends TransformAction {
         private static final Set<Node> BUILT_IN_ANNOTATION_PROPERTIES = BuiltIn.ANNOTATION_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
         private static final Set<Node> BUILT_IN_OBJECT_PROPERTIES = BuiltIn.OBJECT_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
         private static final Set<Node> BUILT_IN_DATA_PROPERTIES = BuiltIn.DATA_PROPERTIES.stream().map(Resource::asNode).collect(Collectors.toSet());
 
-        OwlPropertyFixer(Graph graph) {
+        HierarchicalPropertyFixer(Graph graph) {
             super(graph);
         }
 
         @Override
         public void perform() {
-            getBaseGraph().find(Node.ANY, RDF_TYPE, OWL.DatatypeProperty.asNode()).mapWith(Triple::getSubject).filterKeep(this::isAnnotationProperty)
+            getBaseGraph()
+                    .find(Node.ANY, RDF_TYPE, OWL.DatatypeProperty.asNode())
+                    .mapWith(Triple::getSubject)
+                    .filterKeep(this::isAnnotationProperty)
                     .forEachRemaining(node -> addType(node, OWL.AnnotationProperty));
-            getBaseGraph().find(Node.ANY, RDF_TYPE, OWL.ObjectProperty.asNode()).mapWith(Triple::getSubject).filterKeep(this::isAnnotationProperty)
+            getBaseGraph()
+                    .find(Node.ANY, RDF_TYPE, OWL.ObjectProperty.asNode())
+                    .mapWith(Triple::getSubject)
+                    .filterKeep(this::isAnnotationProperty)
                     .forEachRemaining(node -> addType(node, OWL.ObjectProperty));
-
-            getBaseGraph().find(Node.ANY, RDF_TYPE, OWL.AnnotationProperty.asNode()).mapWith(Triple::getSubject)
+            getBaseGraph()
+                    .find(Node.ANY, RDF_TYPE, OWL.AnnotationProperty.asNode())
+                    .mapWith(Triple::getSubject)
                     .forEachRemaining(node -> {
                         if (isObjectProperty(node)) {
                             addType(node, OWL.ObjectProperty);

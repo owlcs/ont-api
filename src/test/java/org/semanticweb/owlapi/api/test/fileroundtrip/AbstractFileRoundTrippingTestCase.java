@@ -19,22 +19,23 @@ import org.semanticweb.owlapi.model.OWLOntology;
  * @author Matthew Horridge, The University Of Manchester, Information
  *         Management Group
  * @since 2.2.0
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings("javadoc")
-public abstract class AbstractFileRoundTrippingTestCase extends
-        AbstractRoundTrippingTestCase {
+public abstract class AbstractFileRoundTrippingTestCase extends         AbstractRoundTrippingTestCase {
 
-    protected String fileName;
+    private String fileName;
 
-    public AbstractFileRoundTrippingTestCase(String f) {
+    AbstractFileRoundTrippingTestCase(String f) {
         fileName = f;
     }
 
     @Override
     protected OWLOntology createOntology() {
+        LOGGER.info("Load ontology from file " + fileName);
         OWLOntology o = ontologyFromClasspathFile(fileName);
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("ontology as parsed from input file:");
+            LOGGER.debug("ontology as parsed from input file:");
             o.axioms().forEach(ax -> LOGGER.trace(ax.toString()));
         }
         return o;

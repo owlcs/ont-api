@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health
  *         Informatics Group
  * @since 2.2.0
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings("javadoc")
 public abstract class AbstractRoundTrippingTestCase extends TestBase {
@@ -30,7 +31,6 @@ public abstract class AbstractRoundTrippingTestCase extends TestBase {
     protected abstract OWLOntology createOntology();
 
     @Test
-    @Ignore // todo: investigate and enable
     public void testRDFXML() throws Exception {
         roundTripOntology(createOntology());
     }
@@ -41,7 +41,6 @@ public abstract class AbstractRoundTrippingTestCase extends TestBase {
     }
 
     @Test
-    @Ignore // todo: investigate and enable
     public void testOWLXML() throws Exception {
         roundTripOntology(createOntology(), new OWLXMLDocumentFormat());
     }
@@ -57,7 +56,6 @@ public abstract class AbstractRoundTrippingTestCase extends TestBase {
     }
 
     @Test
-    @Ignore // todo: investigate and enable
     public void testManchesterOWLSyntax() throws Exception {
         roundTripOntology(createOntology(), new ManchesterSyntaxDocumentFormat());
     }
@@ -95,7 +93,6 @@ public abstract class AbstractRoundTrippingTestCase extends TestBase {
     }
 
     @Test
-    @Ignore // todo: investigate and enable
     public void roundTripRDFXMLAndFunctionalShouldBeSame() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
         OWLOntology ont = createOntology();
