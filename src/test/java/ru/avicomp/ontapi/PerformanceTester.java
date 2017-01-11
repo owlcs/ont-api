@@ -15,7 +15,6 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import com.google.common.base.Stopwatch;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
-import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
  * todo
@@ -87,9 +86,7 @@ public class PerformanceTester {
         LOGGER.info("[ONT]Load " + file + "[" + format + "]");
         OntologyManager m = OntManagerFactory.createONTManager();
         try {
-            OntologyModel res = (OntologyModel) m.loadOntologyFromOntologyDocument(file);
-            TestUtils.setDefaultPrefixes(res.asGraphModel());
-            return res;
+            return (OntologyModel) m.loadOntologyFromOntologyDocument(file);
         } catch (OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }

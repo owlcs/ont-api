@@ -67,9 +67,9 @@ public class ChangeIDGraphTest extends GraphTestBase {
     }
 
     private static void testHasClass(OntologyModel owl, OntGraphModel jena, IRI classIRI) {
-        OWLDeclarationAxiom axiom = owl.axioms(AxiomType.DECLARATION).findFirst().orElse(null);
-        Assert.assertNotNull("Can't find any owl-class", axiom);
-        Assert.assertEquals("Incorrect owl-class uri", classIRI, axiom.getEntity().getIRI());
+        OWLEntity entity = owl.axioms(AxiomType.DECLARATION).map(OWLDeclarationAxiom::getEntity).filter(AsOWLClass::isOWLClass).findFirst().orElse(null);
+        Assert.assertNotNull("Can't find any owl-class", entity);
+        Assert.assertEquals("Incorrect owl-class uri", classIRI, entity.getIRI());
         List<OntClass> classes = jena.ontEntities(OntClass.class).collect(Collectors.toList());
         Assert.assertFalse("Can't find any jena-class", classes.isEmpty());
         Assert.assertEquals("Incorrect jena-class uri", classIRI.getIRIString(), classes.get(0).getURI());

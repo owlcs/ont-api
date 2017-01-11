@@ -63,20 +63,16 @@ public abstract class TestBase {
     private static final boolean DEBUG_USE_OWL = Boolean.parseBoolean(System.getProperty("debug.use.owl", Boolean.FALSE.toString()));
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(TestBase.class);
-    @Nonnull
     protected static final String uriBase = "http://www.semanticweb.org/owlapi/test";
     protected static OWLDataFactory df;
     protected static OWLOntologyManager masterManager;
-    @Nonnull
-    protected static final File RESOURCES = resources();
-    @Nonnull
+    public static final File RESOURCES = resources();
     protected final OWLOntologyBuilder builder = DEBUG_USE_OWL ? (OWLOntologyBuilder) OWLOntologyImpl::new : (m, id) -> new OntologyModelImpl((OntologyManager) m, id);
     @Nonnull
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
-    @Nonnull
     @Rule
     public Timeout timeout = new Timeout(1_000_000, TimeUnit.MILLISECONDS);
     @Nonnull
@@ -424,12 +420,15 @@ public abstract class TestBase {
         }
         ont.saveOntology(format, target);
         handleSaved(target, format);
+
         OWLOntology ont2 = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(target.toString(),
                 "string:ontology", format, null), new OWLOntologyLoaderConfiguration().setReportStackTraces(true));
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("TestBase.roundTripOntology() ontology parsed");
             ont2.axioms().forEach(ax -> LOGGER.trace(ax.toString()));
         }
+        //ru.avicomp.ontapi.utils.TestUtils.compareAxioms(ont.axioms(), ont2.axioms());
+
         equal(ont, ont2);
         return ont2;
     }

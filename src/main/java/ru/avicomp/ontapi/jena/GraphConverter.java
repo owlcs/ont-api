@@ -98,7 +98,7 @@ public abstract class GraphConverter {
 
         public void process() {
             if (test()) {
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("Process " + getClass().getSimpleName());
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("Process <" + getClass().getSimpleName() + ">");
                 perform();
             }
         }
@@ -225,10 +225,18 @@ public abstract class GraphConverter {
         }
 
         private Set<Resource> getPropertyTypes(Node subject) {
+            return getPropertyTypes(subject, new HashSet<>());
+        }
+
+        private Set<Resource> getPropertyTypes(Node subject, Set<Node> processed) {
+            processed.add(subject);
             Set<Resource> res = new TreeSet<>(Models.RDF_NODE_COMPARATOR);
-            Set<Node> ranges = getGraph().find(subject, RDFS.range.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
-            Set<Node> domains = getGraph().find(subject, RDFS.domain.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
-            Set<Node> superProperties = getGraph().find(subject, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
+            Set<Node> ranges = getGraph().find(subject, RDFS.range.asNode(), Node.ANY)
+                    .mapWith(Triple::getObject).filterDrop(processed::contains).toSet();
+            Set<Node> domains = getGraph().find(subject, RDFS.domain.asNode(), Node.ANY)
+                    .mapWith(Triple::getObject).filterDrop(processed::contains).toSet();
+            Set<Node> superProperties = getGraph().find(subject, RDFS.subPropertyOf.asNode(), Node.ANY)
+                    .mapWith(Triple::getObject).filterDrop(processed::contains).toSet();
             if (ranges.isEmpty() && domains.isEmpty() && superProperties.isEmpty()) {
                 res.add(OWL.AnnotationProperty);
                 return res;
@@ -237,7 +245,7 @@ public abstract class GraphConverter {
                 res.add(isDatatypeRange(r) ? OWL.DatatypeProperty : OWL.ObjectProperty);
             }
             for (Node s : superProperties) {
-                res.addAll(getPropertyTypes(s));
+                res.addAll(getPropertyTypes(s, processed));
             }
             return res;
         }
@@ -600,24 +608,28 @@ public abstract class GraphConverter {
         }
 
         boolean isAnnotationProperty(Node node) {
-            return BUILT_IN_ANNOTATION_PROPERTIES.contains(node) ||
-                    getTypes(node).contains(OWL.AnnotationProperty.asNode()) ||
-                    Models.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
-                            anyMatch(this::isAnnotationProperty);
+            return isTypePropertyOf(node, OWL.AnnotationProperty.asNode(), BUILT_IN_ANNOTATION_PROPERTIES);
         }
 
         boolean isObjectProperty(Node node) {
-            return BUILT_IN_OBJECT_PROPERTIES.contains(node) ||
-                    getTypes(node).contains(OWL.ObjectProperty.asNode()) ||
-                    Models.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
-                            anyMatch(this::isObjectProperty);
+            return isTypePropertyOf(node, OWL.ObjectProperty.asNode(), BUILT_IN_OBJECT_PROPERTIES);
         }
 
         boolean isDataProperty(Node node) {
-            return BUILT_IN_DATA_PROPERTIES.contains(node) ||
-                    getTypes(node).contains(OWL.DatatypeProperty.asNode()) ||
-                    Models.asStream(getGraph().find(node, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getObject)).
-                            anyMatch(this::isDataProperty);
+            return isTypePropertyOf(node, OWL.DatatypeProperty.asNode(), BUILT_IN_DATA_PROPERTIES);
+        }
+
+        private boolean isTypePropertyOf(Node candidate, Node type, Set<Node> builtIn) {
+            return isTypePropertyOf(candidate, type, builtIn, new HashSet<>());
+        }
+
+        private boolean isTypePropertyOf(Node candidate, Node type, Set<Node> builtIn, Set<Node> processed) {
+            processed.add(candidate);
+            return builtIn.contains(candidate) ||
+                    getTypes(candidate).contains(type) ||
+                    Models.asStream(getGraph().find(candidate, RDFS.subPropertyOf.asNode(), Node.ANY)
+                            .mapWith(Triple::getObject).filterDrop(processed::contains)).
+                            anyMatch(node -> isTypePropertyOf(node, type, builtIn, processed));
         }
     }
 

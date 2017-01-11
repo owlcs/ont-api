@@ -70,6 +70,10 @@ public class FileRoundTripTestCase extends AbstractFileRoundTrippingTestCase {
                 "ObjectUnionOf.rdf",
                 "primer.functionalsyntax.txt",
                 "primer.owlxml.xml",
+                // WARNING: The entity http://example.com/owl/families/hasSSN in primer.rdfxml.xml was an owl:DataProperty initially.
+                // I changed it to owl:DatatypeProperty. OWL-API treats an entity as owl:DatatypeProperty in such unclear cases
+                // (see org.semanticweb.owlapi.rdf.rdfxml.parser.Translators#DataSomeValuesFromTranslator#translate),
+                // but it doesn't seem correct to me.
                 "primer.rdfxml.xml",
                 "RDFSClass.rdf",
                 "koala.owl",

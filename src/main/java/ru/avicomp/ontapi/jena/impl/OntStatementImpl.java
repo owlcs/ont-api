@@ -37,6 +37,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
+    public boolean isRoot() {
+        return false;
+    }
+
+    @Override
     public boolean isLocal() {
         return !((UnionGraph) getModel().getGraph()).getUnderlying().hasSubGraphs() || getModel().isInBaseModel(this);
     }
@@ -199,6 +204,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     public static class RootImpl extends OntStatementImpl {
         RootImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
             super(subject, predicate, object, model);
+        }
+
+        @Override
+        public boolean isRoot() {
+            return true;
         }
 
         @Override

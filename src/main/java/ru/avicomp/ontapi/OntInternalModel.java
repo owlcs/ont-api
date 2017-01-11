@@ -206,7 +206,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
                 triples.addAll(RDF2OWLHelper.getAssociatedTriples(ontAnnotation.getObject())); // as value there could be anonymous individual
             }
         } else { // bulk annotation
-            RDF2OWLHelper.TripleSet<OWLAnnotation> set = RDF2OWLHelper.getBulkAnnotations(getID())
+            RDF2OWLHelper.TripleSet<OWLAnnotation> set = RDF2OWLHelper.getAnnotations(getID())
                     .stream().filter(t -> t.getObject().equals(annotation)).findFirst().orElse(null);
             if (set != null) {
                 triples.addAll(set.getTriples());

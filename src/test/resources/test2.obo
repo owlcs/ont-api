@@ -3,7 +3,7 @@ ontology: http://test/formats
 owl-axioms: Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\nPrefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)\nPrefix(xml:=<http://www.w3.org/XML/1998/namespace>)\nPrefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\nPrefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)\n\n\nOntology(\nDeclaration(Class(<http://test/formats#ClassN1>))\nDeclaration(DataProperty(<http://test/formats#DataPropertyN1>))\n############################\n#   Data Properties\n############################\n\n# Data Property: <http://test/formats#DataPropertyN1> (<http://test/formats#DataPropertyN1>)\n\nDataPropertyDomain(<http://test/formats#DataPropertyN1> <http://test/formats#ClassN1>)\nDataPropertyRange(<http://test/formats#DataPropertyN1> xsd:anyURI)\n\n\n\n\n)
 
 [Typedef]
-id: ObjectPropertyN1
-domain: ClassN1
-range: ClassN1
+id: http://test/formats#ObjectPropertyN1
+domain: http://test/formats#ClassN1
+range: http://test/formats#ClassN1
 

@@ -52,7 +52,6 @@ public class AnnotationsGraphTest extends GraphTestBase {
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         OntGraphModel jena = owl.asGraphModel();
-        TestUtils.setDefaultPrefixes(jena);
 
         OntClass ontClass = jena.createOntEntity(OntClass.class, clazzIRI.getIRIString());
 

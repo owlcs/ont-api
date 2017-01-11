@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.utils;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -8,7 +9,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.semanticweb.owlapi.model.*;
@@ -19,9 +19,7 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
 
 /**
@@ -85,7 +83,7 @@ public class TestUtils {
         return statements.size() != 1 ? null : statements.get(0).getSubject();
     }
 
-    public static Ontology getOntology(OntModel model) {
+    private static Ontology getOntology(OntModel model) {
         List<Ontology> ontologies = model.listOntologies().toList();
         Assert.assertFalse("No ontologies at all", ontologies.isEmpty());
         if (ontologies.size() == 1) return ontologies.get(0);
@@ -154,10 +152,10 @@ public class TestUtils {
         return stream.map(o -> o instanceof OWLAnonymousIndividual ? ANONYMOUS_INDIVIDUAL : o);
     }
 
-    public static void setDefaultPrefixes(OntGraphModel m) {
-        m.setNsPrefix("owl", OWL.getURI());
-        m.setNsPrefix("rdfs", RDFS.getURI());
-        m.setNsPrefix("rdf", RDF.getURI());
-        m.setNsPrefix("xsd", XSD.getURI());
+    @SuppressWarnings("unchecked")
+    public static Stream<OWLAxiom> splitAxioms(OWLOntology o) {
+        return o.axioms()
+                .map(a -> a instanceof OWLNaryAxiom ? (Stream<OWLAxiom>) ((OWLNaryAxiom) a).splitToAnnotatedPairs().stream() : Stream.of(a))
+                .flatMap(Function.identity()).distinct();
     }
 }

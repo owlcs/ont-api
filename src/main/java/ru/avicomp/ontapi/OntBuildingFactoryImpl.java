@@ -60,12 +60,19 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         Graph graph = m.getGraphFactory().create();
         OntFormat format;
         try {
-            Lang lang = loadGraph(graph, m, source);
+            Lang lang = loadGraph(graph, source);
             format = OntApiException.notNull(OntFormat.get(lang), "Can't determine language.");
-        } catch (OntApiException e) { // maybe it is not jena format
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Format(source=" + source + "): " + format);
+            }
+        } catch (OntApiException e) { // maybe it is not jena format; try origin OWL-API method:
             LOGGER.warn("Can't load from " + source + " ::: " + e);
-            return (OntologyModel) super.loadOWLOntology(manager, source, handler, configuration);
+            OntologyModelImpl res = (OntologyModelImpl) super.loadOWLOntology(manager, source, handler, configuration);
+            // clear cache to be sure that list of axioms is always the same and corresponds to the graph.
+            res.getBase().clearCache();
+            return res;
         }
+        // todo: resolve possible cycle
         UnionGraph union = new UnionGraph(graph);
         graph.find(Node.ANY, OWL.imports.asNode(), Node.ANY)
                 .mapWith(Triple::getObject)
@@ -78,11 +85,14 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
                 .mapWith(OntGraphModel::getGraph)
                 .forEachRemaining(union::addGraph);
 
-        OntInternalModel base = new OntInternalModel(GraphConverter.convert(union));
+        return create(union, m, format);
+    }
 
-        OntologyModelImpl ont = new OntologyModelImpl(m, base);
-        OntologyModel res = m.isConcurrent() ? ont.toConcurrentModel() : ont;
-        m.ontologyCreated(res);
+    private OntologyModel create(UnionGraph graph, OntologyManagerImpl manager, OntFormat format) {
+        OntInternalModel base = new OntInternalModel(GraphConverter.convert(graph));
+        OntologyModelImpl ont = new OntologyModelImpl(manager, base);
+        OntologyModel res = manager.isConcurrent() ? ont.toConcurrentModel() : ont;
+        manager.ontologyCreated(res);
         OWLDocumentFormat owlFormat = format.createOwlFormat();
         if (PrefixManager.class.isInstance(owlFormat)) {
             PrefixManager prefixes = (PrefixManager) owlFormat;
@@ -90,7 +100,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             if (ont.getOntologyID().getOntologyIRI().isPresent())
                 prefixes.setPrefix("", ont.getOntologyID().getOntologyIRI().get().getIRIString());
         }
-        m.setOntologyFormat(res, owlFormat);
+        manager.setOntologyFormat(res, owlFormat);
         return res;
     }
 
@@ -104,7 +114,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         return null;
     }
 
-    public static Lang loadGraph(Graph g, OntologyManager manager, OWLOntologyDocumentSource source) throws OntApiException {
+    public static Lang loadGraph(Graph g, OWLOntologyDocumentSource source) throws OntApiException {
         IRI iri = OntApiException.notNull(source, "Null OWLOntologyDocumentSource.").getDocumentIRI();
         if (LOGGER.isDebugEnabled())
             LOGGER.debug("Load ONT Model from " + iri);

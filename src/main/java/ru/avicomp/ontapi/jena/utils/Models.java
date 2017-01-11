@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.jena.utils;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -10,6 +11,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -25,7 +27,17 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * Created by szuev on 20.10.2016.
  */
 public class Models {
-    public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (o1, o2) -> NodeUtils.compareRDFTerms(o1.asNode(), o2.asNode());
+    public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (r1, r2) -> NodeUtils.compareRDFTerms(r1.asNode(), r2.asNode());
+    public static final Comparator<Statement> STATEMENT_COMPARATOR = Comparator
+            .comparing(Statement::getSubject, RDF_NODE_COMPARATOR)
+            .thenComparing(Statement::getPredicate, RDF_NODE_COMPARATOR)
+            .thenComparing(Statement::getObject, RDF_NODE_COMPARATOR);
+    public static final RDFNode BLANK = new ResourceImpl();
+    public static final Comparator<Statement> STATEMENT_COMPARATOR_IGNORE_BLANK = Comparator
+            .comparing((Function<Statement, RDFNode>) s -> s.getSubject().isAnon() ? BLANK : s.getSubject(), RDF_NODE_COMPARATOR)
+            .thenComparing(s -> s.getPredicate().isAnon() ? BLANK : s.getPredicate(), RDF_NODE_COMPARATOR)
+            .thenComparing(s -> s.getObject().isAnon() ? BLANK : s.getObject(), RDF_NODE_COMPARATOR);
+
 
     /**
      * creates typed list: the anonymous section which is built using the same rules as true rdf:List,

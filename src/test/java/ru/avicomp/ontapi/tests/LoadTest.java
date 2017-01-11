@@ -15,6 +15,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
  * for testing pizza, foaf and googrelations ontologies.
@@ -49,8 +50,8 @@ public class LoadTest {
         OntologyModel ont = loadONT(fileIRI);
         OWLOntology owl = loadOWL(fileIRI);
 
-        List<OWLAxiom> owlList = axioms(owl).sorted().collect(Collectors.toList());
-        List<OWLAxiom> ontList = axioms(ont).sorted().collect(Collectors.toList());
+        List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
+        List<OWLAxiom> ontList = TestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());
 
         ReadWriteUtils.print(ont.asGraphModel());
 
@@ -118,8 +119,8 @@ public class LoadTest {
         OntologyModel ont = loadONT(fileIRI);
         OWLOntology owl = loadOWL(fileIRI);
 
-        List<OWLAxiom> owlList = axioms(owl).sorted().collect(Collectors.toList());
-        List<OWLAxiom> ontList = axioms(ont).sorted().collect(Collectors.toList());
+        List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
+        List<OWLAxiom> ontList = TestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());
 
         ReadWriteUtils.print(ont.asGraphModel());
 
@@ -134,7 +135,9 @@ public class LoadTest {
                 LOGGER.warn("Skip <" + type + ">");
                 return;
             }
-            List<OWLAxiom> actual = ontList.stream().filter(axiom -> type.equals(axiom.getAxiomType())).collect(Collectors.toList());
+            List<OWLAxiom> actual = ontList.stream()
+                    .filter(axiom -> type.equals(axiom.getAxiomType()))
+                    .collect(Collectors.toList());
             List<OWLAxiom> expected = owlList.stream().filter(axiom -> type.equals(axiom.getAxiomType())).collect(Collectors.toList());
             LOGGER.debug("Test type <" + type + ">" + " ::: " + expected.size());
             Assert.assertThat("Incorrect axioms for type <" + type + "> (actual=" + actual.size() + ", expected=" + expected.size() + ")", actual, IsEqual.equalTo(expected));
@@ -160,10 +163,4 @@ public class LoadTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static Stream<OWLAxiom> axioms(OWLOntology o) {
-        return o.axioms()
-                .map(a -> a instanceof OWLNaryAxiom ? (Stream<OWLAxiom>) ((OWLNaryAxiom) a).splitToAnnotatedPairs().stream() : Stream.of(a))
-                .flatMap(Function.identity()).distinct();
-    }
 }

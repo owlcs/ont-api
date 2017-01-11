@@ -152,15 +152,27 @@ public class RDF2OWLHelper {
                         annotations(a)));
     }
 
-    public static Set<TripleSet<OWLAnnotation>> getBulkAnnotations(OntObject object) {
+    public static Set<TripleSet<OWLAnnotation>> getAnnotations(OntObject object) {
         return getBulkAnnotations(OntApiException.notNull(object, "Null ont-object.").getRoot());
     }
 
+    public static Set<TripleSet<OWLAnnotation>> getAnnotations(OntStatement statement) {
+        if (isEntityDeclaration(statement) && statement.annotations().noneMatch(OntStatement::hasAnnotations)) {
+            // for compatibility with OWL-API skip plain annotations attached to an entity:
+            // they would go separately as annotation-assertions.
+            return Collections.emptySet();
+        }
+        return getBulkAnnotations(statement);
+    }
+
     public static Set<TripleSet<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
-        return statement.annotations().anyMatch(OntStatement::hasAnnotations) ?
-                statement.annotations()
-                        .map(a -> a.hasAnnotations() ? getHierarchicalAnnotations(a) : getPlainAnnotation(a)).collect(Collectors.toSet()) :
-                Collections.emptySet();
+        return statement.annotations().map(a -> a.hasAnnotations() ?
+                getHierarchicalAnnotations(a) :
+                getPlainAnnotation(a)).collect(Collectors.toSet());
+    }
+
+    public static boolean isEntityDeclaration(OntStatement statement) {
+        return statement.isRoot() && statement.isDeclaration() && statement.getSubject().isURIResource();
     }
 
     private static TripleSet<OWLAnnotation> getPlainAnnotation(OntStatement a) {
@@ -419,7 +431,7 @@ public class RDF2OWLHelper {
                 triples.addAll(getAssociatedTriples(subject));
             }
             triples.addAll(getAssociatedTriples(main.getObject()));
-            getBulkAnnotations(main).forEach(a -> {
+            RDF2OWLHelper.getAnnotations(main).forEach(a -> {
                 triples.addAll(a.getTriples());
                 annotations.add(a.getObject());
             });
