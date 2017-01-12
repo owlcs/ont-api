@@ -23,6 +23,7 @@ import org.junit.runners.Parameterized.Parameters;
  * @author Matthew Horridge, The University Of Manchester, Information
  *         Management Group
  * @since 2.2.0
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
@@ -70,7 +71,7 @@ public class FileRoundTripTestCase extends AbstractFileRoundTrippingTestCase {
                 "ObjectUnionOf.rdf",
                 "primer.functionalsyntax.txt",
                 "primer.owlxml.xml",
-                // WARNING: The entity http://example.com/owl/families/hasSSN in primer.rdfxml.xml was an owl:DataProperty initially.
+                // WARNING: The entity http://example.com/owl/families/hasSSN inside primer.rdfxml.xml was an owl:DataProperty initially.
                 // I changed it to owl:DatatypeProperty. OWL-API treats an entity as owl:DatatypeProperty in such unclear cases
                 // (see org.semanticweb.owlapi.rdf.rdfxml.parser.Translators#DataSomeValuesFromTranslator#translate),
                 // but it doesn't seem correct to me.
@@ -79,6 +80,11 @@ public class FileRoundTripTestCase extends AbstractFileRoundTrippingTestCase {
                 "koala.owl",
                 "SubClassOf.rdf",
                 "TestParser06.rdf",
+                // WARNING: There is ambiguous situation with Restriction inside TestParser07.rdf:
+                // the pair <http://example.org#r>, <http://example.org#z> could be a data property either an object property restriction.
+                // OWL-API decides that it is object property for some reasons.
+                // ONT-API would throw an exception in such case.
+                // To make test passed I changed initial TestParser07.rdf by adding declaration for <http://example.org#z> as Datatype.
                 "TestParser07.rdf",
                 "TestParser10.rdf",
                 "annotatedpropertychain.ttl.rdf",

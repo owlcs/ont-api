@@ -404,6 +404,7 @@ public abstract class TestBase {
      */
     public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format) throws OWLOntologyStorageException,
             OWLOntologyCreationException {
+        //ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);
         StringDocumentTarget target = new StringDocumentTarget();
         OWLDocumentFormat fromFormat = ont.getFormat();
         if (fromFormat.isPrefixOWLDocumentFormat() && format.isPrefixOWLDocumentFormat()) {
