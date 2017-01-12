@@ -230,9 +230,18 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         Node n = NodeFactory.createURI(OntJenaException.notNull(uri, "Null uri."));
         try { // returns not null in case it is present in graph or built-in.
             return getNodeAs(n, type);
-        } catch (ConversionException ignore) {
+        } catch (OntJenaException.Conversion ignore) {
             // ignore
             return null;
+        }
+    }
+
+    @Override
+    public <N extends RDFNode> N getNodeAs(Node n, Class<N> view) {
+        try {
+            return super.getNodeAs(OntJenaException.notNull(n, "Null node"), OntJenaException.notNull(view, "Null class view."));
+        } catch (ConversionException e) {
+            throw new OntJenaException.Conversion(String.format("Failed to convert node <%s> to <%s>", n, view.getSimpleName()), e);
         }
     }
 

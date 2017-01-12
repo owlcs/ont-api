@@ -3,6 +3,7 @@ package ru.avicomp.ontapi;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.IRI;
@@ -52,6 +53,14 @@ public interface OntologyManager extends OWLOntologyManager {
 
     OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException;
 
+    default OntologyModel createOntology() {
+        return createOntology(new OWLOntologyID());
+    }
+
+    default OntologyModel createOntology(IRI iri) {
+        return createOntology(new OWLOntologyID(optional(iri), emptyOptional(IRI.class)));
+    }
+
     default OntGraphModel loadGraphModel(@Nonnull String source) throws OWLOntologyCreationException {
         return loadOntology(IRI.create(source)).asGraphModel();
     }
@@ -65,12 +74,8 @@ public interface OntologyManager extends OWLOntologyManager {
         return createOntology(uri == null ? null : IRI.create(uri)).asGraphModel();
     }
 
-    default OntologyModel createOntology() {
-        return createOntology(new OWLOntologyID());
-    }
-
-    default OntologyModel createOntology(IRI iri) {
-        return createOntology(new OWLOntologyID(optional(iri), emptyOptional(IRI.class)));
+    default Stream<OntGraphModel> models() {
+        return ontologies().map(OntologyModel.class::cast).map(OntologyModel::asGraphModel);
     }
 
     interface GraphFactory extends Serializable {

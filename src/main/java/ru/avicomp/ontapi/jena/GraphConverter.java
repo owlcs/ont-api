@@ -31,7 +31,7 @@ public abstract class GraphConverter {
     public static final FactoryStore CONVERTERS = new FactoryStore()
             .add(RDFStoOWLFixer::new)
             .add(OWLtoOWL2DLFixer::new)
-            .add(OwlDeclarationFixer::new);
+            .add(DeclarationFixer::new);
 
     /**
      * the main method to perform conversion one {@link Graph} to another.
@@ -325,10 +325,10 @@ public abstract class GraphConverter {
      * Class to perform the final tuning of the ontology: mostly for fixing missed owl-declarations where it is possible.
      * Consists of several other converters.
      */
-    public static class OwlDeclarationFixer extends TransformAction {
+    public static class DeclarationFixer extends TransformAction {
         private final List<TransformAction> inner;
 
-        public OwlDeclarationFixer(Graph graph) {
+        public DeclarationFixer(Graph graph) {
             super(graph);
             inner = Stream.of(
                     new StandaloneURIFixer(graph)
@@ -401,6 +401,9 @@ public abstract class GraphConverter {
             fixAmbiguousTypes(m, OWL.equivalentClass, OWL.Class, RDFS.Datatype);
 
             Stream.of(RDFS.subClassOf, OWL.disjointWith, OWL.onClass).forEach(p -> fixExplicitTypes(m, p, OWL.Class));
+
+            fixExplicitTypes(m, OWL.onDataRange, RDFS.Datatype);
+
             //if (containsType(OWL.disjointUnionOf))
             m.listStatements(null, OWL.disjointUnionOf, (RDFNode) null).forEachRemaining(s -> fixList(s, OWL.Class));
             //if (containsType(OWL.AllDisjointClasses))
@@ -408,23 +411,38 @@ public abstract class GraphConverter {
                     .mapWith(main -> m.getProperty(main, OWL.members))
                     .forEachRemaining(s -> fixList(s, OWL.Class));
 
-            fixRestrictions(m);
+            fixRestrictionExpressionsByProperty(m);
+            fixEnumerationExpressionsByEntity(m);
+            fixBooleanExpressionsByClass(m);
         }
 
-        private void fixRestrictions(Model m) {
+        private void fixRestrictionExpressionsByProperty(Model m) {
             // fix allValuesFrom, someValuesFrom by onProperty
             Stream.of(OWL.allValuesFrom, OWL.someValuesFrom)
                     .forEach(predicate -> m.listStatements(null, predicate, (RDFNode) null)
+                            .filterKeep(this::isRestriction)
                             .forEachRemaining(s -> {
-                                Set<Resource> propertyTypes = Models.asStream(m.listStatements(s.getSubject(), OWL.onProperty, (RDFNode) null)
-                                        .mapWith(Statement::getObject))
-                                        .map(n -> types(n, false))
-                                        .flatMap(Function.identity())
-                                        .collect(Collectors.toSet());
-                                Resource type = propertyTypes.contains(OWL.ObjectProperty) ? OWL.Class :
-                                        propertyTypes.contains(OWL.DatatypeProperty) ? RDFS.Datatype : null;
-                                declare(s.getObject(), type, false);
+                                Resource propertyType = choosePropertyType(getOnPropertyFromRestriction(s.getSubject()));
+                                if (propertyType == null) return;
+                                declare(s.getObject(), OWL.ObjectProperty.equals(propertyType) ? OWL.Class : RDFS.Datatype, true);
                             }));
+        }
+
+        private void fixEnumerationExpressionsByEntity(Model m) {
+            Stream.of(OWL.intersectionOf, OWL.unionOf)
+                    .forEach(predicate -> m.listStatements(null, predicate, (RDFNode) null)
+                            .forEachRemaining(s -> {
+                                Resource type = chooseExpressionType(s.getSubject());
+                                fixList(s, type);
+                            }));
+
+        }
+
+        private void fixBooleanExpressionsByClass(Model m) {
+            // owl:complementOf  -> always class
+            m.listStatements(null, OWL.complementOf, (RDFNode) null)
+                    .mapWith(Statement::getObject)
+                    .forEachRemaining(n -> declare(n, OWL.Class, true));
         }
 
         private void fixOwlProperties(Model m) {
@@ -436,13 +454,80 @@ public abstract class GraphConverter {
                     .mapWith(main -> m.getProperty(main, OWL.members))
                     .forEachRemaining(this::fixPropertyList);
 
+            fixHasSelfExpressions(m);
+            fixRestrictionExpressionsByEntity(m);
+        }
+
+        private void fixHasSelfExpressions(Model m) {
             // Restriction 'hasSelf' has always ObjectProperty assigned.
             Literal _true = ResourceFactory.createTypedLiteral(true);
             m.listStatements(null, OWL.onProperty, (RDFNode) null)
-                    .filterKeep(s -> m.contains(s.getSubject(), OWL.hasSelf, _true))
-                    .mapWith(Statement::getObject)
-                    .forEachRemaining(n -> declare(n, OWL.ObjectProperty, true));
+                    .filterKeep(this::isRestriction)
+                    .filterKeep(s -> m.contains(s.getSubject(), OWL.hasSelf, _true)).forEachRemaining(s -> {
+                Resource property = getOnPropertyFromRestriction(s.getSubject());
+                if (property == null) return;
+                declare(property, OWL.ObjectProperty, true);
+
+            });
         }
+
+        private void fixRestrictionExpressionsByEntity(Model m) {
+            // fix allValuesFrom, someValuesFrom by entity (datarange or class)
+            Stream.of(OWL.allValuesFrom, OWL.someValuesFrom)
+                    .forEach(predicate -> m.listStatements(null, predicate, (RDFNode) null)
+                            .filterKeep(this::isRestriction)
+                            .forEachRemaining(s -> {
+                                Resource entityType = chooseExpressionType(s.getObject());
+                                if (entityType == null) return;
+                                Resource property = getOnPropertyFromRestriction(s.getSubject());
+                                if (property == null) return;
+                                declare(property, OWL.Class.equals(entityType) ? OWL.ObjectProperty : OWL.DatatypeProperty, true);
+                            }));
+        }
+
+        private boolean isRestriction(Statement s) {
+            return s != null && s.getModel().contains(s.getSubject(), RDF.type, OWL.Restriction);
+        }
+
+        /**
+         * choose unambiguous type of expression (either datarange expression or class expression).
+         *
+         * @param node RDFNode to test
+         * @return owl:Class, rdfs:Datatype or null
+         */
+        private Resource chooseExpressionType(RDFNode node) {
+            if (node == null || !node.isResource()) return null;
+            List<Resource> types = types(node, false)
+                    .map(r -> OWL.Class.equals(r) || OWL.Restriction.equals(r) ? OWL.Class : RDFS.Datatype.equals(r) ? RDFS.Datatype : null)
+                    .distinct().collect(Collectors.toList());
+            return types.size() == 1 ? types.get(0) : null;
+        }
+
+        private Resource getOnPropertyFromRestriction(RDFNode node) {
+            if (node == null || !node.isResource()) return null;
+            List<Resource> properties = Models.asStream(node.getModel().listStatements(node.asResource(), OWL.onProperty, (RDFNode) null))
+                    .map(Statement::getObject).filter(RDFNode::isResource).map(RDFNode::asResource).distinct().collect(Collectors.toList());
+            return properties.size() == 1 ? properties.get(0) : null;
+        }
+
+        /**
+         * choose unambiguous type of property (either object property expression or datatype property).
+         *
+         * @param node RDFNode to test
+         * @return owl:ObjectProperty, owl:DatatypeProperty or null
+         */
+        private Resource choosePropertyType(RDFNode node) {
+            if (node == null || !node.isResource()) return null;
+            List<Resource> types = types(node, true)
+                    .map(r -> OWL.ObjectProperty.equals(r) ? OWL.ObjectProperty : OWL.DatatypeProperty)
+                    .distinct().collect(Collectors.toList());
+            if (types.size() == 1) return types.get(0);
+            if (node.getModel().contains(node.asResource(), OWL.inverseOf, (RDFNode) null) || node.getModel().contains(null, OWL.inverseOf, node)) {
+                return OWL.ObjectProperty;
+            }
+            return null;
+        }
+
 
         /**
          * fix for ambiguous situations when the predicate is used for different types.
@@ -465,11 +550,12 @@ public abstract class GraphConverter {
 
         private Resource chooseTypeFrom(Stream<Resource> stream, Resource... oneOf) {
             Set<Resource> trueTypes = stream.collect(Collectors.toSet());
-            return Stream.of(oneOf).filter(trueTypes::contains).findFirst().orElse(null);
+            List<Resource> res = Stream.of(oneOf).filter(trueTypes::contains).distinct().collect(Collectors.toList());
+            return res.size() == 1 ? res.get(0) : null;
         }
 
         private void fixList(Statement statement, Resource type) {
-            if (statement == null) return;
+            if (statement == null || type == null) return;
             if (!statement.getObject().canAs(RDFList.class)) return;
             RDFList list = statement.getObject().as(RDFList.class);
             list.asJavaList().forEach(r -> declare(r, type, true));

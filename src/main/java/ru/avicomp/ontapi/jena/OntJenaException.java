@@ -28,4 +28,18 @@ public class OntJenaException extends JenaException {
             throw message == null ? new OntJenaException() : new OntJenaException(message);
         return obj;
     }
+
+    /**
+     * this is an analogue of {@link org.apache.jena.ontology.ConversionException},
+     * used inside top level api ({@link ru.avicomp.ontapi.jena.model.OntGraphModel}, {@link ru.avicomp.ontapi.jena.model.OntObject}).
+     */
+    public static class Conversion extends OntJenaException {
+        public Conversion(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public Conversion(String message) {
+            super(message);
+        }
+    }
 }
