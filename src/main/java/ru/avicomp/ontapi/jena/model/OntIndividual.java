@@ -7,7 +7,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * for named and anonymous individuals
- *
+ * <p>
  * Created by @szuev on 02.11.2016.
  */
 public interface OntIndividual extends OntObject {
@@ -53,7 +53,17 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * Anonymous Individual here.
+     * Class for Anonymous Individuals.
+     * The anonymous individual is a blank node ("_:a") which satisfies one of the following conditions:
+     * - it has a class declaration (i.e. there is a triple "_:a rdf:type C", where C is a class expression).
+     * - it is a subject or an object in a statement with predicate owl:sameAs or owl:differentFrom.
+     * - it is contained in a rdf:List with predicate owl:distinctMembers or owl:members in a blank node with rdf:type owl:AllDifferent
+     * - it is contained in a rdf:List with predicate owl:oneOf in a blank node with rdf:type owl:Class.
+     * - it is a part of owl:Axiom or owl:Annotation (bulk annotation) with predicate owl:annotatedTarget or owl:annotatedSource.
+     * - it is a part of owl:NegativePropertyAssertion section with predicates owl:sourceIndividual, owl:targetIndividual.
+     * - it is a subject or an object in a statement where predicate is a uri-resource("A") with type owl:AnnotationProperty (annotation property assertion "s A t"),
+     * - it is a subject in a triple which corresponds data property assertions "_:a R v" (where "R" is a data property, "v" is literal).
+     * - it is a subject or a object in a triple which corresponds object property assertion "_:a1 PN _:a2" (where PN is a named object property)
      * <p>
      * Created by szuev on 10.11.2016.
      */

@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
@@ -19,7 +20,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * for anonymous owl:AllDisjointProperties,  owl:AllDisjointClasses, owl:AllDifferent
+ * for anonymous owl:AllDisjointProperties,  owl:AllDisjointClasses, owl:AllDifferent sections.
  * <p>
  * Created by @szuev on 15.11.2016.
  */
@@ -43,12 +44,12 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         super(n, m);
     }
 
-    protected abstract Property predicate();
+    protected abstract Stream<Property> predicates();
 
     protected abstract Class<O> componentClass();
 
     public Stream<O> members() {
-        return rdfList(predicate(), componentClass());
+        return predicates().map(p -> rdfList(p, componentClass())).flatMap(Function.identity());
     }
 
     private static OntFilter makeFilter(Property predicate, Tester tester) {
@@ -84,11 +85,21 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         return model.getNodeAs(res.asNode(), Classes.class);
     }
 
+    /**
+     * Creates blank node "_:x rdf:type owl:AllDifferent. _:x owl:members (a1 … an)."
+     * <p>
+     * Note: the predicate is "owl:members", not "owl:distinctMembers"
+     * see <a href='https://www.w3.org/TR/owl2-quick-reference/'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
+     *
+     * @param model       {@link OntGraphModelImpl}
+     * @param individuals stream of {@link OntIndividual}
+     * @return {@link ru.avicomp.ontapi.jena.model.OntDisjoint.Individuals}
+     */
     public static Individuals createDifferentIndividuals(OntGraphModelImpl model, Stream<OntIndividual> individuals) {
         OntJenaException.notNull(individuals, "Null individuals stream.");
         Resource res = model.createResource();
         res.addProperty(RDF.type, OWL.AllDifferent);
-        res.addProperty(OWL.distinctMembers, model.createList(individuals.iterator()));
+        res.addProperty(OWL.members, model.createList(individuals.iterator()));
         return model.getNodeAs(res.asNode(), Individuals.class);
     }
 
@@ -114,8 +125,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Property predicate() {
-            return OWL.members;
+        protected Stream<Property> predicates() {
+            return Stream.of(OWL.members);
         }
 
         @Override
@@ -130,8 +141,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Property predicate() {
-            return OWL.distinctMembers;
+        protected Stream<Property> predicates() {
+            return Stream.of(OWL.members, OWL.distinctMembers);
         }
 
         @Override
@@ -146,8 +157,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Property predicate() {
-            return OWL.members;
+        protected Stream<Property> predicates() {
+            return Stream.of(OWL.members);
         }
     }
 

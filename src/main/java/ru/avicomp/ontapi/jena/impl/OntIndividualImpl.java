@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFList;
@@ -63,6 +64,10 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
     }
 
+    /**
+     * see description to the interface {@link OntIndividual.Anonymous}
+     * TODO: implement all described conditions.
+     */
     public static class AnonymousImpl extends OntIndividualImpl implements OntIndividual.Anonymous {
         public AnonymousImpl(Node n, EnhGraph m) {
             super(n, m);
@@ -71,7 +76,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         @Override
         public void detachClass(OntCE clazz) {
             if (classes().filter(c -> !clazz.equals(c)).count() == 0) {
-                // otherwise this would no longer be an individual
+                // otherwise this would no longer be an individual (todo: it seems we don't need this checking)
                 throw new OntJenaException("Can't detach last class " + clazz);
             }
             super.detachClass(clazz);
@@ -82,7 +87,8 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
             public Stream<Node> find(EnhGraph eg) {
                 Stream<Node> declarations = Models.asStream(getDeclarations(Node.ANY, eg).mapWith(Triple::getSubject).filterKeep(Node::isBlank));
                 Stream<Node> disjoint = disjointAnonIndividuals(eg);
-                return Stream.concat(declarations, disjoint).distinct();
+                Stream<Node> oneOf = oneOfAnonIndividuals(eg);
+                return Stream.of(declarations, disjoint, oneOf).flatMap(Function.identity()).distinct();
             }
         }
 
@@ -90,7 +96,9 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
             @Override
             public boolean test(Node node, EnhGraph graph) {
                 return node.isBlank() &&
-                        (!getDeclarations(node, graph).mapWith(Triple::getObject).toSet().isEmpty() || disjointAnonIndividuals(graph).anyMatch(node::equals));
+                        (!getDeclarations(node, graph).mapWith(Triple::getObject).toSet().isEmpty() ||
+                                oneOfAnonIndividuals(graph).anyMatch(node::equals) ||
+                                disjointAnonIndividuals(graph).anyMatch(node::equals));
             }
         }
 
@@ -104,9 +112,16 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static Stream<Node> disjointAnonIndividuals(EnhGraph eg) {
-            Stream<Node> roots = Models.asStream(eg.asGraph().find(Node.ANY, RDF.type.asNode(), OWL.AllDifferent.asNode()).mapWith(Triple::getSubject).filterKeep(Node::isBlank));
-            return roots.map(root -> Models.asStream(eg.asGraph().find(root, OWL.distinctMembers.asNode(), Node.ANY).mapWith(Triple::getObject)))
-                    .flatMap(Function.identity())
+            return blankNodesFromList(eg, OWL.AllDifferent.asNode(), OWL.distinctMembers.asNode(), OWL.members.asNode());
+        }
+
+        private static Stream<Node> oneOfAnonIndividuals(EnhGraph eg) {
+            return blankNodesFromList(eg, OWL.Class.asNode(), OWL.oneOf.asNode());
+        }
+
+        private static Stream<Node> blankNodesFromList(EnhGraph eg, Node type, Node... predicates) {
+            Stream<Node> roots = Models.asStream(eg.asGraph().find(Node.ANY, RDF.type.asNode(), type).mapWith(Triple::getSubject).filterKeep(Node::isBlank));
+            return objects(eg.asGraph(), roots, predicates)
                     .filter(node -> RDFListImpl.factory.canWrap(node, eg))
                     .map(node -> RDFListImpl.factory.wrap(node, eg))
                     .map(enhNode -> enhNode.as(RDFList.class))
@@ -115,6 +130,19 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
                     .flatMap(Function.identity())
                     .map(FrontsNode::asNode)
                     .filter(Node::isBlank);
+
+        }
+
+        private static Stream<Node> objects(Graph graph, Node subject, Node predicate) {
+            return Models.asStream(graph.find(subject, predicate, Node.ANY).mapWith(Triple::getObject));
+        }
+
+        private static Stream<Node> objects(Graph graph, Node subject, Node... predicates) {
+            return Stream.of(predicates).map(p -> objects(graph, subject, p)).flatMap(Function.identity());
+        }
+
+        private static Stream<Node> objects(Graph graph, Stream<Node> subjects, Node... predicates) {
+            return subjects.map(r -> objects(graph, r, predicates)).flatMap(Function.identity());
         }
     }
 }
