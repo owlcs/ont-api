@@ -3,7 +3,6 @@
  */
 package org.semanticweb.owlapi.rio;
 
-import javax.annotation.Nonnull;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashSet;
@@ -28,20 +27,16 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * @author Peter Ansell p_ansell@yahoo.com
+ * @szuev: modified for ONT-API
  */
-@SuppressWarnings({"javadoc", "null"})
+@SuppressWarnings({"javadoc", "null", "ConstantConditions"})
 public class RioRendererTestCase extends TestBase {
 
     private SimpleValueFactory vf;
-    private
-    @Nonnull
-    OWLOntology testOntologyEmpty;
-    private
-    @Nonnull
-    OWLOntology testOntologyKoala;
+    private OWLOntology testOntologyEmpty;
+    private OWLOntology testOntologyKoala;
     private Statement testOntologyEmptyStatement;
     private final
-    @Nonnull
     IRI testOntologyUri1 = IRI.create("urn:test:ontology:uri:1", "");
     private StatementCollector testHandlerStatementCollector;
     private StringWriter testRdfXmlStringWriter;
@@ -58,7 +53,11 @@ public class RioRendererTestCase extends TestBase {
                 new RioTurtleStorerFactory());
         testOntologyEmpty = m.createOntology(testOntologyUri1);
         testOntologyKoala = m.loadOntologyFromOntologyDocument(getClass().getResourceAsStream("/owlapi/koala.owl"));
-        assertEquals(70, testOntologyKoala.getAxiomCount());
+        LOGGER.info("Axioms:");
+        testOntologyKoala.axioms().forEach(axiom -> LOGGER.debug("{}", axiom));
+        // ONT-API -> 76 axioms (6 declaration axioms for NamedIndividuals), OWL-API -> 70.
+        int num = DEBUG_USE_OWL ? 70 : 76;
+        assertEquals("Incorrect count of axioms", num, testOntologyKoala.getAxiomCount());
         testHandlerStatementCollector = new StatementCollector();
         testOntologyEmptyStatement = vf.createStatement(vf.createIRI("urn:test:ontology:uri:1"), RDF.TYPE,
                 OWL.ONTOLOGY);

@@ -60,7 +60,7 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 @SuppressWarnings({"javadoc", "null"})
 public abstract class TestBase {
 
-    private static final boolean DEBUG_USE_OWL = Boolean.parseBoolean(System.getProperty("debug.use.owl", Boolean.FALSE.toString()));
+    public static final boolean DEBUG_USE_OWL = Boolean.parseBoolean(System.getProperty("debug.use.owl", Boolean.FALSE.toString()));
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(TestBase.class);
     protected static final String uriBase = "http://www.semanticweb.org/owlapi/test";
@@ -404,7 +404,7 @@ public abstract class TestBase {
      */
     public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format) throws OWLOntologyStorageException,
             OWLOntologyCreationException {
-        //ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);
         StringDocumentTarget target = new StringDocumentTarget();
         OWLDocumentFormat fromFormat = ont.getFormat();
         if (fromFormat.isPrefixOWLDocumentFormat() && format.isPrefixOWLDocumentFormat()) {

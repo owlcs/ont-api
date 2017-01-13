@@ -148,14 +148,19 @@ public class Models {
      */
     public static Set<Statement> getAssociatedStatements(Resource inModel) {
         Set<Statement> res = new HashSet<>();
-        inModel.listProperties().forEachRemaining(s -> {
-            res.add(s);
-            if (!s.getObject().isAnon()) return;
-            Resource obj = s.getObject().asResource();
-            if (res.stream().anyMatch(_s -> obj.equals(_s.getSubject()))) // to avoid cycles
-                return;
-            res.addAll(getAssociatedStatements(obj));
-        });
+        calcAssociatedStatements(inModel, res);
         return res;
+    }
+
+    private static void calcAssociatedStatements(Resource root, Set<Statement> res) {
+        root.listProperties().forEachRemaining(statement -> {
+            RDFNode obj = statement.getObject();
+            if (res.stream().anyMatch(s -> obj.equals(s.getSubject()))) // to avoid cycles
+                return;
+            res.add(statement);
+            if (obj.isAnon()) {
+                calcAssociatedStatements(obj.asResource(), res);
+            }
+        });
     }
 }

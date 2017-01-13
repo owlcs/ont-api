@@ -44,7 +44,7 @@ public class ReadWriteUtils {
         LOGGER.debug("\n" + toString(model, ext));
     }
 
-    private static String toString(OWLOntology ontology, OntFormat type) {
+    public static String toString(OWLOntology ontology, OntFormat type) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
@@ -54,7 +54,7 @@ public class ReadWriteUtils {
         }
     }
 
-    private static String toString(Model model, OntFormat ext) {
+    public static String toString(Model model, OntFormat ext) {
         return toStringWriter(model, ext).toString();
     }
 
@@ -65,6 +65,14 @@ public class ReadWriteUtils {
     }
 
     public static InputStream toInputStream(Model model, OntFormat ext) {
+        try {
+            return IOUtils.toInputStream(toString(model, ext), StandardCharsets.UTF_8.name());
+        } catch (IOException e) {
+            throw new OntApiException(e);
+        }
+    }
+
+    public static InputStream toInputStream(OWLOntology model, OntFormat ext) {
         try {
             return IOUtils.toInputStream(toString(model, ext), StandardCharsets.UTF_8.name());
         } catch (IOException e) {
