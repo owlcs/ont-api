@@ -18,14 +18,16 @@ import java.util.Set;
 import org.apache.jena.shared.InvalidPropertyURIException;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.AxiomsRoundTrippingBase;
+import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 import ru.avicomp.ontapi.OntApiException;
 
-import static org.junit.Assert.fail;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
+import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information
@@ -34,48 +36,46 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
  * @since 3.0.0
  */
 @SuppressWarnings("javadoc")
-public class NoQNameTestCase extends AxiomsRoundTrippingBase {
+public class NoQNameTestCase extends TestBase {
 
-    public NoQNameTestCase() {
-        super(() -> {
-            Set<OWLAxiom> axioms = new HashSet<>();
-            OWLNamedIndividual indA = NamedIndividual(IRI(
-                    "http://example.com/place/112013e2-df48-4a34-8a9d-99ef572a395A", ""));
-            OWLNamedIndividual indB = NamedIndividual(IRI(
-                    "http://example.com/place/112013e2-df48-4a34-8a9d-99ef572a395B", ""));
-            OWLObjectProperty property = ObjectProperty(IRI("http://example.com/place/123", ""));
-            axioms.add(ObjectPropertyAssertion(property, indA, indB));
-            return axioms;
-        });
-    }
 
     /**
      * OWL-API throws a checked exception {@link org.semanticweb.owlapi.model.OWLOntologyStorageException}
      * (caused by {@link org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException})
      * while store ontology (during {@link org.semanticweb.owlapi.model.OWLOntologyManager#saveOntology}.
      * <p>
-     * ONT-API throws an unchecked exception {@link OntApiException} (caused by {@link InvalidPropertyURIException}) while adding axioms (while {@link org.semanticweb.owlapi.model.OWLOntology#addAxioms}).
+     * ONT-API throws an unchecked exception {@link OntApiException} (caused by {@link InvalidPropertyURIException})
+     * while adding axioms (while {@link org.semanticweb.owlapi.model.OWLOntology#addAxioms}).
      * So we can't make behaviour the same for ONT-API. And i'm not sure we really need it.
      *
-     * @throws Exception
+     * Therefore this class is not inherited {@link AxiomsRoundTrippingBase} anymore and has only a single testcase.
      */
-    @Override
     @Test
-    public void testRDFXML() throws Exception {
+    public void testCreate() {
         try {
-            super.testRDFXML();
-            fail("Expected an exception specifying that a QName could not be generated");
+            createOntology();
+            throw new AssertionError("Expected an exception specifying that a QName could not be generated");
         } catch (OntApiException e) {
-            LOGGER.info("Exception " + e);
-            if (!(e.getCause() instanceof InvalidPropertyURIException)) {
+            LOGGER.info("Exception:::" + e);
+            Throwable cause = e.getCause();
+            if (!(cause instanceof InvalidPropertyURIException)) {
                 throw e;
             }
         }
     }
 
-    @Override
-    public void roundTripRDFXMLAndFunctionalShouldBeSame() {
-        // Test meaningless in this case, as the RDF/XML serialization does not
-        // exist
+    protected OWLOntology createOntology() {
+        Set<OWLAxiom> axioms = new HashSet<>();
+        OWLNamedIndividual indA = NamedIndividual(IRI(
+                "http://example.com/place/112013e2-df48-4a34-8a9d-99ef572a395A", ""));
+        OWLNamedIndividual indB = NamedIndividual(IRI(
+                "http://example.com/place/112013e2-df48-4a34-8a9d-99ef572a395B", ""));
+        OWLObjectProperty property = ObjectProperty(IRI("http://example.com/place/123", ""));
+        axioms.add(ObjectPropertyAssertion(property, indA, indB));
+        OWLOntology ont = getOWLOntology();
+        ont.add(axioms);
+        ont.signature().filter(e -> !e.isBuiltIn() && !ont.isDeclared(e, INCLUDED)).forEach(e -> ont.add(Declaration(e)));
+        return ont;
     }
+
 }

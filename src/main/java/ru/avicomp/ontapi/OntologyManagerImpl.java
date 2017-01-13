@@ -2,8 +2,12 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +19,7 @@ import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Factory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.io.OWLOntologyStorageIOException;
 import org.semanticweb.owlapi.model.*;
@@ -30,6 +35,7 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
  * Created by @szuev on 03.10.2016.
  */
 public class OntologyManagerImpl extends OWLOntologyManagerImpl implements OntologyManager {
+    private static final Logger LOGGER = Logger.getLogger(OntologyManagerImpl.class);
     public static final GraphFactory DEFAULT_GRAPH_FACTORY = Factory::createGraphMem;
 
     private GraphFactory graphFactory = DEFAULT_GRAPH_FACTORY;
@@ -121,8 +127,11 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
             os = target.getOutputStream().get();
         } else if (target.getDocumentIRI().isPresent()) {
             IRI iri = target.getDocumentIRI().get();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Save " + ontology.getOntologyID() + " to " + iri);
+            }
             try {
-                os = iri.toURI().toURL().openConnection().getOutputStream();
+                os = openStream(iri);
             } catch (IOException e) {
                 throw new OWLOntologyStorageIOException(e);
             }
@@ -144,5 +153,17 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
         } finally {
             Models.setNsPrefixes(model, initPrefixes);
         }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static OutputStream openStream(IRI iri) throws IOException {
+        if ("file".equals(iri.getScheme())) {
+            File file = new File(iri.toURI());
+            file.getParentFile().mkdirs();
+            return new FileOutputStream(file);
+        }
+        URL url = iri.toURI().toURL();
+        URLConnection conn = url.openConnection();
+        return conn.getOutputStream();
     }
 }
