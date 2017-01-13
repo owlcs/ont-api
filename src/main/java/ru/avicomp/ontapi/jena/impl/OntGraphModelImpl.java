@@ -241,7 +241,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         try {
             return super.getNodeAs(OntJenaException.notNull(n, "Null node"), OntJenaException.notNull(view, "Null class view."));
         } catch (ConversionException e) {
-            throw new OntJenaException.Conversion(String.format("Failed to convert node <%s> to <%s>", n, view.getSimpleName()), e);
+            throw new OntJenaException.Conversion(String.format("Failed to convert node <%s> to <%s>", n, view), e);
         }
     }
 

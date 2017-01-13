@@ -109,7 +109,7 @@ public class Models {
         if (node.isAnon()) {
             return new OntIndividualImpl.AnonymousImpl(node.asNode(), (EnhGraph) node.getModel());
         }
-        throw new OntJenaException(node + " could not be " + OntIndividual.Anonymous.class);
+        throw new OntJenaException.Conversion(node + " could not be " + OntIndividual.Anonymous.class);
     }
 
     /**

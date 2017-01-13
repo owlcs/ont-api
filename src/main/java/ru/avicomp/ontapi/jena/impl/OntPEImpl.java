@@ -17,9 +17,10 @@ public abstract class OntPEImpl extends OntObjectImpl {
     public static OntObjectFactory abstractOPEFactory = new MultiOntObjectFactory(OntFinder.TYPED,
             OntEntityImpl.objectPropertyFactory,
             inversePropertyFactory);
-    public static OntObjectFactory abstractPEFactory = new MultiOntObjectFactory(OntFinder.TYPED,
-            OntEntityImpl.objectPropertyFactory,
-            OntEntityImpl.dataPropertyFactory, OntEntityImpl.annotationPropertyFactory, inversePropertyFactory);
+    public static OntObjectFactory abstractNamedPropertyFactory = new MultiOntObjectFactory(OntFinder.TYPED,
+            OntEntityImpl.objectPropertyFactory, OntEntityImpl.dataPropertyFactory, OntEntityImpl.annotationPropertyFactory);
+    public static OntObjectFactory abstractPEFactory =
+            new MultiOntObjectFactory(OntFinder.TYPED, abstractNamedPropertyFactory, inversePropertyFactory);
 
     OntPEImpl(Node n, EnhGraph m) {
         super(n, m);
