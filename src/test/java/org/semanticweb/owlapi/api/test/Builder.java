@@ -2,16 +2,16 @@ package org.semanticweb.owlapi.api.test;
 
 import java.util.*;
 
+import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
 
 import com.google.common.collect.Sets;
-import ru.avicomp.ontapi.OntManagerFactory;
 
 @SuppressWarnings("javadoc")
 public class Builder {
 
 
-    private static OWLDataFactory df = OntManagerFactory.getDataFactory();
+    private static OWLDataFactory df = ru.avicomp.ontapi.OntManagerFactory.getDataFactory();
 
     private final OWLAnnotationProperty ap = df.getOWLAnnotationProperty("urn:test#", "ann");
 
@@ -49,7 +49,7 @@ public class Builder {
 
     // no parsers and storers injected
     private static OWLOntologyManager getManager() {
-        OWLOntologyManager instance = OntManagerFactory.createONTManager(); //OWLManager.createOWLOntologyManager();
+        OWLOntologyManager instance = TestBase.createOWLManager();
         instance.getOntologyParsers().clear();
         instance.getOntologyStorers().clear();
         return instance;

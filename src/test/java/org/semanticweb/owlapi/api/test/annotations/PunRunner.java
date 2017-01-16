@@ -12,12 +12,11 @@ import java.util.*;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
+import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
-
-import ru.avicomp.ontapi.OntManagerFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
@@ -58,7 +57,7 @@ public class PunRunner extends org.junit.runner.Runner {
 
     private void addAllTests() {
         DefaultPrefixManager pm = new DefaultPrefixManager("http://localhost#");
-        OWLOntologyManager m = OntManagerFactory.createONTManager();
+        OWLOntologyManager m = TestBase.createOWLManager();
         OWLDataFactory df = m.getOWLDataFactory();
         List<? extends OWLEntity> entities = Arrays.asList(df.getOWLClass("a", pm), df.getOWLDatatype("a", pm),
                 df.getOWLAnnotationProperty("a", pm), df.getOWLDataProperty("a", pm), df.getOWLObjectProperty("a", pm),

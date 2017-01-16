@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
 import org.semanticweb.owlapi.expression.ShortFormEntityChecker;
@@ -37,8 +38,6 @@ import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
 import org.semanticweb.owlapi.util.ShortFormProvider;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
-
-import ru.avicomp.ontapi.OntManagerFactory;
 
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
@@ -96,7 +95,7 @@ public class DLQueryExample {
         try {
             // Load an example ontology. In this case, we'll just load the pizza
             // ontology.
-            OWLOntologyManager manager = OntManagerFactory.createONTManager();
+            OWLOntologyManager manager = TestBase.createOWLManager();
             OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(KOALA));
             System.out.println("Loaded ontology: " + ontology.getOntologyID());
             // We need a reasoner to do our query answering

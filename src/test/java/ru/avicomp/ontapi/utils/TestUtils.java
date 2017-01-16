@@ -133,12 +133,12 @@ public class TestUtils {
         return toMap(stream.collect(Collectors.toList()));
     }
 
-    public static Map<AxiomType, List<OWLAxiom>> toMap(List<? extends OWLAxiom> list) {
-        Set<AxiomType> types = list.stream().map(OWLAxiom::getAxiomType).collect(Collectors.toSet());
+    public static Map<AxiomType, List<OWLAxiom>> toMap(List<? extends OWLAxiom> axioms) {
+        Set<AxiomType> types = axioms.stream().map(OWLAxiom::getAxiomType).collect(Collectors.toSet());
         Map<AxiomType, List<OWLAxiom>> res = new HashMap<>();
         types.forEach(type -> {
             List<OWLAxiom> value = res.computeIfAbsent(type, t -> new ArrayList<>());
-            List<OWLAxiom> byType = list.stream().filter(a -> type.equals(a.getAxiomType())).sorted().collect(Collectors.toList());
+            List<OWLAxiom> byType = axioms.stream().filter(a -> type.equals(a.getAxiomType())).sorted().collect(Collectors.toList());
             value.addAll(byType);
         });
         return res;

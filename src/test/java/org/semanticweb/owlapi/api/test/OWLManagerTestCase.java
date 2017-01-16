@@ -7,8 +7,6 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import ru.avicomp.ontapi.OntManagerFactory;
-import ru.avicomp.ontapi.OntologyModelImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
 
@@ -30,7 +28,7 @@ public class OWLManagerTestCase {
     @Before
     public void setUp() throws Exception {
         manager = // OWLManager.createOWLOntologyManager();
-                OntManagerFactory.createONTConcurrentManager();
+                ru.avicomp.ontapi.OntManagerFactory.createONTConcurrentManager();
         ontology = manager.createOntology();
     }
 
@@ -41,8 +39,8 @@ public class OWLManagerTestCase {
 
     @Test
     public void shouldCreateConcurrentOntologyByDefault() {
-        //assertThat(ontology, is(instanceOf(OntologyModelImpl.Concurrent.class)));
-        assertThat(ontology, is(instanceOf(OntologyModelImpl.Concurrent.class)));
+        //assertThat(ontology, is(instanceOf(ru.avicomp.ontapi.OntologyModelImpl.Concurrent.class)));
+        assertThat(ontology, is(instanceOf(ru.avicomp.ontapi.OntologyModelImpl.Concurrent.class)));
     }
 
     @Test

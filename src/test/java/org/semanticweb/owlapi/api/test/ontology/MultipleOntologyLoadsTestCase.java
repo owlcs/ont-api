@@ -24,8 +24,6 @@ import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParser;
 
-import ru.avicomp.ontapi.OntApiException;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
@@ -64,7 +62,7 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         try {
             getOWLOntology(secondUniqueOWLOntologyID);
             fail("Did not receive expected OWLOntologyDocumentAlreadyExistsException");
-        } catch (OntApiException ex) {
+        } catch (ru.avicomp.ontapi.OntApiException ex) {
             Throwable e = ex.getCause();
             assertEquals(OWLOntologyAlreadyExistsException.class, e.getClass());
             assertEquals(new OWLOntologyID(i139, v2), ((OWLOntologyAlreadyExistsException) e).getOntologyID());
@@ -81,7 +79,7 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         try {
             getOWLOntology(secondUniqueOWLOntologyID);
             fail("Did not receive expected OWLOntologyAlreadyExistsException");
-        } catch (OntApiException ex) {
+        } catch (ru.avicomp.ontapi.OntApiException ex) {
             Throwable e = ex.getCause();
             assertEquals(OWLOntologyAlreadyExistsException.class, e.getClass());
             assertEquals(new OWLOntologyID(i139, v1), ((OWLOntologyAlreadyExistsException) e).getOntologyID());

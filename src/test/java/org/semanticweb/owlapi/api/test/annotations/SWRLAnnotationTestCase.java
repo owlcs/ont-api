@@ -25,9 +25,6 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.utils.ReadWriteUtils;
-
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
@@ -109,14 +106,14 @@ public class SWRLAnnotationTestCase extends TestBase {
     @Test
     public void replicateSuccess() throws Exception {
         String input = HEAD + TAIL;
-        Model m = ReadWriteUtils.loadFromString(input, OntFormat.XML_RDF);
+        Model m = ru.avicomp.ontapi.utils.ReadWriteUtils.loadFromString(input, ru.avicomp.ontapi.OntFormat.XML_RDF);
         LOGGER.debug("Initial model: ");
-        ReadWriteUtils.print(m);
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(m);
 
         OWLOntology ontology = loadOntologyFromString(new StringDocumentSource(input, "test",
                 new RDFXMLDocumentFormat(), null));
         LOGGER.debug("Result model: "); // there is converting
-        ReadWriteUtils.print(ontology);
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
 
         assertTrue(ontology.axioms(AxiomType.SWRL_RULE).anyMatch(ax -> ax.toString().contains(
                 "DLSafeRule(Annotation(<http://swrl.stanford.edu/ontologies/3.3/swrla.owl#isRuleEnabled> \"true\"^^xsd:boolean) Annotation(rdfs:comment \":i62, :i61\"^^xsd:string)  Body() Head(ObjectPropertyAtom(<#drives> <#i61> <#i62>)) )")));

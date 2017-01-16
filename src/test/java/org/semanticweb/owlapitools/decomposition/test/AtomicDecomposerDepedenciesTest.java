@@ -3,9 +3,9 @@ package org.semanticweb.owlapitools.decomposition.test;
 import java.util.Set;
 
 import org.junit.Test;
+import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntManagerFactory;
 import uk.ac.manchester.cs.atomicdecomposition.Atom;
 import uk.ac.manchester.cs.atomicdecomposition.AtomicDecomposition;
 import uk.ac.manchester.cs.atomicdecomposition.AtomicDecompositionImpl;
@@ -35,7 +35,7 @@ public class AtomicDecomposerDepedenciesTest {
     }
 
     private static OWLOntology getOntology() throws OWLOntologyCreationException {
-        OWLOntologyManager m = OntManagerFactory.createONTManager();
+        OWLOntologyManager m = TestBase.createOWLManager();
         OWLOntology o = m.createOntology();
         OWLDataFactory f = m.getOWLDataFactory();
         OWLClass powerYoga = f.getOWLClass(IRI.create("urn:test#", "PowerYoga"));

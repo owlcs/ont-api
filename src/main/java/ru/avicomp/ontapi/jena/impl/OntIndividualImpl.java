@@ -68,7 +68,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
     /**
      * see description to the interface {@link OntIndividual.Anonymous}
      * It seems that checking for conditions 6, 7, 8, 9 could be displaced by checking that tested b-node is
-     * a standalone object in a triple from annotation and object property assertion.
+     * an object in a triple from annotation and object property assertion.
      * About this there are following reflections:
      * - in the well-formed ontology anonymous subject should be declared as individual (condition 1),
      *      otherwise it is just any other b-node (e.g. root for owl:Axiom)
@@ -155,7 +155,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         /**
-         * returns stream of blank nodes ("_:a"), where blank node is an standalone object in a triple
+         * returns stream of blank nodes ("_:a"), where blank node is an object in a triple
          * which corresponds object property assertion "_:a1 PN _:a2" or annotation property assertion "s A t"
          *
          * @param eg {@link OntGraphModelImpl}
@@ -165,15 +165,15 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
             return Stream.of(OntEntityImpl.annotationPropertyFactory.find(eg), OntEntityImpl.objectPropertyFactory.find(eg))
                     .flatMap(Function.identity())
                     .map(EnhNode::asNode)
-                    .map(node -> standaloneAnonAssertionObjects(eg.asGraph(), node))
+                    .map(node -> anonAssertionObjects(eg.asGraph(), node))
                     .flatMap(Function.identity());
         }
 
-        private static Stream<Node> standaloneAnonAssertionObjects(Graph graph, Node predicate) {
+        private static Stream<Node> anonAssertionObjects(Graph graph, Node predicate) {
             return Models.asStream(graph.find(Node.ANY, predicate, Node.ANY))
                     .map(Triple::getObject)
-                    .filter(Node::isBlank)
-                    .filter(node -> !graph.contains(node, Node.ANY, Node.ANY));
+                    .filter(Node::isBlank);
+            //.filter(node -> !graph.contains(node, Node.ANY, Node.ANY));
         }
 
         private static Stream<Node> disjointAnonIndividuals(EnhGraph eg) {

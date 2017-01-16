@@ -24,8 +24,6 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 
-import ru.avicomp.ontapi.OntApiException;
-
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
 
@@ -44,7 +42,7 @@ public class NoQNameTestCase extends TestBase {
      * (caused by {@link org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException})
      * while store ontology (during {@link org.semanticweb.owlapi.model.OWLOntologyManager#saveOntology}.
      * <p>
-     * ONT-API throws an unchecked exception {@link OntApiException} (caused by {@link InvalidPropertyURIException})
+     * ONT-API throws an unchecked exception {@link ru.avicomp.ontapi.OntApiException} (caused by {@link InvalidPropertyURIException})
      * while adding axioms (while {@link org.semanticweb.owlapi.model.OWLOntology#addAxioms}).
      * So we can't make behaviour the same for ONT-API. And i'm not sure we really need it.
      *
@@ -55,7 +53,7 @@ public class NoQNameTestCase extends TestBase {
         try {
             createOntology();
             throw new AssertionError("Expected an exception specifying that a QName could not be generated");
-        } catch (OntApiException e) {
+        } catch (ru.avicomp.ontapi.OntApiException e) {
             LOGGER.info("Exception:::" + e);
             Throwable cause = e.getCause();
             if (!(cause instanceof InvalidPropertyURIException)) {

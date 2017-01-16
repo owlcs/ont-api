@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
+import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.functional.parser.OWLFunctionalSyntaxOWLParserFactory;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.krss2.parser.KRSS2OWLParserFactory;
@@ -13,8 +14,6 @@ import org.semanticweb.owlapi.owlxml.parser.OWLXMLParserFactory;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParserFactory;
 import org.semanticweb.owlapi.rdf.turtle.parser.TurtleOntologyParserFactory;
 import org.semanticweb.owlapi.util.PriorityCollection;
-
-import ru.avicomp.ontapi.OntManagerFactory;
 
 import static org.junit.Assert.assertTrue;
 
@@ -50,7 +49,7 @@ public class OWLParserFactoryRegistryTestCase {
         factories.add(RioRDFXMLParserFactory.class);
         factories.add(RioTrixParserFactory.class);
         factories.add(RioRDFaParserFactory.class);
-        PriorityCollection<OWLParserFactory> ontologyParsers = OntManagerFactory.createONTManager().getOntologyParsers();
+        PriorityCollection<OWLParserFactory> ontologyParsers = TestBase.createOWLManager().getOntologyParsers();
         Set<Class<? extends OWLParserFactory>> found = new HashSet<>();
         for (OWLParserFactory p : ontologyParsers) {
             found.add(p.getClass());

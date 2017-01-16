@@ -39,10 +39,6 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.avicomp.ontapi.OntManagerFactory;
-import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.OntologyManagerImpl;
-import ru.avicomp.ontapi.OntologyModelImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
@@ -67,7 +63,8 @@ public abstract class TestBase {
     protected static OWLDataFactory df;
     protected static OWLOntologyManager masterManager;
     public static final File RESOURCES = resources();
-    protected final OWLOntologyBuilder builder = DEBUG_USE_OWL ? (OWLOntologyBuilder) OWLOntologyImpl::new : (m, id) -> new OntologyModelImpl((OntologyManager) m, id);
+    protected final OWLOntologyBuilder builder = DEBUG_USE_OWL ? (OWLOntologyBuilder) OWLOntologyImpl::new :
+            (m, id) -> new ru.avicomp.ontapi.OntologyModelImpl((ru.avicomp.ontapi.OntologyManager) m, id);
     @Nonnull
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -88,16 +85,20 @@ public abstract class TestBase {
         }
     }
 
+    public static OWLOntologyManager createOWLManager() {
+        return DEBUG_USE_OWL ? OWLManager.createOWLOntologyManager() : ru.avicomp.ontapi.OntManagerFactory.createONTManager();
+    }
+
     @BeforeClass
     public static void setupManagers() {
-        masterManager = DEBUG_USE_OWL ? OWLManager.createOWLOntologyManager() : OntManagerFactory.createONTManager();
+        masterManager = createOWLManager();
         df = masterManager.getOWLDataFactory();
     }
 
     protected static OWLOntologyManager setupManager() {
         OWLOntologyManager manager = DEBUG_USE_OWL ?
                 new OWLOntologyManagerImpl(df, new NoOpReadWriteLock()) :
-                new OntologyManagerImpl(df, new NoOpReadWriteLock());
+                new ru.avicomp.ontapi.OntologyManagerImpl(df, new NoOpReadWriteLock());
         manager.getOntologyFactories().set(masterManager.getOntologyFactories());
         manager.getOntologyParsers().set(masterManager.getOntologyParsers());
         manager.getOntologyStorers().set(masterManager.getOntologyStorers());
@@ -404,8 +405,10 @@ public abstract class TestBase {
      */
     public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format) throws OWLOntologyStorageException,
             OWLOntologyCreationException {
-        if (LOGGER.isDebugEnabled())
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Origin ontology:");
             ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);
+        }
         StringDocumentTarget target = new StringDocumentTarget();
         OWLDocumentFormat fromFormat = ont.getFormat();
         if (fromFormat.isPrefixOWLDocumentFormat() && format.isPrefixOWLDocumentFormat()) {
@@ -415,19 +418,18 @@ public abstract class TestBase {
             toPrefixFormat.setDefaultPrefix(null);
         }
         format.setAddMissingTypes(true);
-        if (LOGGER.isTraceEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             StringDocumentTarget targetForDebug = new StringDocumentTarget();
             ont.saveOntology(format, targetForDebug);
-            LOGGER.trace(targetForDebug.toString());
+            LOGGER.debug(targetForDebug.toString());
         }
         ont.saveOntology(format, target);
         handleSaved(target, format);
-
         OWLOntology ont2 = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(target.toString(),
                 "string:ontology", format, null), new OWLOntologyLoaderConfiguration().setReportStackTraces(true));
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("TestBase.roundTripOntology() ontology parsed");
-            ont2.axioms().forEach(ax -> LOGGER.trace(ax.toString()));
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("TestBase.roundTripOntology() ontology parsed");
+            ont2.axioms().forEach(ax -> LOGGER.debug(ax.toString()));
         }
         //ru.avicomp.ontapi.utils.TestUtils.compareAxioms(ont.axioms(), ont2.axioms());
 

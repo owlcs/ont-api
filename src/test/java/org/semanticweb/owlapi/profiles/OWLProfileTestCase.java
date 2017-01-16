@@ -13,6 +13,7 @@
 package org.semanticweb.owlapi.profiles;
 
 import javax.annotation.Nonnull;
+import java.lang.Class;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -33,8 +34,6 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Double;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Integer;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
-
-import java.lang.Class;
 
 @SuppressWarnings({"javadoc", "rawtypes"})
 public class OWLProfileTestCase extends TestBase {

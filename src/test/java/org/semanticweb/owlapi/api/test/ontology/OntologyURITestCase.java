@@ -16,8 +16,6 @@ import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntApiException;
-
 import static org.junit.Assert.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
@@ -74,7 +72,7 @@ public class OntologyURITestCase extends TestBase {
         getOWLOntology(uri);
         try {
             getOWLOntology(uri);
-        } catch (OntApiException e) {
+        } catch (ru.avicomp.ontapi.OntApiException e) {
             LOGGER.debug("Exception " + e);
             throw e.getCause();
         }

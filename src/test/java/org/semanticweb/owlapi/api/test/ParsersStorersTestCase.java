@@ -44,8 +44,6 @@ import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
 import org.semanticweb.owlapi.rdf.turtle.parser.TurtleOntologyParserFactory;
 import org.semanticweb.owlapi.rdf.turtle.renderer.TurtleStorerFactory;
 
-import ru.avicomp.ontapi.utils.ReadWriteUtils;
-
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
@@ -79,7 +77,7 @@ public class ParsersStorersTestCase extends TestBase {
         StringDocumentTarget target = new StringDocumentTarget();
         OWLOntology data = ont();
         LOGGER.debug("Test Data:");
-        ReadWriteUtils.print(data);
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(data);
 
         s.createStorer().storeOntology(data, target, ontologyFormat);
         OWLOntology o = getAnonymousOWLOntology();

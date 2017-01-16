@@ -17,8 +17,6 @@ import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
-import ru.avicomp.ontapi.OntApiException;
-
 import static org.junit.Assert.*;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 
@@ -132,7 +130,7 @@ public class OWLOntologyManagerTestCase extends TestBase {
         getOWLOntology(ontologyIRI);
         try {
             getOWLOntology(ontologyIRI);
-        } catch (OntApiException e) {
+        } catch (ru.avicomp.ontapi.OntApiException e) {
             throw e.getCause();
         }
     }
@@ -149,7 +147,7 @@ public class OWLOntologyManagerTestCase extends TestBase {
         try {
             getOWLOntology(new OWLOntologyID(optional(ontologyIRI), optional(
                     versionIRI)));
-        } catch (OntApiException e) {
+        } catch (ru.avicomp.ontapi.OntApiException e) {
             throw e.getCause();
         }
     }
@@ -166,7 +164,7 @@ public class OWLOntologyManagerTestCase extends TestBase {
         getOWLOntology(new OWLOntologyID(optional(ontologyIRI), optional(null)));
         try {
             getOWLOntology(new OWLOntologyID(optional(ontologyIRI2), optional(null)));
-        } catch (OntApiException e) {
+        } catch (ru.avicomp.ontapi.OntApiException e) {
             throw e.getCause();
         }
     }
