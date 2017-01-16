@@ -3,6 +3,7 @@ package org.semanticweb.owlapi.api.test.annotations;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
@@ -13,8 +14,10 @@ import com.google.common.collect.Sets;
 
 import static org.junit.Assert.assertEquals;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
+/**
+ * @szuev: modified for ONT-API
+ */
 @SuppressWarnings("javadoc")
 public class AnnotatetAnnotationsTestCase extends TestBase {
 
@@ -46,7 +49,9 @@ public class AnnotatetAnnotationsTestCase extends TestBase {
                 + "        <rdfs:comment rdf:datatype=\"http://www.w3.org/2001/XMLSchema#integer\">4</rdfs:comment></owl:Annotation>\n"
                 + "    <owl:NamedIndividual rdf:about=\"urn:n:a#b\"/></rdf:RDF>";
         OWLOntology ont = loadOntologyFromString(input);
-        assertEquals(axioms, asUnorderedSet(ont.logicalAxioms()));
+        // due to smart OWL-API (OWLLiteralImpl.hash != OWLLiteralImplInteger.hash) we can't compare Sets, change to Lists:
+        // assertEquals(axioms, OWLAPIStreamUtils.asUnorderedSet(ont.logicalAxioms()));
+        assertEquals("Incorrect axioms", axioms.stream().sorted().collect(Collectors.toList()), ont.logicalAxioms().sorted().collect(Collectors.toList()));
     }
 
     @Test

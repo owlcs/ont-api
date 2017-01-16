@@ -2,6 +2,7 @@ package org.semanticweb.owlapi.api.test.baseclasses;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -21,7 +22,8 @@ public class PlainLiteralTypeFoldingAxiomSet implements Set<OWLAxiom> {
      * @param axioms axioms to be used
      */
     public PlainLiteralTypeFoldingAxiomSet(Collection<OWLAxiom> axioms) {
-        delegate.addAll(axioms);
+        // todo: hotfix, wrap as HashSet to avoid strange irregular java.util.NoSuchElementException exception while iterating inside addAll
+        delegate.addAll(new HashSet<>(axioms));
     }
 
     static Set<OWLAxiom> createPlainLiteralTypeFoldingSet() {

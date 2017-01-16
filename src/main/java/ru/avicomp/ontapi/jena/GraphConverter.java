@@ -334,11 +334,12 @@ public abstract class GraphConverter {
         public DeclarationFixer(Graph graph) {
             super(graph);
             inner = Stream.of(
-                    new StandaloneURIFixer(graph)
-
-                    , new ObjectTripleDeclarationFixer(graph)
+                    new ObjectTripleDeclarationFixer(graph)
                     , new SubjectTripleDeclarationFixer(graph)
+                    , new StandaloneURIFixer(graph)
                     , new HierarchicalPropertyFixer(graph)
+
+                    , new ExtraDeclarationFixer(graph)
 
                     , new NamedIndividualFixer(graph)
             ).collect(Collectors.toList());
@@ -361,7 +362,7 @@ public abstract class GraphConverter {
      * then we know exactly that C2 is a class also and so we can add the same type (owl:Class) to graph for C2 (i.e.
      * declare C2 as separated class in owl-model).
      */
-    private static class ObjectTripleDeclarationFixer extends TransformAction {
+    private static class ObjectTripleDeclarationFixer extends BaseTripleDeclarationFixer {
 
         ObjectTripleDeclarationFixer(Graph graph) {
             super(graph);
@@ -492,45 +493,12 @@ public abstract class GraphConverter {
             return s != null && s.getModel().contains(s.getSubject(), RDF.type, OWL.Restriction);
         }
 
-        /**
-         * choose unambiguous type of expression (either datarange expression or class expression).
-         *
-         * @param node RDFNode to test
-         * @return owl:Class, rdfs:Datatype or null
-         */
-        private Resource chooseExpressionType(RDFNode node) {
-            if (node == null || !node.isResource()) return null;
-            List<Resource> types = types(node, false)
-                    .map(r -> OWL.Class.equals(r) || OWL.Restriction.equals(r) ? OWL.Class : RDFS.Datatype.equals(r) ? RDFS.Datatype : null)
-                    .distinct().collect(Collectors.toList());
-            return types.size() == 1 ? types.get(0) : null;
-        }
-
         private Resource getOnPropertyFromRestriction(RDFNode node) {
             if (node == null || !node.isResource()) return null;
             List<Resource> properties = Models.asStream(node.getModel().listStatements(node.asResource(), OWL.onProperty, (RDFNode) null))
                     .map(Statement::getObject).filter(RDFNode::isResource).map(RDFNode::asResource).distinct().collect(Collectors.toList());
             return properties.size() == 1 ? properties.get(0) : null;
         }
-
-        /**
-         * choose unambiguous type of property (either object property expression or datatype property).
-         *
-         * @param node RDFNode to test
-         * @return owl:ObjectProperty, owl:DatatypeProperty or null
-         */
-        private Resource choosePropertyType(RDFNode node) {
-            if (node == null || !node.isResource()) return null;
-            List<Resource> types = types(node, true)
-                    .map(r -> OWL.ObjectProperty.equals(r) ? OWL.ObjectProperty : OWL.DatatypeProperty)
-                    .distinct().collect(Collectors.toList());
-            if (types.size() == 1) return types.get(0);
-            if (node.getModel().contains(node.asResource(), OWL.inverseOf, (RDFNode) null) || node.getModel().contains(null, OWL.inverseOf, node)) {
-                return OWL.ObjectProperty;
-            }
-            return null;
-        }
-
 
         /**
          * fix for ambiguous situations when the predicate is used for different types.
@@ -551,11 +519,6 @@ public abstract class GraphConverter {
                     .forEachRemaining(s -> declare(s.getObject(), type, true));
         }
 
-        private Resource chooseTypeFrom(Stream<Resource> stream, Resource... oneOf) {
-            Set<Resource> trueTypes = stream.collect(Collectors.toSet());
-            List<Resource> res = Stream.of(oneOf).filter(trueTypes::contains).distinct().collect(Collectors.toList());
-            return res.size() == 1 ? res.get(0) : null;
-        }
 
         private void fixList(Statement statement, Resource type) {
             if (statement == null || type == null) return;
@@ -573,6 +536,81 @@ public abstract class GraphConverter {
             Resource type = chooseTypeFrom(types, OWL.ObjectProperty, OWL.DatatypeProperty);
             if (type == null) return;
             members.forEach(r -> declare(r, type, false));
+        }
+
+    }
+
+    private static class SubjectTripleDeclarationFixer extends BaseTripleDeclarationFixer {
+        SubjectTripleDeclarationFixer(Graph graph) {
+            super(graph);
+        }
+
+        @Override
+        public void perform() {
+            Model m = getModel();
+            fixClassesAndDatatypes(m);
+            fixObjectProperties(m);
+        }
+
+        private void fixClassesAndDatatypes(Model m) {
+            // left part of triple for owl:equivalentClass
+            m.listStatements(null, OWL.equivalentClass, (RDFNode) null)
+                    .forEachRemaining(s -> declare(s.getSubject(), chooseExpressionType(s.getObject()), true));
+
+        }
+
+        private void fixObjectProperties(Model m) {
+            //always object properties.
+            Stream.of(OWL.InverseFunctionalProperty, OWL.ReflexiveProperty, OWL.IrreflexiveProperty,
+                    OWL.SymmetricProperty, OWL.AsymmetricProperty, OWL.TransitiveProperty,
+                    OWL.propertyChainAxiom)
+                    .forEach(type -> m.listStatements(null, RDF.type, type).mapWith(Statement::getSubject)
+                            .forEachRemaining(r -> declare(r, OWL.ObjectProperty, true)));
+        }
+    }
+
+
+    static abstract class BaseTripleDeclarationFixer extends TransformAction {
+        BaseTripleDeclarationFixer(Graph graph) {
+            super(graph);
+        }
+
+        /**
+         * choose unambiguous type of expression (either datarange expression or class expression).
+         *
+         * @param node RDFNode to test
+         * @return owl:Class, rdfs:Datatype or null
+         */
+        Resource chooseExpressionType(RDFNode node) {
+            if (node == null || !node.isResource()) return null;
+            List<Resource> types = types(node, false)
+                    .map(r -> OWL.Class.equals(r) || OWL.Restriction.equals(r) ? OWL.Class : RDFS.Datatype.equals(r) ? RDFS.Datatype : null)
+                    .distinct().collect(Collectors.toList());
+            return types.size() == 1 ? types.get(0) : null;
+        }
+
+        /**
+         * choose unambiguous type of property (either object property expression or datatype property).
+         *
+         * @param node RDFNode to test
+         * @return owl:ObjectProperty, owl:DatatypeProperty or null
+         */
+        Resource choosePropertyType(RDFNode node) {
+            if (node == null || !node.isResource()) return null;
+            List<Resource> types = types(node, true)
+                    .map(r -> OWL.ObjectProperty.equals(r) ? OWL.ObjectProperty : OWL.DatatypeProperty)
+                    .distinct().collect(Collectors.toList());
+            if (types.size() == 1) return types.get(0);
+            if (node.getModel().contains(node.asResource(), OWL.inverseOf, (RDFNode) null) || node.getModel().contains(null, OWL.inverseOf, node)) {
+                return OWL.ObjectProperty;
+            }
+            return null;
+        }
+
+        Resource chooseTypeFrom(Stream<Resource> stream, Resource... oneOf) {
+            Set<Resource> trueTypes = stream.collect(Collectors.toSet());
+            List<Resource> res = Stream.of(oneOf).filter(trueTypes::contains).distinct().collect(Collectors.toList());
+            return res.size() == 1 ? res.get(0) : null;
         }
 
         /**
@@ -598,23 +636,21 @@ public abstract class GraphConverter {
         }
     }
 
-    private static class SubjectTripleDeclarationFixer extends TransformAction {
-        SubjectTripleDeclarationFixer(Graph graph) {
+    /**
+     * to remove excessive declarations, such as "_:x rdf:type owl:ObjectProperty" for anonymous owl:inverseOf
+     */
+    private static class ExtraDeclarationFixer extends TransformAction {
+
+        ExtraDeclarationFixer(Graph graph) {
             super(graph);
         }
 
         @Override
         public void perform() {
-            fixObjectProperties();
-        }
-
-        private void fixObjectProperties() {
-            Stream.of(OWL.InverseFunctionalProperty, OWL.ReflexiveProperty, OWL.IrreflexiveProperty,
-                    OWL.SymmetricProperty, OWL.AsymmetricProperty, OWL.TransitiveProperty)
-                    .forEach(type -> getGraph().find(Node.ANY, RDF_TYPE, type.asNode())
-                            .mapWith(Triple::getSubject)
-                            .filterKeep(Node::isURI)
-                            .forEachRemaining(r -> addType(r, OWL.ObjectProperty)));
+            getBaseGraph().find(Node.ANY, OWL.inverseOf.asNode(), Node.ANY)
+                    .mapWith(Triple::getSubject)
+                    .filterKeep(Node::isBlank)
+                    .forEachRemaining(node -> deleteType(node, OWL.ObjectProperty));
         }
     }
 

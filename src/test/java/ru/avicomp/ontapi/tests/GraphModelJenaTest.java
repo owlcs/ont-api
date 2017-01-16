@@ -107,7 +107,7 @@ public class GraphModelJenaTest {
     }
 
     private static Graph loadGraph(String file) {
-        return ReadWriteUtils.loadFromTTL(file).getGraph();
+        return ReadWriteUtils.loadFromTTLFile(file).getGraph();
     }
 
     @Test

@@ -7,8 +7,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.log4j.Logger;
@@ -16,13 +14,17 @@ import org.junit.Assert;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.OntFormat;
+import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyManager;
+import ru.avicomp.ontapi.OntologyModel;
 
 /**
  * Utils to work with io.
  *
  * Created by @szuev on 27.09.2016.
  */
+@SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
 public class ReadWriteUtils {
     private static final Logger LOGGER = Logger.getLogger(ReadWriteUtils.class);
 
@@ -50,7 +52,7 @@ public class ReadWriteUtils {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
             return out.toString(StandardCharsets.UTF_8.name());
         } catch (OWLOntologyStorageException | IOException e) {
-            throw new OntApiException(e);
+            throw new AssertionError(e);
         }
     }
 
@@ -64,23 +66,29 @@ public class ReadWriteUtils {
         return sw;
     }
 
-    public static InputStream toInputStream(Model model, OntFormat ext) {
+    public static InputStream toInputStream(String txt) {
         try {
-            return IOUtils.toInputStream(toString(model, ext), StandardCharsets.UTF_8.name());
+            return IOUtils.toInputStream(txt, StandardCharsets.UTF_8.name());
         } catch (IOException e) {
-            throw new OntApiException(e);
+            throw new AssertionError(e);
         }
+    }
+
+    public static InputStream toInputStream(Model model, OntFormat ext) {
+        return toInputStream(toString(model, ext));
     }
 
     public static InputStream toInputStream(OWLOntology model, OntFormat ext) {
-        try {
-            return IOUtils.toInputStream(toString(model, ext), StandardCharsets.UTF_8.name());
-        } catch (IOException e) {
-            throw new OntApiException(e);
-        }
+        return toInputStream(toString(model, ext));
     }
 
-    public static Model loadFromTTL(String file) {
+    public static Model loadFromString(String input, OntFormat ext) {
+        Model m = ModelFactory.createDefaultModel();
+        m.read(toInputStream(input), null, OntFormat.XML_RDF.getID());
+        return m;
+    }
+
+    public static Model loadFromTTLFile(String file) {
         return load(getResourceURI(file), null);
     }
 
@@ -93,14 +101,11 @@ public class ReadWriteUtils {
             return m;
         } catch (IOException e) {
             LOGGER.fatal("Can't read model", e);
-            throw new OntApiException(e);
+            throw new AssertionError(e);
         }
     }
 
-    public static OntModel loadJenaOntModel(OntModelSpec spec, File file, OntFormat f) {
-        return ModelFactory.createOntologyModel(spec, load(file.toURI(), f));
-    }
-
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static File getFileToSave(String name, OntFormat type) {
         File dir = new File(DESTINATION_DIR);
         if (!dir.exists()) {
@@ -178,12 +183,12 @@ public class ReadWriteUtils {
         return owl;
     }
 
-    public static OntologyModel loadOntologyFromIOStream(OntologyManager manager, Model model, OntFormat convertFormat) {
+    public static OntologyModel convertJenaToONT(OntologyManager manager, Model model, OntFormat convertFormat) {
         if (manager == null) manager = OntManagerFactory.createONTManager();
-        return (OntologyModel) loadOWLOntologyFromIOStream(manager, model, convertFormat);
+        return (OntologyModel) convertJenaToOWL(manager, model, convertFormat);
     }
 
-    public static OWLOntology loadOWLOntologyFromIOStream(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
+    public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
         String uri = TestUtils.getURI(model);
         LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
         try (InputStream is = toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {
@@ -196,7 +201,7 @@ public class ReadWriteUtils {
         return res;
     }
 
-    public static OntologyModel loadOntologyFromIOStream(Model model) {
-        return loadOntologyFromIOStream(null, model, null);
+    public static OntologyModel convertJenaToONT(Model model) {
+        return convertJenaToONT(null, model, null);
     }
 }

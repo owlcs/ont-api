@@ -71,6 +71,14 @@ public class RDF2OWLHelper {
         return getAnonymousIndividual(individual.as(OntIndividual.Anonymous.class));
     }
 
+    /**
+     * NOTE: different implementations of {@link OWLLiteral} have different mechanism to calculate hash.
+     * For example {@link OWLLiteralImplInteger}.hashCode != {@link OWLLiteralImpl}.hashCode
+     * So even if {@link OWLLiteral}s equal there is no guarantee that {@link Set}s of {@link OWLLiteral}s equal too.
+     *
+     * @param literal {@link Literal} - jena literal.
+     * @return {@link OWLLiteralImpl} - OWL-API literal.
+     */
     public static OWLLiteral getLiteral(Literal literal) {
         String txt = OntApiException.notNull(literal, "Null literal").getLexicalForm();
         String lang = literal.getLanguage();

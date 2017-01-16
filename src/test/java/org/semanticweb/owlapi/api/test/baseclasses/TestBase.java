@@ -249,10 +249,10 @@ public abstract class TestBase {
                 // testing here if blank node ids are the only difference
                 boolean fixed = !verifyErrorIsDueToBlankNodesId(leftOnly, rightOnly);
                 if (fixed) {
-                    if (LOGGER.isTraceEnabled()) {
+                    if (LOGGER.isDebugEnabled()) {
                         String x = getClass().getSimpleName() + " roundTripOntology() Failing to match axioms: \n" + sb
                                 + topOfStackTrace();
-                        LOGGER.trace(x);
+                        LOGGER.debug(x);
                     }
                     fail(getClass().getSimpleName() + " roundTripOntology() Failing to match axioms: \n" + sb);
                     return false;
@@ -404,7 +404,8 @@ public abstract class TestBase {
      */
     public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format) throws OWLOntologyStorageException,
             OWLOntologyCreationException {
-        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);
+        if (LOGGER.isDebugEnabled())
+            ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);
         StringDocumentTarget target = new StringDocumentTarget();
         OWLDocumentFormat fromFormat = ont.getFormat();
         if (fromFormat.isPrefixOWLDocumentFormat() && format.isPrefixOWLDocumentFormat()) {

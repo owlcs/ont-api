@@ -91,7 +91,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         TestUtils.compareAxioms(Stream.of(expected), owl.axioms());
 
         LOGGER.info("Reload ontology.");
-        OWLOntology reload = ReadWriteUtils.loadOWLOntologyFromIOStream(OntManagerFactory.createOWLManager(), jena, null);
+        OWLOntology reload = ReadWriteUtils.convertJenaToOWL(OntManagerFactory.createOWLManager(), jena, null);
         LOGGER.info("Axioms after reload:");
         reload.axioms().forEach(LOGGER::debug);
         TestUtils.compareAxioms(Stream.of(expected), reload.axioms());

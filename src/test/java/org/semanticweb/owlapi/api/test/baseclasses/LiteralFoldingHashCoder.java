@@ -10,7 +10,9 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * Created by ses on 10/1/14.
+ * @szuev: modified for ONT-API
  */
+@SuppressWarnings({"javadoc"})
 class LiteralFoldingHashCoder implements OWLObjectVisitor, SWRLObjectVisitor {
 
     protected int hashCode;

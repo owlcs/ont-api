@@ -13,12 +13,10 @@
 package org.semanticweb.owlapi.api.test.annotations;
 
 import javax.annotation.Nonnull;
-import java.io.StringReader;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
@@ -111,8 +109,7 @@ public class SWRLAnnotationTestCase extends TestBase {
     @Test
     public void replicateSuccess() throws Exception {
         String input = HEAD + TAIL;
-        Model m = ModelFactory.createDefaultModel();
-        m.read(new StringReader(input), OntFormat.XML_RDF.getID());
+        Model m = ReadWriteUtils.loadFromString(input, OntFormat.XML_RDF);
         LOGGER.debug("Initial model: ");
         ReadWriteUtils.print(m);
 

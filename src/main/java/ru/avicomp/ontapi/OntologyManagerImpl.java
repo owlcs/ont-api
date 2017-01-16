@@ -10,7 +10,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -20,6 +19,7 @@ import org.apache.jena.graph.Factory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.io.OWLOntologyStorageIOException;
 import org.semanticweb.owlapi.model.*;
@@ -142,10 +142,9 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
             throw new OWLOntologyStorageException("Null output stream, format = " + documentFormat);
         }
         Model model = ((OntologyModel) ontology).asGraphModel().getBaseModel();
-        Map<String, String> newPrefixes = new HashMap<>(PrefixManager.class.isInstance(documentFormat) ? ((PrefixManager) documentFormat).getPrefixName2PrefixMap() : Collections.emptyMap());
-        String uri = ontology.getOntologyID().getOntologyIRI().isPresent() ? ontology.getOntologyID().getOntologyIRI().get().getIRIString() : null;
-        if (uri != null)
-            newPrefixes.put("", uri + "#");
+        PrefixManager pm = PrefixManager.class.isInstance(documentFormat) ? (PrefixManager) documentFormat : null;
+        setDefaultPrefix(pm, ontology);
+        Map<String, String> newPrefixes = pm != null ? pm.getPrefixName2PrefixMap() : Collections.emptyMap();
         Map<String, String> initPrefixes = model.getNsPrefixMap();
         try {
             Models.setNsPrefixes(model, newPrefixes);
@@ -153,6 +152,27 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
         } finally {
             Models.setNsPrefixes(model, initPrefixes);
         }
+    }
+
+
+    /**
+     * todo: currently it is only for turtle.
+     * see similar fragment inside constructor of {@link org.semanticweb.owlapi.rdf.turtle.renderer.TurtleRenderer}.
+     * todo: it seems we don't need default prefix at all.
+     *
+     * @param pm  {@link PrefixManager}
+     * @param owl {@link OWLOntology}
+     */
+    public static void setDefaultPrefix(PrefixManager pm, OWLOntology owl) {
+        if (pm == null || owl == null) return;
+        if (!TurtleDocumentFormat.class.isInstance(pm)) return;
+        if (pm.getDefaultPrefix() != null) return;
+        if (!owl.getOntologyID().getOntologyIRI().isPresent()) return;
+        String uri = owl.getOntologyID().getOntologyIRI().get().getIRIString();
+        if (!uri.endsWith("/")) {
+            uri += "#";
+        }
+        pm.setDefaultPrefix(uri);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
