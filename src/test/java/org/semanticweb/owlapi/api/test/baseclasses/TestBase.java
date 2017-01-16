@@ -411,7 +411,7 @@ public abstract class TestBase {
             ((ru.avicomp.ontapi.OntologyModel) ont).clearCache();
         }
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Origin ontology:");
+            LOGGER.debug("Origin(source) ontology:");
             ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);
             ont.axioms().forEach(a -> LOGGER.debug(a.toString()));
         }
@@ -424,15 +424,15 @@ public abstract class TestBase {
             toPrefixFormat.setDefaultPrefix(null);
         }
         format.setAddMissingTypes(true);
-        if (LOGGER.isDebugEnabled()) {
-            StringDocumentTarget targetForDebug = new StringDocumentTarget();
-            ont.saveOntology(format, targetForDebug);
-            LOGGER.debug(targetForDebug.toString());
-        }
         ont.saveOntology(format, target);
-        handleSaved(target, format);
-        OWLOntology ont2 = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(target.toString(),
-                "string:ontology", format, null), new OWLOntologyLoaderConfiguration().setReportStackTraces(true));
+        String txt = target.toString();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Target ontology:");
+            LOGGER.debug(txt);
+        }
+        OWLOntology ont2 = setupManager().loadOntologyFromOntologyDocument(
+                new StringDocumentSource(txt, "string:ontology", format, null),
+                new OWLOntologyLoaderConfiguration().setReportStackTraces(true));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("TestBase.roundTripOntology() ontology parsed");
             ont2.axioms().forEach(ax -> LOGGER.debug(ax.toString()));
@@ -469,11 +469,6 @@ public abstract class TestBase {
         ax2.add(df.getOWLDataPropertyAssertionAxiom(t, df.getOWLAnonymousIndividual(), df.getOWLLiteral("test2")));
         assertFalse(ax1.equals(ax2));
         assertTrue(verifyErrorIsDueToBlankNodesId(ax1, ax2));
-    }
-
-    @SuppressWarnings("unused")
-    protected void handleSaved(StringDocumentTarget target, OWLDocumentFormat format) {
-        // System.out.println(target.toString());
     }
 
     protected OWLOntology loadOntologyFromString(String input) throws OWLOntologyCreationException {
@@ -542,7 +537,7 @@ public abstract class TestBase {
         return loadOntologyFromString(saveOntology(o));
     }
 
-    protected interface AxiomBuilder {
+    public interface AxiomBuilder {
 
         Set<OWLAxiom> build();
     }

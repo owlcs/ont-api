@@ -177,6 +177,11 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     protected void write(OWLOntology ontology, OWLDocumentFormat documentFormat, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
         OntFormat format = OntFormat.get(documentFormat);
         if (format == null || !format.isJena() || !OntologyModel.class.isInstance(ontology)) {
+            if (OntologyModel.class.isInstance(ontology)) {
+                // It does not work correctly without expanding axioms for some OWL-API formats such as ManchesterSyntaxDocumentFormat.
+                // The cache cleaning encourages extracting hidden axioms (declarations) in an explicit form while getting axioms:
+                ((OntologyModel) ontology).clearCache();
+            }
             super.saveOntology(ontology, documentFormat, target);
             return;
         }

@@ -22,11 +22,11 @@ public interface OntologyModel extends OWLOntology, OWLMutableOntology {
     /**
      * clears axiom and entity caches.
      * After recalling the method {@link #axioms()} this cache would be collected again.
-     * This method is needed to be sure that the list of axioms is the same.
+     * This method is needed to be sure that the list of axioms is the same as expected.
      * OWL-API allows the ambiguity in the definition of axioms.
-     * For example you can add axiom with plain annotation attached,
-     * but after recalculation the axiom cache would contain those annotations as separated annotation assertion axioms,
-     * not as part of the other axioms as it was initially.
+     * E.g. you can add an axiom with plain annotation attached and without explicit declaration of the annotation property,
+     * After re-caching the ontology would contain both the declaration axiom of the annotation property and
+     * the annotation assertion axiom separately (not as part of the specified axiom as it was initially).
      */
     void clearCache();
 
