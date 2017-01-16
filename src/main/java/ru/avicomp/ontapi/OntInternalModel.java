@@ -34,7 +34,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  */
 public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel, Serializable {
 
-    private final OWLOntologyID anonOntologyID = new OWLOntologyID();
+    private OWLOntologyID anonOntologyID;
 
     private static final String DEFAULT_SERIALIZATION_FORMAT = OntFormat.TTL_RDF.getID();
 
@@ -62,7 +62,9 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     public OWLOntologyID getOwlID() {
         OntID id = getID();
-        if (id.isAnon()) return anonOntologyID;
+        if (id.isAnon()) {
+            return anonOntologyID == null ? anonOntologyID = new OWLOntologyID() : anonOntologyID;
+        }
         IRI iri = IRI.create(id.getURI());
         IRI versionIRI = null;
         String ver = id.getVersionIRI();
@@ -75,6 +77,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     public void setOwlID(OWLOntologyID id) {
         if (id.isAnonymous()) {
             setID(null).setVersionIRI(null);
+            anonOntologyID = id;
             return;
         }
         IRI iri = id.getOntologyIRI().orElse(null);

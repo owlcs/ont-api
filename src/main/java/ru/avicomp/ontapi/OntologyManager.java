@@ -6,10 +6,7 @@ import java.io.Serializable;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
@@ -32,6 +29,9 @@ public interface OntologyManager extends OWLOntologyManager {
     OntologyModel getOntology(@Nullable IRI iri);
 
     OntologyModel getOntology(@Nonnull OWLOntologyID id);
+
+    @Nullable
+    OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration);
 
     /**
      * Creates an ontology.

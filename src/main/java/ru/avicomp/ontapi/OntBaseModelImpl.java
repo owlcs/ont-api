@@ -69,7 +69,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         this.manager = manager; // could be null when OWLOntologyManager.clearOntologies
     }
 
-    protected OntInternalModel getBase() {
+    public OntInternalModel getBase() {
         return base;
     }
 

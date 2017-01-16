@@ -67,9 +67,9 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             }
         } catch (OntApiException e) { // maybe it is not jena format; try origin OWL-API method:
             LOGGER.warn("Can't load from " + source + " ::: " + e);
-            OntologyModelImpl res = (OntologyModelImpl) super.loadOWLOntology(manager, source, handler, configuration);
+            OntologyModel res = (OntologyModel) super.loadOWLOntology(manager, source, handler, configuration);
             // clear cache to be sure that list of axioms is always the same and corresponds to the graph.
-            res.getBase().clearCache();
+            res.clearCache();
             return res;
         }
         // todo: resolve possible cycle

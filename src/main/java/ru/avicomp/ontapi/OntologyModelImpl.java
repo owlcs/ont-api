@@ -64,11 +64,17 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         return changer == null ? changer = new RDFChangeProcessor() : changer;
     }
 
+    @Override
+    public void clearCache() {
+        getBase().clearCache();
+    }
+
     /**
      * returns jena model shadow.
      *
      * @return {@link OntGraphModel}
      */
+    @Override
     public OntGraphModel asGraphModel() {
         return getBase();
     }
@@ -82,9 +88,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     private class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
 
         private void addImport(OWLImportsDeclaration declaration) {
-            OntologyModelImpl ont = (OntologyModelImpl) getOWLOntologyManager().getImportedOntology(declaration);
+            OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
+            getBase().addImport(declaration.getIRI().getIRIString());
             if (ont == null) {
-                getBase().addImport(declaration.getIRI().getIRIString());
                 return;
             }
             Stream<OWLDeclarationAxiom> duplicates = ont.axioms(AxiomType.DECLARATION, Imports.INCLUDED).filter(OntologyModelImpl.this::containsAxiom);
@@ -94,9 +100,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         }
 
         private void removeImport(OWLImportsDeclaration declaration) {
-            OntologyModelImpl ont = (OntologyModelImpl) getOWLOntologyManager().getImportedOntology(declaration);
+            OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
+            getBase().removeImport(declaration.getIRI().getIRIString());
             if (ont == null) {
-                getBase().removeImport(declaration.getIRI().getIRIString());
                 return;
             }
             Stream<OWLEntity> back = ont.signature(Imports.INCLUDED).filter(OntologyModelImpl.this::containsReference);
@@ -193,6 +199,11 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         @Override
         public OntGraphModel asGraphModel() { // todo: not concurrent
             return OntologyModelImpl.this.asGraphModel();
+        }
+
+        @Override
+        public void clearCache() {
+            OntologyModelImpl.this.clearCache();
         }
 
         @Override

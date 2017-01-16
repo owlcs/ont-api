@@ -50,8 +50,8 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health
  *         Informatics Group
- * @since 2.2.0
  * @szuev: modified for ONT-API
+ * @since 2.2.0
  */
 @SuppressWarnings({"javadoc", "null"})
 public abstract class TestBase {
@@ -394,20 +394,26 @@ public abstract class TestBase {
     }
 
     /**
-     * Saves the specified ontology in the specified format and reloads it.
-     * Calling this method from a test will cause the test to fail if the
-     * ontology could not be stored, could not be reloaded, or was reloaded and
-     * the reloaded version is not equal (in terms of ontology URI and axioms)
-     * with the original.
+     * see {@link #roundTrip(OWLOntology, OWLDocumentFormat)}.
      *
-     * @param ont    The ontology to be round tripped.
-     * @param format The format to use when doing the round trip.
+     * @param ont                    {@link OWLOntology} original ontology to test.
+     * @param format                 {@link OWLDocumentFormat} to reload
+     * @param recalculateAxiomsCache only for ONT-API.
+     *                               if true clears the axioms cache inside specified {@link ru.avicomp.ontapi.OntologyModelImpl} ontology.
+     * @return {@link OWLOntology} the reloaded ontology.
+     * @throws OWLOntologyStorageException
+     * @throws OWLOntologyCreationException
      */
-    public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format) throws OWLOntologyStorageException,
-            OWLOntologyCreationException {
+    @SuppressWarnings("WeakerAccess")
+    protected OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format, boolean recalculateAxiomsCache)
+            throws OWLOntologyStorageException, OWLOntologyCreationException {
+        if (!DEBUG_USE_OWL && recalculateAxiomsCache) {
+            ((ru.avicomp.ontapi.OntologyModel) ont).clearCache();
+        }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Origin ontology:");
             ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);
+            ont.axioms().forEach(a -> LOGGER.debug(a.toString()));
         }
         StringDocumentTarget target = new StringDocumentTarget();
         OWLDocumentFormat fromFormat = ont.getFormat();
@@ -435,6 +441,21 @@ public abstract class TestBase {
 
         equal(ont, ont2);
         return ont2;
+    }
+
+    /**
+     * Saves the specified ontology in the specified format and reloads it.
+     * Calling this method from a test will cause the test to fail if the
+     * ontology could not be stored, could not be reloaded, or was reloaded and
+     * the reloaded version is not equal (in terms of ontology URI and axioms)
+     * with the original.
+     *
+     * @param ont    The ontology to be round tripped.
+     * @param format The format to use when doing the round trip.
+     */
+    public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format)
+            throws OWLOntologyStorageException, OWLOntologyCreationException {
+        return roundTripOntology(ont, format, false);
     }
 
     // @Test

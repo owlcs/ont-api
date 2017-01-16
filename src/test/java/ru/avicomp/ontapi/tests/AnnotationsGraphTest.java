@@ -429,7 +429,10 @@ public class AnnotationsGraphTest extends GraphTestBase {
         owl.applyChanges(new RemoveOntologyAnnotation(owl, customPropertyAnnotation));
         owl.remove(factory.getOWLDeclarationAxiom(property));
         debug(owl);
-        Assert.assertEquals("Expected only single triplet", 1, jena.listStatements().toList().size());
+        List<Statement> rest = jena.listStatements().toList();
+        LOGGER.debug("Rest statements : ");
+        rest.forEach(LOGGER::debug);
+        Assert.assertEquals("Expected only single triplet", 1, rest.size());
     }
 
     @Override
@@ -445,5 +448,4 @@ public class AnnotationsGraphTest extends GraphTestBase {
         });
         return res.stream();
     }
-
 }

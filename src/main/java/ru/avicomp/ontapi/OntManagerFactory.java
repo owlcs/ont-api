@@ -2,19 +2,21 @@ package ru.avicomp.ontapi;
 
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.semanticweb.owlapi.OWLAPIParsersModule;
 import org.semanticweb.owlapi.OWLAPIServiceLoaderModule;
 import org.semanticweb.owlapi.annotations.OwlapiModule;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntologyFactory;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyManagerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.multibindings.Multibinder;
+import com.google.inject.spi.InjectionPoint;
 import uk.ac.manchester.cs.owl.owlapi.CompressionEnabled;
 import uk.ac.manchester.cs.owl.owlapi.OWLAPIImplModule;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
@@ -28,6 +30,12 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NonConcurrentDelegate;
  * Created by @szuev on 27.09.2016.
  */
 public class OntManagerFactory implements OWLOntologyManagerFactory {
+
+    static { // todo: temporary turn off injection logging as long as we don't deal with configuration of injections.
+        LogManager.getLogManager().reset();
+        Logger logger = Logger.getLogger(InjectionPoint.class.getName());
+        logger.setLevel(Level.OFF);
+    }
 
     private static final ONTManagerProfile DEFAULT_PROFILE = new ONTManagerProfile();
 
@@ -88,16 +96,6 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
             bind(OWLOntologyManager.class).to(OntologyManagerImpl.class).asEagerSingleton();
             bind(OntologyManager.class).to(OntologyManagerImpl.class).asEagerSingleton();
             bind(OntologyManager.class).annotatedWith(NonConcurrentDelegate.class).to(OntologyManagerImpl.class).asEagerSingleton();
-            multibind(OWLOntologyFactory.class, OntBuildingFactoryImpl.class);
-        }
-
-        @SafeVarargs
-        protected final <T> Multibinder<T> multibind(Class<T> type, Class<? extends T>... implementations) {
-            Multibinder<T> binder = Multibinder.newSetBinder(binder(), type);
-            for (Class<? extends T> i : implementations) {
-                binder.addBinding().to(i);
-            }
-            return binder;
         }
     }
 

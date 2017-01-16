@@ -12,6 +12,9 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 package org.semanticweb.owlapi.api.test.ontology;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
@@ -24,6 +27,7 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health
  *         Informatics Group
  * @since 2.0.0
+ * @szuev: modified for ONT-API
  */
 @SuppressWarnings({"javadoc"})
 public class ChangeOntologyURITestCase extends TestBase {
@@ -34,18 +38,29 @@ public class ChangeOntologyURITestCase extends TestBase {
         IRI newIRI = IRI("http://www.semanticweb.org/ontologies/", "ontB");
         OWLOntology ont = m.createOntology(oldIRI);
         OWLOntology importingOnt = m.createOntology(IRI("http://www.semanticweb.org/ontologies/", "ontC"));
-        m.applyChange(new AddImport(importingOnt, df.getOWLImportsDeclaration(get(ont.getOntologyID()
-                .getOntologyIRI()))));
+        m.applyChange(new AddImport(importingOnt, df.getOWLImportsDeclaration(get(ont.getOntologyID().getOntologyIRI()))));
         assertTrue(m.contains(oldIRI));
+        LOGGER.debug("Ontology before renaming:");
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(importingOnt);
         OWLOntologyIRIChanger changer = new OWLOntologyIRIChanger(m);
         m.applyChanges(changer.getChanges(ont, newIRI));
+        LOGGER.debug("Ontology after renaming:");
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(importingOnt);
+        Set<IRI> imports = importingOnt.importsDeclarations().map(OWLImportsDeclaration::getIRI).collect(Collectors.toSet());
+        LOGGER.debug("Imports : " + imports);
+
         assertFalse(m.contains(oldIRI));
         assertTrue(m.contains(newIRI));
         assertTrue(m.ontologies().anyMatch(o -> o.equals(ont)));
         assertTrue(m.directImports(importingOnt).anyMatch(o -> o.equals(ont)));
+
+        assertTrue("Can't find " + newIRI + " inside " + importingOnt.getOntologyID(), imports.contains(newIRI));
+        assertFalse("There is " + oldIRI + " inside " + importingOnt.getOntologyID(), imports.contains(oldIRI));
+
         OWLOntology ontology = m.getOntology(newIRI);
         assertNotNull("ontology should not be null", ontology);
         assertEquals(ontology, ont);
+        //noinspection OptionalGetWithoutIsPresent
         assertEquals(ontology.getOntologyID().getOntologyIRI().get(), newIRI);
         assertTrue(m.importsClosure(importingOnt).anyMatch(o -> o.equals(ont)));
         assertNotNull("ontology should not be null", m.getOntologyDocumentIRI(ont));

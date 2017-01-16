@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.commons.io.output.WriterOutputStream;
@@ -45,6 +46,18 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     public OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
         super(dataFactory, readWriteLock);
         this.lock = readWriteLock;
+        ontologyFactories.set(new OntBuildingFactoryImpl());
+    }
+
+    /**
+     * override to disable @Inject
+     * TODO: it is temporary solution.
+     *
+     * @param factories Set
+     */
+    @Override
+    public void setOntologyFactories(@Nonnull Set<OWLOntologyFactory> factories) {
+        super.setOntologyFactories(factories);
     }
 
     public boolean isConcurrent() {
@@ -87,6 +100,51 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     @Override
     public OntologyModel getOntology(@Nonnull OWLOntologyID id) {
         return (OntologyModel) super.getOntology(id);
+    }
+
+    @Override
+    public OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration) {
+        return (OntologyModel) super.getImportedOntology(declaration);
+    }
+
+    /**
+     * hotfix.
+     * <p>
+     * we have changes in behaviour in comparison with OWL-API while add/remove imports.
+     * see {@link OntologyModelImpl.RDFChangeProcessor#addImport(OWLImportsDeclaration)} and
+     * {@link OntologyModelImpl.RDFChangeProcessor#removeImport(OWLImportsDeclaration)}.
+     * <p>
+     * While renaming some ontology OWL-API performs adding/removing imports for ontologies where that one is in use.
+     * This method is to avoid exception caused by {@link #checkDocumentIRI} during {@link #getImportedOntology}.
+     *
+     * @param declaration {@link OWLImportsDeclaration}
+     * @return {@link OntologyModelImpl} or null.
+     */
+    public OntologyModelImpl getOntologyByImportDeclaration(OWLImportsDeclaration declaration) {
+        try {
+            return (OntologyModelImpl) getImportedOntology(declaration);
+        } catch (OWLRuntimeException re) {
+            if (re.getCause() instanceof OWLOntologyDocumentAlreadyExistsException) {
+                OntologyModelImpl res = getOntologyByDocumentIRI(declaration.getIRI());
+                if (res != null) return res;
+            }
+            throw re;
+        }
+    }
+
+    /**
+     * see private method {@link super#getOntologyByDocumentIRI(IRI)} in parent class
+     *
+     * @param documentIRI iri
+     * @return {@link OntologyModelImpl}
+     */
+    public OntologyModelImpl getOntologyByDocumentIRI(IRI documentIRI) {
+        return documentIRIsByID.entrySet().stream()
+                .filter(o -> documentIRI.equals(o.getValue()))
+                .map(Map.Entry::getKey)
+                .map(ontologiesByID::get)
+                .map(OntologyModelImpl.class::cast)
+                .findFirst().orElse(null);
     }
 
     @Override
