@@ -32,11 +32,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
-/**
- * TODO:
- *
- * @szuev: modified for ONT-API
- */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc"})
 public class SerializationTestCase extends TestBase {
 

@@ -34,8 +34,8 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
  * that is being imported.
  *
  * @author Peter Ansell p_ansell@yahoo.com
- * @szuev: modified for ONT-API
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc"})
 public class MultipleOntologyLoadsTestCase extends TestBase {
 

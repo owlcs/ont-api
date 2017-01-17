@@ -30,12 +30,11 @@ import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
 /**
  * @author Matthew Horridge, The University of Manchester, Information
  *         Management Group
- * @szuev: modified for ONT-API
  * @since 3.0.0
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class NoQNameTestCase extends TestBase {
-
 
     /**
      * OWL-API throws a checked exception {@link org.semanticweb.owlapi.model.OWLOntologyStorageException}

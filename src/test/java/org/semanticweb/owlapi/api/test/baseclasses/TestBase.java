@@ -43,16 +43,17 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health
  *         Informatics Group
- * @szuev: modified for ONT-API
  * @since 2.2.0
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc", "null"})
 public abstract class TestBase {
 
@@ -176,20 +177,6 @@ public abstract class TestBase {
     public void setupManagersClean() {
         m = setupManager();
         m1 = setupManager();
-    }
-
-    protected Set<OWLAxiom> stripSimpleDeclarations(Collection<OWLAxiom> axioms) {
-        Set<OWLAxiom> toReturn = new HashSet<>();
-        for (OWLAxiom ax : axioms) {
-            if (!isSimpleDeclaration(ax)) {
-                toReturn.add(ax);
-            }
-        }
-        return toReturn;
-    }
-
-    protected boolean isSimpleDeclaration(OWLAxiom ax) {
-        return ax.isOfType(AxiomType.DECLARATION) && ax.annotations().count() == 0;
     }
 
     public boolean equal(OWLOntology ont1, OWLOntology ont2) {
@@ -456,19 +443,6 @@ public abstract class TestBase {
     public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format)
             throws OWLOntologyStorageException, OWLOntologyCreationException {
         return roundTripOntology(ont, format, false);
-    }
-
-    // @Test
-    public void checkVerify() {
-        OWLDataProperty t = df.getOWLDataProperty("urn:test#", "t");
-        Set<OWLAxiom> ax1 = new HashSet<>();
-        ax1.add(df.getOWLDataPropertyAssertionAxiom(t, df.getOWLAnonymousIndividual(), df.getOWLLiteral("test1")));
-        ax1.add(df.getOWLDataPropertyAssertionAxiom(t, df.getOWLAnonymousIndividual(), df.getOWLLiteral("test2")));
-        Set<OWLAxiom> ax2 = new HashSet<>();
-        ax2.add(df.getOWLDataPropertyAssertionAxiom(t, df.getOWLAnonymousIndividual(), df.getOWLLiteral("test1")));
-        ax2.add(df.getOWLDataPropertyAssertionAxiom(t, df.getOWLAnonymousIndividual(), df.getOWLLiteral("test2")));
-        assertFalse(ax1.equals(ax2));
-        assertTrue(verifyErrorIsDueToBlankNodesId(ax1, ax2));
     }
 
     protected OWLOntology loadOntologyFromString(String input) throws OWLOntologyCreationException {

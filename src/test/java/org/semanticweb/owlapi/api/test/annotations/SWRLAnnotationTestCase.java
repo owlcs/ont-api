@@ -29,11 +29,7 @@ import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
 
-/**
- * TODO:
- *
- * @szuev: modified for ONT-API
- */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc", "null"})
 public class SWRLAnnotationTestCase extends TestBase {
 

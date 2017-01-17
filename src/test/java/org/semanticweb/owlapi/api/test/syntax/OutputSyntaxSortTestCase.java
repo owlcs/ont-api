@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.ComparisonFailure;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -16,8 +17,16 @@ import org.semanticweb.owlapi.model.*;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * WARNING: It is ignored.
+ * At the moment ONT-API doesn't support the same order of formatted output since it is based on jena.
+ * In addition the test data below contains uri "<testString>".
+ * It is bad for jena XML Writer: {@link org.apache.jena.shared.BadURIException} expected.
+ */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
+@Ignore
 public class OutputSyntaxSortTestCase extends TestBase {
 
     String[] input = new String[]{"Prefix(:=<http://www.co-ode.org/ontologies/pizza/pizza.owl#>)\n"
@@ -234,7 +243,7 @@ public class OutputSyntaxSortTestCase extends TestBase {
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> getData() {
-        return Arrays.<Object[]>asList(new Object[]{new ManchesterSyntaxDocumentFormat()}, new Object[]{
+        return Arrays.asList(new Object[]{new ManchesterSyntaxDocumentFormat()}, new Object[]{
                 new FunctionalSyntaxDocumentFormat()}, new Object[]{new TurtleDocumentFormat()}, new Object[]{
                 new RDFXMLDocumentFormat()}, new Object[]{new OWLXMLDocumentFormat()});
     }

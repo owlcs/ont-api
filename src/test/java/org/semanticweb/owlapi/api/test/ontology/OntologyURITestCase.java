@@ -26,8 +26,8 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
  * @author Matthew Horridge, The University Of Manchester, Information
  *         Management Group
  * @since 2.2.0
- * @szuev: modified for ONT-API
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class OntologyURITestCase extends TestBase {
 

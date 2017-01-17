@@ -17,8 +17,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 10/04/15
  *
- * @szuev: modified for ONT-API
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class OWLManagerTestCase {
 

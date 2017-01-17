@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -239,7 +238,8 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
-        return StreamSupport.stream(types.spliterator(), axiomsCache.isEmpty())
+        return //StreamSupport.stream(types.spliterator(), axiomsCache.isEmpty())
+                types.stream()
                 .map(this::getAxioms)
                 .map(Collection::stream).flatMap(Function.identity());
     }

@@ -18,9 +18,9 @@ import org.semanticweb.owlapi.model.OWLOntology;
 /**
  * @author Matthew Horridge, The University Of Manchester, Information
  *         Management Group
- * @szuev: modified for ONT-API
  * @since 2.2.0
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public abstract class AbstractFileRoundTrippingTestCase extends AbstractRoundTrippingTestCase {
 

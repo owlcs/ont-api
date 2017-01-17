@@ -12,8 +12,6 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 package org.semanticweb.owlapi.api.test.syntax;
 
-import javax.annotation.Nonnull;
-
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
@@ -27,15 +25,12 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
  *         Informatics Group
  * @since 3.1.0
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class OWLXMLNullPointerTestCase extends TestBase {
 
-    private static final
-    @Nonnull
-    String NS = "urn:test";
-    public static final
-    @Nonnull
-    String ANONYMOUS_INDIVIDUAL_ANNOTATION = "Anonymous individual for testing";
+    private static final String NS = "urn:test";
+    private static final String ANONYMOUS_INDIVIDUAL_ANNOTATION = "Anonymous individual for testing";
 
     @Test
     public void testRoundTrip() throws Exception {
@@ -62,7 +57,9 @@ public class OWLXMLNullPointerTestCase extends TestBase {
         OWLAnonymousIndividual i = df.getOWLAnonymousIndividual();
         OWLSubClassOfAxiom sub = df.getOWLSubClassOfAxiom(c, df.getOWLObjectHasValue(p, i));
         o.getOWLOntologyManager().addAxiom(o, sub);
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
         OWLOntology roundtrip = roundTrip(o, new OWLXMLDocumentFormat());
         equal(o, roundtrip);
     }
+
 }

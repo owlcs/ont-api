@@ -24,8 +24,8 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
  * @author Matthew Horridge, The University of Manchester, Information
  *         Management Group
  * @since 3.0.0
- * @szuev: modified for ONT-API
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class OWLOntologyManagerTestCase extends TestBase {
 

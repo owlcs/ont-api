@@ -135,6 +135,16 @@ public abstract class GraphConverter {
             return ModelFactory.createModelForGraph(getGraph());
         }
 
+        public Model getBaseModel() {
+            return ModelFactory.createModelForGraph(getBaseGraph());
+        }
+
+        public Stream<Statement> listStatements(Resource s, Property p, RDFNode o) {
+            Model m = getModel();
+            return Models.asStream(getBaseModel().listStatements(s, p, o))
+                    .map(st -> m.createStatement(st.getSubject(), st.getPredicate(), st.getObject()));
+        }
+
         /**
          * returns Stream of types for specified {@link RDFNode}, or empty stream if the input is not uri-resource.
          *
@@ -370,18 +380,18 @@ public abstract class GraphConverter {
 
         @Override
         public void perform() {
-            Model m = getModel();
-            fixClassesAndDatatypes(m);
-            fixOwlProperties(m);
-            fixNamedIndividuals(m);
+            fixClassesAndDatatypes();
+            fixOwlProperties();
+            fixNamedIndividuals();
             // domain is always class for object and datatype properties
-            m.listStatements(null, RDFS.domain, (RDFNode) null)
-                    .filterKeep(s -> chooseTypeFrom(types(s.getSubject()), OWL.ObjectProperty, OWL.DatatypeProperty) != null).
-                    mapWith(Statement::getObject).forEachRemaining(o -> declare(o, OWL.Class, true));
+            listStatements(null, RDFS.domain, null)
+                    .filter(s -> chooseTypeFrom(types(s.getSubject()), OWL.ObjectProperty, OWL.DatatypeProperty) != null)
+                    .map(Statement::getObject)
+                    .forEach(o -> declare(o, OWL.Class, true));
         }
 
-
-        private void fixNamedIndividuals(Model m) {
+        private void fixNamedIndividuals() {
+            Model m = getModel();
             Stream.of(OWL.sameAs, OWL.differentFrom)
                     .forEach(p -> fixExplicitTypes(m, p, OWL.NamedIndividual));
 
@@ -401,7 +411,8 @@ public abstract class GraphConverter {
                     .forEachRemaining(s -> fixList(s, OWL.NamedIndividual));
         }
 
-        private void fixClassesAndDatatypes(Model m) {
+        private void fixClassesAndDatatypes() {
+            Model m = getModel();
             fixAmbiguousTypes(m, OWL.equivalentClass, OWL.Class, RDFS.Datatype);
 
             Stream.of(RDFS.subClassOf, OWL.disjointWith, OWL.onClass).forEach(p -> fixExplicitTypes(m, p, OWL.Class));
@@ -449,7 +460,8 @@ public abstract class GraphConverter {
                     .forEachRemaining(n -> declare(n, OWL.Class, true));
         }
 
-        private void fixOwlProperties(Model m) {
+        private void fixOwlProperties() {
+            Model m = getModel();
             fixExplicitTypes(m, OWL.inverseOf, OWL.ObjectProperty);
             Stream.of(RDFS.subPropertyOf, OWL.equivalentProperty, OWL.propertyDisjointWith)
                     .forEach(predicate -> fixAmbiguousTypes(m, predicate, OWL.ObjectProperty, OWL.DatatypeProperty));
@@ -471,7 +483,6 @@ public abstract class GraphConverter {
                 Resource property = getOnPropertyFromRestriction(s.getSubject());
                 if (property == null) return;
                 declare(property, OWL.ObjectProperty, true);
-
             });
         }
 
@@ -589,6 +600,10 @@ public abstract class GraphConverter {
             return types.size() == 1 ? types.get(0) : null;
         }
 
+        boolean isDefinitelyClass(RDFNode subject) {
+            return OWL.Class.equals(chooseExpressionType(subject));
+        }
+
         /**
          * choose unambiguous type of property (either object property expression or datatype property).
          *
@@ -681,18 +696,18 @@ public abstract class GraphConverter {
     /**
      * To fix missed owl:NamedIndividual declarations.
      */
-    private static class NamedIndividualFixer extends TransformAction {
+    private static class NamedIndividualFixer extends BaseTripleDeclarationFixer {
         NamedIndividualFixer(Graph graph) {
             super(graph);
         }
 
         @Override
         public void perform() {
-            Set<Node> individuals = getBaseGraph().find(Node.ANY, RDF_TYPE, Node.ANY)
-                    .filterKeep(triple -> triple.getSubject().isURI())
-                    .filterKeep(triple -> getTypes(triple.getObject()).contains(OWL.Class.asNode()))
-                    .mapWith(Triple::getSubject).toSet();
-            individuals.forEach(node -> addType(node, OWL.NamedIndividual));
+            Set<Resource> individuals = listStatements(null, RDF.type, null)
+                    .filter(s -> s.getSubject().isURIResource())
+                    .filter(s -> isDefinitelyClass(s.getObject()))
+                    .map(Statement::getSubject).collect(Collectors.toSet());
+            individuals.forEach(r -> declare(r, OWL.NamedIndividual, true));
         }
     }
 

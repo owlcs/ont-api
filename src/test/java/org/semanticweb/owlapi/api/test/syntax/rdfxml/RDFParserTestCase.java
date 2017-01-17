@@ -35,6 +35,7 @@ import static org.junit.Assert.assertFalse;
  *         Informatics Group
  * @since 2.0.0
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class RDFParserTestCase extends TestBase {
 
@@ -50,6 +51,7 @@ public class RDFParserTestCase extends TestBase {
         parseFiles("/owlapi/");
     }
 
+    @SuppressWarnings({"SameParameterValue", "ConstantConditions"})
     private void parseFiles(String base) throws URISyntaxException, OWLOntologyCreationException {
         URL url = getClass().getResource(base.startsWith("/owlapi/") ? base : "/owlapi/" + base);
         File file = new File(url.toURI());
@@ -85,9 +87,10 @@ public class RDFParserTestCase extends TestBase {
                 + "</owl:DatatypeProperty>\n" + "<owl:Datatype rdf:about=\"&xsd;decimal\"/>\n"
                 + "<owl:Datatype rdf:about=\"&xsd;integer\"/>\n" + "<owl:Datatype rdf:about=\"&xsd;string\"/>\n"
                 + "</rdf:RDF>";
+        LOGGER.debug(in);
         OWLOntology o = loadOntologyFromString(in);
-        assertFalse(o.containsObjectPropertyInSignature(IRI.create("http://www.loa-cnr.it/ontologies/Plans.owl#",
-                "iteration-cardinality")));
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
+        assertFalse(o.containsObjectPropertyInSignature(IRI.create("http://www.loa-cnr.it/ontologies/Plans.owl#", "iteration-cardinality")));
     }
 
     @Test

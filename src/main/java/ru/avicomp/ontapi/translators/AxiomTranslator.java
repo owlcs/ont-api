@@ -28,18 +28,21 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     abstract Axiom create(OntStatement statement, Set<OWLAnnotation> annotations);
 
-    protected Stream<RDF2OWLHelper.AxiomStatement> axiomStatements(OntGraphModel model) {
+    private Stream<RDF2OWLHelper.AxiomStatement> axiomStatements(OntGraphModel model) {
         return statements(model).map(RDF2OWLHelper.AxiomStatement::new);
     }
 
     public Map<Axiom, Set<Triple>> read(OntGraphModel model) {
-        return axiomStatements(model)
-                .collect(Collectors.toMap(c -> create(c.getStatement(), c.getAnnotations()),
-                        RDF2OWLHelper.AxiomStatement::getTriples,
-                        (tripleSet1, tripleSet2) -> {
-                            tripleSet1.addAll(tripleSet2);
-                            return tripleSet1;
-                        }));
+        try {
+            return axiomStatements(model).collect(Collectors.toMap(c -> create(c.getStatement(), c.getAnnotations()),
+                    RDF2OWLHelper.AxiomStatement::getTriples,
+                    (tripleSet1, tripleSet2) -> {
+                        tripleSet1.addAll(tripleSet2);
+                        return tripleSet1;
+                    }));
+        } catch (Exception e) {
+            throw new OntApiException(String.format("Can't process reading. Translator <%s>.", getClass()), e);
+        }
     }
 
     public AxiomParserProvider.Config getConfig() {

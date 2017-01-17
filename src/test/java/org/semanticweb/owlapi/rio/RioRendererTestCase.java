@@ -27,8 +27,8 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * @author Peter Ansell p_ansell@yahoo.com
- * @szuev: modified for ONT-API
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc", "null", "ConstantConditions"})
 public class RioRendererTestCase extends TestBase {
 

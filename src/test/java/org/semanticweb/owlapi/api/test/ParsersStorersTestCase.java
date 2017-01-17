@@ -47,9 +47,7 @@ import org.semanticweb.owlapi.rdf.turtle.renderer.TurtleStorerFactory;
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
-/**
- * @szuev: modified for ONT-API
- */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc"})
 @RunWith(Parameterized.class)
 public class ParsersStorersTestCase extends TestBase {

@@ -67,11 +67,11 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
     /**
      * see description to the interface {@link OntIndividual.Anonymous}
-     * It seems that checking for conditions 6, 7, 8, 9 could be displaced by checking that tested b-node is
-     * an object in a triple from annotation and object property assertion.
+     * It seems that checking for conditions 7, 8, 9, 10 could be displaced by checking that tested b-node is
+     * an object in a triple from annotation or object property assertion (triple where predicate is object or annotation property).
      * About this there are following reflections:
      * - in the well-formed ontology anonymous subject should be declared as individual (condition 1),
-     *      otherwise it is just any other b-node (e.g. root for owl:Axiom)
+     *      otherwise it is just any other b-node (e.g. root for owl:Axiom).
      * - the bulk annotations consist of annotation assertions.
      */
     public static class AnonymousImpl extends OntIndividualImpl implements OntIndividual.Anonymous {
@@ -96,6 +96,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
                 Stream<Node> oneOf = oneOfAnonIndividuals(eg);
                 Stream<Node> assertions = positiveAssertionAnonIndividuals(eg);
                 Stream<Node> negative = negativeAssertionAnonIndividuals(eg);
+                Stream<Node> restrictions = hasValueOPEAnonIndividuals(eg);
                 Stream<Node> same = sameAnonIndividuals(eg);
                 Stream<Node> different = differentAnonIndividuals(eg);
                 return Stream.of(
@@ -104,6 +105,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
                         , oneOf
                         , assertions
                         , negative
+                        , restrictions
                         , same
                         , different
                 ).flatMap(Function.identity()).distinct();
@@ -117,6 +119,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
                         (!getDeclarations(node, graph).mapWith(Triple::getObject).toSet().isEmpty() ||
                                 positiveAssertionAnonIndividuals(graph).anyMatch(node::equals) ||
                                 negativeAssertionAnonIndividuals(graph).anyMatch(node::equals) ||
+                                hasValueOPEAnonIndividuals(graph).anyMatch(node::equals) ||
                                 sameAnonIndividuals(graph).anyMatch(node::equals) ||
                                 differentAnonIndividuals(graph).anyMatch(node::equals) ||
                                 oneOfAnonIndividuals(graph).anyMatch(node::equals) ||
@@ -130,14 +133,23 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static Stream<Node> negativeAssertionAnonIndividuals(EnhGraph eg) {
-            return Models.asStream(eg.asGraph().find(Node.ANY, RDF.type.asNode(), OWL.NegativePropertyAssertion.asNode()))
+            return Stream.of(OWL.sourceIndividual, OWL.targetIndividual)
+                    .map(FrontsNode::asNode)
+                    .map(predicate -> Models.asStream(eg.asGraph().find(Node.ANY, predicate, Node.ANY)).map(Triple::getObject))
+                    .flatMap(Function.identity()).filter(Node::isBlank);
+            // it seems we don't need full validation:
+            /*return Models.asStream(eg.asGraph().find(Node.ANY, RDF.type.asNode(), OWL.NegativePropertyAssertion.asNode()))
                     .map(Triple::getSubject).map(subject ->
                             Stream.of(OWL.sourceIndividual, OWL.targetIndividual)
                                     .map(FrontsNode::asNode)
                                     .map(predicate -> Models.asStream(eg.asGraph().find(subject, predicate, Node.ANY)).map(Triple::getObject))
                                     .flatMap(Function.identity()))
                     .flatMap(Function.identity())
-                    .filter(Node::isBlank);
+                    .filter(Node::isBlank);*/
+        }
+
+        private static Stream<Node> hasValueOPEAnonIndividuals(EnhGraph eg) {
+            return Models.asStream(eg.asGraph().find(Node.ANY, OWL.hasValue.asNode(), Node.ANY)).map(Triple::getObject).filter(Node::isBlank);
         }
 
         private static Stream<Node> sameAnonIndividuals(EnhGraph eg) {

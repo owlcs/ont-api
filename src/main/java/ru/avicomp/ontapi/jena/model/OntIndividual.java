@@ -66,10 +66,11 @@ public interface OntIndividual extends OntObject {
      * 3) it is contained in a rdf:List with predicate owl:distinctMembers or owl:members in a blank node with rdf:type owl:AllDifferent
      * 4) it is contained in a rdf:List with predicate owl:oneOf in a blank node with rdf:type owl:Class
      * 5) it is a part of owl:NegativePropertyAssertion section with predicates owl:sourceIndividual or owl:targetIndividual
-     * 6) it is a part of owl:Axiom or owl:Annotation (bulk annotation) with predicate owl:annotatedTarget or owl:annotatedSource
-     * 7) it is a subject or an object in a statement where predicate is an uri-resource with rdf:type owl:AnnotationProperty (i.e. annotation property assertion "s A t")
-     * 8) it is a subject in a triple which corresponds data property assertion "_:a R v" (where "R" is a datatype property, "v" is a literal)
-     * 9) it is a subject or an object in a triple which corresponds object property assertion "_:a1 PN _:a2" (where PN is a named object property)
+     * 6) it is an object with predicate owl:hasValue inside "_:x rdf:type owl:Restriction" (Object Property Restriction)
+     * 7) it is a part of owl:Axiom or owl:Annotation (bulk annotation) with predicate owl:annotatedTarget or owl:annotatedSource
+     * 8) it is a subject or an object in a statement where predicate is an uri-resource with rdf:type owl:AnnotationProperty (i.e. annotation property assertion "s A t")
+     * 9) it is a subject in a triple which corresponds data property assertion "_:a R v" (where "R" is a datatype property, "v" is a literal)
+     * 10) it is a subject or an object in a triple which corresponds object property assertion "_:a1 PN _:a2" (where PN is a named object property)
      *
      * <p>
      * Created by szuev on 10.11.2016.

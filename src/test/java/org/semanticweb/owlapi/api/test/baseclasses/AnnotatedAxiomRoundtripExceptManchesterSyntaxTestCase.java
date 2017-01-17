@@ -30,8 +30,8 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class
  * @author Matthew Horridge, The University of Manchester, Bio-Health
  *         Informatics Group
  * @since 3.1.0
- * @szuev: modified for ONT-API
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase
