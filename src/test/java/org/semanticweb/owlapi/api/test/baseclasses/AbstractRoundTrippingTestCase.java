@@ -14,6 +14,7 @@ package org.semanticweb.owlapi.api.test.baseclasses;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.*;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -99,5 +100,24 @@ public abstract class AbstractRoundTrippingTestCase extends TestBase {
         OWLOntology o2 = roundTrip(ont, new FunctionalSyntaxDocumentFormat());
         equal(ont, o1);
         equal(o1, o2);
+    }
+
+    /**
+     * Does recalculation of an axiom cache due to ONT-API behaviour:
+     * since some declarations in the original ontology have plain annotations
+     * after resetting cache those annotations would treated as separated annotation assertion axioms,
+     * and should match the reloaded ontology,
+     * because annotation assertion axioms have a higher priority while reading graph.
+     *
+     * @param ont    The ontology to be round tripped.
+     * @param format The format to use when doing the round trip.
+     * @return
+     * @throws OWLOntologyStorageException
+     * @throws OWLOntologyCreationException
+     */
+    @Override
+    public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format) throws OWLOntologyStorageException,
+            OWLOntologyCreationException {
+        return super.roundTripOntology(ont, format, true);
     }
 }

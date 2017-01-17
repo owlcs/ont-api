@@ -183,8 +183,36 @@ public abstract class GraphConverter {
                     forEach(type -> findByType(type).forEachRemaining(node -> deleteType(node, RDF.Property)));
             Stream.of(OWL.InverseFunctionalProperty, OWL.TransitiveProperty, OWL.SymmetricProperty).
                     forEach(type -> findByType(type).forEachRemaining(node -> addType(node, OWL.ObjectProperty)));
-            // TODO: merge several owl:Ontology to single one.
-            // TODO: if there is no any owl:Ontology -> add new anonymous owl:Ontology
+            fixOntology();
+        }
+
+        /**
+         * merge several owl:Ontology to single one.
+         * as primary choose the one that has the largest number of triplets.
+         * if there is no any owl:Ontology -> add new anonymous owl:Ontology
+         */
+        private void fixOntology() {
+            Model m = getBaseModel();
+            // choose or create the new one:
+            Resource ontology = Models.asStream(m.listStatements(null, RDF.type, OWL.Ontology))
+                    .map(Statement::getSubject)
+                    .sorted(Comparator.comparing(this::statementsCount).reversed())
+                    .findFirst()
+                    .orElse(m.createResource().addProperty(RDF.type, OWL.Ontology));
+            // move all content from other ontologies to the selected one
+            Stream<Resource> other = Models.asStream(m.listStatements(null, RDF.type, OWL.Ontology)
+                    .mapWith(Statement::getSubject)
+                    .filterDrop(ontology::equals));
+            List<Statement> rest = other
+                    .map(o -> Models.asStream(m.listStatements(o, null, (RDFNode) null)))
+                    .flatMap(Function.identity()).collect(Collectors.toList());
+            rest.forEach(s -> ontology.addProperty(s.getPredicate(), s.getObject()));
+            // remove all other ontologies
+            m.remove(rest);
+        }
+
+        private Integer statementsCount(Resource subject) {
+            return (int) Models.asStream(subject.listProperties()).count();
         }
 
         @Override

@@ -65,6 +65,15 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return (OntPersonality) super.getPersonality();
     }
 
+    /**
+     * gets ontology ID.
+     * <p>
+     * todo: no any checks are needed,
+     * there is the separate processing for the such cases in {@link ru.avicomp.ontapi.jena.GraphConverter.OWLtoOWL2DLFixer}
+     * just throw an exception in case there is no one and only one ontology inside.
+     *
+     * @return {@link OntID}
+     */
     @Override
     public OntID getID() {
         List<Resource> prev = ontologyStatements().collect(Collectors.toList());
@@ -78,6 +87,14 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return getNodeAs(res.asNode(), OntID.class);
     }
 
+    /**
+     * sets new ontology uri.
+     * <p>
+     * TODO: see {@link #getID()}
+     *
+     * @param uri String, could be null for anonymous ontology
+     * @return {@link OntID}
+     */
     @Override
     public OntID setID(String uri) {
         List<Statement> tmp = ontologyStatements().map(s -> Models.asStream(listStatements(s, null, (RDFNode) null))).flatMap(Function.identity()).distinct().collect(Collectors.toList());

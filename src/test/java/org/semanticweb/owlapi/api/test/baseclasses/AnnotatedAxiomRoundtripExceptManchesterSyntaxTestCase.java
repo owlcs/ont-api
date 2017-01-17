@@ -21,7 +21,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
 
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
@@ -31,7 +32,6 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class
  *         Informatics Group
  * @since 3.1.0
  */
-@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase
@@ -50,25 +50,6 @@ public class AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase
                 a -> Declaration(DataProperty(iri("propD")), a),
                 a -> Declaration(AnnotationProperty(iri("propA")), a),
                 a -> Declaration(Class(iri("A")), a));
-    }
-
-    /**
-     * Does recalculation of an axiom cache due to ONT-API behaviour:
-     * since some declarations in the original ontology have plain annotations
-     * after resetting cache those annotations would treated as separated annotation assertion axioms,
-     * and should match the reloaded ontology,
-     * because annotation assertion axioms have a higher priority while reading graph.
-     *
-     * @param ont    The ontology to be round tripped.
-     * @param format The format to use when doing the round trip.
-     * @return
-     * @throws OWLOntologyStorageException
-     * @throws OWLOntologyCreationException
-     */
-    @Override
-    public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format) throws OWLOntologyStorageException,
-            OWLOntologyCreationException {
-        return super.roundTripOntology(ont, format, true);
     }
 
     @Override

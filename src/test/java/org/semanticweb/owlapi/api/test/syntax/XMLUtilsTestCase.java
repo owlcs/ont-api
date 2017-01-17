@@ -28,6 +28,7 @@ import static org.junit.Assert.*;
  *         Informatics Group
  * @since 3.3.0
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc"})
 public class XMLUtilsTestCase extends TestBase {
 
@@ -36,7 +37,7 @@ public class XMLUtilsTestCase extends TestBase {
     @Nonnull
     String CODE_POINT_STRING = init();
 
-    static String init() {
+    private static String init() {
         StringBuilder sb = new StringBuilder();
         sb.appendCodePoint(CODE_POINT);
         return sb.toString();
@@ -101,9 +102,14 @@ public class XMLUtilsTestCase extends TestBase {
                 + "<skos:prefLabel xml:lang=\"fr\">Affaires autochtones</skos:prefLabel>\n" + "</skos:Concept>\n" + "\n"
                 + "</rdf:RDF>";
         // when
-        OWLOntology o = loadOntologyFromString(input, IRI.getNextDocumentIRI("testuriwithblankspace"),
+        OWLOntology o = loadOntologyFromString(input,
+                IRI.getNextDocumentIRI("testuriwithblankspace"),
                 new RDFXMLDocumentFormat());
+        o.axioms().forEach(a -> LOGGER.debug(a.toString()));
         // then
-        assertEquals(15, o.getAxiomCount());
+        // ONT-API - 12 AnnotationAssertion, 11 Declaration (2 owl:class, 3 owl:NamedIndividual, 6 owl:AnnotationProperty), 3 ClassAssertion
+        // OWL-API - 12 AnnotationAssertion, 0 Declaration, 3 ClassAssertion
+        int num = DEBUG_USE_OWL ? 15 : 26;
+        assertEquals("Incorrect number of axioms", num, o.getAxiomCount());
     }
 }
