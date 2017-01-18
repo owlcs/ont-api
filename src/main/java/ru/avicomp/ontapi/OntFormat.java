@@ -13,10 +13,14 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
  * Created by @szuev on 27.09.2016.
  */
 public enum OntFormat {
-    XML_RDF("rdf", Lang.RDFXML, RDFXMLDocumentFormat.class),
     TTL_RDF("ttl", Lang.TURTLE, TurtleDocumentFormat.class),
-    JSON_LD_RDF("jsonld", Lang.JSONLD, RDFJsonLDDocumentFormat.class),
+    XML_RDF("rdf", Lang.RDFXML, RDFXMLDocumentFormat.class),
+
+    // json has more priority since json-ld can't be read as json, but json can be as json-ld
+    // todo: it is hotfix.
     JSON_RDF("rj", Lang.RDFJSON, RDFJsonDocumentFormat.class),
+    JSON_LD_RDF("jsonld", Lang.JSONLD, RDFJsonLDDocumentFormat.class),
+
     NTRIPLES("nt", Lang.NTRIPLES, NTriplesDocumentFormat.class),
     NQUADS("nq", Lang.NQUADS, NQuadsDocumentFormat.class),
     TRIG("trig", Lang.TRIG, TrigDocumentFormat.class),

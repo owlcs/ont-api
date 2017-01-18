@@ -84,7 +84,7 @@ public class ReadWriteUtils {
 
     public static Model loadFromString(String input, OntFormat ext) {
         Model m = ModelFactory.createDefaultModel();
-        m.read(toInputStream(input), null, OntFormat.XML_RDF.getID());
+        m.read(toInputStream(input), null, ext.getID());
         return m;
     }
 
