@@ -45,9 +45,9 @@ public class ImportsGraphTest extends GraphTestBase {
         OntIRI import3 = OntIRI.create(ReadWriteUtils.getResourceURI("foaf.rdf"));
         OntIRI import4 = OntIRI.create(ReadWriteUtils.getResourceURI("pizza.ttl"));
         manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(import1)));
-        jena.addImport(import2.getIRIString());
+        jena.getID().addImport(import2.getIRIString());
         manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(import3)));
-        jena.addImport(import4.getIRIString());
+        jena.getID().addImport(import4.getIRIString());
 
         debug(owl);
 
@@ -56,12 +56,12 @@ public class ImportsGraphTest extends GraphTestBase {
         Assert.assertEquals("Jena: incorrect imports count.", importsCount, jena.listStatements(iri.toResource(), OWL.imports, (RDFNode) null).toList().size());
 
         LOGGER.info("Remove imports.");
-        jena.removeImport(import4.getIRIString());
+        jena.getID().removeImport(import4.getIRIString());
         manager.applyChange(new RemoveImport(owl, factory.getOWLImportsDeclaration(import1)));
         debug(owl);
         importsCount = 2;
         Assert.assertEquals("OWL: incorrect imports count after removing.", importsCount, owl.importsDeclarations().count());
-        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount, jena.imports().count());
+        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount, jena.getID().imports().count());
 
         debug(owl);
     }

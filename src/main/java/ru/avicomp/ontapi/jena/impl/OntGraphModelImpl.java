@@ -56,8 +56,9 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     protected void syncImports(OntPersonality personality) {
-        removeAll(getID(), OWL.imports, null);
-        models(personality).map(OntGraphModel::getID).filter(Resource::isURIResource).forEach(id -> addImport(id.getURI()));
+        OntID id = getID();
+        id.removeAll(OWL.imports);
+        imports(personality).map(OntGraphModel::getID).filter(Resource::isURIResource).map(Resource::getURI).forEach(id::addImport);
     }
 
     @Override
@@ -65,53 +66,37 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return (OntPersonality) super.getPersonality();
     }
 
-    /**
-     * gets ontology ID.
-     * <p>
-     * todo: no any checks are needed,
-     * there is the separate processing for the such cases in {@link ru.avicomp.ontapi.jena.GraphConverter.OWLtoOWL2DLFixer}
-     * just throw an exception in case there is no one and only one ontology inside.
-     *
-     * @return {@link OntID}
-     */
     @Override
     public OntID getID() {
-        List<Resource> prev = ontologyStatements().collect(Collectors.toList());
-        Resource res;
-        if (prev.isEmpty()) {
-            res = createResource(); // anon id
-            add(res, RDF.type, OWL.Ontology);
-        } else {
-            res = prev.get(0); // choose first.
+        List<Resource> res = ontologyStatements().collect(Collectors.toList());
+        if (res.size() != 1) {
+            throw new OntJenaException(res.isEmpty() ? "No ontologies found" : "There is more then one ontologies inside: " + res);
         }
+        return getNodeAs(res.get(0).asNode(), OntID.class);
+    }
+
+    @Override
+    public OntID setID(String uri) {
+        List<Statement> prev = ontologyStatements()
+                .map(s -> Models.asStream(s.listProperties())).
+                        flatMap(Function.identity()).collect(Collectors.toList());
+        if (prev.stream()
+                .filter(s -> OWL.imports.equals(s.getPredicate()))
+                .map(Statement::getObject)
+                .filter(RDFNode::isURIResource)
+                .map(RDFNode::asResource)
+                .map(Resource::getURI).anyMatch(s -> s.equals(uri))) {
+            throw new OntJenaException("Can't create ontology: <" + uri + "> is present in the imports.");
+        }
+        remove(prev);
+        Resource res = createResource(uri);
+        add(res, RDF.type, OWL.Ontology);
+        prev.forEach(s -> add(res, s.getPredicate(), s.getObject()));
         return getNodeAs(res.asNode(), OntID.class);
     }
 
-    /**
-     * sets new ontology uri.
-     * <p>
-     * TODO: see {@link #getID()}
-     *
-     * @param uri String, could be null for anonymous ontology
-     * @return {@link OntID}
-     */
-    @Override
-    public OntID setID(String uri) {
-        List<Statement> tmp = ontologyStatements().map(s -> Models.asStream(listStatements(s, null, (RDFNode) null))).flatMap(Function.identity()).distinct().collect(Collectors.toList());
-        remove(tmp);
-        Resource subject;
-        if (uri == null) {
-            subject = tmp.stream().map(Statement::getSubject).filter(Resource::isAnon).findFirst().orElse(createResource());
-        } else {
-            subject = createResource(uri);
-        }
-        add(subject, RDF.type, OWL.Ontology);
-        tmp.forEach(s -> add(subject, s.getPredicate(), s.getObject()));
-        return getNodeAs(subject.asNode(), OntID.class);
-    }
-
     private Stream<Resource> ontologyStatements() {
-        return Models.asStream(listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject)).distinct();
+        return Models.asStream(getBaseModel().listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject));
     }
 
     @Override
@@ -120,48 +105,21 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
             throw new OntJenaException("Anonymous sub models are not allowed");
         }
         getGraph().addGraph(m.getGraph());
-        addImport(m.getID());
+        getID().addImport(m.getID().getURI());
     }
 
     @Override
     public void removeImport(OntGraphModel m) {
         getGraph().removeGraph(OntJenaException.notNull(m, "Null model.").getGraph());
-        removeImport(m.getID());
+        getID().removeImport(m.getID().getURI());
     }
 
     @Override
-    public void addImport(String uri) {
-        addImport(createResource(uri));
+    public Stream<OntGraphModel> imports() {
+        return imports(getPersonality());
     }
 
-    public void addImport(Resource uri) {
-        add(getID(), OWL.imports, uri);
-    }
-
-    public void removeImport(Resource uri) {
-        removeAll(getID(), OWL.imports, uri);
-    }
-
-    @Override
-    public void removeImport(String uri) {
-        removeImport(createResource(uri));
-    }
-
-    @Override
-    public Stream<Resource> imports() {
-        return Models.asStream(listStatements(null, OWL.imports, (RDFNode) null)
-                .filterKeep(this::isInBaseModel)
-                .mapWith(Statement::getObject)
-                .filterKeep(RDFNode::isURIResource)
-                .mapWith(RDFNode::asResource));
-    }
-
-    @Override
-    public Stream<OntGraphModel> models() {
-        return models(getPersonality());
-    }
-
-    public Stream<OntGraphModel> models(OntPersonality personality) {
+    public Stream<OntGraphModel> imports(OntPersonality personality) {
         return getGraph().getUnderlying().graphs().map(g -> new OntGraphModelImpl(g, personality));
     }
 

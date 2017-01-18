@@ -217,7 +217,7 @@ public abstract class GraphConverter {
 
         @Override
         public boolean test() {
-            return containsType(RDFS.Class) || containsType(RDF.Property) || containsType(OWL.OntologyProperty);
+            return !containsType(OWL.Ontology) || containsType(RDFS.Class) || containsType(RDF.Property) || containsType(OWL.OntologyProperty);
         }
 
         private ExtendedIterator<Node> findByType(Resource type) {

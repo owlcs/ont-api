@@ -89,7 +89,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         private void addImport(OWLImportsDeclaration declaration) {
             OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
-            getBase().addImport(declaration.getIRI().getIRIString());
+            getBase().getID().addImport(declaration.getIRI().getIRIString());
             if (ont == null) {
                 return;
             }
@@ -101,7 +101,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         private void removeImport(OWLImportsDeclaration declaration) {
             OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
-            getBase().removeImport(declaration.getIRI().getIRIString());
+            getBase().getID().removeImport(declaration.getIRI().getIRIString());
             if (ont == null) {
                 return;
             }

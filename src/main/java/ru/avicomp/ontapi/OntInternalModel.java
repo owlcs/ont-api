@@ -12,7 +12,6 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
@@ -85,7 +84,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public Stream<OWLImportsDeclaration> importDeclarations() {
-        return super.imports().map(Resource::getURI).map(IRI::create).map(OWLImportsDeclarationImpl::new);
+        return getID().imports().map(IRI::create).map(OWLImportsDeclarationImpl::new);
     }
 
     public boolean isOntologyEmpty() {

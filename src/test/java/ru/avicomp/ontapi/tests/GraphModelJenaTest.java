@@ -333,12 +333,12 @@ public class GraphModelJenaTest {
         cl3.createIndividual(childNS + "Individual1");
 
         LOGGER.info("Base:");
-        base = child.models().findFirst().orElse(null);
+        base = child.imports().findFirst().orElse(null);
         Assert.assertNotNull("Null base", base);
         ReadWriteUtils.print(base);
         LOGGER.info("Child:");
         ReadWriteUtils.print(child);
-        Set<String> imports = child.imports().map(Resource::getURI).collect(Collectors.toSet());
+        Set<String> imports = child.getID().imports().collect(Collectors.toSet());
         Assert.assertThat("Incorrect imports", imports, IsEqual.equalTo(Stream.of(baseURI).collect(Collectors.toSet())));
         Assert.assertEquals("Incorrect count of entities", 4, child.ontEntities().count());
         Assert.assertEquals("Incorrect count of local entities", 2, child.ontEntities().filter(OntEntity::isLocal).count());

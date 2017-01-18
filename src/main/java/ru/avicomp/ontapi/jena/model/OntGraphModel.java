@@ -10,6 +10,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
 
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
@@ -25,21 +26,31 @@ public interface OntGraphModel extends Model {
 
     Model getBaseModel();
 
+    /**
+     * gets ontology ID ont-object.
+     * Only the one ontology expected inside the base graph.
+     * if not, use {@link ru.avicomp.ontapi.jena.GraphConverter.OWLtoOWL2DLFixer} or {@link #setID(String)} to fix graph.
+     *
+     * @return {@link OntID}
+     * @throws OntJenaException in case there is no any ontology or more then one ontology
+     */
     OntID getID();
 
+    /**
+     * creates new owl:Ontology declaration for the specified uri.
+     * in case any ontologies already exist they will be removed and all their content will be moved to the new one.
+     *
+     * @param uri String, could be null for anonymous ontology
+     * @return the new {@link OntID} object.
+     * @throws OntJenaException if ontology can't be added.
+     */
     OntID setID(String uri);
-
-    void addImport(String uri);
 
     void addImport(OntGraphModel m);
 
-    void removeImport(String uri);
-
     void removeImport(OntGraphModel m);
 
-    Stream<Resource> imports();
-
-    Stream<OntGraphModel> models();
+    Stream<OntGraphModel> imports();
 
     <O extends OntObject> Stream<O> ontObjects(Class<O> type);
 
@@ -152,7 +163,6 @@ public interface OntGraphModel extends Model {
     OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
 
     OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body);
-
 
     /**
      * ===================================

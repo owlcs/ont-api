@@ -44,7 +44,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
         // check imports:
         List<String> expected = imports.stream().map(Resource::getURI).sorted().collect(Collectors.toList());
         List<String> actualOwl = owl.importsDeclarations().map(OWLImportsDeclaration::getIRI).map(IRI::getIRIString).sorted().collect(Collectors.toList());
-        List<String> actualJena = jena.imports().map(Resource::getURI).sorted().collect(Collectors.toList());
+        List<String> actualJena = jena.getID().imports().sorted().collect(Collectors.toList());
         Assert.assertEquals("Incorrect owl imports", expected, actualOwl);
         Assert.assertEquals("Incorrect jena imports", expected, actualJena);
         // check owl-annotations:

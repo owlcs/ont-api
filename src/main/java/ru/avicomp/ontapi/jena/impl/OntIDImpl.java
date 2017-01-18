@@ -1,13 +1,18 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.stream.Stream;
+
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntID;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
@@ -47,5 +52,35 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
         if (uri != null) {
             addProperty(OWL.versionIRI, getModel().createResource(uri));
         }
+    }
+
+    @Override
+    public void addImport(String uri) {
+        addImportResource(getModel().createResource(OntJenaException.notNull(uri, "Null uri specified.")));
+    }
+
+    @Override
+    public void removeImport(String uri) {
+        removeImportResource(getModel().createResource(uri));
+    }
+
+    @Override
+    public Stream<String> imports() {
+        return importResources().map(Resource::getURI);
+    }
+
+    public Stream<Resource> importResources() {
+        return Models.asStream(listProperties(OWL.imports)
+                .mapWith(Statement::getObject)
+                .filterKeep(RDFNode::isURIResource)
+                .mapWith(RDFNode::asResource));
+    }
+
+    public void addImportResource(Resource uri) {
+        addProperty(OWL.imports, uri);
+    }
+
+    public void removeImportResource(Resource uri) {
+        remove(OWL.imports, uri);
     }
 }
