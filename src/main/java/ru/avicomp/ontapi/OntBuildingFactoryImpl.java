@@ -2,7 +2,6 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -15,6 +14,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
+import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -34,6 +34,10 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
  */
 public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OWLOntologyFactory {
     private static final Logger LOGGER = Logger.getLogger(OntBuildingFactoryImpl.class);
+
+    static {
+        ErrorHandlerFactory.setDefaultErrorHandler(ErrorHandlerFactory.errorHandlerNoLogging);
+    }
 
     public OntBuildingFactoryImpl() {
         super(new Builder());
@@ -61,17 +65,15 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         Graph graph = m.getGraphFactory().create();
         OntFormat format;
         try {
-            Lang lang = loadGraph(graph, source);
-            format = OntApiException.notNull(OntFormat.get(lang), "Can't determine language.");
+            format = loadGraph(graph, source);
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Format (" + source.getClass().getSimpleName() + "): " + format);
+                LOGGER.debug("The format (" + source.getClass().getSimpleName() + "): " + format);
             }
-        } catch (OntApiException e) { // maybe it is not jena format; try origin OWL-API method:
-            LOGGER.warn("Can't load from " + source + " ::: " + e);
-            OntologyModel res = (OntologyModel) super.loadOWLOntology(manager, source, handler, configuration);
-            // clear cache to be sure that list of axioms is always the same and corresponds to the graph.
-            res.clearCache();
-            return res;
+        } catch (OntApiException e) { // maybe it is not supported by jena. try origin OWL-API method:
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Can't load using jena (" + e.getMessage() + "), try original method.");
+            }
+            return loadThroughOWLApi(manager, source, handler, configuration);
         }
         // todo: resolve possible cycle
         UnionGraph union = new UnionGraph(graph);
@@ -89,13 +91,26 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         return create(union, m, format);
     }
 
+    private OntologyModel loadThroughOWLApi(OWLOntologyManager manager,
+                                            OWLOntologyDocumentSource source,
+                                            OWLOntologyCreationHandler handler,
+                                            OWLOntologyLoaderConfiguration configuration) throws OWLOntologyCreationException {
+        OntologyModel res = (OntologyModel) super.loadOWLOntology(manager, source, handler, configuration);
+        if (LOGGER.isDebugEnabled()) {
+            OntFormat format = OntFormat.get(manager.getOntologyFormat(res));
+            LOGGER.debug("The format (" + source.getClass().getSimpleName() + "): " + format);
+        }
+        // clear cache to be sure that list of axioms is always the same and corresponds to the graph.
+        res.clearCache();
+        return res;
+    }
+
     private OntologyModel create(UnionGraph graph, OntologyManagerImpl manager, OntFormat format) {
         OntInternalModel base = new OntInternalModel(GraphConverter.convert(graph));
         OntologyModelImpl ont = new OntologyModelImpl(manager, base);
         OntologyModel res = manager.isConcurrent() ? ont.toConcurrentModel() : ont;
         manager.ontologyCreated(res);
         OWLDocumentFormat owlFormat = format.createOwlFormat();
-        if (owlFormat == null) return res;
         if (PrefixManager.class.isInstance(owlFormat)) {
             PrefixManager pm = (PrefixManager) owlFormat;
             graph.getPrefixMapping().getNsPrefixMap().entrySet().forEach(e -> pm.setPrefix(e.getKey(), e.getValue()));
@@ -115,10 +130,10 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         return null;
     }
 
-    public static Lang loadGraph(Graph g, OWLOntologyDocumentSource source) throws OntApiException {
-        IRI iri = OntApiException.notNull(source, "Null OWLOntologyDocumentSource.").getDocumentIRI();
+    public static OntFormat loadGraph(Graph g, OWLOntologyDocumentSource source) throws OntApiException {
+        IRI iri = OntApiException.notNull(source, "Null document source.").getDocumentIRI();
         if (LOGGER.isDebugEnabled())
-            LOGGER.debug("Load ONT Model from " + iri);
+            LOGGER.debug("Read graph from " + iri + ".");
         if (source.getInputStream().isPresent()) {
             return readFromStream(g, source);
         }
@@ -128,42 +143,41 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         return readFromDocument(g, source);
     }
 
-    private static Lang readFromDocument(Graph graph, OWLOntologyDocumentSource source) {
-        Lang lang = source.getFormat().map(OntFormat::get).map(OntFormat::getLang).orElse(guessLang(source));
+    private static OntFormat readFromDocument(Graph graph, OWLOntologyDocumentSource source) {
+        OntFormat format = source.getFormat().map(OntFormat::get).orElse(guessFormat(source));
+        if (format != null && format.isOWLOnly()) // not even try
+            throw new OntApiException("Format " + format + " is not supported by jena.");
         String uri = source.getDocumentIRI().getIRIString();
         try {
-            RDFDataMgr.read(graph, uri, lang);
-            return lang;
+            RDFDataMgr.read(graph, uri, format == null ? null : format.getLang());
+            return format;
         } catch (RiotException e) {
-            throw new OntApiException("Can't read lang=" + lang + " from iri <" + uri + ">", e);
+            throw new OntApiException("Can't read " + format + " from iri <" + uri + ">", e);
         }
     }
 
-    private static Lang readFromStream(Graph graph, OWLOntologyDocumentSource source) {
+    private static OntFormat readFromStream(Graph graph, OWLOntologyDocumentSource source) {
         if (!source.getInputStream().isPresent()) {
             throw new OntApiException("No input stream inside " + source);
         }
         return formats(source)
                 .filter(OntFormat::isJena)
-                .map(OntFormat::getLang)
-                .filter(lang -> read(source.getInputStream().get(), graph, lang))
-                .findFirst().orElseThrow(() -> new OntApiException("Can't read from stream (source=" + source + ")."));
+                .filter(format -> read(source.getInputStream().get(), graph, format.getLang()))
+                .findFirst().orElseThrow(() -> new OntApiException("Can't read from stream " + source));
     }
 
-    private static Lang readFromReader(Graph graph, OWLOntologyDocumentSource source) {
+    private static OntFormat readFromReader(Graph graph, OWLOntologyDocumentSource source) {
         if (!source.getReader().isPresent()) {
             throw new OntApiException("No reader inside " + source);
         }
-        final Charset en = StandardCharsets.UTF_8;
         return formats(source)
                 .filter(OntFormat::isJena)
-                .map(OntFormat::getLang)
-                .filter(lang -> read(new ReaderInputStream(source.getReader().get(), en), graph, lang))
-                .findFirst().orElseThrow(() -> new OntApiException("Can't read from reader (source=" + source + ")."));
+                .filter(format -> read(new ReaderInputStream(source.getReader().get(), StandardCharsets.UTF_8), graph, format.getLang()))
+                .findFirst().orElseThrow(() -> new OntApiException("Can't read from reader " + source));
     }
 
     private static Stream<OntFormat> formats(OWLOntologyDocumentSource source) {
-        return source.getFormat().map(OntFormat::get).map(Stream::of).orElse(OntFormat.all());
+        return source.getFormat().map(OntFormat::get).map(Stream::of).orElse(OntFormat.supported());
     }
 
     private static boolean read(InputStream is, Graph graph, Lang lang) {
@@ -174,16 +188,21 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             return true;
         } catch (Exception e) {
             if (LOGGER.isDebugEnabled())
-                LOGGER.debug("Can't read <" + lang + ">::" + e.getMessage());
+                LOGGER.debug("(" + lang + ") failed: " + e.getMessage());
             return false;
         }
     }
 
-    public static Lang guessLang(OWLOntologyDocumentSource source) {
-        if (OntApiException.notNull(source, "Null OWLOntologyDocumentSource.").getMIMEType().isPresent()) {
+    private static Lang guessLang(OWLOntologyDocumentSource source) {
+        if (OntApiException.notNull(source, "Null document source.").getMIMEType().isPresent()) {
             return RDFLanguages.contentTypeToLang(source.getMIMEType().get());
         }
         return RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
+    }
+
+    public static OntFormat guessFormat(OWLOntologyDocumentSource source) {
+        Lang lang = guessLang(source);
+        return lang == null ? null : OntFormat.get(lang);
     }
 
     public static class Builder implements OWLOntologyBuilder {

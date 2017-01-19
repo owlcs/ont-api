@@ -21,7 +21,7 @@ import ru.avicomp.ontapi.OntologyModel;
 
 /**
  * Utils to work with io.
- *
+ * <p>
  * Created by @szuev on 27.09.2016.
  */
 @SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
@@ -46,9 +46,12 @@ public class ReadWriteUtils {
         LOGGER.debug("\n" + toString(model, ext));
     }
 
-    public static String toString(OWLOntology ontology, OntFormat type) {
+    public static String toString(OWLOntology ontology, OntFormat format) {
+        return toString(ontology, format == null ? new TurtleDocumentFormat() : format.createOwlFormat());
+    }
+
+    public static String toString(OWLOntology ontology, OWLDocumentFormat format) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
             return out.toString(StandardCharsets.UTF_8.name());
         } catch (OWLOntologyStorageException | IOException e) {

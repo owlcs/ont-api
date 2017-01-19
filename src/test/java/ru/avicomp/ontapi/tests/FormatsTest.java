@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.tests;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,7 +23,7 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
  * Test loading from different formats.
- * At the moment it is only for four unbroken owl-formats which are not supported by jena: fss, obo, omn, owl-rdf.
+ * TODO: At the moment it is only for four unbroken owl-formats which are not supported by jena: fss, obo, omn, owl-rdf.
  * The pure OWL-API mechanism is used for loading a document in these formats.
  * <p>
  * Created by szuev on 20.12.2016.
@@ -40,7 +41,8 @@ public class FormatsTest {
 
     @Parameterized.Parameters(name = "{0}")
     public static List<OntFormat> getData() {
-        return OntFormat.owlOnly().collect(Collectors.toList());
+        //return OntFormat.owlOnly().collect(Collectors.toList());
+        return Arrays.asList(OntFormat.OWL_XML, OntFormat.MANCHESTER_SYNTAX, OntFormat.FUNCTIONAL_SYNTAX, OntFormat.OBO);
     }
 
     @BeforeClass

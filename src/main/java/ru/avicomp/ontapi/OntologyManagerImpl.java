@@ -149,8 +149,21 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
 
     @Override
     protected void fixIllegalPunnings(OWLOntology o) {
-        // todo:
-        // nothing here. use ru.avicomp.ontapi.jena.GraphConverter to some fixing
+        if (canFixIllegalPunnings(o)) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Fix illegal 'punnings' for " + o.getOntologyID());
+            }
+            // todo: do we need this?
+            super.fixIllegalPunnings(o);
+        }
+        // todo: nothing here. use ru.avicomp.ontapi.jena.GraphConverter to some fixing
+    }
+
+    protected boolean canFixIllegalPunnings(OWLOntology o) {
+        OWLDocumentFormat f = getOntologyFormat(o);
+        if (f == null) return false;
+        OntFormat format = OntFormat.get(f);
+        return format != null && format.isOWLOnly();
     }
 
     @Override

@@ -56,7 +56,10 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
 
     @Override
     public void addImport(String uri) {
-        addImportResource(getModel().createResource(OntJenaException.notNull(uri, "Null uri specified.")));
+        if (OntJenaException.notNull(uri, "Null uri specified.").equals(getURI())) {
+            throw new OntJenaException("Can't import itself: " + uri);
+        }
+        addImportResource(getModel().createResource(uri));
     }
 
     @Override
