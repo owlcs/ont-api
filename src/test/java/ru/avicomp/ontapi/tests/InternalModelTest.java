@@ -110,7 +110,7 @@ public class InternalModelTest {
 
     @Test
     public void testPizzaEntities() {
-        testEntities("pizza.ttl", OntFormat.TTL_RDF);
+        testEntities("pizza.ttl", OntFormat.TURTLE);
     }
 
     @Test
@@ -118,12 +118,12 @@ public class InternalModelTest {
         // <http://purl.org/dc/terms/creator> is owl:ObjectProperty since it is equivalent to <http://xmlns.com/foaf/0.1/maker>
         // see file <owl:equivalentProperty rdf:resource="http://purl.org/dc/terms/creator"/>
         // but OWL-API doesn't return it in entities list.
-        testEntities("foaf.rdf", OntFormat.XML_RDF);
+        testEntities("foaf.rdf", OntFormat.RDF_XML);
     }
 
     @Test
     public void testGoodrelationsEntities() {
-        testEntities("goodrelations.rdf", OntFormat.XML_RDF);
+        testEntities("goodrelations.rdf", OntFormat.RDF_XML);
     }
 
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {

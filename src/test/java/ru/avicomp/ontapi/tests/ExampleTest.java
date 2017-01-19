@@ -67,11 +67,11 @@ public class ExampleTest {
         manager.applyChange(new AddAxiom(ontology, factory.getOWLDataPropertyAssertionAxiom(owlProperty, individual, factory.getOWLLiteral("TheName"))));
 
         //System.out.println(ontology.directImports().collect(Collectors.toList()));
-        ReadWriteUtils.print(ontology, OntFormat.TTL_RDF);
+        ReadWriteUtils.print(ontology, OntFormat.TURTLE);
 
         ontology.axioms().forEach(LOGGER::debug);
 
-        ReadWriteUtils.print(ontology.asGraphModel(), OntFormat.TTL_RDF);
+        ReadWriteUtils.print(ontology.asGraphModel(), OntFormat.TURTLE);
         LOGGER.debug("All statements: " + ontology.asGraphModel().listStatements().toList().size());
         Assert.assertEquals("incorrect statements size", statementsNumber, ontology.asGraphModel().getBaseModel().listStatements().toList().size());
     }

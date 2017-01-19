@@ -26,7 +26,7 @@ public class PerformanceTester {
     public static void main(String... s) {
         final String fileName = "pizza.ttl";
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
-        load(fileIRI, OntFormat.TTL_RDF);
+        load(fileIRI, OntFormat.TURTLE);
         System.gc();
 
         final int num = 50;
@@ -76,7 +76,7 @@ public class PerformanceTester {
                 i.getAxioms();
                 continue;
             }
-            OntologyModel o = load(file, OntFormat.TTL_RDF);
+            OntologyModel o = load(file, OntFormat.TURTLE);
             if (loadAxioms)
                 o.axioms().collect(Collectors.toSet());
         }

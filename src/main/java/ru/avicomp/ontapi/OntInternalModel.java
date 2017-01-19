@@ -34,7 +34,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     private OWLOntologyID anonOntologyID;
 
-    private static final String DEFAULT_SERIALIZATION_FORMAT = OntFormat.TTL_RDF.getID();
+    private static final String DEFAULT_SERIALIZATION_FORMAT = OntFormat.TURTLE.getID();
 
     // axioms store
     private transient Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomsCache = new HashMap<>();

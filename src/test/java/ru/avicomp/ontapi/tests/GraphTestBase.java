@@ -27,7 +27,7 @@ abstract class GraphTestBase {
 
     static void debug(OWLOntology ontology) {
         LOGGER.info("DEBUG:");
-        ReadWriteUtils.print(ontology, OntFormat.TTL_RDF);
+        ReadWriteUtils.print(ontology, OntFormat.TURTLE);
         LOGGER.debug("Axioms:");
         ontology.axioms().forEach(LOGGER::debug);
     }

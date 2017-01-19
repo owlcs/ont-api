@@ -196,6 +196,11 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             super(OntologyModelImpl.this, OntologyModelImpl.this.getOWLOntologyManager().getLock());
         }
 
+        /**
+         * todo: jena model is not synchronized. prepare some concurrent graph with owl-style synchronization.
+         *
+         * @return {@link OntGraphModel}
+         */
         @Override
         public OntGraphModel asGraphModel() { // todo: not concurrent
             return OntologyModelImpl.this.asGraphModel();
@@ -203,6 +208,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         @Override
         public void clearCache() {
+            // todo: write lock
             OntologyModelImpl.this.clearCache();
         }
 

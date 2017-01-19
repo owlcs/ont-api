@@ -78,7 +78,7 @@ public class DisjointClassesGraphTest extends GraphTestBase {
 
         LOGGER.info("Remove OWL:disjointWith for " + ontComplex1 + " & " + ontSimple1 + " pair.");
         jena.removeAll(ontComplex1, org.apache.jena.vocabulary.OWL.disjointWith, null);
-        ReadWriteUtils.print(result.asGraphModel(), OntFormat.TTL_RDF);
+        ReadWriteUtils.print(result.asGraphModel(), OntFormat.TURTLE);
         actual = result.axioms().sorted().collect(Collectors.toList());
         expected = original.axioms().sorted().collect(Collectors.toList());
         expected.remove(factory.getOWLDisjointClassesAxiom(owlComplex1, owlSimple1));

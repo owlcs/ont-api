@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.jena.graph.Graph;
@@ -27,7 +28,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
 /**
  * Ontology building factory.
- * See base class  {@link OWLOntologyFactory}.
+ * See base class {@link OWLOntologyFactory}.
  * <p>
  * Created by szuev on 24.10.2016.
  */
@@ -63,7 +64,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             Lang lang = loadGraph(graph, source);
             format = OntApiException.notNull(OntFormat.get(lang), "Can't determine language.");
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Format(source=" + source + "): " + format);
+                LOGGER.debug("Format (" + source.getClass().getSimpleName() + "): " + format);
             }
         } catch (OntApiException e) { // maybe it is not jena format; try origin OWL-API method:
             LOGGER.warn("Can't load from " + source + " ::: " + e);
@@ -94,11 +95,11 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         OntologyModel res = manager.isConcurrent() ? ont.toConcurrentModel() : ont;
         manager.ontologyCreated(res);
         OWLDocumentFormat owlFormat = format.createOwlFormat();
+        if (owlFormat == null) return res;
         if (PrefixManager.class.isInstance(owlFormat)) {
-            PrefixManager prefixes = (PrefixManager) owlFormat;
-            graph.getPrefixMapping().getNsPrefixMap().entrySet().forEach(e -> prefixes.setPrefix(e.getKey(), e.getValue()));
-            if (ont.getOntologyID().getOntologyIRI().isPresent())
-                prefixes.setPrefix("", ont.getOntologyID().getOntologyIRI().get().getIRIString());
+            PrefixManager pm = (PrefixManager) owlFormat;
+            graph.getPrefixMapping().getNsPrefixMap().entrySet().forEach(e -> pm.setPrefix(e.getKey(), e.getValue()));
+            OntologyManagerImpl.setDefaultPrefix(pm, ont);
         }
         manager.setOntologyFormat(res, owlFormat);
         return res;
@@ -128,7 +129,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
     }
 
     private static Lang readFromDocument(Graph graph, OWLOntologyDocumentSource source) {
-        Lang lang = guessLang(source);
+        Lang lang = source.getFormat().map(OntFormat::get).map(OntFormat::getLang).orElse(guessLang(source));
         String uri = source.getDocumentIRI().getIRIString();
         try {
             RDFDataMgr.read(graph, uri, lang);
@@ -142,7 +143,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         if (!source.getInputStream().isPresent()) {
             throw new OntApiException("No input stream inside " + source);
         }
-        return OntFormat.all()
+        return formats(source)
                 .filter(OntFormat::isJena)
                 .map(OntFormat::getLang)
                 .filter(lang -> read(source.getInputStream().get(), graph, lang))
@@ -154,22 +155,26 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             throw new OntApiException("No reader inside " + source);
         }
         final Charset en = StandardCharsets.UTF_8;
-        return OntFormat.all()
+        return formats(source)
                 .filter(OntFormat::isJena)
                 .map(OntFormat::getLang)
                 .filter(lang -> read(new ReaderInputStream(source.getReader().get(), en), graph, lang))
                 .findFirst().orElseThrow(() -> new OntApiException("Can't read from reader (source=" + source + ")."));
     }
 
+    private static Stream<OntFormat> formats(OWLOntologyDocumentSource source) {
+        return source.getFormat().map(OntFormat::get).map(Stream::of).orElse(OntFormat.all());
+    }
+
     private static boolean read(InputStream is, Graph graph, Lang lang) {
         try {
             if (LOGGER.isDebugEnabled())
-                LOGGER.debug("Try <<" + lang + ">>");
+                LOGGER.debug("try <<" + lang + ">>");
             RDFDataMgr.read(graph, is, lang);
             return true;
         } catch (Exception e) {
             if (LOGGER.isDebugEnabled())
-                LOGGER.debug("Can't read " + lang + "::" + e.getMessage());
+                LOGGER.debug("Can't read <" + lang + ">::" + e.getMessage());
             return false;
         }
     }

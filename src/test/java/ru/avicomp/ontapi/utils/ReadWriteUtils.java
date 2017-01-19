@@ -62,7 +62,7 @@ public class ReadWriteUtils {
 
     public static StringWriter toStringWriter(Model model, OntFormat ext) {
         StringWriter sw = new StringWriter();
-        model.write(sw, (ext == null ? OntFormat.TTL_RDF : ext).getID(), null);
+        model.write(sw, (ext == null ? OntFormat.TURTLE : ext).getID(), null);
         return sw;
     }
 
@@ -191,7 +191,7 @@ public class ReadWriteUtils {
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
         String uri = TestUtils.getURI(model);
         LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
-        try (InputStream is = toInputStream(model, convertFormat == null ? OntFormat.TTL_RDF : convertFormat)) {
+        try (InputStream is = toInputStream(model, convertFormat == null ? OntFormat.TURTLE : convertFormat)) {
             manager.loadOntologyFromOntologyDocument(is);
         } catch (IOException | OWLOntologyCreationException e) {
             throw new AssertionError(e);

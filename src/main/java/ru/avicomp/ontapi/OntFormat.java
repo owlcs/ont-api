@@ -9,27 +9,27 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 
 /**
  * Map between jena and OWL-API languages.
+ * Currently there are 18 formats, but only 13 are fully supported.
  *
  * Created by @szuev on 27.09.2016.
  */
 public enum OntFormat {
-    TTL_RDF("ttl", Lang.TURTLE, TurtleDocumentFormat.class),
-    XML_RDF("rdf", Lang.RDFXML, RDFXMLDocumentFormat.class),
+    TURTLE("ttl", Lang.TURTLE, TurtleDocumentFormat.class),
+    RDF_XML("rdf", Lang.RDFXML, RDFXMLDocumentFormat.class),
 
     // json has more priority since json-ld can't be read as json, but json can be as json-ld
-    // todo: it is hotfix.
-    JSON_RDF("rj", Lang.RDFJSON, RDFJsonDocumentFormat.class),
-    JSON_LD_RDF("jsonld", Lang.JSONLD, RDFJsonLDDocumentFormat.class),
+    RDF_JSON("rj", Lang.RDFJSON, RDFJsonDocumentFormat.class),
+    JSON_LD("jsonld", Lang.JSONLD, RDFJsonLDDocumentFormat.class),
 
     NTRIPLES("nt", Lang.NTRIPLES, NTriplesDocumentFormat.class),
     NQUADS("nq", Lang.NQUADS, NQuadsDocumentFormat.class),
     TRIG("trig", Lang.TRIG, TrigDocumentFormat.class),
     TRIX("trix", Lang.TRIX, TrixDocumentFormat.class),
     // jena only:
-    THRIF("trdf", Lang.RDFTHRIFT, null),
+    THRIFT("trdf", Lang.RDFTHRIFT, null),
     CSV("csv", "CSV", Lang.CSV, null, true),
     // owl-api formats only:
-    OWL_XML_RDF("owl", "OWL/XML", null, OWLXMLDocumentFormat.class),
+    OWL_XML("owl", "OWL/XML", null, OWLXMLDocumentFormat.class),
     MANCHESTER_SYNTAX("omn", "ManchesterSyntax", null, ManchesterSyntaxDocumentFormat.class),
     FUNCTIONAL_SYNTAX("fss", "FunctionalSyntax", null, FunctionalSyntaxDocumentFormat.class),
     BINARY("brf", "BinaryRDF", null, BinaryRDFDocumentFormat.class, true),
@@ -39,11 +39,11 @@ public enum OntFormat {
     DL("dl", "DL", null, DLSyntaxDocumentFormat.class, true),;
 
 
-    private final String id;
-    private String ext; // primary extension.
-    private Lang jenaType;
-    private Class<? extends OWLDocumentFormat> owlType;
-    private boolean disabled;
+    private final String id;                            // the "id"
+    private String ext;                                 // primary extension
+    private Lang jenaType;                              // jena "language" syntax
+    private Class<? extends OWLDocumentFormat> owlType; // OWLDocumentFormat type
+    private boolean disabled;                           // true to skip
 
     OntFormat(String ext, Lang jena, Class<? extends OWLDocumentFormat> owl) {
         this(ext, jena.getLabel(), jena, owl);
@@ -53,6 +53,15 @@ public enum OntFormat {
         this(ext, id, jena, owl, false);
     }
 
+    /**
+     * The main constructor.
+     *
+     * @param ext      String, primary extension.
+     * @param id       String, "short name", could be used inside jena {@link org.apache.jena.rdf.model.Model} model to read and write.
+     * @param jena     {@link Lang} language object. Nullable. Could be used inside jena {@link org.apache.jena.riot.RDFDataMgr} manager to read and write.
+     * @param owl      {@link OWLDocumentFormat} Class. Nullable. Objects of this type are used to read and write in OWL-API (... and also to store prefixes).
+     * @param disabled true if this format is not supported at the moment by some reasons.
+     */
     OntFormat(String ext, String id, Lang jena, Class<? extends OWLDocumentFormat> owl, boolean disabled) {
         this.id = OntApiException.notNull(id, "Id is required.");
         this.jenaType = jena;
@@ -71,7 +80,7 @@ public enum OntFormat {
 
     public OWLDocumentFormat createOwlFormat() {
         try {
-            return owlType.newInstance();
+            return owlType == null ? null: owlType.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
             throw new OntApiException(e);
         }
@@ -93,8 +102,12 @@ public enum OntFormat {
         return owlType != null;
     }
 
-    public boolean isXML() {
-        return id.contains("XML");
+    public boolean isXML() { // there are two xml formats: RDF/XML and OWL/XML
+        return equals(RDF_XML) || equals(OWL_XML);
+    }
+
+    public boolean isJSON() { // there are two json formats: RDF/JSON and JSONLD
+        return equals(RDF_JSON) || equals(JSON_LD);
     }
 
     public static Stream<OntFormat> all() {
@@ -110,9 +123,13 @@ public enum OntFormat {
     }
 
     public static OntFormat get(OWLDocumentFormat documentFormat) {
-        OntApiException.notNull(documentFormat, "Null owl-document-format specified.");
+        return get(OntApiException.notNull(documentFormat, "Null owl-document-format specified.").getClass());
+    }
+
+    public static OntFormat get(Class<? extends OWLDocumentFormat> type) {
+        OntApiException.notNull(type, "Null owl-document-format class specified.");
         for (OntFormat r : values()) {
-            if (Objects.equals(r.owlType, documentFormat.getClass())) return r;
+            if (Objects.equals(r.owlType, type)) return r;
         }
         return null;
     }

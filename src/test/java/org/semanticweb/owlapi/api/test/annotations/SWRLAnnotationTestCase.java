@@ -102,7 +102,7 @@ public class SWRLAnnotationTestCase extends TestBase {
     @Test
     public void replicateSuccess() throws Exception {
         String input = HEAD + TAIL;
-        Model m = ru.avicomp.ontapi.utils.ReadWriteUtils.loadFromString(input, ru.avicomp.ontapi.OntFormat.XML_RDF);
+        Model m = ru.avicomp.ontapi.utils.ReadWriteUtils.loadFromString(input, ru.avicomp.ontapi.OntFormat.RDF_XML);
         LOGGER.debug("Initial model: ");
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(m);
 

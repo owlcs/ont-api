@@ -59,7 +59,7 @@ public class GraphConverterJenaTest {
         LOGGER.info("SP(OWL): ");
         ReadWriteUtils.print(owlSP);
         testSignature(owlSP, jenaSP);
-        OWLOntology testSP = testManager.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(jenaSP, OntFormat.TTL_RDF));
+        OWLOntology testSP = testManager.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(jenaSP, OntFormat.TURTLE));
         LOGGER.info("SP signature:");
         testSP.signature().forEach(entity -> LOGGER.debug(String.format("%s(%s)", entity, entity.getEntityType())));
 
@@ -77,7 +77,7 @@ public class GraphConverterJenaTest {
         ReadWriteUtils.print(owlSPIN);
 
         //testSignature(owlSPIN, jenaSPIN);
-        OWLOntology testSPIN = testManager.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(jenaSPIN, OntFormat.TTL_RDF));
+        OWLOntology testSPIN = testManager.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(jenaSPIN, OntFormat.TURTLE));
         LOGGER.info("SPIN signature:");
         testSPIN.signature().forEach(entity -> LOGGER.debug(String.format("%s(%s)", entity, entity.getEntityType())));
         LOGGER.info("Origin SPIN signature:");

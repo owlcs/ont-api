@@ -13,7 +13,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
  */
 public interface OntologyModel extends OWLOntology, OWLMutableOntology {
     /**
-     * returns jena model shadow, i.e. interface to work with graph directly.
+     * returns the jena model shadow, i.e. interface to work directly with graph.
      *
      * @return {@link OntGraphModel}
      */
