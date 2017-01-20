@@ -21,7 +21,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDomain & HasProperty, P extends OntPE> extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom.annotations(), true);
+        OWL2RDFHelper.writeTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom.annotations());
     }
 
     abstract Class<P> getView();

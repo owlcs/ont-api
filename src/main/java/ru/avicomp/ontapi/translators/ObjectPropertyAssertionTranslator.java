@@ -30,7 +30,7 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
     @Override
     public void write(OWLObjectPropertyAssertionAxiom axiom, OntGraphModel model) {
         OWLObjectPropertyExpression property = axiom.getProperty().isAnonymous() ? axiom.getProperty().getInverseProperty() : axiom.getProperty();
-        OWL2RDFHelper.writeTriple(model, axiom.getSubject(), property, axiom.getObject(), axiom.annotations());
+        OWL2RDFHelper.writeAssertionTriple(model, axiom.getSubject(), property, axiom.getObject(), axiom.annotations());
     }
 
     @Override

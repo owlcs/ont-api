@@ -20,7 +20,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAssertionAxiom> {
     @Override
     public void write(OWLAnnotationAssertionAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom.annotations());
+        OWL2RDFHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom.annotations());
     }
 
     @Override

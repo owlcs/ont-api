@@ -130,31 +130,30 @@ public class OWL2RDFHelper {
         throw new OntApiException("Unsupported " + facet);
     }
 
-    public static OntObject fetchOntObject(OntGraphModel model, OWLObject object, boolean doAdd) {
-        return doAdd ? addRDFNode(model, object).as(OntObject.class) : toResource(object).inModel(model).as(OntObject.class);
+    public static void writeAssertionTriple(OntGraphModel model, OWLObject subject, OWLPropertyExpression property, OWLObject object, Stream<OWLAnnotation> annotations) {
+        OntObject s = addRDFNode(model, subject).as(OntObject.class);
+        Property p = addRDFNode(model, property).as(Property.class);
+        RDFNode o = addRDFNode(model, object);
+        addAnnotations(s.addStatement(p, o), annotations);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, OWLPropertyExpression predicate, OWLObject object, Stream<OWLAnnotation> annotations) {
-        writeTriple(model, subject, toProperty(predicate), object, annotations);
+    public static void writeDeclarationTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, Stream<OWLAnnotation> annotations) {
+        OntObject s = toResource(subject).inModel(model).as(OntObject.class);
+        addAnnotations(s.addStatement(predicate, object), annotations);
     }
 
     public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, Stream<OWLAnnotation> annotations) {
-        writeTriple(model, subject, predicate, object, annotations, false);
+        writeTriple(model, subject, predicate, addRDFNode(model, object), annotations);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, Stream<OWLAnnotation> annotations, boolean addSubject) {
-        OntObject obj = fetchOntObject(model, subject, addSubject);
-        addAnnotations(obj.addStatement(predicate, addRDFNode(model, object)), annotations);
+    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, Stream<OWLAnnotation> annotations) {
+        OntObject s = addRDFNode(model, subject).as(OntObject.class);
+        addAnnotations(s.addStatement(predicate, object), annotations);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, Stream<OWLAnnotation> annotations, boolean addSubject) {
-        OntObject obj = fetchOntObject(model, subject, addSubject);
-        addAnnotations(obj.addStatement(predicate, object), annotations);
-    }
-
-    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, Stream<OWLAnnotation> annotations, boolean addSubject) {
-        OntObject obj = fetchOntObject(model, subject, addSubject);
-        addAnnotations(obj.addStatement(predicate, addRDFList(model, objects)), annotations);
+    public static void writeList(OntGraphModel model, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, Stream<OWLAnnotation> annotations) {
+        OntObject s = addRDFNode(model, subject).as(OntObject.class);
+        addAnnotations(s.addStatement(predicate, addRDFList(model, objects)), annotations);
     }
 
     public static RDFList addRDFList(OntGraphModel model, Stream<? extends OWLObject> objects) {

@@ -25,7 +25,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
     @Override
     public void write(OWLDatatypeDefinitionAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom.annotations(), true);
+        OWL2RDFHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom.annotations());
     }
 
     @Override

@@ -21,7 +21,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty & HasRange, P extends OntPE> extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntGraphModel graph) {
-        OWL2RDFHelper.writeTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom.annotations(), true);
+        OWL2RDFHelper.writeTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom.annotations());
     }
 
     abstract Class<P> getView();

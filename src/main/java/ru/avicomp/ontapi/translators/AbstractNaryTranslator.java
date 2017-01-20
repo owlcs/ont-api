@@ -42,7 +42,7 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
         if (operands.size() != 2) {
             throw new OntApiException("Should be two operands inside " + thisAxiom);
         }
-        OWL2RDFHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations.stream(), true);
+        OWL2RDFHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations.stream());
     }
 
     @Override
