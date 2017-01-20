@@ -30,13 +30,15 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
     @Override
     public void write(OWLObjectPropertyAssertionAxiom axiom, OntGraphModel model) {
         OWLObjectPropertyExpression property = axiom.getProperty().isAnonymous() ? axiom.getProperty().getInverseProperty() : axiom.getProperty();
-        OWL2RDFHelper.writeAssertionTriple(model, axiom.getSubject(), property, axiom.getObject(), axiom.annotations());
+        OWLIndividual subject = axiom.getProperty().isAnonymous() ? axiom.getObject() : axiom.getSubject();
+        OWLIndividual object = axiom.getProperty().isAnonymous() ? axiom.getSubject() : axiom.getObject();
+        OWL2RDFHelper.writeAssertionTriple(model, subject, property, object, axiom.annotations());
     }
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         // skip everything that is not correspond axiom rule
-        // (e.g. OWL-API allows only Individual as assertion object. rdf:List is not supported by this level of our api also)
+        // (e.g. OWL-API allows only Individual as an assertion object. rdf:List is not supported by this level of our api also)
         return model.statements()
                 .filter(OntStatement::isLocal)
                 .filter(OntStatement::isObject)

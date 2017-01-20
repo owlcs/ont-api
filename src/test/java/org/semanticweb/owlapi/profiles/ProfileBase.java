@@ -5,21 +5,33 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.profiles.Profiles.*;
 
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class ProfileBase extends TestBase {
 
     protected void test(String in, boolean el, boolean ql, boolean rl, boolean dl) {
-        OWLOntology o;
         try {
-            o = loadOntologyFromString(in);
-            assertTrue("empty ontology", o.axioms().count() > 0);
-            assertTrue(el == OWL2_EL.checkOntology(o).isInProfile());
-            assertTrue(ql == OWL2_QL.checkOntology(o).isInProfile());
-            assertTrue(rl == OWL2_RL.checkOntology(o).isInProfile());
-            assertTrue(dl == OWL2_DL.checkOntology(o).isInProfile());
+            LOGGER.trace("Input: " + in);
+            LOGGER.debug(String.format("Expected parameters: EL=%s, QL=%s, RL=%s, DL=%s", el, ql, rl, dl));
+            OWLOntology o = loadOntologyFromString(in);
+            ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
+            o.axioms().forEach(a -> LOGGER.debug(String.valueOf(a)));
+            assertTrue("Empty ontology", o.axioms().count() > 0);
+            OWLProfileReport OWL2_EL = Profiles.OWL2_EL.checkOntology(o);
+            OWLProfileReport OWL2_QL = Profiles.OWL2_QL.checkOntology(o);
+            OWLProfileReport OWL2_RL = Profiles.OWL2_RL.checkOntology(o);
+            OWLProfileReport OWL2_DL = Profiles.OWL2_DL.checkOntology(o);
+            LOGGER.debug("Violations(EL): " + OWL2_EL.getViolations());
+            LOGGER.debug("Violations(QL): " + OWL2_QL.getViolations());
+            LOGGER.debug("Violations(RL): " + OWL2_RL.getViolations());
+            LOGGER.debug("Violations(DL): " + OWL2_DL.getViolations());
+            assertEquals(el, OWL2_EL.isInProfile());
+            assertEquals(ql, OWL2_QL.isInProfile());
+            assertEquals(rl, OWL2_RL.isInProfile());
+            assertEquals(dl, OWL2_DL.isInProfile());
         } catch (OWLOntologyCreationException e) {
             throw new OWLRuntimeException(e);
         }

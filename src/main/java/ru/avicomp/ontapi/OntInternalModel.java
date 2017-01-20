@@ -257,6 +257,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     public Stream<OWLObjectPropertyAxiom> objectPropertyAxioms() {
         return Stream.of(
+                OWLSubObjectPropertyOfAxiom.class,
                 OWLObjectPropertyDomainAxiom.class,
                 OWLObjectPropertyRangeAxiom.class,
 

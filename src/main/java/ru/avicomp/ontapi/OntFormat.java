@@ -12,7 +12,7 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 
 /**
  * The map between jena languages ({@link Lang}) and OWL-API formats ({@link OWLDocumentFormat}).
- * There are 20 ONT formats (21 OWL formats + 14 jena languages)
+ * There are 21 ONT formats (22 OWL formats + 14 jena languages)
  *
  * Created by @szuev on 27.09.2016.
  */
@@ -38,6 +38,7 @@ public enum OntFormat {
     BINARY("BinaryRDF", "brf", null, Collections.singletonList(BinaryRDFDocumentFormat.class)),
     RDFA("RDFA", "html", null, Collections.singletonList(RDFaDocumentFormat.class)),
     OBO("OBO", "obo", null, Collections.singletonList(OBODocumentFormat.class)),
+    KRSS("KRSS", "krss", null, Collections.singletonList(KRSSDocumentFormat.class)),
     KRSS2("KRSS2", "krss2", null, Collections.singletonList(KRSS2DocumentFormat.class)),
     DL("DL", "dl", null, Collections.singletonList(DLSyntaxDocumentFormat.class)),
     DL_HTML("DL/HTML", "html", null, Collections.singletonList(DLSyntaxHTMLDocumentFormat.class)),

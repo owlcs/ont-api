@@ -13,7 +13,10 @@
 package org.semanticweb.owlapi.api.test;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -35,8 +38,6 @@ import org.semanticweb.owlapi.latex.renderer.LatexStorerFactory;
 import org.semanticweb.owlapi.manchestersyntax.parser.ManchesterOWLSyntaxOntologyParserFactory;
 import org.semanticweb.owlapi.manchestersyntax.renderer.ManchesterSyntaxStorerFactory;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
-import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.owlxml.parser.OWLXMLParserFactory;
 import org.semanticweb.owlapi.owlxml.renderer.OWLXMLStorerFactory;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParserFactory;
@@ -44,8 +45,6 @@ import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
 import org.semanticweb.owlapi.rdf.turtle.parser.TurtleOntologyParserFactory;
 import org.semanticweb.owlapi.rdf.turtle.renderer.TurtleStorerFactory;
 
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
 @ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc"})
@@ -69,55 +68,57 @@ public class ParsersStorersTestCase extends TestBase {
         return o;
     }
 
-    public void test(OWLStorerFactory s, OWLParserFactory p, OWLDocumentFormat ontologyFormat, boolean expectParse,
-                     boolean expectRoundtrip) throws Exception {
-        LOGGER.info("Test object: " + object);
+    public void test(OWLStorerFactory stores, OWLParserFactory parsers, OWLDocumentFormat format, boolean expectParse, boolean expectRoundtrip) throws Exception {
+        LOGGER.info("Test object: <" + object + ">");
+        LOGGER.debug("Test format: " + format.getClass().getSimpleName());
         StringDocumentTarget target = new StringDocumentTarget();
         OWLOntology data = ont();
+
         LOGGER.debug("Test Data:");
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(data);
+        LOGGER.debug("Original axioms:");
+        data.axioms().forEach(a -> LOGGER.debug(a.toString()));
 
-        s.createStorer().storeOntology(data, target, ontologyFormat);
-        OWLOntology o = getAnonymousOWLOntology();
+        stores.createStorer().storeOntology(data, target, format);
+        OWLOntology res = getAnonymousOWLOntology();
+        LOGGER.debug("After store:");
+        LOGGER.debug(target.toString());
 
         try {
-            p.createParser().parse(new StringDocumentSource(target), o, new OWLOntologyLoaderConfiguration());
+            OWLDocumentFormat resultFormat = parsers.createParser().parse(new StringDocumentSource(target), res, new OWLOntologyLoaderConfiguration());
+            LOGGER.debug("Result format: " + resultFormat.getClass().getSimpleName());
         } catch (OWLParserException e) {
             if (expectParse) {
                 LOGGER.debug("ParsersStorersTestCase.test() " + target);
                 throw e;
             } else {
-                LOGGER.debug("parse fail: " + ontologyFormat.getKey() + " " + object);
+                LOGGER.debug("parse fail: " + format.getKey() + " " + object);
                 return;
             }
         }
-        boolean condition = o.containsAxiom(object)
-                || o.containsAxiom(object, Imports.EXCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS)
-                || object instanceof OWLObjectPropertyAssertionAxiom
-                && o.containsAxiom(((OWLObjectPropertyAssertionAxiom) object).getSimplified());
-        if (!condition) {
-            if (expectRoundtrip) {
-                // check bnodes
-                String axiom = object.toString().replace("_:id", "");
-                for (OWLAxiom ax : asUnorderedSet(o.axioms())) {
-                    if (!condition) {
-                        String a = ax.toString().replaceAll("_:genid[0-9]+", "");
-                        condition = axiom.equals(a);
-                    }
-                }
-                if (!condition) {
-                    LOGGER.debug(target.toString());
-                    LOGGER.debug(ontologyFormat + " " + axiom);
-                    for (OWLAxiom ax : asUnorderedSet(o.axioms())) {
-                        String a = ax.toString().replaceAll("_:genid[0-9]+", "");
-                        LOGGER.debug(ontologyFormat + " parsed " + a);
-                    }
-                }
-                assertTrue(object.toString() + "\t" + o, condition);
-            } else {
-                LOGGER.debug("roundtrip fail: " + ontologyFormat.getKey() + " " + object);
-            }
+        LOGGER.debug("Axioms after parsing:");
+        res.axioms().forEach(a -> LOGGER.debug(a.toString()));
+        if (!expectRoundtrip) {
+            LOGGER.warn("Don't check the axiom contents.");
+            return;
         }
+        // original method doesn't care about annotations attached to axiom. so we save the same behaviour.
+        String test = String.valueOf(trimAxiom(object));
+        final String bNodePattern = "_:\\w+";
+        final String bNodeValue = "_:id";
+        List<String> axioms = res.axioms()
+                .map(ParsersStorersTestCase::trimAxiom)
+                .map(String::valueOf)
+                .map(s -> s.replaceAll(bNodePattern, bNodeValue)).collect(Collectors.toList());
+
+        Assert.assertTrue("Can't find " + test + " inside \n" + axioms, axioms.contains(test));
+    }
+
+    private static OWLAxiom trimAxiom(OWLAxiom axiom) {
+        if (axiom instanceof OWLObjectPropertyAssertionAxiom) {
+            axiom = ((OWLObjectPropertyAssertionAxiom) axiom).getSimplified();
+        }
+        return axiom.getAxiomWithoutAnnotations();
     }
 
     @Test
