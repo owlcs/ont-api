@@ -134,8 +134,8 @@ public class ImportsGraphTest extends GraphTestBase {
 
         LOGGER.info("Reload models.");
         OntologyManager newManager = OntManagerFactory.createONTManager();
-        OntologyModel newBase = ReadWriteUtils.convertJenaToONT(newManager, base.asGraphModel(), null);
-        OntologyModel newChild = ReadWriteUtils.convertJenaToONT(newManager, child.asGraphModel(), null);
+        OntologyModel newBase = ReadWriteUtils.convertJenaToONT(newManager, base.asGraphModel());
+        OntologyModel newChild = ReadWriteUtils.convertJenaToONT(newManager, child.asGraphModel());
 
         Assert.assertEquals("Incorrect imports count", 1, newChild.imports().count());
         Assert.assertEquals("Should be the same number of statements",

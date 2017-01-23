@@ -186,25 +186,31 @@ public class ReadWriteUtils {
         return owl;
     }
 
-    public static OntologyModel convertJenaToONT(OntologyManager manager, Model model, OntFormat convertFormat) {
-        if (manager == null) manager = OntManagerFactory.createONTManager();
-        return (OntologyModel) convertJenaToOWL(manager, model, convertFormat);
-    }
-
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
         String uri = TestUtils.getURI(model);
         LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
         try (InputStream is = toInputStream(model, convertFormat == null ? OntFormat.TURTLE : convertFormat)) {
-            manager.loadOntologyFromOntologyDocument(is);
+            return manager.loadOntologyFromOntologyDocument(is);
         } catch (IOException | OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }
-        OWLOntology res = manager.getOntology(IRI.create(uri));
-        Assert.assertNotNull("Can't find ontology " + uri, res);
-        return res;
+    }
+
+    public static OWLOntology convertJenaToOWL(Model model) {
+        return convertJenaToOWL(null, model);
+    }
+
+    public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model) {
+        if (manager == null) manager = OntManagerFactory.createOWLManager();
+        return convertJenaToOWL(manager, model, OntFormat.TURTLE);
     }
 
     public static OntologyModel convertJenaToONT(Model model) {
-        return convertJenaToONT(null, model, null);
+        return convertJenaToONT(null, model);
+    }
+
+    public static OntologyModel convertJenaToONT(OntologyManager manager, Model model) {
+        if (manager == null) manager = OntManagerFactory.createONTManager();
+        return (OntologyModel) convertJenaToOWL(manager, model, OntFormat.TURTLE);
     }
 }

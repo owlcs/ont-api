@@ -1,12 +1,11 @@
 package org.semanticweb.owlapi.profiles;
 
+import org.junit.Assert;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
@@ -19,7 +18,7 @@ public class ProfileBase extends TestBase {
             OWLOntology o = loadOntologyFromString(in);
             ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
             o.axioms().forEach(a -> LOGGER.debug(String.valueOf(a)));
-            assertTrue("Empty ontology", o.axioms().count() > 0);
+            Assert.assertTrue("Empty ontology", o.axioms().count() > 0);
             OWLProfileReport OWL2_EL = Profiles.OWL2_EL.checkOntology(o);
             OWLProfileReport OWL2_QL = Profiles.OWL2_QL.checkOntology(o);
             OWLProfileReport OWL2_RL = Profiles.OWL2_RL.checkOntology(o);
@@ -28,10 +27,10 @@ public class ProfileBase extends TestBase {
             LOGGER.debug("Violations(QL): " + OWL2_QL.getViolations());
             LOGGER.debug("Violations(RL): " + OWL2_RL.getViolations());
             LOGGER.debug("Violations(DL): " + OWL2_DL.getViolations());
-            assertEquals(el, OWL2_EL.isInProfile());
-            assertEquals(ql, OWL2_QL.isInProfile());
-            assertEquals(rl, OWL2_RL.isInProfile());
-            assertEquals(dl, OWL2_DL.isInProfile());
+            Assert.assertEquals(el, OWL2_EL.isInProfile());
+            Assert.assertEquals(ql, OWL2_QL.isInProfile());
+            Assert.assertEquals(rl, OWL2_RL.isInProfile());
+            Assert.assertEquals(dl, OWL2_DL.isInProfile());
         } catch (OWLOntologyCreationException e) {
             throw new OWLRuntimeException(e);
         }

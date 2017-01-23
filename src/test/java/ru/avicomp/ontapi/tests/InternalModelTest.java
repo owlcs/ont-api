@@ -2,6 +2,7 @@ package ru.avicomp.ontapi.tests;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -182,10 +183,10 @@ public class InternalModelTest {
         Assert.assertEquals("Incorrect anonymous individuals", anonymous1.size(), anonymous2.size());
 
         LOGGER.info("OWLAnnotationProperty:");
-        Set<OWLAnnotationProperty> annotationProperties1 = owl.annotationPropertiesInSignature().collect(Collectors.toSet());
-        Set<OWLAnnotationProperty> annotationProperties2 = jena.annotationProperties().collect(Collectors.toSet());
-        LOGGER.debug(annotationProperties1.size() + " ::: " + annotationProperties2.size());
-        Assert.assertThat("Incorrect annotation properties", annotationProperties2, IsEqual.equalTo(annotationProperties1));
+        List<OWLAnnotationProperty> expectedAnnotationProperties = owl.annotationPropertiesInSignature().sorted().collect(Collectors.toList());
+        List<OWLAnnotationProperty> actualAnnotationProperties = jena.annotationProperties().sorted().collect(Collectors.toList());
+        LOGGER.debug(expectedAnnotationProperties.size() + " ::: " + actualAnnotationProperties.size());
+        Assert.assertThat("Incorrect annotation properties", actualAnnotationProperties, IsEqual.equalTo(expectedAnnotationProperties));
 
         LOGGER.info("OWLObjectProperty:");
         Set<OWLObjectProperty> objectProperties1 = owl.objectPropertiesInSignature().collect(Collectors.toSet());

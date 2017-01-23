@@ -88,7 +88,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     /**
      * Creates blank node "_:x rdf:type owl:AllDifferent. _:x owl:members (a1 … an)."
      * <p>
-     * Note: the predicate is "owl:members", not "owl:distinctMembers"
+     * Note: the predicate is "owl:members", not "owl:distinctMembers" (but the last one is correct also)
      * see <a href='https://www.w3.org/TR/owl2-quick-reference/#Additional_Vocabulary_in_OWL_2_RDF_Syntax'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
      *
      * @param model       {@link OntGraphModelImpl}

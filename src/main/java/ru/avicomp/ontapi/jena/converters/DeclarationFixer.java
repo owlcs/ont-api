@@ -2,6 +2,7 @@ package ru.avicomp.ontapi.jena.converters;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ public class DeclarationFixer extends TransformAction {
         inner = Stream.of(
                 new ObjectTripleDeclarationFixer(graph)
                 , new SubjectTripleDeclarationFixer(graph)
+
                 , new StandaloneURIFixer(graph)
                 , new HierarchicalPropertyFixer(graph)
 
@@ -63,6 +65,7 @@ public class DeclarationFixer extends TransformAction {
 
         @Override
         public void perform() {
+            fixByAnnotations();
             fixClassesAndDatatypes();
             fixOwlProperties();
             fixNamedIndividuals();
@@ -90,7 +93,11 @@ public class DeclarationFixer extends TransformAction {
             m.listStatements(null, OWL.oneOf, (RDFNode) null).forEachRemaining(s -> fixList(s, OWL.NamedIndividual));
             //if (containsType(OWL.AllDifferent))
             m.listStatements(null, RDF.type, OWL.AllDifferent).mapWith(Statement::getSubject)
-                    .mapWith(main -> m.getProperty(main, OWL.members))
+                    .mapWith(main -> {
+                        Statement res = m.getProperty(main, OWL.members);
+                        return res != null ? res : m.getProperty(main, OWL.distinctMembers);
+                    })
+                    .filterKeep(Objects::nonNull)
                     .forEachRemaining(s -> fixList(s, OWL.NamedIndividual));
         }
 
@@ -107,11 +114,48 @@ public class DeclarationFixer extends TransformAction {
             //if (containsType(OWL.AllDisjointClasses))
             m.listStatements(null, RDF.type, OWL.AllDisjointClasses).mapWith(Statement::getSubject)
                     .mapWith(main -> m.getProperty(main, OWL.members))
+                    .filterKeep(Objects::nonNull)
                     .forEachRemaining(s -> fixList(s, OWL.Class));
 
             fixRestrictionExpressionsByProperty(m);
             fixEnumerationExpressionsByEntity(m);
             fixBooleanExpressionsByClass(m);
+        }
+
+        private void fixOwlProperties() {
+            Model m = getModel();
+            fixExplicitTypes(m, OWL.inverseOf, OWL.ObjectProperty);
+            Stream.of(RDFS.subPropertyOf, OWL.equivalentProperty, OWL.propertyDisjointWith)
+                    .forEach(predicate -> fixAmbiguousTypes(m, predicate, OWL.ObjectProperty, OWL.DatatypeProperty));
+            //if (containsType(OWL.AllDisjointProperties))
+            m.listStatements(null, RDF.type, OWL.AllDisjointProperties)
+                    .mapWith(Statement::getSubject)
+                    .mapWith(main -> m.getProperty(main, OWL.members))
+                    .filterKeep(Objects::nonNull)
+                    .forEachRemaining(this::fixPropertyList);
+
+            fixHasSelfExpressions(m);
+            fixRestrictionExpressionsByEntity(m);
+        }
+
+        private void fixByAnnotations() {
+            listStatements(null, OWL.annotatedProperty, RDF.type)
+                    .map(Statement::getSubject)
+                    .filter(RDFNode::isAnon)
+                    .forEach(this::fixDeclarationFromAnnotation);
+        }
+
+        private void fixDeclarationFromAnnotation(Resource root) {
+            if (types(root, false).noneMatch(type -> OWL.Axiom.equals(type) || OWL.Annotation.equals(type))) return;
+            try {
+                Resource entity = root.getProperty(OWL.annotatedSource).getObject().asResource();
+                Resource type = root.getProperty(OWL.annotatedTarget).getObject().asResource();
+                if (!entity.isURIResource()) return;
+                if (!type.isURIResource()) return;
+                addType(entity, type);
+            } catch (Exception ignore) {
+                // ignore. wrong annotation
+            }
         }
 
         private void fixRestrictionExpressionsByProperty(Model m) {
@@ -141,20 +185,6 @@ public class DeclarationFixer extends TransformAction {
             m.listStatements(null, OWL.complementOf, (RDFNode) null)
                     .mapWith(Statement::getObject)
                     .forEachRemaining(n -> declare(n, OWL.Class, true));
-        }
-
-        private void fixOwlProperties() {
-            Model m = getModel();
-            fixExplicitTypes(m, OWL.inverseOf, OWL.ObjectProperty);
-            Stream.of(RDFS.subPropertyOf, OWL.equivalentProperty, OWL.propertyDisjointWith)
-                    .forEach(predicate -> fixAmbiguousTypes(m, predicate, OWL.ObjectProperty, OWL.DatatypeProperty));
-            //if (containsType(OWL.AllDisjointProperties))
-            m.listStatements(null, RDF.type, OWL.AllDisjointProperties).mapWith(Statement::getSubject)
-                    .mapWith(main -> m.getProperty(main, OWL.members))
-                    .forEachRemaining(this::fixPropertyList);
-
-            fixHasSelfExpressions(m);
-            fixRestrictionExpressionsByEntity(m);
         }
 
         private void fixHasSelfExpressions(Model m) {
@@ -256,8 +286,7 @@ public class DeclarationFixer extends TransformAction {
         private void fixObjectProperties(Model m) {
             //always object properties.
             Stream.of(OWL.InverseFunctionalProperty, OWL.ReflexiveProperty, OWL.IrreflexiveProperty,
-                    OWL.SymmetricProperty, OWL.AsymmetricProperty, OWL.TransitiveProperty,
-                    OWL.propertyChainAxiom)
+                    OWL.SymmetricProperty, OWL.AsymmetricProperty, OWL.TransitiveProperty, OWL.propertyChainAxiom)
                     .forEach(type -> m.listStatements(null, RDF.type, type).mapWith(Statement::getSubject)
                             .forEachRemaining(r -> declare(r, OWL.ObjectProperty, true)));
         }
@@ -295,7 +324,6 @@ public class DeclarationFixer extends TransformAction {
         public void perform() {
             Set<Node> nodes = getBaseGraph()
                     .find(Node.ANY, RDF_TYPE, Node.ANY)
-                    .andThen(getBaseGraph().find(Node.ANY, RDF.first.asNode(), Node.ANY))
                     .mapWith(Triple::getObject)
                     .filterKeep(Node::isURI)
                     .filterDrop(BUILT_IN::contains)
@@ -440,7 +468,7 @@ public class DeclarationFixer extends TransformAction {
          * have no other types assigned and is not built-in.
          *
          * @param object the subject of new triple.
-         * @param type   the object of new triple.
+         * @param type   the object of new triple (null to do nothing).
          * @param force  if true don't check previous assigned types.
          */
         void declare(RDFNode object, Resource type, boolean force) {

@@ -21,13 +21,15 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * TODO:
+ * TODO: need to change.
+ *
  * To perform preliminary fixing: transform the RDFS ontological graph to the OWL ontological graph.
- * After this conversion is completed there would be a valid owl-ontology but maybe with missing declarations and
+ * After this conversion is completed there would be a valid owl-dl-ontology but maybe with missing declarations and
  * with some RDFS-garbage (rdfs:Class, rdf:Property).
- * It seems it can be considered as an OWL1.
+ * It seems it can be considered as an OWL1 (till rdfs:Class, rdf:Property, etc would be removed by {@link OWLtoOWL2DLFixer})
  * <p>
- * This transformer is optional: if ontology graph already contains one of the five main owl-declarations (owl:Class,
+ * This transformer is optional:
+ * if ontology graph already contains one of the five main owl-declarations (owl:Class,
  * owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:NamedIndividual) then it can't be pure RDFS-ontology
  * and we believe that there is nothing to do.
  * <p>
@@ -50,11 +52,9 @@ public class RDFStoOWLFixer extends TransformAction {
 
     @Override
     public boolean test() {
-        return !containsType(OWL.Class)
-                && !containsType(OWL.AnnotationProperty)
-                && !containsType(OWL.DatatypeProperty)
-                && !containsType(OWL.ObjectProperty)
-                && !containsType(OWL.NamedIndividual);
+        // todo:
+        //return containsType(RDFS.Class) || containsType(RDF.Property);
+        return !containsType(OWL.Class) && !containsType(OWL.AnnotationProperty) && !containsType(OWL.DatatypeProperty) && !containsType(OWL.ObjectProperty) && !containsType(OWL.NamedIndividual);
     }
 
     private Set<Resource> getPropertyTypes(Node subject) {
@@ -97,16 +97,44 @@ public class RDFStoOWLFixer extends TransformAction {
         return getBaseGraph().find(Node.ANY, predicate.asNode(), Node.ANY);
     }
 
+    private void declaredProperties() {
+        // todo:
+        // conditions:
+        // 1) any uri-resource with rdf:type=rdf:Property
+        // 2) any uri-resource that is a subject in a triple which has predicate rdfs:domain, rdfs:range or rdfs:subPropertyOf
+        // 3) anything from owl:propertyChainAxiom (ObjectProperty)
+        // 4) owl:equivalentProperty (Datatype or ObjectProperty)
+        // 5) owl:propertyDisjointWith (Datatype or ObjectProperty)
+        // 6) owl:AllDisjointProperties (Datatype or ObjectProperty)
+        // 7) owl:inverseOf (ObjectProperty)
+        // 8) owl:FunctionalProperty (Datatype or ObjectProperty)
+        // 9) owl:InverseFunctionalProperty, owl:ReflexiveProperty, owl:IrreflexiveProperty, owl:SymmetricProperty, owl:AsymmetricProperty, owl:TransitiveProperty (ObjectProperty)
+        // 10)  owl:annotatedProperty - (AnnotationProperty)
+
+        // 11) annotation assertion s(IRI or anonymous individual) A t(IRI, anonymous individual, or literal)
+        // 12) object property assertion a1(individual)  PN a2(individual)
+        // 13) data property assertion a(individual) R v(literal)
+
+        // 14) Negative assertion owl:assertionProperty (Datatype or ObjectProperty)
+    }
+
+
     private void fixProperties() {
         Set<Node> properties = getBaseGraph().find(Node.ANY, RDF_TYPE, RDF.Property.asNode()).mapWith(Triple::getSubject).toSet();
         // any standalone none-built-in predicates should be treated as rdf:Property also
-        Set<Node> standalone = getBaseGraph().find(Node.ANY, Node.ANY, Node.ANY).
-                mapWith(Triple::getPredicate).filterDrop(node -> getGraph().contains(node, Node.ANY, Node.ANY)).toSet();
+        // (it would be replaced by one of the owl property type if possible while OWL=>OWL2 parser).
+        Set<Node> standalone = getBaseGraph().find(Node.ANY, Node.ANY, Node.ANY)
+                .mapWith(Triple::getPredicate)
+                //.filterDrop(node -> getGraph().contains(node, Node.ANY, Node.ANY))
+                .toSet();
         properties.addAll(standalone);
-        // all rdfs:subPropertyOf
-        Set<Node> superProperties = getBaseGraph().find(Node.ANY, RDFS.subPropertyOf.asNode(), Node.ANY).mapWith(Triple::getSubject).toSet();
+
+        // and add all subjects from triple with predicate rdfs:subPropertyOf
+        Set<Node> superProperties = getBaseGraph().find(Node.ANY, RDFS.subPropertyOf.asNode(), Node.ANY)
+                .mapWith(Triple::getSubject).toSet();
         properties.addAll(superProperties);
         properties.removeAll(BUILT_IN);
+
         for (Node prop : properties) {
             Set<Resource> types = getPropertyTypes(prop);
             if (types.isEmpty()) { //just ignore
@@ -116,7 +144,6 @@ public class RDFStoOWLFixer extends TransformAction {
             if (types.contains(OWL.DatatypeProperty) && types.contains(OWL.ObjectProperty)) { // todo: ignore
                 GraphConverter.LOGGER.warn("Property " + prop + " can't be data and object at the same time.");
                 continue;
-                //throw new OntJenaException("Property " + prop + " can't be data and object at the same time.");
             }
             types.forEach(type -> addType(prop, type));
         }

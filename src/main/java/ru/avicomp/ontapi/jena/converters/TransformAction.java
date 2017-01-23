@@ -59,6 +59,10 @@ public abstract class TransformAction {
         return graph instanceof UnionGraph ? ((UnionGraph) graph).getBaseGraph() : graph;
     }
 
+    protected void addType(Resource subject, Resource type) {
+        addType(subject.asNode(), type.asNode());
+    }
+
     protected void addType(Node subject, Resource type) {
         addType(subject, type.asNode());
     }
@@ -69,6 +73,18 @@ public abstract class TransformAction {
 
     protected void deleteType(Node subject, Resource type) {
         getGraph().delete(Triple.create(subject, RDF_TYPE, type.asNode()));
+    }
+
+    protected void deleteType(Resource subject, Resource type) {
+        deleteType(subject.asNode(), type);
+    }
+
+    protected void replaceType(Resource realType, Resource newType) {
+        Set<Resource> toFix = listStatements(null, RDF.type, realType).map(Statement::getSubject).collect(Collectors.toSet());
+        toFix.forEach(subject -> {
+            deleteType(subject, realType);
+            addType(subject, newType);
+        });
     }
 
     protected boolean containsType(Resource type) {
