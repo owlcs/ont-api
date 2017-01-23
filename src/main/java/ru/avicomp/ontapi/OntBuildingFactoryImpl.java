@@ -20,8 +20,8 @@ import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.converters.GraphConverter;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;

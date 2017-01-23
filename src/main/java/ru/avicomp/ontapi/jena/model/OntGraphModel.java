@@ -11,6 +11,7 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.converters.OWLtoOWL2DLFixer;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
@@ -29,7 +30,7 @@ public interface OntGraphModel extends Model {
     /**
      * gets ontology ID ont-object.
      * Only the one ontology expected inside the base graph.
-     * if not, use {@link ru.avicomp.ontapi.jena.GraphConverter.OWLtoOWL2DLFixer} or {@link #setID(String)} to fix graph.
+     * if not, use {@link OWLtoOWL2DLFixer} or {@link #setID(String)} to fix graph.
      *
      * @return {@link OntID}
      * @throws OntJenaException in case there is no any ontology or more then one ontology

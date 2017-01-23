@@ -24,7 +24,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagerFactory;
-import ru.avicomp.ontapi.jena.GraphConverter;
+import ru.avicomp.ontapi.jena.converters.GraphConverter;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Models;

@@ -23,8 +23,9 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagerFactory;
-import ru.avicomp.ontapi.jena.GraphConverter;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.converters.GraphConverter;
+import ru.avicomp.ontapi.jena.converters.TransformAction;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -42,7 +43,7 @@ public class GraphConverterJenaTest {
 
     @Test
     public void test() throws Exception {
-        GraphConverter.CONVERTERS.add(g -> new GraphConverter.TransformAction(g) {
+        GraphConverter.CONVERTERS.add(g -> new TransformAction(g) {
             @Override
             public void perform() {
                 LOGGER.info("Finish transformation (" + getOntURI(g) + ").");
