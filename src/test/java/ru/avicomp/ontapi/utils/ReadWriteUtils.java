@@ -186,6 +186,14 @@ public class ReadWriteUtils {
         return owl;
     }
 
+    public static OWLOntology loadOWLOntology(IRI fileIRI) {
+        return loadOWLOntology(OntManagerFactory.createOWLManager(), fileIRI);
+    }
+
+    public static OntologyModel loadOntologyModel(IRI fileIRI) {
+        return (OntologyModel) loadOWLOntology(OntManagerFactory.createONTManager(), fileIRI);
+    }
+
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
         String uri = TestUtils.getURI(model);
         LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");

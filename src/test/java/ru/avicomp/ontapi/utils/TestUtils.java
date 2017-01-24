@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.semanticweb.owlapi.model.*;
@@ -17,9 +17,12 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
 
 /**
@@ -48,52 +51,35 @@ public class TestUtils {
     public static OntGraphModel copyOntModel(OntGraphModel original, String newURI) {
         String oldURI = getURI(original);
         if (newURI == null) newURI = oldURI + ".copy";
-        OntGraphModel res = new OntGraphModelImpl();
+        UnionGraph copy = new UnionGraph(original.getBaseGraph());
+        original.imports().forEach(model -> copy.addGraph(model.getGraph()));
+        OntGraphModel res = new OntGraphModelImpl(copy);
         res.setNsPrefix("", newURI + "#");
         res.add(original.getBaseModel().listStatements());
         res.setID(newURI);
         return res;
     }
 
+    public static void setDefaultPrefixes(Model m) {
+        m.setNsPrefix("owl", OWL.getURI());
+        m.setNsPrefix("rdfs", RDFS.getURI());
+        m.setNsPrefix("rdf", RDF.getURI());
+        m.setNsPrefix("xsd", XSD.getURI());
+    }
+
     public static String getURI(Model model) {
         if (model == null) return null;
-        Resource ontology = findOntologyResource(model);
-        if (ontology != null) {
-            return ontology.getURI();
-        }
-        // maybe there is a base prefix (topbraid-style)
-        String res = model.getNsPrefixURI("base");
-        if (res == null)
-            res = model.getNsPrefixURI(""); // sometimes empty prefix is used for record doc-uri (protege, owl-api).
-        if (res != null) {
-            res = res.replaceAll("#$", "");
-        }
-        return res;
+        Resource res = findOntologyResource(model);
+        return res != null ? res.getURI() : null;
     }
 
     private static Resource findOntologyResource(Model model) {
         if (model == null) return null;
-        if (OntGraphModel.class.isInstance(model)) {
-            return ((OntGraphModel) model).getID();
-        }
-        if (OntModel.class.isInstance(model)) {
-            return getOntology((OntModel) model);
-        }
-        List<Statement> statements = model.listStatements(null, RDF.type, org.apache.jena.vocabulary.OWL.Ontology).toList();
+        Model base = OntGraphModel.class.isInstance(model) ?
+                ((OntGraphModel) model).getBaseModel() : OntModel.class.isInstance(model) ?
+                ((OntModel) model).getBaseModel() : model;
+        List<Statement> statements = base.listStatements(null, RDF.type, OWL.Ontology).toList();
         return statements.size() != 1 ? null : statements.get(0).getSubject();
-    }
-
-    private static Ontology getOntology(OntModel model) {
-        List<Ontology> ontologies = model.listOntologies().toList();
-        Assert.assertFalse("No ontologies at all", ontologies.isEmpty());
-        if (ontologies.size() == 1) return ontologies.get(0);
-        List<OntModel> imports = model.listSubModels(true).toList();
-        for (OntModel i : imports) {
-            ontologies.removeAll(i.listOntologies().toList());
-        }
-        if (ontologies.size() != 1)
-            Assert.fail("More then one jena-ontology inside model : " + ontologies.size());
-        return ontologies.get(0);
     }
 
     public static Triple createTriple(Resource r, Property p, RDFNode o) {
@@ -158,4 +144,5 @@ public class TestUtils {
                 .map(a -> a instanceof OWLNaryAxiom ? (Stream<OWLAxiom>) ((OWLNaryAxiom) a).splitToAnnotatedPairs().stream() : Stream.of(a))
                 .flatMap(Function.identity()).distinct();
     }
+
 }

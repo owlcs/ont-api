@@ -12,7 +12,7 @@ import org.apache.jena.rdf.model.Statement;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntID;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
@@ -73,7 +73,7 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
     }
 
     public Stream<Resource> importResources() {
-        return Models.asStream(listProperties(OWL.imports)
+        return Streams.asStream(listProperties(OWL.imports)
                 .mapWith(Statement::getObject)
                 .filterKeep(RDFNode::isURIResource)
                 .mapWith(RDFNode::asResource));

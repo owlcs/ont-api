@@ -24,7 +24,7 @@ import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -78,7 +78,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     @Override
     public OntID setID(String uri) {
         List<Statement> prev = ontologyStatements()
-                .map(s -> Models.asStream(s.listProperties())).
+                .map(s -> Streams.asStream(s.listProperties())).
                         flatMap(Function.identity()).collect(Collectors.toList());
         if (prev.stream()
                 .filter(s -> OWL.imports.equals(s.getPredicate()))
@@ -89,14 +89,13 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
             throw new OntJenaException("Can't create ontology: <" + uri + "> is present in the imports.");
         }
         remove(prev);
-        Resource res = createResource(uri);
-        add(res, RDF.type, OWL.Ontology);
-        prev.forEach(s -> add(res, s.getPredicate(), s.getObject()));
+        Resource res = createResource(uri).addProperty(RDF.type, OWL.Ontology);
+        prev.forEach(s -> res.addProperty(s.getPredicate(), s.getObject()));
         return getNodeAs(res.asNode(), OntID.class);
     }
 
     private Stream<Resource> ontologyStatements() {
-        return Models.asStream(getBaseModel().listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject));
+        return Streams.asStream(getBaseModel().listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject));
     }
 
     @Override
@@ -184,7 +183,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntGraphModelImpl remove(Resource s, Property p, RDFNode o) { // todo: removing is allowed only for base graph
+    public OntGraphModelImpl remove(Resource s, Property p, RDFNode o) { // todo: be warned - removing is allowed only for base graph
         graph.delete(Triple.create(s.asNode(), p.asNode(), o.asNode()));
         return this;
     }
@@ -221,7 +220,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     /**
-     * to create any OntObject resource
+     * to create any OntObject resource.
      *
      * @param type Class
      * @param uri  String
@@ -234,7 +233,11 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public <T extends OntEntity> T createOntEntity(Class<T> type, String uri) {
-        return createOntObject(type, uri);
+        try {
+            return createOntObject(type, uri);
+        } catch (OntJenaException.Creation e) { // illegal punning:
+            throw new OntJenaException(String.format("Can't add entity [%s: %s]", type.getSimpleName(), uri), e);
+        }
     }
 
     @Override
@@ -245,7 +248,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public Stream<OntStatement> statements() {
-        return Models.asStream(listStatements()).map(s -> toOntStatement(null, s));
+        return Streams.asStream(listStatements()).map(s -> toOntStatement(null, s));
     }
 
     protected OntStatement toOntStatement(OntStatement main, Statement st) {

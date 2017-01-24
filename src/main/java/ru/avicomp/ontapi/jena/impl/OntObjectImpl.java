@@ -18,7 +18,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -126,7 +126,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public Stream<OntStatement> statements() {
         OntStatement main = getRoot();
-        return Models.asStream(listProperties()).map(s -> getModel().toOntStatement(main, s));
+        return Streams.asStream(listProperties()).map(s -> getModel().toOntStatement(main, s));
     }
 
     @Override
@@ -143,7 +143,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Distinct Stream of RDFNode
      */
     public Stream<RDFNode> rdfList(Property property) {
-        return Models.asStream(listProperties(property)
+        return Streams.asStream(listProperties(property)
                 .mapWith(Statement::getObject)
                 .filterKeep(n -> n.canAs(RDFList.class))
                 .mapWith(n -> n.as(RDFList.class)))
@@ -169,7 +169,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     public Stream<RDFNode> objects(Property predicate) {
-        return Models.asStream(listProperties(predicate).mapWith(Statement::getObject)).distinct();
+        return Streams.asStream(listProperties(predicate).mapWith(Statement::getObject)).distinct();
     }
 
     public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view) {

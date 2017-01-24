@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.io.OWLOntologyStorageIOException;
 import org.semanticweb.owlapi.model.*;
 
+import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import ru.avicomp.ontapi.jena.utils.Models;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
@@ -147,23 +148,33 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
                 .findFirst().orElse(null);
     }
 
+    /**
+     * The punning is a situation when the same subject (uri-resource) has several declarations,
+     * i.e. can be treated as entity of different types (e.g. OWLClass and OWLIndividual).
+     * In OWL 2 DL a property cannot have owl:ObjectProperty, owl:DatatypeProperty or olw:AnnotationProperty declaration
+     * at the same time, it is so called illegal punning. Same for owl:Class and rdfs:Datatype.     *
+     * It seems that all other kind of type intersections are allowed, e.g ObjectProperty can be Datatype or Class,
+     * and NamedIndividual can be anything else.
+     * More about punnings see <a href='https://www.w3.org/2007/OWL/wiki/Punning'>wiki</a>.
+     * See also OWL-API example of implementation this logic {@link OWLDocumentFormat#computeIllegals(Multimap)}
+     * <p>
+     * In general cases the original method does not do anything but printing errors (OWL-5.0.4),
+     * i.e. when we have all entities explicitly declared in graph.
+     * But when we use to load ontology some OWL-API parser, we could have some declarations missed
+     * (i.e. the corresponding entity is proclaimed implicitly under some other axiom).
+     * For this case the original method tries to fix such illegal punning by removing annotation property declaration
+     * if the entity is object or date property.
+     * It seems it is not correct.
+     * There is unpredictable changes in 'signature' when we use different formats or/and reload ontology several times.
+     * In addition ONT-API works in different way: the axioms with illegal punnings can not be read from graph
+     * (even corresponding triples are present) and can not be added to graph.
+     * So we just skip this method.
+     *
+     * @param o {@link OWLOntology}
+     */
     @Override
     protected void fixIllegalPunnings(OWLOntology o) {
-        if (canFixIllegalPunnings(o)) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Fix illegal 'punnings' for " + o.getOntologyID());
-            }
-            // todo: do we need this?
-            super.fixIllegalPunnings(o);
-        }
-        // todo: nothing here. use ru.avicomp.ontapi.jena.GraphConverter to some fixing
-    }
-
-    protected boolean canFixIllegalPunnings(OWLOntology o) {
-        OWLDocumentFormat f = getOntologyFormat(o);
-        if (f == null) return false;
-        OntFormat format = OntFormat.get(f);
-        return format != null && format.isOWLOnly();
+        // nothing here.
     }
 
     @Override

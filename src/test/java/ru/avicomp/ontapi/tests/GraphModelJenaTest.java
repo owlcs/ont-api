@@ -21,6 +21,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
  * to test {@link OntGraphModel}
@@ -117,7 +118,7 @@ public class GraphModelJenaTest {
 
         OntGraphModel m = new OntGraphModelImpl();
         m.setNsPrefix("test", ns);
-        setDefaultPrefixes(m);
+        TestUtils.setDefaultPrefixes(m);
 
         LOGGER.info("1) Assign version-iri and ontology comment.");
         m.setID(uri).setVersionIRI(ns + "1.0.1");
@@ -195,7 +196,7 @@ public class GraphModelJenaTest {
 
         OntGraphModel m = new OntGraphModelImpl();
         m.setNsPrefix("test", ns);
-        setDefaultPrefixes(m);
+        TestUtils.setDefaultPrefixes(m);
         m.setID(uri);
 
         OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
@@ -234,7 +235,7 @@ public class GraphModelJenaTest {
 
         OntGraphModel m = new OntGraphModelImpl();
         m.setNsPrefix("test", ns);
-        setDefaultPrefixes(m);
+        TestUtils.setDefaultPrefixes(m);
         m.setID(uri);
 
         OntNDP ndp1 = m.createOntEntity(OntNDP.class, ns + "dataProperty1");
@@ -278,7 +279,7 @@ public class GraphModelJenaTest {
         m.setID(uri);
         m.setNsPrefix("test", ns);
         m.setNsPrefix("SWRL", SWRL.NS);
-        setDefaultPrefixes(m);
+        TestUtils.setDefaultPrefixes(m);
 
         OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
         OntClass cl2 = m.createOntEntity(OntClass.class, ns + "Class2");
@@ -317,7 +318,7 @@ public class GraphModelJenaTest {
         String baseURI = "http://test.com/graph/5";
         String baseNS = baseURI + "#";
         OntGraphModel base = new OntGraphModelImpl();
-        setDefaultPrefixes(base);
+        TestUtils.setDefaultPrefixes(base);
         base.setID(baseURI);
         OntClass cl1 = base.createOntEntity(OntClass.class, baseNS + "Class1");
         OntClass cl2 = base.createOntEntity(OntClass.class, baseNS + "Class2");
@@ -325,7 +326,7 @@ public class GraphModelJenaTest {
         String childURI = "http://test.com/graph/6";
         String childNS = childURI + "#";
         OntGraphModel child = new OntGraphModelImpl();
-        setDefaultPrefixes(child);
+        TestUtils.setDefaultPrefixes(child);
         child.setID(childURI);
         child.addImport(base);
         OntClass cl3 = child.createOntEntity(OntClass.class, childNS + "Class3");
@@ -344,11 +345,5 @@ public class GraphModelJenaTest {
         Assert.assertEquals("Incorrect count of local entities", 2, child.ontEntities().filter(OntEntity::isLocal).count());
     }
 
-    private static void setDefaultPrefixes(OntGraphModel m) {
-        m.setNsPrefix("owl", OWL.getURI());
-        m.setNsPrefix("rdfs", RDFS.getURI());
-        m.setNsPrefix("rdf", RDF.getURI());
-        m.setNsPrefix("xsd", XSD.getURI());
-    }
 }
 

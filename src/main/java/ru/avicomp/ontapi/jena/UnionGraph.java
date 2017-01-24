@@ -6,10 +6,9 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.MultiUnion;
+import org.apache.jena.graph.compose.Union;
 import org.apache.jena.graph.impl.SimpleEventManager;
-import org.apache.jena.util.iterator.ExtendedIterator;
 
 /**
  * Union Graph.
@@ -18,7 +17,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
  * <p>
  * Created by szuev on 28.10.2016.
  */
-public class UnionGraph extends Dyadic {
+public class UnionGraph extends Union {
 
     /**
      * @param base Graph
@@ -36,18 +35,14 @@ public class UnionGraph extends Dyadic {
     }
 
     @Override
-    protected ExtendedIterator<Triple> _graphBaseFind(Triple m) {
-        return L.find(m).andThen(R.find(m));
-    }
-
-    @Override
-    public boolean graphBaseContains(Triple t) {
-        return L.contains(t) || R.contains(t);
-    }
-
-    @Override
     public void performDelete(Triple t) {
         L.delete(t);
+    }
+
+    @Override
+    public void performAdd(Triple t) {
+        if (!R.contains(t))
+            L.add(t);
     }
 
     @Override
@@ -56,11 +51,7 @@ public class UnionGraph extends Dyadic {
         return (OntEventManager) gem;
     }
 
-    @Override
-    public void performAdd(Triple t) {
-        if (!R.contains(t))
-            L.add(t);
-    }
+
 
     public void addGraph(Graph graph) {
         getUnderlying().addGraph(graph);

@@ -21,19 +21,25 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  */
 @FunctionalInterface
 public interface OntFilter {
-    OntFilter URI = new Named(true);
-    OntFilter BLANK = new Named(false);
+    OntFilter TRUE = (n, g) -> true;
+    OntFilter FALSE = (n, g) -> false;
+    OntFilter URI = (n, g) -> n.isURI();
+    OntFilter BLANK = (n, g) -> n.isBlank();
 
     boolean test(Node n, EnhGraph g);
 
     default OntFilter and(OntFilter other) {
         OntJenaException.notNull(other, "Null and-filter.");
-        return (Node t, EnhGraph u) -> test(t, u) && other.test(t, u);
+        return (Node n, EnhGraph g) -> test(n, g) && other.test(n, g);
     }
 
     default OntFilter or(OntFilter other) {
         OntJenaException.notNull(other, "Null or-filter.");
-        return (Node t, EnhGraph u) -> test(t, u) || other.test(t, u);
+        return (Node n, EnhGraph g) -> test(n, g) || other.test(n, g);
+    }
+
+    default OntFilter negate() {
+        return (Node n, EnhGraph g) -> !test(n, g);
     }
 
     default OntFilter accumulate(OntFilter... filters) {
@@ -42,19 +48,6 @@ public interface OntFilter {
             res = res.and(o);
         }
         return res;
-    }
-
-    class Named implements OntFilter {
-        private final Boolean named;
-
-        public Named(Boolean named) {
-            this.named = named;
-        }
-
-        @Override
-        public boolean test(Node node, EnhGraph enhGraph) {
-            return named == null || named && node.isURI() || !named && node.isBlank();
-        }
     }
 
     class HasPredicate implements OntFilter {
@@ -86,8 +79,8 @@ public interface OntFilter {
     class OneOf implements OntFilter {
         protected final Set<Node> nodes;
 
-        public OneOf(Collection<Resource> types) {
-            nodes = types.stream().map(RDFNode::asNode).collect(Collectors.toSet());
+        public OneOf(Collection<? extends RDFNode> types) {
+            this.nodes = types.stream().map(RDFNode::asNode).collect(Collectors.toSet());
         }
 
         @Override

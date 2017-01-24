@@ -8,11 +8,26 @@ import ru.avicomp.ontapi.jena.impl.*;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
- * personalities here.
+ * Settings and personalities for {@link OntGraphModel}.
  * <p>
  * Created by @szuev on 04.11.2016.
  */
 public class OntModelConfig {
+
+    private static boolean excludeIllegalPunnings = true;
+
+    /**
+     * currently it is static.
+     *
+     * @return true if illegal punnings should be excluded from the graph parsing.
+     */
+    public static boolean excludeIllegalPunnings() {
+        return excludeIllegalPunnings;
+    }
+
+    public static void setExcludeIllegalPunnings(boolean b) {
+        excludeIllegalPunnings = b;
+    }
 
     // standard resources:
     public static final Personality<RDFNode> STANDARD_PERSONALITY = new Personality<RDFNode>()

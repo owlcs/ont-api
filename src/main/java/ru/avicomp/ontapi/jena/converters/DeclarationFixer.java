@@ -15,7 +15,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -219,7 +219,7 @@ public class DeclarationFixer extends TransformAction {
 
         private Resource getOnPropertyFromRestriction(RDFNode node) {
             if (node == null || !node.isResource()) return null;
-            List<Resource> properties = Models.asStream(node.getModel().listStatements(node.asResource(), OWL.onProperty, (RDFNode) null))
+            List<Resource> properties = Streams.asStream(node.getModel().listStatements(node.asResource(), OWL.onProperty, (RDFNode) null))
                     .map(Statement::getObject).filter(RDFNode::isResource).map(RDFNode::asResource).distinct().collect(Collectors.toList());
             return properties.size() == 1 ? properties.get(0) : null;
         }
@@ -407,7 +407,7 @@ public class DeclarationFixer extends TransformAction {
             processed.add(candidate);
             return builtIn.contains(candidate) ||
                     getTypes(candidate).contains(type) ||
-                    Models.asStream(getGraph().find(candidate, RDFS.subPropertyOf.asNode(), Node.ANY)
+                    Streams.asStream(getGraph().find(candidate, RDFS.subPropertyOf.asNode(), Node.ANY)
                             .mapWith(Triple::getObject).filterDrop(processed::contains)).
                             anyMatch(node -> isTypePropertyOf(node, type, builtIn, processed));
         }

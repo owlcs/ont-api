@@ -12,7 +12,7 @@ import org.apache.jena.rdf.model.*;
 
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -105,7 +105,7 @@ public abstract class TransformAction {
 
     public Stream<Statement> listStatements(Resource s, Property p, RDFNode o) {
         Model m = getModel();
-        return Models.asStream(getBaseModel().listStatements(s, p, o))
+        return Streams.asStream(getBaseModel().listStatements(s, p, o))
                 .map(st -> m.createStatement(st.getSubject(), st.getPredicate(), st.getObject()));
     }
 
@@ -121,7 +121,7 @@ public abstract class TransformAction {
 
     protected Stream<Resource> types(RDFNode node, boolean requireURI) {
         return requireURI && !node.isURIResource() ? Stream.empty() :
-                Models.asStream(node.asResource().listProperties(RDF.type)
+                Streams.asStream(node.asResource().listProperties(RDF.type)
                         .mapWith(Statement::getObject)
                         .filterKeep(RDFNode::isURIResource)
                         .mapWith(RDFNode::asResource));

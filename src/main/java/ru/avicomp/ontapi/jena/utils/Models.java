@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.rdf.model.Model;
@@ -14,7 +13,6 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
-import org.apache.jena.util.iterator.ExtendedIterator;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
@@ -124,16 +122,6 @@ public class Models {
         init.keySet().forEach(mapping::removeNsPrefix);
         prefixes.forEach((p, u) -> mapping.setNsPrefix(p.replaceAll(":$", ""), u));
         return init;
-    }
-
-    public static <T> Stream<T> asStream(ExtendedIterator<T> iterator) {
-        return asStream(iterator, true, false);
-    }
-
-    public static <T> Stream<T> asStream(Iterator<T> iterator, boolean distinct, boolean parallel) {
-        Iterable<T> iterable = () -> iterator;
-        Stream<T> res = StreamSupport.stream(iterable.spliterator(), parallel);
-        return distinct ? res.distinct() : res;
     }
 
     /**

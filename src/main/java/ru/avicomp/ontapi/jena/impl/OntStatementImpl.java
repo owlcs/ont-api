@@ -14,7 +14,7 @@ import org.apache.jena.util.iterator.UniqueFilter;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -108,7 +108,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return Stream of annotation statement, in the example above the output will contain three statements (two labels and one comment).
      */
     public static Stream<OntStatement> children(Resource root, OntGraphModel model) {
-        return Models.asStream(root.listProperties()
+        return Streams.asStream(root.listProperties()
                 .filterDrop(s -> RDF.type.equals(s.getPredicate()))
                 .filterDrop(s -> OWL.annotatedSource.equals(s.getPredicate()))
                 .filterDrop(s -> OWL.annotatedProperty.equals(s.getPredicate()))
@@ -228,7 +228,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
         @Override
         public Stream<OntStatement> annotations() {
-            Stream<OntStatement> res = Models.asStream(getModel()
+            Stream<OntStatement> res = Streams.asStream(getModel()
                     .listStatements(getSubject(), null, (RDFNode) null))
                     .filter(s -> s.getPredicate().canAs(OntNAP.class))
                     .map(s -> toAnnotation(s.getPredicate().as(OntNAP.class), s.getObject()));

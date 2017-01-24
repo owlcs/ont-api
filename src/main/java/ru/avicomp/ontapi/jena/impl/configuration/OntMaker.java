@@ -14,7 +14,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * To make some preparation while creating (create main triple).
- * Also to create new instance of resource.
+ * Also to create new instance of the resource ({@link EnhNode}).
  * Used in factory ({@link CommonOntObjectFactory}).
  * <p>
  * Created by szuev on 07.11.2016.
@@ -23,11 +23,40 @@ public interface OntMaker {
 
     void make(Node node, EnhGraph eg);
 
+    OntFilter getTester();
+
     EnhNode instance(Node node, EnhGraph eg);
 
-    Class<?> getInstanceClass();
+    Class<? extends EnhNode> getTargetView();
+
+    default OntMaker restrict(OntFilter filter) {
+        OntJenaException.notNull(filter, "Null restriction filter.");
+        return new OntMaker() {
+            @Override
+            public void make(Node node, EnhGraph eg) {
+                OntMaker.this.make(node, eg);
+            }
+
+            @Override
+            public OntFilter getTester() {
+                return OntMaker.this.getTester().and(filter);
+            }
+
+            @Override
+            public EnhNode instance(Node node, EnhGraph eg) {
+                return OntMaker.this.instance(node, eg);
+            }
+
+            @Override
+            public Class<? extends EnhNode> getTargetView() {
+                return OntMaker.this.getTargetView();
+            }
+        };
+    }
 
     /**
+     * The base maker implementation for our project.
+     *
      * Creation in graph is disabled for this maker
      */
     class Default implements OntMaker {
@@ -48,20 +77,28 @@ public interface OntMaker {
         }
 
         @Override
+        public OntFilter getTester() {
+            return OntFilter.FALSE;
+        }
+
+        @Override
         public EnhNode instance(Node node, EnhGraph eg) {
             try {
                 return impl.getDeclaredConstructor(Node.class, EnhGraph.class).newInstance(node, eg);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new OntJenaException(e);
+                throw new OntJenaException("Can't create instance of " + impl, e);
             }
         }
 
         @Override
-        public Class<? extends OntObjectImpl> getInstanceClass() {
+        public Class<? extends OntObjectImpl> getTargetView() {
             return impl;
         }
     }
 
+    /**
+     * to create a triple representing declaration.
+     */
     class WithType extends Default {
         protected final Node type;
 
@@ -73,6 +110,11 @@ public interface OntMaker {
         @Override
         public void make(Node node, EnhGraph eg) {
             eg.asGraph().add(Triple.create(node, RDF.type.asNode(), type));
+        }
+
+        @Override
+        public OntFilter getTester() {
+            return OntFilter.TRUE;
         }
     }
 }

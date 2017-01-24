@@ -53,7 +53,7 @@ public class MultiOntObjectFactory extends OntObjectFactory {
     @Override
     public Stream<EnhNode> find(EnhGraph eg) {
         if (finder != null) {
-            return finder.find(eg).map(n -> doWrap(n, eg)).filter(Objects::nonNull).distinct();
+            return finder.find(eg).map(n -> doWrap(n, eg)).filter(Objects::nonNull);
         }
         return Arrays.stream(factories).map(f -> f.find(eg)).flatMap(Function.identity()).distinct();
     }

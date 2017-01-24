@@ -15,7 +15,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -83,7 +83,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         static class Finder implements OntFinder {
             @Override
             public Stream<Node> find(EnhGraph eg) {
-                return Models.asStream(eg.asGraph().find(Node.ANY, OWL.inverseOf.asNode(), Node.ANY)
+                return Streams.asStream(eg.asGraph().find(Node.ANY, OWL.inverseOf.asNode(), Node.ANY)
                         .filterKeep(t -> t.getSubject().isBlank() && isObjectPropertyNode(t.getObject(), eg))
                         .mapWith(Triple::getSubject));
             }

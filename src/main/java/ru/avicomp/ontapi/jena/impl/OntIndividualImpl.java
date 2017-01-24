@@ -19,7 +19,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -91,7 +91,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         static class Finder implements OntFinder {
             @Override
             public Stream<Node> find(EnhGraph eg) {
-                Stream<Node> declarations = Models.asStream(getDeclarations(Node.ANY, eg).mapWith(Triple::getSubject).filterKeep(Node::isBlank));
+                Stream<Node> declarations = Streams.asStream(getDeclarations(Node.ANY, eg).mapWith(Triple::getSubject).filterKeep(Node::isBlank));
                 Stream<Node> disjoint = disjointAnonIndividuals(eg);
                 Stream<Node> oneOf = oneOfAnonIndividuals(eg);
                 Stream<Node> assertions = positiveAssertionAnonIndividuals(eg);
@@ -135,7 +135,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         private static Stream<Node> negativeAssertionAnonIndividuals(EnhGraph eg) {
             return Stream.of(OWL.sourceIndividual, OWL.targetIndividual)
                     .map(FrontsNode::asNode)
-                    .map(predicate -> Models.asStream(eg.asGraph().find(Node.ANY, predicate, Node.ANY)).map(Triple::getObject))
+                    .map(predicate -> Streams.asStream(eg.asGraph().find(Node.ANY, predicate, Node.ANY)).map(Triple::getObject))
                     .flatMap(Function.identity()).filter(Node::isBlank);
             // it seems we don't need full validation:
             /*return Models.asStream(eg.asGraph().find(Node.ANY, RDF.type.asNode(), OWL.NegativePropertyAssertion.asNode()))
@@ -149,7 +149,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static Stream<Node> hasValueOPEAnonIndividuals(EnhGraph eg) {
-            return Models.asStream(eg.asGraph().find(Node.ANY, OWL.hasValue.asNode(), Node.ANY)).map(Triple::getObject).filter(Node::isBlank);
+            return Streams.asStream(eg.asGraph().find(Node.ANY, OWL.hasValue.asNode(), Node.ANY)).map(Triple::getObject).filter(Node::isBlank);
         }
 
         private static Stream<Node> sameAnonIndividuals(EnhGraph eg) {
@@ -161,7 +161,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static Stream<Node> anonsForPredicate(Graph graph, Node predicate) {
-            return Models.asStream(graph.find(Node.ANY, predicate, Node.ANY))
+            return Streams.asStream(graph.find(Node.ANY, predicate, Node.ANY))
                     .map(triple -> Stream.of(triple.getSubject(), triple.getObject()))
                     .flatMap(Function.identity()).filter(Node::isBlank);
         }
@@ -182,7 +182,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static Stream<Node> anonAssertionObjects(Graph graph, Node predicate) {
-            return Models.asStream(graph.find(Node.ANY, predicate, Node.ANY))
+            return Streams.asStream(graph.find(Node.ANY, predicate, Node.ANY))
                     .map(Triple::getObject)
                     .filter(Node::isBlank);
             //.filter(node -> !graph.contains(node, Node.ANY, Node.ANY));
@@ -197,7 +197,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static Stream<Node> blankNodesFromList(EnhGraph eg, Node type, Node... predicates) {
-            Stream<Node> roots = Models.asStream(eg.asGraph().find(Node.ANY, RDF.type.asNode(), type))
+            Stream<Node> roots = Streams.asStream(eg.asGraph().find(Node.ANY, RDF.type.asNode(), type))
                     .map(Triple::getSubject)
                     .filter(Node::isBlank);
             return objects(eg.asGraph(), roots, predicates)
@@ -213,7 +213,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static Stream<Node> objects(Graph graph, Node subject, Node predicate) {
-            return Models.asStream(graph.find(subject, predicate, Node.ANY).mapWith(Triple::getObject));
+            return Streams.asStream(graph.find(subject, predicate, Node.ANY).mapWith(Triple::getObject));
         }
 
         private static Stream<Node> objects(Graph graph, Node subject, Node... predicates) {

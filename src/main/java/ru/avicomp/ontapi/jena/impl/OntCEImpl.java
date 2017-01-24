@@ -14,7 +14,7 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -30,8 +30,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
     private static final OntFilter ON_PROPERTY_DATA_FILTER = new OnPropertyTypeFilter(RestrictionType.DATA);
     private static final OntFilter ON_PROPERTY_OBJECT_FILTER = new OnPropertyTypeFilter(RestrictionType.OBJECT);
-    private static final OntFinder CE_FINDER = g -> Models.asStream(g.asGraph().find(Node.ANY, RDF_TYPE, OWL_CLASS).
-            andThen(g.asGraph().find(Node.ANY, RDF_TYPE, OWL_RESTRICTION)).mapWith(Triple::getSubject)).distinct();
+    private static final OntFinder CE_FINDER = g -> Streams.asStream(g.asGraph().find(Node.ANY, RDF_TYPE, OWL_CLASS).
+            andThen(g.asGraph().find(Node.ANY, RDF_TYPE, OWL_RESTRICTION)).mapWith(Triple::getSubject));
 
     public static OntObjectFactory unionOfCEFactory = new CEFactory(UnionOfImpl.class, OWL.Class, OWL.unionOf);
     public static OntObjectFactory intersectionOfCEFactory = new CEFactory(IntersectionOfImpl.class, OWL.Class, OWL.intersectionOf);

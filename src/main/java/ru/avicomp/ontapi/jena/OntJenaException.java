@@ -31,7 +31,7 @@ public class OntJenaException extends JenaException {
 
     /**
      * this is an analogue of {@link org.apache.jena.ontology.ConversionException},
-     * used inside top level api ({@link ru.avicomp.ontapi.jena.model.OntGraphModel}, {@link ru.avicomp.ontapi.jena.model.OntObject}).
+     * used inside top level api ({@link ru.avicomp.ontapi.jena.model.OntGraphModel} and maybe {@link ru.avicomp.ontapi.jena.model.OntObject}).
      */
     public static class Conversion extends OntJenaException {
         public Conversion(String message, Throwable cause) {
@@ -42,4 +42,15 @@ public class OntJenaException extends JenaException {
             super(message);
         }
     }
+
+    public static class Creation extends OntJenaException {
+        public Creation(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public Creation(String message) {
+            super(message);
+        }
+    }
+
 }
