@@ -27,7 +27,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * Created by szuev on 03.11.2016.
  */
 public class OntObjectImpl extends ResourceImpl implements OntObject {
-    static final Node RDF_TYPE = RDF.type.asNode();
 
     public static OntObjectFactory objectFactory = new OntObjectFactory() {
         @Override

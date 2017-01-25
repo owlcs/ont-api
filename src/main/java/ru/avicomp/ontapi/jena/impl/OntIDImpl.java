@@ -8,6 +8,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
@@ -31,7 +32,7 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
 
         @Override
         public boolean canWrap(Node node, EnhGraph eg) {
-            return eg.asGraph().contains(node, RDF_TYPE, OWL.Ontology.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), OWL.Ontology.asNode());
         }
     };
 

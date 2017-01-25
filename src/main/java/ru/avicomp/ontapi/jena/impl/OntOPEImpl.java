@@ -12,10 +12,8 @@ import org.apache.jena.rdf.model.Resource;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
-import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -80,27 +78,26 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
             return getRequiredOntProperty(OWL.inverseOf, OntOPE.class);
         }
 
-        static class Finder implements OntFinder {
-            @Override
-            public Stream<Node> find(EnhGraph eg) {
-                return Streams.asStream(eg.asGraph().find(Node.ANY, OWL.inverseOf.asNode(), Node.ANY)
-                        .filterKeep(t -> t.getSubject().isBlank() && isObjectPropertyNode(t.getObject(), eg))
-                        .mapWith(Triple::getSubject));
-            }
-        }
-
         static class Filter implements OntFilter {
+            private final boolean strict;
+
+            Filter(boolean strict) {
+                this.strict = strict;
+            }
+
+            private static boolean isObjectPropertyNode(Node node, EnhGraph eg, boolean strict) {
+                return strict ? OntEntityImpl.objectPropertyFactoryStrict.canWrap(node, eg) : OntEntityImpl.objectPropertyFactory.canWrap(node, eg);
+            }
+
             @Override
             public boolean test(Node node, EnhGraph graph) {
                 if (!node.isBlank()) return false;
-                Set<Node> nodes = graph.asGraph().find(node, OWL.inverseOf.asNode(), Node.ANY).mapWith(Triple::getObject).filterKeep(n -> isObjectPropertyNode(n, graph)).toSet();
+                Set<Node> nodes = graph.asGraph().find(node, OWL.inverseOf.asNode(), Node.ANY)
+                        .mapWith(Triple::getObject).filterKeep(n -> isObjectPropertyNode(n, graph, strict)).toSet();
                 return !nodes.isEmpty();
             }
         }
 
-        private static boolean isObjectPropertyNode(Node node, EnhGraph eg) {
-            return OntEntityImpl.objectPropertyFactory.canWrap(node, eg);
-        }
     }
 
     @Override

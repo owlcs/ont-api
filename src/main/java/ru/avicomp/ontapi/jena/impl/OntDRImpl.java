@@ -35,8 +35,12 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
             DR_FILTER.and(new OntFilter.HasPredicate(OWL.unionOf)));
     public static OntObjectFactory intersectionOfDRFactory = new CommonOntObjectFactory(new OntMaker.Default(IntersectionOfImpl.class), DR_FINDER,
             DR_FILTER.and(new OntFilter.HasPredicate(OWL.intersectionOf)));
-    public static OntObjectFactory abstractDRFactory = new MultiOntObjectFactory(DR_FINDER,
-            OntEntityImpl.datatypeFactory, oneOfDRFactory, restrictionDRFactory, complementOfDRFactory, unionOfDRFactory, intersectionOfDRFactory);
+
+    public static MultiOntObjectFactory abstractAnonDRFactory = new MultiOntObjectFactory(DR_FINDER,
+            oneOfDRFactory, restrictionDRFactory, complementOfDRFactory, unionOfDRFactory, intersectionOfDRFactory);
+
+    public static MultiOntObjectFactory abstractDRFactory = abstractAnonDRFactory.concat(OntEntityImpl.datatypeFactory);
+    public static MultiOntObjectFactory abstractDRFactoryStrict = abstractAnonDRFactory.concat(OntEntityImpl.datatypeFactoryStrict);
 
     public OntDRImpl(Node n, EnhGraph m) {
         super(n, m);

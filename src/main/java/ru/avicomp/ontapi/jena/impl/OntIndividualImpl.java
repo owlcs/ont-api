@@ -31,9 +31,14 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
     public static OntObjectFactory anonymousIndividualFactory = new CommonOntObjectFactory(
-            new OntMaker.Default(AnonymousImpl.class), new AnonymousImpl.Finder(), new AnonymousImpl.Filter());
+            new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, new AnonymousImpl.Filter(false));
+    public static OntObjectFactory anonymousIndividualFactoryStrict = new CommonOntObjectFactory(
+            new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, new AnonymousImpl.Filter(true));
+
     public static OntObjectFactory abstractIndividualFactory = new MultiOntObjectFactory(OntFinder.TYPED,
             OntEntityImpl.individualFactory, anonymousIndividualFactory);
+    public static OntObjectFactory abstractIndividualFactoryStrict = new MultiOntObjectFactory(OntFinder.TYPED,
+            OntEntityImpl.individualFactory, anonymousIndividualFactoryStrict);
 
     public OntIndividualImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -71,7 +76,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
      * an object in a triple from annotation or object property assertion (triple where predicate is object or annotation property).
      * About this there are following reflections:
      * - in the well-formed ontology anonymous subject should be declared as individual (condition 1),
-     *      otherwise it is just any other b-node (e.g. root for owl:Axiom).
+     * otherwise it is just any other b-node (e.g. root for owl:Axiom).
      * - the bulk annotations consist of annotation assertions.
      */
     public static class AnonymousImpl extends OntIndividualImpl implements OntIndividual.Anonymous {
@@ -88,36 +93,18 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
             super.detachClass(clazz);
         }
 
-        static class Finder implements OntFinder {
-            @Override
-            public Stream<Node> find(EnhGraph eg) {
-                Stream<Node> declarations = Streams.asStream(getDeclarations(Node.ANY, eg).mapWith(Triple::getSubject).filterKeep(Node::isBlank));
-                Stream<Node> disjoint = disjointAnonIndividuals(eg);
-                Stream<Node> oneOf = oneOfAnonIndividuals(eg);
-                Stream<Node> assertions = positiveAssertionAnonIndividuals(eg);
-                Stream<Node> negative = negativeAssertionAnonIndividuals(eg);
-                Stream<Node> restrictions = hasValueOPEAnonIndividuals(eg);
-                Stream<Node> same = sameAnonIndividuals(eg);
-                Stream<Node> different = differentAnonIndividuals(eg);
-                return Stream.of(
-                        declarations
-                        , disjoint
-                        , oneOf
-                        , assertions
-                        , negative
-                        , restrictions
-                        , same
-                        , different
-                ).flatMap(Function.identity()).distinct();
-            }
-        }
-
         static class Filter implements OntFilter {
+            private final boolean strict;
+
+            Filter(boolean strict) {
+                this.strict = strict;
+            }
+
             @Override
             public boolean test(Node node, EnhGraph graph) {
                 return node.isBlank() &&
                         (!getDeclarations(node, graph).mapWith(Triple::getObject).toSet().isEmpty() ||
-                                positiveAssertionAnonIndividuals(graph).anyMatch(node::equals) ||
+                                positiveAssertionAnonIndividuals(graph, strict).anyMatch(node::equals) ||
                                 negativeAssertionAnonIndividuals(graph).anyMatch(node::equals) ||
                                 hasValueOPEAnonIndividuals(graph).anyMatch(node::equals) ||
                                 sameAnonIndividuals(graph).anyMatch(node::equals) ||
@@ -128,7 +115,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static ExtendedIterator<Triple> getDeclarations(Node node, EnhGraph eg) {
-            return eg.asGraph().find(node, RDF_TYPE, Node.ANY).
+            return eg.asGraph().find(node, RDF.type.asNode(), Node.ANY).
                     filterKeep(t -> OntCEImpl.abstractCEFactory.canWrap(t.getObject(), eg));
         }
 
@@ -170,15 +157,24 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
          * returns stream of blank nodes ("_:a"), where blank node is an object in a triple
          * which corresponds object property assertion "_:a1 PN _:a2" or annotation property assertion "s A t"
          *
-         * @param eg {@link OntGraphModelImpl}
+         * @param eg     {@link OntGraphModelImpl}
+         * @param strict true to exclude illegal punnings
          * @return Stream of {@link Node}
          */
-        private static Stream<Node> positiveAssertionAnonIndividuals(EnhGraph eg) {
-            return Stream.of(OntEntityImpl.annotationPropertyFactory.find(eg), OntEntityImpl.objectPropertyFactory.find(eg))
-                    .flatMap(Function.identity())
+        private static Stream<Node> positiveAssertionAnonIndividuals(EnhGraph eg, boolean strict) {
+            return positiveAssertionProperties(eg, strict)
                     .map(EnhNode::asNode)
                     .map(node -> anonAssertionObjects(eg.asGraph(), node))
                     .flatMap(Function.identity());
+        }
+
+        private static Stream<EnhNode> positiveAssertionProperties(EnhGraph eg, boolean strict) {
+            return strict ?
+                    Stream.of(OntEntityImpl.annotationPropertyFactoryStrict.find(eg), OntEntityImpl.objectPropertyFactoryStrict.find(eg))
+                            .flatMap(Function.identity()) :
+                    Stream.of(OntEntityImpl.annotationPropertyFactory.find(eg), OntEntityImpl.objectPropertyFactory.find(eg))
+                            .flatMap(Function.identity());
+
         }
 
         private static Stream<Node> anonAssertionObjects(Graph graph, Node predicate) {

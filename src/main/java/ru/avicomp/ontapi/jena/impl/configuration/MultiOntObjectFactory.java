@@ -28,6 +28,10 @@ public class MultiOntObjectFactory extends OntObjectFactory {
         this.factories = factories;
     }
 
+    private MultiOntObjectFactory(OntFinder finder, Stream<OntObjectFactory> factories) {
+        this(finder, factories.toArray(OntObjectFactory[]::new));
+    }
+
     @Override
     public EnhNode wrap(Node node, EnhGraph eg) {
         EnhNode res = doWrap(node, eg);
@@ -58,7 +62,19 @@ public class MultiOntObjectFactory extends OntObjectFactory {
         return Arrays.stream(factories).map(f -> f.find(eg)).flatMap(Function.identity()).distinct();
     }
 
-    public OntObjectFactory[] getFactories() {
-        return factories;
+    public OntFinder getFinder() {
+        return finder;
+    }
+
+    public Stream<? extends OntObjectFactory> factories() {
+        return Arrays.stream(factories);
+    }
+
+    public MultiOntObjectFactory concat(OntObjectFactory... factories) {
+        Stream<OntObjectFactory> toAdd = Stream.of(factories).map(f ->
+                f instanceof MultiOntObjectFactory ?
+                        ((MultiOntObjectFactory) f).factories() :
+                        Stream.of(f)).flatMap(Function.identity());
+        return new MultiOntObjectFactory(getFinder(), Stream.concat(toAdd, factories()));
     }
 }
