@@ -11,6 +11,7 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.utils.Streams;
@@ -21,7 +22,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * Created by szuev on 09.11.2016.
  */
 public class OntIDImpl extends OntObjectImpl implements OntID {
-    public static OntObjectFactory idFactory = new OntObjectFactory() {
+    public static Configurable<OntObjectFactory> idFactory = m -> new OntObjectFactory() {
         @Override
         public EnhNode wrap(Node node, EnhGraph eg) {
             if (canWrap(node, eg)) {

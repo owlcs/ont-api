@@ -30,15 +30,12 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  */
 public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
-    public static OntObjectFactory anonymousIndividualFactory = new CommonOntObjectFactory(
-            new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, new AnonymousImpl.Filter(false));
-    public static OntObjectFactory anonymousIndividualFactoryStrict = new CommonOntObjectFactory(
-            new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, new AnonymousImpl.Filter(true));
+    public static Configurable<OntObjectFactory> anonymousIndividualFactory = mode -> new CommonOntObjectFactory(
+            new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, AnonymousImpl.FILTER.get(mode));
 
-    public static OntObjectFactory abstractIndividualFactory = new MultiOntObjectFactory(OntFinder.TYPED,
+    public static Configurable<MultiOntObjectFactory> abstractIndividualFactory = Configurable.create(OntFinder.TYPED,
             OntEntityImpl.individualFactory, anonymousIndividualFactory);
-    public static OntObjectFactory abstractIndividualFactoryStrict = new MultiOntObjectFactory(OntFinder.TYPED,
-            OntEntityImpl.individualFactory, anonymousIndividualFactoryStrict);
+
 
     public OntIndividualImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -80,6 +77,17 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
      * - the bulk annotations consist of annotation assertions.
      */
     public static class AnonymousImpl extends OntIndividualImpl implements OntIndividual.Anonymous {
+
+        public static final Configurable<OntFilter> FILTER = mode -> (node, graph) -> node.isBlank() &&
+                (!getDeclarations(node, graph, mode).mapWith(Triple::getObject).toSet().isEmpty() ||
+                        positiveAssertionAnonIndividuals(graph, mode).anyMatch(node::equals) ||
+                        negativeAssertionAnonIndividuals(graph).anyMatch(node::equals) ||
+                        hasValueOPEAnonIndividuals(graph).anyMatch(node::equals) ||
+                        sameAnonIndividuals(graph).anyMatch(node::equals) ||
+                        differentAnonIndividuals(graph).anyMatch(node::equals) ||
+                        oneOfAnonIndividuals(graph).anyMatch(node::equals) ||
+                        disjointAnonIndividuals(graph).anyMatch(node::equals));
+
         public AnonymousImpl(Node n, EnhGraph m) {
             super(n, m);
         }
@@ -93,30 +101,9 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
             super.detachClass(clazz);
         }
 
-        static class Filter implements OntFilter {
-            private final boolean strict;
-
-            Filter(boolean strict) {
-                this.strict = strict;
-            }
-
-            @Override
-            public boolean test(Node node, EnhGraph graph) {
-                return node.isBlank() &&
-                        (!getDeclarations(node, graph).mapWith(Triple::getObject).toSet().isEmpty() ||
-                                positiveAssertionAnonIndividuals(graph, strict).anyMatch(node::equals) ||
-                                negativeAssertionAnonIndividuals(graph).anyMatch(node::equals) ||
-                                hasValueOPEAnonIndividuals(graph).anyMatch(node::equals) ||
-                                sameAnonIndividuals(graph).anyMatch(node::equals) ||
-                                differentAnonIndividuals(graph).anyMatch(node::equals) ||
-                                oneOfAnonIndividuals(graph).anyMatch(node::equals) ||
-                                disjointAnonIndividuals(graph).anyMatch(node::equals));
-            }
-        }
-
-        private static ExtendedIterator<Triple> getDeclarations(Node node, EnhGraph eg) {
+        private static ExtendedIterator<Triple> getDeclarations(Node node, EnhGraph eg, Configurable.Mode mode) {
             return eg.asGraph().find(node, RDF.type.asNode(), Node.ANY).
-                    filterKeep(t -> OntCEImpl.abstractCEFactory.canWrap(t.getObject(), eg));
+                    filterKeep(t -> OntCEImpl.abstractCEFactory.get(mode).canWrap(t.getObject(), eg));
         }
 
         private static Stream<Node> negativeAssertionAnonIndividuals(EnhGraph eg) {
@@ -158,21 +145,18 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
          * which corresponds object property assertion "_:a1 PN _:a2" or annotation property assertion "s A t"
          *
          * @param eg     {@link OntGraphModelImpl}
-         * @param strict true to exclude illegal punnings
+         * @param m       exclude illegal punnings if {@link Configurable.Mode#STRICT}
          * @return Stream of {@link Node}
          */
-        private static Stream<Node> positiveAssertionAnonIndividuals(EnhGraph eg, boolean strict) {
-            return positiveAssertionProperties(eg, strict)
+        private static Stream<Node> positiveAssertionAnonIndividuals(EnhGraph eg, Configurable.Mode m) {
+            return positiveAssertionProperties(eg, m)
                     .map(EnhNode::asNode)
                     .map(node -> anonAssertionObjects(eg.asGraph(), node))
                     .flatMap(Function.identity());
         }
 
-        private static Stream<EnhNode> positiveAssertionProperties(EnhGraph eg, boolean strict) {
-            return strict ?
-                    Stream.of(OntEntityImpl.annotationPropertyFactoryStrict.find(eg), OntEntityImpl.objectPropertyFactoryStrict.find(eg))
-                            .flatMap(Function.identity()) :
-                    Stream.of(OntEntityImpl.annotationPropertyFactory.find(eg), OntEntityImpl.objectPropertyFactory.find(eg))
+        private static Stream<EnhNode> positiveAssertionProperties(EnhGraph eg, Configurable.Mode mode) {
+            return Stream.of(OntEntityImpl.annotationPropertyFactory.get(mode).find(eg), OntEntityImpl.objectPropertyFactory.get(mode).find(eg))
                             .flatMap(Function.identity());
 
         }

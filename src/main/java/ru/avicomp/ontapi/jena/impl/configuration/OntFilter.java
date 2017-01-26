@@ -1,6 +1,8 @@
 package ru.avicomp.ontapi.jena.impl.configuration;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -80,7 +82,8 @@ public interface OntFilter {
         protected final Set<Node> nodes;
 
         public OneOf(Collection<? extends RDFNode> types) {
-            this.nodes = types.stream().map(RDFNode::asNode).collect(Collectors.toSet());
+            this.nodes = Optional.ofNullable(types).orElse(Collections.emptySet())
+                    .stream().map(RDFNode::asNode).collect(Collectors.toSet());
         }
 
         @Override

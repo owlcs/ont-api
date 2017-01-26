@@ -11,6 +11,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
@@ -28,9 +29,9 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         super(n, g);
     }
 
-    public static class NamedProperty extends OntOPEImpl implements OntNOP {
+    public static class NamedPropertyImpl extends OntOPEImpl implements OntNOP {
 
-        public NamedProperty(Node n, EnhGraph g) {
+        public NamedPropertyImpl(Node n, EnhGraph g) {
             super(OntObjectImpl.checkNamed(n), g);
         }
 
@@ -38,7 +39,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         public Inverse createInverse() {
             Resource res = getModel().createResource();
             getModel().add(res, OWL.inverseOf, this);
-            return new InverseProperty(res.asNode(), getModel());
+            return new InversePropertyImpl(res.asNode(), getModel());
         }
 
         @Override
@@ -62,9 +63,18 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         }
     }
 
-    public static class InverseProperty extends OntOPEImpl implements OntOPE.Inverse {
+    public static class InversePropertyImpl extends OntOPEImpl implements OntOPE.Inverse {
 
-        public InverseProperty(Node n, EnhGraph g) {
+        public static final Configurable<OntFilter> FILTER = mode -> (n, g) -> {
+            if (!n.isBlank()) return false;
+            Set<Node> nodes = g.asGraph().find(n, OWL.inverseOf.asNode(), Node.ANY)
+                    .mapWith(Triple::getObject)
+                    .filterKeep(o -> OntEntityImpl.objectPropertyFactory.get(mode).canWrap(o, g))
+                    .toSet();
+            return !nodes.isEmpty();
+        };
+
+        public InversePropertyImpl(Node n, EnhGraph g) {
             super(n, g);
         }
 
@@ -77,27 +87,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         public OntOPE getDirect() {
             return getRequiredOntProperty(OWL.inverseOf, OntOPE.class);
         }
-
-        static class Filter implements OntFilter {
-            private final boolean strict;
-
-            Filter(boolean strict) {
-                this.strict = strict;
-            }
-
-            private static boolean isObjectPropertyNode(Node node, EnhGraph eg, boolean strict) {
-                return strict ? OntEntityImpl.objectPropertyFactoryStrict.canWrap(node, eg) : OntEntityImpl.objectPropertyFactory.canWrap(node, eg);
-            }
-
-            @Override
-            public boolean test(Node node, EnhGraph graph) {
-                if (!node.isBlank()) return false;
-                Set<Node> nodes = graph.asGraph().find(node, OWL.inverseOf.asNode(), Node.ANY)
-                        .mapWith(Triple::getObject).filterKeep(n -> isObjectPropertyNode(n, graph, strict)).toSet();
-                return !nodes.isEmpty();
-            }
-        }
-
     }
 
     @Override

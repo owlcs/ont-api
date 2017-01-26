@@ -26,32 +26,32 @@ import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     private static final OntFilter VAR_SWRL_FILTER = OntFilter.URI.and(new OntFilter.HasType(SWRL.Variable));
 
-    public static OntObjectFactory variableSWRLFactory = new CommonOntObjectFactory(
-            new OntMaker.WithType(VariableImpl.class, SWRL.Variable),
-            new OntFinder.ByType(SWRL.Variable), VAR_SWRL_FILTER);
+    public static Configurable<OntObjectFactory> variableSWRLFactory = m ->
+            new CommonOntObjectFactory(new OntMaker.WithType(VariableImpl.class, SWRL.Variable), new OntFinder.ByType(SWRL.Variable), VAR_SWRL_FILTER);
 
-    public static OntObjectFactory dArgSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(DArgImpl.class),
-            OntFinder.ANY_SUBJECT_AND_OBJECT, VAR_SWRL_FILTER.or(LiteralImpl.factory::canWrap));
-    public static OntObjectFactory iArgSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(IArgImpl.class),
-            OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or(OntIndividualImpl.abstractIndividualFactory::canWrap));
-    public static OntObjectFactory abstractArgSWRLFactory = new MultiOntObjectFactory(dArgSWRLFactory, iArgSWRLFactory);
+    public static Configurable<OntObjectFactory> dArgSWRLFactory = m ->
+            new CommonOntObjectFactory(new OntMaker.Default(DArgImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, VAR_SWRL_FILTER.or(LiteralImpl.factory::canWrap));
+    public static Configurable<OntObjectFactory> iArgSWRLFactory = m ->
+            new CommonOntObjectFactory(new OntMaker.Default(IArgImpl.class),
+                    OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or((n, g) -> OntIndividualImpl.abstractIndividualFactory.get(m).canWrap(n, g)));
+    public static Configurable<MultiOntObjectFactory> abstractArgSWRLFactory = Configurable.concat(dArgSWRLFactory, iArgSWRLFactory);
 
-    public static OntObjectFactory builtInAtomSWRLFactory = makeAtomFactory(BuiltInAtomImpl.class, SWRL.BuiltinAtom);
-    public static OntObjectFactory classAtomSWRLFactory = makeAtomFactory(OntClassAtomImpl.class, SWRL.ClassAtom);
-    public static OntObjectFactory dataRangeAtomSWRLFactory = makeAtomFactory(DataRangeAtomImpl.class, SWRL.DataRangeAtom);
-    public static OntObjectFactory dataValuedAtomSWRLFactory = makeAtomFactory(DataPropertyAtomImpl.class, SWRL.DatavaluedPropertyAtom);
-    public static OntObjectFactory individualAtomSWRLFactory = makeAtomFactory(ObjectPropertyAtomImpl.class, SWRL.IndividualPropertyAtom);
-    public static OntObjectFactory differentIndividualsAtomSWRLFactory = makeAtomFactory(DifferentIndividualsAtomImpl.class, SWRL.DifferentIndividualsAtom);
-    public static OntObjectFactory sameIndividualsAtomSWRLFactory = makeAtomFactory(SameIndividualsAtomImpl.class, SWRL.SameIndividualAtom);
-    public static OntObjectFactory abstractAtomSWRLFactory = new MultiOntObjectFactory(OntFinder.TYPED,
+    public static Configurable<OntObjectFactory> builtInAtomSWRLFactory = makeAtomFactory(BuiltInAtomImpl.class, SWRL.BuiltinAtom);
+    public static Configurable<OntObjectFactory> classAtomSWRLFactory = makeAtomFactory(OntClassAtomImpl.class, SWRL.ClassAtom);
+    public static Configurable<OntObjectFactory> dataRangeAtomSWRLFactory = makeAtomFactory(DataRangeAtomImpl.class, SWRL.DataRangeAtom);
+    public static Configurable<OntObjectFactory> dataValuedAtomSWRLFactory = makeAtomFactory(DataPropertyAtomImpl.class, SWRL.DatavaluedPropertyAtom);
+    public static Configurable<OntObjectFactory> individualAtomSWRLFactory = makeAtomFactory(ObjectPropertyAtomImpl.class, SWRL.IndividualPropertyAtom);
+    public static Configurable<OntObjectFactory> differentIndividualsAtomSWRLFactory = makeAtomFactory(DifferentIndividualsAtomImpl.class, SWRL.DifferentIndividualsAtom);
+    public static Configurable<OntObjectFactory> sameIndividualsAtomSWRLFactory = makeAtomFactory(SameIndividualsAtomImpl.class, SWRL.SameIndividualAtom);
+    public static Configurable<MultiOntObjectFactory> abstractAtomSWRLFactory = Configurable.create(OntFinder.TYPED,
             builtInAtomSWRLFactory, classAtomSWRLFactory, dataRangeAtomSWRLFactory, dataValuedAtomSWRLFactory,
             individualAtomSWRLFactory, differentIndividualsAtomSWRLFactory, sameIndividualsAtomSWRLFactory);
 
-    public static OntObjectFactory impSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(ImpImpl.class), new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
-    public static OntObjectFactory abstractSWRLFactory = new MultiOntObjectFactory(variableSWRLFactory, abstractAtomSWRLFactory, impSWRLFactory);
+    public static Configurable<OntObjectFactory> impSWRLFactory = m -> new CommonOntObjectFactory(new OntMaker.Default(ImpImpl.class), new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
+    public static Configurable<MultiOntObjectFactory> abstractSWRLFactory = Configurable.append(abstractAtomSWRLFactory, variableSWRLFactory, impSWRLFactory);
 
-    private static OntObjectFactory makeAtomFactory(Class<? extends AtomImpl> view, Resource type) {
-        return new CommonOntObjectFactory(new OntMaker.Default(view),
+    private static Configurable<OntObjectFactory> makeAtomFactory(Class<? extends AtomImpl> view, Resource type) {
+        return m -> new CommonOntObjectFactory(new OntMaker.Default(view),
                 new OntFinder.ByType(type), OntFilter.BLANK.and(new OntFilter.HasType(type)));
     }
 

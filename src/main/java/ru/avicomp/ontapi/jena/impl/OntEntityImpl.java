@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -15,46 +14,27 @@ import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
- * Base class for {@link OntAPropertyImpl}, {@link OntDPropertyImpl}, {@link OntClassImpl}, {@link OntDatatypeImpl}.
- * It is a storage for all entity factories.
- * The are two sets of factories: common and strict. The last one is to exclude illegal punnings from consideration.
- * <p>
- * The following punnings are considered as illegal:
- * - owl:Class <-> rdfs:Datatype
- * - owl:ObjectProperty <-> owl:DatatypeProperty
- * - owl:ObjectProperty <-> owl:AnnotationProperty
- * - owl:AnnotationProperty <-> owl:DatatypeProperty
- * <p>
+ * This is a base class for implementations {@link OntAPropertyImpl}, {@link OntDPropertyImpl}, {@link OntClassImpl}, {@link OntDatatypeImpl}.
+ * and a storage for all entity factories.
+
  * Created by szuev on 03.11.2016.
  */
 public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
 
-    public static EntityFactory classFactory = new EntityFactory(OntClassImpl.class, OWL.Class, BuiltIn.CLASSES);
-    public static OntObjectFactory classFactoryStrict = classFactory.toStrict(RDFS.Datatype);
+    public static Configurable<OntObjectFactory> classFactory = factory(OntClassImpl.class, OWL.Class, BuiltIn.CLASSES, RDFS.Datatype);
+    public static Configurable<OntObjectFactory> datatypeFactory = factory(OntDatatypeImpl.class, RDFS.Datatype, BuiltIn.DATATYPES, OWL.Class);
 
-    public static EntityFactory datatypeFactory = new EntityFactory(OntDatatypeImpl.class, RDFS.Datatype, BuiltIn.DATATYPES);
-    public static OntObjectFactory datatypeFactoryStrict = datatypeFactory.toStrict(OWL.Class);
+    public static Configurable<OntObjectFactory> annotationPropertyFactory = factory(OntAPropertyImpl.class,
+            OWL.AnnotationProperty, BuiltIn.ANNOTATION_PROPERTIES, OWL.ObjectProperty, OWL.DatatypeProperty);
+    public static Configurable<OntObjectFactory> dataPropertyFactory = factory(OntDPropertyImpl.class,
+            OWL.DatatypeProperty, BuiltIn.DATA_PROPERTIES, OWL.ObjectProperty, OWL.AnnotationProperty);
+    public static Configurable<OntObjectFactory> objectPropertyFactory = factory(OntOPEImpl.NamedPropertyImpl.class,
+            OWL.ObjectProperty, BuiltIn.OBJECT_PROPERTIES, OWL.DatatypeProperty, OWL.AnnotationProperty);
 
-    public static EntityFactory annotationPropertyFactory = new EntityFactory(OntAPropertyImpl.class,
-            OWL.AnnotationProperty, BuiltIn.ANNOTATION_PROPERTIES);
-    public static OntObjectFactory annotationPropertyFactoryStrict = annotationPropertyFactory.toStrict(OWL.ObjectProperty, OWL.DatatypeProperty);
+    public static Configurable<OntObjectFactory> individualFactory = factory(OntIndividualImpl.NamedImpl.class, OWL.NamedIndividual, null);
 
-    public static EntityFactory dataPropertyFactory = new EntityFactory(OntDPropertyImpl.class,
-            OWL.DatatypeProperty, BuiltIn.DATA_PROPERTIES);
-    public static OntObjectFactory dataPropertyFactoryStrict = dataPropertyFactory.toStrict(OWL.ObjectProperty, OWL.AnnotationProperty);
-
-    public static EntityFactory objectPropertyFactory = new EntityFactory(OntOPEImpl.NamedProperty.class,
-            OWL.ObjectProperty, BuiltIn.OBJECT_PROPERTIES);
-    public static OntObjectFactory objectPropertyFactoryStrict = objectPropertyFactory.toStrict(OWL.DatatypeProperty, OWL.AnnotationProperty);
-
-    public static OntObjectFactory individualFactory = new EntityFactory(OntIndividualImpl.NamedImpl.class, OWL.NamedIndividual);
-
-    public static OntObjectFactory abstractEntityFactory = new MultiOntObjectFactory(OntFinder.TYPED,
+    public static Configurable<MultiOntObjectFactory> abstractEntityFactory = Configurable.create(OntFinder.TYPED,
             classFactory, datatypeFactory, annotationPropertyFactory, dataPropertyFactory, objectPropertyFactory, individualFactory);
-    public static OntObjectFactory abstractEntityFactoryStrict = new MultiOntObjectFactory(OntFinder.TYPED,
-            classFactoryStrict, datatypeFactoryStrict,
-            annotationPropertyFactoryStrict, dataPropertyFactoryStrict, objectPropertyFactoryStrict, individualFactory);
-
 
     public OntEntityImpl(Node n, EnhGraph g) {
         super(n, g);
@@ -62,42 +42,14 @@ public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
 
     public abstract Class<? extends OntEntity> getActualClass();
 
-    public static class EntityFactory extends CommonOntObjectFactory {
+    private static Configurable<OntObjectFactory> factory(Class<? extends OntObjectImpl> impl, Resource type, Set<Resource> builtInURISet, Resource... bannedTypes) {
+        OntMaker maker = new OntMaker.WithType(impl, type);
+        OntFinder finder = new OntFinder.ByType(type);
+        OntFilter filter = OntFilter.URI.and(new OntFilter.HasType(type)).or(new OntFilter.OneOf(builtInURISet));
+        OntFilter illegalPunningsFilter = OntFilter.TRUE.accumulate(Stream.of(bannedTypes).map(OntFilter.HasType::new).map(OntFilter::negate).toArray(OntFilter[]::new));
 
-        public EntityFactory(Class<? extends OntObjectImpl> impl, Resource type, Set<Resource> builtInTypes) {
-            super(createMaker(impl, type), createFinder(type), createFilter(type, builtInTypes));
-        }
-
-        private EntityFactory(Class<? extends OntObjectImpl> impl, Resource type) {
-            this(impl, type, Collections.emptySet());
-        }
-
-        private static OntMaker createMaker(Class<? extends OntObjectImpl> impl, Resource type) {
-            return new OntMaker.WithType(impl, type);
-        }
-
-        private static OntFinder createFinder(Resource type) {
-            return new OntFinder.ByType(type);
-        }
-
-        private static OntFilter createFilter(Resource type, Set<Resource> exactMatches) {
-            return createFilter(type).or(new OntFilter.OneOf(exactMatches));
-        }
-
-        private static OntFilter createFilter(Resource type) {
-            return OntFilter.URI.and(new OntFilter.HasType(type));
-        }
-
-        private static OntFilter doesNotHaveTypes(Resource... types) {
-            return OntFilter.TRUE.accumulate(Stream.of(types).map(OntFilter.HasType::new).map(OntFilter::negate).toArray(OntFilter[]::new));
-        }
-
-        public CommonOntObjectFactory toStrict(Resource... bannedTypes) {
-            OntFilter illegalPunnings = doesNotHaveTypes(bannedTypes);
-            return new CommonOntObjectFactory(
-                    getMaker().restrict(illegalPunnings), getFinder(), getFilter().and(illegalPunnings));
-        }
-
+        Configurable<OntMaker> optMaker = m -> Configurable.Mode.LAX.equals(m) ? maker : maker.restrict(illegalPunningsFilter);
+        Configurable<OntFilter> optFilter = m -> Configurable.Mode.LAX.equals(m) ? filter : filter.and(illegalPunningsFilter);
+        return mode -> new CommonOntObjectFactory(optMaker.get(mode), finder, optFilter.get(mode));
     }
-
 }

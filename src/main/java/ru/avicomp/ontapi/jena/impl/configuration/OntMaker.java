@@ -27,7 +27,7 @@ public interface OntMaker {
 
     EnhNode instance(Node node, EnhGraph eg);
 
-    Class<? extends EnhNode> getTargetView();
+    Class<? extends EnhNode> getImpl();
 
     default OntMaker restrict(OntFilter filter) {
         OntJenaException.notNull(filter, "Null restriction filter.");
@@ -48,8 +48,8 @@ public interface OntMaker {
             }
 
             @Override
-            public Class<? extends EnhNode> getTargetView() {
-                return OntMaker.this.getTargetView();
+            public Class<? extends EnhNode> getImpl() {
+                return OntMaker.this.getImpl();
             }
         };
     }
@@ -91,7 +91,7 @@ public interface OntMaker {
         }
 
         @Override
-        public Class<? extends OntObjectImpl> getTargetView() {
+        public Class<? extends OntObjectImpl> getImpl() {
             return impl;
         }
     }

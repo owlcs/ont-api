@@ -4,6 +4,7 @@ import org.apache.jena.enhanced.Personality;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.*;
 
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.*;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -13,21 +14,6 @@ import ru.avicomp.ontapi.jena.model.*;
  * Created by @szuev on 04.11.2016.
  */
 public class OntModelConfig {
-
-    private static boolean excludeIllegalPunnings = true;
-
-    /**
-     * currently it is static.
-     *
-     * @return true if illegal punnings should be excluded from the graph parsing.
-     */
-    public static boolean excludeIllegalPunnings() {
-        return excludeIllegalPunnings;
-    }
-
-    public static void setExcludeIllegalPunnings(boolean b) {
-        excludeIllegalPunnings = b;
-    }
 
     // standard resources:
     public static final Personality<RDFNode> STANDARD_PERSONALITY = new Personality<RDFNode>()
@@ -42,103 +28,114 @@ public class OntModelConfig {
             .add(RDFList.class, RDFListImpl.factory)
             .add(RDFNode.class, ResourceImpl.rdfNodeFactory);
 
-    // ont-resources:
-    public static final OntPersonality ONT_PERSONALITY = new OntPersonality(STANDARD_PERSONALITY)
+    private static final Configurable.PersonalityBuilder ONT_PERSONALITY_BUILDER = new Configurable.PersonalityBuilder()
             // ont-id
-            .register(OntID.class, OntIDImpl.idFactory)
+            .add(OntID.class, OntIDImpl.idFactory)
 
             // entities:
-            .register(OntObject.class, OntObjectImpl.objectFactory)
-            .register(OntClass.class, OntEntityImpl.classFactory)
-            .register(OntNAP.class, OntEntityImpl.annotationPropertyFactory)
-            .register(OntNDP.class, OntEntityImpl.dataPropertyFactory)
-            .register(OntNOP.class, OntEntityImpl.objectPropertyFactory)
-            .register(OntDT.class, OntEntityImpl.datatypeFactory)
-            .register(OntIndividual.Named.class, OntEntityImpl.individualFactory)
-            .register(OntEntity.class, OntEntityImpl.abstractEntityFactory)
+            .add(OntObject.class, OntObjectImpl.objectFactory)
+            .add(OntClass.class, OntEntityImpl.classFactory)
+            .add(OntNAP.class, OntEntityImpl.annotationPropertyFactory)
+            .add(OntNDP.class, OntEntityImpl.dataPropertyFactory)
+            .add(OntNOP.class, OntEntityImpl.objectPropertyFactory)
+            .add(OntDT.class, OntEntityImpl.datatypeFactory)
+            .add(OntIndividual.Named.class, OntEntityImpl.individualFactory)
+            .add(OntEntity.class, OntEntityImpl.abstractEntityFactory)
 
             // class expressions:
-            .register(OntCE.ObjectSomeValuesFrom.class, OntCEImpl.objectSomeValuesOfCEFactory)
-            .register(OntCE.DataSomeValuesFrom.class, OntCEImpl.dataSomeValuesOfCEFactory)
-            .register(OntCE.ObjectAllValuesFrom.class, OntCEImpl.objectAllValuesOfCEFactory)
-            .register(OntCE.DataAllValuesFrom.class, OntCEImpl.dataAllValuesOfCEFactory)
-            .register(OntCE.ObjectHasValue.class, OntCEImpl.objectHasValueCEFactory)
-            .register(OntCE.DataHasValue.class, OntCEImpl.dataHasValueCEFactory)
-            .register(OntCE.ObjectMinCardinality.class, OntCEImpl.objectMinCardinalityCEFactory)
-            .register(OntCE.DataMinCardinality.class, OntCEImpl.dataMinCardinalityCEFactory)
-            .register(OntCE.ObjectMaxCardinality.class, OntCEImpl.objectMaxCardinalityCEFactory)
-            .register(OntCE.DataMaxCardinality.class, OntCEImpl.dataMaxCardinalityCEFactory)
-            .register(OntCE.ObjectCardinality.class, OntCEImpl.objectCardinalityCEFactory)
-            .register(OntCE.DataCardinality.class, OntCEImpl.dataCardinalityCEFactory)
-            .register(OntCE.HasSelf.class, OntCEImpl.hasSelfCEFactory)
-            .register(OntCE.UnionOf.class, OntCEImpl.unionOfCEFactory)
-            .register(OntCE.OneOf.class, OntCEImpl.oneOfCEFactory)
-            .register(OntCE.IntersectionOf.class, OntCEImpl.intersectionOfCEFactory)
-            .register(OntCE.ComplementOf.class, OntCEImpl.complementOfCEFactory)
-            .register(OntCE.class, OntCEImpl.abstractCEFactory)
-            .register(OntCE.ComponentsCE.class, OntCEImpl.abstractComponentsCEFactory)
-            .register(OntCE.CardinalityRestrictionCE.class, OntCEImpl.abstractCardinalityRestrictionCEFactory)
-            .register(OntCE.ComponentRestrictionCE.class, OntCEImpl.abstractComponentRestrictionCEFactory)
-            .register(OntCE.RestrictionCE.class, OntCEImpl.abstractRestrictionCEFactory) //todo: add nary CEs
+            .add(OntCE.ObjectSomeValuesFrom.class, OntCEImpl.objectSomeValuesOfCEFactory)
+            .add(OntCE.DataSomeValuesFrom.class, OntCEImpl.dataSomeValuesOfCEFactory)
+            .add(OntCE.ObjectAllValuesFrom.class, OntCEImpl.objectAllValuesOfCEFactory)
+            .add(OntCE.DataAllValuesFrom.class, OntCEImpl.dataAllValuesOfCEFactory)
+            .add(OntCE.ObjectHasValue.class, OntCEImpl.objectHasValueCEFactory)
+            .add(OntCE.DataHasValue.class, OntCEImpl.dataHasValueCEFactory)
+            .add(OntCE.ObjectMinCardinality.class, OntCEImpl.objectMinCardinalityCEFactory)
+            .add(OntCE.DataMinCardinality.class, OntCEImpl.dataMinCardinalityCEFactory)
+            .add(OntCE.ObjectMaxCardinality.class, OntCEImpl.objectMaxCardinalityCEFactory)
+            .add(OntCE.DataMaxCardinality.class, OntCEImpl.dataMaxCardinalityCEFactory)
+            .add(OntCE.ObjectCardinality.class, OntCEImpl.objectCardinalityCEFactory)
+            .add(OntCE.DataCardinality.class, OntCEImpl.dataCardinalityCEFactory)
+            .add(OntCE.HasSelf.class, OntCEImpl.hasSelfCEFactory)
+            .add(OntCE.UnionOf.class, OntCEImpl.unionOfCEFactory)
+            .add(OntCE.OneOf.class, OntCEImpl.oneOfCEFactory)
+            .add(OntCE.IntersectionOf.class, OntCEImpl.intersectionOfCEFactory)
+            .add(OntCE.ComplementOf.class, OntCEImpl.complementOfCEFactory)
+            .add(OntCE.ComponentsCE.class, OntCEImpl.abstractComponentsCEFactory)
+            .add(OntCE.CardinalityRestrictionCE.class, OntCEImpl.abstractCardinalityRestrictionCEFactory)
+            .add(OntCE.ComponentRestrictionCE.class, OntCEImpl.abstractComponentRestrictionCEFactory)
+            .add(OntCE.RestrictionCE.class, OntCEImpl.abstractRestrictionCEFactory) //todo: add nary CEs
+            .add(OntCE.class, OntCEImpl.abstractCEFactory)
 
             // property expressions:
-            .register(OntOPE.Inverse.class, OntPEImpl.inversePropertyFactory)
-            .register(OntOPE.class, OntPEImpl.abstractOPEFactory)
-            .register(OntPE.class, OntPEImpl.abstractPEFactory)
+            .add(OntOPE.Inverse.class, OntPEImpl.inversePropertyFactory)
+            .add(OntOPE.class, OntPEImpl.abstractOPEFactory)
+            .add(OntPE.class, OntPEImpl.abstractPEFactory)
 
             // individuals
-            .register(OntIndividual.Anonymous.class, OntIndividualImpl.anonymousIndividualFactory)
-            .register(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory)
+            .add(OntIndividual.Anonymous.class, OntIndividualImpl.anonymousIndividualFactory)
+            .add(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory)
 
             // negative property assertions
-            .register(OntNPA.ObjectAssertion.class, OntNPAImpl.objectNPAFactory)
-            .register(OntNPA.DataAssertion.class, OntNPAImpl.dataNPAFactory)
-            .register(OntNPA.class, OntNPAImpl.abstractNPAFactory)
+            .add(OntNPA.ObjectAssertion.class, OntNPAImpl.objectNPAFactory)
+            .add(OntNPA.DataAssertion.class, OntNPAImpl.dataNPAFactory)
+            .add(OntNPA.class, OntNPAImpl.abstractNPAFactory)
 
             // disjoint anonymous collections
-            .register(OntDisjoint.Classes.class, OntDisjointImpl.disjointClassesFactory)
-            .register(OntDisjoint.Individuals.class, OntDisjointImpl.differentIndividualsFactory)
-            .register(OntDisjoint.ObjectProperties.class, OntDisjointImpl.objectPropertiesFactory)
-            .register(OntDisjoint.DataProperties.class, OntDisjointImpl.dataPropertiesFactory)
-            .register(OntDisjoint.Properties.class, OntDisjointImpl.abstractPropertiesFactory)
-            .register(OntDisjoint.class, OntDisjointImpl.abstractDisjointFactory)
+            .add(OntDisjoint.Classes.class, OntDisjointImpl.disjointClassesFactory)
+            .add(OntDisjoint.Individuals.class, OntDisjointImpl.differentIndividualsFactory)
+            .add(OntDisjoint.ObjectProperties.class, OntDisjointImpl.objectPropertiesFactory)
+            .add(OntDisjoint.DataProperties.class, OntDisjointImpl.dataPropertiesFactory)
+            .add(OntDisjoint.Properties.class, OntDisjointImpl.abstractPropertiesFactory)
+            .add(OntDisjoint.class, OntDisjointImpl.abstractDisjointFactory)
 
             // facet restrictions
-            .register(OntFR.Length.class, OntFRImpl.lengthFRFactory)
-            .register(OntFR.MinLength.class, OntFRImpl.minLengthFRFactory)
-            .register(OntFR.MaxLength.class, OntFRImpl.maxLengthFRFactory)
-            .register(OntFR.MinInclusive.class, OntFRImpl.minInclusiveFRFactory)
-            .register(OntFR.MaxInclusive.class, OntFRImpl.maxInclusiveFRFactory)
-            .register(OntFR.MinExclusive.class, OntFRImpl.minExclusiveFRFactory)
-            .register(OntFR.MaxExclusive.class, OntFRImpl.maxExclusiveFRFactory)
-            .register(OntFR.Pattern.class, OntFRImpl.patternFRFactory)
-            .register(OntFR.TotalDigits.class, OntFRImpl.totalDigitsFRFactory)
-            .register(OntFR.FractionDigits.class, OntFRImpl.fractionDigitsFRFactory)
-            .register(OntFR.LangRange.class, OntFRImpl.langRangeFRFactory)
-            .register(OntFR.class, OntFRImpl.abstractFRFactory)
+            .add(OntFR.Length.class, OntFRImpl.lengthFRFactory)
+            .add(OntFR.MinLength.class, OntFRImpl.minLengthFRFactory)
+            .add(OntFR.MaxLength.class, OntFRImpl.maxLengthFRFactory)
+            .add(OntFR.MinInclusive.class, OntFRImpl.minInclusiveFRFactory)
+            .add(OntFR.MaxInclusive.class, OntFRImpl.maxInclusiveFRFactory)
+            .add(OntFR.MinExclusive.class, OntFRImpl.minExclusiveFRFactory)
+            .add(OntFR.MaxExclusive.class, OntFRImpl.maxExclusiveFRFactory)
+            .add(OntFR.Pattern.class, OntFRImpl.patternFRFactory)
+            .add(OntFR.TotalDigits.class, OntFRImpl.totalDigitsFRFactory)
+            .add(OntFR.FractionDigits.class, OntFRImpl.fractionDigitsFRFactory)
+            .add(OntFR.LangRange.class, OntFRImpl.langRangeFRFactory)
+            .add(OntFR.class, OntFRImpl.abstractFRFactory)
 
             // data ranges
-            .register(OntDR.OneOf.class, OntDRImpl.oneOfDRFactory)
-            .register(OntDR.Restriction.class, OntDRImpl.restrictionDRFactory)
-            .register(OntDR.ComplementOf.class, OntDRImpl.complementOfDRFactory)
-            .register(OntDR.UnionOf.class, OntDRImpl.unionOfDRFactory)
-            .register(OntDR.IntersectionOf.class, OntDRImpl.intersectionOfDRFactory)
-            .register(OntDR.class, OntDRImpl.abstractDRFactory)
+            .add(OntDR.OneOf.class, OntDRImpl.oneOfDRFactory)
+            .add(OntDR.Restriction.class, OntDRImpl.restrictionDRFactory)
+            .add(OntDR.ComplementOf.class, OntDRImpl.complementOfDRFactory)
+            .add(OntDR.UnionOf.class, OntDRImpl.unionOfDRFactory)
+            .add(OntDR.IntersectionOf.class, OntDRImpl.intersectionOfDRFactory)
+            .add(OntDR.class, OntDRImpl.abstractDRFactory)
 
             // SWRL objects
-            .register(OntSWRL.Variable.class, OntSWRLImpl.variableSWRLFactory)
-            .register(OntSWRL.IArg.class, OntSWRLImpl.iArgSWRLFactory)
-            .register(OntSWRL.DArg.class, OntSWRLImpl.dArgSWRLFactory)
-            .register(OntSWRL.Arg.class, OntSWRLImpl.abstractArgSWRLFactory)
-            .register(OntSWRL.Atom.BuiltIn.class, OntSWRLImpl.builtInAtomSWRLFactory)
-            .register(OntSWRL.Atom.OntClass.class, OntSWRLImpl.classAtomSWRLFactory)
-            .register(OntSWRL.Atom.DataRange.class, OntSWRLImpl.dataRangeAtomSWRLFactory)
-            .register(OntSWRL.Atom.ObjectProperty.class, OntSWRLImpl.individualAtomSWRLFactory)
-            .register(OntSWRL.Atom.DataProperty.class, OntSWRLImpl.dataValuedAtomSWRLFactory)
-            .register(OntSWRL.Atom.DifferentIndividuals.class, OntSWRLImpl.differentIndividualsAtomSWRLFactory)
-            .register(OntSWRL.Atom.SameIndividuals.class, OntSWRLImpl.sameIndividualsAtomSWRLFactory)
-            .register(OntSWRL.Atom.class, OntSWRLImpl.abstractAtomSWRLFactory)
-            .register(OntSWRL.Imp.class, OntSWRLImpl.impSWRLFactory)
-            .register(OntSWRL.class, OntSWRLImpl.abstractSWRLFactory);
+            .add(OntSWRL.Variable.class, OntSWRLImpl.variableSWRLFactory)
+            .add(OntSWRL.IArg.class, OntSWRLImpl.iArgSWRLFactory)
+            .add(OntSWRL.DArg.class, OntSWRLImpl.dArgSWRLFactory)
+            .add(OntSWRL.Arg.class, OntSWRLImpl.abstractArgSWRLFactory)
+            .add(OntSWRL.Atom.BuiltIn.class, OntSWRLImpl.builtInAtomSWRLFactory)
+            .add(OntSWRL.Atom.OntClass.class, OntSWRLImpl.classAtomSWRLFactory)
+            .add(OntSWRL.Atom.DataRange.class, OntSWRLImpl.dataRangeAtomSWRLFactory)
+            .add(OntSWRL.Atom.ObjectProperty.class, OntSWRLImpl.individualAtomSWRLFactory)
+            .add(OntSWRL.Atom.DataProperty.class, OntSWRLImpl.dataValuedAtomSWRLFactory)
+            .add(OntSWRL.Atom.DifferentIndividuals.class, OntSWRLImpl.differentIndividualsAtomSWRLFactory)
+            .add(OntSWRL.Atom.SameIndividuals.class, OntSWRLImpl.sameIndividualsAtomSWRLFactory)
+            .add(OntSWRL.Atom.class, OntSWRLImpl.abstractAtomSWRLFactory)
+            .add(OntSWRL.Imp.class, OntSWRLImpl.impSWRLFactory)
+            .add(OntSWRL.class, OntSWRLImpl.abstractSWRLFactory);
 
+    public static final OntPersonality ONT_PERSONALITY_LAX = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.LAX);
+    public static final OntPersonality ONT_PERSONALITY_STRICT = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.STRICT);
+
+    private static OntPersonality personality = ONT_PERSONALITY_STRICT;
+
+    public static OntPersonality getPersonality() {
+        return personality;
+    }
+
+    public static void setPersonality(OntPersonality p) {
+        personality = OntJenaException.notNull(p, "Null personality specified.");
+    }
 }

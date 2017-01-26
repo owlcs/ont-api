@@ -14,6 +14,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
 import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -28,7 +29,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  */
 public class OntObjectImpl extends ResourceImpl implements OntObject {
 
-    public static OntObjectFactory objectFactory = new OntObjectFactory() {
+    public static Configurable<OntObjectFactory> objectFactory = m -> new OntObjectFactory() {
         @Override
         public Stream<EnhNode> find(EnhGraph eg) {
             return OntFinder.ANY_SUBJECT.find(eg).filter(n -> canWrap(n, eg)).map(n -> wrap(n, eg));
@@ -185,9 +186,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return Arrays.stream(getClass().getInterfaces()).filter(OntObject.class::isAssignableFrom).map(c -> (Class<? extends OntObject>) c).findFirst().orElse(null);
     }
 
+    private static String toString(Class<? extends OntObject> view) {
+        return view.getName().replace(OntObject.class.getPackage().getName() + ".", "");
+    }
+
     @Override
     public String toString() {
-        return String.format("%s(%s)", asNode(), getActualClass().getSimpleName());
+        return String.format("%s(%s)", asNode(), toString(getActualClass()));
     }
 
     static Node checkNamed(Node res) {

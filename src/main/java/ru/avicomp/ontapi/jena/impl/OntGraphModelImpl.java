@@ -44,7 +44,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     public OntGraphModelImpl(Graph graph) {
-        this(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntModelConfig.ONT_PERSONALITY);
+        this(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntModelConfig.getPersonality());
     }
 
     public OntGraphModelImpl(Graph graph, OntPersonality personality) {

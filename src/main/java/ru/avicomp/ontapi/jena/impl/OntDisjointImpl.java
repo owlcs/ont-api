@@ -25,19 +25,26 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * Created by @szuev on 15.11.2016.
  */
 public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl implements OntDisjoint<O> {
+    public static final OntFinder PROPERTIES_FINDER = new OntFinder.ByType(OWL.AllDisjointProperties);
 
-    public static OntObjectFactory disjointClassesFactory = new CommonOntObjectFactory(new OntMaker.Default(ClassesImpl.class),
-            new OntFinder.ByType(OWL.AllDisjointClasses), makeFilter(OWL.members, n -> n.canAs(OntCE.class)));
-    public static OntObjectFactory differentIndividualsFactory = new CommonOntObjectFactory(new OntMaker.Default(IndividualsImpl.class),
-            new OntFinder.ByType(OWL.AllDifferent), makeFilter(OWL.distinctMembers, n -> n.canAs(OntIndividual.class)));
-    public static OntObjectFactory objectPropertiesFactory = new CommonOntObjectFactory(new OntMaker.Default(ObjectPropertiesImpl.class),
-            new OntFinder.ByType(OWL.AllDisjointProperties), makeFilter(OWL.members, n -> n.canAs(OntOPE.class)));
-    public static OntObjectFactory dataPropertiesFactory = new CommonOntObjectFactory(new OntMaker.Default(DataPropertiesImpl.class),
-            new OntFinder.ByType(OWL.AllDisjointProperties), makeFilter(OWL.members, n -> n.canAs(OntNDP.class)));
-    public static OntObjectFactory abstractPropertiesFactory = new MultiOntObjectFactory(new OntFinder.ByType(OWL.AllDisjointProperties),
-            objectPropertiesFactory, dataPropertiesFactory);
-    public static OntObjectFactory abstractDisjointFactory = new MultiOntObjectFactory(OntFinder.TYPED, disjointClassesFactory,
-            differentIndividualsFactory, objectPropertiesFactory, dataPropertiesFactory);
+    public static Configurable<OntObjectFactory> disjointClassesFactory = m ->
+            new CommonOntObjectFactory(new OntMaker.Default(ClassesImpl.class),
+                    new OntFinder.ByType(OWL.AllDisjointClasses), makeFilter(OWL.members, n -> n.canAs(OntCE.class)));
+    public static Configurable<OntObjectFactory> differentIndividualsFactory = m ->
+            new CommonOntObjectFactory(new OntMaker.Default(IndividualsImpl.class),
+                    new OntFinder.ByType(OWL.AllDifferent), makeFilter(OWL.distinctMembers, n -> n.canAs(OntIndividual.class)));
+
+    public static Configurable<OntObjectFactory> objectPropertiesFactory = m ->
+            new CommonOntObjectFactory(new OntMaker.Default(ObjectPropertiesImpl.class),
+                    PROPERTIES_FINDER, makeFilter(OWL.members, n -> n.canAs(OntOPE.class)));
+    public static Configurable<OntObjectFactory> dataPropertiesFactory = m ->
+            new CommonOntObjectFactory(new OntMaker.Default(DataPropertiesImpl.class),
+                    PROPERTIES_FINDER, makeFilter(OWL.members, n -> n.canAs(OntNDP.class)));
+
+    public static Configurable<MultiOntObjectFactory> abstractPropertiesFactory =
+            Configurable.create(PROPERTIES_FINDER, objectPropertiesFactory, dataPropertiesFactory);
+    public static Configurable<MultiOntObjectFactory> abstractDisjointFactory =
+            Configurable.append(abstractPropertiesFactory, disjointClassesFactory, differentIndividualsFactory);
 
 
     public OntDisjointImpl(Node n, EnhGraph m) {
@@ -152,6 +159,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     public abstract static class PropertiesImpl<P extends OntPE> extends OntDisjointImpl<P> implements Properties<P> {
+
         public PropertiesImpl(Node n, EnhGraph m) {
             super(n, m);
         }

@@ -71,10 +71,6 @@ public class MultiOntObjectFactory extends OntObjectFactory {
     }
 
     public MultiOntObjectFactory concat(OntObjectFactory... factories) {
-        Stream<OntObjectFactory> toAdd = Stream.of(factories).map(f ->
-                f instanceof MultiOntObjectFactory ?
-                        ((MultiOntObjectFactory) f).factories() :
-                        Stream.of(f)).flatMap(Function.identity());
-        return new MultiOntObjectFactory(getFinder(), Stream.concat(toAdd, factories()));
+        return new MultiOntObjectFactory(getFinder(), Stream.concat(factories(), Stream.of(factories)));
     }
 }

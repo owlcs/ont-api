@@ -44,7 +44,7 @@ public class CommonOntObjectFactory extends OntObjectFactory {
     @Override
     public EnhNode wrap(Node node, EnhGraph eg) {
         if (!canWrap(node, eg))
-            throw new ConversionException(String.format("Can't wrap node %s to %s", node, maker.getTargetView()));
+            throw new ConversionException(String.format("Can't wrap node %s to %s", node, maker.getImpl()));
         return maker.instance(node, eg);
     }
 
@@ -56,7 +56,7 @@ public class CommonOntObjectFactory extends OntObjectFactory {
     @Override
     public EnhNode create(Node node, EnhGraph eg) {
         if (!canCreate(node, eg))
-            throw new OntJenaException.Creation(String.format("Can't modify graph for %s (%s)", node, maker.getTargetView()));
+            throw new OntJenaException.Creation(String.format("Can't modify graph for %s (%s)", node, maker.getImpl()));
         maker.make(node, eg);
         return maker.instance(node, eg);
     }
