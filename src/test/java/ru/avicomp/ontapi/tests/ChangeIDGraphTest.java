@@ -117,7 +117,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
         Map<Property, List<RDFNode>> annotations = new HashMap<>();
         annotations.computeIfAbsent(RDFS.comment, p -> new ArrayList<>()).add(ResourceFactory.createLangLiteral("Some comment N1", "xyx"));
         annotations.computeIfAbsent(RDFS.comment, p -> new ArrayList<>()).add(ResourceFactory.createPlainLiteral("Some comment N2"));
-        annotations.computeIfAbsent(org.apache.jena.vocabulary.OWL.incompatibleWith, p -> new ArrayList<>()).add(ResourceFactory.createResource("http://yyy/zzz"));
+        annotations.computeIfAbsent(OWL.incompatibleWith, p -> new ArrayList<>()).add(ResourceFactory.createResource("http://yyy/zzz"));
 
         OWLDataFactory factory = manager.getOWLDataFactory();
         OntologyModel owl = manager.createOntology(iri.toOwlOntologyID());

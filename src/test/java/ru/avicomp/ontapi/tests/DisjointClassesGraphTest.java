@@ -77,7 +77,7 @@ public class DisjointClassesGraphTest extends GraphTestBase {
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
         LOGGER.info("Remove OWL:disjointWith for " + ontComplex1 + " & " + ontSimple1 + " pair.");
-        jena.removeAll(ontComplex1, org.apache.jena.vocabulary.OWL.disjointWith, null);
+        jena.removeAll(ontComplex1, OWL.disjointWith, null);
         ReadWriteUtils.print(result.asGraphModel(), OntFormat.TURTLE);
         actual = result.axioms().sorted().collect(Collectors.toList());
         expected = original.axioms().sorted().collect(Collectors.toList());

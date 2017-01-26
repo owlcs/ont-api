@@ -40,7 +40,7 @@ public class IndividualsGraphTest extends GraphTestBase {
 
         LOGGER.info("Add classes.");
         manager.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(factory.getOWLClass(class1))));
-        jena.add(class2.toResource(), RDF.type, org.apache.jena.vocabulary.OWL.Class);
+        jena.add(class2.toResource(), RDF.type, OWL.Class);
 
         LOGGER.info("Add individuals.");
         LOGGER.debug("Add individuals using OWL");

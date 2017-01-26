@@ -69,7 +69,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         jena.add(anon, RDF.type, OWL.Axiom);
         jena.add(anon, OWL.annotatedSource, ontClass);
         jena.add(anon, OWL.annotatedProperty, RDF.type);
-        jena.add(anon, OWL.annotatedTarget, org.apache.jena.vocabulary.OWL.Class);
+        jena.add(anon, OWL.annotatedTarget, OWL.Class);
         jena.add(anon, RDFS.comment, commentURI);
         jena.add(anon, RDFS.label, label2);
         jena.add(anon, RDFS.label, label4);
@@ -411,7 +411,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         // test annotation with custom property:
         Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), OWL2RDFHelper.toProperty(property), OWL2RDFHelper.toRDFNode(someLiteral)));
-        Assert.assertTrue("Can't find declaration of " + property, jena.contains(OWL2RDFHelper.toResource(property), RDF.type, org.apache.jena.vocabulary.OWL.AnnotationProperty));
+        Assert.assertTrue("Can't find declaration of " + property, jena.contains(OWL2RDFHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
 
         LOGGER.info("Remove " + seeAlsoAnnotation);
         owl.applyChanges(new RemoveOntologyAnnotation(owl, seeAlsoAnnotation));
@@ -423,7 +423,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         Assert.assertFalse("There is rdfs:seeAlso " + link, jena.contains(iri.toResource(), RDFS.seeAlso, OWL2RDFHelper.toResource(link)));
         // test annotation2:
         Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), OWL2RDFHelper.toProperty(property), OWL2RDFHelper.toRDFNode(someLiteral)));
-        Assert.assertTrue("Can't find declaration of " + property, jena.contains(OWL2RDFHelper.toResource(property), RDF.type, org.apache.jena.vocabulary.OWL.AnnotationProperty));
+        Assert.assertTrue("Can't find declaration of " + property, jena.contains(OWL2RDFHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
 
         LOGGER.info("Remove " + customPropertyAnnotation);
         owl.applyChanges(new RemoveOntologyAnnotation(owl, customPropertyAnnotation));

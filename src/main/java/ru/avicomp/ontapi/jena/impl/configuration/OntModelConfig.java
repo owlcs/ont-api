@@ -60,10 +60,12 @@ public class OntModelConfig {
             .add(OntCE.OneOf.class, OntCEImpl.oneOfCEFactory)
             .add(OntCE.IntersectionOf.class, OntCEImpl.intersectionOfCEFactory)
             .add(OntCE.ComplementOf.class, OntCEImpl.complementOfCEFactory)
+            .add(OntCE.NaryDataAllValuesFrom.class, OntCEImpl.naryDataAllValuesFromCEFactory)
+            .add(OntCE.NaryDataSomeValuesFrom.class, OntCEImpl.naryDataSomeValuesFromCEFactory)
             .add(OntCE.ComponentsCE.class, OntCEImpl.abstractComponentsCEFactory)
             .add(OntCE.CardinalityRestrictionCE.class, OntCEImpl.abstractCardinalityRestrictionCEFactory)
             .add(OntCE.ComponentRestrictionCE.class, OntCEImpl.abstractComponentRestrictionCEFactory)
-            .add(OntCE.RestrictionCE.class, OntCEImpl.abstractRestrictionCEFactory) //todo: add nary CEs
+            .add(OntCE.RestrictionCE.class, OntCEImpl.abstractRestrictionCEFactory)
             .add(OntCE.class, OntCEImpl.abstractCEFactory)
 
             // property expressions:

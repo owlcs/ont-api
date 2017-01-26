@@ -186,7 +186,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return Arrays.stream(getClass().getInterfaces()).filter(OntObject.class::isAssignableFrom).map(c -> (Class<? extends OntObject>) c).findFirst().orElse(null);
     }
 
-    private static String toString(Class<? extends OntObject> view) {
+    public static String toString(Class<? extends OntObject> view) {
         return view.getName().replace(OntObject.class.getPackage().getName() + ".", "");
     }
 
