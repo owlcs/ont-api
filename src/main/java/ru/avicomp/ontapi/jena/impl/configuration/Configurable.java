@@ -1,12 +1,6 @@
 package ru.avicomp.ontapi.jena.impl.configuration;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Stream;
-
-import org.apache.jena.enhanced.Personality;
-import org.apache.jena.rdf.model.RDFNode;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -45,36 +39,6 @@ public interface Configurable<T> extends Function<Configurable.Mode, T> {
          * Don't care about illegal punnings.
          */
         LAX,
-    }
-
-    @SafeVarargs
-    static Configurable<MultiOntObjectFactory> create(OntFinder finder, Configurable<? extends OntObjectFactory>... factories) {
-        return mode -> new MultiOntObjectFactory(finder, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
-    }
-
-    @SafeVarargs
-    static Configurable<MultiOntObjectFactory> append(Configurable<MultiOntObjectFactory> multi, Configurable<? extends OntObjectFactory>... factories) {
-        return mode -> multi.get(mode).concat(Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
-    }
-
-    static Configurable<MultiOntObjectFactory> concat(Configurable<? extends OntObjectFactory> first, Configurable<? extends OntObjectFactory> rest) {
-        return mode -> new MultiOntObjectFactory(Stream.of(first, rest).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
-    }
-
-    class PersonalityBuilder {
-        private final Map<Class<? extends OntObject>, Configurable<? extends OntObjectFactory>> map = new LinkedHashMap<>();
-
-        public PersonalityBuilder add(Class<? extends OntObject> key, Configurable<? extends OntObjectFactory> value) {
-            map.put(key, value);
-            return this;
-        }
-
-        public OntPersonality build(Personality<RDFNode> init, Mode mode) {
-            OntJenaException.notNull(mode, "Null mode.");
-            OntPersonality res = new OntPersonality(init == null ? new Personality<>() : init);
-            map.forEach((k, v) -> res.register(k, v.get(mode)));
-            return res;
-        }
     }
 
 }

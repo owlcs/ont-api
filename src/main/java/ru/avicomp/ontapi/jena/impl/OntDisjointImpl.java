@@ -42,9 +42,9 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
                     PROPERTIES_FINDER, makeFilter(OWL.members, n -> n.canAs(OntNDP.class)));
 
     public static Configurable<MultiOntObjectFactory> abstractPropertiesFactory =
-            Configurable.create(PROPERTIES_FINDER, objectPropertiesFactory, dataPropertiesFactory);
+            createMultiFactory(PROPERTIES_FINDER, objectPropertiesFactory, dataPropertiesFactory);
     public static Configurable<MultiOntObjectFactory> abstractDisjointFactory =
-            Configurable.append(abstractPropertiesFactory, disjointClassesFactory, differentIndividualsFactory);
+            createMultiFactory(OntFinder.TYPED, abstractPropertiesFactory, disjointClassesFactory, differentIndividualsFactory);
 
 
     public OntDisjointImpl(Node n, EnhGraph m) {

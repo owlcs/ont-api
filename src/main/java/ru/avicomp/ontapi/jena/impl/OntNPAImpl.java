@@ -26,7 +26,7 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
             new CommonOntObjectFactory(new OntMaker.Default(ObjectAssertionImpl.class), NPA_FINDER, NPA_FILTER, new OntFilter.HasPredicate(OWL.targetIndividual));
     public static Configurable<OntObjectFactory> dataNPAFactory = m ->
             new CommonOntObjectFactory(new OntMaker.Default(DataAssertionImpl.class), NPA_FINDER, NPA_FILTER, new OntFilter.HasPredicate(OWL.targetValue));
-    public static Configurable<MultiOntObjectFactory> abstractNPAFactory = Configurable.create(NPA_FINDER, objectNPAFactory, dataNPAFactory);
+    public static Configurable<MultiOntObjectFactory> abstractNPAFactory = createMultiFactory(NPA_FINDER, objectNPAFactory, dataNPAFactory);
 
     public OntNPAImpl(Node n, EnhGraph m) {
         super(n, m);

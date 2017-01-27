@@ -8,15 +8,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
-import ru.avicomp.ontapi.jena.impl.configuration.OntFinder;
-import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
+import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Streams;
@@ -29,25 +26,8 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  */
 public class OntObjectImpl extends ResourceImpl implements OntObject {
 
-    public static Configurable<OntObjectFactory> objectFactory = m -> new OntObjectFactory() {
-        @Override
-        public Stream<EnhNode> find(EnhGraph eg) {
-            return OntFinder.ANY_SUBJECT.find(eg).filter(n -> canWrap(n, eg)).map(n -> wrap(n, eg));
-        }
-
-        @Override
-        public EnhNode wrap(Node n, EnhGraph eg) {
-            if (canWrap(n, eg)) {
-                return new OntObjectImpl(n, eg);
-            }
-            throw new OntJenaException("Cannot convert node " + n + " to OntObject");
-        }
-
-        @Override
-        public boolean canWrap(Node node, EnhGraph eg) {
-            return node.isURI() || node.isBlank();
-        }
-    };
+    public static Configurable<OntObjectFactory> objectFactory = m ->
+            new CommonOntObjectFactory(new OntMaker.Default(OntObjectImpl.class), OntFinder.ANY_SUBJECT, OntFilter.URI.or(OntFilter.BLANK));
 
     public OntObjectImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -208,4 +188,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         }
         throw new OntJenaException("Not uri resource " + res);
     }
+
+    @SafeVarargs
+    static Configurable<MultiOntObjectFactory> createMultiFactory(OntFinder finder, Configurable<? extends OntObjectFactory>... factories) {
+        return mode -> new MultiOntObjectFactory(finder, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
+    }
+
 }

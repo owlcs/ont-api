@@ -1,5 +1,8 @@
 package ru.avicomp.ontapi.jena.impl.configuration;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.*;
@@ -28,7 +31,7 @@ public class OntModelConfig {
             .add(RDFList.class, RDFListImpl.factory)
             .add(RDFNode.class, ResourceImpl.rdfNodeFactory);
 
-    private static final Configurable.PersonalityBuilder ONT_PERSONALITY_BUILDER = new Configurable.PersonalityBuilder()
+    private static final PersonalityBuilder ONT_PERSONALITY_BUILDER = new PersonalityBuilder()
             // ont-id
             .add(OntID.class, OntIDImpl.idFactory)
 
@@ -139,5 +142,21 @@ public class OntModelConfig {
 
     public static void setPersonality(OntPersonality p) {
         personality = OntJenaException.notNull(p, "Null personality specified.");
+    }
+
+    public static class PersonalityBuilder {
+        private final Map<Class<? extends OntObject>, Configurable<? extends OntObjectFactory>> map = new LinkedHashMap<>();
+
+        public PersonalityBuilder add(Class<? extends OntObject> key, Configurable<? extends OntObjectFactory> value) {
+            map.put(key, value);
+            return this;
+        }
+
+        public OntPersonality build(Personality<RDFNode> init, Configurable.Mode mode) {
+            OntJenaException.notNull(mode, "Null mode.");
+            OntPersonality res = new OntPersonality(init == null ? new Personality<>() : init);
+            map.forEach((k, v) -> res.register(k, v.get(mode)));
+            return res;
+        }
     }
 }

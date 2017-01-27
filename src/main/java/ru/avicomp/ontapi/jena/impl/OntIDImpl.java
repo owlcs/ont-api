@@ -3,39 +3,24 @@ package ru.avicomp.ontapi.jena.impl;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
-import ru.avicomp.ontapi.jena.impl.configuration.OntObjectFactory;
+import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Ontology ID
  * Created by szuev on 09.11.2016.
  */
 public class OntIDImpl extends OntObjectImpl implements OntID {
-    public static Configurable<OntObjectFactory> idFactory = m -> new OntObjectFactory() {
-        @Override
-        public EnhNode wrap(Node node, EnhGraph eg) {
-            if (canWrap(node, eg)) {
-                return new OntIDImpl(node, eg);
-            }
-            throw new OntJenaException("Not an ontology node " + node);
-        }
-
-        @Override
-        public boolean canWrap(Node node, EnhGraph eg) {
-            return eg.asGraph().contains(node, RDF.type.asNode(), OWL.Ontology.asNode());
-        }
-    };
+    public static Configurable<OntObjectFactory> idFactory = m ->
+            new CommonOntObjectFactory(new OntMaker.Default(OntIDImpl.class), new OntFinder.ByType(OWL.Ontology), new OntFilter.HasType(OWL.Ontology));
 
     public OntIDImpl(Node n, EnhGraph m) {
         super(n, m);

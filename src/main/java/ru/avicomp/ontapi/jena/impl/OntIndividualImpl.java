@@ -33,7 +33,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
     public static Configurable<OntObjectFactory> anonymousIndividualFactory = mode -> new CommonOntObjectFactory(
             new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, AnonymousImpl.FILTER.get(mode));
 
-    public static Configurable<MultiOntObjectFactory> abstractIndividualFactory = Configurable.create(OntFinder.TYPED,
+    public static Configurable<MultiOntObjectFactory> abstractIndividualFactory = createMultiFactory(OntFinder.ANY_SUBJECT_AND_OBJECT,
             OntEntityImpl.individualFactory, anonymousIndividualFactory);
 
 

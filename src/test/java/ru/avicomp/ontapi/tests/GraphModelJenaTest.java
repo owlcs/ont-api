@@ -263,6 +263,8 @@ public class GraphModelJenaTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals("Incorrect count of individuals", 2, m.ontObjects(OntIndividual.class).count());
         Assert.assertEquals("Incorrect count of class expressions", 3, m.ontObjects(OntCE.class).count());
+        Assert.assertEquals("Incorrect count of restrictions", 2, m.ontObjects(OntCE.RestrictionCE.class).count());
+        Assert.assertEquals("Incorrect count of cardinality restrictions", 1, m.ontObjects(OntCE.CardinalityRestrictionCE.class).count());
         Assert.assertEquals("Incorrect count of datatype entities", 2, m.ontObjects(OntDT.class).count());
         Assert.assertEquals("Incorrect count of data properties", 1, m.ontObjects(OntNDP.class).count());
         Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFR.class).count());

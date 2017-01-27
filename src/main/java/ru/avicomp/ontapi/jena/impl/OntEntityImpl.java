@@ -21,19 +21,19 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  */
 public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
 
-    public static Configurable<OntObjectFactory> classFactory = factory(OntClassImpl.class, OWL.Class, BuiltIn.CLASSES, RDFS.Datatype);
-    public static Configurable<OntObjectFactory> datatypeFactory = factory(OntDatatypeImpl.class, RDFS.Datatype, BuiltIn.DATATYPES, OWL.Class);
+    public static Configurable<OntObjectFactory> classFactory = createFactory(OntClassImpl.class, OWL.Class, BuiltIn.CLASSES, RDFS.Datatype);
+    public static Configurable<OntObjectFactory> datatypeFactory = createFactory(OntDatatypeImpl.class, RDFS.Datatype, BuiltIn.DATATYPES, OWL.Class);
 
-    public static Configurable<OntObjectFactory> annotationPropertyFactory = factory(OntAPropertyImpl.class,
+    public static Configurable<OntObjectFactory> annotationPropertyFactory = createFactory(OntAPropertyImpl.class,
             OWL.AnnotationProperty, BuiltIn.ANNOTATION_PROPERTIES, OWL.ObjectProperty, OWL.DatatypeProperty);
-    public static Configurable<OntObjectFactory> dataPropertyFactory = factory(OntDPropertyImpl.class,
+    public static Configurable<OntObjectFactory> dataPropertyFactory = createFactory(OntDPropertyImpl.class,
             OWL.DatatypeProperty, BuiltIn.DATA_PROPERTIES, OWL.ObjectProperty, OWL.AnnotationProperty);
-    public static Configurable<OntObjectFactory> objectPropertyFactory = factory(OntOPEImpl.NamedPropertyImpl.class,
+    public static Configurable<OntObjectFactory> objectPropertyFactory = createFactory(OntOPEImpl.NamedPropertyImpl.class,
             OWL.ObjectProperty, BuiltIn.OBJECT_PROPERTIES, OWL.DatatypeProperty, OWL.AnnotationProperty);
 
-    public static Configurable<OntObjectFactory> individualFactory = factory(OntIndividualImpl.NamedImpl.class, OWL.NamedIndividual, null);
+    public static Configurable<OntObjectFactory> individualFactory = createFactory(OntIndividualImpl.NamedImpl.class, OWL.NamedIndividual, null);
 
-    public static Configurable<MultiOntObjectFactory> abstractEntityFactory = Configurable.create(OntFinder.TYPED,
+    public static Configurable<MultiOntObjectFactory> abstractEntityFactory = createMultiFactory(OntFinder.TYPED,
             classFactory, datatypeFactory, annotationPropertyFactory, dataPropertyFactory, objectPropertyFactory, individualFactory);
 
     public OntEntityImpl(Node n, EnhGraph g) {
@@ -42,7 +42,7 @@ public abstract class OntEntityImpl extends OntObjectImpl implements OntEntity {
 
     public abstract Class<? extends OntEntity> getActualClass();
 
-    private static Configurable<OntObjectFactory> factory(Class<? extends OntObjectImpl> impl, Resource type, Set<Resource> builtInURISet, Resource... bannedTypes) {
+    private static Configurable<OntObjectFactory> createFactory(Class<? extends OntObjectImpl> impl, Resource type, Set<Resource> builtInURISet, Resource... bannedTypes) {
         OntMaker maker = new OntMaker.WithType(impl, type);
         OntFinder finder = new OntFinder.ByType(type);
         OntFilter filter = OntFilter.URI.and(new OntFilter.HasType(type)).or(new OntFilter.OneOf(builtInURISet));

@@ -42,7 +42,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
     public static Configurable<OntObjectFactory> langRangeFRFactory = m ->
             new CommonOntObjectFactory(makeMaker(LangRangeImpl.class), makeFinder(XSD.langRange), makeFilter(XSD.langRange));
 
-    public static Configurable<MultiOntObjectFactory> abstractFRFactory = Configurable.create(OntFinder.ANY_SUBJECT,
+    public static Configurable<MultiOntObjectFactory> abstractFRFactory = createMultiFactory(OntFinder.ANY_SUBJECT,
             lengthFRFactory, minLengthFRFactory, maxLengthFRFactory,
             minInclusiveFRFactory, maxInclusiveFRFactory, minExclusiveFRFactory, maxExclusiveFRFactory,
             totalDigitsFRFactory, fractionDigitsFRFactory, patternFRFactory, langRangeFRFactory);
