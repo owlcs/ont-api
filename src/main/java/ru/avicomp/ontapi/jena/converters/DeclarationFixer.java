@@ -15,6 +15,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -190,10 +191,9 @@ public class DeclarationFixer extends TransformAction {
 
         private void fixHasSelfExpressions(Model m) {
             // Restriction 'hasSelf' has always ObjectProperty assigned.
-            Literal _true = ResourceFactory.createTypedLiteral(true);
             m.listStatements(null, OWL.onProperty, (RDFNode) null)
                     .filterKeep(this::isRestriction)
-                    .filterKeep(s -> m.contains(s.getSubject(), OWL.hasSelf, _true)).forEachRemaining(s -> {
+                    .filterKeep(s -> m.contains(s.getSubject(), OWL.hasSelf, Models.TRUE)).forEachRemaining(s -> {
                 Resource property = getOnPropertyFromRestriction(s.getSubject());
                 if (property == null) return;
                 declare(property, OWL.ObjectProperty, true);

@@ -14,6 +14,7 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -583,7 +584,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     private static class HasSelfFilter implements OntFilter {
         @Override
         public boolean test(Node n, EnhGraph g) {
-            return g.asGraph().contains(n, OWL.hasSelf.asNode(), ResourceFactory.createTypedLiteral(Boolean.TRUE).asNode());
+            return g.asGraph().contains(n, OWL.hasSelf.asNode(), Models.TRUE.asNode());
         }
     }
 
@@ -595,7 +596,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         @Override
         public void make(Node node, EnhGraph eg) {
             super.make(node, eg);
-            eg.asGraph().add(Triple.create(node, OWL.hasSelf.asNode(), ResourceFactory.createTypedLiteral(Boolean.TRUE).asNode()));
+            eg.asGraph().add(Triple.create(node, OWL.hasSelf.asNode(), Models.TRUE.asNode()));
         }
     }
 
@@ -678,7 +679,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
     public static HasSelf createHasSelf(OntGraphModelImpl model, OntOPE onProperty) {
         Resource res = createOnPropertyRestriction(model, onProperty);
-        model.add(res, OWL.hasSelf, ResourceFactory.createTypedLiteral(Boolean.TRUE));
+        model.add(res, OWL.hasSelf, Models.TRUE);
         return model.getNodeAs(res.asNode(), HasSelf.class);
     }
 
