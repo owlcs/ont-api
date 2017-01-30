@@ -33,30 +33,28 @@ public class PerformanceTester {
         final int innerNum = 1;
         final boolean loadAxioms = true;
         final boolean testPureJena = true;
-        Stopwatch stopwatch;
 
-        stopwatch = Stopwatch.createStarted();
-        for (int i = 0; i < num; i++) {
-            LOGGER.info("[ONT]Iter #" + i);
-            testONT(fileIRI, loadAxioms, testPureJena, innerNum);
-            System.gc();
-        }
-        stopwatch.stop();
-        float ontAverage = stopwatch.elapsed(TimeUnit.MILLISECONDS) / num;
-
-        stopwatch = Stopwatch.createStarted();
-        for (int i = 0; i < num; i++) {
-            LOGGER.info("[OWL]Iter #" + i);
-            testOWL(fileIRI, loadAxioms, innerNum);
-            System.gc();
-        }
-        stopwatch.stop();
-        float owlAverage = stopwatch.elapsed(TimeUnit.MILLISECONDS) / num;
-
-
+        float owlAverage = doTest(num, () -> testOWL(fileIRI, loadAxioms, innerNum), "OWL");
+        float ontAverage = doTest(num, () -> testONT(fileIRI, loadAxioms, testPureJena, innerNum), "ONT");
         LOGGER.info("ONT = " + ontAverage);
         LOGGER.info("OWL = " + owlAverage);
         LOGGER.info("ONT/OWL = " + ontAverage / owlAverage);
+    }
+
+    private static float doTest(int num, Tester tester, String tip) {
+        String txt = tip == null ? String.valueOf(tester) : tip;
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        for (int i = 0; i < num; i++) {
+            LOGGER.info("[" + txt + "]Iter #" + i);
+            tester.test();
+            System.gc();
+        }
+        stopwatch.stop();
+        return stopwatch.elapsed(TimeUnit.MILLISECONDS) / num;
+    }
+
+    public interface Tester {
+        void test();
     }
 
     private static void testOWL(IRI file, boolean loadAxioms, int num) {

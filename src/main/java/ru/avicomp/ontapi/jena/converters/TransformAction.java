@@ -24,6 +24,8 @@ public abstract class TransformAction {
     protected static final Set<Node> BUILT_IN = BuiltIn.ALL.stream().map(FrontsNode::asNode).collect(Collectors.toSet());
 
     private final Graph graph;
+    private Model whole;
+    private Model base;
 
     protected TransformAction(Graph graph) {
         this.graph = graph;
@@ -57,6 +59,20 @@ public abstract class TransformAction {
 
     public Graph getBaseGraph() {
         return graph instanceof UnionGraph ? ((UnionGraph) graph).getBaseGraph() : graph;
+    }
+
+    public Model getModel() {
+        return whole == null ? whole = ModelFactory.createModelForGraph(getGraph()) : whole;
+    }
+
+    public Model getBaseModel() {
+        return base == null ? base = ModelFactory.createModelForGraph(getBaseGraph()) : base;
+    }
+
+    public Stream<Statement> listStatements(Resource s, Property p, RDFNode o) {
+        Model m = getModel();
+        return statements(getBaseModel(), s, p, o)
+                .map(st -> m.createStatement(st.getSubject(), st.getPredicate(), st.getObject()));
     }
 
     protected void addType(Resource subject, Resource type) {
@@ -95,20 +111,6 @@ public abstract class TransformAction {
         return getGraph().find(subject, RDF_TYPE, Node.ANY).mapWith(Triple::getObject).toSet();
     }
 
-    public Model getModel() {
-        return ModelFactory.createModelForGraph(getGraph());
-    }
-
-    public Model getBaseModel() {
-        return ModelFactory.createModelForGraph(getBaseGraph());
-    }
-
-    public Stream<Statement> listStatements(Resource s, Property p, RDFNode o) {
-        Model m = getModel();
-        return Streams.asStream(getBaseModel().listStatements(s, p, o))
-                .map(st -> m.createStatement(st.getSubject(), st.getPredicate(), st.getObject()));
-    }
-
     /**
      * returns Stream of types for specified {@link RDFNode}, or empty stream if the input is not uri-resource.
      *
@@ -125,5 +127,9 @@ public abstract class TransformAction {
                         .mapWith(Statement::getObject)
                         .filterKeep(RDFNode::isURIResource)
                         .mapWith(RDFNode::asResource));
+    }
+
+    public static Stream<Statement> statements(Model m, Resource s, Property p, RDFNode o) {
+        return Streams.asStream(m.listStatements(s, p, o));
     }
 }

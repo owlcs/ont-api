@@ -20,6 +20,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * To convert OWL 1 DL => OWL 2 DL
+ * todo move fixing owl:NamedIndividual to this converter
  *
  * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_RDF_Graphs_to_the_Structural_Specification'>Chapter 3</a>
  * also <a href='https://www.w3.org/TR/owl2-quick-reference/'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>

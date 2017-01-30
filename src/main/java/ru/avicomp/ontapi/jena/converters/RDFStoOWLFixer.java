@@ -21,8 +21,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * TODO: need to change.
- *
+ * TODO: need to change. Use {@link ru.avicomp.ontapi.jena.utils.OntRules}
+ * <p>
  * To perform preliminary fixing: transform the RDFS ontological graph to the OWL ontological graph.
  * After this conversion is completed there would be a valid owl-dl-ontology but maybe with missing declarations and
  * with some RDFS-garbage (rdfs:Class, rdf:Property).
@@ -97,29 +97,7 @@ public class RDFStoOWLFixer extends TransformAction {
         return getBaseGraph().find(Node.ANY, predicate.asNode(), Node.ANY);
     }
 
-    private void declaredProperties() {
-        // todo:
-        // conditions:
-        // 1) any uri-resource with rdf:type=rdf:Property
-        // 2) any uri-resource that is a subject in a triple which has predicate rdfs:domain, rdfs:range or rdfs:subPropertyOf
-        // 3) anything from owl:propertyChainAxiom (ObjectProperty)
-        // 4) owl:equivalentProperty (Datatype or ObjectProperty)
-        // 5) owl:propertyDisjointWith (Datatype or ObjectProperty)
-        // 6) owl:AllDisjointProperties (Datatype or ObjectProperty)
-        // 7) owl:inverseOf (ObjectProperty)
-        // 8) owl:FunctionalProperty (Datatype or ObjectProperty)
-        // 9) owl:InverseFunctionalProperty, owl:ReflexiveProperty, owl:IrreflexiveProperty, owl:SymmetricProperty, owl:AsymmetricProperty, owl:TransitiveProperty (ObjectProperty)
-        // 10)  owl:annotatedProperty - (AnnotationProperty)
-
-        // 11) annotation assertion s(IRI or anonymous individual) A t(IRI, anonymous individual, or literal)
-        // 12) object property assertion a1(individual)  PN a2(individual)
-        // 13) data property assertion a(individual) R v(literal)
-
-        // 14) Negative assertion owl:assertionProperty (Datatype or ObjectProperty)
-    }
-
-
-    private void fixProperties() {
+    private void fixProperties() { //todo: rewrite
         Set<Node> properties = getBaseGraph().find(Node.ANY, RDF_TYPE, RDF.Property.asNode()).mapWith(Triple::getSubject).toSet();
         // any standalone none-built-in predicates should be treated as rdf:Property also
         // (it would be replaced by one of the owl property type if possible while OWL=>OWL2 parser).

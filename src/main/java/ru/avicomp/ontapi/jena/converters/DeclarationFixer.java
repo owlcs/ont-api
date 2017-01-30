@@ -20,6 +20,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
+ * todo: rewrite
  * Class to perform the final tuning of the ontology: mostly for fixing missed owl-declarations where it is possible.
  * Consists of several other converters.
  */
@@ -352,6 +353,7 @@ public class DeclarationFixer extends TransformAction {
     }
 
     /**
+     * todo: wrong logic
      * To fix missed owl-property type declarations.
      */
     private static class HierarchicalPropertyFixer extends TransformAction {
@@ -373,7 +375,7 @@ public class DeclarationFixer extends TransformAction {
             getBaseGraph()
                     .find(Node.ANY, RDF_TYPE, OWL.ObjectProperty.asNode())
                     .mapWith(Triple::getSubject)
-                    .filterKeep(this::isAnnotationProperty)
+                    .filterKeep(this::isAnnotationProperty) //todo: what is it?
                     .forEachRemaining(node -> addType(node, OWL.ObjectProperty));
             getBaseGraph()
                     .find(Node.ANY, RDF_TYPE, OWL.AnnotationProperty.asNode())
