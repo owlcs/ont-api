@@ -1,6 +1,9 @@
 package ru.avicomp.ontapi.jena.utils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -80,6 +83,7 @@ public class OntRules {
     }
 
     /**
+     * TODO: not ready yet
      * The default Rule Engine Implementation.
      * <p>
      * Should work correctly and safe with any ontology (OWL-1, RDFS) using the "strict" approach:
@@ -90,6 +94,7 @@ public class OntRules {
      * E.g. if the property has rdfs:range with rdf:type = rdfs:Datatype assigned then it is a Data Property,
      * even some other tips show it is Annotation Property or something else.
      */
+    @SuppressWarnings("WeakerAccess")
     public static class DefaultRuleEngine implements RuleEngine {
         private static final String DATA_PROPERTY_KEY = "DataProperty";
         private static final String OBJECT_PROPERTY_KEY = "ObjectProperty";
@@ -293,39 +298,47 @@ public class OntRules {
          * @param seen      the map to avoid recursion
          * @return true if this uri-resource is an Annotation Property (owl:AnnotationProperty)
          */
-        private static boolean isAnnotationProperty(Model model, Resource candidate, Map<String, Set<Resource>> seen) {
-            Set<Resource> processed = seen.computeIfAbsent(ANNOTATION_PROPERTY_KEY, c -> new HashSet<>());
-            if (processed.contains(candidate)) return false;
-            processed.add(candidate);
+        protected boolean isAnnotationProperty(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            Map<Resource, Boolean> processed = seen.computeIfAbsent(ANNOTATION_PROPERTY_KEY, c -> new HashMap<>());
+            if (processed.containsKey(candidate)) {
+                return processed.get(candidate);
+            }
+            processed.put(candidate, false);
             // 0) annotation property is always IRI
             if (!candidate.isURIResource()) {
                 return false;
             }
             // 1) builtin
             if (BuiltIn.ANNOTATION_PROPERTIES.contains(candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
+            }
+            if (BuiltIn.ALL.contains(candidate)) {
+                return false;
             }
             // 2) an explicit type
             if (model.contains(candidate, RDF.type, OWL.AnnotationProperty) || model.contains(candidate, RDF.type, OWL.OntologyProperty)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 3) annotations assertions inside bulk annotation object:
-            Property property = candidate.as(Property.class);
+            Property property = candidate.inModel(model).as(Property.class);
             if (subjects(model, property)
                     .filter(RDFNode::isAnon)
                     .filter(r -> r.hasProperty(RDF.type, OWL.Annotation) || r.hasProperty(RDF.type, OWL.Axiom))
                     .filter(r -> r.hasProperty(OWL.annotatedProperty))
                     .filter(r -> r.hasProperty(OWL.annotatedSource))
                     .anyMatch(r -> r.hasProperty(OWL.annotatedTarget))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 4-5) recursion:
             Stream<Resource> objects = objects(model, candidate, RDFS.subPropertyOf);
             Stream<Resource> subjects = subjects(model, RDFS.subPropertyOf, candidate);
             Stream<Resource> test = Stream.concat(objects, subjects);
-            return test
-                    .filter(p -> !processed.contains(p))
-                    .anyMatch(p -> isAnnotationProperty(model, p, seen));
+            if (test.anyMatch(p -> isAnnotationPropertyOnly(model, p, seen))) {
+                return processed.compute(candidate, (r, b) -> true);
+            }
+            // todo: domain and range? -> not a CE or DR
+            // + assertion (not "a1 PN a2", "a R v", but "s A t")
+            return false;
         }
 
         /**
@@ -336,21 +349,26 @@ public class OntRules {
          * @param seen      the map to avoid recursion
          * @return true if this uri-resource is a Data Property (owl:DatatypeProperty)
          */
-        private static boolean isDataProperty(Model model, Resource candidate, Map<String, Set<Resource>> seen) {
-            Set<Resource> processed = seen.computeIfAbsent(DATA_PROPERTY_KEY, c -> new HashSet<>());
-            if (processed.contains(candidate)) return false;
-            processed.add(candidate);
+        protected boolean isDataProperty(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            Map<Resource, Boolean> processed = seen.computeIfAbsent(DATA_PROPERTY_KEY, c -> new HashMap<>());
+            if (processed.containsKey(candidate)) {
+                return processed.get(candidate);
+            }
+            processed.put(candidate, false);
             // 0) data property expression is always named
             if (!candidate.isURIResource()) {
                 return false;
             }
             // 1) builtin
             if (BuiltIn.DATA_PROPERTIES.contains(candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
+            }
+            if (BuiltIn.ALL.contains(candidate)) {
+                return false;
             }
             // 2) has an explicit type
             if (objects(model, candidate, RDF.type).anyMatch(OWL.DatatypeProperty::equals)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 3) negative assertion:
             if (subjects(model, OWL.assertionProperty, candidate)
@@ -358,11 +376,11 @@ public class OntRules {
                     .filter(r -> r.hasProperty(OWL.sourceIndividual))
                     .filter(r -> r.hasProperty(OWL.targetValue))
                     .map(r -> r.getProperty(OWL.targetValue)).map(Statement::getObject).anyMatch(RDFNode::isLiteral)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 4) properties from nary restriction:
-            if (isInList(model, candidate) && naryDataPropertyRestrictions(model).anyMatch(l -> l.contains(candidate))) {
-                return true;
+            if (Models.isInList(model, candidate) && naryDataPropertyRestrictions(model).anyMatch(l -> l.contains(candidate))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 5) qualified maximum/minimum/exact cardinality data property restrictions
             // 6) literal value data property restriction
@@ -370,7 +388,7 @@ public class OntRules {
                     .filter(DefaultRuleEngine::isRestriction)
                     .anyMatch(r -> r.hasProperty(OWL.onDataRange) ||
                             (r.hasProperty(OWL.hasValue) && r.getProperty(OWL.hasValue).getObject().isLiteral()))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
 
             // 7-9) recursive checks:
@@ -383,12 +401,11 @@ public class OntRules {
             // 9) collect disjoint properties
             Stream<Resource> disjoint = allDisjointPropertiesByMember(model, candidate);
             Stream<Resource> test = Stream.of(objects, subjects, disjoint).flatMap(Function.identity());
-            if (test.filter(p -> !processed.contains(p)).anyMatch(p -> isDataProperty(model, p, seen))) {
-                return true;
+            if (test.anyMatch(p -> isDataProperty(model, p, seen) && !isAnnotationProperty(model, p, seen) && !isObjectPropertyExpression(model, p, seen))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
-
             // 10) rdfs:range is D
-            if (objects(model, candidate, RDFS.range).anyMatch(r -> isDataRange(model, r, seen))) {
+            if (objects(model, candidate, RDFS.range).anyMatch(r -> isDataRangeOnly(model, r, seen))) {
                 return true;
             }
             // 11) owl:someValuesFrom or owl:allValuesFrom are D:
@@ -396,8 +413,8 @@ public class OntRules {
                     .filter(DefaultRuleEngine::isRestriction)
                     .map(r -> r.hasProperty(OWL.someValuesFrom) ? objects(model, r, OWL.someValuesFrom) : objects(model, r, OWL.allValuesFrom))
                     .flatMap(Function.identity())
-                    .anyMatch(r -> isDataRange(model, r, seen))) {
-                return true;
+                    .anyMatch(r -> isDataRangeOnly(model, r, seen))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
             // then it is not R
             return false;
@@ -411,30 +428,31 @@ public class OntRules {
          * @param seen      the map to avoid recursion
          * @return true if this uri-resource is an Object Property (owl:ObjectProperty)
          */
-        private static boolean isObjectPropertyExpression(Model model, Resource candidate, Map<String, Set<Resource>> seen) {
-            Set<Resource> processed = seen.computeIfAbsent(OBJECT_PROPERTY_KEY, c -> new HashSet<>());
-            if (processed.contains(candidate)) return false;
-            processed.add(candidate);
+        protected boolean isObjectPropertyExpression(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            Map<Resource, Boolean> processed = seen.computeIfAbsent(OBJECT_PROPERTY_KEY, c -> new HashMap<>());
+            if (processed.containsKey(candidate)) return processed.get(candidate);
+            processed.put(candidate, false);
             // 1) builtin
             if (BuiltIn.OBJECT_PROPERTIES.contains(candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
+            if (BuiltIn.ALL.contains(candidate)) return false;
             // 2) an explicit type
             if (objects(model, candidate, RDF.type).anyMatch(OWL.ObjectProperty::equals)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 3) always Object Property
             if (Stream.of(OWL.InverseFunctionalProperty, OWL.TransitiveProperty, OWL.SymmetricProperty, OWL.AsymmetricProperty,
                     OWL.ReflexiveProperty, OWL.IrreflexiveProperty).anyMatch(r -> model.contains(candidate, RDF.type, r))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 4) any part of owl:inverseOf
             if (model.contains(candidate, OWL.inverseOf) || model.contains(null, OWL.inverseOf, candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 5) part of owl:propertyChainAxiom
             if (model.contains(candidate, OWL.propertyChainAxiom) || containsInList(model, OWL.propertyChainAxiom, candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 6) negative object property assertion:
             if (subjects(model, OWL.assertionProperty, candidate)
@@ -442,7 +460,7 @@ public class OntRules {
                     .filter(r -> r.hasProperty(OWL.sourceIndividual))
                     .filter(r -> r.hasProperty(OWL.targetIndividual))
                     .map(r -> r.getProperty(OWL.targetIndividual)).map(Statement::getObject).anyMatch(RDFNode::isResource)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 7) it is a subject in "_:x owl:hasSelf "true"^^xsd:boolean" (local reflexivity object property restriction)
             // 8) it is attached on predicate owl:onProperty to some qualified cardinality object property restriction (checking for owl:onClass predicate)
@@ -452,7 +470,7 @@ public class OntRules {
                     .anyMatch(r -> r.hasProperty(OWL.onClass) ||
                             r.hasProperty(OWL.hasSelf, Models.TRUE) ||
                             (r.hasProperty(OWL.hasValue) && r.getProperty(OWL.hasValue).getObject().isResource()))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 10-12) recursions:
             Stream<Resource> objects = Stream.of(RDFS.subPropertyOf, OWL.equivalentProperty, OWL.propertyDisjointWith)
@@ -461,12 +479,12 @@ public class OntRules {
                     .map(p -> subjects(model, p, candidate)).flatMap(Function.identity());
             Stream<Resource> disjoint = allDisjointPropertiesByMember(model, candidate);
             Stream<Resource> test = Stream.of(objects, subjects, disjoint).flatMap(Function.identity());
-            if (test.filter(p -> !processed.contains(p)).anyMatch(p -> isObjectPropertyExpression(model, p, seen))) {
-                return true;
+            if (test.anyMatch(p -> isObjectPropertyExpression(model, p, seen) && !isDataProperty(model, p, seen) && !isAnnotationProperty(model, p, seen))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 13) rdfs:range is C
             if (objects(model, candidate, RDFS.range).anyMatch(r -> isClassExpression(model, r, seen))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 14) owl:someValuesFrom or owl:allValuesFrom = C.
             if (subjects(model, OWL.onProperty, candidate)
@@ -474,10 +492,10 @@ public class OntRules {
                     .map(r -> r.hasProperty(OWL.someValuesFrom) ? objects(model, r, OWL.someValuesFrom) : objects(model, r, OWL.allValuesFrom))
                     .flatMap(Function.identity())
                     .anyMatch(r -> isClassExpression(model, r, seen))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 15) positive object property assertion a1 PN a2.
-            if (candidate.isURIResource() && statements(model, null, candidate.as(Property.class), null)
+            if (candidate.isURIResource() && statements(model, null, candidate.inModel(model).as(Property.class), null)
                     .filter(s -> isIndividual(model, s.getSubject(), seen))
                     .map(Statement::getObject)
                     .filter(RDFNode::isResource)
@@ -496,31 +514,32 @@ public class OntRules {
          * @param seen      the map to avoid recursion
          * @return true if this resource is a DataRange expression or a Datatype (_:x rdf:type rdfs:Datatype)
          */
-        private static boolean isDataRange(Model model, Resource candidate, Map<String, Set<Resource>> seen) {
-            Set<Resource> processed = seen.computeIfAbsent(DATA_RANGE_KEY, c -> new HashSet<>());
-            if (processed.contains(candidate)) return false;
-            processed.add(candidate);
+        protected boolean isDataRange(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            Map<Resource, Boolean> processed = seen.computeIfAbsent(DATA_RANGE_KEY, c -> new HashMap<>());
+            if (processed.containsKey(candidate)) return processed.get(candidate);
+            processed.put(candidate, false);
             // 1) builtin
             if (BuiltIn.DATATYPES.contains(candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
+            if (BuiltIn.ALL.contains(candidate)) return false;
             // 2) type
             if (model.contains(candidate, RDF.type, RDFS.Datatype) || model.contains(candidate, RDF.type, OWL.DataRange)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 3) data range complement expression
             if (model.contains(candidate, OWL.datatypeComplementOf) || model.contains(null, OWL.datatypeComplementOf, candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 4) Datatype restriction
             if (subjects(model, OWL.onDatatype, candidate)
                     .map(r -> objects(model, r, OWL.withRestrictions))
                     .flatMap(Function.identity())
                     .anyMatch(r -> r.canAs(RDFList.class))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             if (model.contains(candidate, OWL.onDatatype) && objects(model, candidate, OWL.withRestrictions).anyMatch(r -> r.canAs(RDFList.class))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 5) literal enumeration data range expression:
             if (objects(model, candidate, OWL.oneOf)
@@ -528,17 +547,17 @@ public class OntRules {
                     .map(r -> r.as(RDFList.class))
                     .map(RDFList::asJavaList)
                     .anyMatch(l -> !l.isEmpty() && l.stream().allMatch(RDFNode::isLiteral))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 6) data property qualified cardinality restriction
             if (subjects(model, OWL.onDataRange, candidate).anyMatch(DefaultRuleEngine::isRestriction)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 7) n-ary data property restrictions
             if (multiSubjects(model, candidate, OWL.someValuesFrom, OWL.allValuesFrom)
                     .map(r -> objects(model, r, OWL.onProperties)).flatMap(Function.identity())
                     .anyMatch(r -> r.canAs(RDFList.class))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
 
             // recursions:
@@ -549,8 +568,8 @@ public class OntRules {
             Stream<Resource> expressionObjects = objectsFromLists(model, candidate, OWL.unionOf, OWL.intersectionOf);
             Stream<Resource> expressionSubjects = subjectsByListMember(model, candidate, OWL.unionOf, OWL.intersectionOf);
             Stream<Resource> test = Stream.of(equivalentObjects, equivalentSubjects, expressionObjects, expressionSubjects).flatMap(Function.identity());
-            if (test.filter(p -> !processed.contains(p)).anyMatch(p -> isDataRange(model, p, seen))) {
-                return true;
+            if (test.anyMatch(p -> isDataRangeOnly(model, p, seen))) { // todo:
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 10) universal and existential data property restrictions
             if (multiSubjects(model, candidate, OWL.someValuesFrom, OWL.allValuesFrom)
@@ -558,11 +577,11 @@ public class OntRules {
                     .map(r -> r.getProperty(OWL.onProperty)).map(Statement::getObject)
                     .filter(RDFNode::isResource).map(RDFNode::asResource)
                     .anyMatch(r -> isDataProperty(model, r, seen))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 11) "R rdfs:range D"
-            if (subjects(model, RDFS.range, candidate).anyMatch(r -> isDataProperty(model, r, seen))) {
-                return true;
+            if (subjects(model, RDFS.range, candidate).anyMatch(r -> isDataPropertyOnly(model, r, seen))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
             // not a Data Range
             return false;
@@ -576,38 +595,40 @@ public class OntRules {
          * @param seen      the map to avoid recursion
          * @return true it is a Class Expression
          */
-        private static boolean isClassExpression(Model model, Resource candidate, Map<String, Set<Resource>> seen) {
-            Set<Resource> processed = seen.computeIfAbsent(CLASS_EXPRESSION_KEY, c -> new HashSet<>());
-            if (processed.contains(candidate)) return false;
-            processed.add(candidate);
+        protected boolean isClassExpression(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            Map<Resource, Boolean> processed = seen.computeIfAbsent(CLASS_EXPRESSION_KEY, c -> new HashMap<>());
+            if (processed.containsKey(candidate)) return processed.get(candidate);
+            processed.put(candidate, false);
             if (BuiltIn.CLASSES.contains(candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
+            /*test*/
+            if (BuiltIn.ALL.contains(candidate)) return false;
             if (model.contains(candidate, RDF.type, OWL.Class) || isRestriction(candidate.inModel(model))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 3) "C owl:hasKey (P1 ... Pm R1 ... Rn)"
             if (objects(model, candidate, OWL.hasKey).anyMatch(r -> r.canAs(RDFList.class))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 4-6) "C1 rdfs:subClassOf C2", "C1 owl:disjointWith C2", "_:x rdf:type owl:Class; _:x owl:complementOf C"
             if (Stream.of(RDFS.subClassOf, OWL.disjointWith, OWL.complementOf)
                     .map(p -> Stream.concat(subjects(model, p, candidate), objects(model, candidate, p)))
                     .flatMap(Function.identity())
                     .anyMatch(r -> true)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 7) "CN owl:disjointUnionOf (C1 ... Cn)"
             if ((candidate.isURIResource() && model.contains(candidate, OWL.disjointUnionOf)) || containsInList(model, OWL.disjointUnionOf, candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 8) object property qualified cardinality restriction
             if (subjects(model, OWL.onClass, candidate).anyMatch(DefaultRuleEngine::isRestriction)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 9) member in the list with predicate owl:members and rdf:type = owl:AllDisjointClasses
-            if (isInList(model, candidate) && allDisjointClasses(model).anyMatch(list -> list.contains(candidate))) {
-                return true;
+            if (Models.isInList(model, candidate) && allDisjointClasses(model).anyMatch(list -> list.contains(candidate))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 10) individuals enumeration:
             if (objects(model, candidate, OWL.oneOf)
@@ -615,35 +636,35 @@ public class OntRules {
                     .map(r -> r.as(RDFList.class))
                     .map(RDFList::asJavaList)
                     .anyMatch(l -> !l.isEmpty() && l.stream().allMatch(RDFNode::isResource))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 11) test parts of owl:Restriction.
             if (objects(model, candidate, OWL.onProperty).anyMatch(RDFNode::isResource)) {
                 if (model.contains(candidate, OWL.hasSelf, Models.TRUE)) {
-                    return true;
+                    return processed.compute(candidate, (r, b) -> true);
                 }
                 if (multiObjects(model, candidate, OWL.someValuesFrom, OWL.allValuesFrom)
                         .anyMatch(RDFNode::isResource)) {
-                    return true;
+                    return processed.compute(candidate, (r, b) -> true);
                 }
                 if (model.contains(candidate, OWL.hasValue)) {
-                    return true;
+                    return processed.compute(candidate, (r, b) -> true);
                 }
                 if (Stream.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality)
                         .map(p -> objects(model, candidate, p)).flatMap(Function.identity())
                         .anyMatch(RDFNode::isLiteral)) {
-                    return true;
+                    return processed.compute(candidate, (r, b) -> true);
                 }
                 if (Stream.of(OWL.qualifiedCardinality, OWL.maxQualifiedCardinality, OWL.minQualifiedCardinality)
                         .map(p -> objects(model, candidate, p)).flatMap(Function.identity()).anyMatch(RDFNode::isLiteral) &&
                         Stream.of(OWL.onClass, OWL.onDataRange)
                                 .map(p -> objects(model, candidate, p)).flatMap(Function.identity()).anyMatch(r -> true)) {
-                    return true;
+                    return processed.compute(candidate, (r, b) -> true);
                 }
             }
             if (objects(model, candidate, OWL.onProperties).anyMatch(r -> r.canAs(RDFList.class)) &&
                     multiObjects(model, candidate, OWL.someValuesFrom, OWL.allValuesFrom).anyMatch(RDFNode::isResource)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // recursion checks:
             // 12) "Cj owl:equivalentClass Cj+1"
@@ -653,31 +674,31 @@ public class OntRules {
             Stream<Resource> expressionObjects = objectsFromLists(model, candidate, OWL.unionOf, OWL.intersectionOf);
             Stream<Resource> expressionSubjects = subjectsByListMember(model, candidate, OWL.unionOf, OWL.intersectionOf);
             Stream<Resource> test = Stream.of(equivalentObjects, equivalentSubjects, expressionObjects, expressionSubjects).flatMap(Function.identity());
-            if (test.filter(p -> !processed.contains(p)).anyMatch(p -> isClassExpression(model, p, seen))) {
-                return true;
+            if (test.anyMatch(p -> isClassExpressionOnly(model, p, seen))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 14) universal and existential object property restrictions
             if (multiSubjects(model, candidate, OWL.someValuesFrom, OWL.allValuesFrom)
                     .filter(r -> r.hasProperty(OWL.onProperty))
                     .map(r -> r.getProperty(OWL.onProperty)).map(Statement::getObject)
                     .filter(RDFNode::isResource).map(RDFNode::asResource)
-                    .anyMatch(r -> isObjectPropertyExpression(model, r, seen))) {
-                return true;
+                    .anyMatch(r -> isObjectPropertyExpression(model, r, seen))) { //todo:
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 15) "P rdfs:range C"
             if (subjects(model, RDFS.range, candidate)
-                    .anyMatch(r -> isObjectPropertyExpression(model, r, seen))) {
-                return true;
+                    .anyMatch(r -> isObjectPropertyOnly(model, r, seen))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 16) "P rdfs:domain C" or "R rdfs:domain C"
             if (subjects(model, RDFS.domain, candidate)
                     .anyMatch(r -> isDataProperty(model, r, seen) || isObjectPropertyExpression(model, r, seen))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 17) "a rdf:type C"
             if (subjects(model, RDF.type, candidate)
                     .anyMatch(r -> isIndividual(model, r, seen))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // not a CE:
             return false;
@@ -692,47 +713,47 @@ public class OntRules {
          * @param seen      the map to avoid recursion
          * @return true it is a named or anonymous individual
          */
-        private static boolean isIndividual(Model model, Resource candidate, Map<String, Set<Resource>> seen) {
-            Set<Resource> processed = seen.computeIfAbsent(INDIVIDUAL_KEY, c -> new HashSet<>());
-            if (processed.contains(candidate)) return false;
-            processed.add(candidate);
+        protected boolean isIndividual(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            Map<Resource, Boolean> processed = seen.computeIfAbsent(INDIVIDUAL_KEY, c -> new HashMap<>());
+            if (processed.containsKey(candidate)) return processed.get(candidate);
+            processed.put(candidate, false);
             if (candidate.isURIResource() && model.contains(candidate, RDF.type, OWL.NamedIndividual)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 2) "aj owl:sameAs aj+1", "a1 owl:differentFrom a2"
             if (Stream.of(OWL.sameAs, OWL.differentFrom).anyMatch(p -> model.contains(candidate, p) || model.contains(null, p, candidate))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 3) owl:AllDifferent
-            if (isInList(model, candidate) && allDifferent(model).anyMatch(list -> list.contains(candidate))) {
-                return true;
+            if (Models.isInList(model, candidate) && allDifferent(model).anyMatch(list -> list.contains(candidate))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 4) owl:oneOf
             if (containsInList(model, OWL.oneOf, candidate)) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 5) owl:NegativePropertyAssertion
             if (multiSubjects(model, candidate, OWL.sourceIndividual, OWL.targetIndividual)
                     .filter(r -> r.hasProperty(OWL.assertionProperty))
                     .anyMatch(r -> r.hasProperty(RDF.type, OWL.NegativePropertyAssertion))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 6) object property restriction "_:x owl:hasValue a."
             if (subjects(model, OWL.hasValue, candidate)
                     .filter(DefaultRuleEngine::isRestriction)
                     .anyMatch(r -> r.hasProperty(OWL.onProperty))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 7) class assertion (declaration) "_:a rdf:type C"
             if (objects(model, candidate, RDF.type).anyMatch(r -> isClassExpression(model, r, seen))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 8) positive data property assertion "a R v" or annotation assertion "a A v"
             if (statements(model, candidate, null, null)
                     .filter(s -> s.getObject().isLiteral())
                     .map(Statement::getPredicate)
                     .anyMatch(p -> isDataProperty(model, p, seen) || isAnnotationProperty(model, p, seen))) {
-                return true;
+                return processed.compute(candidate, (r, b) -> true);
             }
             // 9) positive object property assertion "a1 PN a2" or annotation assertion "a1 A a2"
             Stream<Resource> left = statements(model, null, null, candidate)
@@ -743,11 +764,31 @@ public class OntRules {
                     .filter(s -> isObjectPropertyExpression(model, s.getPredicate(), seen) || isAnnotationProperty(model, s.getPredicate(), seen))
                     .map(Statement::getObject).map(RDFNode::asResource);
             Stream<Resource> test = Stream.concat(left, right);
-            if (test.filter(p -> !processed.contains(p)).anyMatch(p -> isIndividual(model, p, seen))) {
-                return true;
+            if (test.anyMatch(p -> isIndividual(model, p, seen))) {
+                return processed.compute(candidate, (r, b) -> true);
             }
             // Not an individual:
             return false;
+        }
+
+        private boolean isDataRangeOnly(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            return isDataRange(model, candidate, seen) && !isClassExpression(model, candidate, seen);
+        }
+
+        private boolean isClassExpressionOnly(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            return isClassExpression(model, candidate, seen) && !isDataRange(model, candidate, seen);
+        }
+
+        private boolean isObjectPropertyOnly(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            return isObjectPropertyExpression(model, candidate, seen) && !isDataProperty(model, candidate, seen) && !isAnnotationProperty(model, candidate, seen);
+        }
+
+        private boolean isAnnotationPropertyOnly(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            return isAnnotationProperty(model, candidate, seen) && !isObjectPropertyExpression(model, candidate, seen) && !isDataProperty(model, candidate, seen);
+        }
+
+        private boolean isDataPropertyOnly(Model model, Resource candidate, Map<String, Map<Resource, Boolean>> seen) {
+            return isDataProperty(model, candidate, seen) && !isAnnotationProperty(model, candidate, seen) && !isObjectPropertyExpression(model, candidate, seen);
         }
 
         private static boolean isRestriction(Resource root) {
@@ -762,19 +803,15 @@ public class OntRules {
         }
 
         private static Stream<Resource> subjectsByListMember(Model model, Resource member, Property... predicates) {
-            return isInList(model, member) ?
+            return Models.isInList(model, member) ?
                     Stream.of(predicates).map(p -> statements(model, null, p, null)).flatMap(Function.identity())
                             .filter(s -> s.getObject().canAs(RDFList.class))
                             .filter(s -> s.getObject().as(RDFList.class).asJavaList().contains(member))
                             .map(Statement::getSubject) : Stream.empty();
         }
 
-        private static boolean isInList(Model model, Resource member) {
-            return model.contains(null, RDF.first, member);
-        }
-
         private static boolean containsInList(Model model, Property predicate, Resource member) {
-            return isInList(model, member) && statements(model, null, predicate, null)
+            return Models.isInList(model, member) && statements(model, null, predicate, null)
                     .map(Statement::getObject)
                     .filter(n -> n.canAs(RDFList.class))
                     .map(n -> n.as(RDFList.class))
@@ -782,7 +819,7 @@ public class OntRules {
         }
 
         private static Stream<Resource> allDisjointPropertiesByMember(Model model, Resource member) {
-            return isInList(model, member) ?
+            return Models.isInList(model, member) ?
                     allDisjointProperties(model)
                             .filter(list -> list.contains(member))
                             .map(Collection::stream)

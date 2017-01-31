@@ -93,6 +93,15 @@ public class Models {
     }
 
     /**
+     * @param model     Model
+     * @param candidate Resource to test
+     * @return true if specified resource is a member of some rdf:List
+     */
+    public static boolean isInList(Model model, Resource candidate) {
+        return model.contains(null, RDF.first, candidate);
+    }
+
+    /**
      * converts rdf-node to anonymous individual.
      * The result anonymous individual could be true (instance of some owl class) or fake (any blank node).
      *
@@ -150,4 +159,5 @@ public class Models {
             }
         });
     }
+
 }

@@ -1,15 +1,12 @@
 package ru.avicomp.ontapi.jena.impl.configuration;
 
-import java.util.function.Function;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
 /**
  *
- * This is extended {@link Function} which is used as a container for an object (a factory or a part of factory)
- * for simplification the code and to have a possibility to change
- * the default behaviour easily during the initialization of personalities.
+ * This is our analogue of {@link java.util.function.Function} which is used as an objects container with possibility to choose one depending on the parameter.
+ * For simplification the code and to be able to change the default behaviour easily during the initialization of personalities.
  *
  * <p>
  * Currently the are only two modes: {@link Mode#LAX} and {@link Mode#STRICT}.
@@ -20,10 +17,19 @@ import ru.avicomp.ontapi.jena.model.OntObject;
  * <p>
  * Created by @szuev on 21.01.2017.
  */
-public interface Configurable<T> extends Function<Configurable.Mode, T> {
+@FunctionalInterface
+public interface Configurable<T> {
+
+    /**
+     * Choose object by the given argument.
+     *
+     * @param t Mode
+     * @return the wrapped object.
+     */
+    T select(Configurable.Mode t);
 
     default T get(Mode m) {
-        return OntJenaException.notNull(apply(OntJenaException.notNull(m, "Null mode.")), "Null result for mode " + m + ".");
+        return OntJenaException.notNull(select(OntJenaException.notNull(m, "Null mode.")), "Null result for mode " + m + ".");
     }
 
     enum Mode {
