@@ -51,8 +51,6 @@ public class UnionGraph extends Union {
         return (OntEventManager) gem;
     }
 
-
-
     public void addGraph(Graph graph) {
         getUnderlying().addGraph(graph);
     }
