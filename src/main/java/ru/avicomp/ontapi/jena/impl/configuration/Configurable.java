@@ -4,10 +4,8 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
 /**
- *
- * This is our analogue of {@link java.util.function.Function} which is used as an objects container with possibility to choose one depending on the parameter.
- * For simplification the code and to be able to change the default behaviour easily during the initialization of personalities.
- *
+ * This is our analogue of {@link java.util.function.Function} which is used as an objects container with possibility to choose one of them depending on the input parameter.
+ * For simplification code and to be able to change easily the default behaviour during the initialization of personalities.
  * <p>
  * Currently the are only two modes: {@link Mode#LAX} and {@link Mode#STRICT}.
  * The first one is a lax way. Any owl-entity could have more than one types simultaneously, there is no any restrictions.

@@ -149,11 +149,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     public Stream<RDFNode> objects(Property predicate) {
-        return Streams.asStream(listProperties(predicate).mapWith(Statement::getObject)).distinct();
+        return Streams.asStream(listProperties(predicate).mapWith(Statement::getObject));
     }
 
     public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view) {
-        return objects(predicate).filter(node -> node.canAs(view)).map(node -> getModel().getNodeAs(node.asNode(), view)).distinct();
+        return objects(predicate).filter(node -> node.canAs(view)).map(node -> getModel().getNodeAs(node.asNode(), view));
     }
 
     @Override
