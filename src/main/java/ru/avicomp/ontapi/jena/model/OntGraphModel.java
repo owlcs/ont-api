@@ -32,17 +32,17 @@ public interface OntGraphModel extends Model {
      * if not, use {@link ru.avicomp.ontapi.jena.converters.OWLtoOWL2DLFixer} or {@link #setID(String)} to fix graph.
      *
      * @return {@link OntID}
-     * @throws OntJenaException in case there is no any ontology or more then one ontology
+     * @throws OntJenaException in case there is no any ontology or there are more then one ontology.
      */
     OntID getID();
 
     /**
-     * creates new owl:Ontology declaration for the specified uri.
-     * in case any ontologies already exist they will be removed and all their content will be moved to the new one.
+     * creates a new owl:Ontology declaration for the specified uri.
+     * All extra ontologies will be removed and all their content will be moved to the new one.
      *
-     * @param uri String, could be null for anonymous ontology
+     * @param uri String, could be null for anonymous ontology.
      * @return the new {@link OntID} object.
-     * @throws OntJenaException if ontology can't be added.
+     * @throws OntJenaException if ontology can't be added (e.g. due to collision with imports).
      */
     OntID setID(String uri);
 

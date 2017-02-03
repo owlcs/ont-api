@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi.jena.utils;
+package ru.avicomp.ontapi.jena.converters;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,10 +12,15 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
+ * TODO: not ready yet.
+ *
  * Helper to test all kind of OWL Objects (OWL Entities, OWL Class&ObjectProperty Expressions, OWL DataRanges, OWL Anonymous Individuals)
  * inside the jena model {@link Model} according to <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Specification</a>.
  * To use inside {@link ru.avicomp.ontapi.jena.converters.TransformAction} mostly.
@@ -65,6 +70,10 @@ public class OntRules {
         return RuleEngine.Result.TRUE.equals(rules.testClassExpression(model, candidate));
     }
 
+    public static boolean isNamedIndividual(Model model, Resource candidate) {
+        return RuleEngine.Result.TRUE.equals(rules.testNamedIndividual(model, candidate));
+    }
+
     public static boolean isIndividual(Model model, Resource candidate) {
         return RuleEngine.Result.TRUE.equals(rules.testIndividual(model, candidate));
     }
@@ -94,6 +103,10 @@ public class OntRules {
             return candidate.isURIResource() ? testDataRange(model, candidate) : Result.FALSE;
         }
 
+        default Result testNamedIndividual(Model model, Resource candidate) {
+            return candidate.isURIResource() ? testIndividual(model, candidate) : Result.FALSE;
+        }
+
         enum Result {
             TRUE,
             FALSE,
@@ -102,8 +115,9 @@ public class OntRules {
     }
 
     /**
-     * The engine that prefers annotation property more than Object and Data properties, since it has has more commonality.
-     * Ignores parsing of range statement for Object and Data Property(P) in favour of Annotation Property(A)
+     * TODO: seems it is wrong. need to remove or change
+     * The engine that prefers annotation property more than Object and Data properties, since it has more commonality.
+     * Ignores parsing of range statement for Object(O) and Data(R) Property in favour of Annotation Property(A)
      * ("P rdfs:range C", "R rdfs:range D" => "A rdfs:range U").
      */
     public static class DefaultRuleEngine extends StrictRuleEngine {
@@ -129,6 +143,7 @@ public class OntRules {
     }
 
     /**
+     * TODO: seems need to fix behaviour.
      * The 'strict' Rule Engine Implementation.
      * <p>
      * Should work correctly and safe with any ontology (OWL1, RDFS, incomplete OWL2) using the "strict" approach:
@@ -1055,10 +1070,11 @@ public class OntRules {
         }
 
         public static boolean isProperty(Model model, Resource candidate) {
-            return model.contains(candidate, RDF.type, RDF.Property)
+            return candidate.isURIResource()
+                    && (model.contains(candidate, RDF.type, RDF.Property)
                     || model.contains(candidate, RDFS.subPropertyOf)
                     || model.contains(candidate, RDFS.range)
-                    || model.contains(candidate, RDFS.domain);
+                    || model.contains(candidate, RDFS.domain));
         }
 
     }

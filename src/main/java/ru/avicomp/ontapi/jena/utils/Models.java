@@ -10,10 +10,12 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
+import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -130,6 +132,60 @@ public class Models {
         init.keySet().forEach(mapping::removeNsPrefix);
         prefixes.forEach((p, u) -> mapping.setNsPrefix(p.replaceAll(":$", ""), u));
         return init;
+    }
+
+    /**
+     * gets 'punnings' for rdf:Property types (owl:AnnotationProperty, owl:DatatypeProperty, owl:ObjectProperty)
+     * it works only with explicit declarations.
+     *
+     * @param m Model
+     * @return Set of resources
+     */
+    public static Set<Resource> getPropertyPunnings(Model m) {
+        Set<Resource> annotationProperties = m.listStatements(null, RDF.type, OWL.AnnotationProperty).mapWith(Statement::getSubject).toSet();
+        Set<Resource> objectProperties = m.listStatements(null, RDF.type, OWL.ObjectProperty).mapWith(Statement::getSubject).toSet();
+        Set<Resource> datatypeProperties = m.listStatements(null, RDF.type, OWL.DatatypeProperty).mapWith(Statement::getSubject).toSet();
+        return unionOfIntersections(annotationProperties, objectProperties, datatypeProperties);
+    }
+
+    /**
+     * gets 'punnings' for rdfs:Class types (owl:Class and rdfs:Datatype)
+     *
+     * @param m Model
+     * @return Set of resources
+     */
+    public static Set<Resource> getClassPunnings(Model m) {
+        Set<Resource> classes = m.listStatements(null, RDF.type, OWL.Class).mapWith(Statement::getSubject).toSet();
+        Set<Resource> datatypes = m.listStatements(null, RDF.type, RDFS.Datatype).mapWith(Statement::getSubject).toSet();
+        return unionOfIntersections(classes, datatypes);
+    }
+
+    /**
+     * gets the set of 'illegal punnings' by their explicit declaration.
+     * It seems the following punnings are consider by OWL-API as illegal:
+     * - owl:Class <-> rdfs:Datatype
+     * - owl:ObjectProperty <-> owl:DatatypeProperty
+     * - owl:ObjectProperty <-> owl:AnnotationProperty
+     * - owl:AnnotationProperty <-> owl:DatatypeProperty
+     *
+     * @param m Model
+     * @return Set of illegal punnings
+     */
+    public static Set<Resource> getIllegalPunnings(Model m) {
+        Set<Resource> res = new HashSet<>(getPropertyPunnings(m));
+        res.addAll(getClassPunnings(m));
+        return res;
+    }
+
+    @SafeVarargs
+    private static <T> Set<T> unionOfIntersections(Collection<T>... collections) {
+        Stream<T> res = Stream.empty();
+        for (int i = 0; i < collections.length; i++) {
+            Set<T> intersection = new HashSet<>(collections[i]);
+            intersection.retainAll(collections[i < collections.length - 1 ? i + 1 : 0]);
+            res = Stream.concat(res, intersection.stream());
+        }
+        return res.collect(Collectors.toSet());
     }
 
     /**

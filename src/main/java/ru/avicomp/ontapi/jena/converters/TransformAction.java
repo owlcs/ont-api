@@ -17,6 +17,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * The base class for any graph-converter.
+ * todo: add configurable logger to record all changes.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class TransformAction {

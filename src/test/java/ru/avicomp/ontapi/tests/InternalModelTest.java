@@ -27,8 +27,10 @@ import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.jena.converters.GraphConverter;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
+import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.utils.Streams;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
@@ -116,10 +118,51 @@ public class InternalModelTest {
 
     @Test
     public void testFoafEntities() {
+        String file = "foaf.rdf";
+        OntFormat format = OntFormat.RDF_XML;
+
+        OntPersonality profile = OntModelConfig.getPersonality();
+        OWLDataFactory factory = OntManagerFactory.getDataFactory();
+
+        OWLOntology owl = loadOWLOntology(file);
+        OntInternalModel jena = loadInternalModel(file, format);
+        debugPrint(jena, owl);
+
+        test(OWLClass.class, jena.classes(), owl.classesInSignature());
+        test(OWLDatatype.class, jena.datatypes(), owl.datatypesInSignature());
+        test(OWLNamedIndividual.class, jena.individuals(), owl.individualsInSignature());
+        test(OWLAnonymousIndividual.class, jena.anonymousIndividuals(), owl.anonymousIndividuals());
+        Set<OWLAnnotationProperty> expectedAnnotationProperties = owl.annotationPropertiesInSignature().collect(Collectors.toSet());
+        Set<OWLDataProperty> expectedDataProperties = owl.dataPropertiesInSignature().collect(Collectors.toSet());
+        Set<OWLObjectProperty> expectedObjectProperties = owl.objectPropertiesInSignature().collect(Collectors.toSet());
+
         // <http://purl.org/dc/terms/creator> is owl:ObjectProperty since it is equivalent to <http://xmlns.com/foaf/0.1/maker>
         // see file <owl:equivalentProperty rdf:resource="http://purl.org/dc/terms/creator"/>
-        // but OWL-API doesn't return it in entities list.
-        testEntities("foaf.rdf", OntFormat.RDF_XML);
+        // but OWL-API doesn't see it in entities list.
+        OWLObjectProperty creator = factory.getOWLObjectProperty(IRI.create("http://purl.org/dc/terms/creator"));
+        expectedObjectProperties.add(creator);
+
+        if (OntModelConfig.ONT_PERSONALITY_STRICT.equals(profile)) { // remove all illegal punnings from OWL-API output:
+            Set<Resource> illegalPunnings = Models.getIllegalPunnings(jena);
+            LOGGER.debug("Illegal punnings inside graph: " + illegalPunnings);
+            Set<OWLAnnotationProperty> illegalAnnotationProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
+                    .filter(r -> r.hasProperty(RDF.type, OWL.AnnotationProperty))
+                    .map(Resource::getURI).map(IRI::create).map(factory::getOWLAnnotationProperty).collect(Collectors.toSet());
+            Set<OWLDataProperty> illegalDataProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
+                    .filter(r -> r.hasProperty(RDF.type, OWL.DatatypeProperty))
+                    .map(Resource::getURI).map(IRI::create).map(factory::getOWLDataProperty).collect(Collectors.toSet());
+            Set<OWLObjectProperty> illegalObjectProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
+                    .filter(r -> r.hasProperty(RDF.type, OWL.ObjectProperty))
+                    .map(Resource::getURI).map(IRI::create).map(factory::getOWLObjectProperty).collect(Collectors.toSet());
+            expectedAnnotationProperties.removeAll(illegalAnnotationProperties);
+            expectedDataProperties.removeAll(illegalDataProperties);
+            expectedObjectProperties.removeAll(illegalObjectProperties);
+        } else if (!OntModelConfig.ONT_PERSONALITY_LAX.equals(profile)) {
+            Assert.fail("Unsupported personality profile " + profile);
+        }
+        test(OWLDataProperty.class, jena.dataProperties(), expectedDataProperties.stream());
+        test(OWLAnnotationProperty.class, jena.annotationProperties(), expectedAnnotationProperties.stream());
+        test(OWLObjectProperty.class, jena.objectProperties(), expectedObjectProperties.stream());
     }
 
     @Test
@@ -143,65 +186,33 @@ public class InternalModelTest {
     private void testEntities(String file, OntFormat format) {
         OWLOntology owl = loadOWLOntology(file);
         OntInternalModel jena = loadInternalModel(file, format);
+        debugPrint(jena, owl);
+        test(OWLClass.class, jena.classes(), owl.classesInSignature());
+        test(OWLDatatype.class, jena.datatypes(), owl.datatypesInSignature());
+        test(OWLNamedIndividual.class, jena.individuals(), owl.individualsInSignature());
+        test(OWLAnonymousIndividual.class, jena.anonymousIndividuals(), owl.anonymousIndividuals());
+        test(OWLAnnotationProperty.class, jena.annotationProperties(), owl.annotationPropertiesInSignature());
+        test(OWLObjectProperty.class, jena.objectProperties(), owl.objectPropertiesInSignature());
+        test(OWLDataProperty.class, jena.dataProperties(), owl.dataPropertiesInSignature());
+    }
 
+    private void debugPrint(OntInternalModel jena, OWLOntology owl) {
         ReadWriteUtils.print(owl);
         LOGGER.debug("==============================");
         ReadWriteUtils.print(jena);
         LOGGER.debug("==============================");
+    }
 
-        // foaf contains wrong properties (both owl:DatatypeProperty and owl:ObjectProperty, example: <http://xmlns.com/foaf/0.1/msnChatID>)
-        Set<Resource> wrong = Streams.asStream(jena.listStatements(null, RDF.type, OWL.ObjectProperty)
-                .filterKeep(statement -> jena.contains(statement.getSubject(), RDF.type, OWL.DatatypeProperty))
-                .mapWith(Statement::getSubject)).distinct().collect(Collectors.toSet());
-        if (!wrong.isEmpty())
-            LOGGER.info("Wrong properties:");
-        wrong.forEach(LOGGER::warn);
-
-
-        LOGGER.info("OWLClass:");
-        Set<OWLClass> classes1 = owl.classesInSignature().collect(Collectors.toSet());
-        Set<OWLClass> classes2 = jena.classes().collect(Collectors.toSet());
-        LOGGER.debug(classes1.size() + " ::: " + classes2.size());
-        Assert.assertThat("Incorrect classes", classes2, IsEqual.equalTo(classes1));
-
-        LOGGER.info("OWLDatatype:");
-        Set<OWLDatatype> datatypes1 = owl.datatypesInSignature().collect(Collectors.toSet());
-        Set<OWLDatatype> datatypes2 = jena.datatypes().collect(Collectors.toSet());
-        LOGGER.debug(datatypes1.size() + " ::: " + datatypes2.size());
-        Assert.assertThat("Incorrect datatypes", datatypes2, IsEqual.equalTo(datatypes1));
-
-        LOGGER.info("OWLNamedIndividual:");
-        Set<OWLNamedIndividual> individuals1 = owl.individualsInSignature().collect(Collectors.toSet());
-        Set<OWLNamedIndividual> individuals2 = jena.individuals().collect(Collectors.toSet());
-        LOGGER.debug(individuals1.size() + " ::: " + individuals2.size());
-        Assert.assertThat("Incorrect named individuals", individuals2, IsEqual.equalTo(individuals1));
-
-        LOGGER.info("OWLAnonymousIndividual:");
-        Set<OWLAnonymousIndividual> anonymous1 = owl.anonymousIndividuals().collect(Collectors.toSet());
-        Set<OWLAnonymousIndividual> anonymous2 = jena.anonymousIndividuals().collect(Collectors.toSet());
-        LOGGER.debug(anonymous1.size() + " ::: " + anonymous2.size());
-        Assert.assertEquals("Incorrect anonymous individuals", anonymous1.size(), anonymous2.size());
-
-        LOGGER.info("OWLAnnotationProperty:");
-        List<OWLAnnotationProperty> expectedAnnotationProperties = owl.annotationPropertiesInSignature().sorted().collect(Collectors.toList());
-        List<OWLAnnotationProperty> actualAnnotationProperties = jena.annotationProperties().sorted().collect(Collectors.toList());
-        LOGGER.debug(expectedAnnotationProperties.size() + " ::: " + actualAnnotationProperties.size());
-        Assert.assertThat("Incorrect annotation properties", actualAnnotationProperties, IsEqual.equalTo(expectedAnnotationProperties));
-
-        LOGGER.info("OWLObjectProperty:");
-        Set<OWLObjectProperty> objectProperties1 = owl.objectPropertiesInSignature().collect(Collectors.toSet());
-        Set<OWLObjectProperty> objectProperties2 = jena.objectProperties().collect(Collectors.toSet());
-        LOGGER.debug(objectProperties1.size() + " ::: " + objectProperties2.size());
-        if ("foaf.rdf".equals(file)) { // WARNING: Wrong behaviour of OWL-API:
-            objectProperties2.removeIf(p -> "http://purl.org/dc/terms/creator".equals(p.getIRI().toString()));
+    private <T extends OWLObject> void test(Class<T> view, Stream<T> ont, Stream<T> owl) {
+        LOGGER.info("Test <" + view.getSimpleName() + ">:");
+        List<T> actual = ont.sorted().collect(Collectors.toList());
+        List<T> expected = owl.sorted().collect(Collectors.toList());
+        LOGGER.debug(expected.size() + "(owl, expected) ::: " + actual.size() + "(ont, actual)");
+        if (OWLAnonymousIndividual.class.equals(view)) {
+            Assert.assertEquals("Incorrect anonymous individuals count ", actual.size(), expected.size());
+        } else {
+            Assert.assertThat("Incorrect " + view.getSimpleName(), actual, IsEqual.equalTo(expected));
         }
-        Assert.assertThat("Incorrect object properties", objectProperties2, IsEqual.equalTo(objectProperties1));
-
-        LOGGER.info("OWLDataProperty:");
-        Set<OWLDataProperty> dataProperties1 = owl.dataPropertiesInSignature().collect(Collectors.toSet());
-        Set<OWLDataProperty> dataProperties2 = jena.dataProperties().collect(Collectors.toSet());
-        LOGGER.debug(dataProperties1.size() + " ::: " + dataProperties2.size());
-        Assert.assertThat("Incorrect data properties", dataProperties2, IsEqual.equalTo(dataProperties1));
     }
 
     private OWLOntology loadOWLOntology(String file) {

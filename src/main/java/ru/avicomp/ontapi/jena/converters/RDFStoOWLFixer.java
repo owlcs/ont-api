@@ -10,8 +10,10 @@ import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 
@@ -21,7 +23,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * TODO: need to change. Use {@link ru.avicomp.ontapi.jena.utils.OntRules}
+ * TODO: need to change. Use {@link OntRules}
  * <p>
  * To perform preliminary fixing: transform the RDFS ontological graph to the OWL ontological graph.
  * After this conversion is completed there would be a valid owl-dl-ontology but maybe with missing declarations and
@@ -45,17 +47,46 @@ public class RDFStoOWLFixer extends TransformAction {
 
     @Override
     public void perform() {
-        // the order is important
-        fixProperties();
-        fixClasses();
+        Model m = getBaseModel(); // TODO: chane it.
+        m.listStatements(null, RDF.type, RDF.Property).mapWith(Statement::getSubject).forEachRemaining(this::declareRDFProperty);
+        m.listStatements(null, RDF.type, RDFS.Class).mapWith(Statement::getSubject).forEachRemaining(this::declareRDFSClass);
+        /*m.listStatements(null, RDF.type, RDF.Property).andThen(m.listStatements(null, RDF.type, RDFS.Class))
+                .mapWith(Statement::getSubject).forEachRemaining(r -> {
+            declareRDFProperty(r);
+            declareRDFSClass(r);
+        });*/
+        /*fixProperties();
+        fixClasses();*/
     }
 
-    @Override
-    public boolean test() {
-        // todo:
-        //return containsType(RDFS.Class) || containsType(RDF.Property);
-        return !containsType(OWL.Class) && !containsType(OWL.AnnotationProperty) && !containsType(OWL.DatatypeProperty) && !containsType(OWL.ObjectProperty) && !containsType(OWL.NamedIndividual);
+    private void declareRDFProperty(Resource resource) {
+        Model m = resource.getModel();
+        if (OntRules.isObjectPropertyExpression(m, resource)) {
+            resource.addProperty(RDF.type, OWL.ObjectProperty);
+        }
+        if (OntRules.isDataProperty(m, resource)) {
+            resource.addProperty(RDF.type, OWL.DatatypeProperty);
+        }
+        if (OntRules.isAnnotationProperty(m, resource)) {
+            resource.addProperty(RDF.type, OWL.AnnotationProperty);
+        }
     }
+
+    private void declareRDFSClass(Resource resource) {
+        Model m = resource.getModel();
+        if (OntRules.isClass(m, resource)) {
+            resource.addProperty(RDF.type, OWL.Class);
+        }
+        if (OntRules.isDatatype(m, resource)) {
+            resource.addProperty(RDF.type, RDFS.Datatype);
+        }
+    }
+
+   /* @Override
+    public boolean test() {
+        return containsType(RDFS.Class) || containsType(RDF.Property);
+        //return !containsType(OWL.Class) && !containsType(OWL.AnnotationProperty) && !containsType(OWL.DatatypeProperty) && !containsType(OWL.ObjectProperty) && !containsType(OWL.NamedIndividual);
+    }*/
 
     private Set<Resource> getPropertyTypes(Node subject) {
         return getPropertyTypes(subject, new HashSet<>());
