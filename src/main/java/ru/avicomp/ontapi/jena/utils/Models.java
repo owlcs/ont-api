@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by szuev on 20.10.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class Models {
     public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (r1, r2) -> NodeUtils.compareRDFTerms(r1.asNode(), r2.asNode());
     public static final Comparator<Statement> STATEMENT_COMPARATOR = Comparator

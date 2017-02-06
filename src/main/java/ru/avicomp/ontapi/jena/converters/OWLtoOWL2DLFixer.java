@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.jena.converters;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -15,6 +14,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -67,10 +67,8 @@ public class OWLtoOWL2DLFixer extends TransformAction {
     private void fixOntology() {
         Model m = getBaseModel();
         // choose or create the new one:
-        Resource ontology = Iter.asStream(m.listStatements(null, RDF.type, OWL.Ontology))
-                .map(Statement::getSubject)
-                .sorted(Comparator.comparing(this::statementsCount).reversed())
-                .findFirst()
+        Resource ontology = Graphs.getOntology(getBaseGraph())
+                .map(m::getRDFNode).map(RDFNode::asResource)
                 .orElse(m.createResource().addProperty(RDF.type, OWL.Ontology));
         // move all content from other ontologies to the selected one
         Stream<Resource> other = Iter.asStream(m.listStatements(null, RDF.type, OWL.Ontology)
