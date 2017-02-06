@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -12,7 +13,6 @@ import org.apache.jena.rdf.model.*;
 
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -124,13 +124,13 @@ public abstract class TransformAction {
 
     protected Stream<Resource> types(RDFNode node, boolean requireURI) {
         return requireURI && !node.isURIResource() ? Stream.empty() :
-                Streams.asStream(node.asResource().listProperties(RDF.type)
+                Iter.asStream(node.asResource().listProperties(RDF.type)
                         .mapWith(Statement::getObject)
                         .filterKeep(RDFNode::isURIResource)
                         .mapWith(RDFNode::asResource));
     }
 
     public static Stream<Statement> statements(Model m, Resource s, Property p, RDFNode o) {
-        return Streams.asStream(m.listStatements(s, p, o));
+        return Iter.asStream(m.listStatements(s, p, o));
     }
 }

@@ -32,6 +32,12 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         return statements(model).map(RDF2OWLHelper.AxiomStatement::new);
     }
 
+    /**
+     * todo: instead Set use something else: Graph, TripleStore...
+     *
+     * @param model {@link OntGraphModel}
+     * @return Map, OWLAxiom as key, Set of {@link Triple} as value
+     */
     public Map<Axiom, Set<Triple>> read(OntGraphModel model) {
         try {
             return axiomStatements(model).collect(Collectors.toMap(c -> create(c.getStatement(), c.getAnnotations()),

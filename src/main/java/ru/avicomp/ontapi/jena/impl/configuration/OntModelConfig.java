@@ -131,7 +131,18 @@ public class OntModelConfig {
             .add(OntSWRL.Imp.class, OntSWRLImpl.impSWRLFactory)
             .add(OntSWRL.class, OntSWRLImpl.abstractSWRLFactory);
 
+    /**
+     * Personality which don't care about the owl-entities "punnings" (no restriction on the type declarations)
+     */
     public static final OntPersonality ONT_PERSONALITY_LAX = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.LAX);
+    /**
+     * Personality with four kinds of restriction on type intersection (i.e. "illegal punnings"):
+     * {@link OntDT}  <-> {@link OntClass}
+     * {@link OntNAP} <-> {@link OntNOP}
+     * {@link OntNOP} <-> {@link OntNDP}
+     * {@link OntNDP} <-> {@link OntNAP}
+     * each of the pairs above can't exist in the corresponding model at the same time for the same node.
+     */
     public static final OntPersonality ONT_PERSONALITY_STRICT = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.STRICT);
 
     private static OntPersonality personality = ONT_PERSONALITY_STRICT;

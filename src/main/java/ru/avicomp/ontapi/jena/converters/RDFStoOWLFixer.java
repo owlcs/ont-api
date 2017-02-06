@@ -23,7 +23,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * TODO: need to change. Use {@link OntRules}
+ * TODO: need to rewrite.
  * <p>
  * To perform preliminary fixing: transform the RDFS ontological graph to the OWL ontological graph.
  * After this conversion is completed there would be a valid owl-dl-ontology but maybe with missing declarations and
@@ -47,7 +47,7 @@ public class RDFStoOWLFixer extends TransformAction {
 
     @Override
     public void perform() {
-        Model m = getBaseModel(); // TODO: chane it.
+        Model m = getBaseModel(); // TODO: change it.
         m.listStatements(null, RDF.type, RDF.Property).mapWith(Statement::getSubject).forEachRemaining(this::declareRDFProperty);
         m.listStatements(null, RDF.type, RDFS.Class).mapWith(Statement::getSubject).forEachRemaining(this::declareRDFSClass);
         /*m.listStatements(null, RDF.type, RDF.Property).andThen(m.listStatements(null, RDF.type, RDFS.Class))
@@ -82,11 +82,19 @@ public class RDFStoOWLFixer extends TransformAction {
         }
     }
 
-   /* @Override
+    @Override
     public boolean test() {
+        return isRDFS() && !isOWL();
+    }
+
+    private boolean isRDFS() {
         return containsType(RDFS.Class) || containsType(RDF.Property);
-        //return !containsType(OWL.Class) && !containsType(OWL.AnnotationProperty) && !containsType(OWL.DatatypeProperty) && !containsType(OWL.ObjectProperty) && !containsType(OWL.NamedIndividual);
-    }*/
+    }
+
+    private boolean isOWL() {
+        return containsType(OWL.Class) || containsType(OWL.NamedIndividual)
+                || containsType(OWL.AnnotationProperty) || containsType(OWL.DatatypeProperty) || containsType(OWL.ObjectProperty);
+    }
 
     private Set<Resource> getPropertyTypes(Node subject) {
         return getPropertyTypes(subject, new HashSet<>());

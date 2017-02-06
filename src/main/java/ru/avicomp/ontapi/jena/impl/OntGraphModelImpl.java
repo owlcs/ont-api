@@ -8,6 +8,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -24,7 +25,6 @@ import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -68,7 +68,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntID getID() {
-        List<Resource> res = ontologyStatements().collect(Collectors.toList());
+        List<Resource> res = ontologies().collect(Collectors.toList());
         if (res.size() != 1) {
             throw new OntJenaException(res.isEmpty() ? "No ontologies found" : "There is more then one ontologies inside: " + res);
         }
@@ -77,8 +77,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntID setID(String uri) {
-        List<Statement> prev = ontologyStatements()
-                .map(s -> Streams.asStream(s.listProperties())).
+        List<Statement> prev = ontologies()
+                .map(s -> Iter.asStream(s.listProperties())).
                         flatMap(Function.identity()).collect(Collectors.toList());
         if (prev.stream()
                 .filter(s -> OWL.imports.equals(s.getPredicate()))
@@ -94,8 +94,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return getNodeAs(res.asNode(), OntID.class);
     }
 
-    private Stream<Resource> ontologyStatements() {
-        return Streams.asStream(getBaseModel().listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject));
+    private Stream<Resource> ontologies() {
+        return Iter.asStream(getBaseModel().listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject)).distinct();
     }
 
     @Override
@@ -248,7 +248,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public Stream<OntStatement> statements() {
-        return Streams.asStream(listStatements()).map(s -> toOntStatement(null, s));
+        return Iter.asStream(listStatements()).map(s -> toOntStatement(null, s));
     }
 
     protected OntStatement toOntStatement(OntStatement main, Statement st) {

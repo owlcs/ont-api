@@ -193,15 +193,13 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         }
     }
 
-    private static Lang guessLang(OWLOntologyDocumentSource source) {
-        if (OntApiException.notNull(source, "Null document source.").getMIMEType().isPresent()) {
-            return RDFLanguages.contentTypeToLang(source.getMIMEType().get());
-        }
-        return RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
-    }
-
     public static OntFormat guessFormat(OWLOntologyDocumentSource source) {
-        Lang lang = guessLang(source);
+        Lang lang;
+        if (OntApiException.notNull(source, "Null document source.").getMIMEType().isPresent()) {
+            lang = RDFLanguages.contentTypeToLang(source.getMIMEType().get());
+        } else {
+            lang = RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
+        }
         return lang == null ? null : OntFormat.get(lang);
     }
 

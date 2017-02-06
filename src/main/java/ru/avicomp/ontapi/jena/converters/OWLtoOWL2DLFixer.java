@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -14,7 +15,6 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -67,17 +67,17 @@ public class OWLtoOWL2DLFixer extends TransformAction {
     private void fixOntology() {
         Model m = getBaseModel();
         // choose or create the new one:
-        Resource ontology = Streams.asStream(m.listStatements(null, RDF.type, OWL.Ontology))
+        Resource ontology = Iter.asStream(m.listStatements(null, RDF.type, OWL.Ontology))
                 .map(Statement::getSubject)
                 .sorted(Comparator.comparing(this::statementsCount).reversed())
                 .findFirst()
                 .orElse(m.createResource().addProperty(RDF.type, OWL.Ontology));
         // move all content from other ontologies to the selected one
-        Stream<Resource> other = Streams.asStream(m.listStatements(null, RDF.type, OWL.Ontology)
+        Stream<Resource> other = Iter.asStream(m.listStatements(null, RDF.type, OWL.Ontology)
                 .mapWith(Statement::getSubject)
                 .filterDrop(ontology::equals));
         List<Statement> rest = other
-                .map(o -> Streams.asStream(m.listStatements(o, null, (RDFNode) null)))
+                .map(o -> Iter.asStream(m.listStatements(o, null, (RDFNode) null)))
                 .flatMap(Function.identity()).collect(Collectors.toList());
         rest.forEach(s -> ontology.addProperty(s.getPredicate(), s.getObject()));
         // remove all other ontologies
@@ -113,7 +113,7 @@ public class OWLtoOWL2DLFixer extends TransformAction {
     }
 
     private Integer statementsCount(Resource subject) {
-        return (int) Streams.asStream(subject.listProperties()).count();
+        return (int) Iter.asStream(subject.listProperties()).count();
     }
 
 /*    @Override

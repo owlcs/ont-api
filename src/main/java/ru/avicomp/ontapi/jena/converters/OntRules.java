@@ -8,13 +8,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -984,7 +984,7 @@ public class OntRules {
         }
 
         public static Stream<Statement> statements(Model m, Resource s, Property p, RDFNode o) {
-            return Streams.asStream(m.listStatements(s, p, o));
+            return Iter.asStream(m.listStatements(s, p, o));
         }
 
         public static Stream<Resource> objects(Model model, Resource subject, Property predicate) {

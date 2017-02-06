@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
@@ -16,7 +17,6 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -106,7 +106,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public Stream<OntStatement> statements() {
         OntStatement main = getRoot();
-        return Streams.asStream(listProperties()).map(s -> getModel().toOntStatement(main, s));
+        return Iter.asStream(listProperties()).map(s -> getModel().toOntStatement(main, s));
     }
 
     @Override
@@ -123,7 +123,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Distinct Stream of RDFNode
      */
     public Stream<RDFNode> rdfList(Property property) {
-        return Streams.asStream(listProperties(property)
+        return Iter.asStream(listProperties(property)
                 .mapWith(Statement::getObject)
                 .filterKeep(n -> n.canAs(RDFList.class))
                 .mapWith(n -> n.as(RDFList.class)))
@@ -149,7 +149,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     public Stream<RDFNode> objects(Property predicate) {
-        return Streams.asStream(listProperties(predicate).mapWith(Statement::getObject));
+        return Iter.asStream(listProperties(predicate).mapWith(Statement::getObject));
     }
 
     public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view) {

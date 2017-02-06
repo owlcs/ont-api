@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.jena.impl;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -14,7 +15,6 @@ import org.apache.jena.util.iterator.UniqueFilter;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -108,14 +108,14 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return Stream of annotation statement, in the example above the output will contain three statements (two labels and one comment).
      */
     public static Stream<OntStatement> children(Resource root, OntGraphModel model) {
-        return Streams.asStream(root.listProperties()
+        return Iter.asStream(root.listProperties()
                 .filterDrop(s -> RDF.type.equals(s.getPredicate()))
                 .filterDrop(s -> OWL.annotatedSource.equals(s.getPredicate()))
                 .filterDrop(s -> OWL.annotatedProperty.equals(s.getPredicate()))
                 .filterDrop(s -> OWL.annotatedTarget.equals(s.getPredicate()))
                 .filterKeep(s -> s.getPredicate().canAs(OntNAP.class))
                 .mapWith(s -> new CommonAnnotationImpl(s.getSubject(), s.getPredicate().as(OntNAP.class), s.getObject(), model))
-                .mapWith(OntStatement.class::cast)).distinct();
+                .mapWith(OntStatement.class::cast));
     }
 
     /**
@@ -228,7 +228,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
         @Override
         public Stream<OntStatement> annotations() {
-            Stream<OntStatement> res = Streams.asStream(getModel()
+            Stream<OntStatement> res = Iter.asStream(getModel()
                     .listStatements(getSubject(), null, (RDFNode) null))
                     .filter(s -> s.getPredicate().canAs(OntNAP.class))
                     .map(s -> toAnnotation(s.getPredicate().as(OntNAP.class), s.getObject()));

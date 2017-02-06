@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -17,7 +18,6 @@ import org.apache.jena.rdf.model.impl.RDFListImpl;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Streams;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -86,7 +86,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
 
     private static Stream<Node> listRoots(Node node, Graph graph, Property... predicates) {
         return Stream.of(predicates)
-                .map(predicate -> Streams.asStream(graph.find(node, predicate.asNode(), Node.ANY).mapWith(Triple::getObject)))
+                .map(predicate -> Iter.asStream(graph.find(node, predicate.asNode(), Node.ANY).mapWith(Triple::getObject)))
                 .flatMap(Function.identity());
     }
 
