@@ -9,6 +9,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.graph.compose.Union;
 import org.apache.jena.graph.impl.SimpleEventManager;
+import org.apache.jena.shared.PrefixMapping;
 
 /**
  * Union Graph.
@@ -49,6 +50,11 @@ public class UnionGraph extends Union {
     public OntEventManager getEventManager() {
         if (gem == null) gem = new OntEventManager();
         return (OntEventManager) gem;
+    }
+
+    @Override
+    public PrefixMapping getPrefixMapping() {
+        return L.getPrefixMapping();
     }
 
     public void addGraph(Graph graph) {
