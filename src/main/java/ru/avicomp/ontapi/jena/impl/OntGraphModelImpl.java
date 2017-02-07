@@ -236,7 +236,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         try {
             return createOntObject(type, uri);
         } catch (OntJenaException.Creation e) { // illegal punning:
-            throw new OntJenaException(String.format("Can't add entity [%s: %s]", type.getSimpleName(), uri), e);
+            throw new OntJenaException(String.format("Can't add entity [%s: %s]: perhaps it's illegal punning.", type.getSimpleName(), uri), e);
         }
     }
 
