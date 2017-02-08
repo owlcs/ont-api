@@ -70,7 +70,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     public OntID getID() {
         List<Resource> res = ontologies().collect(Collectors.toList());
         if (res.size() != 1) {
-            throw new OntJenaException(res.isEmpty() ? "No ontologies found" : "There is more then one ontologies inside: " + res);
+            throw new OntJenaException(res.isEmpty() ? ("No ontologies found: " + getBaseGraph()) : ("There is more then one ontologies inside: " + res));
         }
         return getNodeAs(res.get(0).asNode(), OntID.class);
     }

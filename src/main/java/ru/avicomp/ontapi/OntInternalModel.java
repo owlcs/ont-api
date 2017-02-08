@@ -12,9 +12,11 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
@@ -25,7 +27,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 /**
  * New strategy here. Buffer RDF-OWL model.
  * The analogy of {@link uk.ac.manchester.cs.owl.owlapi.Internals}
- * This is {@link OntGraphModel} but with methods to work with the axioms and entities.
+ * This is a serializable {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities.
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
  * it is used to read and write structural info by {@link ru.avicomp.ontapi.OntologyModel}.
  * <p>
@@ -35,14 +37,15 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     private OWLOntologyID anonOntologyID;
 
-    private static final String DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT.getID();
-
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
     private transient Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomsCache = new HashMap<>();
-    // objects store to improve performance (contains both ONT and OWL objects),
+    // OWL objects store to improve performance
     // any change in the graph resets this cache.
-    private transient Map<Class<?>, Set<?>> objectsCache = new HashMap<>();
+    private transient Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsCache = new HashMap<>();
+    // jena objects store to improve performance (contains OntObject and OntStatement),
+    // any change in the graph resets this cache.
+    private transient Map<Class<?>, Set<?>> jenaObjectsCache = new HashMap<>();
 
     public OntInternalModel(Graph base) {
         super(base);
@@ -52,13 +55,13 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     @SuppressWarnings("unchecked")
     @Override
     public <O extends OntObject> Stream<O> ontObjects(Class<O> type) {
-        return (Stream<O>) objectsCache.computeIfAbsent(type, c -> OntInternalModel.super.ontObjects(type).collect(Collectors.toSet())).stream();
+        return (Stream<O>) jenaObjectsCache.computeIfAbsent(type, c -> OntInternalModel.super.ontObjects(type).collect(Collectors.toSet())).stream();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Stream<OntStatement> statements() {
-        return (Stream<OntStatement>) objectsCache.computeIfAbsent(OntStatement.class, c -> OntInternalModel.super.statements().collect(Collectors.toSet())).stream();
+        return (Stream<OntStatement>) jenaObjectsCache.computeIfAbsent(OntStatement.class, c -> OntInternalModel.super.statements().collect(Collectors.toSet())).stream();
     }
 
     public OWLOntologyID getOwlID() {
@@ -158,7 +161,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     @SuppressWarnings("unchecked")
     public <E extends OWLObject> Stream<E> objects(Class<E> view) {
-        return (Stream<E>) objectsCache.computeIfAbsent(view, c ->
+        return (Stream<E>) owlObjectsCache.computeIfAbsent(view, c ->
                 Stream.concat(annotations().map(annotation -> OwlObjects.objects(view, annotation)).flatMap(Function.identity()),
                         axioms().map(axiom -> OwlObjects.objects(view, axiom)).flatMap(Function.identity())).collect(Collectors.toSet())).stream();
     }
@@ -197,10 +200,6 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     public Set<OWLAxiom> getAxioms() {
         return axioms().collect(Collectors.toSet());
-    }
-
-    public Set<OWLAxiom> getAxioms(Set<AxiomType<? extends OWLAxiom>> types) {
-        return axioms(types).collect(Collectors.toSet());
     }
 
     public Stream<OWLAxiom> axioms() {
@@ -346,28 +345,60 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     public void clearCache() {
         axiomsCache.clear();
-        objectsCache.clear();
+        owlObjectsCache.clear();
     }
 
     public void resetCache() {
-        objectsCache = new HashMap<>();
+        owlObjectsCache = new HashMap<>();
         axiomsCache = new HashMap<>();
+        jenaObjectsCache = new HashMap<>();
     }
 
     public void clearCache(Triple triple) {
         getAxiomTypes(triple).forEach(axiomsCache::remove);
-        objectsCache.clear();
+        owlObjectsCache.clear();
     }
 
-    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        stream.defaultReadObject(); // todo: handle situation when there are imported sub-graphs
-        read(stream, null, DEFAULT_SERIALIZATION_FORMAT);
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject(); // todo: move it to the OntBaseModelImpl since it has manager to create graphs.
+        this.graph = ((SerializableGraphWrapper) in.readObject()).graph;
         resetCache();
     }
 
-    private void writeObject(ObjectOutputStream stream) throws IOException {
-        stream.defaultWriteObject(); // todo: handle situation when there are imported sub-graphs
-        write(stream, DEFAULT_SERIALIZATION_FORMAT, null);
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeObject(new SerializableGraphWrapper(getGraph()));
+    }
+
+    private static class SerializableGraphWrapper implements Serializable {
+        private static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT; // binary format
+        private static final long serialVersionUID = -1L;
+        private transient UnionGraph graph;
+
+        private SerializableGraphWrapper(UnionGraph graph) {
+            this.graph = graph;
+        }
+
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+            this.graph = new UnionGraph(org.apache.jena.graph.Factory.createGraphMem());
+            RDFDataMgr.read(this.graph, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
+            List<?> list = (List<?>) in.readObject();
+            if (list.isEmpty()) return;
+            ((List<?>) list).stream()
+                    .map(SerializableGraphWrapper.class::cast).map(g -> g.graph)
+                    .forEach(this.graph::addGraph);
+        }
+
+        private void writeObject(ObjectOutputStream out) throws IOException {
+            out.defaultWriteObject();
+            Graph base = graph.getBaseGraph();
+            List<SerializableGraphWrapper> list = graph.getUnderlying().graphs()
+                    .map(UnionGraph.class::cast)
+                    .map(SerializableGraphWrapper::new).collect(Collectors.toList());
+            RDFDataMgr.write(out, base, DEFAULT_SERIALIZATION_FORMAT.getLang());
+            out.writeObject(list);
+        }
     }
 
     public class TripleStore<O extends OWLObject> {
@@ -447,7 +478,6 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public class DirectListener extends GraphListenerBase {
-
         private boolean hasObjectListener() {
             return getGraph().getEventManager().hasListeners(OwlObjectListener.class);
         }
@@ -460,6 +490,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
          */
         @Override
         protected void addEvent(Triple t) {
+            jenaObjectsCache.clear();
             if (hasObjectListener()) return;
             // we don't know which axiom would own this triple, so we clear whole cache.
             clearCache();
@@ -467,6 +498,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
         @Override
         protected void deleteEvent(Triple t) {
+            jenaObjectsCache.clear();
             if (hasObjectListener()) return;
             clearCache(t);
         }

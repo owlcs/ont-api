@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Stream;
 
@@ -34,6 +35,10 @@ public class Graphs {
     public static Graph getBase(Graph graph) {
         return graph instanceof UnionGraph ? ((UnionGraph) graph).getBaseGraph() :
                 graph instanceof Polyadic ? ((Polyadic) graph).getBaseGraph() : graph;
+    }
+
+    public static Stream<Graph> flat(Graph graph) {
+        return Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).map(Graphs::flat).flatMap(Function.identity()));
     }
 
     /**
