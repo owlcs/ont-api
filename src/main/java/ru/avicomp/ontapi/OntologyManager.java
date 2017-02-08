@@ -3,6 +3,7 @@ package ru.avicomp.ontapi;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
@@ -10,8 +11,6 @@ import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 
 /**
  * Ontology manager.
@@ -57,21 +56,27 @@ public interface OntologyManager extends OWLOntologyManager {
         return createOntology(new OWLOntologyID());
     }
 
-    default OntologyModel createOntology(IRI iri) {
-        return createOntology(new OWLOntologyID(optional(iri), emptyOptional(IRI.class)));
+    default OntologyModel createOntology(@Nullable IRI iri) {
+        return createOntology(new OWLOntologyID(iri));
     }
 
-    default OntGraphModel loadGraphModel(@Nonnull String source) throws OWLOntologyCreationException {
-        return loadOntology(IRI.create(source)).asGraphModel();
-    }
-
-    default OntGraphModel getGraphModel(@Nullable String uri) {
-        OntologyModel res = getOntology(uri == null ? null : IRI.create(uri));
+    default OntGraphModel getGraphModel(@Nullable String uri, @Nullable String version) {
+        OWLOntologyID id = new OWLOntologyID(Optional.ofNullable(uri).map(IRI::create), Optional.ofNullable(version).map(IRI::create));
+        OntologyModel res = getOntology(id);
         return res == null ? null : res.asGraphModel();
     }
 
+    default OntGraphModel getGraphModel(@Nullable String uri) {
+        return getGraphModel(uri, null);
+    }
+
+    default OntGraphModel createGraphModel(@Nullable String uri, @Nullable String version) {
+        OWLOntologyID id = new OWLOntologyID(Optional.ofNullable(uri).map(IRI::create), Optional.ofNullable(version).map(IRI::create));
+        return createOntology(id).asGraphModel();
+    }
+
     default OntGraphModel createGraphModel(@Nullable String uri) {
-        return createOntology(uri == null ? null : IRI.create(uri)).asGraphModel();
+        return createGraphModel(uri, null);
     }
 
     default Stream<OntGraphModel> models() {

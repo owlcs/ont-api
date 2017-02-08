@@ -1,14 +1,12 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.IsAnonymous;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLNaryAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -31,15 +29,19 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>, OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AbstractNaryTranslator<Axiom, OWL, ONT> {
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        long count = axiom.operands().count();
-        if (count == 2) { // single triple classic way
-            write(axiom, axiom.annotations().collect(Collectors.toSet()), model);
+        Set<OWL> operands = axiom.operands().collect(Collectors.toSet());
+        Set<OWLAnnotation> annotations = axiom.annotations().collect(Collectors.toSet());
+        if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip
+            return;
+        }
+        if (operands.size() == 2) { // single triple classic way
+            write(axiom, annotations, model);
         } else { // OWL2 anonymous node
             Resource root = model.createResource();
             model.add(root, RDF.type, getMembersType());
-            model.add(root, getMembersPredicate(), OWL2RDFHelper.addRDFList(model, axiom.operands()));
+            model.add(root, getMembersPredicate(), OWL2RDFHelper.addRDFList(model, operands.stream()));
             OntDisjoint<ONT> res = root.as(getDisjointView());
-            OWL2RDFHelper.addAnnotations(res, axiom.annotations());
+            OWL2RDFHelper.addAnnotations(res, annotations.stream());
         }
     }
 

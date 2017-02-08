@@ -260,22 +260,22 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public Stream<OWLClassAxiom> axioms(@Nonnull OWLClass clazz) {
-        return base.classAxioms().filter(a -> OntInternalModel.objects(OWLClass.class, a).anyMatch(clazz::equals));
+        return base.classAxioms().filter(a -> OwlObjects.objects(OWLClass.class, a).anyMatch(clazz::equals));
     }
 
     @Override
     public Stream<OWLObjectPropertyAxiom> axioms(@Nonnull OWLObjectPropertyExpression property) {
-        return base.objectPropertyAxioms().filter(a -> OntInternalModel.objects(OWLObjectPropertyExpression.class, a).anyMatch(property::equals));
+        return base.objectPropertyAxioms().filter(a -> OwlObjects.objects(OWLObjectPropertyExpression.class, a).anyMatch(property::equals));
     }
 
     @Override
     public Stream<OWLDataPropertyAxiom> axioms(@Nonnull OWLDataProperty property) {
-        return base.dataPropertyAxioms().filter(a -> OntInternalModel.objects(OWLDataProperty.class, a).anyMatch(property::equals));
+        return base.dataPropertyAxioms().filter(a -> OwlObjects.objects(OWLDataProperty.class, a).anyMatch(property::equals));
     }
 
     @Override
     public Stream<OWLIndividualAxiom> axioms(@Nonnull OWLIndividual individual) {
-        return base.individualAxioms().filter(a -> OntInternalModel.objects(OWLIndividual.class, a).anyMatch(individual::equals));
+        return base.individualAxioms().filter(a -> OwlObjects.objects(OWLIndividual.class, a).anyMatch(individual::equals));
     }
 
     @Override
@@ -338,7 +338,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         if (OWLIndividualAxiom.class.equals(type) && OWLIndividual.class.isInstance(object)) {
             return (Stream<A>) axioms((OWLIndividual) object);
         }
-        return base.axioms(type).filter(a -> OntInternalModel.objects(object.getClass(), a).anyMatch(object::equals));
+        return base.axioms(type).filter(a -> OwlObjects.objects(object.getClass(), a).anyMatch(object::equals));
     }
 
     @Override
@@ -383,7 +383,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public Stream<OWLAxiom> referencingAxioms(@Nonnull OWLPrimitive primitive) {
-        return axioms().filter(a -> OntInternalModel.objects(OWLPrimitive.class, a).anyMatch(primitive::equals));
+        return axioms().filter(a -> OwlObjects.objects(OWLPrimitive.class, a).anyMatch(primitive::equals));
     }
 
     @Override

@@ -24,6 +24,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
  * New strategy here. Buffer RDF-OWL model.
+ * The analogy of {@link uk.ac.manchester.cs.owl.owlapi.Internals}
  * This is {@link OntGraphModel} but with methods to work with the axioms and entities.
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
  * it is used to read and write structural info by {@link ru.avicomp.ontapi.OntologyModel}.
@@ -34,11 +35,13 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     private OWLOntologyID anonOntologyID;
 
-    private static final String DEFAULT_SERIALIZATION_FORMAT = OntFormat.TURTLE.getID();
+    private static final String DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT.getID();
 
-    // axioms store
+    // axioms store.
+    // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
     private transient Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomsCache = new HashMap<>();
-    // "cache" to improve performance:
+    // objects store to improve performance (contains both ONT and OWL objects),
+    // any change in the graph resets this cache.
     private transient Map<Class<?>, Set<?>> objectsCache = new HashMap<>();
 
     public OntInternalModel(Graph base) {
@@ -153,46 +156,11 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
                 .filter(view -> e.canAs(view) && (withImports || e.as(view).isLocal())).count() > 1);
     }
 
-    public static <T extends OWLObject> Stream<T> parseComponents(Class<T> view, HasComponents structure) {
-        return structure.componentsWithoutAnnotations().map(o -> toStream(view, o)).flatMap(Function.identity());
-    }
-
-    public static <T extends OWLObject> Stream<T> parseAnnotations(Class<T> view, HasAnnotations structure) {
-        return structure.annotations().map(o -> toStream(view, o)).flatMap(Function.identity());
-    }
-
-    public static <R extends OWLObject, S extends HasAnnotations & HasComponents> Stream<R> objects(Class<R> view, S container) {
-        return Stream.concat(parseComponents(view, container), parseAnnotations(view, container));
-    }
-
-    private static <T extends OWLObject> Stream<T> toStream(Class<T> view, Object o) {
-        if (view.isInstance(o)) {
-            return Stream.of(view.cast(o));
-        }
-        if (o instanceof HasComponents) {
-            return parseComponents(view, (HasComponents) o);
-        }
-        if (o instanceof HasAnnotations) {
-            return parseAnnotations(view, (HasAnnotations) o);
-        }
-        Stream<?> stream = null;
-        if (o instanceof Stream) {
-            stream = ((Stream<?>) o);
-        }
-        if (o instanceof Collection) {
-            stream = ((Collection<?>) o).stream();
-        }
-        if (stream != null) {
-            return stream.map(_o -> toStream(view, _o)).flatMap(Function.identity());
-        }
-        return Stream.empty();
-    }
-
     @SuppressWarnings("unchecked")
     public <E extends OWLObject> Stream<E> objects(Class<E> view) {
         return (Stream<E>) objectsCache.computeIfAbsent(view, c ->
-                Stream.concat(annotations().map(annotation -> objects(view, annotation)).flatMap(Function.identity()),
-                        axioms().map(axiom -> objects(view, axiom)).flatMap(Function.identity())).collect(Collectors.toSet())).stream();
+                Stream.concat(annotations().map(annotation -> OwlObjects.objects(view, annotation)).flatMap(Function.identity()),
+                        axioms().map(axiom -> OwlObjects.objects(view, axiom)).flatMap(Function.identity())).collect(Collectors.toSet())).stream();
     }
 
     public void add(OWLAnnotation annotation) {
@@ -242,8 +210,8 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
         return //StreamSupport.stream(types.spliterator(), axiomsCache.isEmpty())
                 types.stream()
-                .map(this::getAxioms)
-                .map(Collection::stream).flatMap(Function.identity());
+                        .map(this::getAxioms)
+                        .map(Collection::stream).flatMap(Function.identity());
     }
 
     public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
@@ -319,7 +287,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public <A extends OWLAxiom> void add(A axiom) {
-        ObjectListener<OWLAxiom> listener = getAxiomTripleStore(axiom.getAxiomType()).createListener(axiom);
+        OwlObjectListener<OWLAxiom> listener = getAxiomTripleStore(axiom.getAxiomType()).createListener(axiom);
         try {
             getGraph().getEventManager().register(listener);
             AxiomParserProvider.get(axiom.getAxiomType()).write(axiom, this);
@@ -453,16 +421,16 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
             return cache.keySet();
         }
 
-        public ObjectListener<O> createListener(O obj) {
-            return new ObjectListener<>(this, obj);
+        public OwlObjectListener<O> createListener(O obj) {
+            return new OwlObjectListener<>(this, obj);
         }
     }
 
-    public class ObjectListener<O extends OWLObject> extends GraphListenerBase {
+    public class OwlObjectListener<O extends OWLObject> extends GraphListenerBase {
         private final TripleStore<O> store;
         private final O object;
 
-        public ObjectListener(TripleStore<O> store, O object) {
+        public OwlObjectListener(TripleStore<O> store, O object) {
             this.store = store;
             this.object = object;
         }
@@ -480,20 +448,26 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     public class DirectListener extends GraphListenerBase {
 
-        private boolean can() {
-            return !getGraph().getEventManager().hasListeners(ObjectListener.class);
+        private boolean hasObjectListener() {
+            return getGraph().getEventManager().hasListeners(OwlObjectListener.class);
         }
 
+        /**
+         * if at the moment there is an {@link OwlObjectListener} then it's called from {@link OntInternalModel#add(OWLAxiom)} => don't clear cache;
+         * otherwise it is direct call and cache must be reset to have correct list of axioms.
+         *
+         * @param t {@link Triple}
+         */
         @Override
         protected void addEvent(Triple t) {
-            if (!can()) return;
+            if (hasObjectListener()) return;
             // we don't know which axiom would own this triple, so we clear whole cache.
             clearCache();
         }
 
         @Override
         protected void deleteEvent(Triple t) {
-            if (!can()) return;
+            if (hasObjectListener()) return;
             clearCache(t);
         }
     }
