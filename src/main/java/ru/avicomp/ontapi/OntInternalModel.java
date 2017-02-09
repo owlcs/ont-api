@@ -1,9 +1,5 @@
 package ru.avicomp.ontapi;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -12,11 +8,9 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
@@ -27,25 +21,25 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 /**
  * New strategy here. Buffer RDF-OWL model.
  * The analogy of {@link uk.ac.manchester.cs.owl.owlapi.Internals}
- * This is a serializable {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities.
+ * This is a nonserializable(!) {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities.
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
  * it is used to read and write structural info by {@link ru.avicomp.ontapi.OntologyModel}.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
-public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel, Serializable {
+public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     private OWLOntologyID anonOntologyID;
 
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
-    private transient Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomsCache = new HashMap<>();
+    private Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomsCache = new HashMap<>();
     // OWL objects store to improve performance
     // any change in the graph resets this cache.
-    private transient Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsCache = new HashMap<>();
+    private Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsCache = new HashMap<>();
     // jena objects store to improve performance (contains OntObject and OntStatement),
     // any change in the graph resets this cache.
-    private transient Map<Class<?>, Set<?>> jenaObjectsCache = new HashMap<>();
+    private Map<Class<?>, Set<?>> jenaObjectsCache = new HashMap<>();
 
     public OntInternalModel(Graph base) {
         super(base);
@@ -348,57 +342,9 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         owlObjectsCache.clear();
     }
 
-    public void resetCache() {
-        owlObjectsCache = new HashMap<>();
-        axiomsCache = new HashMap<>();
-        jenaObjectsCache = new HashMap<>();
-    }
-
     public void clearCache(Triple triple) {
         getAxiomTypes(triple).forEach(axiomsCache::remove);
         owlObjectsCache.clear();
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject(); // todo: move it to the OntBaseModelImpl since it has manager to create graphs.
-        this.graph = ((SerializableGraphWrapper) in.readObject()).graph;
-        resetCache();
-    }
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeObject(new SerializableGraphWrapper(getGraph()));
-    }
-
-    private static class SerializableGraphWrapper implements Serializable {
-        private static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT; // binary format
-        private static final long serialVersionUID = -1L;
-        private transient UnionGraph graph;
-
-        private SerializableGraphWrapper(UnionGraph graph) {
-            this.graph = graph;
-        }
-
-        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-            in.defaultReadObject();
-            this.graph = new UnionGraph(org.apache.jena.graph.Factory.createGraphMem());
-            RDFDataMgr.read(this.graph, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
-            List<?> list = (List<?>) in.readObject();
-            if (list.isEmpty()) return;
-            ((List<?>) list).stream()
-                    .map(SerializableGraphWrapper.class::cast).map(g -> g.graph)
-                    .forEach(this.graph::addGraph);
-        }
-
-        private void writeObject(ObjectOutputStream out) throws IOException {
-            out.defaultWriteObject();
-            Graph base = graph.getBaseGraph();
-            List<SerializableGraphWrapper> list = graph.getUnderlying().graphs()
-                    .map(UnionGraph.class::cast)
-                    .map(SerializableGraphWrapper::new).collect(Collectors.toList());
-            RDFDataMgr.write(out, base, DEFAULT_SERIALIZATION_FORMAT.getLang());
-            out.writeObject(list);
-        }
     }
 
     public class TripleStore<O extends OWLObject> {

@@ -2,6 +2,9 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
@@ -9,7 +12,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.riot.RDFDataMgr;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -28,19 +33,24 @@ import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
  * Created by @szuev on 03.12.2016.
  */
 public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
+    // binary format to provide serialization:
+    private static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
 
-    protected final OntInternalModel base;
-    protected OWLOntologyManager manager;
+    protected transient OntInternalModel base;
+    protected OntologyManager manager;
+    // reference to graph factory from manager.
+    // it is required by the serialization mechanism.
+    private OntologyManager.GraphFactory graphFactory;
 
     public OntBaseModelImpl(OntologyManager manager, OWLOntologyID ontologyID) {
         OntApiException.notNull(ontologyID, "Null OWL-ID.");
-        this.manager = OntApiException.notNull(manager, "Null manager.");
+        setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
         this.base = new OntInternalModel(manager.getGraphFactory().create());
         base.setOwlID(ontologyID);
     }
 
     public OntBaseModelImpl(OntologyManager manager, OntInternalModel base) {
-        this.manager = OntApiException.notNull(manager, "Null manager.");
+        setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
         this.base = OntApiException.notNull(base, "Null internal model.");
     }
 
@@ -60,13 +70,14 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     }
 
     @Override
-    public OWLOntologyManager getOWLOntologyManager() {
+    public OntologyManager getOWLOntologyManager() {
         return manager;
     }
 
     @Override
     public void setOWLOntologyManager(OWLOntologyManager manager) {
-        this.manager = manager; // could be null when OWLOntologyManager.clearOntologies
+        this.manager = (OntologyManager) manager; // could be null when OWLOntologyManager.clearOntologies
+        this.graphFactory = manager == null ? null : this.manager.getGraphFactory();
     }
 
     public OntInternalModel getBase() {
@@ -463,4 +474,25 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         return imports.stream(this).anyMatch(o -> o.contains(filter, key));
     }
 
+    /**
+     * ======================
+     * Serialization methods:
+     * ======================
+     */
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        Graph empty = graphFactory.create();
+        RDFDataMgr.read(empty, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
+        OWLOntologyID id = (OWLOntologyID) in.readObject();
+        this.base = new OntInternalModel(empty);
+        this.base.setOwlID(id);
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject(); // serialize only base graph (it will be wrapped as UnionGraph):
+        RDFDataMgr.write(out, base.getBaseGraph(), DEFAULT_SERIALIZATION_FORMAT.getLang());
+        // serialize OWLOntologyID to have the same anon id after serialization.
+        out.writeObject(base.getOwlID());
+    }
 }

@@ -12,6 +12,7 @@ import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -29,12 +30,14 @@ public class Graphs {
 
     public static Stream<Graph> subGraphs(Graph graph) {
         return graph instanceof UnionGraph ? ((UnionGraph) graph).getUnderlying().graphs() :
-                graph instanceof Polyadic ? ((Polyadic) graph).getSubGraphs().stream() : Stream.empty();
+                graph instanceof Polyadic ? ((Polyadic) graph).getSubGraphs().stream() :
+                        graph instanceof Dyadic ? Stream.of((Graph) ((Dyadic) graph).getR()) : Stream.empty();
     }
 
     public static Graph getBase(Graph graph) {
         return graph instanceof UnionGraph ? ((UnionGraph) graph).getBaseGraph() :
-                graph instanceof Polyadic ? ((Polyadic) graph).getBaseGraph() : graph;
+                graph instanceof Polyadic ? ((Polyadic) graph).getBaseGraph() :
+                        graph instanceof Dyadic ? (Graph) ((Dyadic) graph).getL() : graph;
     }
 
     public static Stream<Graph> flat(Graph graph) {

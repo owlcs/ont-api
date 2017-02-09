@@ -2,18 +2,14 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Factory;
@@ -27,6 +23,9 @@ import org.semanticweb.owlapi.model.*;
 
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
+import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
@@ -272,5 +271,29 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
         URL url = iri.toURI().toURL();
         URLConnection conn = url.openConnection();
         return conn.getOutputStream();
+    }
+
+    /**
+     * serialization.
+     * this method fixes graph links
+     * (ontology A with ontology B in imports should have {@link UnionGraph} inside which consists of base graph from A and base graph from B).
+     *
+     * @param in {@link ObjectInputStream}
+     * @throws IOException            exception
+     * @throws ClassNotFoundException exception
+     */
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        Set<UnionGraph> graphs = ontologies()
+                .map(OntologyModelImpl.class::cast)
+                .map(OntBaseModelImpl::getBase)
+                .map(OntGraphModelImpl::getGraph)
+                .collect(Collectors.toSet());
+        for (UnionGraph base : graphs) {
+            Stream<UnionGraph> imports = Graphs.getImports(base).stream()
+                    .map(s -> graphs.stream().filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
+                    .filter(Objects::nonNull);
+            imports.forEach(base::addGraph);
+        }
     }
 }

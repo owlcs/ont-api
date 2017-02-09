@@ -87,7 +87,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
     private class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
 
-        private void addImport(OWLImportsDeclaration declaration) {
+        private void addImport(OWLImportsDeclaration declaration) { // todo: move it to internal model
             OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
             getBase().getID().addImport(declaration.getIRI().getIRIString());
             if (ont == null) {
