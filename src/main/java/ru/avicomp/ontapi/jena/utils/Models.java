@@ -5,8 +5,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
@@ -191,10 +193,9 @@ public class Models {
 
     /**
      * gets all statements which have the specified resource as subject,
-     * and all statements which have as subject the objects from the top level statements
-     * and all other related statements recursively.
-     * todo: replace it with not recursive method to avoid stack overflow,
-     * it may happen in case of rdf:List with a large number of members (1000+).
+     * then and all statements which have as subject all objects from the top level statements collected in the previous step.
+     * then and all other related statements recursively.
+     * Note: rdf:List may content a large number of members (1000+).
      *
      * @param inModel Resource with associated model inside.
      * @return the Set of {@link Statement}
@@ -206,7 +207,13 @@ public class Models {
     }
 
     private static void calcAssociatedStatements(Resource root, Set<Statement> res) {
-        root.listProperties().forEachRemaining(statement -> {
+        Stream<Statement> statements;
+        if (root.canAs(RDFListImpl.class)) {
+            statements = root.as(RDFListImpl.class).collectStatements().stream();
+        } else {
+            statements = Iter.asStream(root.listProperties());
+        }
+        statements.forEach(statement -> {
             RDFNode obj = statement.getObject();
             if (res.stream().anyMatch(s -> obj.equals(s.getSubject()))) // to avoid cycles
                 return;

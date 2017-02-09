@@ -19,11 +19,11 @@ import ru.avicomp.ontapi.translators.RDF2OWLHelper;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
- * New strategy here. Buffer RDF-OWL model.
+ * Buffer RDF-OWL model.
  * The analogy of {@link uk.ac.manchester.cs.owl.owlapi.Internals}
  * This is a nonserializable(!) {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities.
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
- * it is used to read and write structural info by {@link ru.avicomp.ontapi.OntologyModel}.
+ * it is used by {@link ru.avicomp.ontapi.OntologyModel} to read and write structural representation of ontology.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
@@ -33,7 +33,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
-    private Map<Class<? extends OWLAxiom>, TripleStore<? extends OWLAxiom>> axiomsCache = new HashMap<>();
+    private Map<Class<? extends OWLAxiom>, OwlObjectTriples<? extends OWLAxiom>> axiomsCache = new HashMap<>();
     // OWL objects store to improve performance
     // any change in the graph resets this cache.
     private Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsCache = new HashMap<>();
@@ -292,7 +292,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public <A extends OWLAxiom> void remove(A axiom) {
-        TripleStore<A> store = getAxiomTripleStore(axiom.getAxiomType());
+        OwlObjectTriples<A> store = getAxiomTripleStore(axiom.getAxiomType());
         Set<Triple> triples = store.get(axiom);
         store.clear(axiom);
         triples.stream().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
@@ -314,7 +314,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
      */
     private boolean canDelete(Triple triple) {
         int count = 0;
-        for (TripleStore<? extends OWLAxiom> store : axiomsCache.values()) {
+        for (OwlObjectTriples<? extends OWLAxiom> store : axiomsCache.values()) {
             count += store.get(triple).size();
             if (count > 1) return false;
         }
@@ -322,13 +322,13 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     @SuppressWarnings("unchecked")
-    private <A extends OWLAxiom> TripleStore<A> getAxiomTripleStore(AxiomType<? extends OWLAxiom> type) {
+    private <A extends OWLAxiom> OwlObjectTriples<A> getAxiomTripleStore(AxiomType<? extends OWLAxiom> type) {
         return getAxiomTripleStore((Class<A>) type.getActualClass());
     }
 
     @SuppressWarnings("unchecked")
-    private <A extends OWLAxiom> TripleStore<A> getAxiomTripleStore(Class<A> type) {
-        return (TripleStore<A>) axiomsCache.computeIfAbsent(type, c -> new TripleStore<>(AxiomParserProvider.get(type).read(this)));
+    private <A extends OWLAxiom> OwlObjectTriples<A> getAxiomTripleStore(Class<A> type) {
+        return (OwlObjectTriples<A>) axiomsCache.computeIfAbsent(type, c -> new OwlObjectTriples<>(AxiomParserProvider.get(type).read(this)));
     }
 
     @Override
@@ -347,14 +347,14 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         owlObjectsCache.clear();
     }
 
-    public class TripleStore<O extends OWLObject> {
+    public class OwlObjectTriples<O extends OWLObject> {
         protected Map<O, Set<Triple>> cache;
 
-        public TripleStore() {
+        public OwlObjectTriples() {
             this.cache = new HashMap<>();
         }
 
-        public TripleStore(Map<O, Set<Triple>> map) {
+        public OwlObjectTriples(Map<O, Set<Triple>> map) {
             this.cache = new HashMap<>(map);
         }
 
@@ -404,10 +404,10 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public class OwlObjectListener<O extends OWLObject> extends GraphListenerBase {
-        private final TripleStore<O> store;
+        private final OwlObjectTriples<O> store;
         private final O object;
 
-        public OwlObjectListener(TripleStore<O> store, O object) {
+        public OwlObjectListener(OwlObjectTriples<O> store, O object) {
             this.store = store;
             this.object = object;
         }

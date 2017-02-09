@@ -435,10 +435,16 @@ public class RDF2OWLHelper {
             this.annotations = new HashSet<>();
             triples.add(main.asTriple());
             Resource subject = main.getSubject();
-            if (subject.isAnon() && !subject.canAs(OntIndividual.Anonymous.class)) { // for anonymous axioms
-                triples.addAll(getAssociatedTriples(subject));
+            RDFNode object = main.getObject();
+            Stream<Statement> associated;
+            if (subject.isAnon() && !subject.canAs(OntIndividual.Anonymous.class)) { // for anonymous axioms (e.g. disjoint all)
+                associated = Models.getAssociatedStatements(subject).stream();
+            } else if (object.isAnon()) {
+                associated = Models.getAssociatedStatements(object.asResource()).stream();
+            } else {
+                associated = Stream.empty();
             }
-            triples.addAll(getAssociatedTriples(main.getObject()));
+            associated.map(Statement::asTriple).forEach(triples::add);
             RDF2OWLHelper.getAnnotations(main).forEach(a -> {
                 triples.addAll(a.getTriples());
                 annotations.add(a.getObject());

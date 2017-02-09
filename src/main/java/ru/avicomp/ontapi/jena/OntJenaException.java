@@ -9,6 +9,7 @@ import org.apache.jena.shared.JenaException;
  */
 public class OntJenaException extends JenaException {
     public OntJenaException() {
+        super();
     }
 
     public OntJenaException(String message) {
