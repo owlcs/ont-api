@@ -68,14 +68,14 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
         return Stream.of(statement.getSubject().as(getView()), statement.getObject().as(getView()));
     }
 
-    private Map<Axiom, Set<Triple>> readPairwiseAxioms(OntGraphModel model) {
-        Map<Axiom, Set<Triple>> init = super.read(model);
-        Map<Axiom, Set<Triple>> res = new HashMap<>();
-        init.keySet().forEach(axiom -> {
-            Set<Triple> value = init.get(axiom);
-            axiom.splitToAnnotatedPairs().forEach(a -> {
+    private Set<Triples<Axiom>> readPairwiseAxioms(OntGraphModel model) {
+        Set<Triples<Axiom>> init = super.read(model);
+        Set<Triples<Axiom>> res = new HashSet<>();
+        init.forEach(c -> {
+            Set<Triple> value = c.getTriples(); // ? need to change this
+            c.getObject().splitToAnnotatedPairs().forEach(a -> {
                 //noinspection unchecked
-                res.put((Axiom) a, value);
+                res.add(new Triples<>((Axiom) a, value));
             });
         });
         return res;
@@ -90,22 +90,23 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
      * Example: classes 'A', 'B', 'C' are mutually disjoint if and only if each pair is disjoint ('A'-'B', 'B'-'C' and 'A'-'C')
      *
      * @param init initial Map with Axioms as keys and Set of Triple as values.
-     * @return shrunken map of axioms.
+     * @return shrunken set of axioms.
      */
-    Map<Axiom, Set<Triple>> shrink(Map<Axiom, Set<Triple>> init) {
+    Set<Triples<Axiom>> shrink(Set<Triples<Axiom>> init) {
         if (init.size() < 2) {
-            return new HashMap<>(init);
+            return new HashSet<>(init);
         }
         Map<Set<OWLAnnotation>, Set<Axiom>> groupedByAnnotations =
-                init.keySet().stream().collect(Collectors.groupingBy(a -> a.annotations().collect(Collectors.toSet()), Collectors.toSet()));
-        Map<Axiom, Set<Triple>> res = new HashMap<>();
+                init.stream().map(Triples::getObject).collect(Collectors.groupingBy(a -> a.annotations().collect(Collectors.toSet()), Collectors.toSet()));
+        Set<Triples<Axiom>> res = new HashSet<>();
         for (Set<OWLAnnotation> annotations : groupedByAnnotations.keySet()) {
             Set<Axiom> compressed = shrink(groupedByAnnotations.get(annotations), annotations);
             compressed.forEach(axiom -> {
-                //noinspection SuspiciousMethodCalls
+                //noinspection SuspiciousMethodCalls, unchecked
                 Set<Triple> value = axiom.splitToAnnotatedPairs().stream()
-                        .map(a -> init.get(a).stream()).flatMap(Function.identity()).collect(Collectors.toSet());
-                res.put(axiom, value);
+                        .map(a -> Triples.find(init, (Axiom) a).map(Triples::triples).orElse(Stream.empty()))
+                        .flatMap(Function.identity()).collect(Collectors.toSet());
+                res.add(new Triples<>(axiom, value));
             });
         }
         return res;
@@ -153,7 +154,7 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
     }
 
     @Override
-    public Map<Axiom, Set<Triple>> read(OntGraphModel model) {
+    public Set<Triples<Axiom>> read(OntGraphModel model) {
         return getConfig().isCompressNaryAxioms() ? shrink(readPairwiseAxioms(model)) : super.read(model);
     }
 }

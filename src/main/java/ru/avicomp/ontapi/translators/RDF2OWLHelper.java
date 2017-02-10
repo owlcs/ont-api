@@ -1,10 +1,8 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -160,11 +158,11 @@ public class RDF2OWLHelper {
                         annotations(a)));
     }
 
-    public static Set<TripleSet<OWLAnnotation>> getAnnotations(OntObject object) {
+    public static Set<AxiomTranslator.Triples<OWLAnnotation>> getAnnotations(OntObject object) {
         return getBulkAnnotations(OntApiException.notNull(object, "Null ont-object.").getRoot());
     }
 
-    public static Set<TripleSet<OWLAnnotation>> getAnnotations(OntStatement statement) {
+    public static Set<AxiomTranslator.Triples<OWLAnnotation>> getAnnotations(OntStatement statement) {
         if (isEntityDeclaration(statement) && statement.annotations().noneMatch(OntStatement::hasAnnotations)) {
             // for compatibility with OWL-API skip plain annotations attached to an entity:
             // they would go separately as annotation-assertions.
@@ -173,7 +171,7 @@ public class RDF2OWLHelper {
         return getBulkAnnotations(statement);
     }
 
-    public static Set<TripleSet<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
+    public static Set<AxiomTranslator.Triples<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
         return statement.annotations().map(a -> a.hasAnnotations() ?
                 getHierarchicalAnnotations(a) :
                 getPlainAnnotation(a)).collect(Collectors.toSet());
@@ -183,13 +181,13 @@ public class RDF2OWLHelper {
         return statement.isRoot() && statement.isDeclaration() && statement.getSubject().isURIResource();
     }
 
-    private static TripleSet<OWLAnnotation> getPlainAnnotation(OntStatement a) {
+    private static AxiomTranslator.Triples<OWLAnnotation> getPlainAnnotation(OntStatement a) {
         OWLAnnotation res = new OWLAnnotationImpl(getAnnotationProperty(a.getPredicate().as(OntNAP.class)),
                 getAnnotationValue(a.getObject()), Stream.empty());
-        return new TripleSet<>(res, a.asTriple());
+        return new AxiomTranslator.Triples<>(res, a.asTriple());
     }
 
-    private static TripleSet<OWLAnnotation> getHierarchicalAnnotations(OntStatement a) {
+    private static AxiomTranslator.Triples<OWLAnnotation> getHierarchicalAnnotations(OntStatement a) {
         OntObject ann = a.getSubject().as(OntObject.class);
         Set<Triple> triples = new HashSet<>();
         Stream.of(RDF.type, OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
@@ -198,14 +196,11 @@ public class RDF2OWLHelper {
 
         OWLAnnotationProperty p = getAnnotationProperty(a.getPredicate().as(OntNAP.class));
         OWLAnnotationValue v = getAnnotationValue(a.getObject());
-        Set<TripleSet<OWLAnnotation>> children = a.annotations().map(RDF2OWLHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
-        OWLAnnotation res = new OWLAnnotationImpl(p, v, children.stream().map(TripleSet::getObject));
-        triples.addAll(children.stream().map(TripleSet::getTriples).map(Collection::stream).flatMap(Function.identity()).collect(Collectors.toSet()));
-        return new TripleSet<>(res, triples);
-    }
 
-    public static Set<Triple> getAssociatedTriples(RDFNode root) {
-        return root.isAnon() ? Models.getAssociatedStatements(root.asResource()).stream().map(Statement::asTriple).collect(Collectors.toSet()) : Collections.emptySet();
+        Set<AxiomTranslator.Triples<OWLAnnotation>> children = a.annotations().map(RDF2OWLHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
+        OWLAnnotation res = new OWLAnnotationImpl(p, v, children.stream().map(AxiomTranslator.Triples::getObject));
+        children.stream().map(AxiomTranslator.Triples::getTriples).forEach(triples::addAll);
+        return new AxiomTranslator.Triples<>(res, triples);
     }
 
     public static OWLFacetRestriction getFacetRestriction(OntFR fr) {
@@ -422,7 +417,9 @@ public class RDF2OWLHelper {
     }
 
     /**
-     * To find all related triples and annotations.
+     * A helper object, which helps
+     * to find all (owl-)annotations and triples related to the specified statement.
+     * todo: it seems it is incorrect - the set should contain main triple, declaration triple and annotations triples.
      */
     public static class AxiomStatement {
         private final OntStatement statement;
@@ -437,9 +434,12 @@ public class RDF2OWLHelper {
             Resource subject = main.getSubject();
             RDFNode object = main.getObject();
             Stream<Statement> associated;
-            if (subject.isAnon() && !subject.canAs(OntIndividual.Anonymous.class)) { // for anonymous axioms (e.g. disjoint all)
+
+            if (subject.isAnon()
+                    //) { // todo: seems this place degrades the performance. need to change whole mechanism (separate to each translator)
+                    && !subject.canAs(OntIndividual.Anonymous.class)) { // for anonymous axioms (e.g. disjoint all)
                 associated = Models.getAssociatedStatements(subject).stream();
-            } else if (object.isAnon()) {
+            } else if (object.isAnon()) { // e.g. anon class expression in statement subClassOf
                 associated = Models.getAssociatedStatements(object.asResource()).stream();
             } else {
                 associated = Stream.empty();
@@ -463,56 +463,6 @@ public class RDF2OWLHelper {
             return annotations;
         }
 
-        public void addTriple(Triple t) {
-            triples.add(t);
-        }
     }
 
-    /**
-     * Container for OWLObject and associated with it set of rdf-triples.
-     * <p>
-     * Created by @szuev on 27.11.2016.
-     */
-    public static class TripleSet<O extends OWLObject> {
-        private final O object;
-        private final Set<Triple> triples;
-        private int hashCode;
-
-        public TripleSet(O object, Set<Triple> triples) {
-            this.object = object;
-            this.triples = Collections.unmodifiableSet(triples);
-        }
-
-        public TripleSet(O object) {
-            this.object = object;
-            this.triples = Collections.emptySet();
-        }
-
-        public TripleSet(O object, Triple triple) {
-            this.object = object;
-            this.triples = Collections.singleton(triple);
-        }
-
-        public O getObject() {
-            return object;
-        }
-
-        public Set<Triple> getTriples() {
-            return triples;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            TripleSet<?> that = (TripleSet<?>) o;
-            return object.equals(that.object);
-        }
-
-        @Override
-        public int hashCode() {
-            if (hashCode != 0) return hashCode;
-            return hashCode = object.hashCode();
-        }
-    }
 }

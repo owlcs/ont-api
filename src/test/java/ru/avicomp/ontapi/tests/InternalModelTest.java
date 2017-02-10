@@ -34,6 +34,7 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
+import ru.avicomp.ontapi.translators.AxiomTranslator;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
@@ -55,10 +56,9 @@ public class InternalModelTest {
 
         Map<OWLAxiom, Set<Triple>> axioms = types.stream()
                 .map(view -> AxiomParserProvider.get(view).read(model))
-                .map(Map::entrySet)
                 .map(Collection::stream)
                 .flatMap(Function.identity())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collectors.toMap(AxiomTranslator.Triples::getObject, AxiomTranslator.Triples::getTriples));
 
         LOGGER.info("Recreate model");
         Model m2 = ModelFactory.createDefaultModel();
@@ -173,10 +173,10 @@ public class InternalModelTest {
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {
         LOGGER.debug("=========================");
         LOGGER.info(view.getSimpleName() + ":");
-        Map<Axiom, Set<Triple>> axioms = AxiomParserProvider.get(view).read(model);
-        axioms.entrySet().forEach(e -> {
-            Axiom axiom = e.getKey();
-            Set<Triple> triples = e.getValue();
+        Set<AxiomTranslator.Triples<Axiom>> axioms = AxiomParserProvider.get(view).read(model);
+        axioms.forEach(e -> {
+            Axiom axiom = e.getObject();
+            Set<Triple> triples = e.getTriples();
             Assert.assertNotNull("Null axiom", axiom);
             Assert.assertTrue("No associated triples", triples != null && !triples.isEmpty());
             LOGGER.debug(axiom + " " + triples);

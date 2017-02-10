@@ -1,13 +1,15 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.Stream;
 
+import org.apache.jena.graph.Factory;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -22,7 +24,33 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     private AxiomParserProvider.Config config = AxiomParserProvider.DEFAULT_CONFIG;
 
+    /**
+     * writes axiom to model.
+     *
+     * @param axiom {@link OWLAxiom}
+     * @param model {@link OntGraphModel}
+     */
     public abstract void write(Axiom axiom, OntGraphModel model);
+
+    /**
+     * reads axioms and triples from model.
+     *
+     * @param model {@link OntGraphModel}
+     * @return Set of {@link Triples} with {@link OWLAxiom} as key and Set of {@link Triple} as value
+     */
+    public Set<Triples<Axiom>> read(OntGraphModel model) {
+        try {
+            Map<Axiom, Triples<Axiom>> res = new HashMap<>();
+            axiomStatements(model).forEach(c -> {
+                Axiom axiom = create(c.getStatement(), c.getAnnotations());
+                Set<Triple> triples = c.getTriples();
+                res.compute(axiom, (a, container) -> container == null ? new Triples<>(a, triples) : container.add(triples));
+            });
+            return new HashSet<>(res.values());
+        } catch (Exception e) {
+            throw new OntApiException(String.format("Can't process reading. Translator <%s>.", getClass()), e);
+        }
+    }
 
     abstract Stream<OntStatement> statements(OntGraphModel model);
 
@@ -30,25 +58,6 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     private Stream<RDF2OWLHelper.AxiomStatement> axiomStatements(OntGraphModel model) {
         return statements(model).map(RDF2OWLHelper.AxiomStatement::new);
-    }
-
-    /**
-     * todo: instead Set use something else: Graph, TripleStore...
-     *
-     * @param model {@link OntGraphModel}
-     * @return Map, OWLAxiom as key, Set of {@link Triple} as value
-     */
-    public Map<Axiom, Set<Triple>> read(OntGraphModel model) {
-        try {
-            return axiomStatements(model).collect(Collectors.toMap(c -> create(c.getStatement(), c.getAnnotations()),
-                    RDF2OWLHelper.AxiomStatement::getTriples,
-                    (tripleSet1, tripleSet2) -> {
-                        tripleSet1.addAll(tripleSet2);
-                        return tripleSet1;
-                    }));
-        } catch (Exception e) {
-            throw new OntApiException(String.format("Can't process reading. Translator <%s>.", getClass()), e);
-        }
     }
 
     public AxiomParserProvider.Config getConfig() {
@@ -59,4 +68,66 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         this.config = OntApiException.notNull(config, "Null config.");
     }
 
+    /**
+     * Immutable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple}s.
+     * <p>
+     * Created by @szuev on 27.11.2016.
+     */
+    public static class Triples<O extends OWLObject> {
+        private final O object;
+        private final Set<Triple> triples;
+        private int hashCode;
+
+        public Triples(O object, Collection<Triple> triples) {
+            this.object = OntApiException.notNull(object, "Null OWLObject.");
+            this.triples = new HashSet<>(OntApiException.notNull(triples, "Null triples."));
+        }
+
+        public Triples(O object, Triple triple) {
+            this(object, Collections.singleton(triple));
+        }
+
+        public O getObject() {
+            return object;
+        }
+
+        public Set<Triple> getTriples() {
+            return Collections.unmodifiableSet(triples);
+        }
+
+        public Stream<Triple> triples() {
+            return triples.stream();
+        }
+
+        public Graph asGraph() {
+            Graph res = Factory.createGraphMem();
+            GraphUtil.add(res, triples.iterator());
+            return res;
+        }
+
+        public Triples<O> add(Collection<Triple> triples) {
+            Set<Triple> set = new HashSet<>(OntApiException.notNull(this.triples, "Null triples."));
+            set.addAll(triples);
+            return new Triples<>(object, set);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Triples<?> that = (Triples<?>) o;
+            return object.equals(that.object);
+        }
+
+        @Override
+        public int hashCode() {
+            if (hashCode != 0) return hashCode;
+            return hashCode = object.hashCode();
+        }
+
+        public static <O extends OWLObject> Optional<Triples<O>> find(Collection<Triples<O>> set, O key) {
+            int h = OntApiException.notNull(key, "null key").hashCode();
+            return set.stream().filter(Objects::nonNull).filter(o -> o.hashCode() == h).filter(o -> key.equals(o.getObject())).findAny();
+        }
+    }
 }

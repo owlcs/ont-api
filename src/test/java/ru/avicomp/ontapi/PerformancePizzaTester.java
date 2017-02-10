@@ -7,6 +7,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -20,12 +21,13 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
  * todo
  * Created by @szuev on 16.12.2016.
  */
-public class PerformanceTester {
-    private static final Logger LOGGER = Logger.getLogger(PerformanceTester.class);
+public class PerformancePizzaTester {
+    private static final Logger LOGGER = Logger.getLogger(PerformancePizzaTester.class);
 
-    public static void main(String... s) {
+    public static void main(String... strings) {
         final String fileName = "pizza.ttl";
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
+        // init:
         load(fileIRI, OntFormat.TURTLE);
         System.gc();
 
@@ -33,21 +35,38 @@ public class PerformanceTester {
         final int innerNum = 1;
         final boolean loadAxioms = true;
         final boolean testPureJena = true;
+        final boolean callGC = true;
 
-        float owlAverage = doTest(num, () -> testOWL(fileIRI, loadAxioms, innerNum), "OWL");
-        float ontAverage = doTest(num, () -> testONT(fileIRI, loadAxioms, testPureJena, innerNum), "ONT");
+        Level level = Logger.getRootLogger().getLevel();
+        float owlAverage, ontAverage;
+        try {
+            Logger.getRootLogger().setLevel(Level.OFF);
+            owlAverage = doTest(num, () -> testOWL(fileIRI, loadAxioms, innerNum), "OWL", callGC);
+            System.err.println("=============");
+            ontAverage = doTest(num, () -> testONT(fileIRI, loadAxioms, testPureJena, innerNum), "ONT", callGC);
+        } finally {
+            Logger.getRootLogger().setLevel(level);
+        }
+
         LOGGER.info("ONT = " + ontAverage);
         LOGGER.info("OWL = " + owlAverage);
         LOGGER.info("ONT/OWL = " + ontAverage / owlAverage);
     }
 
-    private static float doTest(int num, Tester tester, String tip) {
+    @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
+    public static float doTest(final int num, final Tester tester, String tip, boolean doGCAfterIter) {
         String txt = tip == null ? String.valueOf(tester) : tip;
+        System.err.println("Test " + tip + " (" + num + ")");
+        int step = num / 50;
         Stopwatch stopwatch = Stopwatch.createStarted();
         for (int i = 0; i < num; i++) {
-            LOGGER.info("[" + txt + "]Iter #" + i);
+            if (i % step == 0) {
+                System.err.println("[" + txt + "]Iter #" + i);
+            }
             tester.test();
-            System.gc();
+            if (doGCAfterIter) {
+                System.gc();
+            }
         }
         stopwatch.stop();
         return stopwatch.elapsed(TimeUnit.MILLISECONDS) / num;
@@ -61,6 +80,7 @@ public class PerformanceTester {
         for (int j = 0; j < num; j++) {
             OWLOntology o = load(file);
             if (loadAxioms)
+                //noinspection ResultOfMethodCallIgnored
                 o.axioms().collect(Collectors.toSet());
         }
     }
@@ -73,9 +93,10 @@ public class PerformanceTester {
                 OntInternalModel i = new OntInternalModel(g);
                 i.getAxioms();
                 continue;
-            }
+            } // whole cycle of loading:
             OntologyModel o = load(file, OntFormat.TURTLE);
             if (loadAxioms)
+                //noinspection ResultOfMethodCallIgnored
                 o.axioms().collect(Collectors.toSet());
         }
     }
@@ -88,7 +109,6 @@ public class PerformanceTester {
         } catch (OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }
-
     }
 
     public static OWLOntology load(IRI file) {
