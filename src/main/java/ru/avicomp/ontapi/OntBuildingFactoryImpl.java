@@ -56,7 +56,9 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             return new OntModelLoaderImpl((OntologyManagerImpl) manager, configuration, pureOWLLoader).load(source);
         } catch (OntApiException e) { // maybe it is not supported by jena. try origin OWL-API method:
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Can't load using jena (" + e.getMessage() + "), try original method.");
+                String cause = e.getCause() != null ? e.getCause().getMessage() : null;
+                // todo: critical exceptions should be thrown up.
+                LOGGER.debug(String.format("Can't load using jena (%s|%s), try original method.", e.getMessage(), cause));
             }
             return pureOWLLoader.load(source);
         }
@@ -77,10 +79,15 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
 
     /**
      * Base class for any model loader.
-     * Currently there are two implementations: pure OWL loader which call super method of {@link OWLOntologyFactoryImpl} and the {@link OntModelLoaderImpl}.
+     * Currently there are two implementations:
+     * - pure OWL loader which calls super method of {@link OWLOntologyFactoryImpl}
+     * - the {@link OntModelLoaderImpl}.
+     *
+     * Note: only two input parameters in the constructor: {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}.
      * The single instance of {@link OntologyManager} is an {@link OWLOntologyManager} as well as {@link OWLOntologyCreationHandler}.
      * And this is also true for {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl).
-     * It seems {@link OWLOntologyCreationHandler} could be consider as part of inner implementation, so there is no handler in our case.
+     * The {@link OWLOntologyCreationHandler} could be considered as part of inner (OWL-API) implementation,
+     * so there is no need in this parameter in our case.
      */
     @SuppressWarnings("WeakerAccess")
     public static abstract class OntLoader {
@@ -109,6 +116,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
      * Extended {@link OntLoader}.
      * This is an auxiliary class to provide loading of {@link OntologyModelImpl} using jena.
      * Should resolves problems such as cycle imports or throws informative exception.
+     * TODO: use configuration parameters.
      */
     @SuppressWarnings("WeakerAccess")
     public static class OntModelLoaderImpl extends OntLoader {
@@ -123,15 +131,19 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
 
         @Override
         public OntologyModel load(OWLOntologyDocumentSource source) {
-            GraphInfo primary = loadGraph(source);
-            // null key in case anonymous. But: only one anonymous ontology is allowed (as root of imports tree)
-            graphs.put(primary.getURI(), primary);
-            // first expand graphs map by creating primary model:
-            OntologyModel res = OntApiException.notNull(createModel(primary), "Should never happen");
-            // process all other models if they present:
-            graphs.keySet().stream().filter(u -> !Objects.equals(u, primary.getURI())).map(k -> graphs.get(k))
-                    .forEach(this::createModel);
-            return res;
+            try {
+                GraphInfo primary = loadGraph(source);
+                // null key in case anonymous. But: only one anonymous ontology is allowed (as root of imports tree)
+                graphs.put(primary.getURI(), primary);
+                // first expand graphs map by creating primary model:
+                OntologyModel res = OntApiException.notNull(createModel(primary), "Should never happen");
+                // process all other models if they present:
+                graphs.keySet().stream().filter(u -> !Objects.equals(u, primary.getURI())).map(k -> graphs.get(k))
+                        .forEach(this::createModel);
+                return res;
+            } finally { // possibility to reuse
+                graphs.clear();
+            }
         }
 
         /**

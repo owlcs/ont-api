@@ -50,12 +50,12 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
 
     @Override
     public OntIndividual getSource() {
-        return getRequiredOntProperty(OWL.sourceIndividual, OntIndividual.class);
+        return getRequiredObject(OWL.sourceIndividual, OntIndividual.class);
     }
 
     @Override
     public P getProperty() {
-        return getRequiredOntProperty(OWL.assertionProperty, propertyClass());
+        return getRequiredObject(OWL.assertionProperty, propertyClass());
     }
 
     private static Resource create(OntGraphModel model, OntIndividual source) {
@@ -83,7 +83,7 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
 
         @Override
         public OntIndividual getTarget() {
-            return getRequiredOntProperty(OWL.targetIndividual, OntIndividual.class);
+            return getRequiredObject(OWL.targetIndividual, OntIndividual.class);
         }
 
     }
@@ -106,7 +106,7 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
 
         @Override
         public Literal getTarget() {
-            return getRequiredOntProperty(OWL.targetValue, Literal.class);
+            return getRequiredObject(OWL.targetValue, Literal.class);
         }
 
     }

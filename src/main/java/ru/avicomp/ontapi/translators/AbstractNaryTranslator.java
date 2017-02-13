@@ -50,6 +50,12 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
         axiom.asPairwiseAxioms().forEach(a -> write(a, axiom.annotations().collect(Collectors.toSet()), model));
     }
 
+    abstract Property getPredicate();
+
+    abstract Class<ONT> getView();
+
+    abstract Axiom create(Stream<OWL> components, Set<OWLAnnotation> annotations);
+
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(getView())
@@ -57,12 +63,6 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
                 .flatMap(Function.identity())
                 .filter(OntStatement::isLocal);
     }
-
-    abstract Property getPredicate();
-
-    abstract Class<ONT> getView();
-
-    abstract Axiom create(Stream<OWL> components, Set<OWLAnnotation> annotations);
 
     Stream<ONT> components(OntStatement statement) {
         return Stream.of(statement.getSubject().as(getView()), statement.getObject().as(getView()));

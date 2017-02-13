@@ -1,6 +1,8 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -127,7 +129,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
     @Override
     public Stream<OntPE> hasKey() {
-        return rdfList(OWL.hasKey, OntPE.class);
+        return rdfListMembers(OWL.hasKey, OntPE.class);
     }
 
     @Override
@@ -307,6 +309,15 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         public Class<HasSelf> getActualClass() {
             return HasSelf.class;
         }
+
+        Stream<OntStatement> hasSelfStatement() {
+            return Stream.of(getStatement(OWL.hasSelf, Models.TRUE));
+        }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.concat(super.content(), hasSelfStatement());
+        }
     }
 
     public static class ComplementOfImpl extends OntCEImpl implements ComplementOf {
@@ -374,7 +385,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public Stream<O> components() {
-            return rdfList(predicate, view);
+            return rdfListMembers(predicate, view);
         }
 
         @Override
@@ -404,7 +415,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public P getOnProperty() {
-            return getRequiredOntProperty(OWL.onProperty, propertyView);
+            return getRequiredObject(OWL.onProperty, propertyView);
         }
 
         @Override
@@ -415,6 +426,16 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         void clearProperty(Property property) {
             removeAll(property);
+        }
+
+        Stream<OntStatement> onPropertyStatements() {
+            P p = getOnProperty();
+            return Stream.concat(Stream.of(getStatement(OWL.onProperty, p)), p.content());
+        }
+
+        @Override
+        public Stream<OntStatement> content() { // root declaration + onProperty + property declaration:
+            return Stream.concat(super.content(), onPropertyStatements());
         }
     }
 
@@ -451,6 +472,18 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             clearProperty(predicate);
             addProperty(predicate, c);
         }
+
+        Stream<OntStatement> valueStatements() {
+            O v = getValue();
+            Stream<OntStatement> a = Stream.of(getStatement(predicate, v));
+            Stream<OntStatement> b = v instanceof OntObject ? ((OntObject) v).content() : Stream.empty();
+            return Stream.concat(a, b);
+        }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.concat(super.content(), valueStatements());
+        }
     }
 
     static abstract class CardinalityRestrictionCEImpl<O extends OntObject, P extends OntPE> extends ComponentRestrictionCEImpl<O, P> implements CardinalityRestrictionCE<O, P> {
@@ -471,12 +504,16 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public O getValue() {
-            return getOntProperty(predicate, objectView);
+            return getObject(predicate, objectView);
         }
 
         @Override
         public int getCardinality() {
-            return getRequiredProperty(getCardinalityPredicate()).getObject().asLiteral().getInt();
+            return getCardinalityProperty().getObject().asLiteral().getInt();
+        }
+
+        Statement getCardinalityProperty() {
+            return getRequiredProperty(getCardinalityPredicate());
         }
 
         @Override
@@ -495,6 +532,16 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         public boolean isQualified() {
             return isQualified(getValue());
         }
+
+        Stream<OntStatement> cardinalityStatement() {
+            OntStatement main = getRoot();
+            return Stream.of(getCardinalityProperty()).map(s -> getModel().toOntStatement(main, s));
+        }
+
+        @Override
+        public Stream<OntStatement> content() { // value O could be null for qualified restrictions:
+            return Stream.concat(super.content(), cardinalityStatement()).filter(Objects::nonNull);
+        }
     }
 
     /**
@@ -504,20 +551,20 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
      * @param <P>
      */
     static abstract class NaryRestrictionCEImpl<O extends OntObject, P extends OntPE> extends OntCEImpl implements NaryRestrictionCE<O, P> {
-        private final Property property;
+        private final Property predicate;
         private final Class<O> objectView;
         private final Class<P> propertyView;
 
         private NaryRestrictionCEImpl(Node n, EnhGraph m, Property predicate, Class<O> objectView, Class<P> propertyView) {
             super(n, m);
-            this.property = predicate;
+            this.predicate = predicate;
             this.objectView = objectView;
             this.propertyView = propertyView;
         }
 
         @Override
         public Stream<P> onProperties() {
-            return rdfList(OWL.onProperties, propertyView);
+            return rdfListMembers(OWL.onProperties, propertyView);
         }
 
         @Override
@@ -527,7 +574,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public O getValue() {
-            return getRequiredOntProperty(property, objectView);
+            return getRequiredObject(predicate, objectView);
         }
 
         @Override
@@ -538,6 +585,22 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         @Override
         public Class<? extends OntCE> getActualClass() {
             return NaryRestrictionCE.class;
+        }
+
+        Stream<OntStatement> valueStatements() {
+            O v = getValue();
+            return Stream.concat(Stream.of(getStatement(predicate, v)), v.content());
+        }
+
+        Stream<OntStatement> onPropertiesStatements() {
+            return Stream.of(statements(OWL.onProperties),
+                    rdfListContent(OWL.onProperties),
+                    onProperties().map(OntObject::content).flatMap(Function.identity())).flatMap(Function.identity());
+        }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.of(super.content(), valueStatements(), onPropertiesStatements()).flatMap(Function.identity());
         }
     }
 

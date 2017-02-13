@@ -95,7 +95,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<Literal> values() {
-            return rdfList(OWL.oneOf, Literal.class);
+            return rdfListMembers(OWL.oneOf, Literal.class);
         }
     }
 
@@ -111,12 +111,12 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public OntDT getDatatype() {
-            return getRequiredOntProperty(OWL.onDatatype, OntDT.class);
+            return getRequiredObject(OWL.onDatatype, OntDT.class);
         }
 
         @Override
         public Stream<OntFR> facetRestrictions() {
-            return rdfList(OWL.withRestrictions, OntFR.class);
+            return rdfListMembers(OWL.withRestrictions, OntFR.class);
         }
     }
 
@@ -127,7 +127,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public OntDR getDataRange() {
-            return getRequiredOntProperty(OWL.datatypeComplementOf, OntDR.class);
+            return getRequiredObject(OWL.datatypeComplementOf, OntDR.class);
         }
     }
 
@@ -138,7 +138,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntDR> dataRanges() {
-            return rdfList(OWL.unionOf, OntDR.class);
+            return rdfListMembers(OWL.unionOf, OntDR.class);
         }
     }
 
@@ -149,7 +149,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntDR> dataRanges() {
-            return rdfList(OWL.intersectionOf, OntDR.class);
+            return rdfListMembers(OWL.intersectionOf, OntDR.class);
         }
     }
 }

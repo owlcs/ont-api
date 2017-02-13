@@ -56,7 +56,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     protected abstract Class<O> componentClass();
 
     public Stream<O> members() {
-        return predicates().map(p -> rdfList(p, componentClass())).flatMap(Function.identity());
+        return predicates().map(p -> rdfListMembers(p, componentClass())).flatMap(Function.identity());
     }
 
     private static Configurable<OntObjectFactory> createFactory(Class<? extends OntDisjointImpl> impl,

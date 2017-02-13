@@ -31,14 +31,32 @@ public interface OntObject extends Resource {
     boolean isLocal();
 
     /**
-     * returns root triplet statement,
-     * usually it is declaration with predicate rdf:type
-     * @return OntStatement
+     * returns the root statement, i.e. the main triple in model which determines this object.
+     * usually it is declaration (statement with predicate rdf:type)
+     *
+     * @return OntStatement or null
      */
     OntStatement getRoot();
 
+    /**
+     * todo: not ready. should it be here?
+     * returns "the defined content": all characteristic statements, i.e. all those statements which determine this object.
+     * for noncomposite object the result would contain only the root statement.
+     * for composite (usually anonymous) object the result would contain all statements plus all content of dependencies recursively.
+     *
+     * @return Stream of associated with this object statements
+     */
+    Stream<OntStatement> content();
+
     OntStatement addStatement(Property property, RDFNode value);
 
+    /**
+     * todo: retuen Optional
+     *
+     * @param property
+     * @param object
+     * @return
+     */
     OntStatement getStatement(Property property, RDFNode object);
 
     OntStatement getStatement(Property property);
@@ -50,7 +68,7 @@ public interface OntObject extends Resource {
     /**
      * returns all statements related to this object (i.e. with subject=this)
      *
-     * @return Stream of statements.
+     * @return Stream of all statements.
      */
     Stream<OntStatement> statements();
 
@@ -63,6 +81,7 @@ public interface OntObject extends Resource {
      * @return Stream of objects
      */
     <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view);
+
 
     /**
      * Returns the stream of all annotations attached to this object (not only to main-triple).

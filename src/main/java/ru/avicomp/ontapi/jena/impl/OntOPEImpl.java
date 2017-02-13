@@ -85,7 +85,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public OntOPE getDirect() {
-            return getRequiredOntProperty(OWL.inverseOf, OntOPE.class);
+            return getRequiredObject(OWL.inverseOf, OntOPE.class);
         }
     }
 
@@ -107,7 +107,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     @Override
     public Stream<OntOPE> superPropertyOf() {
-        return rdfList(OWL.propertyChainAxiom, OntOPE.class);
+        return rdfListMembers(OWL.propertyChainAxiom, OntOPE.class);
     }
 
     @Override
@@ -147,7 +147,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     @Override
     public OntOPE getInverseOf() {
-        return getOntProperty(OWL.inverseOf, OntOPE.class);
+        return getObject(OWL.inverseOf, OntOPE.class);
     }
 }
 

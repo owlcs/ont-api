@@ -41,7 +41,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     public Set<Triples<Axiom>> read(OntGraphModel model) {
         try {
             Map<Axiom, Triples<Axiom>> res = new HashMap<>();
-            axiomStatements(model).forEach(c -> {
+            statements(model).map(RDF2OWLHelper.AxiomStatement::new).forEach(c -> {
                 Axiom axiom = create(c.getStatement(), c.getAnnotations());
                 Set<Triple> triples = c.getTriples();
                 res.compute(axiom, (a, container) -> container == null ? new Triples<>(a, triples) : container.add(triples));
@@ -55,10 +55,6 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     abstract Stream<OntStatement> statements(OntGraphModel model);
 
     abstract Axiom create(OntStatement statement, Set<OWLAnnotation> annotations);
-
-    private Stream<RDF2OWLHelper.AxiomStatement> axiomStatements(OntGraphModel model) {
-        return statements(model).map(RDF2OWLHelper.AxiomStatement::new);
-    }
 
     public AxiomParserProvider.Config getConfig() {
         return config;
@@ -78,9 +74,12 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         private final Set<Triple> triples;
         private int hashCode;
 
-        public Triples(O object, Collection<Triple> triples) {
+        public Triples(O object, Set<Triple> triples) {
             this.object = OntApiException.notNull(object, "Null OWLObject.");
-            this.triples = new HashSet<>(OntApiException.notNull(triples, "Null triples."));
+            if (OntApiException.notNull(triples, "Null triples.").isEmpty()) {
+                throw new OntApiException("Empty triples.");
+            }
+            this.triples = Collections.unmodifiableSet(triples);
         }
 
         public Triples(O object, Triple triple) {
@@ -92,7 +91,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         }
 
         public Set<Triple> getTriples() {
-            return Collections.unmodifiableSet(triples);
+            return triples;
         }
 
         public Stream<Triple> triples() {

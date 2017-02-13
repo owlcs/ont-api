@@ -25,8 +25,8 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import uk.ac.manchester.cs.owl.owlapi.*;
 
 /**
- * Helper to translate rdf-graph to the axioms.
- * TODO:
+ * Helper to translate rdf-graph to the axioms (reading from graph).
+ * TODO: need to handle bad recursions (the simplest example: "_:b0 rdfs:subClassOf _:b0")
  * <p>
  * Created by @szuev on 25.11.2016.
  */
@@ -153,13 +153,18 @@ public class RDF2OWLHelper {
 
     public static Stream<OWLAnnotation> annotations(OntStatement statement) {
         return statement.annotations()
-                .map(a -> new OWLAnnotationImpl(getAnnotationProperty(a.getPredicate().as(OntNAP.class)),
+                .map(a -> new OWLAnnotationImpl(
+                        getAnnotationProperty(a.getPredicate().as(OntNAP.class)),
                         getAnnotationValue(a.getObject()),
                         annotations(a)));
     }
 
     public static Set<AxiomTranslator.Triples<OWLAnnotation>> getAnnotations(OntObject object) {
         return getBulkAnnotations(OntApiException.notNull(object, "Null ont-object.").getRoot());
+    }
+
+    private static boolean isEntityDeclaration(OntStatement statement) { // todo: what about anonymous individuals?
+        return statement.isRoot() && statement.isDeclaration() && statement.getSubject().isURIResource();
     }
 
     public static Set<AxiomTranslator.Triples<OWLAnnotation>> getAnnotations(OntStatement statement) {
@@ -171,19 +176,16 @@ public class RDF2OWLHelper {
         return getBulkAnnotations(statement);
     }
 
-    public static Set<AxiomTranslator.Triples<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
+    private static Set<AxiomTranslator.Triples<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
         return statement.annotations().map(a -> a.hasAnnotations() ?
                 getHierarchicalAnnotations(a) :
                 getPlainAnnotation(a)).collect(Collectors.toSet());
     }
 
-    public static boolean isEntityDeclaration(OntStatement statement) {
-        return statement.isRoot() && statement.isDeclaration() && statement.getSubject().isURIResource();
-    }
-
     private static AxiomTranslator.Triples<OWLAnnotation> getPlainAnnotation(OntStatement a) {
-        OWLAnnotation res = new OWLAnnotationImpl(getAnnotationProperty(a.getPredicate().as(OntNAP.class)),
-                getAnnotationValue(a.getObject()), Stream.empty());
+        OWLAnnotationProperty p = getAnnotationProperty(a.getPredicate().as(OntNAP.class));
+        OWLAnnotationValue v = getAnnotationValue(a.getObject());
+        OWLAnnotation res = new OWLAnnotationImpl(p, v, Stream.empty());
         return new AxiomTranslator.Triples<>(res, a.asTriple());
     }
 
@@ -367,7 +369,7 @@ public class RDF2OWLHelper {
     }
 
     public static SWRLAtom getSWRLAtom(OntSWRL.Atom atom) {
-        OntApiException.notNull(atom, "Null SWRL atom");
+        OntApiException.notNull(atom, "Null SWRL atom.");
         if (OntSWRL.Atom.BuiltIn.class.isInstance(atom)) {
             OntSWRL.Atom.BuiltIn a = (OntSWRL.Atom.BuiltIn) atom;
             IRI i = IRI.create(a.getPredicate().getURI());
@@ -419,7 +421,7 @@ public class RDF2OWLHelper {
     /**
      * A helper object, which helps
      * to find all (owl-)annotations and triples related to the specified statement.
-     * todo: it seems it is incorrect - the set should contain main triple, declaration triple and annotations triples.
+     * todo: it seems it is wrong - the set should contain main triple, declaration triple and annotations triples.
      */
     public static class AxiomStatement {
         private final OntStatement statement;
@@ -436,7 +438,7 @@ public class RDF2OWLHelper {
             Stream<Statement> associated;
 
             if (subject.isAnon()
-                    //) { // todo: seems this place degrades the performance. need to change whole mechanism (separate to each translator)
+                    // todo: seems this place degrades the performance. need to change whole mechanism (separate to each translator)
                     && !subject.canAs(OntIndividual.Anonymous.class)) { // for anonymous axioms (e.g. disjoint all)
                 associated = Models.getAssociatedStatements(subject).stream();
             } else if (object.isAnon()) { // e.g. anon class expression in statement subClassOf

@@ -1,5 +1,7 @@
 package ru.avicomp.ontapi.jena;
 
+import java.util.function.Supplier;
+
 import org.apache.jena.shared.JenaException;
 
 /**
@@ -28,6 +30,10 @@ public class OntJenaException extends JenaException {
         if (obj == null)
             throw message == null ? new OntJenaException() : new OntJenaException(message);
         return obj;
+    }
+
+    public static Supplier<OntJenaException> supplier(String msg) {
+        return () -> new OntJenaException(msg);
     }
 
     /**

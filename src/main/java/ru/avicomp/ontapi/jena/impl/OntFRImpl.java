@@ -58,7 +58,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
 
     @Override
     public Literal getValue() {
-        return getRequiredOntProperty(predicate(getActualClass()), Literal.class);
+        return getRequiredObject(predicate(getActualClass()), Literal.class);
     }
 
     private static OntMaker makeMaker(Class<? extends OntFRImpl> impl) {

@@ -54,7 +54,7 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
 
     @Override
     public Stream<OntPE> hasKey() {
-        return rdfList(OWL.hasKey, OntPE.class);
+        return rdfListMembers(OWL.hasKey, OntPE.class);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class OntClassImpl extends OntEntityImpl implements OntClass {
 
     @Override
     public Stream<OntCE> disjointUnionOf() {
-        return rdfList(OWL.disjointUnionOf, OntCE.class);
+        return rdfListMembers(OWL.disjointUnionOf, OntCE.class);
     }
 
     @Override

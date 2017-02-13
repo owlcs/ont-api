@@ -3,14 +3,17 @@ package ru.avicomp.ontapi.jena.impl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -49,15 +52,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         }
     }
 
-    public <T extends RDFNode> T getOntProperty(Property predicate, Class<T> view) {
-        Statement st = getProperty(predicate);
-        return st == null ? null : getModel().getNodeAs(st.getObject().asNode(), view);
-    }
-
-    public <T extends RDFNode> T getRequiredOntProperty(Property predicate, Class<T> view) {
-        return getModel().getNodeAs(getRequiredProperty(predicate).getObject().asNode(), view);
-    }
-
     @Override
     public OntStatement getRoot() {
         List<Resource> types = types().collect(Collectors.toList());
@@ -66,6 +60,12 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     protected OntStatement getRoot(Property property, Resource type) {
         return hasProperty(property, type) ? new OntStatementImpl.RootImpl(this, property, type, getModel()) : null;
+    }
+
+    @Override
+    public Stream<OntStatement> content() {
+        OntStatement root = getRoot();
+        return root == null ? Stream.empty() : Stream.of(root);
     }
 
     @Override
@@ -100,13 +100,17 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public Stream<OntStatement> statements(Property property) {
-        return statements().filter(s -> s.getPredicate().equals(property));
+        OntStatement root = getRoot();
+        return Iter.asStream(listProperties(property))
+                .map(s -> getModel().toOntStatement(root, s));
+        //return statements().filter(s -> s.getPredicate().equals(property));
     }
 
     @Override
     public Stream<OntStatement> statements() {
         OntStatement main = getRoot();
-        return Iter.asStream(listProperties()).map(s -> getModel().toOntStatement(main, s));
+        return Iter.asStream(listProperties())
+                .map(s -> getModel().toOntStatement(main, s));
     }
 
     @Override
@@ -116,13 +120,17 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     /**
      * gets rdf:List content as Stream of RDFNode's.
-     * if object is not rdf:List empty stream expected.
+     * if the object is not rdf:List then empty stream expected.
      * if there are several lists with the same predicate the contents of all will be merged.
+     * <p>
+     * Note: here we use the "tolerant" approach.
+     * Generally speaking, the case when we have several lists on a single predicate is _not_ correct (in terms of OWL2).
+     * This case indicates that we deal with the wrong ontology.
      *
-     * @param property predicate
-     * @return Distinct Stream of RDFNode
+     * @param property the predicate to search for rdf:List.
+     * @return Distinct Stream of RDFNode (maybe empty if there are no rdf:List)
      */
-    public Stream<RDFNode> rdfList(Property property) {
+    public Stream<RDFNode> rdfListMembers(Property property) {
         return Iter.asStream(listProperties(property)
                 .mapWith(Statement::getObject)
                 .filterKeep(n -> n.canAs(RDFList.class))
@@ -132,8 +140,28 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .flatMap(Function.identity()).distinct();
     }
 
-    public <O extends RDFNode> Stream<O> rdfList(Property predicate, Class<O> view) {
-        return rdfList(predicate).map(n -> getModel().getNodeAs(n.asNode(), view));
+    /**
+     * gets the stream of nodes with the specified type from rdf:List.
+     * Note: In OWL2 the type of rdf:List members is always the same (with except of owl:hasKey construction).
+     *
+     * @param predicate to search for rdf:Lists
+     * @param view      Class, the type of returned nodes.
+     * @return Stream of {@link RDFNode} with specified type.
+     */
+    public <O extends RDFNode> Stream<O> rdfListMembers(Property predicate, Class<O> view) {
+        return rdfListMembers(predicate).map(n -> getModel().getNodeAs(n.asNode(), view));
+    }
+
+    public Stream<OntStatement> rdfListContent(Property property) {
+        OntStatement r = getRoot();
+        return Iter.asStream(listProperties(property)
+                .mapWith(Statement::getObject)
+                .filterKeep(n -> n.canAs(RDFListImpl.class))
+                .mapWith(n -> n.as(RDFListImpl.class)))
+                .map(RDFListImpl::collectStatements)
+                .map(Collection::stream)
+                .flatMap(Function.identity())
+                .map(s -> getModel().toOntStatement(r, s));
     }
 
     /**
@@ -148,12 +176,27 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         removeAll(predicate);
     }
 
+
+    public <T extends RDFNode> T getObject(Property predicate, Class<T> view) {
+        return object(predicate, view).orElse(null);
+    }
+
+    public <T extends RDFNode> T getRequiredObject(Property predicate, Class<T> view) {
+        return object(predicate, view)
+                .orElseThrow(OntJenaException.supplier(String.format("Can't find required object [%s @%s %s]", this, predicate, view)));
+    }
+
     public Stream<RDFNode> objects(Property predicate) {
         return Iter.asStream(listProperties(predicate).mapWith(Statement::getObject));
     }
 
+    public <T extends RDFNode> Optional<T> object(Property predicate, Class<T> view) {
+        return objects(predicate, view).findFirst();
+    }
+
+    @Override
     public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view) {
-        return objects(predicate).filter(node -> node.canAs(view)).map(node -> getModel().getNodeAs(node.asNode(), view));
+        return objects(predicate).filter(node -> node.canAs(view)).map(FrontsNode::asNode).map(node -> getModel().getNodeAs(node, view));
     }
 
     @Override
@@ -166,7 +209,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return Arrays.stream(getClass().getInterfaces()).filter(OntObject.class::isAssignableFrom).map(c -> (Class<? extends OntObject>) c).findFirst().orElse(null);
     }
 
-    public static String toString(Class<? extends OntObject> view) {
+    public static String toString(Class<? extends RDFNode> view) {
         return view.getName().replace(OntObject.class.getPackage().getName() + ".", "");
     }
 

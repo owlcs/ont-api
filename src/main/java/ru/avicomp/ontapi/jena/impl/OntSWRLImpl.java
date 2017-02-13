@@ -179,12 +179,12 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public Resource getPredicate() { // should be uri
-            return getRequiredOntProperty(SWRL.builtin, Resource.class);
+            return getRequiredObject(SWRL.builtin, Resource.class);
         }
 
         @Override
         public Stream<DArg> arguments() {
-            return rdfList(SWRL.arguments, DArg.class);
+            return rdfListMembers(SWRL.arguments, DArg.class);
         }
     }
 
@@ -195,12 +195,12 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public OntCE getPredicate() {
-            return getRequiredOntProperty(SWRL.classPredicate, OntCE.class);
+            return getRequiredObject(SWRL.classPredicate, OntCE.class);
         }
 
         @Override
         public IArg getArg() {
-            return getRequiredOntProperty(SWRL.argument1, IArg.class);
+            return getRequiredObject(SWRL.argument1, IArg.class);
         }
     }
 
@@ -211,12 +211,12 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public OntDR getPredicate() {
-            return getRequiredOntProperty(SWRL.dataRange, OntDR.class);
+            return getRequiredObject(SWRL.dataRange, OntDR.class);
         }
 
         @Override
         public DArg getArg() {
-            return getRequiredOntProperty(SWRL.argument1, DArg.class);
+            return getRequiredObject(SWRL.argument1, DArg.class);
         }
     }
 
@@ -227,17 +227,17 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public OntNDP getPredicate() {
-            return getRequiredOntProperty(SWRL.propertyPredicate, OntNDP.class);
+            return getRequiredObject(SWRL.propertyPredicate, OntNDP.class);
         }
 
         @Override
         public IArg getFirstArg() {
-            return getRequiredOntProperty(SWRL.argument1, IArg.class);
+            return getRequiredObject(SWRL.argument1, IArg.class);
         }
 
         @Override
         public DArg getSecondArg() {
-            return getRequiredOntProperty(SWRL.argument2, DArg.class);
+            return getRequiredObject(SWRL.argument2, DArg.class);
         }
     }
 
@@ -248,17 +248,17 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public OntOPE getPredicate() {
-            return getRequiredOntProperty(SWRL.propertyPredicate, OntOPE.class);
+            return getRequiredObject(SWRL.propertyPredicate, OntOPE.class);
         }
 
         @Override
         public IArg getFirstArg() {
-            return getRequiredOntProperty(SWRL.argument1, IArg.class);
+            return getRequiredObject(SWRL.argument1, IArg.class);
         }
 
         @Override
         public IArg getSecondArg() {
-            return getRequiredOntProperty(SWRL.argument2, IArg.class);
+            return getRequiredObject(SWRL.argument2, IArg.class);
         }
     }
 
@@ -275,12 +275,12 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public IArg getFirstArg() {
-            return getRequiredOntProperty(SWRL.argument1, IArg.class);
+            return getRequiredObject(SWRL.argument1, IArg.class);
         }
 
         @Override
         public IArg getSecondArg() {
-            return getRequiredOntProperty(SWRL.argument2, IArg.class);
+            return getRequiredObject(SWRL.argument2, IArg.class);
         }
     }
 
@@ -296,12 +296,12 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public IArg getFirstArg() {
-            return getRequiredOntProperty(SWRL.argument1, IArg.class);
+            return getRequiredObject(SWRL.argument1, IArg.class);
         }
 
         @Override
         public IArg getSecondArg() {
-            return getRequiredOntProperty(SWRL.argument2, IArg.class);
+            return getRequiredObject(SWRL.argument2, IArg.class);
         }
     }
 
