@@ -22,10 +22,10 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.converters.GraphConverter;
 import ru.avicomp.ontapi.jena.converters.TransformAction;
-import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -53,7 +53,7 @@ public class GraphConverterJenaTest {
         OWLOntologyManager manager = OntManagerFactory.createOWLManager();
         OWLOntologyManager testManager = OntManagerFactory.createOWLManager();
 
-        OntGraphModel jenaSP = new OntGraphModelImpl(GraphConverter.convert(load("sp.ttl").getGraph()));
+        OntGraphModel jenaSP = OntFactory.createModel(GraphConverter.convert(load("sp.ttl").getGraph()));
         OWLOntology owlSP = load(manager, "sp.ttl");
         LOGGER.info("SP(Jena): ");
         ReadWriteUtils.print(jenaSP);
@@ -70,7 +70,7 @@ public class GraphConverterJenaTest {
         // spin:Modules is treated by OWL-API as NamedIndividual. Why? So i decide do not fully synchronize our API and OWL-API.
         UnionGraph spinGraph = new UnionGraph(load("spin.ttl").getGraph());
         spinGraph.addGraph(jenaSP.getBaseGraph());
-        OntGraphModel jenaSPIN = new OntGraphModelImpl(GraphConverter.convert(spinGraph));
+        OntGraphModel jenaSPIN = OntFactory.createModel(GraphConverter.convert(spinGraph));
         OWLOntology owlSPIN = load(manager, "spin.ttl");
         LOGGER.info("SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPIN);
@@ -86,7 +86,7 @@ public class GraphConverterJenaTest {
 
         UnionGraph splGraph = new UnionGraph(load("spl.spin.ttl").getGraph());
         splGraph.addGraph(jenaSPIN.getBaseGraph());
-        OntGraphModelImpl jenaSPL = new OntGraphModelImpl(GraphConverter.convert(splGraph));
+        OntGraphModel jenaSPL = OntFactory.createModel(GraphConverter.convert(splGraph));
         LOGGER.info("SPL-SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPL);
         LOGGER.info("SPL-SPIN(Jena) All entities: ");

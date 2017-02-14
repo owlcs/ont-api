@@ -25,8 +25,8 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.converters.GraphConverter;
-import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -48,7 +48,7 @@ public class InternalModelTest {
     @Test
     public void testAxiomRead() {
         Model m = ReadWriteUtils.loadFromTTLFile("pizza.ttl");
-        OntGraphModel model = new OntGraphModelImpl(m.getGraph());
+        OntGraphModel model = OntFactory.createModel(m.getGraph());
         // 39 axiom types:
         Set<Class<? extends OWLAxiom>> types = AxiomType.AXIOM_TYPES.stream().map(AxiomType::getActualClass).collect(Collectors.toSet());
 

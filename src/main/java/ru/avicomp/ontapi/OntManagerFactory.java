@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import org.apache.jena.system.JenaSystem;
 import org.semanticweb.owlapi.OWLAPIParsersModule;
 import org.semanticweb.owlapi.OWLAPIServiceLoaderModule;
 import org.semanticweb.owlapi.annotations.OwlapiModule;
@@ -35,6 +36,10 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
         LogManager.getLogManager().reset();
         Logger logger = Logger.getLogger(InjectionPoint.class.getName());
         logger.setLevel(Level.OFF);
+    }
+
+    static { // init jena system. see description in ru.avicomp.ontapi.jena.OntFactory
+        JenaSystem.init();
     }
 
     private static final ONTManagerProfile DEFAULT_PROFILE = new ONTManagerProfile();

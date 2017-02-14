@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.output.WriterOutputStream;
-import org.apache.jena.graph.Factory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.log4j.Logger;
@@ -23,6 +22,7 @@ import org.semanticweb.owlapi.model.*;
 
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
+import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -37,7 +37,7 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
  */
 public class OntologyManagerImpl extends OWLOntologyManagerImpl implements OntologyManager {
     private static final Logger LOGGER = Logger.getLogger(OntologyManagerImpl.class);
-    public static final GraphFactory DEFAULT_GRAPH_FACTORY = Factory::createGraphMem;
+    public static final GraphFactory DEFAULT_GRAPH_FACTORY = OntFactory::createDefaultGraph;
 
     private GraphFactory graphFactory = DEFAULT_GRAPH_FACTORY;
     protected final ReadWriteLock lock;

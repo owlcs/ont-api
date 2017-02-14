@@ -17,8 +17,8 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -53,7 +53,7 @@ public class TestUtils {
         if (newURI == null) newURI = oldURI + ".copy";
         UnionGraph copy = new UnionGraph(original.getBaseGraph());
         original.imports().forEach(model -> copy.addGraph(model.getGraph()));
-        OntGraphModel res = new OntGraphModelImpl(copy);
+        OntGraphModel res = OntFactory.createModel(copy);
         res.setNsPrefix("", newURI + "#");
         res.add(original.getBaseModel().listStatements());
         res.setID(newURI);
