@@ -1,19 +1,16 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
 
-import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionAxiomImpl;
 
@@ -28,19 +25,20 @@ class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
     public void write(OWLClassAssertionAxiom axiom, OntGraphModel model) {
         OntCE ce = OWL2RDFHelper.addClassExpression(model, axiom.getClassExpression());
         OWLIndividual individual = axiom.getIndividual();
-        Resource subject = individual.isAnonymous() ?
-                OWL2RDFHelper.toResource(individual).inModel(model) :
+        OntObject subject = individual.isAnonymous() ?
+                OWL2RDFHelper.toResource(individual).inModel(model).as(OntObject.class) :
                 OWL2RDFHelper.addIndividual(model, individual);
-        model.add(subject, RDF.type, ce);
-        OntIndividual res = subject.inModel(model).as(OntIndividual.class);
-        OWL2RDFHelper.addAnnotations(res.getStatement(RDF.type, ce), axiom.annotations());
+        OntStatement statement = subject.addStatement(RDF.type, ce);
+        OWL2RDFHelper.addAnnotations(statement, axiom.annotations());
     }
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(OntIndividual.class)
-                .map(i -> i.classes().map(ce -> i.getStatement(RDF.type, ce)))
+                .map(i -> i.classes().map(ce -> i.statement(RDF.type, ce)))
                 .flatMap(Function.identity())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .filter(OntStatement::isLocal);
     }
 

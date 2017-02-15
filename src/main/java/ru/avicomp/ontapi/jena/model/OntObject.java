@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.model;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -39,10 +40,11 @@ public interface OntObject extends Resource {
     OntStatement getRoot();
 
     /**
-     * todo: not ready. should it be here?
-     * returns "the defined content": all characteristic statements, i.e. all those statements which determine this object.
-     * for noncomposite object the result would contain only the root statement.
-     * for composite (usually anonymous) object the result would contain all statements plus all content of dependencies recursively.
+     * returns the content of object: all characteristic statements,
+     * i.e. all those statements which determine this object.
+     * For noncomposite objects the result would contain only the root statement.
+     * For composite (usually anonymous, e.g. disjoint section, class expression, etc) objects
+     * the result would contain all statements in the graph but without statements related to the components.
      *
      * @return Stream of associated with this object statements
      */
@@ -51,15 +53,21 @@ public interface OntObject extends Resource {
     OntStatement addStatement(Property property, RDFNode value);
 
     /**
-     * todo: retuen Optional
+     * returns the <b>first</b> statement for specified property and object.
      *
-     * @param property
-     * @param object
-     * @return
+     * @param property {@link Property}
+     * @param object   {@link RDFNode}
+     * @return {@link Optional} around {@link OntStatement}
      */
-    OntStatement getStatement(Property property, RDFNode object);
+    Optional<OntStatement> statement(Property property, RDFNode object);
 
-    OntStatement getStatement(Property property);
+    /**
+     * returns the <b>first</b> statement for specified property.
+     *
+     * @param property {@link Property}
+     * @return {@link Optional} around {@link OntStatement}
+     */
+    Optional<OntStatement> statement(Property property);
 
     void remove(Property property, RDFNode object);
 

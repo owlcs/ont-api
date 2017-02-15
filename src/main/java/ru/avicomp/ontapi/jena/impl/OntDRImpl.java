@@ -1,10 +1,12 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 
@@ -13,6 +15,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntFR;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -88,6 +91,10 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         return model.getNodeAs(res.asNode(), IntersectionOf.class);
     }
 
+    Stream<OntStatement> listStatements(Property predicate) {
+        return Stream.of(statements(predicate), rdfListContent(predicate)).flatMap(Function.identity());
+    }
+
     public static class OneOfImpl extends OntDRImpl implements OneOf {
         public OneOfImpl(Node n, EnhGraph m) {
             super(n, m);
@@ -96,6 +103,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         @Override
         public Stream<Literal> values() {
             return rdfListMembers(OWL.oneOf, Literal.class);
+        }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.concat(super.content(), listStatements(OWL.oneOf));
         }
     }
 
@@ -118,6 +130,13 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         public Stream<OntFR> facetRestrictions() {
             return rdfListMembers(OWL.withRestrictions, OntFR.class);
         }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.of(super.content(),
+                    statement(OWL.onDatatype).map(Stream::of).orElse(Stream.empty()),
+                    listStatements(OWL.withRestrictions)).flatMap(Function.identity());
+        }
     }
 
     public static class ComplementOfImpl extends OntDRImpl implements ComplementOf {
@@ -128,6 +147,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         @Override
         public OntDR getDataRange() {
             return getRequiredObject(OWL.datatypeComplementOf, OntDR.class);
+        }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.concat(super.content(), statement(OWL.datatypeComplementOf).map(Stream::of).orElse(Stream.empty()));
         }
     }
 
@@ -140,6 +164,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         public Stream<OntDR> dataRanges() {
             return rdfListMembers(OWL.unionOf, OntDR.class);
         }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.concat(super.content(), listStatements(OWL.unionOf));
+        }
     }
 
     public static class IntersectionOfImpl extends OntDRImpl implements IntersectionOf {
@@ -151,5 +180,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         public Stream<OntDR> dataRanges() {
             return rdfListMembers(OWL.intersectionOf, OntDR.class);
         }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.concat(super.content(), listStatements(OWL.intersectionOf));
+        }
+
     }
 }

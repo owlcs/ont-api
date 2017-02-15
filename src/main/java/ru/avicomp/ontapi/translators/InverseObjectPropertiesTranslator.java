@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -28,8 +29,10 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(OntOPE.class)
-                .map(subj -> subj.inverseOf().map(obj -> subj.getStatement(OWL.inverseOf, obj)))
+                .map(subj -> subj.inverseOf().map(obj -> subj.statement(OWL.inverseOf, obj)))
                 .flatMap(Function.identity())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .filter(OntStatement::isLocal);
     }
 

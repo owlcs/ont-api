@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -55,8 +56,17 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
 
     protected abstract Class<O> componentClass();
 
+    @Override
     public Stream<O> members() {
         return predicates().map(p -> rdfListMembers(p, componentClass())).flatMap(Function.identity());
+    }
+
+    @Override
+    public Stream<OntStatement> content() {
+        Stream<OntStatement> thisDeclaration = super.content();
+        Stream<OntStatement> listDeclaration = predicates().map(this::statement).filter(Optional::isPresent).map(Optional::get);
+        Stream<OntStatement> listContent = predicates().map(this::rdfListContent).flatMap(Function.identity());
+        return Stream.of(thisDeclaration, listDeclaration, listContent).flatMap(Function.identity());
     }
 
     private static Configurable<OntObjectFactory> createFactory(Class<? extends OntDisjointImpl> impl,

@@ -5,8 +5,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
@@ -42,7 +42,7 @@ public class Models {
 
 
     /**
-     * creates typed list: the anonymous section which is built using the same rules as true rdf:List,
+     * creates typed list: the anonymous section which is built using the same rules as true rdf:List {@link RDFListImpl},
      * i.e. by using rdf:first, rdf:rest and rdf:nil predicates.
      *
      * @param model   Model
@@ -51,12 +51,25 @@ public class Models {
      * @return Anonymous resource - the header for typed list.
      */
     public static Resource createTypedList(Model model, Resource type, List<? extends RDFNode> members) {
-        if (members.isEmpty()) return RDF.nil.inModel(model);
+        /*if (members.isEmpty()) return RDF.nil.inModel(model);
         Resource res = model.createResource();
         res.addProperty(RDF.type, type);
         res.addProperty(RDF.first, members.remove(0));
         res.addProperty(RDF.rest, createTypedList(model, type, members));
-        return res;
+        return res;*/
+        RDFList tmp = new RDFListImpl(Node.ANY, (EnhGraph) model) {
+
+            @Override
+            public Resource listType() {
+                return type;
+            }
+
+            @Override
+            public RDFList copy() {
+                return copy(members.iterator());
+            }
+        };
+        return tmp.copy();
     }
 
     /**
@@ -69,32 +82,6 @@ public class Models {
      */
     public static Resource createTypedList(Model model, Resource type, Stream<? extends RDFNode> members) {
         return createTypedList(model, type, members.collect(Collectors.toList()));
-    }
-
-    /**
-     * Recursively gets the content of rdf:List as Stream of {@link RDFNode}s
-     *
-     * @param model   Model
-     * @param anyList Resource. could be true rdf:List or typed List (which consists of rdf:first, rdf:rest and rdf:nil nodes)
-     * @return Stream, could be empty if list is empty or specified resource is not a list.
-     */
-    public static Stream<RDFNode> rdfListContent(Model model, Resource anyList) {
-        RDFNode first = null;
-        RDFNode rest = null;
-        Statement rdfFirst = model.getProperty(anyList, RDF.first);
-        if (rdfFirst != null) first = rdfFirst.getObject();
-        if (first == null) return Stream.empty();
-
-        Statement rdfRest = model.getProperty(anyList, RDF.rest);
-        if (rdfRest != null && !RDF.nil.equals(rdfRest.getObject())) {
-            rest = rdfRest.getObject();
-        }
-        if (rest == null) {
-            return Stream.of(first);
-        }
-        Stream<RDFNode> a = Stream.of(first);
-        Stream<RDFNode> b = rest.isResource() ? rdfListContent(model, rest.asResource()) : Stream.of(rest);
-        return Stream.concat(a, b);
     }
 
     /**
@@ -207,13 +194,18 @@ public class Models {
     }
 
     private static void calcAssociatedStatements(Resource root, Set<Statement> res) {
-        Stream<Statement> statements;
-        if (root.canAs(RDFListImpl.class)) {
-            statements = root.as(RDFListImpl.class).collectStatements().stream();
-        } else {
-            statements = Iter.asStream(root.listProperties());
+        if (root.canAs(RDFList.class)) {
+            RDFListImpl list = (RDFListImpl) root.as(RDFList.class);
+            list.collectStatements().forEach(statement -> {
+                res.add(statement);
+                if (!list.listFirst().equals(statement.getPredicate())) return;
+                RDFNode obj = statement.getObject();
+                if (obj.isAnon())
+                    calcAssociatedStatements(obj.asResource(), res);
+            });
+            return;
         }
-        statements.forEach(statement -> {
+        root.listProperties().forEachRemaining(statement -> {
             RDFNode obj = statement.getObject();
             if (res.stream().anyMatch(s -> obj.equals(s.getSubject()))) // to avoid cycles
                 return;

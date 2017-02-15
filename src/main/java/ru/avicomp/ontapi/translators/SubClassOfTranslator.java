@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -30,8 +31,10 @@ class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(OntCE.class)
-                .map(subj -> subj.subClassOf().map(obj -> subj.getStatement(RDFS.subClassOf, obj)))
+                .map(subj -> subj.subClassOf().map(obj -> subj.statement(RDFS.subClassOf, obj)))
                 .flatMap(Function.identity())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .filter(OntStatement::isLocal);
     }
 

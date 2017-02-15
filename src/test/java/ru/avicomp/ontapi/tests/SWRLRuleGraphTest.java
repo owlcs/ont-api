@@ -9,9 +9,9 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
+import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.OntIRI;
-import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
  * for SWRLRule Axiom.
@@ -19,12 +19,23 @@ import ru.avicomp.ontapi.utils.TestUtils;
  * Created by szuev on 19.10.2016.
  */
 public class SWRLRuleGraphTest extends GraphTestBase {
+
     @Test
-    public void test() {
-        OntIRI iri = OntIRI.create("http://test.org/rule");
-        OntologyModel owl = TestUtils.createModel(iri);
-        OWLOntologyManager manager = owl.getOWLOntologyManager();
+    public void test() throws OWLOntologyCreationException {
+        OWLOntologyManager manager = OntManagerFactory.createONTManager();
+        OWLOntology owl = make(manager, OntIRI.create("http://test.org/rule"));
+
+        owl.axioms().forEach(LOGGER::info);
+
+        debug(owl);
+
+        checkAxioms((OntologyModel) owl, AxiomType.DECLARATION);
+    }
+
+    private OWLOntology make(OWLOntologyManager manager, OntIRI iri) throws OWLOntologyCreationException {
         OWLDataFactory factory = manager.getOWLDataFactory();
+        LOGGER.info("Create ontology " + iri);
+        OWLOntology res = manager.createOntology(iri);
 
         OWLClass class1 = factory.getOWLClass(iri.addFragment("Class-1"));
         OWLIndividual individual1 = factory.getOWLNamedIndividual(iri.addFragment("indi-1"));
@@ -62,12 +73,7 @@ public class SWRLRuleGraphTest extends GraphTestBase {
 
         axioms.add(factory.getOWLClassAssertionAxiom(class1, individual2));
 
-        axioms.forEach(axiom -> owl.applyChanges(new AddAxiom(owl, axiom)));
-
-        owl.axioms().forEach(LOGGER::info);
-
-        debug(owl);
-
-        checkAxioms(owl, AxiomType.DECLARATION);
+        axioms.forEach(axiom -> res.applyChanges(new AddAxiom(res, axiom)));
+        return res;
     }
 }

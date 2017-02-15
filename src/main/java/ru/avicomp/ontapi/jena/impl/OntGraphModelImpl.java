@@ -12,7 +12,6 @@ import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.mem.GraphMem;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
@@ -183,8 +182,9 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public OntGraphModelImpl remove(Resource s, Property p, RDFNode o) { // todo: be warned - removing is allowed only for base graph
-        graph.delete(Triple.create(s.asNode(), p.asNode(), o.asNode()));
+    public OntGraphModelImpl remove(Resource s, Property p, RDFNode o) {
+        // be warned: removing is allowed only inside base graph
+        super.remove(s, p, o);
         return this;
     }
 
@@ -243,7 +243,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     @Override
     public void removeOntObject(OntObject obj) {
         obj.clearAnnotations();
-        removeAll(obj, null, null);
+        obj.content().forEach(this::remove);
     }
 
     @Override

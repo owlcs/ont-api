@@ -1,8 +1,12 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 
@@ -48,6 +52,8 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
 
     abstract Class<P> propertyClass();
 
+    abstract Property targetPredicate();
+
     @Override
     public OntIndividual getSource() {
         return getRequiredObject(OWL.sourceIndividual, OntIndividual.class);
@@ -65,6 +71,14 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         return res;
     }
 
+    @Override
+    public Stream<OntStatement> content() {
+        return Stream.of(statement(RDF.type, OWL.NegativePropertyAssertion),
+                statement(OWL.sourceIndividual),
+                statement(OWL.annotatedProperty),
+                statement(targetPredicate())).filter(Optional::isPresent).map(Optional::get);
+    }
+
     public static class ObjectAssertionImpl extends OntNPAImpl<OntOPE, OntIndividual> implements ObjectAssertion {
         public ObjectAssertionImpl(Node n, EnhGraph m) {
             super(n, m);
@@ -76,6 +90,11 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         }
 
         @Override
+        Property targetPredicate() {
+            return OWL.targetIndividual;
+        }
+
+        @Override
         public Class<ObjectAssertion> getActualClass() {
             return ObjectAssertion.class;
         }
@@ -83,7 +102,7 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
 
         @Override
         public OntIndividual getTarget() {
-            return getRequiredObject(OWL.targetIndividual, OntIndividual.class);
+            return getRequiredObject(targetPredicate(), OntIndividual.class);
         }
 
     }
@@ -99,6 +118,11 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         }
 
         @Override
+        Property targetPredicate() {
+            return OWL.targetValue;
+        }
+
+        @Override
         public Class<DataAssertion> getActualClass() {
             return DataAssertion.class;
         }
@@ -106,7 +130,7 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
 
         @Override
         public Literal getTarget() {
-            return getRequiredObject(OWL.targetValue, Literal.class);
+            return getRequiredObject(targetPredicate(), Literal.class);
         }
 
     }

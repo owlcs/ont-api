@@ -2,10 +2,8 @@ package ru.avicomp.ontapi.jena.impl;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.iterator.Iter;
@@ -54,8 +52,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntStatement getRoot() {
-        List<Resource> types = types().collect(Collectors.toList());
-        return types.isEmpty() ? null : new OntStatementImpl.RootImpl(this, RDF.type, types.get(0), getModel());
+        return types().map(t -> new OntStatementImpl.RootImpl(this, RDF.type, t, getModel())).findFirst().orElse(null);
     }
 
     protected OntStatement getRoot(Property property, Resource type) {
@@ -75,14 +72,15 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
-    public OntStatement getStatement(Property property) {
-        return statements(property).findFirst().orElse(null);
+    public Optional<OntStatement> statement(Property property) {
+        return statements(property).findFirst();
     }
 
     @Override
-    public OntStatement getStatement(Property property, RDFNode object) {
-        return statements(property).filter(s -> s.getObject().equals(object)).findFirst().orElse(null);
+    public Optional<OntStatement> statement(Property property, RDFNode object) {
+        return statements(property).filter(s -> s.getObject().equals(object)).findFirst();
     }
+
 
     @Override
     public OntStatement addStatement(Property property, RDFNode value) {
@@ -152,12 +150,20 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return rdfListMembers(predicate).map(n -> getModel().getNodeAs(n.asNode(), view));
     }
 
+    /**
+     * gets content of list in view of OntStatement streams.
+     * Note: if there are several rdf:List objects the contents will be merged.
+     *
+     * @param property predicate
+     * @return Stream
+     */
     public Stream<OntStatement> rdfListContent(Property property) {
         OntStatement r = getRoot();
         return Iter.asStream(listProperties(property)
                 .mapWith(Statement::getObject)
-                .filterKeep(n -> n.canAs(RDFListImpl.class))
-                .mapWith(n -> n.as(RDFListImpl.class)))
+                .filterKeep(n -> n.canAs(RDFList.class))
+                .mapWith(n -> n.as(RDFList.class)))
+                .map(RDFListImpl.class::cast)
                 .map(RDFListImpl::collectStatements)
                 .map(Collection::stream)
                 .flatMap(Function.identity())

@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -31,8 +32,10 @@ class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinition
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(OntDT.class)
-                .map(p -> p.equivalentClass().map(r -> p.getStatement(OWL.equivalentClass, r)))
+                .map(p -> p.equivalentClass().map(r -> p.statement(OWL.equivalentClass, r)))
                 .flatMap(Function.identity())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .filter(OntStatement::isLocal);
     }
 

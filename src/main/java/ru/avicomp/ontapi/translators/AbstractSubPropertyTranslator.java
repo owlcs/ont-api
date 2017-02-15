@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -28,8 +29,10 @@ abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P extends O
 
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(getView())
-                .map(p -> p.subPropertyOf().map(r -> p.getStatement(RDFS.subPropertyOf, r)))
+                .map(p -> p.subPropertyOf().map(r -> p.statement(RDFS.subPropertyOf, r)))
                 .flatMap(Function.identity())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .filter(OntStatement::isLocal);
     }
 

@@ -27,6 +27,7 @@ import uk.ac.manchester.cs.owl.owlapi.*;
 /**
  * Helper to translate rdf-graph to the axioms (reading from graph).
  * TODO: need to handle bad recursions (the simplest example: "_:b0 rdfs:subClassOf _:b0")
+ * TODO: replace the return types of all methods from OWLObject to Triples<OWLObject>
  * <p>
  * Created by @szuev on 25.11.2016.
  */

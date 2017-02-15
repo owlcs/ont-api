@@ -1,13 +1,11 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -186,122 +184,130 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         public Stream<DArg> arguments() {
             return rdfListMembers(SWRL.arguments, DArg.class);
         }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.of(super.content(),
+                    statement(SWRL.builtin).map(Stream::of).orElse(Stream.empty()),
+                    rdfListContent(SWRL.arguments)
+            ).flatMap(Function.identity());
+        }
     }
 
-    public static class OntClassAtomImpl extends AtomImpl<OntCE> implements Atom.OntClass {
+    public static abstract class UnaryImpl<O extends OntObject, A extends Arg> extends AtomImpl<O> implements Atom.Unary<O, A> {
+        private final Property predicate;
+        private final Class<O> objectView;
+        private final Class<A> argView;
+
+        UnaryImpl(Node n, EnhGraph m, Property predicate, Class<O> objectView, Class<A> argView) {
+            super(n, m);
+            this.predicate = predicate;
+            this.objectView = objectView;
+            this.argView = argView;
+        }
+
+        @Override
+        public A getArg() {
+            return getRequiredObject(SWRL.argument1, argView);
+        }
+
+        @Override
+        public O getPredicate() {
+            return getRequiredObject(predicate, objectView);
+        }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.of(super.content(),
+                    statement(predicate).map(Stream::of).orElse(Stream.empty()),
+                    statement(SWRL.argument1).map(Stream::of).orElse(Stream.empty())
+            ).flatMap(Function.identity());
+        }
+    }
+
+    public static class OntClassAtomImpl extends UnaryImpl<OntCE, IArg> implements Atom.OntClass {
         public OntClassAtomImpl(Node n, EnhGraph m) {
-            super(n, m);
-        }
-
-        @Override
-        public OntCE getPredicate() {
-            return getRequiredObject(SWRL.classPredicate, OntCE.class);
-        }
-
-        @Override
-        public IArg getArg() {
-            return getRequiredObject(SWRL.argument1, IArg.class);
+            super(n, m, SWRL.classPredicate, OntCE.class, IArg.class);
         }
     }
 
-    public static class DataRangeAtomImpl extends AtomImpl<OntDR> implements Atom.DataRange {
+    public static class DataRangeAtomImpl extends UnaryImpl<OntDR, DArg> implements Atom.DataRange {
         public DataRangeAtomImpl(Node n, EnhGraph m) {
-            super(n, m);
-        }
-
-        @Override
-        public OntDR getPredicate() {
-            return getRequiredObject(SWRL.dataRange, OntDR.class);
-        }
-
-        @Override
-        public DArg getArg() {
-            return getRequiredObject(SWRL.argument1, DArg.class);
+            super(n, m, SWRL.dataRange, OntDR.class, DArg.class);
         }
     }
 
-    public static class DataPropertyAtomImpl extends AtomImpl<OntNDP> implements Atom.DataProperty {
+    public static abstract class BinaryImpl<O extends Resource, F extends Arg, S extends Arg> extends AtomImpl<O> implements Atom.Binary<O, F, S> {
+        protected final Property predicate;
+        private final Class<O> objectView;
+        private final Class<F> firstArgView;
+        private final Class<S> secondArgView;
+
+        BinaryImpl(Node n, EnhGraph m, Property predicate, Class<O> objectView, Class<F> firstArgView, Class<S> secondArgView) {
+            super(n, m);
+            this.predicate = predicate;
+            this.objectView = objectView;
+            this.firstArgView = firstArgView;
+            this.secondArgView = secondArgView;
+        }
+
+        @Override
+        public O getPredicate() {
+            return getRequiredObject(predicate, objectView);
+        }
+
+        @Override
+        public F getFirstArg() {
+            return getRequiredObject(SWRL.argument1, firstArgView);
+        }
+
+        @Override
+        public S getSecondArg() {
+            return getRequiredObject(SWRL.argument2, secondArgView);
+        }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.of(super.content(),
+                    statement(predicate).map(Stream::of).orElse(Stream.empty()),
+                    statement(SWRL.argument1).map(Stream::of).orElse(Stream.empty()),
+                    statement(SWRL.argument2).map(Stream::of).orElse(Stream.empty())
+            ).flatMap(Function.identity());
+        }
+    }
+
+    public static class DataPropertyAtomImpl extends BinaryImpl<OntNDP, IArg, DArg> implements Atom.DataProperty {
         public DataPropertyAtomImpl(Node n, EnhGraph m) {
-            super(n, m);
-        }
-
-        @Override
-        public OntNDP getPredicate() {
-            return getRequiredObject(SWRL.propertyPredicate, OntNDP.class);
-        }
-
-        @Override
-        public IArg getFirstArg() {
-            return getRequiredObject(SWRL.argument1, IArg.class);
-        }
-
-        @Override
-        public DArg getSecondArg() {
-            return getRequiredObject(SWRL.argument2, DArg.class);
+            super(n, m, SWRL.propertyPredicate, OntNDP.class, IArg.class, DArg.class);
         }
     }
 
-    public static class ObjectPropertyAtomImpl extends AtomImpl<OntOPE> implements Atom.ObjectProperty {
+    public static class ObjectPropertyAtomImpl extends BinaryImpl<OntOPE, IArg, IArg> implements Atom.ObjectProperty {
         public ObjectPropertyAtomImpl(Node n, EnhGraph m) {
-            super(n, m);
-        }
-
-        @Override
-        public OntOPE getPredicate() {
-            return getRequiredObject(SWRL.propertyPredicate, OntOPE.class);
-        }
-
-        @Override
-        public IArg getFirstArg() {
-            return getRequiredObject(SWRL.argument1, IArg.class);
-        }
-
-        @Override
-        public IArg getSecondArg() {
-            return getRequiredObject(SWRL.argument2, IArg.class);
+            super(n, m, SWRL.propertyPredicate, OntOPE.class, IArg.class, IArg.class);
         }
     }
 
-    public static class DifferentIndividualsAtomImpl extends AtomImpl<Property> implements Atom.DifferentIndividuals {
+    public static abstract class IndividualsAtomImpl extends BinaryImpl<Property, IArg, IArg> {
+        IndividualsAtomImpl(Node n, EnhGraph m, Property predicate) {
+            super(n, m, predicate, Property.class, IArg.class, IArg.class);
+        }
 
+        @Override
+        public Property getPredicate() {
+            return predicate;
+        }
+    }
+
+    public static class DifferentIndividualsAtomImpl extends IndividualsAtomImpl implements Atom.DifferentIndividuals {
         public DifferentIndividualsAtomImpl(Node n, EnhGraph m) {
-            super(n, m);
-        }
-
-        @Override
-        public Property getPredicate() {
-            return OWL.differentFrom;
-        }
-
-        @Override
-        public IArg getFirstArg() {
-            return getRequiredObject(SWRL.argument1, IArg.class);
-        }
-
-        @Override
-        public IArg getSecondArg() {
-            return getRequiredObject(SWRL.argument2, IArg.class);
+            super(n, m, OWL.differentFrom);
         }
     }
 
-    public static class SameIndividualsAtomImpl extends AtomImpl<Property> implements Atom.SameIndividuals {
+    public static class SameIndividualsAtomImpl extends IndividualsAtomImpl implements Atom.SameIndividuals {
         public SameIndividualsAtomImpl(Node n, EnhGraph m) {
-            super(n, m);
-        }
-
-        @Override
-        public Property getPredicate() {
-            return OWL.sameAs;
-        }
-
-        @Override
-        public IArg getFirstArg() {
-            return getRequiredObject(SWRL.argument1, IArg.class);
-        }
-
-        @Override
-        public IArg getSecondArg() {
-            return getRequiredObject(SWRL.argument2, IArg.class);
+            super(n, m, OWL.sameAs);
         }
     }
 
@@ -315,7 +321,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
             if (st == null || !st.getObject().isResource())
                 return Stream.empty();
             Resource list = st.getObject().asResource();
-            return Models.rdfListContent(getModel(), list).filter(n -> n.canAs(Atom.class)).map(n -> n.as(Atom.class)).distinct();
+            return list.as(RDFList.class).asJavaList().stream().filter(n -> n.canAs(Atom.class)).map(n -> n.as(Atom.class)).distinct();
         }
 
         @Override
@@ -326,6 +332,11 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         @Override
         public Stream<Atom> body() {
             return list(SWRL.body);
+        }
+
+        @Override
+        public Stream<OntStatement> content() {
+            return Stream.of(super.content(), rdfListContent(SWRL.head), rdfListContent(SWRL.body)).flatMap(Function.identity());
         }
     }
 }
