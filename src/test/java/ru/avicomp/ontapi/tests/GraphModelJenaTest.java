@@ -208,7 +208,7 @@ public class GraphModelJenaTest {
         Assert.assertEquals("Incorrect owl:AllDisjointClasses number", 1, m.ontObjects(OntDisjoint.Classes.class).count());
 
         disjointClasses.addLabel("label1", "en");
-        disjointClasses.addLabel("comment", "kjpopo").addAnnotation(nap1, ResourceFactory.createStringLiteral("some txt"));
+        disjointClasses.addLabel("comment", "kjpopo").addAnnotation(nap1, ResourceFactory.createTypedLiteral("some txt"));
         ReadWriteUtils.print(m);
 
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
@@ -221,7 +221,7 @@ public class GraphModelJenaTest {
         OntNPA.ObjectAssertion nopa = nop1.addNegativeAssertion(ind1, ind2);
         Assert.assertEquals("Incorrect owl:NegativePropertyAssertion number", 1, nop1.negativeAssertions().count());
         nopa.addLabel("label1", null)
-                .addAnnotation(m.getRDFSLabel(), ResourceFactory.createStringLiteral("label2"))
+                .addAnnotation(m.getRDFSLabel(), ResourceFactory.createTypedLiteral("label2"))
                 .addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label3"));
         Assert.assertEquals("Should be 3 owl:Annotation", 3, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
 
@@ -245,7 +245,7 @@ public class GraphModelJenaTest {
         OntDT dt2 = m.createOntEntity(OntDT.class, ns + "dataType2");
 
         OntFR fr1 = m.createFacetRestriction(OntFR.MaxExclusive.class, ResourceFactory.createTypedLiteral(12));
-        OntFR fr2 = m.createFacetRestriction(OntFR.LangRange.class, ResourceFactory.createStringLiteral("\\d+"));
+        OntFR fr2 = m.createFacetRestriction(OntFR.LangRange.class, ResourceFactory.createTypedLiteral("\\d+"));
 
         OntDR dr1 = m.createRestrictionDataRange(dt1, Arrays.asList(fr1, fr2));
 
