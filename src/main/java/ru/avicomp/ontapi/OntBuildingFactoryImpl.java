@@ -184,8 +184,16 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         }
 
         private GraphInfo loadGraph(OWLOntologyDocumentSource source) {
-            Graph graph = manager.getGraphFactory().create();
-            OntFormat format = readGraph(graph, source);
+            Graph graph;
+            OntFormat format;
+            if (OntGraphDocumentSource.class.isInstance(source)) {
+                OntGraphDocumentSource _source = (OntGraphDocumentSource) source;
+                graph = _source.getGraph();
+                format = _source.getOntFormat();
+            } else {
+                graph = manager.getGraphFactory().create();
+                format = readGraph(graph, source);
+            }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("The format (" + source.getClass().getSimpleName() + "): " + format);
             }
