@@ -26,7 +26,7 @@ import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.jena.OntFactory;
-import ru.avicomp.ontapi.jena.converters.GraphConverter;
+import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -78,7 +78,7 @@ public class InternalModelTest {
     public void testOntologyAnnotations() {
         OWLDataFactory factory = OntManagerFactory.getDataFactory();
 
-        OntInternalModel model = new OntInternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
+        OntInternalModel model = new OntInternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), OntModelConfig.getPersonality());
 
         Set<OWLAnnotation> annotations = model.getAnnotations();
         annotations.forEach(LOGGER::debug);
@@ -226,8 +226,8 @@ public class InternalModelTest {
         URI fileURI = ReadWriteUtils.getResourceURI(file);
         LOGGER.info("Load jena model from " + fileURI);
         Model init = ReadWriteUtils.load(fileURI, format);
-        Graph graph = GraphConverter.convert(init.getGraph());
-        return new OntInternalModel(graph);
+        Graph graph = GraphTransformConfig.convert(init.getGraph());
+        return new OntInternalModel(graph, OntModelConfig.getPersonality());
     }
 
 }

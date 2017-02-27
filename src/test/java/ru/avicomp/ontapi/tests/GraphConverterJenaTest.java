@@ -24,7 +24,7 @@ import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagerFactory;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.converters.GraphConverter;
+import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
 import ru.avicomp.ontapi.jena.converters.TransformAction;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -34,7 +34,7 @@ import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
- * to test {@link GraphConverter}
+ * to test {@link GraphTransformConfig}
  *
  * Created by @szuev on 30.10.2016.
  */
@@ -43,7 +43,7 @@ public class GraphConverterJenaTest {
 
     @Test
     public void test() throws Exception {
-        GraphConverter.CONVERTERS.add(g -> new TransformAction(g) {
+        GraphTransformConfig.getTransformers().add(g -> new TransformAction(g) {
             @Override
             public void perform() {
                 LOGGER.info("Finish transformation (" + getOntURI(g) + ").");
@@ -53,7 +53,7 @@ public class GraphConverterJenaTest {
         OWLOntologyManager manager = OntManagerFactory.createOWLManager();
         OWLOntologyManager testManager = OntManagerFactory.createOWLManager();
 
-        OntGraphModel jenaSP = OntFactory.createModel(GraphConverter.convert(load("spin/sp.ttl").getGraph()));
+        OntGraphModel jenaSP = OntFactory.createModel(GraphTransformConfig.convert(load("spin/sp.ttl").getGraph()));
         OWLOntology owlSP = load(manager, "spin/sp.ttl");
         LOGGER.info("SP(Jena): ");
         ReadWriteUtils.print(jenaSP);
@@ -70,7 +70,7 @@ public class GraphConverterJenaTest {
         // spin:Modules is treated by OWL-API as NamedIndividual. Why? So i decide do not fully synchronize our API and OWL-API.
         UnionGraph spinGraph = new UnionGraph(load("spin/spin.ttl").getGraph());
         spinGraph.addGraph(jenaSP.getBaseGraph());
-        OntGraphModel jenaSPIN = OntFactory.createModel(GraphConverter.convert(spinGraph));
+        OntGraphModel jenaSPIN = OntFactory.createModel(GraphTransformConfig.convert(spinGraph));
         OWLOntology owlSPIN = load(manager, "spin/spin.ttl");
         LOGGER.info("SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPIN);
@@ -86,7 +86,7 @@ public class GraphConverterJenaTest {
 
         UnionGraph splGraph = new UnionGraph(load("spin/spl.spin.ttl").getGraph());
         splGraph.addGraph(jenaSPIN.getBaseGraph());
-        OntGraphModel jenaSPL = OntFactory.createModel(GraphConverter.convert(splGraph));
+        OntGraphModel jenaSPL = OntFactory.createModel(GraphTransformConfig.convert(splGraph));
         LOGGER.info("SPL-SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPL);
         LOGGER.info("SPL-SPIN(Jena) All entities: ");

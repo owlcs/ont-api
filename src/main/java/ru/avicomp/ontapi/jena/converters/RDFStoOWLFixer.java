@@ -155,11 +155,11 @@ public class RDFStoOWLFixer extends TransformAction {
         for (Node prop : properties) {
             Set<Resource> types = getPropertyTypes(prop);
             if (types.isEmpty()) { //just ignore
-                GraphConverter.LOGGER.warn("Can't determine property type for " + prop);
+                GraphTransformConfig.LOGGER.warn("Can't determine property type for " + prop);
                 continue;
             }
             if (types.contains(OWL.DatatypeProperty) && types.contains(OWL.ObjectProperty)) { // todo: ignore
-                GraphConverter.LOGGER.warn("Property " + prop + " can't be data and object at the same time.");
+                GraphTransformConfig.LOGGER.warn("Property " + prop + " can't be data and object at the same time.");
                 continue;
             }
             types.forEach(type -> addType(prop, type));

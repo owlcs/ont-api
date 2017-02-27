@@ -39,6 +39,11 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     }
 
     @Override
+    public void setOntologyID(OWLOntologyID id) {
+        super.setOntologyID(id);
+    }
+
+    @Override
     public ChangeApplied applyDirectChange(OWLOntologyChange change) {
         return change.accept(getRDFChangeProcessor());
     }
@@ -181,7 +186,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             if (getOntologyID().equals(id)) {
                 return NO_OPERATION;
             }
-            base.setOwlID(id);
+            setOntologyID(id);
             return SUCCESSFULLY;
         }
     }

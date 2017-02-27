@@ -15,6 +15,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import com.google.common.base.Stopwatch;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
@@ -90,7 +91,7 @@ public class PerformancePizzaTester {
             if (testPureJena) { // no graph-converter tuning here
                 Graph g = GraphFactory.createDefaultGraph();
                 RDFDataMgr.read(g, file.getIRIString(), Lang.TURTLE);
-                OntInternalModel i = new OntInternalModel(g);
+                OntInternalModel i = new OntInternalModel(g, OntModelConfig.getPersonality());
                 i.getAxioms();
                 continue;
             } // whole cycle of loading:

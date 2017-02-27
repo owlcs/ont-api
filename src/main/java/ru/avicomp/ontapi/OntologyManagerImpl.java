@@ -22,9 +22,9 @@ import org.semanticweb.owlapi.model.*;
 
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
-import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
@@ -37,9 +37,6 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
  */
 public class OntologyManagerImpl extends OWLOntologyManagerImpl implements OntologyManager {
     private static final Logger LOGGER = Logger.getLogger(OntologyManagerImpl.class);
-    public static final GraphFactory DEFAULT_GRAPH_FACTORY = OntFactory::createDefaultGraph;
-
-    private GraphFactory graphFactory = DEFAULT_GRAPH_FACTORY;
     protected final ReadWriteLock lock;
 
     @Inject
@@ -47,6 +44,37 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
         super(dataFactory, readWriteLock);
         this.lock = readWriteLock;
         ontologyFactories.set(new OntBuildingFactoryImpl());
+        super.setOntologyConfigurator(new OntConfig());
+    }
+
+    @Override
+    public OntConfig getOntologyConfigurator() {
+        return (OntConfig) super.getOntologyConfigurator();
+    }
+
+    @Override
+    public void setOntologyConfigurator(@Nonnull OntologyConfigurator conf) {
+        try {
+            lock.writeLock().lock();
+            super.setOntologyConfigurator(conf instanceof OntConfig ? conf : OntConfig.copy(conf));
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public void setOntologyLoaderConfiguration(@Nonnull OWLOntologyLoaderConfiguration conf) {
+        try {
+            lock.writeLock().lock();
+            super.setOntologyLoaderConfiguration(conf instanceof OntConfig.LoaderConfiguration ? conf : new OntConfig.LoaderConfiguration(conf));
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public OntConfig.LoaderConfiguration getOntologyLoaderConfiguration() {
+        return (OntConfig.LoaderConfiguration) super.getOntologyLoaderConfiguration();
     }
 
     /**
@@ -80,16 +108,6 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     @Override
     public OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException {
         return (OntologyModel) super.loadOntology(source);
-    }
-
-    @Override
-    public void setGraphFactory(GraphFactory factory) {
-        this.graphFactory = OntApiException.notNull(factory, "Null graph-factory");
-    }
-
-    @Override
-    public GraphFactory getGraphFactory() {
-        return graphFactory;
     }
 
     @Override
@@ -262,7 +280,7 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static OutputStream openStream(IRI iri) throws IOException {
+    private static OutputStream openStream(IRI iri) throws IOException {
         if ("file".equals(iri.getScheme())) {
             File file = new File(iri.toURI());
             file.getParentFile().mkdirs();
@@ -274,9 +292,10 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     }
 
     /**
-     * serialization.
-     * this method fixes graph links
-     * (ontology A with ontology B in imports should have {@link UnionGraph} inside which consists of base graph from A and base graph from B).
+     * The 'hack' methods to provide correct serialization.
+     * It fixes graph links between different models:
+     * ontology A with ontology B in the imports should have also {@link UnionGraph} inside,
+     * that consists of base graph from A and base graph from B.
      *
      * @param in {@link ObjectInputStream}
      * @throws IOException            exception
@@ -284,16 +303,17 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        Set<UnionGraph> graphs = ontologies()
-                .map(OntologyModelImpl.class::cast)
-                .map(OntBaseModelImpl::getBase)
-                .map(OntGraphModelImpl::getGraph)
-                .collect(Collectors.toSet());
-        for (UnionGraph base : graphs) {
+        Set<OntBaseModelImpl> models = ontologies().map(OntBaseModelImpl.class::cast).collect(Collectors.toSet());
+        OntPersonality p = getOntologyLoaderConfiguration().getPersonality();
+        for (OntBaseModelImpl m : models) {
+            UnionGraph base = m.getBase().getGraph();
             Stream<UnionGraph> imports = Graphs.getImports(base).stream()
-                    .map(s -> graphs.stream().filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
+                    .map(s -> models.stream().map(OntBaseModelImpl::getBase).map(OntGraphModelImpl::getGraph)
+                            .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);
             imports.forEach(base::addGraph);
+            m.setBase(new OntInternalModel(base, p));
         }
     }
+
 }

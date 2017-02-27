@@ -19,6 +19,8 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
 import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -64,6 +66,34 @@ public class ManagerTest {
             Assert.assertNotEquals("Incorrect impl", OntologyModelImpl.class, ont3.getClass());
             Assert.assertEquals("Incorrect impl", OntologyModelImpl.Concurrent.class, ont3.getClass());
         });
+    }
+
+    @Test
+    public void testConfigs() {
+        OntologyManager m1 = OntManagerFactory.createONTManager();
+        OntologyManager m2 = OntManagerFactory.createONTManager();
+        OntConfig.LoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
+        conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
+        OntConfig.LoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
+        conf2.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
+        Assert.assertNotEquals("The same loader configs", conf1, conf2);
+        Assert.assertEquals("Not the same personalities", conf1.getPersonality(), conf2.getPersonality());
+        m1.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX));
+        m2.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT));
+        Assert.assertNotEquals("The same personalities", m1.getOntologyLoaderConfiguration().getPersonality(),
+                m2.getOntologyLoaderConfiguration().getPersonality());
+
+        boolean doTransformation = !conf1.isPerformTransformation();
+        m1.getOntologyLoaderConfiguration().setPerformTransformation(doTransformation);
+        Assert.assertNotEquals("The 'perform transformation' flag is changed", doTransformation, m1.getOntologyLoaderConfiguration().isPerformTransformation());
+        m1.setOntologyLoaderConfiguration(conf2.setPerformTransformation(doTransformation));
+        Assert.assertEquals("The same 'perform transformation' flag", doTransformation, m1.getOntologyLoaderConfiguration().isPerformTransformation());
+
+        GraphTransformConfig.Store store = new GraphTransformConfig.Store().add((GraphTransformConfig.Maker) graph -> null);
+        OntConfig.LoaderConfiguration conf3 = m1.getOntologyLoaderConfiguration().setGraphTransformers(store);
+        Assert.assertNotEquals("Graph transform action store is changed", store, m1.getOntologyLoaderConfiguration().getGraphTransformers());
+        m1.setOntologyLoaderConfiguration(conf3);
+        Assert.assertEquals("Can't set transform action store.", store, m1.getOntologyLoaderConfiguration().getGraphTransformers());
     }
 
     @Test

@@ -33,75 +33,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImplNotAnnotated;
  */
 public class ChangeIDGraphTest extends GraphTestBase {
 
-    private static void testIRIChanged(OntologyModel owl, OntGraphModel jena, OWLOntologyID owlID, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
-        debug(owl);
-        String iri = owlID.getOntologyIRI().isPresent() ? owlID.getOntologyIRI().orElse(null).getIRIString() : null;
-        OntID ontID = jena.getID();
-        Assert.assertNotNull("Can't find new ontology for iri " + owlID, ontID);
-        Assert.assertNotNull("Can't find new ontology in jena", owl.asGraphModel().getID());
-        Assert.assertEquals("Incorrect jena id-iri", iri, ontID.getURI());
-        Assert.assertTrue("Incorrect owl id-iri", (owlID.isAnonymous() && owl.getOntologyID().isAnonymous()) || owl.getOntologyID().equals(owlID));
-        // check imports:
-        List<String> expected = imports.stream().map(Resource::getURI).sorted().collect(Collectors.toList());
-        List<String> actualOwl = owl.importsDeclarations().map(OWLImportsDeclaration::getIRI).map(IRI::getIRIString).sorted().collect(Collectors.toList());
-        List<String> actualJena = jena.getID().imports().sorted().collect(Collectors.toList());
-        Assert.assertEquals("Incorrect owl imports", expected, actualOwl);
-        Assert.assertEquals("Incorrect jena imports", expected, actualJena);
-        // check owl-annotations:
-        int count = 0;
-        for (Property property : annotations.keySet()) {
-            count += annotations.get(property).size();
-            annotations.get(property).forEach(node -> {
-                OWLAnnotation a = toOWLAnnotation(property, node);
-                Assert.assertTrue("Can't find annotation " + a, owl.annotations().anyMatch(a::equals));
-            });
-        }
-        Assert.assertEquals("Incorrect annotation count", count, owl.annotations().count());
-        // check jena annotations:
-        for (Property property : annotations.keySet()) {
-            List<RDFNode> actualList = jena.listStatements(ontID, property, (RDFNode) null).mapWith(Statement::getObject).
-                    toList().stream().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
-            List<RDFNode> expectedList = annotations.get(property).stream().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
-            Assert.assertEquals("Incorrect list of annotations", expectedList, actualList);
-        }
-    }
-
-    private static void testHasClass(OntologyModel owl, OntGraphModel jena, IRI classIRI) {
-        OWLEntity entity = owl.axioms(AxiomType.DECLARATION).map(OWLDeclarationAxiom::getEntity).filter(AsOWLClass::isOWLClass).findFirst().orElse(null);
-        Assert.assertNotNull("Can't find any owl-class", entity);
-        Assert.assertEquals("Incorrect owl-class uri", classIRI, entity.getIRI());
-        List<OntClass> classes = jena.ontEntities(OntClass.class).collect(Collectors.toList());
-        Assert.assertFalse("Can't find any jena-class", classes.isEmpty());
-        Assert.assertEquals("Incorrect jena-class uri", classIRI.getIRIString(), classes.get(0).getURI());
-    }
-
-    private static void createOntologyProperties(OntologyModel owl, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
-        OWLOntologyManager manager = owl.getOWLOntologyManager();
-        OWLDataFactory factory = manager.getOWLDataFactory();
-        imports.forEach(r -> manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(OntIRI.create(r.getURI())))));
-        for (Property property : annotations.keySet()) {
-            annotations.get(property).forEach(node -> manager.applyChange(new AddOntologyAnnotation(owl, toOWLAnnotation(factory, property, node))));
-        }
-    }
-
-    private static OWLAnnotation toOWLAnnotation(Property property, RDFNode node) {
-        return toOWLAnnotation(OntManagerFactory.getDataFactory(), property, node);
-    }
-
-    private static OWLAnnotation toOWLAnnotation(OWLDataFactory factory, Property property, RDFNode node) {
-        OWLAnnotationProperty p = factory.getOWLAnnotationProperty(OntIRI.create(property));
-        OWLAnnotationValue v = null;
-        if (node.isURIResource()) {
-            v = OntIRI.create(node.asResource());
-        } else if (node.isLiteral()) {
-            Literal literal = node.asLiteral();
-            v = factory.getOWLLiteral(literal.getLexicalForm(), literal.getLanguage());
-        } else {
-            Assert.fail("Unknown node " + node);
-        }
-        return new OWLAnnotationImplNotAnnotated(p, v);
-    }
-
     @Test
     public void test() throws OWLOntologyCreationException {
         OntologyManager manager = OntManagerFactory.createONTManager();
@@ -165,5 +96,76 @@ public class ChangeIDGraphTest extends GraphTestBase {
         testHasClass(owl, jena, clazz);
 
         Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
+
+        // todo: add testcase for the presence in the manager collection (using OntGraphModel#setID)
+    }
+
+    private static void testIRIChanged(OntologyModel owl, OntGraphModel jena, OWLOntologyID id, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
+        debug(owl);
+        String iri = id.getOntologyIRI().isPresent() ? id.getOntologyIRI().orElse(null).getIRIString() : null;
+        OntID ontID = jena.getID();
+        Assert.assertNotNull("Can't find new ontology for iri " + id, ontID);
+        Assert.assertNotNull("Can't find new ontology in jena", owl.asGraphModel().getID());
+        Assert.assertEquals("Incorrect jena id-iri", iri, ontID.getURI());
+        Assert.assertTrue("Incorrect ID expected=" + id + ", actual=" + owl.getOntologyID(), (id.isAnonymous() && owl.getOntologyID().isAnonymous()) || owl.getOntologyID().equals(id));
+        // check imports:
+        List<String> expected = imports.stream().map(Resource::getURI).sorted().collect(Collectors.toList());
+        List<String> actualOwl = owl.importsDeclarations().map(OWLImportsDeclaration::getIRI).map(IRI::getIRIString).sorted().collect(Collectors.toList());
+        List<String> actualJena = jena.getID().imports().sorted().collect(Collectors.toList());
+        Assert.assertEquals("Incorrect owl imports", expected, actualOwl);
+        Assert.assertEquals("Incorrect jena imports", expected, actualJena);
+        // check owl-annotations:
+        int count = 0;
+        for (Property property : annotations.keySet()) {
+            count += annotations.get(property).size();
+            annotations.get(property).forEach(node -> {
+                OWLAnnotation a = toOWLAnnotation(property, node);
+                Assert.assertTrue("Can't find annotation " + a, owl.annotations().anyMatch(a::equals));
+            });
+        }
+        Assert.assertEquals("Incorrect annotation count", count, owl.annotations().count());
+        // check jena annotations:
+        for (Property property : annotations.keySet()) {
+            List<RDFNode> actualList = jena.listStatements(ontID, property, (RDFNode) null).mapWith(Statement::getObject).
+                    toList().stream().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+            List<RDFNode> expectedList = annotations.get(property).stream().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+            Assert.assertEquals("Incorrect list of annotations", expectedList, actualList);
+        }
+    }
+
+    private static void testHasClass(OntologyModel owl, OntGraphModel jena, IRI classIRI) {
+        OWLEntity entity = owl.axioms(AxiomType.DECLARATION).map(OWLDeclarationAxiom::getEntity).filter(AsOWLClass::isOWLClass).findFirst().orElse(null);
+        Assert.assertNotNull("Can't find any owl-class", entity);
+        Assert.assertEquals("Incorrect owl-class uri", classIRI, entity.getIRI());
+        List<OntClass> classes = jena.ontEntities(OntClass.class).collect(Collectors.toList());
+        Assert.assertFalse("Can't find any jena-class", classes.isEmpty());
+        Assert.assertEquals("Incorrect jena-class uri", classIRI.getIRIString(), classes.get(0).getURI());
+    }
+
+    private static void createOntologyProperties(OntologyModel owl, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
+        OWLOntologyManager manager = owl.getOWLOntologyManager();
+        OWLDataFactory factory = manager.getOWLDataFactory();
+        imports.forEach(r -> manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(OntIRI.create(r.getURI())))));
+        for (Property property : annotations.keySet()) {
+            annotations.get(property).forEach(node -> manager.applyChange(new AddOntologyAnnotation(owl, toOWLAnnotation(factory, property, node))));
+        }
+    }
+
+    private static OWLAnnotation toOWLAnnotation(Property property, RDFNode node) {
+        return toOWLAnnotation(OntManagerFactory.getDataFactory(), property, node);
+    }
+
+    private static OWLAnnotation toOWLAnnotation(OWLDataFactory factory, Property property, RDFNode node) {
+        OWLAnnotationProperty p = factory.getOWLAnnotationProperty(OntIRI.create(property));
+        OWLAnnotationValue v = null;
+        if (node.isURIResource()) {
+            v = OntIRI.create(node.asResource());
+        } else if (node.isLiteral()) {
+            Literal literal = node.asLiteral();
+            v = factory.getOWLLiteral(literal.getLexicalForm(), literal.getLanguage());
+        } else {
+            Assert.fail("Unknown node " + node);
+        }
+        return new OWLAnnotationImplNotAnnotated(p, v);
     }
 }

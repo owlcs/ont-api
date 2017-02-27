@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 
 import com.google.common.reflect.ClassPath;
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.OntConfig;
 
 /**
  * Axiom Graph Translator loader.
@@ -106,6 +107,9 @@ public abstract class AxiomParserProvider {
         }
     }
 
+    /**
+     * todo: move to {@link OntConfig}
+     */
     public static class Config {
         private final EnumMap<Option, Object> options = new EnumMap<>(Option.class);
 

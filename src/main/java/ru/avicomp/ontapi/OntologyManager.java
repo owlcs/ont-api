@@ -2,11 +2,9 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.Serializable;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -16,14 +14,30 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
  * Ontology manager.
  * Base class: {@link OWLOntologyManager}
  * It is the main point for creating, loading and accessing {@link OntologyModel}s models.
- *
+ * <p>
  * Created by szuev on 24.10.2016.
  */
 public interface OntologyManager extends OWLOntologyManager {
 
-    void setGraphFactory(GraphFactory factory);
+    /**
+     * Returns the loading config.
+     * Extended immutable {@link OWLOntologyLoaderConfiguration}.
+     * Be warned: this is a read only accessor, to change configuration create a new config (using any its setter)
+     * and pass it to the {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} method.
+     *
+     * @return {@link OntConfig.LoaderConfiguration}
+     */
+    @Override
+    OntConfig.LoaderConfiguration getOntologyLoaderConfiguration();
 
-    GraphFactory getGraphFactory();
+    /**
+     * Returns the copy of global config (extended {@link OntologyConfigurator}) and
+     * also access point to the {@link OWLOntologyLoaderConfiguration} and {@link OWLOntologyWriterConfiguration}
+     *
+     * @return {@link OntConfig}
+     */
+    @Override
+    OntConfig getOntologyConfigurator();
 
     OntologyModel getOntology(@Nullable IRI iri);
 
@@ -83,7 +97,4 @@ public interface OntologyManager extends OWLOntologyManager {
         return ontologies().map(OntologyModel.class::cast).map(OntologyModel::asGraphModel);
     }
 
-    interface GraphFactory extends Serializable {
-        Graph create();
-    }
 }

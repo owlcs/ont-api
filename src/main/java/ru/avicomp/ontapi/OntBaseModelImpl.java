@@ -22,6 +22,9 @@ import org.semanticweb.owlapi.model.parameters.Navigation;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 
+import ru.avicomp.ontapi.jena.OntFactory;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
+import ru.avicomp.ontapi.jena.model.OntID;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
 
 import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
@@ -38,25 +41,87 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     protected transient OntInternalModel base;
     protected OntologyManager manager;
-    // reference to graph factory from manager.
-    // it is required by the serialization mechanism.
-    private OntologyManager.GraphFactory graphFactory;
+
+    protected OWLOntologyID ontologyID;
 
     public OntBaseModelImpl(OntologyManager manager, OWLOntologyID ontologyID) {
         OntApiException.notNull(ontologyID, "Null OWL-ID.");
         setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
-        this.base = new OntInternalModel(manager.getGraphFactory().create());
-        base.setOwlID(ontologyID);
+        setBase(new OntInternalModel(OntFactory.createDefaultGraph(), manager.getOntologyLoaderConfiguration().getPersonality()));
+        setOntologyID(ontologyID);
     }
 
     public OntBaseModelImpl(OntologyManager manager, OntInternalModel base) {
         setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
-        this.base = OntApiException.notNull(base, "Null internal model.");
+        setBase(OntApiException.notNull(base, "Null internal model."));
+    }
+
+    public OntInternalModel getBase() {
+        return base;
+    }
+
+    protected void setBase(OntInternalModel m) {
+        base = m;
     }
 
     @Override
+    public OntologyManager getOWLOntologyManager() {
+        return manager;
+    }
+
+    /**
+     * Sets the manager.
+     * The parameter could be null during OWLOntologyManager.clearOntologies
+     *
+     * @param manager {@link OntologyManager}, nullable.
+     * @throws ClassCastException in case wrong manager specified.
+     */
+    @Override
+    public void setOWLOntologyManager(OWLOntologyManager manager) {
+        this.manager = (OntologyManager) manager;
+    }
+
+    /**
+     * Gets ID.
+     * Does not just return cached {@link #ontologyID} to provide synchronization with encapsulated jena model ({@link #base}).
+     * In the other hand we need this cached {@link #ontologyID} to be existed and relevant for owl synchronization.
+     *
+     * @return the {@link OWLOntologyID}
+     */
+    @Override
     public OWLOntologyID getOntologyID() {
-        return base.getOwlID();
+        OntID id = base.getID();
+        if (id.isAnon()) {
+            return ontologyID == null || !ontologyID.isAnonymous() ? ontologyID = new OWLOntologyID() : ontologyID;
+        }
+        IRI iri = IRI.create(id.getURI());
+        IRI versionIRI = null;
+        String ver = id.getVersionIRI();
+        if (ver != null) {
+            versionIRI = IRI.create(ver);
+        }
+        return ontologyID = new OWLOntologyID(iri, versionIRI);
+    }
+
+    /**
+     * Sets ID.
+     * Protected access since this is an "immutable" ontology.
+     * todo reminder: override {@link OntInternalModel#setID} to make manager and OntGraphModel synchronized (put the relevant OWLOntologyID to the manager inner collection)
+     *
+     * @param id {@link OWLOntologyID}
+     */
+    protected void setOntologyID(OWLOntologyID id) {
+        try {
+            if (id.isAnonymous()) {
+                base.setID(null).setVersionIRI(null);
+                return;
+            }
+            IRI iri = id.getOntologyIRI().orElse(null);
+            IRI versionIRI = id.getVersionIRI().orElse(null);
+            base.setID(iri == null ? null : iri.getIRIString()).setVersionIRI(versionIRI == null ? null : versionIRI.getIRIString());
+        } finally {
+            ontologyID = id;
+        }
     }
 
     @Override
@@ -67,21 +132,6 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     @Override
     public boolean isEmpty() {
         return base.isOntologyEmpty();
-    }
-
-    @Override
-    public OntologyManager getOWLOntologyManager() {
-        return manager;
-    }
-
-    @Override
-    public void setOWLOntologyManager(OWLOntologyManager manager) {
-        this.manager = (OntologyManager) manager; // could be null when OWLOntologyManager.clearOntologies
-        this.graphFactory = manager == null ? null : this.manager.getGraphFactory();
-    }
-
-    public OntInternalModel getBase() {
-        return base;
     }
 
     @Override
@@ -482,18 +532,15 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        Graph empty = graphFactory.create();
-        RDFDataMgr.read(empty, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
-        OWLOntologyID id = (OWLOntologyID) in.readObject();
-        this.base = new OntInternalModel(empty);
-        this.base.setOwlID(id);
+        Graph base = OntFactory.createDefaultGraph();
+        RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
+        // set temporary model with default personality, it will be reset inside manager while its #readObject
+        setBase(new OntInternalModel(base, OntModelConfig.getPersonality()));
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject(); // serialize only base graph (it will be wrapped as UnionGraph):
         RDFDataMgr.write(out, base.getBaseGraph(), DEFAULT_SERIALIZATION_FORMAT.getLang());
-        // serialize OWLOntologyID to have the same anon id after serialization.
-        out.writeObject(base.getOwlID());
     }
 
     /**
@@ -503,6 +550,6 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
      */
     @Override
     public String toString() {
-        return String.format("Ontology(%s)", getOntologyID());
+        return String.format("Ontology(%s)", ontologyID);
     }
 }

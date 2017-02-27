@@ -48,8 +48,8 @@ public abstract class TransformAction {
 
     public void process() {
         if (test()) {
-            if (GraphConverter.LOGGER.isDebugEnabled())
-                GraphConverter.LOGGER.debug("Process <" + getClass().getSimpleName() + ">");
+            if (GraphTransformConfig.LOGGER.isDebugEnabled())
+                GraphTransformConfig.LOGGER.debug("Process <" + getClass().getSimpleName() + ">");
             perform();
         }
     }

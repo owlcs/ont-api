@@ -19,8 +19,12 @@ import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.converters.GraphConverter;
+import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
+import ru.avicomp.ontapi.jena.converters.TransformAction;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
+import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
@@ -191,7 +195,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
                 graph = _source.getGraph();
                 format = _source.getOntFormat();
             } else {
-                graph = manager.getGraphFactory().create();
+                graph = OntFactory.createDefaultGraph();
                 format = readGraph(graph, source);
             }
             if (LOGGER.isDebugEnabled()) {
@@ -218,7 +222,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             }
             Graph graph = makeUnionGraph(info, new HashSet<>());
             OntFormat format = info.getFormat();
-            OntInternalModel base = new OntInternalModel(graph);
+            OntInternalModel base = new OntInternalModel(graph, getPersonality());
             OntologyModelImpl ont = new OntologyModelImpl(manager, base);
             OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.toConcurrentModel() : ont;
             ((OntologyManagerImpl) manager).ontologyCreated(res);
@@ -230,6 +234,13 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             }
             manager.setOntologyFormat(res, owlFormat);
             return res;
+        }
+
+        protected OntPersonality getPersonality() {
+            if (configuration instanceof OntConfig.LoaderConfiguration) {
+                return ((OntConfig.LoaderConfiguration) configuration).getPersonality();
+            }
+            return OntModelConfig.getPersonality();
         }
 
         /**
@@ -250,13 +261,22 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
             }
             if (children.isEmpty()) {
                 if (node.isFresh() || !node.getImports().isEmpty()) {
-                    pure = GraphConverter.convert(pure);
+                    pure = transform(pure);
                 }
                 return pure;
             }
             UnionGraph res = new UnionGraph(pure);
             children.forEach(ch -> res.addGraph(makeUnionGraph(ch, seen)));
-            return GraphConverter.convert(res);
+            return transform(res);
+        }
+
+        protected Graph transform(Graph graph) {
+            if (configuration instanceof OntConfig.LoaderConfiguration) {
+                OntConfig.LoaderConfiguration conf = (OntConfig.LoaderConfiguration) configuration;
+                if (!conf.isPerformTransformation()) return graph;
+                conf.getGraphTransformers().actions(graph).forEach(TransformAction::process);
+            }
+            return GraphTransformConfig.convert(graph);
         }
 
         /**

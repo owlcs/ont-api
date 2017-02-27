@@ -12,6 +12,7 @@ import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
@@ -31,8 +32,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  */
 public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel {
 
-    private OWLOntologyID anonOntologyID;
-
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
     private Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsCache = new HashMap<>();
@@ -43,8 +42,8 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     // any change in the graph resets this cache.
     private Map<Class<?>, Set<?>> jenaObjectsCache = new HashMap<>();
 
-    public OntInternalModel(Graph base) {
-        super(base);
+    public OntInternalModel(Graph base, OntPersonality personality) {
+        super(base, personality);
         getGraph().getEventManager().register(new DirectListener());
     }
 
@@ -58,32 +57,6 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     @Override
     public Stream<OntStatement> statements() {
         return (Stream<OntStatement>) jenaObjectsCache.computeIfAbsent(OntStatement.class, c -> OntInternalModel.super.statements().collect(Collectors.toSet())).stream();
-    }
-
-    public OWLOntologyID getOwlID() {
-        OntID id = getID();
-        if (id.isAnon()) {
-            return anonOntologyID == null ? anonOntologyID = new OWLOntologyID() : anonOntologyID;
-        }
-        IRI iri = IRI.create(id.getURI());
-        IRI versionIRI = null;
-        String ver = id.getVersionIRI();
-        if (ver != null) {
-            versionIRI = IRI.create(ver);
-        }
-        return new OWLOntologyID(iri, versionIRI);
-    }
-
-    // todo: override super#setID to make manager and OntGraphModel synchronized (putting new OWLOntologyID to collection)
-    public void setOwlID(OWLOntologyID id) {
-        if (id.isAnonymous()) {
-            setID(null).setVersionIRI(null);
-            anonOntologyID = id;
-            return;
-        }
-        IRI iri = id.getOntologyIRI().orElse(null);
-        IRI versionIRI = id.getVersionIRI().orElse(null);
-        setID(iri == null ? null : iri.getIRIString()).setVersionIRI(versionIRI == null ? null : versionIRI.getIRIString());
     }
 
     public Stream<OWLImportsDeclaration> importDeclarations() {
