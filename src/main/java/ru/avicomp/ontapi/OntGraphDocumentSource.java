@@ -1,6 +1,8 @@
 package ru.avicomp.ontapi;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,7 +29,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
 
     protected static final Logger LOGGER = Logger.getLogger(OntGraphDocumentSource.class);
 
-    private boolean failed;
+    private List<Exception> exceptions = new ArrayList<>();
 
     public abstract Graph getGraph();
 
@@ -45,8 +47,8 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
         try {
             return toInputStream(getGraph(), lang);
         } catch (Exception e) {
-            LOGGER.error("Can't open IO stream for graph.", e);
-            failed = true;
+            LOGGER.error("Can't get InputStream.", e);
+            exceptions.add(e);
             return null;
         }
     }
@@ -58,7 +60,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
             try (PipedOutputStream out = new PipedOutputStream(res)) {
                 RDFDataMgr.write(out, graph, lang);
             } catch (IOException e) {
-                LOGGER.fatal("Can't close out", e);
+                LOGGER.fatal("Can't write.", e);
                 ex = e;
             }
             if (ex != null) throw new OntApiException("Exception while converting output->input", ex);
@@ -97,7 +99,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
 
     @Override
     public boolean hasAlredyFailedOnStreams() {
-        return failed;
+        return !exceptions.isEmpty();
     }
 
     @Override

@@ -16,7 +16,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 /**
  * This is our analogue of {@link org.apache.jena.ontology.OntModel} to work with Ontology graph in accordance with OWL2 DL specification.
  * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf'>OWL2 RDF mapping</a>.
- * Encapsulates {@link org.apache.jena.graph.Graph} and extends {@link Model}
+ * Encapsulates {@link org.apache.jena.graph.Graph} and extends {@link Model}.
+ * Todo: implement {@link org.apache.jena.rdf.model.InfModel}
  * <p>
  * Created by @szuev on 11.11.2016.
  */

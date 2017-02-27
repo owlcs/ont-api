@@ -221,7 +221,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public String toString() {
-        return String.format("%s(%s)", asNode(), toString(getActualClass()));
+        Class<? extends RDFNode> view = getActualClass();
+        return view == null ? super.toString() : String.format("%s(%s)", asNode(), toString(view));
     }
 
     static Node checkNamed(Node res) {

@@ -47,7 +47,7 @@ public class InternalModelTest {
 
     @Test
     public void testAxiomRead() {
-        Model m = ReadWriteUtils.loadFromTTLFile("pizza.ttl");
+        Model m = ReadWriteUtils.loadResourceTTLFile("pizza.ttl");
         OntGraphModel model = OntFactory.createModel(m.getGraph());
         // 39 axiom types:
         Set<Class<? extends OWLAxiom>> types = AxiomType.AXIOM_TYPES.stream().map(AxiomType::getActualClass).collect(Collectors.toSet());
@@ -78,7 +78,7 @@ public class InternalModelTest {
     public void testOntologyAnnotations() {
         OWLDataFactory factory = OntManagerFactory.getDataFactory();
 
-        OntInternalModel model = new OntInternalModel(ReadWriteUtils.loadFromTTLFile("pizza.ttl").getGraph());
+        OntInternalModel model = new OntInternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
 
         Set<OWLAnnotation> annotations = model.getAnnotations();
         annotations.forEach(LOGGER::debug);

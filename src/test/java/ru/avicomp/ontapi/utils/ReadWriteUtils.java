@@ -91,8 +91,12 @@ public class ReadWriteUtils {
         return m;
     }
 
-    public static Model loadFromTTLFile(String file) {
+    public static Model loadResourceTTLFile(String file) {
         return load(getResourceURI(file), null);
+    }
+
+    public static Model loadOutTTLFile(String file) {
+        return load(getOutURI(file), null);
     }
 
     public static Model load(URI file, OntFormat f) {
@@ -147,7 +151,16 @@ public class ReadWriteUtils {
     }
 
     public static URI getResourceURI(String file) {
-        return getResourceURI("", file);
+        String dir;
+        String name;
+        if (file.contains("/")) {
+            name = file.replaceAll(".+/([^/]+$)", "$1");
+            dir = file.replace(name, "");
+        } else {
+            dir = "";
+            name = file;
+        }
+        return getResourceURI(dir, name);
     }
 
     public static URI getOutURI(String file) {

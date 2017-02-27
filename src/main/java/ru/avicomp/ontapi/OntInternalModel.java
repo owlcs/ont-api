@@ -74,6 +74,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return new OWLOntologyID(iri, versionIRI);
     }
 
+    // todo: override super#setID to make manager and OntGraphModel synchronized (putting new OWLOntologyID to collection)
     public void setOwlID(OWLOntologyID id) {
         if (id.isAnonymous()) {
             setID(null).setVersionIRI(null);
@@ -355,6 +356,10 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         owlObjectsCache.clear();
     }
 
+    public void clearJenaCache() {
+        jenaObjectsCache.clear();
+    }
+
     public class OwlObjectTriplesMap<O extends OWLObject> {
         protected Map<O, Set<Triple>> cache;
 
@@ -453,7 +458,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
          */
         @Override
         protected void addEvent(Triple t) {
-            jenaObjectsCache.clear();
+            clearJenaCache();
             if (hasObjectListener()) return;
             // we don't know which axiom would own this triple, so we clear whole cache.
             clearCache();
@@ -461,7 +466,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
         @Override
         protected void deleteEvent(Triple t) {
-            jenaObjectsCache.clear();
+            clearJenaCache();
             if (hasObjectListener()) return;
             clearCache(t);
         }

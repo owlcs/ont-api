@@ -202,7 +202,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * see {@link OntObject#getRoot()}
      */
     public static class RootImpl extends OntStatementImpl {
-        RootImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
+        public RootImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
             super(subject, predicate, object, model);
         }
 

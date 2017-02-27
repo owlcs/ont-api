@@ -1,0 +1,262 @@
+# baseURI: http://topbraid.org/functions-fn
+# imports: http://spinrdf.org/spl
+
+@prefix fn: <http://www.w3.org/2005/xpath-functions#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sm: <http://topbraid.org/sparqlmotion#> .
+@prefix spin: <http://spinrdf.org/spin#> .
+@prefix spl: <http://spinrdf.org/spl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://topbraid.org/functions-fn>
+  rdf:type owl:Ontology ;
+  owl:imports <http://spinrdf.org/spl> ;
+  owl:versionInfo "1.1.1"^^xsd:string ;
+.
+fn:abs
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType rdfs:Literal ;
+      rdfs:comment "the number to get the absolute value of"^^xsd:string ;
+    ] ;
+  spin:returnType rdfs:Literal ;
+  rdfs:comment "Returns the absolute value of the argument." ;
+  rdfs:label "abs"^^xsd:string ;
+  rdfs:subClassOf spl:MathematicalFunctions ;
+.
+fn:boolean
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType rdfs:Literal ;
+      rdfs:comment "The input value."^^xsd:string ;
+    ] ;
+  spin:returnType xsd:boolean ;
+  rdfs:comment "Gets the effective boolean value of an input node, for example 1 becomes true."^^xsd:string ;
+  rdfs:label "boolean"^^xsd:string ;
+  rdfs:subClassOf spl:BooleanFunctions ;
+.
+fn:ceiling
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType rdfs:Literal ;
+      rdfs:comment "the number to get the ceiling of"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:double ;
+  rdfs:comment "Returns the smallest integer value less than the argument (as a double)." ;
+  rdfs:label "ceiling"^^xsd:string ;
+  rdfs:subClassOf spl:MathematicalFunctions ;
+.
+fn:concat
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the first string"^^xsd:string ;
+    ] ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg2> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the second string"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:string ;
+  rdfs:comment "Returns the concatenation of two (or more) strings." ;
+  rdfs:label "concat"^^xsd:string ;
+  rdfs:subClassOf spl:StringFunctions ;
+.
+fn:contains
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the (larger) string to search the substring in"^^xsd:string ;
+    ] ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg2> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the sub-string to search for"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:boolean ;
+  rdfs:comment "Checks if a string (?arg1) contains a given sub-string (?arg2)." ;
+  rdfs:label "contains"^^xsd:string ;
+  rdfs:subClassOf spl:StringFunctions ;
+.
+fn:ends-with
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the (larger) text string to search in"^^xsd:string ;
+    ] ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg2> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the sub-string to search for"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:boolean ;
+  rdfs:comment "Test whether string ends with substr." ;
+  rdfs:label "ends-with"^^xsd:string ;
+  rdfs:subClassOf spl:StringFunctions ;
+.
+fn:floor
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType rdfs:Literal ;
+      rdfs:comment "the number to get the floor of"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:double ;
+  rdfs:comment "Returns the greatest integer value less than the argument (as a double)." ;
+  rdfs:label "floor"^^xsd:string ;
+  rdfs:subClassOf spl:MathematicalFunctions ;
+.
+fn:lower-case
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the string to convert to lower case"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:string ;
+  rdfs:comment "Returns a string which is the lower case equivalent of the argument." ;
+  rdfs:label "lower-case"^^xsd:string ;
+  rdfs:subClassOf spl:StringFunctions ;
+.
+fn:matches
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:optional "true"^^xsd:boolean ;
+      spl:predicate <http://spinrdf.org/sp#arg3> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the (optional) arguments for the regular expression matcher"^^xsd:string ;
+    ] ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the string to search in"^^xsd:string ;
+    ] ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg2> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the pattern matching string"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:boolean ;
+  rdfs:comment "Performs string pattern matching based on regular expressions." ;
+  rdfs:label "matches"^^xsd:string ;
+  rdfs:subClassOf spl:StringFunctions ;
+.
+fn:not
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType rdfs:Literal ;
+      rdfs:comment "The input node."^^xsd:string ;
+    ] ;
+  spin:returnType xsd:boolean ;
+  rdfs:comment "Negates a boolean value."^^xsd:string ;
+  rdfs:label "not"^^xsd:string ;
+  rdfs:subClassOf spl:BooleanFunctions ;
+.
+fn:round
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType rdfs:Literal ;
+      rdfs:comment "the number to round"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:int ;
+  rdfs:comment "Returns the nearest integer value to the argument." ;
+  rdfs:label "round"^^xsd:string ;
+  rdfs:subClassOf spl:MathematicalFunctions ;
+.
+fn:starts-with
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the (larger) string to search in"^^xsd:string ;
+    ] ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg2> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the sub-string to search for"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:boolean ;
+  rdfs:comment "Test whether a string (?arg1) starts with a sub-string (?arg2)." ;
+  rdfs:label "starts-with"^^xsd:string ;
+  rdfs:subClassOf spl:StringFunctions ;
+.
+fn:string-length
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the text string to get the length of"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:int ;
+  rdfs:comment "Gets the length of a string (number of characters)." ;
+  rdfs:label "string-length"^^xsd:string ;
+  rdfs:subClassOf spl:StringFunctions ;
+.
+fn:substring
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:optional "true"^^xsd:boolean ;
+      spl:predicate <http://spinrdf.org/sp#arg3> ;
+      spl:valueType xsd:integer ;
+      rdfs:comment "the (optional) number of characters to include in the substring"^^xsd:string ;
+    ] ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the text to get a sub-string of"^^xsd:string ;
+    ] ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg2> ;
+      spl:valueType xsd:integer ;
+      rdfs:comment "the index of the first character (1 is the first character)"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:string ;
+  rdfs:comment "Returns the substring of a string, given by a start index (integer) and, optionally, length. Absence of length means to end of string. Strings start from one, not zero as they do in Java and C#. 3rd argument is the length, like C# but unlike Java, where it is the endIndex."^^xsd:string ;
+  rdfs:label "substring"^^xsd:string ;
+  rdfs:subClassOf spl:StringFunctions ;
+.
+fn:upper-case
+  rdf:type spin:Function ;
+  spin:constraint [
+      rdf:type spl:Argument ;
+      spl:predicate <http://spinrdf.org/sp#arg1> ;
+      spl:valueType xsd:string ;
+      rdfs:comment "the text to convert to upper-case"^^xsd:string ;
+    ] ;
+  spin:returnType xsd:string ;
+  rdfs:comment "Returns a string which is the upper case equivalent of the argument." ;
+  rdfs:label "upper-case"^^xsd:string ;
+  rdfs:subClassOf spl:StringFunctions ;
+.

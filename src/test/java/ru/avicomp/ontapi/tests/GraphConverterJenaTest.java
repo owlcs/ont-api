@@ -53,8 +53,8 @@ public class GraphConverterJenaTest {
         OWLOntologyManager manager = OntManagerFactory.createOWLManager();
         OWLOntologyManager testManager = OntManagerFactory.createOWLManager();
 
-        OntGraphModel jenaSP = OntFactory.createModel(GraphConverter.convert(load("sp.ttl").getGraph()));
-        OWLOntology owlSP = load(manager, "sp.ttl");
+        OntGraphModel jenaSP = OntFactory.createModel(GraphConverter.convert(load("spin/sp.ttl").getGraph()));
+        OWLOntology owlSP = load(manager, "spin/sp.ttl");
         LOGGER.info("SP(Jena): ");
         ReadWriteUtils.print(jenaSP);
         LOGGER.info("SP(OWL): ");
@@ -68,10 +68,10 @@ public class GraphConverterJenaTest {
         // I believe that our GraphConverter makes transformation more correctly than OWL-API.
         // Example: spin:violationDetail is ObjectProperty and spin:labelTemplate is DataProperty due to rdfs:range. But OWL-API treats them as AnnotationProperty only.
         // spin:Modules is treated by OWL-API as NamedIndividual. Why? So i decide do not fully synchronize our API and OWL-API.
-        UnionGraph spinGraph = new UnionGraph(load("spin.ttl").getGraph());
+        UnionGraph spinGraph = new UnionGraph(load("spin/spin.ttl").getGraph());
         spinGraph.addGraph(jenaSP.getBaseGraph());
         OntGraphModel jenaSPIN = OntFactory.createModel(GraphConverter.convert(spinGraph));
-        OWLOntology owlSPIN = load(manager, "spin.ttl");
+        OWLOntology owlSPIN = load(manager, "spin/spin.ttl");
         LOGGER.info("SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPIN);
         LOGGER.info("SPIN(OWL): ");
@@ -84,7 +84,7 @@ public class GraphConverterJenaTest {
         LOGGER.info("Origin SPIN signature:");
         owlSPIN.signature().forEach(e -> LOGGER.debug(String.format("%s(%s)", e, e.getEntityType())));
 
-        UnionGraph splGraph = new UnionGraph(load("spl.spin.ttl").getGraph());
+        UnionGraph splGraph = new UnionGraph(load("spin/spl.spin.ttl").getGraph());
         splGraph.addGraph(jenaSPIN.getBaseGraph());
         OntGraphModel jenaSPL = OntFactory.createModel(GraphConverter.convert(splGraph));
         LOGGER.info("SPL-SPIN(Jena): ");

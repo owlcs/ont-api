@@ -495,4 +495,14 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         // serialize OWLOntologyID to have the same anon id after serialization.
         out.writeObject(base.getOwlID());
     }
+
+    /**
+     * override {@link super#toString()} to not force axiom loading.
+     *
+     * @return String
+     */
+    @Override
+    public String toString() {
+        return String.format("Ontology(%s)", getOntologyID());
+    }
 }

@@ -41,7 +41,7 @@ public class ExampleTest {
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         OntologyModel ontology = manager.createOntology(owlURI.toOwlOntologyID());
-        manager.applyChange(new AddImport(ontology, factory.getOWLImportsDeclaration(IRI.create(ReadWriteUtils.getResourceURI("sp.ttl")))));
+        manager.applyChange(new AddImport(ontology, factory.getOWLImportsDeclaration(IRI.create(ReadWriteUtils.getResourceURI("spin/sp.ttl")))));
         //manager.applyChange(new AddImport(ontology, factory.getOWLImportsDeclaration(IRI.create(SPINMAP_SPIN.BASE_URI))));
         manager.applyChange(new AddOntologyAnnotation(ontology, factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("test-comment"))));
         manager.applyChange(new AddOntologyAnnotation(ontology, factory.getOWLAnnotation(factory.getOWLVersionInfo(), factory.getOWLLiteral("test-version-info"))));

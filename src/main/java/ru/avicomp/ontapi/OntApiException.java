@@ -1,5 +1,7 @@
 package ru.avicomp.ontapi;
 
+import java.util.function.Supplier;
+
 /**
  * Base runtime exception.
  * <p>
@@ -30,6 +32,11 @@ public class OntApiException extends RuntimeException {
 
     public static <T> T notNull(T obj) {
         return notNull(obj, null);
+    }
+
+
+    public static Supplier<OntApiException> supplier(String msg) {
+        return () -> new OntApiException(msg);
     }
 
     /**

@@ -309,7 +309,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         public static OntFormat readGraph(Graph g, OWLOntologyDocumentSource source) throws OntApiException {
             IRI iri = OntApiException.notNull(source, "Null document source.").getDocumentIRI();
             if (LOGGER.isDebugEnabled())
-                LOGGER.debug("Read graph from " + iri + ".");
+                LOGGER.debug("Read graph from <" + iri + ">.");
             if (source.getInputStream().isPresent()) {
                 return readFromStream(g, source);
             }
