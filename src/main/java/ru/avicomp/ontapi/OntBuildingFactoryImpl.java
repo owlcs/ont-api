@@ -273,8 +273,12 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         protected Graph transform(Graph graph) {
             if (configuration instanceof OntConfig.LoaderConfiguration) {
                 OntConfig.LoaderConfiguration conf = (OntConfig.LoaderConfiguration) configuration;
-                if (!conf.isPerformTransformation()) return graph;
-                conf.getGraphTransformers().actions(graph).forEach(TransformAction::process);
+                if (conf.isPerformTransformation()) {
+                    if (LOGGER.isDebugEnabled())
+                        LOGGER.debug("Perform graph transformations");
+                    conf.getGraphTransformers().actions(graph).forEach(TransformAction::process);
+                }
+                return graph;
             }
             return GraphTransformConfig.convert(graph);
         }

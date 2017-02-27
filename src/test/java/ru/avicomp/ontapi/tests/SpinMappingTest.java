@@ -46,10 +46,12 @@ public class SpinMappingTest {
     public void before() {
         LOGGER.info("Set up manager.");
         manager = OntManagerFactory.createONTManager();
-        prepare();
+        setUpManager(manager);
     }
 
-    public void prepare() {
+    public void setUpManager(OntologyManager manager) {
+        // do not convert spin rdfs-ontologies:
+        manager.setOntologyLoaderConfiguration(manager.getOntologyLoaderConfiguration().setPerformTransformation(false));
         SpinModels.addMappings(manager);
         // this is needed for SPINInferences:
         SpinModels.addMappings(FileManager.get());
