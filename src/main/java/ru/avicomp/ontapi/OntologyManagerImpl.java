@@ -14,11 +14,12 @@ import java.util.stream.Stream;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.io.OWLOntologyStorageIOException;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
@@ -31,12 +32,14 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 /**
- * Ontology Manager implementation.
+ * Ontology Manager implementation ({@link OntologyManager}).
+ * Currently it is extended {@link OWLOntologyManagerImpl}.
+ * TODO: better make own implementation (even through copypast).
  * <p>
  * Created by @szuev on 03.10.2016.
  */
 public class OntologyManagerImpl extends OWLOntologyManagerImpl implements OntologyManager {
-    private static final Logger LOGGER = Logger.getLogger(OntologyManagerImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OWLOntologyManagerImpl.class);
     protected final ReadWriteLock lock;
 
     @Inject
@@ -111,12 +114,12 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
     }
 
     @Override
-    public OntologyModel getOntology(@Nullable IRI iri) {
+    public OntologyModel getOntology(@Nullable IRI iri) { //todo: copypast from super
         return (OntologyModel) super.getOntology(iri);
     }
 
     @Override
-    public OntologyModel getOntology(@Nonnull OWLOntologyID id) {
+    public OntologyModel getOntology(@Nonnull OWLOntologyID id) { // todo: copypast from super
         return (OntologyModel) super.getOntology(id);
     }
 
@@ -156,13 +159,19 @@ public class OntologyManagerImpl extends OWLOntologyManagerImpl implements Ontol
      * @param documentIRI iri
      * @return {@link OntologyModelImpl}
      */
+    @Nullable
     public OntologyModelImpl getOntologyByDocumentIRI(IRI documentIRI) {
-        return documentIRIsByID.entrySet().stream()
-                .filter(o -> documentIRI.equals(o.getValue()))
-                .map(Map.Entry::getKey)
-                .map(ontologiesByID::get)
-                .map(OntologyModelImpl.class::cast)
-                .findFirst().orElse(null);
+        try {
+            lock.readLock().lock();
+            return documentIRIsByID.entrySet().stream()
+                    .filter(o -> documentIRI.equals(o.getValue()))
+                    .map(Map.Entry::getKey)
+                    .map(ontologiesByID::get)
+                    .map(OntologyModelImpl.class::cast)
+                    .findFirst().orElse(null);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**

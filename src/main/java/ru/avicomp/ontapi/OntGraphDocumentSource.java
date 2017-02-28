@@ -11,11 +11,12 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.PrefixMapping;
-import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.PrefixManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -26,8 +27,7 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
  * Created by szuev on 22.02.2017.
  */
 public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSource {
-
-    protected static final Logger LOGGER = Logger.getLogger(OntGraphDocumentSource.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(OntGraphDocumentSource.class);
 
     private List<Exception> exceptions = new ArrayList<>();
 
@@ -60,7 +60,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
             try (PipedOutputStream out = new PipedOutputStream(res)) {
                 RDFDataMgr.write(out, graph, lang);
             } catch (IOException e) {
-                LOGGER.fatal("Can't write.", e);
+                LOGGER.error("Can't write.", e);
                 ex = e;
             }
             if (ex != null) throw new OntApiException("Exception while converting output->input", ex);
@@ -104,7 +104,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
 
     @Override
     public boolean hasAlredyFailedOnIRIResolution() {
-        throw new OntApiException.Unsupported(getClass(), "Unsupported");
+        return false;
     }
 
     @Override

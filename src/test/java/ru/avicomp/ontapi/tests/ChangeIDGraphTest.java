@@ -54,9 +54,11 @@ public class ChangeIDGraphTest extends GraphTestBase {
     }
 
     /**
-     * WARNING: this test shows that there is a bug in OWL-API (5.0.5): OWLOntology#applyChanges doesn't work correct.
-     * I don't think it is by design since all other 3 methods work correctly.
-     * See explanation for method impl {@link ru.avicomp.ontapi.OntologyModelImpl#applyChanges(List)}
+     * WARNING: this test shows that there is a bug in OWL-API (5.0.5):
+     * the original way (see {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl#applyChanges(List)})
+     * doesn't work correctly in OWL-API (5.0.5).
+     * The default method {@link OWLOntology#applyChanges(List)}) is never called due to it has explicit implementation.
+     * In ONT-API there is no such problem.
      */
     @Test
     public void testApplyChanges() throws Exception {

@@ -2,7 +2,6 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
@@ -38,39 +37,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         super(manager, base);
     }
 
-    @Override
-    public void setOntologyID(OWLOntologyID id) {
-        super.setOntologyID(id);
-    }
 
     @Override
     public ChangeApplied applyDirectChange(OWLOntologyChange change) {
         return change.accept(getRDFChangeProcessor());
-    }
-
-    /**
-     * Applies bulk of changes.
-     * It seems the original way (see {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl#applyChanges(List)})
-     * doesn't work correctly in OWL-API (5.0.5), so we do applyChanges through manager ({@link #manager})
-     * like in interface (default method: {@link OWLOntology#applyChanges(List)}).
-     * But there is a possibility of manager's lack in some unclear cases (OWL-API!),
-     * so original implementation is still here.
-     *
-     * @param changes Collection of {@link OWLOntologyChange}
-     * @return either {@link ChangeApplied#SUCCESSFULLY} or {@link ChangeApplied#UNSUCCESSFULLY}
-     */
-    @Override
-    public ChangeApplied applyChanges(@Nonnull List<? extends OWLOntologyChange> changes) {
-        if (manager != null)
-            return manager.applyChanges(changes);
-        ChangeApplied xxx = SUCCESSFULLY;
-        for (OWLOntologyChange change : changes) {
-            ChangeApplied result = applyDirectChange(change);
-            if (SUCCESSFULLY.equals(xxx)) {
-                xxx = result;
-            }
-        }
-        return xxx;
     }
 
     @Override

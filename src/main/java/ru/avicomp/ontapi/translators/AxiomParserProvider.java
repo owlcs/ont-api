@@ -12,9 +12,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.reflect.ClassPath;
 import ru.avicomp.ontapi.OntApiException;
@@ -26,7 +27,7 @@ import ru.avicomp.ontapi.OntConfig;
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AxiomParserProvider {
-    private static final Logger LOGGER = Logger.getLogger(AxiomParserProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AxiomParserProvider.class);
 
     public static final Config DEFAULT_CONFIG = new Config();
 

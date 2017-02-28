@@ -46,7 +46,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     protected OWLOntologyID ontologyID;
 
     public OntBaseModelImpl(OntologyManager manager, OWLOntologyID ontologyID) {
-        OntApiException.notNull(ontologyID, "Null OWL-ID.");
+        OntApiException.notNull(ontologyID, "Null OWL ID.");
         setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
         setBase(new OntInternalModel(OntFactory.createDefaultGraph(), manager.getOntologyLoaderConfiguration().getPersonality()));
         setOntologyID(ontologyID);
@@ -103,7 +103,6 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     /**
      * Sets ID.
      * Protected access since this is an "immutable" ontology.
-     * todo reminder: override {@link OntInternalModel#setID} to make manager and OntGraphModel synchronized (put the relevant OWLOntologyID to the manager inner collection)
      *
      * @param id {@link OWLOntologyID}
      */
