@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
@@ -32,18 +33,19 @@ public class LoadTest {
     private static final Logger LOGGER = Logger.getLogger(LoadTest.class);
 
     @Test
-    public void testPizza() {
+    public void testPizza() throws Exception {
         test("pizza.ttl");
     }
 
     @Test
-    public void testFoaf() {
+    public void testFoaf() throws Exception {
         String fileName = "foaf.rdf";
-        OntPersonality p = OntModelConfig.getPersonality();
+        OntologyManager manager = OntManagerFactory.createONTManager();
+        OntPersonality p = manager.getOntologyLoaderConfiguration().getPersonality();
         if (OntModelConfig.ONT_PERSONALITY_STRICT.equals(p)) {
             IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
             LOGGER.info("The file " + fileIRI);
-            OntologyModel ont = loadONT(fileIRI);
+            OntologyModel ont = (OntologyModel) manager.loadOntologyFromOntologyDocument(fileIRI);
             OntGraphModel m = ont.asGraphModel();
             ReadWriteUtils.print(m);
 
@@ -54,7 +56,7 @@ public class LoadTest {
 
             List<OWLAxiom> ontList = ont.axioms().sorted().collect(Collectors.toList());
 
-            OWLOntology owl = loadOWL(fileIRI);
+            OWLOntology owl = OntManagerFactory.createOWLManager().loadOntologyFromOntologyDocument(fileIRI);
             Set<OWLAxiom> punningAxioms = illegalPunningURIs.stream()
                     .map(Resource::getURI).map(IRI::create)
                     .map(owl::referencingAxioms).flatMap(Function.identity()).collect(Collectors.toSet());
@@ -77,15 +79,15 @@ public class LoadTest {
     }
 
     @Test
-    public void testGoodrelations() {
+    public void testGoodrelations() throws Exception {
         String fileName = "goodrelations.rdf";
         OWLDataFactory factory = OntManagerFactory.getDataFactory();
 
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.info("The file " + fileIRI);
 
-        OntologyModel ont = loadONT(fileIRI);
-        OWLOntology owl = loadOWL(fileIRI);
+        OntologyModel ont = (OntologyModel) OntManagerFactory.createONTManager().loadOntologyFromOntologyDocument(fileIRI);
+        OWLOntology owl = OntManagerFactory.createOWLManager().loadOntologyFromOntologyDocument(fileIRI);
 
         List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
         List<OWLAxiom> ontList = TestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());
@@ -149,12 +151,12 @@ public class LoadTest {
     }
 
 
-    private void test(String fileName, AxiomType... toExclude) {
+    private void test(String fileName, AxiomType... toExclude) throws Exception {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.info("The file " + fileIRI);
 
-        OntologyModel ont = loadONT(fileIRI);
-        OWLOntology owl = loadOWL(fileIRI);
+        OntologyModel ont = (OntologyModel) OntManagerFactory.createONTManager().loadOntologyFromOntologyDocument(fileIRI);
+        OWLOntology owl = OntManagerFactory.createOWLManager().loadOntologyFromOntologyDocument(fileIRI);
 
         List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
         List<OWLAxiom> ontList = TestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());
@@ -179,25 +181,6 @@ public class LoadTest {
             LOGGER.debug("Test type <" + type + ">" + " ::: " + expected.size());
             Assert.assertThat("Incorrect axioms for type <" + type + "> (actual(ont)=" + actual.size() + ", expected(owl)=" + expected.size() + ")", actual, IsEqual.equalTo(expected));
         });
-    }
-
-    public OntologyModel loadONT(IRI file) {
-        LOGGER.info("[ONT]Load " + file);
-        try {
-            return (OntologyModel) OntManagerFactory.createONTManager().loadOntologyFromOntologyDocument(file);
-        } catch (OWLOntologyCreationException e) {
-            throw new AssertionError(e);
-        }
-
-    }
-
-    public OWLOntology loadOWL(IRI file) {
-        LOGGER.info("[OWL]Load " + file);
-        try {
-            return OntManagerFactory.createOWLManager().loadOntologyFromOntologyDocument(file);
-        } catch (OWLOntologyCreationException e) {
-            throw new AssertionError(e);
-        }
     }
 
 }
