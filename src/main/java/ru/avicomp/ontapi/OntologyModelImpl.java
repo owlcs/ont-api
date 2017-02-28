@@ -48,16 +48,29 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         return change.accept(getRDFChangeProcessor());
     }
 
+    /**
+     * Applies bulk of changes.
+     * It seems the original way (see {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl#applyChanges(List)})
+     * doesn't work correctly in OWL-API (5.0.5), so we do applyChanges through manager ({@link #manager})
+     * like in interface (default method: {@link OWLOntology#applyChanges(List)}).
+     * But there is a possibility of manager's lack in some unclear cases (OWL-API!),
+     * so original implementation is still here.
+     *
+     * @param changes Collection of {@link OWLOntologyChange}
+     * @return either {@link ChangeApplied#SUCCESSFULLY} or {@link ChangeApplied#UNSUCCESSFULLY}
+     */
     @Override
     public ChangeApplied applyChanges(@Nonnull List<? extends OWLOntologyChange> changes) {
-        ChangeApplied appliedChanges = SUCCESSFULLY;
+        if (manager != null)
+            return manager.applyChanges(changes);
+        ChangeApplied xxx = SUCCESSFULLY;
         for (OWLOntologyChange change : changes) {
             ChangeApplied result = applyDirectChange(change);
-            if (SUCCESSFULLY.equals(appliedChanges)) {
-                appliedChanges = result;
+            if (SUCCESSFULLY.equals(xxx)) {
+                xxx = result;
             }
         }
-        return appliedChanges;
+        return xxx;
     }
 
     @Override

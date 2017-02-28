@@ -71,7 +71,7 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     default OntologyModel createOntology(@Nullable IRI iri) {
-        return createOntology(new OWLOntologyID(iri));
+        return createOntology(new OWLOntologyID(Optional.ofNullable(iri), Optional.empty()));
     }
 
     default OntGraphModel getGraphModel(@Nullable String uri, @Nullable String version) {

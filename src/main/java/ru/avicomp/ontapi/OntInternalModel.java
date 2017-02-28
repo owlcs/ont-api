@@ -42,6 +42,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     // any change in the graph resets this cache.
     private Map<Class<?>, Set<?>> jenaObjectsCache = new HashMap<>();
 
+    // todo: pass not a personality, but loader configuration.
     public OntInternalModel(Graph base, OntPersonality personality) {
         super(base, personality);
         getGraph().getEventManager().register(new DirectListener());

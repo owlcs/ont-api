@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -94,13 +95,9 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         if (id.isAnon()) {
             return ontologyID == null || !ontologyID.isAnonymous() ? ontologyID = new OWLOntologyID() : ontologyID;
         }
-        IRI iri = IRI.create(id.getURI());
-        IRI versionIRI = null;
-        String ver = id.getVersionIRI();
-        if (ver != null) {
-            versionIRI = IRI.create(ver);
-        }
-        return ontologyID = new OWLOntologyID(iri, versionIRI);
+        Optional<IRI> iri = Optional.of(id.getURI()).map(IRI::create);
+        Optional<IRI> version = Optional.ofNullable(id.getVersionIRI()).map(IRI::create);
+        return ontologyID = new OWLOntologyID(iri, version);
     }
 
     /**

@@ -1,9 +1,6 @@
 package ru.avicomp.ontapi.tests;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,8 +30,68 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImplNotAnnotated;
  */
 public class ChangeIDGraphTest extends GraphTestBase {
 
+    private static class ApplyChangesWrapper {
+        private final SetOntologyIRI op;
+        private final String msg;
+
+        private ApplyChangesWrapper(SetOntologyIRI applyChanges, String msg) {
+            this.op = applyChanges;
+            this.msg = msg;
+        }
+
+        void process(OWLOntology o, IRI iri) {
+            op.apply(o, iri);
+        }
+
+        @Override
+        public String toString() {
+            return msg;
+        }
+
+        private interface SetOntologyIRI {
+            void apply(OWLOntology o, IRI iri);
+        }
+    }
+
+    /**
+     * WARNING: this test shows that there is a bug in OWL-API (5.0.5): OWLOntology#applyChanges doesn't work correct.
+     * I don't think it is by design since all other 3 methods work correctly.
+     * See explanation for method impl {@link ru.avicomp.ontapi.OntologyModelImpl#applyChanges(List)}
+     */
     @Test
-    public void test() throws OWLOntologyCreationException {
+    public void testApplyChanges() throws Exception {
+        ApplyChangesWrapper w1 = new ApplyChangesWrapper((o, iri) -> o.applyChange(new SetOntologyID(o, iri)), "OWLOntology#applyChange()");
+        ApplyChangesWrapper w3 = new ApplyChangesWrapper((o, iri) -> o.getOWLOntologyManager().applyChanges(new SetOntologyID(o, iri)), "OWLOntologyManager#applyChanges(...)");
+        ApplyChangesWrapper w2 = new ApplyChangesWrapper((o, iri) -> o.getOWLOntologyManager().applyChange(new SetOntologyID(o, iri)), "OWLOntologyManager#applyChange()");
+        ApplyChangesWrapper w4 = new ApplyChangesWrapper((o, iri) -> o.applyChanges(new SetOntologyID(o, iri)), "OWLOntology#applyChanges(...)");
+        for (ApplyChangesWrapper w : Arrays.asList(w1, w2, w3, w4)) {
+            //testApplyChanges(OntManagerFactory.createOWLManager(), w); // <-- will fail on w4
+            testApplyChanges(OntManagerFactory.createONTManager(), w);
+        }
+    }
+
+    private void testApplyChanges(OWLOntologyManager m, ApplyChangesWrapper p) throws Exception {
+        String msg = "Test[" + (m instanceof OntologyManager ? "ONT" : "OWL") + "] " + p;
+        LOGGER.info(msg);
+        IRI x = IRI.create("x");
+        OWLOntology o = m.createOntology(x);
+        OWLOntologyID id1 = o.getOntologyID();
+        LOGGER.info("1)iri=<" + x + ">, id=<" + id1 + ">");
+        Assert.assertTrue("can't find " + x, m.contains(x));
+        Assert.assertTrue("can't find " + id1, m.contains(id1));
+        IRI y = IRI.create("y");
+        p.process(o, y);
+        OWLOntologyID id2 = o.getOntologyID();
+        LOGGER.info("2)iri=<" + y + ">, id=<" + id2 + ">");
+        Assert.assertFalse("still " + x, m.contains(x));
+        Assert.assertFalse("still " + id1, m.contains(id1));
+        Assert.assertTrue("can't find " + y, m.contains(y));
+        Assert.assertTrue("can't find " + id2, m.contains(id2));
+        LOGGER.debug("PASS: " + msg);
+    }
+
+    @Test
+    public void testDifferent() throws Exception {
         OntologyManager manager = OntManagerFactory.createONTManager();
 
         // anon ontology
@@ -51,7 +108,9 @@ public class ChangeIDGraphTest extends GraphTestBase {
         annotations.computeIfAbsent(OWL.incompatibleWith, p -> new ArrayList<>()).add(ResourceFactory.createResource("http://yyy/zzz"));
 
         OWLDataFactory factory = manager.getOWLDataFactory();
-        OntologyModel owl = manager.createOntology(iri.toOwlOntologyID());
+        OWLOntologyID id = iri.toOwlOntologyID();
+        LOGGER.debug("Create ontology, ID=" + id);
+        OntologyModel owl = manager.createOntology(id);
         createOntologyProperties(owl, imports, annotations);
         OWLAnnotationProperty ap1 = factory.getOWLAnnotationProperty(iri.addFragment("annotation-property-1"));
         OWLAnnotation a1 = factory.getOWLAnnotation(ap1, factory.getOWLLiteral("tess-annotation-1"));
@@ -64,14 +123,14 @@ public class ChangeIDGraphTest extends GraphTestBase {
         OWLOntologyID test1 = iri.addPath("test1").toOwlOntologyID(OntIRI.create("http://version/1.0"));
         LOGGER.info("1)Change ontology iri to " + test1 + " through owl-api.");
         owl.applyChanges(new SetOntologyID(owl, test1));
-        testIRIChanged(owl, jena, test1, imports, annotations);
+        testIRIChanged(manager, owl, jena, test1, imports, annotations);
         testHasClass(owl, jena, clazz);
         Resource ontology = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
 
         OWLOntologyID test2 = iri.addPath("test2").toOwlOntologyID(test1.getVersionIRI().orElse(null));
         LOGGER.info("2)Change ontology iri to " + test2 + " through jena.");
         ResourceUtils.renameResource(ontology, OntIRI.toStringIRI(test2));
-        testIRIChanged(owl, jena, test2, imports, annotations);
+        testIRIChanged(manager, owl, jena, test2, imports, annotations);
         testHasClass(owl, jena, clazz);
         ontology = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
 
@@ -79,20 +138,20 @@ public class ChangeIDGraphTest extends GraphTestBase {
         OWLOntologyID test3 = new OWLOntologyID(); //iri.addPath("test3").toOwlOntologyID();
         LOGGER.info("3)Change ontology iri to " + test3 + " through jena.");
         ResourceUtils.renameResource(ontology, OntIRI.toStringIRI(test3));
-        testIRIChanged(owl, jena, test3, imports, annotations);
+        testIRIChanged(manager, owl, jena, test3, imports, annotations);
         testHasClass(owl, jena, clazz);
 
         OWLOntologyID test4 = iri.addPath("test4").toOwlOntologyID();
         LOGGER.info("4)Change ontology iri to " + test4 + " through owl-api.");
         manager.applyChange(new SetOntologyID(owl, test4));
-        testIRIChanged(owl, jena, test4, imports, annotations);
+        testIRIChanged(manager, owl, jena, test4, imports, annotations);
         testHasClass(owl, jena, clazz);
 
         //anon:
         OWLOntologyID test5 = new OWLOntologyID();
         LOGGER.info("5)Change ontology iri to " + test5 + " through owl-api.");
         manager.applyChange(new SetOntologyID(owl, test5));
-        testIRIChanged(owl, jena, test5, imports, annotations);
+        testIRIChanged(manager, owl, jena, test5, imports, annotations);
         testHasClass(owl, jena, clazz);
 
         Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
@@ -100,8 +159,11 @@ public class ChangeIDGraphTest extends GraphTestBase {
         // todo: add testcase for the presence in the manager collection (using OntGraphModel#setID)
     }
 
-    private static void testIRIChanged(OntologyModel owl, OntGraphModel jena, OWLOntologyID id, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
+    private static void testIRIChanged(OntologyManager manager, OntologyModel owl, OntGraphModel jena, OWLOntologyID id, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
         debug(owl);
+        //TODO: doesn't work if we do changing id through jena.
+        //Assert.assertTrue("Can't find " + id + " in manager", manager.contains(id));
+
         String iri = id.getOntologyIRI().isPresent() ? id.getOntologyIRI().orElse(null).getIRIString() : null;
         OntID ontID = jena.getID();
         Assert.assertNotNull("Can't find new ontology for iri " + id, ontID);

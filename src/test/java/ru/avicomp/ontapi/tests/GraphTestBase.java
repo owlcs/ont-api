@@ -22,10 +22,10 @@ import ru.avicomp.ontapi.utils.TestUtils;
  * <p>
  * Created by @szuev on 02.10.2016.
  */
-abstract class GraphTestBase {
+public abstract class GraphTestBase {
     static final Logger LOGGER = Logger.getLogger(GraphTestBase.class);
 
-    static void debug(OWLOntology ontology) {
+    public static void debug(OWLOntology ontology) {
         LOGGER.info("DEBUG:");
         ReadWriteUtils.print(ontology, OntFormat.TURTLE);
         LOGGER.debug("Axioms:");
