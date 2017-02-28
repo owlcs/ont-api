@@ -71,7 +71,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     /**
      * Sets the manager.
-     * The parameter could be null during OWLOntologyManager.clearOntologies
+     * The parameter could be null (e.g. during {@link OWLOntologyManager#clearOntologies})
      *
      * @param manager {@link OntologyManager}, nullable.
      * @throws ClassCastException in case wrong manager specified.
@@ -84,7 +84,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     /**
      * Gets ID.
      * Does not just return cached {@link #ontologyID} to provide synchronization with encapsulated jena model ({@link #base}).
-     * In the other hand we need this cached {@link #ontologyID} to be existed and relevant for owl synchronization.
+     * In the other hand we need this cached {@link #ontologyID} to be existed and relevant for owl serialization.
      *
      * @return the {@link OWLOntologyID}
      */
@@ -544,7 +544,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     }
 
     /**
-     * override {@link super#toString()} to not force axiom loading.
+     * Overridden {@link super#toString()} to not force axiom loading.
      *
      * @return String
      */

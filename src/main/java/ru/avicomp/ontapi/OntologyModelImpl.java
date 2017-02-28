@@ -94,7 +94,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         private void addImport(OWLImportsDeclaration declaration) { // todo: move it to internal model
             OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
-            getBase().getID().addImport(declaration.getIRI().getIRIString());
+            getBase().getID().addImport(chooseIRI(ont, declaration).getIRIString());
             if (ont == null) {
                 return;
             }
@@ -106,7 +106,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         private void removeImport(OWLImportsDeclaration declaration) {
             OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
-            getBase().getID().removeImport(declaration.getIRI().getIRIString());
+            getBase().getID().removeImport(chooseIRI(ont, declaration).getIRIString());
             if (ont == null) {
                 return;
             }
@@ -114,6 +114,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             getBase().removeImport(ont.getBase());
             // return back Declaration Axioms which is in use:
             back.map(e -> getOWLOntologyManager().getOWLDataFactory().getOWLDeclarationAxiom(e)).forEach(a -> getBase().add(a));
+        }
+
+        private IRI chooseIRI(OWLOntology ont, OWLImportsDeclaration declaration) {
+            return ont == null || ont.isAnonymous() ? declaration.getIRI() : ont.getOntologyID().getOntologyIRI().orElse(null);
         }
 
         /**

@@ -65,7 +65,6 @@ public class Graphs {
         return Iter.asStream(getBase(graph).find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()))
                 .map(Triple::getSubject)
                 .filter(node -> node.isBlank() || node.isURI())
-                .distinct()
                 .sorted(Comparator.comparingInt((ToIntFunction<Node>) subj -> graph.find(subj, Node.ANY, Node.ANY).toList().size()).reversed())
                 .findFirst();
     }

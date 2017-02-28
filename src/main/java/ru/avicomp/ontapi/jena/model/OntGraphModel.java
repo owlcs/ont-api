@@ -28,17 +28,18 @@ public interface OntGraphModel extends Model {
     Model getBaseModel();
 
     /**
-     * gets ontology ID ont-object.
-     * Only the one ontology expected inside the base graph.
-     * if not, use {@link ru.avicomp.ontapi.jena.converters.OWLtoOWL2DLFixer} or {@link #setID(String)} to fix graph.
+     * Gets ontology ID {@link OntObject}.
+     * Since OWL2 graph must have only the one '_:x rdf:type owl:Ontology' section inside,
+     * this method creates such statement if it absent;
+     * in case there are more than one resource with owl:Ontology type it chooses the most bulky section.
      *
-     * @return {@link OntID}
-     * @throws OntJenaException in case there is no any ontology or there are more then one ontology.
+     * @return {@link OntID} an existing or new one {@link Resource} with root statement '_:x rdf:type owl:Ontology'
+     * @see ru.avicomp.ontapi.jena.utils.Graphs#getOntology
      */
     OntID getID();
 
     /**
-     * creates a new owl:Ontology declaration for the specified uri.
+     * Creates a new owl:Ontology declaration for the specified uri.
      * All extra ontologies will be removed and all their content will be moved to the new one.
      *
      * @param uri String, could be null for anonymous ontology.

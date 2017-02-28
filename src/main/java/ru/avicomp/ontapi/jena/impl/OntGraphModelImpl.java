@@ -24,6 +24,7 @@ import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -67,34 +68,24 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntID getID() {
-        List<Resource> res = ontologies().collect(Collectors.toList());
-        if (res.size() != 1) {
-            throw new OntJenaException(res.isEmpty() ? ("No ontologies found: " + getBaseGraph()) : ("There is more then one ontologies inside: " + res));
-        }
-        return getNodeAs(res.get(0).asNode(), OntID.class);
+        return getNodeAs(Graphs.getOntology(getBaseGraph()).orElse(createResource().asNode()), OntID.class);
     }
 
     @Override
     public OntID setID(String uri) {
-        List<Statement> prev = ontologies()
-                .map(s -> Iter.asStream(s.listProperties())).
-                        flatMap(Function.identity()).collect(Collectors.toList());
-        if (prev.stream()
-                .filter(s -> OWL.imports.equals(s.getPredicate()))
+        List<Statement> prev = Iter.asStream(getBaseModel().listResourcesWithProperty(RDF.type, OWL.Ontology))
+                .map(s -> Iter.asStream(s.listProperties())).flatMap(Function.identity()).collect(Collectors.toList());
+        if (prev.stream().filter(s -> OWL.imports.equals(s.getPredicate()))
                 .map(Statement::getObject)
                 .filter(RDFNode::isURIResource)
                 .map(RDFNode::asResource)
-                .map(Resource::getURI).anyMatch(s -> s.equals(uri))) {
+                .map(Resource::getURI).anyMatch(u -> u.equals(uri))) {
             throw new OntJenaException("Can't create ontology: <" + uri + "> is present in the imports.");
         }
         remove(prev);
         Resource res = createResource(uri).addProperty(RDF.type, OWL.Ontology);
         prev.forEach(s -> res.addProperty(s.getPredicate(), s.getObject()));
         return getNodeAs(res.asNode(), OntID.class);
-    }
-
-    private Stream<Resource> ontologies() {
-        return Iter.asStream(getBaseModel().listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject)).distinct();
     }
 
     @Override

@@ -60,9 +60,6 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public Stream<OWLImportsDeclaration> importDeclarations() {
-        // todo: should be declared in graph owl:imports, but with restriction:
-        // they should comply with documents(not ontologies) in manager.
-        // see description of base class OWLOntology#importsDeclarations():
         return getID().imports().map(IRI::create).map(OWLImportsDeclarationImpl::new);
     }
 
