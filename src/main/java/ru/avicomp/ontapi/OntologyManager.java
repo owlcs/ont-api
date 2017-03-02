@@ -39,7 +39,7 @@ public interface OntologyManager extends OWLOntologyManager {
     @Override
     OntConfig getOntologyConfigurator();
 
-    OntologyModel getOntology(@Nullable IRI iri);
+    OntologyModel getOntology(@Nonnull IRI iri);
 
     OntologyModel getOntology(@Nonnull OWLOntologyID id);
 

@@ -75,12 +75,13 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
     private class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
 
-        private void addImport(OWLImportsDeclaration declaration) { // todo: move it to internal model
+        private void addImport(OWLImportsDeclaration declaration) {
             OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
             getBase().getID().addImport(chooseIRI(ont, declaration).getIRIString());
             if (ont == null) {
                 return;
             }
+            // todo: move this logic to internal model or manager, make this configurable
             Stream<OWLDeclarationAxiom> duplicates = ont.axioms(AxiomType.DECLARATION, Imports.INCLUDED).filter(OntologyModelImpl.this::containsAxiom);
             getBase().addImport(ont.getBase());
             // remove duplicated Declaration Axioms if they are present in the imported ontology
@@ -93,6 +94,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             if (ont == null) {
                 return;
             }
+            // todo: move somewhere
             Stream<OWLEntity> back = ont.signature(Imports.INCLUDED).filter(OntologyModelImpl.this::containsReference);
             getBase().removeImport(ont.getBase());
             // return back Declaration Axioms which is in use:

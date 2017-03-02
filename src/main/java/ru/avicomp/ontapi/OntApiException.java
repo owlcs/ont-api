@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 /**
  * Base runtime exception.
+ * todo: extends {@link org.semanticweb.owlapi.model.OWLRuntimeException}; do we need our own exception in that case?
  * <p>
  * Created by @szuev on 27.09.2016.
  */
