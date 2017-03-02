@@ -12,7 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -133,7 +133,7 @@ public class ImportsGraphTest extends GraphTestBase {
         checkTriple(base.asGraphModel(), child.asGraphModel(), dataTypeIRI.toResource(), RDF.type, RDFS.Datatype);
 
         LOGGER.info("Reload models.");
-        OntologyManager newManager = OntManagerFactory.createONTManager();
+        OntologyManager newManager = OntManagers.createONT();
         OntologyModel newBase = ReadWriteUtils.convertJenaToONT(newManager, base.asGraphModel());
         OntologyModel newChild = ReadWriteUtils.convertJenaToONT(newManager, child.asGraphModel());
 

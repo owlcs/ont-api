@@ -4,7 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.OntClass;
@@ -24,7 +24,7 @@ public class IndividualsGraphTest extends GraphTestBase {
     @Test
     public void test() throws OWLOntologyCreationException {
         OntIRI iri = OntIRI.create("http://test.test/add-class-individual");
-        OntologyManager manager = OntManagerFactory.createONTManager();
+        OntologyManager manager = OntManagers.createONT();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         OntologyModel owl = manager.createOntology(iri.toOwlOntologyID());

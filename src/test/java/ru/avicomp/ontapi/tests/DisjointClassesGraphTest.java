@@ -12,7 +12,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntClass;
@@ -32,16 +32,16 @@ public class DisjointClassesGraphTest extends GraphTestBase {
 
     @Test
     public void test() throws OWLOntologyCreationException {
-        OWLDataFactory factory = OntManagerFactory.getDataFactory();
+        OWLDataFactory factory = OntManagers.getDataFactory();
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("test1.ttl"));
         LOGGER.info("Load ontology from file " + fileIRI);
-        OWLOntology original = OntManagerFactory.createONTManager().loadOntology(fileIRI);
+        OWLOntology original = OntManagers.createONT().loadOntology(fileIRI);
         debug(original);
 
         LOGGER.info("Assemble new ontology with the same content.");
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
-        OntologyModel result = OntManagerFactory.createONTManager().createOntology(iri.toOwlOntologyID());
+        OntologyModel result = OntManagers.createONT().createOntology(iri.toOwlOntologyID());
         OntGraphModel jena = result.asGraphModel();
         jena.setNsPrefix("", iri.getIRIString() + "#");
         jena.getID().setVersionIRI(ver.getIRIString());

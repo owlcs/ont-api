@@ -6,12 +6,13 @@ import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
 
 import com.google.common.collect.Sets;
+import ru.avicomp.ontapi.OntManagers;
 
 @SuppressWarnings("javadoc")
 public class Builder {
 
 
-    private static OWLDataFactory df = ru.avicomp.ontapi.OntManagerFactory.getDataFactory();
+    private static OWLDataFactory df = OntManagers.getDataFactory();
 
     private final OWLAnnotationProperty ap = df.getOWLAnnotationProperty("urn:test#", "ann");
 

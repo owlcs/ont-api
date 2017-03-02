@@ -20,7 +20,7 @@ import org.topbraid.spin.vocabulary.SP;
 import org.topbraid.spin.vocabulary.SPIN;
 import org.topbraid.spin.vocabulary.SPINMAP;
 
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.*;
@@ -45,7 +45,7 @@ public class SpinMappingTest {
     @Before
     public void before() {
         LOGGER.info("Set up manager.");
-        manager = OntManagerFactory.createONTManager();
+        manager = OntManagers.createONT();
         setUpManager(manager);
     }
 

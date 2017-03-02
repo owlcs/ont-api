@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+import ru.avicomp.ontapi.OntManagers;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
 
@@ -28,7 +29,7 @@ public class OWLManagerTestCase {
     @Before
     public void setUp() throws Exception {
         manager = // OWLManager.createOWLOntologyManager();
-                ru.avicomp.ontapi.OntManagerFactory.createONTConcurrentManager();
+                OntManagers.createConcurrentONT();
         ontology = manager.createOntology();
     }
 

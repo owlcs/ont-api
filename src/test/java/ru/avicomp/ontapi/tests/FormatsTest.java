@@ -16,7 +16,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -47,7 +47,7 @@ public class FormatsTest {
 
     @BeforeClass
     public static void before() {
-        OWLDataFactory factory = OntManagerFactory.getDataFactory();
+        OWLDataFactory factory = OntManagers.getDataFactory();
 
         OntIRI iri = OntIRI.create("http://test/formats");
         OWLClass clazz = factory.getOWLClass(iri.addFragment("ClassN1"));
@@ -71,7 +71,7 @@ public class FormatsTest {
         LOGGER.info("Load ontology " + fileIRI + ". Format: " + format);
         OntologyModel o;
         try {
-            o = OntManagerFactory.createONTManager().loadOntology(fileIRI);
+            o = OntManagers.createONT().loadOntology(fileIRI);
         } catch (OWLOntologyCreationException e) {
             throw new AssertionError("Can't load " + fileIRI + "[" + format + "] :: ", e);
         }

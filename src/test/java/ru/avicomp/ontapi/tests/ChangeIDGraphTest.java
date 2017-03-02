@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.OntClass;
@@ -67,8 +67,8 @@ public class ChangeIDGraphTest extends GraphTestBase {
         ApplyChangesWrapper w2 = new ApplyChangesWrapper((o, iri) -> o.getOWLOntologyManager().applyChange(new SetOntologyID(o, iri)), "OWLOntologyManager#applyChange()");
         ApplyChangesWrapper w4 = new ApplyChangesWrapper((o, iri) -> o.applyChanges(new SetOntologyID(o, iri)), "OWLOntology#applyChanges(...)");
         for (ApplyChangesWrapper w : Arrays.asList(w1, w2, w3, w4)) {
-            //testApplyChanges(OntManagerFactory.createOWLManager(), w); // <-- will fail on w4
-            testApplyChanges(OntManagerFactory.createONTManager(), w);
+            //testApplyChanges(OntManagers.createOWL(), w); // <-- will fail on w4
+            testApplyChanges(OntManagers.createONT(), w);
         }
     }
 
@@ -94,7 +94,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
 
     @Test
     public void testDifferent() throws Exception {
-        OntologyManager manager = OntManagerFactory.createONTManager();
+        OntologyManager manager = OntManagers.createONT();
 
         // anon ontology
         OntologyModel anon = manager.createOntology();
@@ -216,7 +216,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
     }
 
     private static OWLAnnotation toOWLAnnotation(Property property, RDFNode node) {
-        return toOWLAnnotation(OntManagerFactory.getDataFactory(), property, node);
+        return toOWLAnnotation(OntManagers.getDataFactory(), property, node);
     }
 
     private static OWLAnnotation toOWLAnnotation(OWLDataFactory factory, Property property, RDFNode node) {

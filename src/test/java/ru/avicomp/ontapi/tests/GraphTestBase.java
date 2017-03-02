@@ -12,7 +12,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
@@ -40,7 +40,7 @@ public abstract class GraphTestBase {
 
     void checkAxioms(OntologyModel original, AxiomType... excluded) {
         LOGGER.info("Load ontology to another manager from jena graph.");
-        OWLOntologyManager manager = OntManagerFactory.createOWLManager();
+        OWLOntologyManager manager = OntManagers.createOWL();
         OWLOntology result = ReadWriteUtils.convertJenaToOWL(manager, original.asGraphModel());
         LOGGER.info("All (actual) axioms from reloaded ontology:");
         result.axioms().forEach(LOGGER::info);

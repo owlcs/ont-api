@@ -24,7 +24,7 @@ import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntInternalModel;
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
@@ -76,7 +76,7 @@ public class InternalModelTest {
 
     @Test
     public void testOntologyAnnotations() {
-        OWLDataFactory factory = OntManagerFactory.getDataFactory();
+        OWLDataFactory factory = OntManagers.getDataFactory();
 
         OntInternalModel model = new OntInternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), OntModelConfig.getPersonality());
 
@@ -122,7 +122,7 @@ public class InternalModelTest {
         OntFormat format = OntFormat.RDF_XML;
 
         OntPersonality profile = OntModelConfig.getPersonality();
-        OWLDataFactory factory = OntManagerFactory.getDataFactory();
+        OWLDataFactory factory = OntManagers.getDataFactory();
 
         OWLOntology owl = loadOWLOntology(file);
         OntInternalModel jena = loadInternalModel(file, format);
@@ -217,7 +217,7 @@ public class InternalModelTest {
 
     private OWLOntology loadOWLOntology(String file) {
         URI fileURI = ReadWriteUtils.getResourceURI(file);
-        OWLOntologyManager manager = OntManagerFactory.createOWLManager();
+        OWLOntologyManager manager = OntManagers.createOWL();
         LOGGER.info("Load pure owl from " + fileURI);
         return ReadWriteUtils.loadOWLOntology(manager, IRI.create(fileURI));
     }

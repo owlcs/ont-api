@@ -39,6 +39,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ru.avicomp.ontapi.OntManagers;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
@@ -87,7 +88,7 @@ public abstract class TestBase {
     }
 
     public static OWLOntologyManager createOWLManager() {
-        return DEBUG_USE_OWL ? OWLManager.createOWLOntologyManager() : ru.avicomp.ontapi.OntManagerFactory.createONTManager();
+        return DEBUG_USE_OWL ? OWLManager.createOWLOntologyManager() : OntManagers.createONT();
     }
 
     @BeforeClass

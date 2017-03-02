@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
 import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
@@ -50,8 +50,8 @@ public class GraphConverterJenaTest {
             }
         });
 
-        OWLOntologyManager manager = OntManagerFactory.createOWLManager();
-        OWLOntologyManager testManager = OntManagerFactory.createOWLManager();
+        OWLOntologyManager manager = OntManagers.createOWL();
+        OWLOntologyManager testManager = OntManagers.createOWL();
 
         OntGraphModel jenaSP = OntFactory.createModel(GraphTransformConfig.convert(load("spin/sp.ttl").getGraph()));
         OWLOntology owlSP = load(manager, "spin/sp.ttl");

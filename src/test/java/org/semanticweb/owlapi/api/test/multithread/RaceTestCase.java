@@ -50,6 +50,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntManagers;
+
 import static org.junit.Assert.fail;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
@@ -119,7 +121,7 @@ public class RaceTestCase {
             OWLClass y;
 
             public SubClassLHSCallback() throws OWLOntologyCreationException {
-                manager = ru.avicomp.ontapi.OntManagerFactory.createONTConcurrentManager();
+                manager = OntManagers.createConcurrentONT();
                 factory = manager.getOWLDataFactory();
                 ontology = manager.createOntology();
                 x = factory.getOWLClass(IRI.create(NS, "X"));

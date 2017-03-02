@@ -14,7 +14,7 @@ import org.junit.Assert;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.OntFactory;
@@ -40,7 +40,7 @@ public class TestUtils {
     }
 
     public static OntologyModel createModel(OWLOntologyID id) {
-        return createModel(OntManagerFactory.createONTManager(), id);
+        return createModel(OntManagers.createONT(), id);
     }
 
     public static OntologyModel createModel(OntologyManager manager, OWLOntologyID id) {

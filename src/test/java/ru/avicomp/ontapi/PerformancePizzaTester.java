@@ -104,7 +104,7 @@ public class PerformancePizzaTester {
 
     public static OntologyModel load(IRI file, OntFormat format) {
         LOGGER.info("[ONT]Load " + file + "[" + format + "]");
-        OntologyManager m = OntManagerFactory.createONTManager();
+        OntologyManager m = OntManagers.createONT();
         try {
             return (OntologyModel) m.loadOntologyFromOntologyDocument(file);
         } catch (OWLOntologyCreationException e) {
@@ -114,7 +114,7 @@ public class PerformancePizzaTester {
 
     public static OWLOntology load(IRI file) {
         LOGGER.info("[OWL]Load " + file);
-        OWLOntologyManager m = OntManagerFactory.createOWLManager();
+        OWLOntologyManager m = OntManagers.createOWL();
         try {
             return m.loadOntologyFromOntologyDocument(file);
         } catch (OWLOntologyCreationException e) {

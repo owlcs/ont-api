@@ -29,7 +29,7 @@ import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
- * to test core ({@link ru.avicomp.ontapi.OntManagerFactory})
+ * to test core ({@link OntManagers})
  * (+ testing serialization_
  * <p>
  * Created by szuev on 22.12.2016.
@@ -43,10 +43,10 @@ public class ManagerTest {
         final IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("test1.ttl"));
         final OWLOntologyID id = OntIRI.create("http://dummy").toOwlOntologyID();
 
-        Assert.assertNotSame("The same manager", OntManagerFactory.createONTManager(), OntManagerFactory.createONTManager());
-        Assert.assertNotSame("The same concurrent manager", OntManagerFactory.createONTConcurrentManager(), OntManagerFactory.createONTConcurrentManager());
+        Assert.assertNotSame("The same manager", OntManagers.createONT(), OntManagers.createONT());
+        Assert.assertNotSame("The same concurrent manager", OntManagers.createConcurrentONT(), OntManagers.createConcurrentONT());
 
-        OntologyManagerImpl m1 = (OntologyManagerImpl) OntManagerFactory.createONTManager();
+        OntologyManagerImpl m1 = (OntologyManagerImpl) OntManagers.createONT();
         Assert.assertFalse("Concurrent", m1.isConcurrent());
 
         OntologyModel ont1 = m1.loadOntology(fileIRI);
@@ -57,7 +57,7 @@ public class ManagerTest {
             Assert.assertNotEquals("Incorrect impl", OntologyModelImpl.Concurrent.class, ont1.getClass());
         });
 
-        OntologyManagerImpl m2 = (OntologyManagerImpl) OntManagerFactory.createONTConcurrentManager();
+        OntologyManagerImpl m2 = (OntologyManagerImpl) OntManagers.createConcurrentONT();
         Assert.assertTrue("Not Concurrent", m2.isConcurrent());
         OntologyModel ont3 = m2.loadOntology(fileIRI);
         OntologyModel ont4 = m2.createOntology(id);
@@ -70,8 +70,8 @@ public class ManagerTest {
 
     @Test
     public void testConfigs() {
-        OntologyManager m1 = OntManagerFactory.createONTManager();
-        OntologyManager m2 = OntManagerFactory.createONTManager();
+        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createONT();
         OntConfig.LoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
         conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
         OntConfig.LoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
@@ -99,8 +99,8 @@ public class ManagerTest {
     @Test
     public void testSerialization() throws Exception {
         OWLOntologyManager origin =
-                OntManagerFactory.createONTManager();
-        //OntManagerFactory.createOWLManager();
+                OntManagers.createONT();
+        //OntManagers.createOWL();
         ManagerTest.setUpManager(origin);
         ManagerTest.debug(origin);
 

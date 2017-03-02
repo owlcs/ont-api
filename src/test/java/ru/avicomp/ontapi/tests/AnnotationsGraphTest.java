@@ -17,7 +17,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.OntClass;
@@ -91,7 +91,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
         TestUtils.compareAxioms(Stream.of(expected), owl.axioms());
 
         LOGGER.info("Reload ontology.");
-        OWLOntology reload = ReadWriteUtils.convertJenaToOWL(OntManagerFactory.createOWLManager(), jena, null);
+        OWLOntology reload = ReadWriteUtils.convertJenaToOWL(OntManagers.createOWL(), jena, null);
         LOGGER.info("Axioms after reload:");
         reload.axioms().forEach(LOGGER::debug);
         TestUtils.compareAxioms(Stream.of(expected), reload.axioms());
@@ -103,7 +103,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
     @Test
     public void testComplexAnnotations() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/2");
-        OntologyManager manager = OntManagerFactory.createONTManager();
+        OntologyManager manager = OntManagers.createONT();
         OWLDataFactory factory = manager.getOWLDataFactory();
         long count = manager.ontologies().count();
 

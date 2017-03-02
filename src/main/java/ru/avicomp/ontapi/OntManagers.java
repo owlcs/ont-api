@@ -26,7 +26,7 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
  * Created by @szuev on 27.09.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntManagerFactory implements OWLOntologyManagerFactory {
+public class OntManagers implements OWLOntologyManagerFactory {
 
     static { // init jena system. see description in ru.avicomp.ontapi.jena.OntFactory
         JenaSystem.init();
@@ -45,19 +45,19 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
         return OWL_DATA_FACTORY;
     }
 
-    public static OntologyManager createONTManager() {
+    public static OntologyManager createONT() {
         return DEFAULT_PROFILE.create();
     }
 
-    public static OntologyManager createONTConcurrentManager() {
+    public static OntologyManager createConcurrentONT() {
         return new ONTManagerProfile(Concurrency.CONCURRENT).create();
     }
 
-    public static OWLOntologyManager createOWLManager() {
+    public static OWLOntologyManager createOWL() {
         return new OWLManagerProfile(Concurrency.NON_CONCURRENT).create();
     }
 
-    public static OWLOntologyManager createOWLConcurrentManager() {
+    public static OWLOntologyManager createConcurrentOWL() {
         return new OWLManagerProfile(Concurrency.CONCURRENT).create();
     }
 
@@ -73,7 +73,6 @@ public class OntManagerFactory implements OWLOntologyManagerFactory {
     public OWLOntologyManager get() {
         return profile.create();
     }
-
 
     public interface Profile<M extends OWLOntologyManager> {
         M create();

@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.OntIRI;
 
@@ -22,7 +22,7 @@ public class SWRLRuleGraphTest extends GraphTestBase {
 
     @Test
     public void test() throws OWLOntologyCreationException {
-        OWLOntologyManager manager = OntManagerFactory.createONTManager();
+        OWLOntologyManager manager = OntManagers.createONT();
         OWLOntology owl = make(manager, OntIRI.create("http://test.org/rule"));
 
         owl.axioms().forEach(LOGGER::info);

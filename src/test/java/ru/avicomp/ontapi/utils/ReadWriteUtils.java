@@ -15,7 +15,7 @@ import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagerFactory;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 
@@ -199,11 +199,11 @@ public class ReadWriteUtils {
     }
 
     public static OWLOntology loadOWLOntology(IRI fileIRI) {
-        return loadOWLOntology(OntManagerFactory.createOWLManager(), fileIRI);
+        return loadOWLOntology(OntManagers.createOWL(), fileIRI);
     }
 
     public static OntologyModel loadOntologyModel(IRI fileIRI) {
-        return (OntologyModel) loadOWLOntology(OntManagerFactory.createONTManager(), fileIRI);
+        return (OntologyModel) loadOWLOntology(OntManagers.createONT(), fileIRI);
     }
 
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
@@ -221,7 +221,7 @@ public class ReadWriteUtils {
     }
 
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model) {
-        if (manager == null) manager = OntManagerFactory.createOWLManager();
+        if (manager == null) manager = OntManagers.createOWL();
         return convertJenaToOWL(manager, model, OntFormat.TURTLE);
     }
 
@@ -230,7 +230,7 @@ public class ReadWriteUtils {
     }
 
     public static OntologyModel convertJenaToONT(OntologyManager manager, Model model) {
-        if (manager == null) manager = OntManagerFactory.createONTManager();
+        if (manager == null) manager = OntManagers.createONT();
         return (OntologyModel) convertJenaToOWL(manager, model, OntFormat.TURTLE);
     }
 }
