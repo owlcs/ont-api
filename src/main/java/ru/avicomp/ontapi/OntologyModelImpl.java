@@ -76,27 +76,29 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     private class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
 
         private void addImport(OWLImportsDeclaration declaration) {
-            OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
-            getBase().getID().addImport(chooseIRI(ont, declaration).getIRIString());
+            // to match behaviour of OWL-API add to graph only single IRI - either ontology IRI or specified declaration IRI.
+            OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
             if (ont == null) {
+                getBase().getID().addImport(declaration.getIRI().getIRIString());
                 return;
             }
-            // todo: move this logic to internal model or manager, make this configurable
+            // todo: move this logic to internal model or manager, make this configurable (writer conf)
             Stream<OWLDeclarationAxiom> duplicates = ont.axioms(AxiomType.DECLARATION, Imports.INCLUDED).filter(OntologyModelImpl.this::containsAxiom);
-            getBase().addImport(ont.getBase());
+            getBase().addImport(((OntologyModelImpl) ont).getBase());
             // remove duplicated Declaration Axioms if they are present in the imported ontology
             duplicates.forEach(a -> getBase().remove(a));
         }
 
         private void removeImport(OWLImportsDeclaration declaration) {
-            OntologyModelImpl ont = getOWLOntologyManager().getOntologyByImportDeclaration(declaration);
-            getBase().getID().removeImport(chooseIRI(ont, declaration).getIRIString());
+            // to match behaviour of OWL-API removes both declaration IRI and ontology IRI (could be different in case of renaming)
+            OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
+            getBase().getID().removeImport(declaration.getIRI().getIRIString());
             if (ont == null) {
                 return;
             }
-            // todo: move somewhere
+            // todo: move somewhere (manager)
             Stream<OWLEntity> back = ont.signature(Imports.INCLUDED).filter(OntologyModelImpl.this::containsReference);
-            getBase().removeImport(ont.getBase());
+            getBase().removeImport(((OntologyModelImpl) ont).getBase());
             // return back Declaration Axioms which is in use:
             back.map(e -> getOWLOntologyManager().getOWLDataFactory().getOWLDeclarationAxiom(e)).forEach(a -> getBase().add(a));
         }

@@ -47,37 +47,22 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 @SuppressWarnings("WeakerAccess")
 public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.OWLOntologyCreationHandler, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(OWLOntologyManagerImpl.class);
-
-    private static final String BADLISTENER = "BADLY BEHAVING LISTENER: {} has been removed";
-
-    protected final OWLDataFactory dataFactory;
-
-    protected final AtomicInteger loadCount = new AtomicInteger();
-    protected final AtomicInteger importsLoadCount = new AtomicInteger();
-
     // listeners:
-    protected final List<MissingImportListener> missingImportsListeners = CollectionFactory.createSyncList();
-    protected final List<OWLOntologyLoaderListener> loaderListeners = CollectionFactory.createSyncList();
-    protected final List<OWLOntologyChangeProgressListener> progressListeners = CollectionFactory.createSyncList();
-    protected transient List<OWLOntologyChangesVetoedListener> vetoListeners = CollectionFactory.createList();
-    protected transient Map<OWLOntologyChangeListener, OWLOntologyChangeBroadcastStrategy> listenerMap = CollectionFactory.createSyncMap();
-    protected transient Map<ImpendingOWLOntologyChangeListener, ImpendingOWLOntologyChangeBroadcastStrategy> impendingChangeListenerMap = CollectionFactory.createSyncMap();
-
-    protected final AtomicBoolean broadcastChanges = new AtomicBoolean(true);
-    protected OWLOntologyChangeBroadcastStrategy defaultChangeBroadcastStrategy = new DefaultChangeBroadcastStrategy();
-    protected ImpendingOWLOntologyChangeBroadcastStrategy defaultImpendingChangeBroadcastStrategy = new DefaultImpendingChangeBroadcastStrategy();
-
+    protected final ListenersHolder listeners = new ListenersHolder();
     // configs:
     protected OntConfig configProvider;
     protected transient OntConfig.LoaderConfiguration loaderConfig;
     protected transient OWLOntologyWriterConfiguration writerConfig;
-
+    // should contain only OntologyModel.Factory implementations:
     protected final PriorityCollection<OWLOntologyFactory> ontologyFactories;
     protected final PriorityCollection<OWLOntologyIRIMapper> documentMappers;
+    // alternative (to jena way) factories to load and save models:
     protected final PriorityCollection<OWLParserFactory> parserFactories;
     protected final PriorityCollection<OWLStorerFactory> ontologyStorers;
+    // primary parameters:
     protected final ReadWriteLock lock;
-
+    protected final OWLDataFactory dataFactory;
+    // the collection of ontologies:
     protected final OntologyCollection content;
 
     public OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock, PriorityCollectionSorting sorting) {
@@ -199,6 +184,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * todo: wrap original OWL-API factory with our {@link OntologyManager.Factory} to produce {@link OntologyModel}
+     *
      * @param factories Set of {@link OWLOntologyFactory}
      * @see OWLOntologyManagerImpl#setOntologyFactories(Set)
      */
@@ -330,7 +316,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setDefaultChangeBroadcastStrategy(@Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
         getLock().writeLock().lock();
         try {
-            defaultChangeBroadcastStrategy = strategy;
+            listeners.setDefaultChangeBroadcastStrategy(strategy);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -342,7 +328,13 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @Override
     public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener) {
-        addOntologyChangeListener(listener, defaultChangeBroadcastStrategy);
+        getLock().writeLock().lock();
+        try {
+            listeners.addOntologyChangeListener(listener);
+        } finally {
+            getLock().writeLock().unlock();
+        }
+
     }
 
     /**
@@ -354,7 +346,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener, @Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
         getLock().writeLock().lock();
         try {
-            listenerMap.put(listener, strategy);
+            listeners.addOntologyChangeListener(listener, strategy);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -368,7 +360,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void removeOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener) {
         getLock().writeLock().lock();
         try {
-            listenerMap.remove(listener);
+            listeners.removeOntologyChangeListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -382,7 +374,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void addImpendingOntologyChangeListener(@Nonnull ImpendingOWLOntologyChangeListener listener) {
         getLock().writeLock().lock();
         try {
-            impendingChangeListenerMap.put(listener, defaultImpendingChangeBroadcastStrategy);
+            listeners.addImpendingOntologyChangeListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -396,7 +388,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void removeImpendingOntologyChangeListener(@Nonnull ImpendingOWLOntologyChangeListener listener) {
         getLock().writeLock().lock();
         try {
-            impendingChangeListenerMap.remove(listener);
+            listeners.removeImpendingOntologyChangeListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -410,7 +402,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void addOntologyChangesVetoedListener(@Nonnull OWLOntologyChangesVetoedListener listener) {
         getLock().writeLock().lock();
         try {
-            vetoListeners.add(listener);
+            listeners.addOntologyChangesVetoedListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -424,7 +416,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void removeOntologyChangesVetoedListener(@Nonnull OWLOntologyChangesVetoedListener listener) {
         getLock().writeLock().lock();
         try {
-            vetoListeners.remove(listener);
+            listeners.removeOntologyChangesVetoedListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -438,7 +430,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void addMissingImportListener(@Nonnull MissingImportListener listener) {
         getLock().writeLock().lock();
         try {
-            missingImportsListeners.add(listener);
+            listeners.addMissingImportListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -452,7 +444,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void removeMissingImportListener(@Nonnull MissingImportListener listener) {
         getLock().writeLock().lock();
         try {
-            missingImportsListeners.remove(listener);
+            listeners.removeMissingImportListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -466,7 +458,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void addOntologyLoaderListener(@Nonnull OWLOntologyLoaderListener listener) {
         getLock().writeLock().lock();
         try {
-            loaderListeners.add(listener);
+            listeners.addOntologyLoaderListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -480,7 +472,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void removeOntologyLoaderListener(@Nonnull OWLOntologyLoaderListener listener) {
         getLock().writeLock().lock();
         try {
-            loaderListeners.remove(listener);
+            listeners.removeOntologyLoaderListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -494,7 +486,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void addOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
         getLock().writeLock().lock();
         try {
-            progressListeners.add(listener);
+            listeners.addOntologyChangeProgessListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -508,7 +500,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void removeOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
         getLock().writeLock().lock();
         try {
-            progressListeners.remove(listener);
+            listeners.removeOntologyChangeProgessListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -535,7 +527,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 throw new OWLOntologyDocumentAlreadyExistsException(doc);
             }
             for (OWLOntologyFactory factory : ontologyFactories) {
-                // todo (reminder): we are working only with the one factory which returns OntologyModel, not OWLOntology
+                // we are working only with the one factory which returns OntologyModel, not OWLOntology,
+                // todo: reninder: other factories should be wrapped and turn into OntologyManager.Factory.
                 if (factory.canCreateFromDocumentIRI(doc)) {
                     OntologyModel res = (OntologyModel) factory.createOWLOntology(this, id, doc, this);
                     content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addDocumentIRI(doc);
@@ -775,30 +768,15 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @param map   Map
-     * @param value the value to look for
-     * @see OWLOntologyManagerImpl#removeValue(Map, Object)
-     */
-    protected <K, V> void removeValueFromMap(Map<K, V> map, V value) {
-        Set<K> keys = map.entrySet().stream().filter(e -> value.equals(e.getValue())).map(Map.Entry::getKey).collect(Collectors.toSet());
-        keys.forEach(map::remove);
-    }
-
-    /**
      * @see OWLOntologyManagerImpl#clearOntologies()
      */
     @Override
     public void clearOntologies() {
         getLock().writeLock().lock();
         try {
-            impendingChangeListenerMap.clear();
-            listenerMap.clear();
-            loaderListeners.clear();
-            missingImportsListeners.clear();
+            listeners.clear();
             content.values().map(OntInfo::get).forEach(o -> o.setOWLOntologyManager(null));
             content.clear();
-            progressListeners.clear();
-            vetoListeners.clear();
         } finally {
             getLock().writeLock().unlock();
         }
@@ -828,25 +806,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         } finally {
             getLock().readLock().unlock();
         }
-    }
-
-    /**
-     * not a copy-past. hotfix.
-     * <p>
-     * we have changes in behaviour in comparison with OWL-API while add/remove imports.
-     * see {@link OntologyModelImpl.RDFChangeProcessor#addImport(OWLImportsDeclaration)} and
-     * {@link OntologyModelImpl.RDFChangeProcessor#removeImport(OWLImportsDeclaration)}.
-     * <p>
-     * While renaming some ontology OWL-API performs adding/removing imports for ontologies where that one is in use.
-     * This method is to avoid exception caused by {@link OWLOntologyManagerImpl#checkDocumentIRI} during {@link #getImportedOntology}.
-     *
-     * @param declaration {@link OWLImportsDeclaration}
-     * @return {@link OntologyModelImpl} or null.
-     * @see OntologyManagerImpl#getOntology(OWLOntologyID) for exception.
-     */
-    @Deprecated
-    public OntologyModelImpl getOntologyByImportDeclaration(@Nonnull OWLImportsDeclaration declaration) {
-        return (OntologyModelImpl) getImportedOntology(declaration);
     }
 
     /**
@@ -905,6 +864,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * Note: the difference is the exception is not thrown in original implementation in case no ontology found.
+     *
      * @param ontology       {@link OWLOntology}
      * @param ontologyFormat {@link OWLDocumentFormat}
      * @throws UnknownOWLOntologyException e
@@ -1147,20 +1107,20 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public ChangeApplied applyChanges(@Nonnull List<? extends OWLOntologyChange> changes) {
         getLock().writeLock().lock();
         try {
-            broadcastImpendingChanges(changes);
+            listeners.broadcastImpendingChanges(changes);
             AtomicBoolean rollbackRequested = new AtomicBoolean(false);
             AtomicBoolean allNoOps = new AtomicBoolean(true);
             // list of changes applied successfully. These are the changes that
             // will be reverted in case of a rollback
             List<OWLOntologyChange> appliedChanges = new ArrayList<>();
-            fireBeginChanges(changes.size());
+            listeners.fireBeginChanges(changes.size());
             actuallyApply(changes, rollbackRequested, allNoOps, appliedChanges);
             if (rollbackRequested.get()) {
                 rollBack(appliedChanges);
                 appliedChanges.clear();
             }
-            fireEndChanges();
-            broadcastChanges(appliedChanges);
+            listeners.fireEndChanges();
+            listeners.broadcastChanges(appliedChanges);
             if (rollbackRequested.get()) {
                 return ChangeApplied.UNSUCCESSFULLY;
             }
@@ -1170,7 +1130,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return ChangeApplied.SUCCESSFULLY;
         } catch (OWLOntologyChangeVetoException e) {
             // Some listener blocked the changes.
-            broadcastOntologyChangesVetoed(changes, e);
+            listeners.broadcastOntologyChangesVetoed(changes, e);
             return ChangeApplied.UNSUCCESSFULLY;
         } finally {
             getLock().writeLock().unlock();
@@ -1199,7 +1159,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                     allNoOps.set(false);
                     appliedChanges.add(change);
                 }
-                fireChangeApplied(change);
+                listeners.fireChangeApplied(change);
             }
         }
     }
@@ -1416,12 +1376,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @see OWLOntologyManagerImpl#loadOntology(IRI, OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)
      */
     protected OntologyModel load(@Nullable IRI iri, OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
-        if (loadCount.get() != importsLoadCount.get()) {
-            LOGGER.warn("Runtime Warning: Parsers should load imported ontologies using the makeImportLoadRequest method.");
-        }
-        fireStartedLoadingEvent(new OWLOntologyID(Optional.ofNullable(iri), Optional.empty()), source.getDocumentIRI(), loadCount.get() > 0);
-        loadCount.incrementAndGet();
-        broadcastChanges.set(false);
+        listeners.fireStartedLoadingEvent(new OWLOntologyID(Optional.ofNullable(iri), Optional.empty()), source.getDocumentIRI());
         Exception ex = null;
         OWLOntologyID id = new OWLOntologyID();
         try {
@@ -1440,11 +1395,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             }
             throw e;
         } finally {
-            if (loadCount.decrementAndGet() == 0) {
-                broadcastChanges.set(true);
-                // Completed loading ontology and imports
-            }
-            fireFinishedLoadingEvent(id, source.getDocumentIRI(), loadCount.get() > 0, ex);
+            listeners.fireFinishedLoadingEvent(id, source.getDocumentIRI(), ex);
         }
         throw new OWLOntologyFactoryNotFoundException(source.getDocumentIRI());
     }
@@ -1461,9 +1412,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         for (OWLOntologyFactory factory : ontologyFactories) {
             if (factory.canAttemptLoading(source)) { // todo: only single factory by now
                 try {
-                    // Note - there is no need to add the ontology here,
-                    // because it will be added
-                    // when the ontology is created.
                     OntologyModel res = (OntologyModel) factory.loadOWLOntology(this, source, this, conf);
                     OWLOntologyID id = res.getOntologyID();
                     fixIllegalPunnings(res);
@@ -1524,7 +1472,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @Nullable
     protected OntologyModel loadImports(@Nonnull OWLImportsDeclaration declaration, @Nonnull OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
-        importsLoadCount.incrementAndGet();
+        listeners.incrementImportsLoadCount();
         try {
             return load(declaration.getIRI(), true, conf);
         } catch (OWLOntologyCreationException e) {
@@ -1533,10 +1481,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             } else {
                 // Silent
                 MissingImportEvent evt = new MissingImportEvent(declaration.getIRI(), e);
-                fireMissingImportEvent(evt);
+                listeners.fireMissingImportEvent(evt);
             }
         } finally {
-            importsLoadCount.decrementAndGet();
+            listeners.decrementImportsLoadCount();
         }
         return null;
     }
@@ -1687,161 +1635,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * no lock
-     *
-     * @param size int
-     * @see OWLOntologyManagerImpl#fireBeginChanges(int)
-     */
-    protected void fireBeginChanges(int size) {
-        if (!broadcastChanges.get()) {
-            return;
-        }
-        for (OWLOntologyChangeProgressListener listener : progressListeners) {
-            try {
-                listener.begin(size);
-            } catch (Exception e) {
-                LOGGER.warn(BADLISTENER, e.getMessage(), e);
-                progressListeners.remove(listener);
-            }
-        }
-    }
-
-    /**
-     * no lock
-     *
-     * @see OWLOntologyManagerImpl#fireEndChanges()
-     */
-    protected void fireEndChanges() {
-        if (!broadcastChanges.get()) {
-            return;
-        }
-        for (OWLOntologyChangeProgressListener listener : progressListeners) {
-            try {
-                listener.end();
-            } catch (Exception e) {
-                LOGGER.warn(BADLISTENER, e.getMessage(), e);
-                progressListeners.remove(listener);
-            }
-        }
-    }
-
-    /**
-     * no lock
-     *
-     * @param change {@link OWLOntologyChange}
-     * @see OWLOntologyManagerImpl#fireChangeApplied(OWLOntologyChange)
-     */
-    protected void fireChangeApplied(OWLOntologyChange change) {
-        if (!broadcastChanges.get()) {
-            return;
-        }
-        if (progressListeners.isEmpty()) {
-            return;
-        }
-        for (OWLOntologyChangeProgressListener listener : progressListeners) {
-            try {
-                listener.appliedChange(change);
-            } catch (Exception e) {
-                LOGGER.warn(BADLISTENER, e.getMessage(), e);
-                progressListeners.remove(listener);
-            }
-        }
-    }
-
-    /**
-     * No lock
-     *
-     * @param id       {@link OWLOntologyID}
-     * @param doc      {@link IRI}
-     * @param imported boolean
-     * @see OWLOntologyManagerImpl#fireStartedLoadingEvent(OWLOntologyID, IRI, boolean)
-     */
-    protected void fireStartedLoadingEvent(OWLOntologyID id, IRI doc, boolean imported) {
-        for (OWLOntologyLoaderListener listener : new ArrayList<>(loaderListeners)) {
-            listener.startedLoadingOntology(new OWLOntologyLoaderListener.LoadingStartedEvent(id, doc, imported));
-        }
-    }
-
-    /**
-     * no lock.
-     *
-     * @param id       {@link OWLOntologyID}
-     * @param doc      {@link IRI}
-     * @param imported boolean
-     * @param ex       {@link Exception}
-     * @see OWLOntologyManagerImpl#fireFinishedLoadingEvent(OWLOntologyID, IRI, boolean, Exception)
-     */
-    protected void fireFinishedLoadingEvent(OWLOntologyID id, IRI doc, boolean imported, @Nullable Exception ex) {
-        for (OWLOntologyLoaderListener listener : new ArrayList<>(loaderListeners)) {
-            listener.finishedLoadingOntology(new OWLOntologyLoaderListener.LoadingFinishedEvent(id,
-                    doc, imported, ex));
-        }
-    }
-
-    /**
-     * @param evt {@link MissingImportEvent}
-     * @see OWLOntologyManagerImpl#fireMissingImportEvent(MissingImportEvent)
-     */
-    protected void fireMissingImportEvent(MissingImportEvent evt) {
-        new ArrayList<>(missingImportsListeners).forEach(l -> l.importMissing(evt));
-    }
-
-    /**
-     * @param changes List of {@link OWLOntologyChange}
-     * @see OWLOntologyManagerImpl#broadcastChanges
-     */
-    protected void broadcastChanges(List<? extends OWLOntologyChange> changes) {
-        if (!broadcastChanges.get()) {
-            return;
-        }
-        for (OWLOntologyChangeListener listener : new ArrayList<>(listenerMap.keySet())) {
-            OWLOntologyChangeBroadcastStrategy strategy = listenerMap.get(listener);
-            if (strategy == null) {
-                // This listener may have been removed during the broadcast
-                // of the changes, so when we attempt to retrieve it from
-                // the map it isn't there (because we iterate over a copy).
-                continue;
-            }
-            try {
-                // Handle exceptions on a per listener basis. If we have
-                // badly behaving listeners, we don't want one listener
-                // to prevent the other listeners from receiving events.
-                strategy.broadcastChanges(listener, changes);
-            } catch (Exception e) {
-                LOGGER.warn(BADLISTENER, e.getMessage(), e);
-                listenerMap.remove(listener);
-            }
-        }
-    }
-
-    /**
-     * no lock
-     *
-     * @param changes List of {@link OWLOntologyChange}
-     * @see OWLOntologyManagerImpl#broadcastImpendingChanges(List)
-     */
-    protected void broadcastImpendingChanges(List<? extends OWLOntologyChange> changes) {
-        if (!broadcastChanges.get()) {
-            return;
-        }
-        for (ImpendingOWLOntologyChangeListener listener : new ArrayList<>(impendingChangeListenerMap.keySet())) {
-            ImpendingOWLOntologyChangeBroadcastStrategy strategy = impendingChangeListenerMap.get(listener);
-            if (strategy != null) {
-                strategy.broadcastChanges(listener, changes);
-            }
-        }
-    }
-
-    /**
-     * @param changes List of {@link OWLOntologyChange}
-     * @param veto    {@link OWLOntologyChangeVetoException}
-     * @see OWLOntologyManagerImpl#broadcastOntologyChangesVetoed(List, OWLOntologyChangeVetoException)
-     */
-    protected void broadcastOntologyChangesVetoed(List<? extends OWLOntologyChange> changes, OWLOntologyChangeVetoException veto) {
-        new ArrayList<>(vetoListeners).forEach(l -> l.ontologyChangesVetoed(changes, veto));
-    }
-
-    /**
      * The 'hack' methods to provide correct serialization.
      * It fixes graph links between different models:
      * ontology A with ontology B in the imports should have also {@link UnionGraph} inside,
@@ -1854,9 +1647,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loaderConfig = (OntConfig.LoaderConfiguration) in.readObject();
-        listenerMap = CollectionFactory.createSyncMap();
-        impendingChangeListenerMap = CollectionFactory.createSyncMap();
-        vetoListeners = CollectionFactory.createList();
+        writerConfig = (OWLOntologyWriterConfiguration) in.readObject();
         Set<OntBaseModelImpl> models = ontologies().map(OntBaseModelImpl.class::cast).collect(Collectors.toSet());
         OntPersonality p = getOntologyLoaderConfiguration().getPersonality();
         for (OntBaseModelImpl m : models) {
@@ -1873,7 +1664,272 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     private void writeObject(ObjectOutputStream stream) throws IOException {
         stream.defaultWriteObject();
         stream.writeObject(getOntologyLoaderConfiguration());
+        stream.writeObject(getOntologyWriterConfiguration());
     }
+
+    /**
+     * Listeners holder.
+     * This is just for simplification code.
+     * All working with listeners should be here.
+     */
+    protected static class ListenersHolder implements Serializable {
+        private static final String BADLISTENER = "BADLY BEHAVING LISTENER: {} has been removed";
+        protected final List<MissingImportListener> missingImportsListeners = new ArrayList<>();
+        protected final List<OWLOntologyLoaderListener> loaderListeners = new ArrayList<>();
+        protected final List<OWLOntologyChangeProgressListener> progressListeners = new ArrayList<>();
+        protected transient List<OWLOntologyChangesVetoedListener> vetoListeners = new ArrayList<>();
+        protected transient Map<OWLOntologyChangeListener, OWLOntologyChangeBroadcastStrategy> listenerMap = new HashMap<>();
+        protected transient Map<ImpendingOWLOntologyChangeListener, ImpendingOWLOntologyChangeBroadcastStrategy> impendingChangeListenerMap = new HashMap<>();
+
+        protected ImpendingOWLOntologyChangeBroadcastStrategy defaultImpendingChangeBroadcastStrategy = new DefaultImpendingChangeBroadcastStrategy();
+        protected OWLOntologyChangeBroadcastStrategy defaultChangeBroadcastStrategy = new DefaultChangeBroadcastStrategy();
+
+        protected final AtomicInteger loadCount = new AtomicInteger();
+        protected final AtomicInteger importsLoadCount = new AtomicInteger();
+
+        protected final AtomicBoolean broadcastChanges = new AtomicBoolean(true);
+
+        public void addMissingImportListener(@Nonnull MissingImportListener listener) {
+            missingImportsListeners.add(listener);
+        }
+
+        public void removeMissingImportListener(@Nonnull MissingImportListener listener) {
+            missingImportsListeners.remove(listener);
+        }
+
+        public void addOntologyLoaderListener(@Nonnull OWLOntologyLoaderListener listener) {
+            loaderListeners.add(listener);
+        }
+
+        public void removeOntologyLoaderListener(@Nonnull OWLOntologyLoaderListener listener) {
+            loaderListeners.remove(listener);
+        }
+
+        public void addOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
+            progressListeners.add(listener);
+        }
+
+        public void removeOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
+            progressListeners.remove(listener);
+        }
+
+        public void addOntologyChangesVetoedListener(@Nonnull OWLOntologyChangesVetoedListener listener) {
+            vetoListeners.add(listener);
+        }
+
+        public void removeOntologyChangesVetoedListener(@Nonnull OWLOntologyChangesVetoedListener listener) {
+            vetoListeners.remove(listener);
+        }
+
+        public void setDefaultChangeBroadcastStrategy(@Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
+            defaultChangeBroadcastStrategy = strategy;
+        }
+
+        public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener) {
+            addOntologyChangeListener(listener, defaultChangeBroadcastStrategy);
+        }
+
+
+        public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener, @Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
+            listenerMap.put(listener, strategy);
+        }
+
+        public void removeOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener) {
+            listenerMap.remove(listener);
+        }
+
+        public void addImpendingOntologyChangeListener(@Nonnull ImpendingOWLOntologyChangeListener listener) {
+            impendingChangeListenerMap.put(listener, defaultImpendingChangeBroadcastStrategy);
+        }
+
+        public void removeImpendingOntologyChangeListener(@Nonnull ImpendingOWLOntologyChangeListener listener) {
+            impendingChangeListenerMap.remove(listener);
+        }
+
+        protected int incrementImportsLoadCount() {
+            return importsLoadCount.incrementAndGet();
+        }
+
+        protected int decrementImportsLoadCount() {
+            return importsLoadCount.decrementAndGet();
+        }
+
+        /**
+         * @param evt {@link MissingImportEvent}
+         * @see OWLOntologyManagerImpl#fireMissingImportEvent(MissingImportEvent)
+         */
+        protected void fireMissingImportEvent(MissingImportEvent evt) {
+            missingImportsListeners.forEach(l -> l.importMissing(evt));
+        }
+
+        /**
+         * @param id       {@link OWLOntologyID}
+         * @param doc      {@link IRI}
+         * @param imported boolean
+         * @see OWLOntologyManagerImpl#fireStartedLoadingEvent(OWLOntologyID, IRI, boolean)
+         */
+        protected void fireStartedLoadingEvent(OWLOntologyID id, IRI doc, boolean imported) {
+            for (OWLOntologyLoaderListener listener : loaderListeners) {
+                listener.startedLoadingOntology(new OWLOntologyLoaderListener.LoadingStartedEvent(id, doc, imported));
+            }
+        }
+
+        protected void fireStartedLoadingEvent(OWLOntologyID id, IRI doc) {
+            if (loadCount.get() != importsLoadCount.get()) {
+                LOGGER.warn("Runtime Warning: Parsers should load imported ontologies using the makeImportLoadRequest method.");
+            }
+            fireStartedLoadingEvent(id, doc, loadCount.get() > 0);
+            loadCount.incrementAndGet();
+            broadcastChanges.set(false);
+        }
+
+        /**
+         * @param id       {@link OWLOntologyID}
+         * @param doc      {@link IRI}
+         * @param imported boolean
+         * @param ex       {@link Exception}
+         * @see OWLOntologyManagerImpl#fireFinishedLoadingEvent(OWLOntologyID, IRI, boolean, Exception)
+         */
+        protected void fireFinishedLoadingEvent(OWLOntologyID id, IRI doc, boolean imported, @Nullable Exception ex) {
+            for (OWLOntologyLoaderListener listener : loaderListeners) {
+                listener.finishedLoadingOntology(new OWLOntologyLoaderListener.LoadingFinishedEvent(id, doc, imported, ex));
+            }
+        }
+
+        protected void fireFinishedLoadingEvent(OWLOntologyID id, IRI doc, @Nullable Exception ex) {
+            if (loadCount.decrementAndGet() == 0) {
+                broadcastChanges.set(true);
+                // Completed loading ontology and imports
+            }
+            fireFinishedLoadingEvent(id, doc, loadCount.get() > 0, ex);
+        }
+
+        /**
+         * @param size int
+         * @see OWLOntologyManagerImpl#fireBeginChanges(int)
+         */
+        protected void fireBeginChanges(int size) {
+            if (!broadcastChanges.get()) {
+                return;
+            }
+            for (OWLOntologyChangeProgressListener listener : progressListeners) {
+                try {
+                    listener.begin(size);
+                } catch (Exception e) {
+                    LOGGER.warn(BADLISTENER, e.getMessage(), e);
+                    progressListeners.remove(listener);
+                }
+            }
+        }
+
+        /**
+         * @see OWLOntologyManagerImpl#fireEndChanges()
+         */
+        protected void fireEndChanges() {
+            if (!broadcastChanges.get()) {
+                return;
+            }
+            for (OWLOntologyChangeProgressListener listener : progressListeners) {
+                try {
+                    listener.end();
+                } catch (Exception e) {
+                    LOGGER.warn(BADLISTENER, e.getMessage(), e);
+                    progressListeners.remove(listener);
+                }
+            }
+        }
+
+        /**
+         * @param change {@link OWLOntologyChange}
+         * @see OWLOntologyManagerImpl#fireChangeApplied(OWLOntologyChange)
+         */
+        protected void fireChangeApplied(OWLOntologyChange change) {
+            if (!broadcastChanges.get()) {
+                return;
+            }
+            if (progressListeners.isEmpty()) {
+                return;
+            }
+            for (OWLOntologyChangeProgressListener listener : progressListeners) {
+                try {
+                    listener.appliedChange(change);
+                } catch (Exception e) {
+                    LOGGER.warn(BADLISTENER, e.getMessage(), e);
+                    progressListeners.remove(listener);
+                }
+            }
+        }
+
+        /**
+         * @param changes List of {@link OWLOntologyChange}
+         * @param veto    {@link OWLOntologyChangeVetoException}
+         * @see OWLOntologyManagerImpl#broadcastOntologyChangesVetoed(List, OWLOntologyChangeVetoException)
+         */
+        protected void broadcastOntologyChangesVetoed(List<? extends OWLOntologyChange> changes, OWLOntologyChangeVetoException veto) {
+            vetoListeners.forEach(l -> l.ontologyChangesVetoed(changes, veto));
+        }
+
+        /**
+         * @param changes List of {@link OWLOntologyChange}
+         * @see OWLOntologyManagerImpl#broadcastChanges
+         */
+        protected void broadcastChanges(List<? extends OWLOntologyChange> changes) {
+            if (!broadcastChanges.get()) {
+                return;
+            }
+            for (OWLOntologyChangeListener listener : new ArrayList<>(listenerMap.keySet())) {
+                OWLOntologyChangeBroadcastStrategy strategy = listenerMap.get(listener);
+                if (strategy == null) {
+                    // This listener may have been removed during the broadcast
+                    // of the changes, so when we attempt to retrieve it from
+                    // the map it isn't there (because we iterate over a copy).
+                    continue;
+                }
+                try {
+                    // Handle exceptions on a per listener basis. If we have
+                    // badly behaving listeners, we don't want one listener
+                    // to prevent the other listeners from receiving events.
+                    strategy.broadcastChanges(listener, changes);
+                } catch (Exception e) {
+                    LOGGER.warn(BADLISTENER, e.getMessage(), e);
+                    listenerMap.remove(listener);
+                }
+            }
+        }
+
+        /**
+         * @param changes List of {@link OWLOntologyChange}
+         * @see OWLOntologyManagerImpl#broadcastImpendingChanges(List)
+         */
+        protected void broadcastImpendingChanges(List<? extends OWLOntologyChange> changes) {
+            if (!broadcastChanges.get()) {
+                return;
+            }
+            for (ImpendingOWLOntologyChangeListener listener : new ArrayList<>(impendingChangeListenerMap.keySet())) {
+                ImpendingOWLOntologyChangeBroadcastStrategy strategy = impendingChangeListenerMap.get(listener);
+                if (strategy != null) {
+                    strategy.broadcastChanges(listener, changes);
+                }
+            }
+        }
+
+        public void clear() {
+            loaderListeners.clear();
+            missingImportsListeners.clear();
+            progressListeners.clear();
+            vetoListeners.clear();
+            listenerMap.clear();
+            impendingChangeListenerMap.clear();
+        }
+
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+            listenerMap = new HashMap<>();
+            impendingChangeListenerMap = new HashMap<>();
+            vetoListeners = new ArrayList<>();
+        }
+    }
+
 
     /**
      * The 'collection' of {@link OntInfo}s which wrap {@link OntologyModel}s.
@@ -1947,6 +2003,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             this.ont = ont;
         }
 
+        @Nonnull
         public OWLOntologyID id() {
             return ont.getOntologyID();
         }
