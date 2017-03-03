@@ -2,13 +2,14 @@ package ru.avicomp.ontapi;
 
 import java.util.function.Supplier;
 
+import org.semanticweb.owlapi.model.OWLRuntimeException;
+
 /**
  * Base runtime exception.
- * todo: extends {@link org.semanticweb.owlapi.model.OWLRuntimeException}; do we need our own exception in that case?
  * <p>
  * Created by @szuev on 27.09.2016.
  */
-public class OntApiException extends RuntimeException {
+public class OntApiException extends OWLRuntimeException {
     public OntApiException(String message, Throwable cause) {
         super(message, cause);
     }

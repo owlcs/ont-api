@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.tests;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -11,8 +12,7 @@ import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.topbraid.spin.inference.SPINInferences;
 import org.topbraid.spin.system.SPINModuleRegistry;
@@ -57,11 +57,18 @@ public class SpinMappingTest {
         SpinModels.addMappings(FileManager.get());
     }
 
-    @Test
-    public void main() throws Exception {
+    public void loadSpinModels() throws OWLOntologyCreationException {
         LOGGER.info("Load spin models to manager.");
         manager.loadOntology(SpinModels.SPINMAPL.getIRI()).asGraphModel();
-        Assert.assertEquals("Incorrect ontologies count", SpinModels.values().length, manager.ontologies().count());
+        List<IRI> actual = manager.ontologies().map(HasOntologyID::getOntologyID).map(OWLOntologyID::getOntologyIRI).
+                filter(Optional::isPresent).map(Optional::get).sorted().collect(Collectors.toList());
+        List<IRI> expected = Stream.of(SpinModels.values()).map(SpinModels::getIRI).sorted().collect(Collectors.toList());
+        Assert.assertEquals("Incorrect collection of ontologies", expected, actual);
+    }
+
+    @Test
+    public void main() throws Exception {
+        loadSpinModels();
 
         OntGraphModel source = createSourceModel();
         OntGraphModel target = createTargetModel();

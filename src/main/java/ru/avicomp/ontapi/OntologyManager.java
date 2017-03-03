@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -39,9 +40,27 @@ public interface OntologyManager extends OWLOntologyManager {
     @Override
     OntConfig getOntologyConfigurator();
 
+    /**
+     * Contrary to the original description this method works with version IRI also if it fails with ontology IRI.
+     *
+     * @param iri {@link IRI} ontology IRI or version IRI as can be seen from the OWL-API implementation
+     *            (see {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(IRI)})
+     * @return {@link OntologyModel} or null
+     */
+    @Override
     OntologyModel getOntology(@Nonnull IRI iri);
 
+    @Override
     OntologyModel getOntology(@Nonnull OWLOntologyID id);
+
+    /**
+     * see description for {@link #getOntology(IRI)}
+     *
+     * @param iri {@link IRI} the ontology iri or version iri
+     * @return true if ontology exists
+     */
+    @Override
+    boolean contains(@Nonnull IRI iri);
 
     @Nullable
     OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration);
@@ -62,8 +81,10 @@ public interface OntologyManager extends OWLOntologyManager {
      * @return ontology {@link OntologyModel}
      * @throws OntApiException in case something wrong.
      */
+    @Override
     OntologyModel createOntology(@Nonnull OWLOntologyID id);
 
+    @Override
     OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException;
 
     default OntologyModel createOntology() {
@@ -97,4 +118,22 @@ public interface OntologyManager extends OWLOntologyManager {
         return ontologies().map(OntologyModel.class::cast).map(OntologyModel::asGraphModel);
     }
 
+    /**
+     * The core of manager.
+     * The factory to create and load ontologies.
+     */
+    interface Factory extends OWLOntologyFactory {
+
+        @Override
+        OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager,
+                                        @Nonnull OWLOntologyID id,
+                                        @Nonnull IRI documentIRI,
+                                        @Nonnull OWLOntologyCreationHandler handler) throws OWLOntologyCreationException;
+
+        @Override
+        OntologyModel loadOWLOntology(@Nonnull OWLOntologyManager manager,
+                                      @Nonnull OWLOntologyDocumentSource source,
+                                      @Nonnull OWLOntologyCreationHandler handler,
+                                      @Nonnull OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
+    }
 }

@@ -2,8 +2,10 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.input.ReaderInputStream;
@@ -35,15 +37,42 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
  * <p>
  * Created by szuev on 24.10.2016.
  */
-public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OWLOntologyFactory {
+@SuppressWarnings("WeakerAccess")
+public class OntBuildingFactoryImpl implements OntologyManager.Factory {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntBuildingFactoryImpl.class);
+    protected static final Set<String> SUPPORTED_SCHEMES = Stream.of("http", "https", "file", "ftp").collect(Collectors.toSet());
 
     static {
         ErrorHandlerFactory.setDefaultErrorHandler(ErrorHandlerFactory.errorHandlerNoLogging);
     }
 
+    protected final OntBuilderImpl ontologyBuilder;
+
     public OntBuildingFactoryImpl() {
-        super(new OntBuilderImpl());
+        ontologyBuilder = new OntBuilderImpl();
+    }
+
+    @Override
+    public boolean canCreateFromDocumentIRI(@Nonnull IRI documentIRI) {
+        return true;
+    }
+
+    @Override
+    public boolean canAttemptLoading(@Nonnull OWLOntologyDocumentSource source) {
+        return !source.hasAlredyFailedOnStreams() ||
+                !source.hasAlredyFailedOnIRIResolution() &&
+                        SUPPORTED_SCHEMES.contains(source.getDocumentIRI().getScheme());
+    }
+
+    @Override
+    public OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager,
+                                           @Nonnull OWLOntologyID ontologyID,
+                                           @Nonnull IRI documentIRI,
+                                           @Nonnull OWLOntologyCreationHandler handler) {
+        OntologyModel res = ontologyBuilder.createOWLOntology(manager, ontologyID);
+        handler.ontologyCreated(res);
+        handler.setOntologyFormat(res, OntFormat.TURTLE.createOwlFormat());
+        return res;
     }
 
     @Override
@@ -72,7 +101,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
     private OntologyModel loadThroughOWLApi(OWLOntologyManager manager,
                                             OWLOntologyDocumentSource source,
                                             OWLOntologyLoaderConfiguration configuration) throws OWLOntologyCreationException {
-        OntologyModel res = (OntologyModel) super.loadOWLOntology(manager, source, (OWLOntologyCreationHandler) manager, configuration);
+        OntologyModel res = (OntologyModel) new OWLOntologyFactoryImpl(ontologyBuilder).loadOWLOntology(manager, source, (OWLOntologyCreationHandler) manager, configuration);
         if (LOGGER.isDebugEnabled()) {
             OntFormat format = OntFormat.get(manager.getOntologyFormat(res));
             LOGGER.debug("The format (" + source.getClass().getSimpleName() + "): " + format);
@@ -87,7 +116,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
      * Currently there are two implementations:
      * - pure OWL loader which calls super method of {@link OWLOntologyFactoryImpl}
      * - the {@link OntModelLoaderImpl}.
-     *
+     * <p>
      * Note: only two input parameters in the constructor: {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}.
      * The single instance of {@link OntologyManager} is an {@link OWLOntologyManager} as well as {@link OWLOntologyCreationHandler}.
      * And this is also true for {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl).
@@ -95,7 +124,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
      * so there is no need in this parameter in our case.
      */
     @SuppressWarnings("WeakerAccess")
-    public static abstract class OntLoader {
+    public static abstract class OntLoader implements Serializable {
         protected final OntologyManager manager;
         protected final OWLOntologyLoaderConfiguration configuration;
 
@@ -123,7 +152,6 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
      * Should resolves problems such as cycle imports or throws informative exception.
      * TODO: use configuration parameters.
      */
-    @SuppressWarnings("WeakerAccess")
     public static class OntModelLoaderImpl extends OntLoader {
         private Map<String, GraphInfo> graphs = new LinkedHashMap<>();
         private OntLoader alternative;
@@ -163,8 +191,9 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
          */
         private GraphInfo fetchGraph(String uri) {
             IRI ontologyIRI = IRI.create(uri);
-            if (manager.contains(ontologyIRI)) {
-                OntologyModel model = OntApiException.notNull(manager.getOntology(ontologyIRI), "Can't find ontology " + ontologyIRI);
+            OWLOntologyID id = new OWLOntologyID(Optional.of(ontologyIRI), Optional.empty());
+            if (manager.contains(id)) {
+                OntologyModel model = OntApiException.notNull(manager.getOntology(id), "Can't find ontology " + id);
                 return toGraphInfo(model);
             }
             IRI documentIRI = Iter.asStream(manager.getIRIMappers().iterator())
@@ -218,23 +247,27 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
                 }
                 return null;
             }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Set up ontology <" + info.getURI() + ">.");
+            try {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Set up ontology <" + info.getURI() + ">.");
+                }
+                Graph graph = makeUnionGraph(info, new HashSet<>());
+                OntFormat format = info.getFormat();
+                OntInternalModel base = new OntInternalModel(graph, getPersonality());
+                OntologyModelImpl ont = new OntologyModelImpl(manager, base);
+                OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.toConcurrentModel() : ont;
+                ((OntologyManagerImpl) manager).ontologyCreated(res);
+                OWLDocumentFormat owlFormat = format.createOwlFormat();
+                if (PrefixManager.class.isInstance(owlFormat)) {
+                    PrefixManager pm = (PrefixManager) owlFormat;
+                    graph.getPrefixMapping().getNsPrefixMap().entrySet().forEach(e -> pm.setPrefix(e.getKey(), e.getValue()));
+                    OntologyManagerImpl.setDefaultPrefix(pm, ont);
+                }
+                manager.setOntologyFormat(res, owlFormat);
+                return res;
+            } finally { // just in case.
+                info.setProcessed();
             }
-            Graph graph = makeUnionGraph(info, new HashSet<>());
-            OntFormat format = info.getFormat();
-            OntInternalModel base = new OntInternalModel(graph, getPersonality());
-            OntologyModelImpl ont = new OntologyModelImpl(manager, base);
-            OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.toConcurrentModel() : ont;
-            ((OntologyManagerImpl) manager).ontologyCreated(res);
-            OWLDocumentFormat owlFormat = format.createOwlFormat();
-            if (PrefixManager.class.isInstance(owlFormat)) {
-                PrefixManager pm = (PrefixManager) owlFormat;
-                graph.getPrefixMapping().getNsPrefixMap().entrySet().forEach(e -> pm.setPrefix(e.getKey(), e.getValue()));
-                OntologyManagerImpl.setDefaultPrefix(pm, ont);
-            }
-            manager.setOntologyFormat(res, owlFormat);
-            return res;
         }
 
         protected OntPersonality getPersonality() {
@@ -291,7 +324,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
         private class GraphInfo {
             private final OntFormat format;
             private final Graph graph;
-            private final boolean fresh;
+            private boolean fresh;
             private String uri;
             private Set<String> imports;
 
@@ -311,6 +344,10 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
 
             boolean isFresh() {
                 return fresh;
+            }
+
+            void setProcessed() {
+                this.fresh = true;
             }
 
             OntFormat getFormat() {
@@ -414,7 +451,7 @@ public class OntBuildingFactoryImpl extends OWLOntologyFactoryImpl implements OW
     }
 
     public static class OntBuilderImpl implements OWLOntologyBuilder {
-        
+
         public static OntologyModel createOntology(OntologyManager manager, OWLOntologyID id) {
             OntologyManagerImpl m = (OntologyManagerImpl) manager;
             OntologyModelImpl ont = new OntologyModelImpl(m, id);

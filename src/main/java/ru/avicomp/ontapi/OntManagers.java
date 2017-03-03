@@ -9,7 +9,10 @@ import org.semanticweb.owlapi.OWLAPIParsersModule;
 import org.semanticweb.owlapi.OWLAPIServiceLoaderModule;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.OWLParserFactory;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyManagerFactory;
+import org.semanticweb.owlapi.model.OWLStorerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
@@ -107,10 +110,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
             Set<OWLStorerFactory> storers = Sets.newHashSet(FACTORIES.getOntologyStorers());
             Set<OWLParserFactory> parsers = Sets.newHashSet(FACTORIES.getOntologyParsers());
             ReadWriteLock lock = Concurrency.CONCURRENT.equals(concurrency) ? new ReentrantReadWriteLock() : new NoOpReadWriteLock();
-            OntBuildingFactoryImpl core = new OntBuildingFactoryImpl();
-
-            OntologyManager res = new OntologyManagerImpl(new OWLDataFactoryImpl(), lock, PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
-            res.getOntologyFactories().add(core);
+            OntologyManager res = new OntologyManagerImpl(new OWLDataFactoryImpl(), lock);
             res.setOntologyStorers(storers);
             res.setOntologyParsers(parsers);
             return res;

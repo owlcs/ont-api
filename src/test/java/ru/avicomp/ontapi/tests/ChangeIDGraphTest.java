@@ -56,7 +56,7 @@ public class ChangeIDGraphTest extends GraphTestBase {
     /**
      * WARNING: this test shows that there is a bug in OWL-API (5.0.5):
      * the original way (see {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl#applyChanges(List)})
-     * doesn't work correctly in OWL-API (5.0.5).
+     * doesn't work correctly in OWL-API.
      * The default method {@link OWLOntology#applyChanges(List)}) is never called due to it has explicit implementation.
      * In ONT-API there is no such problem.
      */
@@ -157,14 +157,16 @@ public class ChangeIDGraphTest extends GraphTestBase {
         testHasClass(owl, jena, clazz);
 
         Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
-
-        // todo: add testcase for the presence in the manager collection (using OntGraphModel#setID)
     }
 
     private static void testIRIChanged(OntologyManager manager, OntologyModel owl, OntGraphModel jena, OWLOntologyID id, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
         debug(owl);
-        //TODO: doesn't work if we do changing id through jena.
-        //Assert.assertTrue("Can't find " + id + " in manager", manager.contains(id));
+
+        Assert.assertTrue("Can't find ontology " + id + " by ID", manager.contains(id));
+        Assert.assertTrue("Can't find ontology " + id + " in manager", manager.contains(owl));
+        if (id.getOntologyIRI().isPresent()) {
+            Assert.assertTrue("Can't find " + id.getOntologyIRI().get() + " in manager", manager.contains(id.getOntologyIRI().get()));
+        }
 
         String iri = id.getOntologyIRI().isPresent() ? id.getOntologyIRI().orElse(null).getIRIString() : null;
         OntID ontID = jena.getID();
