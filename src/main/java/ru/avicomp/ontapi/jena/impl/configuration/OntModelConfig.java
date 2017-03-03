@@ -37,13 +37,13 @@ public class OntModelConfig {
 
             // entities:
             .add(OntObject.class, OntObjectImpl.objectFactory)
-            .add(OntClass.class, OntEntityImpl.classFactory)
-            .add(OntNAP.class, OntEntityImpl.annotationPropertyFactory)
-            .add(OntNDP.class, OntEntityImpl.dataPropertyFactory)
-            .add(OntNOP.class, OntEntityImpl.objectPropertyFactory)
-            .add(OntDT.class, OntEntityImpl.datatypeFactory)
-            .add(OntIndividual.Named.class, OntEntityImpl.individualFactory)
-            .add(OntEntity.class, OntEntityImpl.abstractEntityFactory)
+            .add(OntClass.class, Entities.CLASS)
+            .add(OntNAP.class, Entities.ANNOTATION_PROPERTY)
+            .add(OntNDP.class, Entities.DATA_PROPERTY)
+            .add(OntNOP.class, Entities.OBJECT_PROPERTY)
+            .add(OntDT.class, Entities.DATATYPE)
+            .add(OntIndividual.Named.class, Entities.INDIVIDUAL)
+            .add(OntEntity.class, Entities.ALL)
 
             // class expressions:
             .add(OntCE.ObjectSomeValuesFrom.class, OntCEImpl.objectSomeValuesOfCEFactory)

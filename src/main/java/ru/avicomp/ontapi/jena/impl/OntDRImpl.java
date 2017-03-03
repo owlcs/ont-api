@@ -42,7 +42,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     public static Configurable<MultiOntObjectFactory> abstractAnonDRFactory = createMultiFactory(DR_FINDER,
             oneOfDRFactory, restrictionDRFactory, complementOfDRFactory, unionOfDRFactory, intersectionOfDRFactory);
 
-    public static Configurable<MultiOntObjectFactory> abstractDRFactory = createMultiFactory(DR_FINDER, OntEntityImpl.datatypeFactory, abstractAnonDRFactory);
+    public static Configurable<MultiOntObjectFactory> abstractDRFactory = createMultiFactory(DR_FINDER, Entities.DATATYPE, abstractAnonDRFactory);
 
     public OntDRImpl(Node n, EnhGraph m) {
         super(n, m);

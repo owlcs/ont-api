@@ -18,7 +18,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * owl:DatatypeProperty
  * Created by szuev on 03.11.2016.
  */
-public class OntDPropertyImpl extends OntEntityImpl implements OntNDP {
+public class OntDPropertyImpl extends OntObjectImpl implements OntNDP {
 
     public OntDPropertyImpl(Node n, EnhGraph g) {
         super(OntObjectImpl.checkNamed(n), g);

@@ -34,7 +34,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
             new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, AnonymousImpl.FILTER.get(mode));
 
     public static Configurable<MultiOntObjectFactory> abstractIndividualFactory = createMultiFactory(OntFinder.ANY_SUBJECT_AND_OBJECT,
-            OntEntityImpl.individualFactory, anonymousIndividualFactory);
+            Entities.INDIVIDUAL, anonymousIndividualFactory);
 
 
     public OntIndividualImpl(Node n, EnhGraph m) {
@@ -144,8 +144,8 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
          * returns stream of blank nodes ("_:a"), where blank node is an object in a triple
          * which corresponds object property assertion "_:a1 PN _:a2" or annotation property assertion "s A t"
          *
-         * @param eg     {@link OntGraphModelImpl}
-         * @param m       exclude illegal punnings if {@link Configurable.Mode#STRICT}
+         * @param eg {@link OntGraphModelImpl}
+         * @param m  exclude illegal punnings if {@link Configurable.Mode#STRICT}
          * @return Stream of {@link Node}
          */
         private static Stream<Node> positiveAssertionAnonIndividuals(EnhGraph eg, Configurable.Mode m) {
@@ -156,8 +156,10 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static Stream<EnhNode> positiveAssertionProperties(EnhGraph eg, Configurable.Mode mode) {
-            return Stream.of(OntEntityImpl.annotationPropertyFactory.get(mode).find(eg), OntEntityImpl.objectPropertyFactory.get(mode).find(eg))
-                            .flatMap(Function.identity());
+            return Stream.of(Entities.ANNOTATION_PROPERTY, Entities.OBJECT_PROPERTY)
+                    .map(c -> c.get(mode))
+                    .map(f -> f.find(eg))
+                    .flatMap(Function.identity());
 
         }
 

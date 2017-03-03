@@ -69,7 +69,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
             if (!n.isBlank()) return false;
             Set<Node> nodes = g.asGraph().find(n, OWL.inverseOf.asNode(), Node.ANY)
                     .mapWith(Triple::getObject)
-                    .filterKeep(o -> OntEntityImpl.objectPropertyFactory.get(mode).canWrap(o, g))
+                    .filterKeep(o -> Entities.OBJECT_PROPERTY.get(mode).canWrap(o, g))
                     .toSet();
             return !nodes.isEmpty();
         };

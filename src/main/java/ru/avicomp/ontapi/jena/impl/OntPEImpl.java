@@ -14,14 +14,14 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 public abstract class OntPEImpl extends OntObjectImpl {
 
     public static Configurable<MultiOntObjectFactory> abstractNamedPropertyFactory = createMultiFactory(OntFinder.TYPED,
-            OntEntityImpl.objectPropertyFactory, OntEntityImpl.dataPropertyFactory, OntEntityImpl.annotationPropertyFactory);
+            Entities.OBJECT_PROPERTY, Entities.DATA_PROPERTY, Entities.ANNOTATION_PROPERTY);
     public static Configurable<OntObjectFactory> inversePropertyFactory = m -> new CommonOntObjectFactory(
             new OntMaker.Default(OntOPEImpl.InversePropertyImpl.class),
             new OntFinder.ByPredicate(OWL.inverseOf),
             OntOPEImpl.InversePropertyImpl.FILTER.get(m));
 
     public static Configurable<MultiOntObjectFactory> abstractOPEFactory = createMultiFactory(OntFinder.TYPED,
-            OntEntityImpl.objectPropertyFactory, inversePropertyFactory);
+            Entities.OBJECT_PROPERTY, inversePropertyFactory);
     public static Configurable<MultiOntObjectFactory> abstractPEFactory =
             createMultiFactory(OntFinder.ANY_SUBJECT, abstractNamedPropertyFactory, inversePropertyFactory);
 

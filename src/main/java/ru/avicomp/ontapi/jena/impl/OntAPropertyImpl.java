@@ -21,7 +21,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by szuev on 03.11.2016.
  */
-public class OntAPropertyImpl extends OntEntityImpl implements OntNAP {
+public class OntAPropertyImpl extends OntObjectImpl implements OntNAP {
 
     public OntAPropertyImpl(Node n, EnhGraph g) {
         super(OntObjectImpl.checkNamed(n), g);

@@ -16,7 +16,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  *
  * Created by szuev on 03.11.2016.
  */
-public class OntClassImpl extends OntEntityImpl implements OntClass {
+public class OntClassImpl extends OntObjectImpl implements OntClass {
 
     public OntClassImpl(Node n, EnhGraph eg) {
         super(OntObjectImpl.checkNamed(n), eg);

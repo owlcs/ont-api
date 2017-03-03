@@ -40,7 +40,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
             createFactory(ObjectPropertiesImpl.class, OWL.AllDisjointProperties, OntPEImpl.abstractOPEFactory, false, OWL.members);
 
     public static Configurable<OntObjectFactory> dataPropertiesFactory =
-            createFactory(DataPropertiesImpl.class, OWL.AllDisjointProperties, OntEntityImpl.dataPropertyFactory, false, OWL.members);
+            createFactory(DataPropertiesImpl.class, OWL.AllDisjointProperties, Entities.DATA_PROPERTY, false, OWL.members);
 
     public static Configurable<MultiOntObjectFactory> abstractPropertiesFactory =
             createMultiFactory(PROPERTIES_FINDER, objectPropertiesFactory, dataPropertiesFactory);

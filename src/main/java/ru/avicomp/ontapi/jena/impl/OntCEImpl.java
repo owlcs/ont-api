@@ -100,7 +100,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             createMultiFactory(OntFinder.TYPED, abstractNoneRestrictionCEFactory, abstractRestrictionCEFactory);
 
     public static Configurable<MultiOntObjectFactory> abstractCEFactory =
-            createMultiFactory(OntFinder.TYPED, OntEntityImpl.classFactory, abstractAnonymousCEFactory);
+            createMultiFactory(OntFinder.TYPED, Entities.CLASS, abstractAnonymousCEFactory);
 
     public OntCEImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -607,7 +607,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     private enum RestrictionType {
-        DATA(OntEntityImpl.dataPropertyFactory),
+        DATA(Entities.DATA_PROPERTY),
         OBJECT(OntPEImpl.abstractOPEFactory),;
 
         private final Configurable<? extends OntObjectFactory> factory;
