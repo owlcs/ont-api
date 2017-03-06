@@ -30,4 +30,13 @@ class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLD
         OWLClassExpression ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
         return new OWLDataPropertyDomainAxiomImpl(p, ce, annotations);
     }
+
+    @Override
+    Wrap<OWLDataPropertyDomainAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLDataProperty> p = ReadHelper._getDataProperty(statement.getSubject().as(getView()), getDataFactory());
+        Wrap<? extends OWLClassExpression> ce = ReadHelper._getClassExpression(statement.getObject().as(OntCE.class), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLDataPropertyDomainAxiom res = getDataFactory().getOWLDataPropertyDomainAxiom(p.getObject(), ce.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(ce);
+    }
 }

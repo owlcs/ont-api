@@ -6,9 +6,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
-import org.semanticweb.owlapi.model.OWLDisjointDataPropertiesAxiom;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntNDP;
@@ -58,5 +56,23 @@ class DisjointDataPropertiesTranslator extends AbstractTwoWayNaryTranslator<OWLD
     @Override
     OWLDisjointDataPropertiesAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
         return create(components(statement).map(ReadHelper::getDataProperty), annotations);
+    }
+
+    @Override
+    Wrap<OWLDisjointDataPropertiesAxiom> asAxiom(OntStatement statement) {
+        OWLDataFactory df = getDataFactory();
+        Wrap.Collection<OWLDataProperty> members;
+        Stream<OntStatement> content;
+        if (statement.getSubject().canAs(getDisjointView())) {
+            OntDisjoint.DataProperties disjoint = statement.getSubject().as(getDisjointView());
+            content = disjoint.content();
+            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper._getDataProperty(m, df)));
+        } else {
+            content = Stream.of(statement);
+            members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject()).map(r -> r.as(getView())).map(m -> ReadHelper._getDataProperty(m, df)));
+        }
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLDisjointDataPropertiesAxiom res = df.getOWLDisjointDataPropertiesAxiom(members.getObjects(), annotations.getObjects());
+        return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }
 }

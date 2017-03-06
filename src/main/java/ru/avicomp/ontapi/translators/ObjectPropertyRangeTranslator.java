@@ -29,4 +29,13 @@ class ObjectPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLO
         OWLClassExpression ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
         return new OWLObjectPropertyRangeAxiomImpl(p, ce, annotations);
     }
+
+    @Override
+    Wrap<OWLObjectPropertyRangeAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(statement.getSubject().as(getView()), getDataFactory());
+        Wrap<? extends OWLClassExpression> ce = ReadHelper._getClassExpression(statement.getObject().as(OntCE.class), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLObjectPropertyRangeAxiom res = getDataFactory().getOWLObjectPropertyRangeAxiom(p.getObject(), ce.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(ce);
+    }
 }

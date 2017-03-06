@@ -29,4 +29,13 @@ class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLDat
         OWLDataRange ce = ReadHelper.getDataRange(statement.getObject().as(OntDR.class));
         return new OWLDataPropertyRangeAxiomImpl(p, ce, annotations);
     }
+
+    @Override
+    Wrap<OWLDataPropertyRangeAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLDataProperty> p = ReadHelper._getDataProperty(statement.getSubject().as(getView()), getDataFactory());
+        Wrap<? extends OWLDataRange> d = ReadHelper._getDataRange(statement.getObject().as(OntDR.class), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLDataPropertyRangeAxiom res = getDataFactory().getOWLDataPropertyRangeAxiom(p.getObject(), d.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(d);
+    }
 }

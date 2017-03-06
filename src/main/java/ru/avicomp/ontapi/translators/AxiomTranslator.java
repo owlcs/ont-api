@@ -76,7 +76,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     /**
      * todo: new strategy.
-     * todo: not ready yet (only for annotation axioms)
+     * todo: not ready yet (now 20 axioms only have implementation)
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @return {@link Wrap} around the {@link OWLAxiom}
@@ -105,8 +105,8 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     }
 
     /**
-     * todo: will be removed from here
-     * @return {@link ru.avicomp.ontapi.translators.AxiomParserProvider.Config} - the temporary solution.
+     * todo: will be removed (settings will be passed from outside)
+     * @return {@link ru.avicomp.ontapi.translators.AxiomParserProvider.Config} - it's a temporary solution.
      */
     public AxiomParserProvider.Config getConfig() {
         return config;

@@ -79,4 +79,13 @@ class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualA
         res.add(new Wrap<>(multi, triples));
         return res;
     }
+
+    @Override
+    Wrap<OWLSameIndividualAxiom> asAxiom(OntStatement statement) {
+        Wrap<? extends OWLIndividual> a = ReadHelper._getIndividual(statement.getSubject().as(getView()), getDataFactory());
+        Wrap<? extends OWLIndividual> b = ReadHelper._getIndividual(statement.getObject().as(getView()), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLSameIndividualAxiom res = getDataFactory().getOWLSameIndividualAxiom(a.getObject(), b.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
+    }
 }

@@ -136,6 +136,9 @@ public class ReadHelper {
 
     /**
      * todo:
+     * NOTE: different implementations of {@link OWLLiteral} have different mechanism to calculate hash.
+     * For example {@link OWLLiteralImplInteger}.hashCode != {@link OWLLiteralImpl}.hashCode
+     * So even if {@link OWLLiteral}s equal there is no guarantee that {@link Set}s of {@link OWLLiteral}s equal too.
      *
      * @param literal {@link Literal}
      * @param df      {@link OWLDataFactory}
@@ -230,6 +233,24 @@ public class ReadHelper {
             return getAnonymousIndividual(Models.asAnonymousIndividual(node));
         }
         throw new OntApiException("Not an AnnotationValue " + node);
+    }
+
+    /**
+     * @param property {@link OntPE}
+     * @param df       {@link OWLDataFactory}
+     * @return {@link Wrap} around {@link OWLPropertyExpression}
+     */
+    public static Wrap<? extends OWLPropertyExpression> _getProperty(OntPE property, OWLDataFactory df) {
+        if (OntApiException.notNull(property, "Null property.").canAs(OntNAP.class)) {
+            return ReadHelper._getAnnotationProperty(property.as(OntNAP.class), df);
+        }
+        if (property.canAs(OntNDP.class)) {
+            return ReadHelper._getDataProperty(property.as(OntNDP.class), df);
+        }
+        if (property.canAs(OntOPE.class)) {
+            return ReadHelper._getObjectProperty(property.as(OntOPE.class), df);
+        }
+        throw new OntApiException("Unsupported property " + property);
     }
 
     public static OWLPropertyExpression getProperty(OntPE property) {
@@ -432,6 +453,16 @@ public class ReadHelper {
 
     /**
      * todo:
+     * @param dr {@link OntDR}
+     * @param df {@link OWLDataFactory}
+     * @return {@link Wrap} around {@link OWLDataRange}
+     */
+    public static Wrap<? extends OWLDataRange> _getDataRange(OntDR dr, OWLDataFactory df) {
+        return _getDataRange(dr, df, new HashSet<>());
+    }
+
+    /**
+     * todo:
      *
      * @param dr   {@link OntDR}
      * @param df   {@link OWLDataFactory}
@@ -518,6 +549,16 @@ public class ReadHelper {
 
     /**
      * todo:
+     * @param ce {@link OntCE}
+     * @param df {@link OWLDataFactory}
+     * @return {@link Wrap} around {@link OWLClassExpression}
+     */
+    public static Wrap<? extends OWLClassExpression> _getClassExpression(OntCE ce, OWLDataFactory df) {
+        return _getClassExpression(ce, df, new HashSet<>());
+    }
+
+    /**
+     * todo:
      *
      * @param ce   {@link OntCE}
      * @param df   {@link OWLDataFactory}
@@ -527,7 +568,7 @@ public class ReadHelper {
     @SuppressWarnings("unchecked")
     public static Wrap<? extends OWLClassExpression> _getClassExpression(OntCE ce, OWLDataFactory df, Set<Resource> seen) {
         if (OntApiException.notNull(ce, "Null class expression.").isAnon() && seen.contains(ce)) {
-            //todo:
+            //todo: should be configurable (throw or null)
             throw new OntApiException("Recursive loop on class expression " + ce);
         }
         seen.add(ce);
@@ -733,7 +774,6 @@ public class ReadHelper {
         if (!OntApiException.notNull(var, "Null swrl var").isURIResource()) {
             throw new OntApiException("Anonymous swrl var " + var);
         }
-        // not public access:
         return Wrap.create(df.getSWRLVariable(IRI.create(var.getURI())), var);
     }
 

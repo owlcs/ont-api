@@ -36,4 +36,12 @@ class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
         OWLEntity entity = ReadHelper.getEntity(statement.getSubject().as(OntEntity.class));
         return new OWLDeclarationAxiomImpl(entity, annotations);
     }
+
+    @Override
+    Wrap<OWLDeclarationAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLEntity> entity = ReadHelper._getEntity(statement.getSubject().as(OntEntity.class), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLDeclarationAxiom res = getDataFactory().getOWLDeclarationAxiom(entity.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples());
+    }
 }

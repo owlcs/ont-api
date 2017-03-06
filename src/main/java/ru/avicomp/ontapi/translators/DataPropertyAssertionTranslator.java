@@ -41,4 +41,15 @@ class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataPropertyAss
         OWLLiteral l = ReadHelper.getLiteral(statement.getObject().asLiteral());
         return new OWLDataPropertyAssertionAxiomImpl(i, p, l, annotations);
     }
+
+    @Override
+    Wrap<OWLDataPropertyAssertionAxiom> asAxiom(OntStatement statement) {
+        Wrap<? extends OWLIndividual> i = ReadHelper._getIndividual(statement.getSubject().as(OntIndividual.class), getDataFactory());
+        Wrap<OWLDataProperty> p = ReadHelper._getDataProperty(statement.getPredicate().as(OntNDP.class), getDataFactory());
+        Wrap<OWLLiteral> l = ReadHelper._getLiteral(statement.getObject().asLiteral(), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLDataPropertyAssertionAxiom res = getDataFactory().getOWLDataPropertyAssertionAxiom(p.getObject(), i.getObject(), l.getObject(),
+                annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(i).append(p).append(l);
+    }
 }

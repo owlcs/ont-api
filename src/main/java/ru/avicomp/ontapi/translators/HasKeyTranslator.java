@@ -5,12 +5,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLHasKeyAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
+import ru.avicomp.ontapi.jena.model.OntNDP;
+import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLHasKeyAxiomImpl;
@@ -49,5 +49,19 @@ class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntC
         OntCE subject = statement.getSubject().as(OntCE.class);
         Set<OWLPropertyExpression> properties = subject.hasKey().map(ReadHelper::getProperty).collect(Collectors.toSet());
         return new OWLHasKeyAxiomImpl(ReadHelper.getClassExpression(subject), properties, annotations);
+    }
+
+    @Override
+    Wrap<OWLHasKeyAxiom> asAxiom(OntStatement statement) {
+        OWLDataFactory df = getDataFactory();
+        OntCE ce = statement.getSubject().as(OntCE.class);
+        Wrap<? extends OWLClassExpression> subject = ReadHelper._getClassExpression(ce, df);
+        Wrap.Collection<? extends OWLPropertyExpression> members = Wrap.Collection.create(ce.hasKey()
+                .filter(p -> p.canAs(OntOPE.class) || p.canAs(OntNDP.class)) // only P or R (!)
+                .map(p -> ReadHelper._getProperty(p, df)));
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLHasKeyAxiom res = df.getOWLHasKeyAxiom(subject.getObject(), members.getObjects(), annotations.getObjects());
+        Stream<OntStatement> content = ((OntObjectImpl) ce).rdfListContent(getPredicate());
+        return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }
 }

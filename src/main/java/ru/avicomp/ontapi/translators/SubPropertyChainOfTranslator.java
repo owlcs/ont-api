@@ -6,11 +6,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
+import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -49,5 +47,18 @@ class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPr
         OntOPE subject = statement.getSubject().as(OntOPE.class);
         List<OWLObjectPropertyExpression> children = subject.superPropertyOf().map(ReadHelper::getObjectProperty).collect(Collectors.toList());
         return new OWLSubPropertyChainAxiomImpl(children, ReadHelper.getObjectProperty(subject), annotations);
+    }
+
+    @Override
+    Wrap<OWLSubPropertyChainOfAxiom> asAxiom(OntStatement statement) {
+        OWLDataFactory df = getDataFactory();
+        OntOPE ope = statement.getSubject().as(OntOPE.class);
+        Wrap<OWLObjectPropertyExpression> subject = ReadHelper._getObjectProperty(ope, df);
+        Wrap.Collection<OWLObjectPropertyExpression> members = Wrap.Collection.create(ope.superPropertyOf().map(s -> ReadHelper._getObjectProperty(s, df)));
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        // note: the input is a list. does it mean that the order is important?
+        OWLSubPropertyChainOfAxiom res = df.getOWLSubPropertyChainOfAxiom(members.objects().collect(Collectors.toList()), subject.getObject(), annotations.getObjects());
+        Stream<OntStatement> content = ((OntObjectImpl) ope).rdfListContent(getPredicate());
+        return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }
 }

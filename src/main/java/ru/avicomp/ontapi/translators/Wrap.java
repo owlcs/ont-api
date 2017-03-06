@@ -58,8 +58,10 @@ public class Wrap<O extends OWLObject> {
     }
 
     public Wrap<O> add(java.util.Collection<Triple> triples) {
+        if (OntApiException.notNull(triples, "Null triples.").isEmpty())
+            return this;
         Set<Triple> set = new HashSet<>(this.triples);
-        set.addAll(OntApiException.notNull(triples, "Null triples."));
+        set.addAll(triples);
         return new Wrap<>(object, set);
     }
 
@@ -106,12 +108,16 @@ public class Wrap<O extends OWLObject> {
     public static class Collection<O extends OWLObject> {
         private final Set<Wrap<O>> wraps;
 
-        Collection(Set<Wrap<O>> wrappers) {
+        public Collection(Set<Wrap<O>> wrappers) {
             this.wraps = wrappers;
         }
 
         public Set<O> getObjects() {
-            return wraps.stream().map(Wrap::getObject).collect(Collectors.toSet());
+            return objects().collect(Collectors.toSet());
+        }
+
+        public Stream<O> objects() {
+            return wraps.stream().map(Wrap::getObject);
         }
 
         public Stream<Triple> triples() {
@@ -120,6 +126,16 @@ public class Wrap<O extends OWLObject> {
 
         public Set<Triple> getTriples() {
             return triples().collect(Collectors.toSet());
+        }
+
+        /**
+         * Note: stream will be closed.
+         *
+         * @param wrappers Stream of {@link Wrap}
+         * @return {@link Collection} of {@link Wrap}
+         */
+        public static <O extends OWLObject> Collection<O> create(Stream<Wrap<O>> wrappers) {
+            return new Collection<>(wrappers.collect(Collectors.toSet()));
         }
     }
 }
