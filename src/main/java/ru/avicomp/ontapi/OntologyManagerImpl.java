@@ -1643,6 +1643,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param in {@link ObjectInputStream}
      * @throws IOException            exception
      * @throws ClassNotFoundException exception
+     * @see OWLOntologyManagerImpl#readObject(ObjectInputStream)
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
@@ -1661,10 +1662,15 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
     }
 
-    private void writeObject(ObjectOutputStream stream) throws IOException {
-        stream.defaultWriteObject();
-        stream.writeObject(getOntologyLoaderConfiguration());
-        stream.writeObject(getOntologyWriterConfiguration());
+    /**
+     * @param out {@link ObjectInputStream}
+     * @throws IOException exception
+     * @see OWLOntologyManagerImpl#writeObject(ObjectOutputStream)
+     */
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeObject(getOntologyLoaderConfiguration());
+        out.writeObject(getOntologyWriterConfiguration());
     }
 
     /**
@@ -1728,7 +1734,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener) {
             addOntologyChangeListener(listener, defaultChangeBroadcastStrategy);
         }
-
 
         public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener, @Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
             listenerMap.put(listener, strategy);
@@ -2031,7 +2036,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             this.writerConf = writerConf;
             return this;
         }
-
 
         @Nullable
         public IRI getDocumentIRI() {

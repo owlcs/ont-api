@@ -19,6 +19,9 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
+import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -145,4 +148,71 @@ public class TestUtils {
                 .flatMap(Function.identity()).distinct();
     }
 
+    public static Configurable.Mode getMode(OntPersonality profile) {
+        Configurable.Mode mode = null;
+        if (OntModelConfig.ONT_PERSONALITY_STRICT.equals(profile)) {
+            mode = Configurable.Mode.STRICT;
+        } else if (OntModelConfig.ONT_PERSONALITY_MEDIUM.equals(profile)) {
+            mode = Configurable.Mode.MEDIUM;
+        } else if (OntModelConfig.ONT_PERSONALITY_LAX.equals(profile)) {
+            mode = Configurable.Mode.LAX;
+        } else {
+            Assert.fail("Unsupported personality profile " + profile);
+        }
+        return mode;
+    }
+
+    /**
+     * gets 'punnings' for rdf:Property types (owl:AnnotationProperty, owl:DatatypeProperty, owl:ObjectProperty)
+     *
+     * @param model {@link Model}
+     * @param mode  {@link Configurable.Mode}
+     * @return Set of resources
+     */
+    public static Set<Resource> getPropertyPunnings(Model model, Configurable.Mode mode) {
+        if (Configurable.Mode.LAX.equals(mode)) return Collections.emptySet();
+        Set<Resource> objectProperties = model.listStatements(null, RDF.type, OWL.ObjectProperty).mapWith(Statement::getSubject).toSet();
+        Set<Resource> datatypeProperties = model.listStatements(null, RDF.type, OWL.DatatypeProperty).mapWith(Statement::getSubject).toSet();
+        if (Configurable.Mode.MEDIUM.equals(mode)) return unionOfIntersections(objectProperties, datatypeProperties);
+        Set<Resource> annotationProperties = model.listStatements(null, RDF.type, OWL.AnnotationProperty).mapWith(Statement::getSubject).toSet();
+        return unionOfIntersections(annotationProperties, objectProperties, datatypeProperties);
+    }
+
+    /**
+     * gets 'punnings' for rdfs:Class types (owl:Class and rdfs:Datatype)
+     *
+     * @param model {@link Model}
+     * @param mode  {@link Configurable.Mode}
+     * @return Set of resources
+     */
+    public static Set<Resource> getClassPunnings(Model model, Configurable.Mode mode) {
+        if (Configurable.Mode.LAX.equals(mode)) return Collections.emptySet();
+        Set<Resource> classes = model.listStatements(null, RDF.type, OWL.Class).mapWith(Statement::getSubject).toSet();
+        Set<Resource> datatypes = model.listStatements(null, RDF.type, RDFS.Datatype).mapWith(Statement::getSubject).toSet();
+        return unionOfIntersections(classes, datatypes);
+    }
+
+    /**
+     * gets the set of 'illegal punnings' from their explicit declaration accordingly specified mode.
+     *
+     * @param model {@link Model}
+     * @param mode  {@link Configurable.Mode}
+     * @return Set of illegal punnings
+     */
+    public static Set<Resource> getIllegalPunnings(Model model, Configurable.Mode mode) {
+        Set<Resource> res = new HashSet<>(getPropertyPunnings(model, mode));
+        res.addAll(getClassPunnings(model, mode));
+        return res;
+    }
+
+    @SafeVarargs
+    private static <T> Set<T> unionOfIntersections(Collection<T>... collections) {
+        Stream<T> res = Stream.empty();
+        for (int i = 0; i < collections.length; i++) {
+            Set<T> intersection = new HashSet<>(collections[i]);
+            intersection.retainAll(collections[i < collections.length - 1 ? i + 1 : 0]);
+            res = Stream.concat(res, intersection.stream());
+        }
+        return res.collect(Collectors.toSet());
+    }
 }

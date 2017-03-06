@@ -27,15 +27,16 @@ import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
+import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
 import ru.avicomp.ontapi.translators.AxiomTranslator;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
  * to test RDF->Axiom parsing
@@ -142,24 +143,23 @@ public class InternalModelTest {
         OWLObjectProperty creator = factory.getOWLObjectProperty(IRI.create("http://purl.org/dc/terms/creator"));
         expectedObjectProperties.add(creator);
 
-        if (OntModelConfig.ONT_PERSONALITY_STRICT.equals(profile)) { // remove all illegal punnings from OWL-API output:
-            Set<Resource> illegalPunnings = Models.getIllegalPunnings(jena);
-            LOGGER.debug("Illegal punnings inside graph: " + illegalPunnings);
-            Set<OWLAnnotationProperty> illegalAnnotationProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
-                    .filter(r -> r.hasProperty(RDF.type, OWL.AnnotationProperty))
-                    .map(Resource::getURI).map(IRI::create).map(factory::getOWLAnnotationProperty).collect(Collectors.toSet());
-            Set<OWLDataProperty> illegalDataProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
-                    .filter(r -> r.hasProperty(RDF.type, OWL.DatatypeProperty))
-                    .map(Resource::getURI).map(IRI::create).map(factory::getOWLDataProperty).collect(Collectors.toSet());
-            Set<OWLObjectProperty> illegalObjectProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
-                    .filter(r -> r.hasProperty(RDF.type, OWL.ObjectProperty))
-                    .map(Resource::getURI).map(IRI::create).map(factory::getOWLObjectProperty).collect(Collectors.toSet());
-            expectedAnnotationProperties.removeAll(illegalAnnotationProperties);
-            expectedDataProperties.removeAll(illegalDataProperties);
-            expectedObjectProperties.removeAll(illegalObjectProperties);
-        } else if (!OntModelConfig.ONT_PERSONALITY_LAX.equals(profile)) {
-            Assert.fail("Unsupported personality profile " + profile);
-        }
+        Configurable.Mode mode = TestUtils.getMode(profile);
+        // remove all illegal punnings from OWL-API output:
+        Set<Resource> illegalPunnings = TestUtils.getIllegalPunnings(jena, mode);
+        LOGGER.debug("Illegal punnings inside graph: " + illegalPunnings);
+        Set<OWLAnnotationProperty> illegalAnnotationProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
+                .filter(r -> r.hasProperty(RDF.type, OWL.AnnotationProperty))
+                .map(Resource::getURI).map(IRI::create).map(factory::getOWLAnnotationProperty).collect(Collectors.toSet());
+        Set<OWLDataProperty> illegalDataProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
+                .filter(r -> r.hasProperty(RDF.type, OWL.DatatypeProperty))
+                .map(Resource::getURI).map(IRI::create).map(factory::getOWLDataProperty).collect(Collectors.toSet());
+        Set<OWLObjectProperty> illegalObjectProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
+                .filter(r -> r.hasProperty(RDF.type, OWL.ObjectProperty))
+                .map(Resource::getURI).map(IRI::create).map(factory::getOWLObjectProperty).collect(Collectors.toSet());
+        expectedAnnotationProperties.removeAll(illegalAnnotationProperties);
+        expectedDataProperties.removeAll(illegalDataProperties);
+        expectedObjectProperties.removeAll(illegalObjectProperties);
+
         test(OWLDataProperty.class, jena.dataProperties(), expectedDataProperties.stream());
         test(OWLAnnotationProperty.class, jena.annotationProperties(), expectedAnnotationProperties.stream());
         test(OWLObjectProperty.class, jena.objectProperties(), expectedObjectProperties.stream());

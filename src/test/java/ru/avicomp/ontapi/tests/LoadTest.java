@@ -13,14 +13,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
-import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
@@ -41,41 +41,32 @@ public class LoadTest {
     public void testFoaf() throws Exception {
         String fileName = "foaf.rdf";
         OntologyManager manager = OntManagers.createONT();
-        OntPersonality p = manager.getOntologyLoaderConfiguration().getPersonality();
-        if (OntModelConfig.ONT_PERSONALITY_STRICT.equals(p)) {
-            IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
-            LOGGER.info("The file " + fileIRI);
-            OntologyModel ont = (OntologyModel) manager.loadOntologyFromOntologyDocument(fileIRI);
-            OntGraphModel m = ont.asGraphModel();
-            ReadWriteUtils.print(m);
+        OntConfig.LoaderConfiguration conf = manager.getOntologyLoaderConfiguration().setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
+        manager.setOntologyLoaderConfiguration(conf);
 
-            Set<Resource> illegalPunningURIs = Models.getIllegalPunnings(m);
-            LOGGER.debug("There are following illegal punnins inside original graph: " + illegalPunningURIs);
-            List<OntEntity> illegalPunnings = m.ontEntities().filter(illegalPunningURIs::contains).collect(Collectors.toList());
-            Assert.assertTrue("Has illegal punnings: " + illegalPunnings, illegalPunnings.isEmpty());
+        IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
+        LOGGER.info("The file " + fileIRI);
+        OntologyModel ont = (OntologyModel) manager.loadOntologyFromOntologyDocument(fileIRI);
+        OntGraphModel model = ont.asGraphModel();
+        ReadWriteUtils.print(model);
 
-            List<OWLAxiom> ontList = ont.axioms().sorted().collect(Collectors.toList());
+        Set<Resource> illegalPunningURIs = TestUtils.getIllegalPunnings(model, Configurable.Mode.STRICT);
+        LOGGER.debug("There are following illegal punnins inside original graph: " + illegalPunningURIs);
+        List<OntEntity> illegalPunnings = model.ontEntities().filter(illegalPunningURIs::contains).collect(Collectors.toList());
+        Assert.assertTrue("Has illegal punnings: " + illegalPunnings, illegalPunnings.isEmpty());
 
-            OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(fileIRI);
-            Set<OWLAxiom> punningAxioms = illegalPunningURIs.stream()
-                    .map(Resource::getURI).map(IRI::create)
-                    .map(owl::referencingAxioms).flatMap(Function.identity()).collect(Collectors.toSet());
-            LOGGER.debug("OWL Axioms to exclude from consideration: ");
-            punningAxioms.forEach(LOGGER::debug);
-            List<OWLAxiom> owlList = owl.axioms().filter(axiom -> !punningAxioms.contains(axiom)).sorted().collect(Collectors.toList());
-            // by some mysterious reason OWL-API skips owl:equivalentProperty although it is a good axiom.
-            test(owlList, ontList, Stream.of(AxiomType.DECLARATION, AxiomType.ANNOTATION_ASSERTION, AxiomType.EQUIVALENT_OBJECT_PROPERTIES).collect(Collectors.toSet()));
-            return;
-        }
-        if (!OntModelConfig.ONT_PERSONALITY_LAX.equals(p)) {
-            Assert.fail("Unsupported personality profile: " + p);
-        }
-        // WARNING: OWL-API works wrong with this ontology.
-        // Also ontology 'foaf' is wrong in itself: there 7 entities which are DataProperty and ObjectProperty simultaneously (illegal punnings).
-        // But 6 errors from OWLOntologyManagerImpl#fixIllegalPunnings! all but no 'http://xmlns.com/foaf/0.1/name' (maybe because this entity has no explicit declaration).
-        // todo: investigate and add testing for excluded axioms if possible.
-        test(fileName, AxiomType.DECLARATION, AxiomType.ANNOTATION_PROPERTY_RANGE, AxiomType.ANNOTATION_PROPERTY_DOMAIN,
-                AxiomType.DATA_PROPERTY_DOMAIN, AxiomType.EQUIVALENT_OBJECT_PROPERTIES);
+        List<OWLAxiom> ontList = ont.axioms().sorted().collect(Collectors.toList());
+
+        OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(fileIRI);
+        Set<OWLAxiom> punningAxioms = illegalPunningURIs.stream()
+                .map(Resource::getURI).map(IRI::create)
+                .map(owl::referencingAxioms).flatMap(Function.identity()).collect(Collectors.toSet());
+        LOGGER.debug("OWL Axioms to exclude from consideration (" + punningAxioms.size() + "): ");
+        punningAxioms.forEach(LOGGER::debug);
+        List<OWLAxiom> owlList = owl.axioms().filter(axiom -> !punningAxioms.contains(axiom)).sorted().collect(Collectors.toList());
+        // by some mysterious reason OWL-API skips owl:equivalentProperty although it seems a good axiom.
+        test(owlList, ontList, Stream.of(AxiomType.DECLARATION, AxiomType.ANNOTATION_ASSERTION, AxiomType.EQUIVALENT_OBJECT_PROPERTIES).collect(Collectors.toSet()));
+
     }
 
     @Test

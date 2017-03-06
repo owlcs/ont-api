@@ -21,6 +21,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
         @Override
         Stream<Resource> bannedTypes(Configurable.Mode mode) {
             switch (mode) {
+                case MEDIUM:
                 case STRICT:
                     return Stream.of(RDFS.Datatype);
                 default:
@@ -37,6 +38,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
         @Override
         Stream<Resource> bannedTypes(Configurable.Mode mode) {
             switch (mode) {
+                case MEDIUM:
                 case STRICT:
                     return Stream.of(OWL.Class);
                 default:
@@ -71,6 +73,8 @@ public enum Entities implements Configurable<OntObjectFactory> {
             switch (mode) {
                 case STRICT:
                     return Stream.of(OWL.ObjectProperty, OWL.AnnotationProperty);
+                case MEDIUM:
+                    return Stream.of(OWL.ObjectProperty);
                 default:
                     return Stream.empty();
             }
@@ -85,10 +89,12 @@ public enum Entities implements Configurable<OntObjectFactory> {
         @Override
         Stream<Resource> bannedTypes(Configurable.Mode mode) {
             switch (mode) {
-                default:
-                    return Stream.empty();
                 case STRICT:
                     return Stream.of(OWL.DatatypeProperty, OWL.AnnotationProperty);
+                case MEDIUM:
+                    return Stream.of(OWL.DatatypeProperty);
+                default:
+                    return Stream.empty();
             }
         }
 
@@ -120,13 +126,14 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
     @Override
     public OntObjectFactory select(Mode m) {
-        OntMaker maker = new OntMaker.WithType(impl, type);
         OntFinder finder = new OntFinder.ByType(type);
-        OntFilter filter = OntFilter.URI.and(new OntFilter.HasType(type)).or(new OntFilter.OneOf(builtInURIs()));
 
         OntFilter illegalPunningsFilter = OntFilter.TRUE.accumulate(bannedTypes(m)
                 .map(OntFilter.HasType::new).map(OntFilter::negate).toArray(OntFilter[]::new));
 
-        return new CommonOntObjectFactory(maker.restrict(illegalPunningsFilter), finder, filter.and(illegalPunningsFilter));
+        OntFilter filter = OntFilter.URI.and((new OntFilter.HasType(type).and(illegalPunningsFilter)).or(new OntFilter.OneOf(builtInURIs())));
+        OntMaker maker = new OntMaker.WithType(impl, type).restrict(illegalPunningsFilter);
+
+        return new CommonOntObjectFactory(maker, finder, filter);
     }
 }

@@ -144,8 +144,14 @@ public class OntModelConfig {
      * each of the pairs above can't exist in the corresponding model at the same time for the same node.
      */
     public static final OntPersonality ONT_PERSONALITY_STRICT = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.STRICT);
+    /**
+     * The week variant of previous one - two forbidden intersections:
+     * {@link OntDT}  <-> {@link OntClass}
+     * {@link OntNOP} <-> {@link OntNDP}
+     */
+    public static final OntPersonality ONT_PERSONALITY_MEDIUM = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.MEDIUM);
 
-    private static OntPersonality personality = ONT_PERSONALITY_STRICT;
+    private static OntPersonality personality = ONT_PERSONALITY_MEDIUM;
 
     public static OntPersonality getPersonality() {
         return personality;

@@ -145,7 +145,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
          * which corresponds object property assertion "_:a1 PN _:a2" or annotation property assertion "s A t"
          *
          * @param eg {@link OntGraphModelImpl}
-         * @param m  exclude illegal punnings if {@link Configurable.Mode#STRICT}
+         * @param m {@link Configurable.Mode}
          * @return Stream of {@link Node}
          */
         private static Stream<Node> positiveAssertionAnonIndividuals(EnhGraph eg, Configurable.Mode m) {

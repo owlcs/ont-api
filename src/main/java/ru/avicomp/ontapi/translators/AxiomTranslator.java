@@ -1,18 +1,19 @@
 package ru.avicomp.ontapi.translators;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.Factory;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphUtil;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.*;
+import org.apache.jena.rdf.model.Statement;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
@@ -105,8 +106,8 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         }
 
         public Triples<O> add(Collection<Triple> triples) {
-            Set<Triple> set = new HashSet<>(OntApiException.notNull(this.triples, "Null triples."));
-            set.addAll(triples);
+            Set<Triple> set = new HashSet<>(this.triples);
+            set.addAll(OntApiException.notNull(triples, "Null triples."));
             return new Triples<>(object, set);
         }
 
@@ -127,6 +128,20 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         public static <O extends OWLObject> Optional<Triples<O>> find(Collection<Triples<O>> set, O key) {
             int h = OntApiException.notNull(key, "null key").hashCode();
             return set.stream().filter(Objects::nonNull).filter(o -> o.hashCode() == h).filter(o -> key.equals(o.getObject())).findAny();
+        }
+
+        public static <O extends OWLObject> Triples<O> create(O o, Stream<? extends Statement> content) {
+            return new Triples<>(o, content.map(FrontsTriple::asTriple).collect(Collectors.toSet()));
+        }
+
+        public static <O extends OWLObject> Triples<O> create(O o, OntObject content) {
+            return create(o, content.content());
+        }
+
+        public static <O extends OWLObject> Triples<O> createFrom(O o, Stream<? extends Statement> content, Triples<? extends OWLObject>... others) {
+            Stream<Triple> a = content.map(FrontsTriple::asTriple);
+            Stream<Triple> b = Stream.of(others).map(Triples::triples).flatMap(Function.identity());
+            return new Triples<>(o, Stream.concat(a, b).collect(Collectors.toSet()));
         }
     }
 }

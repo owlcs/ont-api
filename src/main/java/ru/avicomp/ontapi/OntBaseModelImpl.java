@@ -28,8 +28,6 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntID;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
 
-import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
-
 /**
  * 'Immutable' ontology with methods to read information in the form of OWL-Objects from graph-model.
  * It's our analogy of {@link uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl}
@@ -225,7 +223,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public Set<IRI> getPunnedIRIs(@Nonnull Imports imports) {
-        return base.ambiguousEntities(INCLUDED.equals(imports)).map(Resource::getURI).map(IRI::create).collect(Collectors.toSet());
+        return base.ambiguousEntities(Imports.INCLUDED.equals(imports)).map(Resource::getURI).map(IRI::create).collect(Collectors.toSet());
     }
 
     @Override
