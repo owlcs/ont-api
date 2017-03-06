@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLFunctionalDataPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntNDP;
@@ -31,5 +32,13 @@ class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTranslator<OW
     @Override
     OWLFunctionalDataPropertyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
         return new OWLFunctionalDataPropertyAxiomImpl(ReadHelper.getDataProperty(getSubject(statement)), annotations);
+    }
+
+    @Override
+    Wrap<OWLFunctionalDataPropertyAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLDataProperty> p = ReadHelper._getDataProperty(getSubject(statement), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLFunctionalDataPropertyAxiom res = getDataFactory().getOWLFunctionalDataPropertyAxiom(p.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }
 }

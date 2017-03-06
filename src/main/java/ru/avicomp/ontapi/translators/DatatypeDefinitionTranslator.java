@@ -45,4 +45,13 @@ class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinition
         OWLDataRange dr = ReadHelper.getDataRange(statement.getObject().as(OntDR.class));
         return new OWLDatatypeDefinitionAxiomImpl(dt, dr, annotations);
     }
+
+    @Override
+    Wrap<OWLDatatypeDefinitionAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLDatatype> dt = ReadHelper._getDatatype(statement.getSubject().as(OntDT.class), getDataFactory());
+        Wrap<? extends OWLDataRange> dr = ReadHelper._getDataRange(statement.getObject().as(OntDR.class), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLDatatypeDefinitionAxiom res = getDataFactory().getOWLDatatypeDefinitionAxiom(dt.getObject(), dr.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(dt).append(dr);
+    }
 }

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -31,5 +32,13 @@ class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<O
     @Override
     OWLReflexiveObjectPropertyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
         return new OWLReflexiveObjectPropertyAxiomImpl(ReadHelper.getObjectProperty(getSubject(statement)), annotations);
+    }
+
+    @Override
+    Wrap<OWLReflexiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(getSubject(statement), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLReflexiveObjectPropertyAxiom res = getDataFactory().getOWLReflexiveObjectPropertyAxiom(p.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }
 }

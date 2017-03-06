@@ -7,6 +7,7 @@ import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
+import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -38,5 +39,10 @@ abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, O ext
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .filter(OntStatement::isLocal);
+    }
+
+    Stream<OntStatement> content(OntStatement statement) {
+        return Stream.concat(Stream.of(statement),
+                ((OntObjectImpl) statement.getSubject()).rdfListContent(getPredicate()));
     }
 }

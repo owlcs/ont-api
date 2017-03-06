@@ -4,10 +4,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDisjointUnionAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -47,5 +44,16 @@ class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUn
         OntClass clazz = statement.getSubject().as(OntClass.class);
         Stream<OWLClassExpression> ces = clazz.disjointUnionOf().map(ReadHelper::getClassExpression);
         return new OWLDisjointUnionAxiomImpl(ReadHelper.getClassExpression(clazz).asOWLClass(), ces, annotations);
+    }
+
+    @Override
+    Wrap<OWLDisjointUnionAxiom> asAxiom(OntStatement statement) {
+        OWLDataFactory df = getDataFactory();
+        OntClass clazz = statement.getSubject().as(OntClass.class);
+        Wrap<? extends OWLClassExpression> subject = ReadHelper._getClassExpression(clazz, df);
+        Wrap.Collection<? extends OWLClassExpression> members = Wrap.Collection.create(clazz.disjointUnionOf().map(s -> ReadHelper._getClassExpression(s, df)));
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLDisjointUnionAxiom res = df.getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(), members.getObjects(), annotations.getObjects());
+        return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }
 }

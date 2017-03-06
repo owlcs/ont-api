@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -61,7 +60,6 @@ class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntC
                 .map(p -> ReadHelper._getProperty(p, df)));
         Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
         OWLHasKeyAxiom res = df.getOWLHasKeyAxiom(subject.getObject(), members.getObjects(), annotations.getObjects());
-        Stream<OntStatement> content = ((OntObjectImpl) ce).rdfListContent(getPredicate());
-        return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
+        return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }
 }

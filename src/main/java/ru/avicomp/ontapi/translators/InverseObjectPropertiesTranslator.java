@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -41,5 +42,14 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
         OntOPE f = statement.getSubject().as(OntOPE.class);
         OntOPE s = statement.getObject().as(OntOPE.class);
         return new OWLInverseObjectPropertiesAxiomImpl(ReadHelper.getObjectProperty(f), ReadHelper.getObjectProperty(s), annotations);
+    }
+
+    @Override
+    Wrap<OWLInverseObjectPropertiesAxiom> asAxiom(OntStatement statement) {
+        Wrap<? extends OWLObjectPropertyExpression> f = ReadHelper._getObjectProperty(statement.getSubject().as(OntOPE.class), getDataFactory());
+        Wrap<? extends OWLObjectPropertyExpression> s = ReadHelper._getObjectProperty(statement.getObject().as(OntOPE.class), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLInverseObjectPropertiesAxiom res = getDataFactory().getOWLInverseObjectPropertiesAxiom(f.getObject(), s.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(f).append(s);
     }
 }

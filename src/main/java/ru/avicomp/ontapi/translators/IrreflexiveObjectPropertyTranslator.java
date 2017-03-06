@@ -5,6 +5,7 @@ import java.util.Set;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLIrreflexiveObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -32,5 +33,13 @@ class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
+    }
+
+    @Override
+    Wrap<OWLIrreflexiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(getSubject(statement), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLIrreflexiveObjectPropertyAxiom res = getDataFactory().getOWLIrreflexiveObjectPropertyAxiom(p.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }
 }

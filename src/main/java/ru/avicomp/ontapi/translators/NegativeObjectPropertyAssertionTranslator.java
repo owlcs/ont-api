@@ -2,10 +2,7 @@ package ru.avicomp.ontapi.translators;
 
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLNegativeObjectPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
@@ -36,5 +33,18 @@ class NegativeObjectPropertyAssertionTranslator extends AbstractNegativeProperty
         OWLObjectPropertyExpression property = ReadHelper.getObjectProperty(npa.getProperty());
         OWLIndividual object = ReadHelper.getIndividual(npa.getTarget());
         return new OWLNegativeObjectPropertyAssertionAxiomImpl(subject, property, object, annotations);
+    }
+
+    @Override
+    Wrap<OWLNegativeObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
+        OWLDataFactory df = getDataFactory();
+        OntNPA.ObjectAssertion npa = statement.getSubject().as(getView());
+        Wrap<? extends OWLIndividual> s = ReadHelper._getIndividual(npa.getSource(), df);
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(npa.getProperty(), df);
+        Wrap<? extends OWLIndividual> o = ReadHelper._getIndividual(npa.getTarget(), df);
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLNegativeObjectPropertyAssertionAxiom res = df.getOWLNegativeObjectPropertyAssertionAxiom(p.getObject(),
+                s.getObject(), o.getObject(), annotations.getObjects());
+        return Wrap.create(res, npa.content()).add(annotations.getTriples()).append(s).append(p).append(o);
     }
 }

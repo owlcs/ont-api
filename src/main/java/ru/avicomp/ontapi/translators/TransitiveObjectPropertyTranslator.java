@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -31,5 +32,13 @@ class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
+    }
+
+    @Override
+    Wrap<OWLTransitiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(getSubject(statement), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLTransitiveObjectPropertyAxiom res = getDataFactory().getOWLTransitiveObjectPropertyAxiom(p.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }
 }

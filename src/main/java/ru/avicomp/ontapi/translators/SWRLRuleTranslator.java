@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLRule;
 
@@ -40,5 +41,18 @@ class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
         List<SWRLAtom> head = imp.head().map(ReadHelper::getSWRLAtom).collect(Collectors.toList());
         List<SWRLAtom> body = imp.body().map(ReadHelper::getSWRLAtom).collect(Collectors.toList());
         return new SWRLRuleImpl(head, body, annotations);
+    }
+
+    @Override
+    Wrap<SWRLRule> asAxiom(OntStatement statement) {
+        OWLDataFactory df = getDataFactory();
+        OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
+
+        Wrap.Collection<? extends SWRLAtom> head = Wrap.Collection.create(imp.head().map(a -> ReadHelper._getSWRLAtom(a, df)));
+        Wrap.Collection<? extends SWRLAtom> body = Wrap.Collection.create(imp.body().map(a -> ReadHelper._getSWRLAtom(a, df)));
+
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        SWRLRule res = df.getSWRLRule(body.getObjects(), head.getObjects(), annotations.getObjects());
+        return Wrap.create(res, imp.content()).add(annotations.getTriples()).add(body.getTriples()).add(head.getTriples());
     }
 }

@@ -75,15 +75,11 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     abstract Axiom create(OntStatement statement, Set<OWLAnnotation> annotations);
 
     /**
-     * todo: new strategy.
-     * todo: not ready yet (now 20 axioms only have implementation)
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @return {@link Wrap} around the {@link OWLAxiom}
      */
-    Wrap<Axiom> asAxiom(OntStatement statement) {
-        throw new OntApiException.Unsupported("TODO");
-    }
+    abstract Wrap<Axiom> asAxiom(OntStatement statement);
 
     /**
      * returns the container with set of {@link OWLAnnotation} associated with the specified statement.

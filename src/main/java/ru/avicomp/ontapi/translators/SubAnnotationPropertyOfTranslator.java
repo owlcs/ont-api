@@ -2,10 +2,7 @@ package ru.avicomp.ontapi.translators;
 
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
-import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -37,5 +34,15 @@ class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OW
         OWLAnnotationProperty sub = ReadHelper.getAnnotationProperty(statement.getSubject().as(OntNAP.class));
         OWLAnnotationProperty sup = ReadHelper.getAnnotationProperty(statement.getObject().as(OntNAP.class));
         return new OWLSubAnnotationPropertyOfAxiomImpl(sub, sup, annotations);
+    }
+
+    @Override
+    Wrap<OWLSubAnnotationPropertyOfAxiom> asAxiom(OntStatement statement) {
+        OWLDataFactory df = getDataFactory();
+        Wrap<OWLAnnotationProperty> sub = ReadHelper._getAnnotationProperty(statement.getSubject().as(OntNAP.class), df);
+        Wrap<OWLAnnotationProperty> sup = ReadHelper._getAnnotationProperty(statement.getObject().as(OntNAP.class), df);
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLSubAnnotationPropertyOfAxiom res = df.getOWLSubAnnotationPropertyOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(sub).append(sup);
     }
 }

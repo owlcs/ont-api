@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -31,5 +32,13 @@ class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<O
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
+    }
+
+    @Override
+    Wrap<OWLSymmetricObjectPropertyAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(getSubject(statement), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLSymmetricObjectPropertyAxiom res = getDataFactory().getOWLSymmetricObjectPropertyAxiom(p.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }
 }

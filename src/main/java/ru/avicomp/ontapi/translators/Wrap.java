@@ -57,18 +57,16 @@ public class Wrap<O extends OWLObject> {
         return res;
     }
 
-    public Wrap<O> add(java.util.Collection<Triple> triples) {
-        if (OntApiException.notNull(triples, "Null triples.").isEmpty())
+    public Wrap<O> add(java.util.Collection<Triple> _triples) {
+        if (OntApiException.notNull(_triples, "Null triples.").isEmpty())
             return this;
         Set<Triple> set = new HashSet<>(this.triples);
-        set.addAll(triples);
+        set.addAll(_triples);
         return new Wrap<>(object, set);
     }
 
     public Wrap<O> append(Wrap<? extends OWLObject> other) {
-        Set<Triple> set = new HashSet<>(this.triples);
-        set.addAll(other.getTriples());
-        return new Wrap<>(object, set);
+        return add(other.getTriples());
     }
 
     @Override
@@ -106,9 +104,9 @@ public class Wrap<O extends OWLObject> {
      * The collection of {@link Wrap}
      */
     public static class Collection<O extends OWLObject> {
-        private final Set<Wrap<O>> wraps;
+        private final java.util.Collection<Wrap<O>> wraps;
 
-        public Collection(Set<Wrap<O>> wrappers) {
+        public Collection(java.util.Collection<Wrap<O>> wrappers) {
             this.wraps = wrappers;
         }
 

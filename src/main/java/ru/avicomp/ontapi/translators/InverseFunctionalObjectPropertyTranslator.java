@@ -5,6 +5,7 @@ import java.util.Set;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -31,5 +32,13 @@ class InverseFunctionalObjectPropertyTranslator extends AbstractPropertyTypeTran
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
+    }
+
+    @Override
+    Wrap<OWLInverseFunctionalObjectPropertyAxiom> asAxiom(OntStatement statement) {
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(getSubject(statement), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLInverseFunctionalObjectPropertyAxiom res = getDataFactory().getOWLInverseFunctionalObjectPropertyAxiom(p.getObject(), annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }
 }
