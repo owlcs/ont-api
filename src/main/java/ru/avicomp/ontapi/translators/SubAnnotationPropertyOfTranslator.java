@@ -34,8 +34,8 @@ class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OW
 
     @Override
     OWLSubAnnotationPropertyOfAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLAnnotationProperty sub = RDF2OWLHelper.getAnnotationProperty(statement.getSubject().as(OntNAP.class));
-        OWLAnnotationProperty sup = RDF2OWLHelper.getAnnotationProperty(statement.getObject().as(OntNAP.class));
+        OWLAnnotationProperty sub = ReadHelper.getAnnotationProperty(statement.getSubject().as(OntNAP.class));
+        OWLAnnotationProperty sup = ReadHelper.getAnnotationProperty(statement.getObject().as(OntNAP.class));
         return new OWLSubAnnotationPropertyOfAxiomImpl(sub, sup, annotations);
     }
 }

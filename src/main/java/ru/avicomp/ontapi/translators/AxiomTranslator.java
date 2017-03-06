@@ -1,29 +1,32 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.*;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 /**
- * Base class for any Axiom Graph Translator (operator 'T').
+ * The base class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
  * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>
  * <p>
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
+
     private AxiomParserProvider.Config config = AxiomParserProvider.DEFAULT_CONFIG;
+
+    public static final OWLDataFactory OWL_DATA_FACTORY = new OWLDataFactoryImpl();
 
     /**
      * writes axiom to model.
@@ -37,15 +40,15 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * reads axioms and triples from model.
      *
      * @param model {@link OntGraphModel}
-     * @return Set of {@link Triples} with {@link OWLAxiom} as key and Set of {@link Triple} as value
+     * @return Set of {@link Wrap} with {@link OWLAxiom} as key and Set of {@link Triple} as value
      */
-    public Set<Triples<Axiom>> read(OntGraphModel model) {
+    public Set<Wrap<Axiom>> read(OntGraphModel model) {
         try {
-            Map<Axiom, Triples<Axiom>> res = new HashMap<>();
-            statements(model).map(RDF2OWLHelper.AxiomStatement::new).forEach(c -> {
+            Map<Axiom, Wrap<Axiom>> res = new HashMap<>();
+            statements(model).map(ReadHelper.AxiomStatement::new).forEach(c -> {
                 Axiom axiom = create(c.getStatement(), c.getAnnotations());
                 Set<Triple> triples = c.getTriples();
-                res.compute(axiom, (a, container) -> container == null ? new Triples<>(a, triples) : container.add(triples));
+                res.compute(axiom, (a, container) -> container == null ? new Wrap<>(a, triples) : container.add(triples));
             });
             return new HashSet<>(res.values());
         } catch (Exception e) {
@@ -53,95 +56,63 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         }
     }
 
+    /**
+     * returns the stream of statements defining the axiom.
+     *
+     * @param model {@link OntGraphModel} the model
+     * @return Stream of {@link OntStatement}
+     */
     abstract Stream<OntStatement> statements(OntGraphModel model);
 
+    /**
+     * todo: going to replace this method with {@link #asAxiom(OntStatement)}
+     *
+     * @param statement   {@link OntStatement}
+     * @param annotations Set of {@link OWLAnnotation}
+     * @return {@link OWLAxiom}
+     */
+    @Deprecated
     abstract Axiom create(OntStatement statement, Set<OWLAnnotation> annotations);
 
+    /**
+     * todo: new strategy.
+     * todo: not ready yet (only for annotation axioms)
+     *
+     * @param statement {@link OntStatement} the statement which determines the axiom
+     * @return {@link Wrap} around the {@link OWLAxiom}
+     */
+    Wrap<Axiom> asAxiom(OntStatement statement) {
+        throw new OntApiException.Unsupported("TODO");
+    }
+
+    /**
+     * returns the container with set of {@link OWLAnnotation} associated with the specified statement.
+     *
+     * @param statement {@link OntStatement}
+     * @return {@link ru.avicomp.ontapi.translators.Wrap.Collection} of {@link OWLAnnotation}
+     */
+    Wrap.Collection<OWLAnnotation> annotations(OntStatement statement) {
+        return new Wrap.Collection<>(ReadHelper.getAnnotations(statement));
+    }
+
+    /**
+     * todo: should be passed from outside
+     *
+     * @return {@link OWLDataFactory}
+     */
+    public OWLDataFactory getDataFactory() {
+        return OWL_DATA_FACTORY;
+    }
+
+    /**
+     * todo: will be removed from here
+     * @return {@link ru.avicomp.ontapi.translators.AxiomParserProvider.Config} - the temporary solution.
+     */
     public AxiomParserProvider.Config getConfig() {
         return config;
     }
 
     public void setConfig(AxiomParserProvider.Config config) {
         this.config = OntApiException.notNull(config, "Null config.");
-    }
-
-    /**
-     * Immutable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple}s.
-     * <p>
-     * Created by @szuev on 27.11.2016.
-     */
-    public static class Triples<O extends OWLObject> {
-        private final O object;
-        private final Set<Triple> triples;
-        private int hashCode;
-
-        public Triples(O object, Set<Triple> triples) {
-            this.object = OntApiException.notNull(object, "Null OWLObject.");
-            if (OntApiException.notNull(triples, "Null triples.").isEmpty()) {
-                throw new OntApiException("Empty triples.");
-            }
-            this.triples = Collections.unmodifiableSet(triples);
-        }
-
-        public Triples(O object, Triple triple) {
-            this(object, Collections.singleton(triple));
-        }
-
-        public O getObject() {
-            return object;
-        }
-
-        public Set<Triple> getTriples() {
-            return triples;
-        }
-
-        public Stream<Triple> triples() {
-            return triples.stream();
-        }
-
-        public Graph asGraph() {
-            Graph res = Factory.createGraphMem();
-            GraphUtil.add(res, triples.iterator());
-            return res;
-        }
-
-        public Triples<O> add(Collection<Triple> triples) {
-            Set<Triple> set = new HashSet<>(this.triples);
-            set.addAll(OntApiException.notNull(triples, "Null triples."));
-            return new Triples<>(object, set);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Triples<?> that = (Triples<?>) o;
-            return object.equals(that.object);
-        }
-
-        @Override
-        public int hashCode() {
-            if (hashCode != 0) return hashCode;
-            return hashCode = object.hashCode();
-        }
-
-        public static <O extends OWLObject> Optional<Triples<O>> find(Collection<Triples<O>> set, O key) {
-            int h = OntApiException.notNull(key, "null key").hashCode();
-            return set.stream().filter(Objects::nonNull).filter(o -> o.hashCode() == h).filter(o -> key.equals(o.getObject())).findAny();
-        }
-
-        public static <O extends OWLObject> Triples<O> create(O o, Stream<? extends Statement> content) {
-            return new Triples<>(o, content.map(FrontsTriple::asTriple).collect(Collectors.toSet()));
-        }
-
-        public static <O extends OWLObject> Triples<O> create(O o, OntObject content) {
-            return create(o, content.content());
-        }
-
-        public static <O extends OWLObject> Triples<O> createFrom(O o, Stream<? extends Statement> content, Triples<? extends OWLObject>... others) {
-            Stream<Triple> a = content.map(FrontsTriple::asTriple);
-            Stream<Triple> b = Stream.of(others).map(Triples::triples).flatMap(Function.identity());
-            return new Triples<>(o, Stream.concat(a, b).collect(Collectors.toSet()));
-        }
     }
 }

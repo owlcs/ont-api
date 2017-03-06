@@ -23,13 +23,13 @@ import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionAxiomImpl;
 class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
     @Override
     public void write(OWLClassAssertionAxiom axiom, OntGraphModel model) {
-        OntCE ce = OWL2RDFHelper.addClassExpression(model, axiom.getClassExpression());
+        OntCE ce = WriteHelper.addClassExpression(model, axiom.getClassExpression());
         OWLIndividual individual = axiom.getIndividual();
         OntObject subject = individual.isAnonymous() ?
-                OWL2RDFHelper.toResource(individual).inModel(model).as(OntObject.class) :
-                OWL2RDFHelper.addIndividual(model, individual);
+                WriteHelper.toResource(individual).inModel(model).as(OntObject.class) :
+                WriteHelper.addIndividual(model, individual);
         OntStatement statement = subject.addStatement(RDF.type, ce);
-        OWL2RDFHelper.addAnnotations(statement, axiom.annotations());
+        WriteHelper.addAnnotations(statement, axiom.annotations());
     }
 
     @Override
@@ -44,8 +44,8 @@ class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
 
     @Override
     OWLClassAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLIndividual i = RDF2OWLHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
-        OWLClassExpression ce = RDF2OWLHelper.getClassExpression(statement.getObject().as(OntCE.class));
+        OWLIndividual i = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
+        OWLClassExpression ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
         return new OWLClassAssertionAxiomImpl(i, ce, annotations);
     }
 }

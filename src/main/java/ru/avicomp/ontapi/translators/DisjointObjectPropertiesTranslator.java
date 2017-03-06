@@ -57,6 +57,6 @@ class DisjointObjectPropertiesTranslator extends AbstractTwoWayNaryTranslator<OW
 
     @Override
     OWLDisjointObjectPropertiesAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return create(components(statement).map(RDF2OWLHelper::getObjectProperty), annotations);
+        return create(components(statement).map(ReadHelper::getObjectProperty), annotations);
     }
 }

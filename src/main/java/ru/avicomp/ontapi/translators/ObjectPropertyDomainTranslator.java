@@ -25,8 +25,8 @@ class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OW
 
     @Override
     OWLObjectPropertyDomainAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLObjectPropertyExpression p = RDF2OWLHelper.getObjectProperty(statement.getSubject().as(OntOPE.class));
-        OWLClassExpression ce = RDF2OWLHelper.getClassExpression(statement.getObject().as(OntCE.class));
+        OWLObjectPropertyExpression p = ReadHelper.getObjectProperty(statement.getSubject().as(OntOPE.class));
+        OWLClassExpression ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
         return new OWLObjectPropertyDomainAxiomImpl(p, ce, annotations);
     }
 }

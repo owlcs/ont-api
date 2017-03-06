@@ -20,7 +20,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyAssertionAxiomImpl;
 class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataPropertyAssertionAxiom> {
     @Override
     public void write(OWLDataPropertyAssertionAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getObject(), axiom.annotations());
+        WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getObject(), axiom.annotations());
     }
 
     @Override
@@ -36,9 +36,9 @@ class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataPropertyAss
 
     @Override
     OWLDataPropertyAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLIndividual i = RDF2OWLHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
-        OWLDataProperty p = RDF2OWLHelper.getDataProperty(statement.getPredicate().as(OntNDP.class));
-        OWLLiteral l = RDF2OWLHelper.getLiteral(statement.getObject().asLiteral());
+        OWLIndividual i = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
+        OWLDataProperty p = ReadHelper.getDataProperty(statement.getPredicate().as(OntNDP.class));
+        OWLLiteral l = ReadHelper.getLiteral(statement.getObject().asLiteral());
         return new OWLDataPropertyAssertionAxiomImpl(i, p, l, annotations);
     }
 }

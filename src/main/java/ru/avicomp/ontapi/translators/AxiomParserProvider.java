@@ -109,7 +109,7 @@ public abstract class AxiomParserProvider {
     }
 
     /**
-     * todo: move to {@link OntConfig}
+     * todo: use {@link OntConfig.LoaderConfiguration} instead.
      */
     public static class Config {
         private final EnumMap<Option, Object> options = new EnumMap<>(Option.class);

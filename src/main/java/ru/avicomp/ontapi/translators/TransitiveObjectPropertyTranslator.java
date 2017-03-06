@@ -20,7 +20,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLTransitiveObjectPropertyAxiomImpl;
 class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLTransitiveObjectPropertyAxiom, OntOPE> {
     @Override
     OWLTransitiveObjectPropertyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return new OWLTransitiveObjectPropertyAxiomImpl(RDF2OWLHelper.getObjectProperty(getSubject(statement)), annotations);
+        return new OWLTransitiveObjectPropertyAxiomImpl(ReadHelper.getObjectProperty(getSubject(statement)), annotations);
     }
 
     @Override

@@ -38,6 +38,6 @@ class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<OWLEquiv
 
     @Override
     OWLEquivalentDataPropertiesAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return create(components(statement).map(RDF2OWLHelper::getDataProperty), annotations);
+        return create(components(statement).map(ReadHelper::getDataProperty), annotations);
     }
 }

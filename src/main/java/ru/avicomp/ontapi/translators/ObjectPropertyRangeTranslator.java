@@ -25,8 +25,8 @@ class ObjectPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLO
 
     @Override
     OWLObjectPropertyRangeAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLObjectPropertyExpression p = RDF2OWLHelper.getObjectProperty(statement.getSubject().as(OntOPE.class));
-        OWLClassExpression ce = RDF2OWLHelper.getClassExpression(statement.getObject().as(OntCE.class));
+        OWLObjectPropertyExpression p = ReadHelper.getObjectProperty(statement.getSubject().as(OntOPE.class));
+        OWLClassExpression ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
         return new OWLObjectPropertyRangeAxiomImpl(p, ce, annotations);
     }
 }

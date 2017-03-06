@@ -47,6 +47,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
+    public OntObject getSubject() {
+        return super.getSubject().as(OntObject.class);
+    }
+
+    @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
         checkAnnotationInput(property, value);
         return addAnnotation(this, getAnnotationRoot(), property, value);

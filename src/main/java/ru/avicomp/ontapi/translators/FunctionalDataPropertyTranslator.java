@@ -30,6 +30,6 @@ class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTranslator<OW
 
     @Override
     OWLFunctionalDataPropertyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return new OWLFunctionalDataPropertyAxiomImpl(RDF2OWLHelper.getDataProperty(getSubject(statement)), annotations);
+        return new OWLFunctionalDataPropertyAxiomImpl(ReadHelper.getDataProperty(getSubject(statement)), annotations);
     }
 }

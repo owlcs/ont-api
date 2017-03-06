@@ -25,8 +25,8 @@ class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLDat
 
     @Override
     OWLDataPropertyRangeAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLDataProperty p = RDF2OWLHelper.getDataProperty(statement.getSubject().as(OntNDP.class));
-        OWLDataRange ce = RDF2OWLHelper.getDataRange(statement.getObject().as(OntDR.class));
+        OWLDataProperty p = ReadHelper.getDataProperty(statement.getSubject().as(OntNDP.class));
+        OWLDataRange ce = ReadHelper.getDataRange(statement.getObject().as(OntDR.class));
         return new OWLDataPropertyRangeAxiomImpl(p, ce, annotations);
     }
 }

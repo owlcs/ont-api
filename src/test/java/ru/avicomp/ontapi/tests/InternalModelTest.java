@@ -34,7 +34,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
-import ru.avicomp.ontapi.translators.AxiomTranslator;
+import ru.avicomp.ontapi.translators.Wrap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
@@ -59,7 +59,7 @@ public class InternalModelTest {
                 .map(view -> AxiomParserProvider.get(view).read(model))
                 .map(Collection::stream)
                 .flatMap(Function.identity())
-                .collect(Collectors.toMap(AxiomTranslator.Triples::getObject, AxiomTranslator.Triples::getTriples));
+                .collect(Collectors.toMap(Wrap::getObject, Wrap::getTriples));
 
         LOGGER.info("Recreate model");
         Model m2 = ModelFactory.createDefaultModel();
@@ -173,7 +173,7 @@ public class InternalModelTest {
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {
         LOGGER.debug("=========================");
         LOGGER.info(view.getSimpleName() + ":");
-        Set<AxiomTranslator.Triples<Axiom>> axioms = AxiomParserProvider.get(view).read(model);
+        Set<Wrap<Axiom>> axioms = AxiomParserProvider.get(view).read(model);
         axioms.forEach(e -> {
             Axiom axiom = e.getObject();
             Set<Triple> triples = e.getTriples();

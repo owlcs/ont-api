@@ -16,9 +16,9 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
-import ru.avicomp.ontapi.translators.AxiomTranslator;
-import ru.avicomp.ontapi.translators.OWL2RDFHelper;
-import ru.avicomp.ontapi.translators.RDF2OWLHelper;
+import ru.avicomp.ontapi.translators.ReadHelper;
+import ru.avicomp.ontapi.translators.Wrap;
+import ru.avicomp.ontapi.translators.WriteHelper;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
@@ -101,22 +101,22 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
         List<OWLEntity> res = new ArrayList<>();
         if (e.canAs(OntClass.class)) {
-            res.add(RDF2OWLHelper.getClassExpression(e.as(OntClass.class)).asOWLClass());
+            res.add(ReadHelper.getClassExpression(e.as(OntClass.class)).asOWLClass());
         }
         if (e.canAs(OntDT.class)) {
-            res.add(RDF2OWLHelper.getDatatype(e.as(OntDT.class)));
+            res.add(ReadHelper.getDatatype(e.as(OntDT.class)));
         }
         if (e.canAs(OntNAP.class)) {
-            res.add(RDF2OWLHelper.getAnnotationProperty(e.as(OntNAP.class)));
+            res.add(ReadHelper.getAnnotationProperty(e.as(OntNAP.class)));
         }
         if (e.canAs(OntNDP.class)) {
-            res.add(RDF2OWLHelper.getDataProperty(e.as(OntNDP.class)));
+            res.add(ReadHelper.getDataProperty(e.as(OntNDP.class)));
         }
         if (e.canAs(OntNOP.class)) {
-            res.add(RDF2OWLHelper.getObjectProperty(e.as(OntNOP.class)).asOWLObjectProperty());
+            res.add(ReadHelper.getObjectProperty(e.as(OntNOP.class)).asOWLObjectProperty());
         }
         if (e.canAs(OntIndividual.Named.class)) {
-            res.add(RDF2OWLHelper.getIndividual(e.as(OntIndividual.Named.class)).asOWLNamedIndividual());
+            res.add(ReadHelper.getIndividual(e.as(OntIndividual.Named.class)).asOWLNamedIndividual());
         }
         return res;
     }
@@ -135,15 +135,15 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public void add(OWLAnnotation annotation) {
-        OWL2RDFHelper.addAnnotations(getID(), Stream.of(annotation));
+        WriteHelper.addAnnotations(getID(), Stream.of(annotation));
     }
 
     public void remove(OWLAnnotation annotation) {
         Set<Triple> triples = new HashSet<>();
         if (annotation.annotations().count() == 0) { // plain annotation
             OntStatement ontAnnotation = getID().annotations().filter(a -> !a.hasAnnotations())
-                    .filter(a -> RDF2OWLHelper.getAnnotationProperty(a.getPredicate().as(OntNAP.class)).equals(annotation.getProperty()))
-                    .filter(a -> RDF2OWLHelper.getAnnotationValue(a.getObject()).equals(annotation.getValue())).findFirst().orElse(null);
+                    .filter(a -> ReadHelper.getAnnotationProperty(a.getPredicate().as(OntNAP.class)).equals(annotation.getProperty()))
+                    .filter(a -> ReadHelper.getAnnotationValue(a.getObject()).equals(annotation.getValue())).findFirst().orElse(null);
             if (ontAnnotation != null) {
                 triples.add(ontAnnotation.asTriple());
                 if (ontAnnotation.getObject().isAnon()) {// as value there could be anonymous individual (todo: seems incorrect - just add declaration)
@@ -151,7 +151,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
                 }
             }
         } else { // bulk annotation
-            AxiomTranslator.Triples<OWLAnnotation> set = RDF2OWLHelper.getAnnotations(getID())
+            Wrap<OWLAnnotation> set = ReadHelper.getAnnotations(getID())
                     .stream().filter(t -> t.getObject().equals(annotation)).findFirst().orElse(null);
             if (set != null) {
                 triples.addAll(set.getTriples());
@@ -163,7 +163,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public Stream<OWLAnnotation> annotations() {
-        return RDF2OWLHelper.annotations(getID());
+        return ReadHelper.annotations(getID());
     }
 
     public Set<OWLAnnotation> getAnnotations() {
@@ -338,8 +338,8 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
             this.cache = new HashMap<>(map);
         }
 
-        public OwlObjectTriplesMap(Set<AxiomTranslator.Triples<O>> set) {
-            this(set.stream().collect(Collectors.toMap(AxiomTranslator.Triples::getObject, AxiomTranslator.Triples::getTriples)));
+        public OwlObjectTriplesMap(Set<Wrap<O>> set) {
+            this(set.stream().collect(Collectors.toMap(Wrap::getObject, Wrap::getTriples)));
         }
 
         public void add(O object, Triple triple) {

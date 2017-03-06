@@ -24,7 +24,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.translators.RDF2OWLHelper;
+import ru.avicomp.ontapi.translators.ReadHelper;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -190,7 +190,7 @@ public class ManagerTest {
         OntologyModel ont = copy.getOntology(IRI.create(uri));
         Assert.assertNotNull(ont);
         List<OWLClass> newOWLClasses = newClasses.stream()
-                .map(RDF2OWLHelper::getClassExpression)
+                .map(ReadHelper::getClassExpression)
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: " + newOWLClasses);
         newOWLClasses.forEach(c ->

@@ -57,6 +57,6 @@ class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDif
 
     @Override
     OWLDifferentIndividualsAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return create(components(statement).map(RDF2OWLHelper::getIndividual), annotations);
+        return create(components(statement).map(ReadHelper::getIndividual), annotations);
     }
 }

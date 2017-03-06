@@ -25,7 +25,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLSubClassOfAxiomImpl;
 class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     @Override
     public void write(OWLSubClassOfAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(), axiom.annotations());
+        WriteHelper.writeTriple(model, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(), axiom.annotations());
     }
 
     @Override
@@ -40,8 +40,8 @@ class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
     OWLSubClassOfAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLClassExpression sub = RDF2OWLHelper.getClassExpression(statement.getSubject().as(OntCE.class));
-        OWLClassExpression sup = RDF2OWLHelper.getClassExpression(statement.getObject().as(OntCE.class));
+        OWLClassExpression sub = ReadHelper.getClassExpression(statement.getSubject().as(OntCE.class));
+        OWLClassExpression sup = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
         return new OWLSubClassOfAxiomImpl(sub, sup, annotations);
     }
 }

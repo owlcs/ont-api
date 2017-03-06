@@ -23,7 +23,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
     @Override
     public void write(OWLDeclarationAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeDeclarationTriple(model, axiom.getEntity(), RDF.type, OWL2RDFHelper.getType(axiom.getEntity()), axiom.annotations());
+        WriteHelper.writeDeclarationTriple(model, axiom.getEntity(), RDF.type, WriteHelper.getType(axiom.getEntity()), axiom.annotations());
     }
 
     @Override
@@ -33,7 +33,7 @@ class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
 
     @Override
     OWLDeclarationAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLEntity entity = RDF2OWLHelper.getEntity(statement.getSubject().as(OntEntity.class));
+        OWLEntity entity = ReadHelper.getEntity(statement.getSubject().as(OntEntity.class));
         return new OWLDeclarationAxiomImpl(entity, annotations);
     }
 }

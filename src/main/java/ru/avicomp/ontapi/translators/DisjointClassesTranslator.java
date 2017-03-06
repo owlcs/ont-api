@@ -58,6 +58,6 @@ class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjoint
 
     @Override
     OWLDisjointClassesAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return create(components(statement).map(RDF2OWLHelper::getClassExpression), annotations);
+        return create(components(statement).map(ReadHelper::getClassExpression), annotations);
     }
 }

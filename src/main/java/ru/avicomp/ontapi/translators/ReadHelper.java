@@ -29,25 +29,41 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import uk.ac.manchester.cs.owl.owlapi.*;
 
 /**
- * Helper to translate rdf-graph to the axioms (reading from graph).
+ * Helper to translate rdf-graph to the owl-objects form.
  * TODO: need to handle bad recursions (the simplest example: "_:b0 rdfs:subClassOf _:b0")
- * TODO: replace the return types of all methods from OWLObject to Triples<OWLObject>
+ * TODO: replace the return types of all methods from OWLObject to Wrap<OWLObject>
  * <p>
  * Created by @szuev on 25.11.2016.
  */
-public class RDF2OWLHelper {
-
+public class ReadHelper {
     public static final OWLDataFactory OWL_DATA_FACTORY = new OWLDataFactoryImpl();
+
+    /**
+     * todo: to internal use only, not ready
+     *
+     * @param object
+     * @param df
+     * @param <O>
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static <O extends OWLObject> Wrap<O> mapObject(OntObject object, OWLDataFactory df) {
+        Class<? extends OntObject> view = OntApiException.notNull((OntObjectImpl) object, "Null object view " + object).getActualClass();
+        if (OntCE.class.isAssignableFrom(view)) {
+            return (Wrap<O>) _getClassExpression((OntCE) object, df, new HashSet<>());
+        }
+        throw new OntApiException("Unsupported " + object);
+    }
 
     /**
      * todo:
      *
      * @param entity {@link OntEntity}
      * @param df     {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    public static AxiomTranslator.Triples<OWLEntity> _getEntity(OntEntity entity, OWLDataFactory df) {
-        return AxiomTranslator.Triples.create(getEntity(entity, df), entity.content());
+    public static Wrap<OWLEntity> _getEntity(OntEntity entity, OWLDataFactory df) {
+        return Wrap.create(getEntity(entity, df), entity);
     }
 
     public static OWLEntity getEntity(OntEntity entity) {
@@ -56,17 +72,19 @@ public class RDF2OWLHelper {
 
     public static OWLEntity getEntity(OntEntity entity, OWLDataFactory df) {
         IRI iri = IRI.create(OntApiException.notNull(entity, "Null entity.").getURI());
-        if (OntClass.class.isInstance(entity)) {
+        Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) entity).getActualClass(),
+                "Can't determine view of entity " + entity);
+        if (OntClass.class.equals(view)) {
             return df.getOWLClass(iri);
-        } else if (OntDT.class.isInstance(entity)) {
+        } else if (OntDT.class.equals(view)) {
             return df.getOWLDatatype(iri);
-        } else if (OntIndividual.Named.class.isInstance(entity)) {
+        } else if (OntIndividual.Named.class.equals(view)) {
             return df.getOWLNamedIndividual(iri);
-        } else if (OntNAP.class.isInstance(entity)) {
+        } else if (OntNAP.class.equals(view)) {
             return df.getOWLAnnotationProperty(iri);
-        } else if (OntNDP.class.isInstance(entity)) {
+        } else if (OntNDP.class.equals(view)) {
             return df.getOWLDataProperty(iri);
-        } else if (OntNOP.class.isInstance(entity)) {
+        } else if (OntNOP.class.equals(view)) {
             return df.getOWLObjectProperty(iri);
         }
         throw new OntApiException("Unsupported " + entity);
@@ -81,12 +99,12 @@ public class RDF2OWLHelper {
      *
      * @param anon {@link ru.avicomp.ontapi.jena.model.OntIndividual.Anonymous}
      * @param df   {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    private static AxiomTranslator.Triples<OWLAnonymousIndividual> _getAnonymousIndividual(OntIndividual.Anonymous anon, OWLDataFactory df) {
+    private static Wrap<OWLAnonymousIndividual> _getAnonymousIndividual(OntIndividual.Anonymous anon, OWLDataFactory df) {
         if (!anon.isAnon()) throw new OntApiException("Not anon " + anon);
         String label = NodeFmtLib.encodeBNodeLabel(anon.asNode().getBlankNodeLabel());
-        return AxiomTranslator.Triples.create(df.getOWLAnonymousIndividual(label), anon.content());
+        return Wrap.create(df.getOWLAnonymousIndividual(label), anon);
     }
 
     private static OWLAnonymousIndividual getAnonymousIndividual(RDFNode anon) {
@@ -100,11 +118,11 @@ public class RDF2OWLHelper {
      *
      * @param individual {@link OntIndividual}
      * @param df         {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    public static AxiomTranslator.Triples<? extends OWLIndividual> _getIndividual(OntIndividual individual, OWLDataFactory df) {
+    public static Wrap<? extends OWLIndividual> _getIndividual(OntIndividual individual, OWLDataFactory df) {
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
-            return AxiomTranslator.Triples.create(df.getOWLNamedIndividual(IRI.create(individual.getURI())), individual.content());
+            return Wrap.create(df.getOWLNamedIndividual(IRI.create(individual.getURI())), individual);
         }
         return _getAnonymousIndividual(individual.as(OntIndividual.Anonymous.class), df);
     }
@@ -114,6 +132,24 @@ public class RDF2OWLHelper {
             return new OWLNamedIndividualImpl(IRI.create(individual.getURI()));
         }
         return getAnonymousIndividual(individual.as(OntIndividual.Anonymous.class));
+    }
+
+    /**
+     * todo:
+     *
+     * @param literal {@link Literal}
+     * @param df      {@link OWLDataFactory}
+     * @return {@link Wrap}
+     */
+    public static Wrap<OWLLiteral> _getLiteral(Literal literal, OWLDataFactory df) {
+        String txt = OntApiException.notNull(literal, "Null literal").getLexicalForm();
+        String lang = literal.getLanguage();
+        OWLDatatype dt = df.getOWLDatatype(IRI.create(literal.getDatatypeURI()));
+        if (lang != null && !lang.isEmpty()) {
+            txt = txt + "@" + lang;
+        }
+        OWLLiteral res = df.getOWLLiteral(txt, dt);
+        return new Wrap<>(res);
     }
 
     /**
@@ -131,6 +167,27 @@ public class RDF2OWLHelper {
         return new OWLLiteralImpl(txt, lang, dt);
     }
 
+    public static Wrap<IRI> wrapIRI(OntObject object) {
+        return Wrap.create(IRI.create(object.getURI()), object);
+    }
+
+    /**
+     * todo:
+     *
+     * @param resource {@link OntObject}
+     * @param df       {@link OWLDataFactory}
+     * @return {@link Wrap}
+     */
+    public static Wrap<? extends OWLAnnotationSubject> _getAnnotationSubject(OntObject resource, OWLDataFactory df) {
+        if (OntApiException.notNull(resource, "Null resource").isURIResource()) {
+            return wrapIRI(resource);
+        }
+        if (resource.isAnon()) {
+            return _getAnonymousIndividual(Models.asAnonymousIndividual(resource), df);
+        }
+        throw new OntApiException("Not an AnnotationSubject " + resource);
+    }
+
     public static OWLAnnotationSubject getAnnotationSubject(Resource resource) {
         if (OntApiException.notNull(resource, "Null resource").isURIResource()) {
             return IRI.create(resource.getURI());
@@ -139,6 +196,27 @@ public class RDF2OWLHelper {
             return getAnonymousIndividual(Models.asAnonymousIndividual(resource));
         }
         throw new OntApiException("Not an AnnotationSubject " + resource);
+    }
+
+    /**
+     * todo:
+     *
+     * @param node {@link RDFNode}
+     * @param df   {@link OWLDataFactory}
+     * @return {@link Wrap}
+     */
+    public static Wrap<? extends OWLAnnotationValue> _getAnnotationValue(RDFNode node, OWLDataFactory df) {
+        if (OntApiException.notNull(node, "Null node").isLiteral()) {
+            return _getLiteral(node.asLiteral(), df);
+        }
+        if (node.isURIResource()) {
+            OntObject r = node.as(OntObject.class);
+            return Wrap.create(IRI.create(r.getURI()), r);
+        }
+        if (node.isAnon()) {
+            return _getAnonymousIndividual(Models.asAnonymousIndividual(node), df);
+        }
+        throw new OntApiException("Not an AnnotationValue " + node);
     }
 
     public static OWLAnnotationValue getAnnotationValue(RDFNode node) {
@@ -156,15 +234,27 @@ public class RDF2OWLHelper {
 
     public static OWLPropertyExpression getProperty(OntPE property) {
         if (OntApiException.notNull(property, "Null property.").canAs(OntNAP.class)) {
-            return RDF2OWLHelper.getAnnotationProperty(property.as(OntNAP.class));
+            return ReadHelper.getAnnotationProperty(property.as(OntNAP.class));
         }
         if (property.canAs(OntNDP.class)) {
-            return RDF2OWLHelper.getDataProperty(property.as(OntNDP.class));
+            return ReadHelper.getDataProperty(property.as(OntNDP.class));
         }
         if (property.canAs(OntOPE.class)) {
-            return RDF2OWLHelper.getObjectProperty(property.as(OntOPE.class));
+            return ReadHelper.getObjectProperty(property.as(OntOPE.class));
         }
         throw new OntApiException("Unsupported property " + property);
+    }
+
+    /**
+     * todo
+     *
+     * @param nap {@link OntNAP}
+     * @param df  {@link OWLDataFactory}
+     * @return {@link Wrap}
+     */
+    public static Wrap<OWLAnnotationProperty> _getAnnotationProperty(OntNAP nap, OWLDataFactory df) {
+        IRI iri = IRI.create(OntApiException.notNull(nap, "Null annotation property.").getURI());
+        return Wrap.create(df.getOWLAnnotationProperty(iri), nap);
     }
 
     public static OWLAnnotationProperty getAnnotationProperty(OntNAP nap) {
@@ -177,11 +267,11 @@ public class RDF2OWLHelper {
      *
      * @param nap {@link OntNDP}
      * @param df  {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    public static AxiomTranslator.Triples<OWLDataProperty> _getDataProperty(OntNDP nap, OWLDataFactory df) {
+    public static Wrap<OWLDataProperty> _getDataProperty(OntNDP nap, OWLDataFactory df) {
         IRI iri = IRI.create(OntApiException.notNull(nap, "Null data property.").getURI());
-        return AxiomTranslator.Triples.create(df.getOWLDataProperty(iri), nap.content());
+        return Wrap.create(df.getOWLDataProperty(iri), nap);
     }
 
     public static OWLDataProperty getDataProperty(OntNDP nap) {
@@ -194,9 +284,9 @@ public class RDF2OWLHelper {
      *
      * @param ope {@link OntOPE}
      * @param df  {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    public static AxiomTranslator.Triples<OWLObjectPropertyExpression> _getObjectProperty(OntOPE ope, OWLDataFactory df) {
+    public static Wrap<OWLObjectPropertyExpression> _getObjectProperty(OntOPE ope, OWLDataFactory df) {
         OntApiException.notNull(ope, "Null object property.");
         OWLObjectPropertyExpression res;
         if (ope.isAnon()) { //todo: handle inverse of inverseOf
@@ -205,7 +295,7 @@ public class RDF2OWLHelper {
         } else {
             res = df.getOWLObjectProperty(IRI.create(ope.getURI()));
         }
-        return AxiomTranslator.Triples.create(res, ope.content());
+        return Wrap.create(res, ope);
     }
 
     public static OWLObjectPropertyExpression getObjectProperty(OntOPE ope) {
@@ -225,11 +315,11 @@ public class RDF2OWLHelper {
      *
      * @param dt {@link OntDT}
      * @param df {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    public static AxiomTranslator.Triples<OWLDatatype> _getDatatype(OntDT dt, OWLDataFactory df) {
+    public static Wrap<OWLDatatype> _getDatatype(OntDT dt, OWLDataFactory df) {
         IRI iri = IRI.create(OntApiException.notNull(dt, "Null datatype.").getURI());
-        return AxiomTranslator.Triples.create(df.getOWLDatatype(iri), dt);
+        return Wrap.create(df.getOWLDatatype(iri), dt);
     }
 
     public static OWLDatatype getDatatype(OntDT dt) {
@@ -249,7 +339,7 @@ public class RDF2OWLHelper {
                         annotations(a)));
     }
 
-    public static Set<AxiomTranslator.Triples<OWLAnnotation>> getAnnotations(OntObject object) {
+    public static Set<Wrap<OWLAnnotation>> getAnnotations(OntObject object) {
         return getBulkAnnotations(OntApiException.notNull(object, "Null ont-object.").getRoot());
     }
 
@@ -257,7 +347,7 @@ public class RDF2OWLHelper {
         return statement.isRoot() && statement.isDeclaration() && statement.getSubject().isURIResource();
     }
 
-    public static Set<AxiomTranslator.Triples<OWLAnnotation>> getAnnotations(OntStatement statement) {
+    public static Set<Wrap<OWLAnnotation>> getAnnotations(OntStatement statement) {
         if (isEntityDeclaration(statement) && statement.annotations().noneMatch(OntStatement::hasAnnotations)) {
             // for compatibility with OWL-API skip plain annotations attached to an entity:
             // they would go separately as annotation-assertions.
@@ -266,20 +356,20 @@ public class RDF2OWLHelper {
         return getBulkAnnotations(statement);
     }
 
-    private static Set<AxiomTranslator.Triples<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
+    private static Set<Wrap<OWLAnnotation>> getBulkAnnotations(OntStatement statement) {
         return statement.annotations().map(a -> a.hasAnnotations() ?
                 getHierarchicalAnnotations(a) :
                 getPlainAnnotation(a)).collect(Collectors.toSet());
     }
 
-    private static AxiomTranslator.Triples<OWLAnnotation> getPlainAnnotation(OntStatement a) {
+    private static Wrap<OWLAnnotation> getPlainAnnotation(OntStatement a) {
         OWLAnnotationProperty p = getAnnotationProperty(a.getPredicate().as(OntNAP.class));
         OWLAnnotationValue v = getAnnotationValue(a.getObject());
         OWLAnnotation res = new OWLAnnotationImpl(p, v, Stream.empty());
-        return new AxiomTranslator.Triples<>(res, a.asTriple());
+        return Wrap.create(res, a);
     }
 
-    private static AxiomTranslator.Triples<OWLAnnotation> getHierarchicalAnnotations(OntStatement a) {
+    private static Wrap<OWLAnnotation> getHierarchicalAnnotations(OntStatement a) {
         OntObject ann = a.getSubject().as(OntObject.class);
         Set<Triple> triples = new HashSet<>();
         Stream.of(RDF.type, OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
@@ -289,10 +379,10 @@ public class RDF2OWLHelper {
         OWLAnnotationProperty p = getAnnotationProperty(a.getPredicate().as(OntNAP.class));
         OWLAnnotationValue v = getAnnotationValue(a.getObject());
 
-        Set<AxiomTranslator.Triples<OWLAnnotation>> children = a.annotations().map(RDF2OWLHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
-        OWLAnnotation res = new OWLAnnotationImpl(p, v, children.stream().map(AxiomTranslator.Triples::getObject));
-        children.stream().map(AxiomTranslator.Triples::getTriples).forEach(triples::addAll);
-        return new AxiomTranslator.Triples<>(res, triples);
+        Set<Wrap<OWLAnnotation>> children = a.annotations().map(ReadHelper::getHierarchicalAnnotations).collect(Collectors.toSet());
+        OWLAnnotation res = new OWLAnnotationImpl(p, v, children.stream().map(Wrap::getObject));
+        children.stream().map(Wrap::getTriples).forEach(triples::addAll);
+        return new Wrap<>(res, triples);
     }
 
     /**
@@ -300,11 +390,11 @@ public class RDF2OWLHelper {
      *
      * @param fr {@link OntFR}
      * @param df {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    public static AxiomTranslator.Triples<OWLFacetRestriction> _getFacetRestriction(OntFR fr, OWLDataFactory df) {
+    public static Wrap<OWLFacetRestriction> _getFacetRestriction(OntFR fr, OWLDataFactory df) {
         OWLFacetRestriction res = getFacetRestriction(fr, df);
-        return AxiomTranslator.Triples.create(res, fr);
+        return Wrap.create(res, fr);
     }
 
     public static OWLFacetRestriction getFacetRestriction(OntFR fr) {
@@ -346,10 +436,10 @@ public class RDF2OWLHelper {
      * @param dr   {@link OntDR}
      * @param df   {@link OWLDataFactory}
      * @param seen Set of {@link Resource}
-     * @return {@link AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
     @SuppressWarnings("unchecked")
-    public static AxiomTranslator.Triples<? extends OWLDataRange> _getDataRange(OntDR dr, OWLDataFactory df, Set<Resource> seen) {
+    public static Wrap<? extends OWLDataRange> _getDataRange(OntDR dr, OWLDataFactory df, Set<Resource> seen) {
         if (OntApiException.notNull(dr, "Null data range.").isAnon() && seen.contains(dr)) {
             //todo:
             throw new OntApiException("Recursive loop on data range " + dr);
@@ -362,33 +452,33 @@ public class RDF2OWLHelper {
                 "Can't determine view of data range " + dr);
         if (OntDR.Restriction.class.equals(view)) {
             OntDR.Restriction _dr = (OntDR.Restriction) dr;
-            AxiomTranslator.Triples<OWLDatatype> d = _getDatatype(_dr.getDatatype(), df);
-            List<AxiomTranslator.Triples<OWLFacetRestriction>> restrictions = _dr.facetRestrictions().map(f -> _getFacetRestriction(f, df)).collect(Collectors.toList());
-            OWLDataRange res = df.getOWLDatatypeRestriction(d.getObject(), restrictions.stream().map(AxiomTranslator.Triples::getObject).collect(Collectors.toList()));
+            Wrap<OWLDatatype> d = _getDatatype(_dr.getDatatype(), df);
+            List<Wrap<OWLFacetRestriction>> restrictions = _dr.facetRestrictions().map(f -> _getFacetRestriction(f, df)).collect(Collectors.toList());
+            OWLDataRange res = df.getOWLDatatypeRestriction(d.getObject(), restrictions.stream().map(Wrap::getObject).collect(Collectors.toList()));
             Stream<Triple> triples = Stream.concat(_dr.content().map(FrontsTriple::asTriple),
-                    restrictions.stream().map(AxiomTranslator.Triples::triples).flatMap(Function.identity()));
-            return new AxiomTranslator.Triples<>(res, triples.collect(Collectors.toSet()));
+                    restrictions.stream().map(Wrap::triples).flatMap(Function.identity()));
+            return new Wrap<>(res, triples.collect(Collectors.toSet()));
         }
         if (OntDR.ComplementOf.class.equals(view)) {
             OntDR.ComplementOf _dr = (OntDR.ComplementOf) dr;
-            AxiomTranslator.Triples<? extends OWLDataRange> d = _getDataRange(_dr.getDataRange(), df, seen);
-            return AxiomTranslator.Triples.createFrom(df.getOWLDataComplementOf(d.getObject()), _dr.content(), d);
+            Wrap<? extends OWLDataRange> d = _getDataRange(_dr.getDataRange(), df, seen);
+            return Wrap.create(df.getOWLDataComplementOf(d.getObject()), _dr).append(d);
         }
         if (OntDR.UnionOf.class.equals(view) ||
                 OntDR.IntersectionOf.class.equals(view)) {
-            List<AxiomTranslator.Triples<? extends OWLDataRange>> dataRanges =
+            List<Wrap<? extends OWLDataRange>> dataRanges =
                     (OntDR.UnionOf.class.equals(view) ? ((OntDR.UnionOf) dr).dataRanges() : ((OntDR.IntersectionOf) dr).dataRanges())
                             .map(d -> _getDataRange(d, df, seen)).collect(Collectors.toList());
             OWLDataRange res = OntDR.UnionOf.class.equals(view) ?
-                    df.getOWLDataUnionOf(dataRanges.stream().map(AxiomTranslator.Triples::getObject)) :
-                    df.getOWLDataIntersectionOf(dataRanges.stream().map(AxiomTranslator.Triples::getObject));
+                    df.getOWLDataUnionOf(dataRanges.stream().map(Wrap::getObject)) :
+                    df.getOWLDataIntersectionOf(dataRanges.stream().map(Wrap::getObject));
             Stream<Triple> triples = Stream.concat(dr.content().map(FrontsTriple::asTriple),
-                    dataRanges.stream().map(AxiomTranslator.Triples::triples).flatMap(Function.identity()));
-            return new AxiomTranslator.Triples<>(res, triples.collect(Collectors.toSet()));
+                    dataRanges.stream().map(Wrap::triples).flatMap(Function.identity()));
+            return new Wrap<>(res, triples.collect(Collectors.toSet()));
         }
         if (OntDR.OneOf.class.equals(view)) {
             OntDR.OneOf _dr = (OntDR.OneOf) dr;
-            return AxiomTranslator.Triples.create(df.getOWLDataOneOf(_dr.values().map(RDF2OWLHelper::getLiteral)), _dr);
+            return Wrap.create(df.getOWLDataOneOf(_dr.values().map(ReadHelper::getLiteral)), _dr);
         }
         throw new OntApiException("Unsupported data range expression " + dr);
     }
@@ -399,7 +489,7 @@ public class RDF2OWLHelper {
         }
         if (OntDR.Restriction.class.isInstance(dr)) {
             OntDR.Restriction _dr = (OntDR.Restriction) dr;
-            return new OWLDatatypeRestrictionImpl(getDatatype(_dr.getDatatype()), _dr.facetRestrictions().map(RDF2OWLHelper::getFacetRestriction).collect(Collectors.toSet()));
+            return new OWLDatatypeRestrictionImpl(getDatatype(_dr.getDatatype()), _dr.facetRestrictions().map(ReadHelper::getFacetRestriction).collect(Collectors.toSet()));
         }
         if (OntDR.ComplementOf.class.isInstance(dr)) {
             OntDR.ComplementOf _dr = (OntDR.ComplementOf) dr;
@@ -407,15 +497,15 @@ public class RDF2OWLHelper {
         }
         if (OntDR.UnionOf.class.isInstance(dr)) {
             OntDR.UnionOf _dr = (OntDR.UnionOf) dr;
-            return new OWLDataUnionOfImpl(_dr.dataRanges().map(RDF2OWLHelper::getDataRange));
+            return new OWLDataUnionOfImpl(_dr.dataRanges().map(ReadHelper::getDataRange));
         }
         if (OntDR.IntersectionOf.class.isInstance(dr)) {
             OntDR.IntersectionOf _dr = (OntDR.IntersectionOf) dr;
-            return new OWLDataIntersectionOfImpl(_dr.dataRanges().map(RDF2OWLHelper::getDataRange));
+            return new OWLDataIntersectionOfImpl(_dr.dataRanges().map(ReadHelper::getDataRange));
         }
         if (OntDR.OneOf.class.isInstance(dr)) {
             OntDR.OneOf _dr = (OntDR.OneOf) dr;
-            return new OWLDataOneOfImpl(_dr.values().map(RDF2OWLHelper::getLiteral));
+            return new OWLDataOneOfImpl(_dr.values().map(ReadHelper::getLiteral));
         }
         throw new OntApiException("Unsupported data range expression " + dr);
     }
@@ -432,25 +522,25 @@ public class RDF2OWLHelper {
      * @param ce   {@link OntCE}
      * @param df   {@link OWLDataFactory}
      * @param seen Set of {@link Resource}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
     @SuppressWarnings("unchecked")
-    public static AxiomTranslator.Triples<OWLClassExpression> _getClassExpression(OntCE ce, OWLDataFactory df, Set<Resource> seen) {
+    public static Wrap<? extends OWLClassExpression> _getClassExpression(OntCE ce, OWLDataFactory df, Set<Resource> seen) {
         if (OntApiException.notNull(ce, "Null class expression.").isAnon() && seen.contains(ce)) {
             //todo:
             throw new OntApiException("Recursive loop on class expression " + ce);
         }
         seen.add(ce);
         if (ce.isURIResource()) {
-            return AxiomTranslator.Triples.create(df.getOWLClass(IRI.create(ce.getURI())), ce);
+            return Wrap.create(df.getOWLClass(IRI.create(ce.getURI())), ce);
         }
         Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) ce).getActualClass(),
                 "Can't determine view of class expression " + ce);
         if (OntCE.ObjectSomeValuesFrom.class.equals(view) ||
                 OntCE.ObjectAllValuesFrom.class.equals(view)) {
             OntCE.ComponentRestrictionCE<OntCE, OntOPE> _ce = (OntCE.ComponentRestrictionCE<OntCE, OntOPE>) ce;
-            AxiomTranslator.Triples<OWLObjectPropertyExpression> p = _getObjectProperty(_ce.getOnProperty(), df);
-            AxiomTranslator.Triples<OWLClassExpression> c = _getClassExpression(_ce.getValue(), df, seen);
+            Wrap<OWLObjectPropertyExpression> p = _getObjectProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLClassExpression> c = _getClassExpression(_ce.getValue(), df, seen);
             OWLClassExpression res;
             if (OntCE.ObjectSomeValuesFrom.class.equals(view))
                 res = df.getOWLObjectSomeValuesFrom(p.getObject(), c.getObject());
@@ -458,13 +548,13 @@ public class RDF2OWLHelper {
                 res = df.getOWLObjectAllValuesFrom(p.getObject(), c.getObject());
             else
                 throw new OntApiException("Should never happen");
-            return AxiomTranslator.Triples.createFrom(res, _ce.content(), p, c);
+            return Wrap.create(res, _ce).append(p).append(c);
         }
         if (OntCE.DataSomeValuesFrom.class.equals(view) ||
                 OntCE.DataAllValuesFrom.class.equals(view)) {
             OntCE.ComponentRestrictionCE<OntDR, OntNDP> _ce = (OntCE.ComponentRestrictionCE<OntDR, OntNDP>) ce;
-            AxiomTranslator.Triples<OWLDataProperty> p = _getDataProperty(_ce.getOnProperty(), df);
-            AxiomTranslator.Triples<? extends OWLDataRange> d = _getDataRange(_ce.getValue(), df, new HashSet<>());
+            Wrap<OWLDataProperty> p = _getDataProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLDataRange> d = _getDataRange(_ce.getValue(), df, new HashSet<>());
             OWLClassExpression res;
             if (OntCE.DataSomeValuesFrom.class.equals(view))
                 res = df.getOWLDataSomeValuesFrom(p.getObject(), d.getObject());
@@ -472,25 +562,25 @@ public class RDF2OWLHelper {
                 res = df.getOWLDataAllValuesFrom(p.getObject(), d.getObject());
             else
                 throw new OntApiException("Should never happen");
-            return AxiomTranslator.Triples.createFrom(res, _ce.content(), p, d);
+            return Wrap.create(res, _ce).append(p).append(d);
         }
         if (OntCE.ObjectHasValue.class.equals(view)) {
             OntCE.ObjectHasValue _ce = (OntCE.ObjectHasValue) ce;
-            AxiomTranslator.Triples<OWLObjectPropertyExpression> p = _getObjectProperty(_ce.getOnProperty(), df);
-            AxiomTranslator.Triples<? extends OWLIndividual> i = _getIndividual(_ce.getValue(), df);
-            return AxiomTranslator.Triples.createFrom(df.getOWLObjectHasValue(p.getObject(), i.getObject()), _ce.content(), p, i);
+            Wrap<OWLObjectPropertyExpression> p = _getObjectProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLIndividual> i = _getIndividual(_ce.getValue(), df);
+            return Wrap.create(df.getOWLObjectHasValue(p.getObject(), i.getObject()), _ce).append(p).append(i);
         }
         if (OntCE.DataHasValue.class.equals(view)) {
             OntCE.DataHasValue _ce = (OntCE.DataHasValue) ce;
-            AxiomTranslator.Triples<OWLDataProperty> p = _getDataProperty(_ce.getOnProperty(), df);
-            return AxiomTranslator.Triples.createFrom(df.getOWLDataHasValue(p.getObject(), getLiteral(_ce.getValue())), _ce.content(), p);
+            Wrap<OWLDataProperty> p = _getDataProperty(_ce.getOnProperty(), df);
+            return Wrap.create(df.getOWLDataHasValue(p.getObject(), getLiteral(_ce.getValue())), _ce).append(p);
         }
         if (OntCE.ObjectMinCardinality.class.equals(view) ||
                 OntCE.ObjectMaxCardinality.class.equals(view) ||
                 OntCE.ObjectCardinality.class.equals(view)) {
             OntCE.CardinalityRestrictionCE<OntCE, OntOPE> _ce = (OntCE.CardinalityRestrictionCE<OntCE, OntOPE>) ce;
-            AxiomTranslator.Triples<OWLObjectPropertyExpression> p = _getObjectProperty(_ce.getOnProperty(), df);
-            AxiomTranslator.Triples<OWLClassExpression> c = _getClassExpression(_ce.getValue() == null ? _ce.getModel().getOWLThing() : _ce.getValue(), df, seen);
+            Wrap<OWLObjectPropertyExpression> p = _getObjectProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLClassExpression> c = _getClassExpression(_ce.getValue() == null ? _ce.getModel().getOWLThing() : _ce.getValue(), df, seen);
             OWLObjectCardinalityRestriction res;
             if (OntCE.ObjectMinCardinality.class.equals(view))
                 res = df.getOWLObjectMinCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
@@ -500,14 +590,14 @@ public class RDF2OWLHelper {
                 res = df.getOWLObjectExactCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
             else
                 throw new OntApiException("Should never happen");
-            return AxiomTranslator.Triples.createFrom(res, _ce.content(), p, c);
+            return Wrap.create(res, _ce).append(p).append(c);
         }
         if (OntCE.DataMinCardinality.class.equals(view) ||
                 OntCE.DataMaxCardinality.class.equals(view) ||
                 OntCE.DataCardinality.class.equals(view)) {
             OntCE.CardinalityRestrictionCE<OntDR, OntNDP> _ce = (OntCE.CardinalityRestrictionCE<OntDR, OntNDP>) ce;
-            AxiomTranslator.Triples<OWLDataProperty> p = _getDataProperty(_ce.getOnProperty(), df);
-            AxiomTranslator.Triples<? extends OWLDataRange> d = _getDataRange(_ce.getValue() == null ? _ce.getModel().getRDFSLiteral() : _ce.getValue(), df, new HashSet<>());
+            Wrap<OWLDataProperty> p = _getDataProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLDataRange> d = _getDataRange(_ce.getValue() == null ? _ce.getModel().getRDFSLiteral() : _ce.getValue(), df, new HashSet<>());
             OWLDataCardinalityRestriction res;
             if (OntCE.DataMinCardinality.class.equals(view))
                 res = df.getOWLDataMinCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
@@ -517,42 +607,42 @@ public class RDF2OWLHelper {
                 res = df.getOWLDataExactCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
             else
                 throw new OntApiException("Should never happen");
-            return AxiomTranslator.Triples.createFrom(res, _ce.content(), p, d);
+            return Wrap.create(res, _ce).append(p).append(d);
         }
         if (OntCE.HasSelf.class.equals(view)) {
             OntCE.HasSelf _ce = (OntCE.HasSelf) ce;
-            AxiomTranslator.Triples<OWLObjectPropertyExpression> p = _getObjectProperty(_ce.getOnProperty(), df);
-            return AxiomTranslator.Triples.createFrom(df.getOWLObjectHasSelf(p.getObject()), _ce.content(), p);
+            Wrap<OWLObjectPropertyExpression> p = _getObjectProperty(_ce.getOnProperty(), df);
+            return Wrap.create(df.getOWLObjectHasSelf(p.getObject()), _ce).append(p);
         }
         if (OntCE.UnionOf.class.equals(view) ||
                 OntCE.IntersectionOf.class.equals(view)) {
             OntCE.ComponentsCE<OntCE> _ce = (OntCE.ComponentsCE<OntCE>) ce;
-            List<AxiomTranslator.Triples<OWLClassExpression>> components = _ce.components()
+            List<Wrap<? extends OWLClassExpression>> components = _ce.components()
                     .map(c -> _getClassExpression(c, df, seen)).collect(Collectors.toList());
             OWLClassExpression res;
             if (OntCE.UnionOf.class.equals(view))
-                res = df.getOWLObjectUnionOf(components.stream().map(AxiomTranslator.Triples::getObject));
+                res = df.getOWLObjectUnionOf(components.stream().map(Wrap::getObject));
             else if (OntCE.IntersectionOf.class.equals(view))
-                res = df.getOWLObjectIntersectionOf(components.stream().map(AxiomTranslator.Triples::getObject));
+                res = df.getOWLObjectIntersectionOf(components.stream().map(Wrap::getObject));
             else
                 throw new OntApiException("Should never happen");
             Stream<Triple> triples = Stream.concat(_ce.content().map(FrontsTriple::asTriple),
-                    components.stream().map(AxiomTranslator.Triples::triples).flatMap(Function.identity()));
-            return new AxiomTranslator.Triples<>(res, triples.collect(Collectors.toSet()));
+                    components.stream().map(Wrap::triples).flatMap(Function.identity()));
+            return new Wrap<>(res, triples.collect(Collectors.toSet()));
         }
         if (OntCE.OneOf.class.equals(view)) {
             OntCE.OneOf _ce = (OntCE.OneOf) ce;
-            List<AxiomTranslator.Triples<? extends OWLIndividual>> components = _ce.components()
+            List<Wrap<? extends OWLIndividual>> components = _ce.components()
                     .map(c -> _getIndividual(c, df)).collect(Collectors.toList());
-            OWLClassExpression res = df.getOWLObjectOneOf(components.stream().map(AxiomTranslator.Triples::getObject));
+            OWLClassExpression res = df.getOWLObjectOneOf(components.stream().map(Wrap::getObject));
             Stream<Triple> triples = Stream.concat(_ce.content().map(FrontsTriple::asTriple),
-                    components.stream().map(AxiomTranslator.Triples::triples).flatMap(Function.identity()));
-            return new AxiomTranslator.Triples<>(res, triples.collect(Collectors.toSet()));
+                    components.stream().map(Wrap::triples).flatMap(Function.identity()));
+            return new Wrap<>(res, triples.collect(Collectors.toSet()));
         }
         if (OntCE.ComplementOf.class.isInstance(ce)) {
             OntCE.ComplementOf _ce = (OntCE.ComplementOf) ce;
-            AxiomTranslator.Triples<OWLClassExpression> c = _getClassExpression(_ce.getValue(), df, seen);
-            return AxiomTranslator.Triples.createFrom(df.getOWLObjectComplementOf(c.getObject()), _ce.content(), c);
+            Wrap<? extends OWLClassExpression> c = _getClassExpression(_ce.getValue(), df, seen);
+            return Wrap.create(df.getOWLObjectComplementOf(c.getObject()), _ce).append(c);
         }
         throw new OntApiException("Unsupported class expression " + ce);
     }
@@ -615,15 +705,15 @@ public class RDF2OWLHelper {
         }
         if (OntCE.UnionOf.class.isInstance(ce)) {
             OntCE.UnionOf _ce = (OntCE.UnionOf) ce;
-            return new OWLObjectUnionOfImpl(_ce.components().map(RDF2OWLHelper::getClassExpression));
+            return new OWLObjectUnionOfImpl(_ce.components().map(ReadHelper::getClassExpression));
         }
         if (OntCE.IntersectionOf.class.isInstance(ce)) {
             OntCE.IntersectionOf _ce = (OntCE.IntersectionOf) ce;
-            return new OWLObjectIntersectionOfImpl(_ce.components().map(RDF2OWLHelper::getClassExpression));
+            return new OWLObjectIntersectionOfImpl(_ce.components().map(ReadHelper::getClassExpression));
         }
         if (OntCE.OneOf.class.isInstance(ce)) {
             OntCE.OneOf _ce = (OntCE.OneOf) ce;
-            return new OWLObjectOneOfImpl(_ce.components().map(RDF2OWLHelper::getIndividual));
+            return new OWLObjectOneOfImpl(_ce.components().map(ReadHelper::getIndividual));
         }
         if (OntCE.ComplementOf.class.isInstance(ce)) {
             OntCE.ComplementOf _ce = (OntCE.ComplementOf) ce;
@@ -637,14 +727,14 @@ public class RDF2OWLHelper {
      *
      * @param var {@link ru.avicomp.ontapi.jena.model.OntSWRL.Variable}
      * @param df  {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    public static AxiomTranslator.Triples<SWRLVariable> _getSWRLVariable(OntSWRL.Variable var, OWLDataFactory df) {
+    public static Wrap<SWRLVariable> _getSWRLVariable(OntSWRL.Variable var, OWLDataFactory df) {
         if (!OntApiException.notNull(var, "Null swrl var").isURIResource()) {
             throw new OntApiException("Anonymous swrl var " + var);
         }
         // not public access:
-        return AxiomTranslator.Triples.create(df.getSWRLVariable(IRI.create(var.getURI())), var);
+        return Wrap.create(df.getSWRLVariable(IRI.create(var.getURI())), var);
     }
 
     public static SWRLVariable getSWRLVariable(OntSWRL.Variable var) {
@@ -660,11 +750,11 @@ public class RDF2OWLHelper {
      *
      * @param arg {@link ru.avicomp.ontapi.jena.model.OntSWRL.DArg}
      * @param df  {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    public static AxiomTranslator.Triples<? extends SWRLDArgument> _getSWRLLiteralArg(OntSWRL.DArg arg, OWLDataFactory df) {
+    public static Wrap<? extends SWRLDArgument> _getSWRLLiteralArg(OntSWRL.DArg arg, OWLDataFactory df) {
         if (OntApiException.notNull(arg, "Null SWRL-D arg").isLiteral()) {
-            return AxiomTranslator.Triples.create(df.getSWRLLiteralArgument(getLiteral(arg.asLiteral())), arg);
+            return Wrap.create(df.getSWRLLiteralArgument(getLiteral(arg.asLiteral())), arg);
         }
         if (arg.canAs(OntSWRL.Variable.class)) {
             return _getSWRLVariable(arg.as(OntSWRL.Variable.class), df);
@@ -687,11 +777,11 @@ public class RDF2OWLHelper {
      *
      * @param arg {@link ru.avicomp.ontapi.jena.model.OntSWRL.IArg}
      * @param df  {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
-    public static AxiomTranslator.Triples<? extends SWRLIArgument> _getSWRLIndividualArg(OntSWRL.IArg arg, OWLDataFactory df) {
+    public static Wrap<? extends SWRLIArgument> _getSWRLIndividualArg(OntSWRL.IArg arg, OWLDataFactory df) {
         if (OntApiException.notNull(arg, "Null SWRL-I arg").canAs(OntIndividual.class)) {
-            return AxiomTranslator.Triples.create(df.getSWRLIndividualArgument(getIndividual(arg.as(OntIndividual.class))), arg);
+            return Wrap.create(df.getSWRLIndividualArgument(getIndividual(arg.as(OntIndividual.class))), arg);
         }
         if (arg.canAs(OntSWRL.Variable.class)) {
             return _getSWRLVariable(arg.as(OntSWRL.Variable.class), df);
@@ -714,58 +804,58 @@ public class RDF2OWLHelper {
      *
      * @param atom {@link ru.avicomp.ontapi.jena.model.OntSWRL.Atom}
      * @param df   {@link OWLDataFactory}
-     * @return {@link ru.avicomp.ontapi.translators.AxiomTranslator.Triples}
+     * @return {@link Wrap}
      */
     @SuppressWarnings("unchecked")
-    public static AxiomTranslator.Triples<SWRLAtom> _getSWRLAtom(OntSWRL.Atom atom, OWLDataFactory df) {
+    public static Wrap<? extends SWRLAtom> _getSWRLAtom(OntSWRL.Atom atom, OWLDataFactory df) {
         Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) OntApiException.notNull(atom, "Null SWRL atom.")).getActualClass(),
                 "Can't determine view of SWRL atom " + atom);
         if (OntSWRL.Atom.BuiltIn.class.equals(view)) {
             OntSWRL.Atom.BuiltIn _atom = (OntSWRL.Atom.BuiltIn) atom;
             IRI iri = IRI.create(_atom.getPredicate().getURI());
-            List<AxiomTranslator.Triples<? extends SWRLDArgument>> arguments = _atom.arguments().map(a -> _getSWRLLiteralArg(a, df)).collect(Collectors.toList());
-            SWRLAtom res = df.getSWRLBuiltInAtom(iri, arguments.stream().map(AxiomTranslator.Triples::getObject).collect(Collectors.toList()));
+            List<Wrap<? extends SWRLDArgument>> arguments = _atom.arguments().map(a -> _getSWRLLiteralArg(a, df)).collect(Collectors.toList());
+            SWRLAtom res = df.getSWRLBuiltInAtom(iri, arguments.stream().map(Wrap::getObject).collect(Collectors.toList()));
             Stream<Triple> triples = Stream.concat(_atom.content().map(FrontsTriple::asTriple),
-                    arguments.stream().map(AxiomTranslator.Triples::triples).flatMap(Function.identity()));
-            return new AxiomTranslator.Triples<>(res, triples.collect(Collectors.toSet()));
+                    arguments.stream().map(Wrap::triples).flatMap(Function.identity()));
+            return new Wrap<>(res, triples.collect(Collectors.toSet()));
         }
         if (OntSWRL.Atom.OntClass.class.equals(view)) {
             OntSWRL.Atom.OntClass _atom = (OntSWRL.Atom.OntClass) atom;
-            AxiomTranslator.Triples<OWLClassExpression> c = _getClassExpression(_atom.getPredicate(), df, new HashSet<>());
-            AxiomTranslator.Triples<? extends SWRLIArgument> a = _getSWRLIndividualArg(_atom.getArg(), df);
-            return AxiomTranslator.Triples.createFrom(df.getSWRLClassAtom(c.getObject(), a.getObject()), _atom.content(), c, a);
+            Wrap<? extends OWLClassExpression> c = _getClassExpression(_atom.getPredicate(), df, new HashSet<>());
+            Wrap<? extends SWRLIArgument> a = _getSWRLIndividualArg(_atom.getArg(), df);
+            return Wrap.create(df.getSWRLClassAtom(c.getObject(), a.getObject()), _atom).append(c).append(a);
         }
         if (OntSWRL.Atom.DataProperty.class.equals(view)) {
             OntSWRL.Atom.DataProperty _atom = (OntSWRL.Atom.DataProperty) atom;
-            AxiomTranslator.Triples<OWLDataProperty> p = _getDataProperty(_atom.getPredicate(), df);
-            AxiomTranslator.Triples<? extends SWRLIArgument> f = _getSWRLIndividualArg(_atom.getFirstArg(), df);
-            AxiomTranslator.Triples<? extends SWRLDArgument> s = _getSWRLLiteralArg(_atom.getSecondArg(), df);
-            return AxiomTranslator.Triples.createFrom(df.getSWRLDataPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom.content(), p, f, s);
+            Wrap<OWLDataProperty> p = _getDataProperty(_atom.getPredicate(), df);
+            Wrap<? extends SWRLIArgument> f = _getSWRLIndividualArg(_atom.getFirstArg(), df);
+            Wrap<? extends SWRLDArgument> s = _getSWRLLiteralArg(_atom.getSecondArg(), df);
+            return Wrap.create(df.getSWRLDataPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom).append(p).append(f).append(s);
         }
         if (OntSWRL.Atom.ObjectProperty.class.equals(view)) {
             OntSWRL.Atom.ObjectProperty _atom = (OntSWRL.Atom.ObjectProperty) atom;
-            AxiomTranslator.Triples<OWLObjectPropertyExpression> p = _getObjectProperty(_atom.getPredicate(), df);
-            AxiomTranslator.Triples<? extends SWRLIArgument> f = _getSWRLIndividualArg(_atom.getFirstArg(), df);
-            AxiomTranslator.Triples<? extends SWRLIArgument> s = _getSWRLIndividualArg(_atom.getSecondArg(), df);
-            return AxiomTranslator.Triples.createFrom(df.getSWRLObjectPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom.content(), p, f, s);
+            Wrap<OWLObjectPropertyExpression> p = _getObjectProperty(_atom.getPredicate(), df);
+            Wrap<? extends SWRLIArgument> f = _getSWRLIndividualArg(_atom.getFirstArg(), df);
+            Wrap<? extends SWRLIArgument> s = _getSWRLIndividualArg(_atom.getSecondArg(), df);
+            return Wrap.create(df.getSWRLObjectPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom).append(p).append(f).append(s);
         }
         if (OntSWRL.Atom.DataRange.class.equals(view)) {
             OntSWRL.Atom.DataRange _atom = (OntSWRL.Atom.DataRange) atom;
-            AxiomTranslator.Triples<? extends OWLDataRange> d = _getDataRange(_atom.getPredicate(), df, new HashSet<>());
-            AxiomTranslator.Triples<? extends SWRLDArgument> a = _getSWRLLiteralArg(_atom.getArg(), df);
-            return AxiomTranslator.Triples.createFrom(df.getSWRLDataRangeAtom(d.getObject(), a.getObject()), _atom.content(), d, a);
+            Wrap<? extends OWLDataRange> d = _getDataRange(_atom.getPredicate(), df, new HashSet<>());
+            Wrap<? extends SWRLDArgument> a = _getSWRLLiteralArg(_atom.getArg(), df);
+            return Wrap.create(df.getSWRLDataRangeAtom(d.getObject(), a.getObject()), _atom).append(d).append(a);
         }
         if (OntSWRL.Atom.DifferentIndividuals.class.equals(view)) {
             OntSWRL.Atom.DifferentIndividuals _atom = (OntSWRL.Atom.DifferentIndividuals) atom;
-            AxiomTranslator.Triples<? extends SWRLIArgument> f = _getSWRLIndividualArg(_atom.getFirstArg(), df);
-            AxiomTranslator.Triples<? extends SWRLIArgument> s = _getSWRLIndividualArg(_atom.getSecondArg(), df);
-            return AxiomTranslator.Triples.createFrom(df.getSWRLDifferentIndividualsAtom(f.getObject(), s.getObject()), _atom.content(), f, s);
+            Wrap<? extends SWRLIArgument> f = _getSWRLIndividualArg(_atom.getFirstArg(), df);
+            Wrap<? extends SWRLIArgument> s = _getSWRLIndividualArg(_atom.getSecondArg(), df);
+            return Wrap.create(df.getSWRLDifferentIndividualsAtom(f.getObject(), s.getObject()), _atom).append(f).append(s);
         }
         if (OntSWRL.Atom.SameIndividuals.class.equals(view)) {
             OntSWRL.Atom.SameIndividuals _atom = (OntSWRL.Atom.SameIndividuals) atom;
-            AxiomTranslator.Triples<? extends SWRLIArgument> f = _getSWRLIndividualArg(_atom.getFirstArg(), df);
-            AxiomTranslator.Triples<? extends SWRLIArgument> s = _getSWRLIndividualArg(_atom.getSecondArg(), df);
-            return AxiomTranslator.Triples.createFrom(df.getSWRLSameIndividualAtom(f.getObject(), s.getObject()), _atom.content(), f, s);
+            Wrap<? extends SWRLIArgument> f = _getSWRLIndividualArg(_atom.getFirstArg(), df);
+            Wrap<? extends SWRLIArgument> s = _getSWRLIndividualArg(_atom.getSecondArg(), df);
+            return Wrap.create(df.getSWRLSameIndividualAtom(f.getObject(), s.getObject()), _atom).append(f).append(s);
         }
         throw new OntApiException("Unsupported SWRL atom " + atom);
     }
@@ -775,7 +865,7 @@ public class RDF2OWLHelper {
         if (OntSWRL.Atom.BuiltIn.class.isInstance(atom)) {
             OntSWRL.Atom.BuiltIn a = (OntSWRL.Atom.BuiltIn) atom;
             IRI i = IRI.create(a.getPredicate().getURI());
-            return new SWRLBuiltInAtomImpl(i, a.arguments().map(RDF2OWLHelper::getSWRLiteralDArg).collect(Collectors.toList()));
+            return new SWRLBuiltInAtomImpl(i, a.arguments().map(ReadHelper::getSWRLiteralDArg).collect(Collectors.toList()));
         }
         if (OntSWRL.Atom.OntClass.class.isInstance(atom)) {
             OntSWRL.Atom.OntClass a = (OntSWRL.Atom.OntClass) atom;
@@ -850,7 +940,7 @@ public class RDF2OWLHelper {
                 associated = Stream.empty();
             }
             associated.map(Statement::asTriple).forEach(triples::add);
-            RDF2OWLHelper.getAnnotations(main).forEach(a -> {
+            ReadHelper.getAnnotations(main).forEach(a -> {
                 triples.addAll(a.getTriples());
                 annotations.add(a.getObject());
             });

@@ -24,7 +24,7 @@ import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import ru.avicomp.ontapi.translators.OWL2RDFHelper;
+import ru.avicomp.ontapi.translators.WriteHelper;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
@@ -398,32 +398,32 @@ public class AnnotationsGraphTest extends GraphTestBase {
         // checking
         OntGraphModel jena = owl.asGraphModel();
         // test annotation see-also:
-        Assert.assertTrue("Can't find rdfs:comment " + comment, jena.contains(null, RDFS.comment, OWL2RDFHelper.toRDFNode(comment)));
-        Assert.assertTrue("Can't find owl:annotatedTarget " + comment, jena.contains(null, OWL.annotatedTarget, OWL2RDFHelper.toRDFNode(comment)));
-        Assert.assertEquals("Should be at least two rdf:label " + label, 2, jena.listStatements(null, RDFS.label, OWL2RDFHelper.toRDFNode(label)).toList().size());
-        Assert.assertFalse("There is rdfs:seeAlso " + link + " attached to ontology.", jena.contains(iri.toResource(), RDFS.seeAlso, OWL2RDFHelper.toResource(link)));
-        Resource seeAlsoRoot = jena.listStatements(null, RDFS.seeAlso, OWL2RDFHelper.toResource(link))
+        Assert.assertTrue("Can't find rdfs:comment " + comment, jena.contains(null, RDFS.comment, WriteHelper.toRDFNode(comment)));
+        Assert.assertTrue("Can't find owl:annotatedTarget " + comment, jena.contains(null, OWL.annotatedTarget, WriteHelper.toRDFNode(comment)));
+        Assert.assertEquals("Should be at least two rdf:label " + label, 2, jena.listStatements(null, RDFS.label, WriteHelper.toRDFNode(label)).toList().size());
+        Assert.assertFalse("There is rdfs:seeAlso " + link + " attached to ontology.", jena.contains(iri.toResource(), RDFS.seeAlso, WriteHelper.toResource(link)));
+        Resource seeAlsoRoot = jena.listStatements(null, RDFS.seeAlso, WriteHelper.toResource(link))
                 .mapWith(Statement::getSubject).filterKeep(Resource::isAnon).toList().stream().findAny().orElse(null);
         Assert.assertNotNull("Can't find rdfs:seeAlso entrance.", seeAlsoRoot);
         Assert.assertTrue("Can't find owl:annotatedProperty", jena.contains(null, OWL.annotatedProperty, RDFS.seeAlso));
         Assert.assertTrue("Can't find owl:annotatedSource", jena.contains(null, OWL.annotatedSource, seeAlsoRoot));
-        Assert.assertTrue("Can't find owl:annotatedTarget", jena.contains(null, OWL.annotatedTarget, OWL2RDFHelper.toResource(link)));
+        Assert.assertTrue("Can't find owl:annotatedTarget", jena.contains(null, OWL.annotatedTarget, WriteHelper.toResource(link)));
 
         // test annotation with custom property:
-        Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), OWL2RDFHelper.toProperty(property), OWL2RDFHelper.toRDFNode(someLiteral)));
-        Assert.assertTrue("Can't find declaration of " + property, jena.contains(OWL2RDFHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
+        Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), WriteHelper.toProperty(property), WriteHelper.toRDFNode(someLiteral)));
+        Assert.assertTrue("Can't find declaration of " + property, jena.contains(WriteHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
 
         LOGGER.info("Remove " + seeAlsoAnnotation);
         owl.applyChanges(new RemoveOntologyAnnotation(owl, seeAlsoAnnotation));
         debug(owl);
         // test annotation1:
-        Assert.assertFalse("There is rdfs:comment " + comment, jena.contains(null, RDFS.comment, OWL2RDFHelper.toRDFNode(comment)));
-        Assert.assertFalse("There is owl:annotatedTarget " + comment, jena.contains(null, OWL.annotatedTarget, OWL2RDFHelper.toRDFNode(comment)));
-        Assert.assertEquals("There is rdf:label " + label, 0, jena.listStatements(null, RDFS.label, OWL2RDFHelper.toRDFNode(label)).toList().size());
-        Assert.assertFalse("There is rdfs:seeAlso " + link, jena.contains(iri.toResource(), RDFS.seeAlso, OWL2RDFHelper.toResource(link)));
+        Assert.assertFalse("There is rdfs:comment " + comment, jena.contains(null, RDFS.comment, WriteHelper.toRDFNode(comment)));
+        Assert.assertFalse("There is owl:annotatedTarget " + comment, jena.contains(null, OWL.annotatedTarget, WriteHelper.toRDFNode(comment)));
+        Assert.assertEquals("There is rdf:label " + label, 0, jena.listStatements(null, RDFS.label, WriteHelper.toRDFNode(label)).toList().size());
+        Assert.assertFalse("There is rdfs:seeAlso " + link, jena.contains(iri.toResource(), RDFS.seeAlso, WriteHelper.toResource(link)));
         // test annotation2:
-        Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), OWL2RDFHelper.toProperty(property), OWL2RDFHelper.toRDFNode(someLiteral)));
-        Assert.assertTrue("Can't find declaration of " + property, jena.contains(OWL2RDFHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
+        Assert.assertTrue("Can't find " + property + " " + someLiteral, jena.contains(iri.toResource(), WriteHelper.toProperty(property), WriteHelper.toRDFNode(someLiteral)));
+        Assert.assertTrue("Can't find declaration of " + property, jena.contains(WriteHelper.toResource(property), RDF.type, OWL.AnnotationProperty));
 
         LOGGER.info("Remove " + customPropertyAnnotation);
         owl.applyChanges(new RemoveOntologyAnnotation(owl, customPropertyAnnotation));

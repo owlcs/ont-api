@@ -20,7 +20,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLSymmetricObjectPropertyAxiomImpl;
 class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLSymmetricObjectPropertyAxiom, OntOPE> {
     @Override
     OWLSymmetricObjectPropertyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return new OWLSymmetricObjectPropertyAxiomImpl(RDF2OWLHelper.getObjectProperty(getSubject(statement)), annotations);
+        return new OWLSymmetricObjectPropertyAxiomImpl(ReadHelper.getObjectProperty(getSubject(statement)), annotations);
     }
 
     @Override

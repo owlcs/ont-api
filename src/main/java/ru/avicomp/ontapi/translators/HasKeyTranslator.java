@@ -47,7 +47,7 @@ class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntC
     @Override
     OWLHasKeyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
         OntCE subject = statement.getSubject().as(OntCE.class);
-        Set<OWLPropertyExpression> properties = subject.hasKey().map(RDF2OWLHelper::getProperty).collect(Collectors.toSet());
-        return new OWLHasKeyAxiomImpl(RDF2OWLHelper.getClassExpression(subject), properties, annotations);
+        Set<OWLPropertyExpression> properties = subject.hasKey().map(ReadHelper::getProperty).collect(Collectors.toSet());
+        return new OWLHasKeyAxiomImpl(ReadHelper.getClassExpression(subject), properties, annotations);
     }
 }

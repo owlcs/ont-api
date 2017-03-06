@@ -45,7 +45,7 @@ class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUn
     @Override
     OWLDisjointUnionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
         OntClass clazz = statement.getSubject().as(OntClass.class);
-        Stream<OWLClassExpression> ces = clazz.disjointUnionOf().map(RDF2OWLHelper::getClassExpression);
-        return new OWLDisjointUnionAxiomImpl(RDF2OWLHelper.getClassExpression(clazz).asOWLClass(), ces, annotations);
+        Stream<OWLClassExpression> ces = clazz.disjointUnionOf().map(ReadHelper::getClassExpression);
+        return new OWLDisjointUnionAxiomImpl(ReadHelper.getClassExpression(clazz).asOWLClass(), ces, annotations);
     }
 }

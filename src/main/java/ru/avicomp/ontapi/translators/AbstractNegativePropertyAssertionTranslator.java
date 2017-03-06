@@ -25,7 +25,7 @@ abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLProp
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.addAnnotations(createNPA(axiom, model), axiom.annotations());
+        WriteHelper.addAnnotations(createNPA(axiom, model), axiom.annotations());
     }
 
     @Override

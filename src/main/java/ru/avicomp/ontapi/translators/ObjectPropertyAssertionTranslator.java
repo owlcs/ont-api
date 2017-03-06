@@ -32,7 +32,7 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
         OWLObjectPropertyExpression property = axiom.getProperty().isAnonymous() ? axiom.getProperty().getInverseProperty() : axiom.getProperty();
         OWLIndividual subject = axiom.getProperty().isAnonymous() ? axiom.getObject() : axiom.getSubject();
         OWLIndividual object = axiom.getProperty().isAnonymous() ? axiom.getSubject() : axiom.getObject();
-        OWL2RDFHelper.writeAssertionTriple(model, subject, property, object, axiom.annotations());
+        WriteHelper.writeAssertionTriple(model, subject, property, object, axiom.annotations());
     }
 
     @Override
@@ -48,9 +48,9 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
 
     @Override
     OWLObjectPropertyAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLIndividual subject = RDF2OWLHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
-        OWLObjectPropertyExpression property = RDF2OWLHelper.getObjectProperty(statement.getPredicate().as(OntOPE.class));
-        OWLIndividual object = RDF2OWLHelper.getIndividual(statement.getObject().as(OntIndividual.class));
+        OWLIndividual subject = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
+        OWLObjectPropertyExpression property = ReadHelper.getObjectProperty(statement.getPredicate().as(OntOPE.class));
+        OWLIndividual object = ReadHelper.getIndividual(statement.getObject().as(OntIndividual.class));
         return new OWLObjectPropertyAssertionAxiomImpl(subject, property, object, annotations);
     }
 }

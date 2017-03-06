@@ -43,12 +43,12 @@ class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualA
 
     @Override
     OWLSameIndividualAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return create(components(statement).map(RDF2OWLHelper::getIndividual), annotations);
+        return create(components(statement).map(ReadHelper::getIndividual), annotations);
     }
 
-    private Set<Triples<OWLSameIndividualAxiom>> extractStandaloneAxioms(Set<Triples<OWLSameIndividualAxiom>> set) {
+    private Set<Wrap<OWLSameIndividualAxiom>> extractStandaloneAxioms(Set<Wrap<OWLSameIndividualAxiom>> set) {
         return set.stream().filter(a -> set.stream().filter(b -> !a.equals(b))
-                .noneMatch(b -> RDF2OWLHelper.isIntersect(a.getObject(), b.getObject()))).collect(Collectors.toSet());
+                .noneMatch(b -> ReadHelper.isIntersect(a.getObject(), b.getObject()))).collect(Collectors.toSet());
     }
 
     /**
@@ -60,23 +60,23 @@ class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualA
      * @return shrunken map of axioms
      */
     @Override
-    Set<Triples<OWLSameIndividualAxiom>> shrink(Set<Triples<OWLSameIndividualAxiom>> init) {
+    Set<Wrap<OWLSameIndividualAxiom>> shrink(Set<Wrap<OWLSameIndividualAxiom>> init) {
         if (init.size() < 2) {
             return new HashSet<>(init);
         }
-        Set<Triples<OWLSameIndividualAxiom>> unique = extractStandaloneAxioms(init);
-        Set<Triples<OWLSameIndividualAxiom>> res = new HashSet<>();
+        Set<Wrap<OWLSameIndividualAxiom>> unique = extractStandaloneAxioms(init);
+        Set<Wrap<OWLSameIndividualAxiom>> res = new HashSet<>();
         res.addAll(unique);
         if (res.size() == init.size()) return res;
-        Set<Triples<OWLSameIndividualAxiom>> tmp = new HashSet<>(init);
+        Set<Wrap<OWLSameIndividualAxiom>> tmp = new HashSet<>(init);
         tmp.removeAll(unique);
         // assemble a single axiom of the remaining pairwise axioms
-        Stream<OWLAnnotation> annotations = tmp.stream().map(Triples::getObject).map(HasAnnotations::annotations).findAny().orElse(Stream.empty());
+        Stream<OWLAnnotation> annotations = tmp.stream().map(Wrap::getObject).map(HasAnnotations::annotations).findAny().orElse(Stream.empty());
         // do operands(stream)->set->stream to avoid BootstrapMethodError
-        Stream<OWLIndividual> components = tmp.stream().map(Triples::getObject).map(axiom -> axiom.operands().collect(Collectors.toSet()).stream()).flatMap(Function.identity()).distinct();
-        Set<Triple> triples = tmp.stream().map(Triples::triples).flatMap(Function.identity()).collect(Collectors.toSet());
+        Stream<OWLIndividual> components = tmp.stream().map(Wrap::getObject).map(axiom -> axiom.operands().collect(Collectors.toSet()).stream()).flatMap(Function.identity()).distinct();
+        Set<Triple> triples = tmp.stream().map(Wrap::triples).flatMap(Function.identity()).collect(Collectors.toSet());
         OWLSameIndividualAxiom multi = create(components, annotations.collect(Collectors.toSet()));
-        res.add(new Triples<>(multi, triples));
+        res.add(new Wrap<>(multi, triples));
         return res;
     }
 }

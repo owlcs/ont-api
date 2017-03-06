@@ -50,6 +50,9 @@ public interface OntStatement extends Statement {
 
     boolean isLocal();
 
+    @Override
+    OntObject getSubject();
+
     default boolean isDeclaration() {
         return RDF.type.equals(getPredicate());
     }

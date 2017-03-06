@@ -21,7 +21,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLIrreflexiveObjectPropertyAxiomImpl;
 class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLIrreflexiveObjectPropertyAxiom, OntOPE> {
     @Override
     OWLIrreflexiveObjectPropertyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return new OWLIrreflexiveObjectPropertyAxiomImpl(RDF2OWLHelper.getObjectProperty(getSubject(statement)), annotations);
+        return new OWLIrreflexiveObjectPropertyAxiomImpl(ReadHelper.getObjectProperty(getSubject(statement)), annotations);
     }
 
     @Override

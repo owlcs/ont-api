@@ -30,6 +30,6 @@ class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<O
 
     @Override
     OWLReflexiveObjectPropertyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return new OWLReflexiveObjectPropertyAxiomImpl(RDF2OWLHelper.getObjectProperty(getSubject(statement)), annotations);
+        return new OWLReflexiveObjectPropertyAxiomImpl(ReadHelper.getObjectProperty(getSubject(statement)), annotations);
     }
 }

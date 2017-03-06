@@ -20,7 +20,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAssertionAxiom> {
     @Override
     public void write(OWLAnnotationAssertionAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom.annotations());
+        WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom.annotations());
     }
 
     @Override
@@ -38,10 +38,21 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
 
     @Override
     OWLAnnotationAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLAnnotationSubject subject = RDF2OWLHelper.getAnnotationSubject(statement.getSubject());
-        OWLAnnotationProperty property = RDF2OWLHelper.getAnnotationProperty(statement.getPredicate().as(OntNAP.class));
-        OWLAnnotationValue value = RDF2OWLHelper.getAnnotationValue(statement.getObject());
+        OWLAnnotationSubject subject = ReadHelper.getAnnotationSubject(statement.getSubject());
+        OWLAnnotationProperty property = ReadHelper.getAnnotationProperty(statement.getPredicate().as(OntNAP.class));
+        OWLAnnotationValue value = ReadHelper.getAnnotationValue(statement.getObject());
         return new OWLAnnotationAssertionAxiomImpl(subject, property, value, annotations);
+    }
+
+    @Override
+    Wrap<OWLAnnotationAssertionAxiom> asAxiom(OntStatement statement) {
+        Wrap<? extends OWLAnnotationSubject> s = ReadHelper._getAnnotationSubject(statement.getSubject(), getDataFactory());
+        Wrap<OWLAnnotationProperty> p = ReadHelper._getAnnotationProperty(statement.getPredicate().as(OntNAP.class), getDataFactory());
+        Wrap<? extends OWLAnnotationValue> v = ReadHelper._getAnnotationValue(statement.getObject(), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        OWLAnnotationAssertionAxiom res = getDataFactory().getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
+                annotations.getObjects());
+        return Wrap.create(res, statement).add(annotations.getTriples()).append(s).append(p).append(v);
     }
 
 }

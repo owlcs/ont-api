@@ -28,7 +28,7 @@ abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, O ext
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeList(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom.annotations());
+        WriteHelper.writeList(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom.annotations());
     }
 
     @Override

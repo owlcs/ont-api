@@ -23,7 +23,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLInverseObjectPropertiesAxiomImpl;
 class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObjectPropertiesAxiom> {
     @Override
     public void write(OWLInverseObjectPropertiesAxiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(), axiom.annotations());
+        WriteHelper.writeTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(), axiom.annotations());
     }
 
     @Override
@@ -40,6 +40,6 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
     OWLInverseObjectPropertiesAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
         OntOPE f = statement.getSubject().as(OntOPE.class);
         OntOPE s = statement.getObject().as(OntOPE.class);
-        return new OWLInverseObjectPropertiesAxiomImpl(RDF2OWLHelper.getObjectProperty(f), RDF2OWLHelper.getObjectProperty(s), annotations);
+        return new OWLInverseObjectPropertiesAxiomImpl(ReadHelper.getObjectProperty(f), ReadHelper.getObjectProperty(s), annotations);
     }
 }

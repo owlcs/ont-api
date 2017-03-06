@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.utils;
 
+import java.io.StringWriter;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Optional;
@@ -14,7 +15,9 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
+import org.apache.jena.riot.RDFDataMgr;
 
+import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -112,4 +115,9 @@ public class Graphs {
         return sb;
     }
 
+    public static String toTurtleString(Graph g) {
+        StringWriter sw = new StringWriter();
+        RDFDataMgr.write(sw, g, OntFormat.TURTLE.getLang());
+        return sw.toString();
+    }
 }

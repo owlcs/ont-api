@@ -1925,6 +1925,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             vetoListeners.clear();
             listenerMap.clear();
             impendingChangeListenerMap.clear();
+            broadcastChanges.set(true);
+            loadCount.set(0);
+            importsLoadCount.set(0);
         }
 
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

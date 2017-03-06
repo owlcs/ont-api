@@ -28,7 +28,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public class OWL2RDFHelper {
+public class WriteHelper {
 
     public static RDFNode toRDFNode(OWLObject object) {
         if (object instanceof OWLLiteral) {
@@ -437,7 +437,7 @@ public class OWL2RDFHelper {
         ONE_OF(DataRangeType.DATA_ONE_OF, new Translator<OWLDataOneOf, OntDR.OneOf>() {
             @Override
             OntDR.OneOf translate(OntGraphModel model, OWLDataOneOf expression) {
-                return model.createOneOfDataRange(expression.values().map(OWL2RDFHelper::toLiteral).collect(Collectors.toList()));
+                return model.createOneOfDataRange(expression.values().map(WriteHelper::toLiteral).collect(Collectors.toList()));
             }
         }),
         RESTRICTION(DataRangeType.DATATYPE_RESTRICTION, new Translator<OWLDatatypeRestriction, OntDR.Restriction>() {

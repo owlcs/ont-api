@@ -47,6 +47,6 @@ abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProper
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, axiom.getProperty(), RDF.type, getType(), axiom.annotations());
+        WriteHelper.writeTriple(model, axiom.getProperty(), RDF.type, getType(), axiom.annotations());
     }
 }

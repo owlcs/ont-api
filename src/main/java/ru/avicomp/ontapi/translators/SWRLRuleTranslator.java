@@ -24,9 +24,9 @@ import uk.ac.manchester.cs.owl.owlapi.SWRLRuleImpl;
 class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     @Override
     public void write(SWRLRule axiom, OntGraphModel model) {
-        Stream<OntSWRL.Atom> head = axiom.head().map(atom -> OWL2RDFHelper.addSWRLAtom(model, atom));
-        Stream<OntSWRL.Atom> body = axiom.body().map(atom -> OWL2RDFHelper.addSWRLAtom(model, atom));
-        OWL2RDFHelper.addAnnotations(model.createSWRLImp(head.collect(Collectors.toList()), body.collect(Collectors.toList())), axiom.annotations());
+        Stream<OntSWRL.Atom> head = axiom.head().map(atom -> WriteHelper.addSWRLAtom(model, atom));
+        Stream<OntSWRL.Atom> body = axiom.body().map(atom -> WriteHelper.addSWRLAtom(model, atom));
+        WriteHelper.addAnnotations(model.createSWRLImp(head.collect(Collectors.toList()), body.collect(Collectors.toList())), axiom.annotations());
     }
 
     @Override
@@ -37,8 +37,8 @@ class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     @Override
     SWRLRule create(OntStatement statement, Set<OWLAnnotation> annotations) {
         OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
-        List<SWRLAtom> head = imp.head().map(RDF2OWLHelper::getSWRLAtom).collect(Collectors.toList());
-        List<SWRLAtom> body = imp.body().map(RDF2OWLHelper::getSWRLAtom).collect(Collectors.toList());
+        List<SWRLAtom> head = imp.head().map(ReadHelper::getSWRLAtom).collect(Collectors.toList());
+        List<SWRLAtom> body = imp.body().map(ReadHelper::getSWRLAtom).collect(Collectors.toList());
         return new SWRLRuleImpl(head, body, annotations);
     }
 }

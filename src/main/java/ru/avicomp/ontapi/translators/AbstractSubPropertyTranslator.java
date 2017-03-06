@@ -38,6 +38,6 @@ abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P extends O
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        OWL2RDFHelper.writeTriple(model, getSubProperty(axiom), RDFS.subPropertyOf, getSuperProperty(axiom), axiom.annotations());
+        WriteHelper.writeTriple(model, getSubProperty(axiom), RDFS.subPropertyOf, getSuperProperty(axiom), axiom.annotations());
     }
 }

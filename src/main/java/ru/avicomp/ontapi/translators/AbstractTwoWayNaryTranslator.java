@@ -39,9 +39,9 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
         } else { // OWL2 anonymous node
             Resource root = model.createResource();
             model.add(root, RDF.type, getMembersType());
-            model.add(root, getMembersPredicate(), OWL2RDFHelper.addRDFList(model, operands.stream()));
+            model.add(root, getMembersPredicate(), WriteHelper.addRDFList(model, operands.stream()));
             OntDisjoint<ONT> res = root.as(getDisjointView());
-            OWL2RDFHelper.addAnnotations(res, annotations.stream());
+            WriteHelper.addAnnotations(res, annotations.stream());
         }
     }
 

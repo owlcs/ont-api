@@ -47,7 +47,7 @@ class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPr
     @Override
     OWLSubPropertyChainOfAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
         OntOPE subject = statement.getSubject().as(OntOPE.class);
-        List<OWLObjectPropertyExpression> children = subject.superPropertyOf().map(RDF2OWLHelper::getObjectProperty).collect(Collectors.toList());
-        return new OWLSubPropertyChainAxiomImpl(children, RDF2OWLHelper.getObjectProperty(subject), annotations);
+        List<OWLObjectPropertyExpression> children = subject.superPropertyOf().map(ReadHelper::getObjectProperty).collect(Collectors.toList());
+        return new OWLSubPropertyChainAxiomImpl(children, ReadHelper.getObjectProperty(subject), annotations);
     }
 }
