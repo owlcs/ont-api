@@ -13,6 +13,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.apache.jena.shared.PropertyNotFoundException;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
@@ -81,6 +82,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return statements(property).filter(s -> s.getObject().equals(object)).findFirst();
     }
 
+    @Override
+    public OntStatement getRequiredProperty(Property property) {
+        return statement(property).orElseThrow(() -> new PropertyNotFoundException(property));
+    }
 
     @Override
     public OntStatement addStatement(Property property, RDFNode value) {

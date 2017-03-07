@@ -28,8 +28,8 @@ class FunctionalObjectPropertyTranslator extends AbstractPropertyTypeTranslator<
 
     @Override
     Wrap<OWLFunctionalObjectPropertyAxiom> asAxiom(OntStatement statement) {
-        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(getSubject(statement), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper.getObjectProperty(getSubject(statement), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
         OWLFunctionalObjectPropertyAxiom res = getDataFactory().getOWLFunctionalObjectPropertyAxiom(p.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }

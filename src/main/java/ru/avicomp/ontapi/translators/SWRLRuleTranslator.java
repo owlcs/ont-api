@@ -37,10 +37,10 @@ class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
         OWLDataFactory df = getDataFactory();
         OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
 
-        Wrap.Collection<? extends SWRLAtom> head = Wrap.Collection.create(imp.head().map(a -> ReadHelper._getSWRLAtom(a, df)));
-        Wrap.Collection<? extends SWRLAtom> body = Wrap.Collection.create(imp.body().map(a -> ReadHelper._getSWRLAtom(a, df)));
+        Wrap.Collection<? extends SWRLAtom> head = Wrap.Collection.create(imp.head().map(a -> ReadHelper.getSWRLAtom(a, df)));
+        Wrap.Collection<? extends SWRLAtom> body = Wrap.Collection.create(imp.body().map(a -> ReadHelper.getSWRLAtom(a, df)));
 
-        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
         SWRLRule res = df.getSWRLRule(body.getObjects(), head.getObjects(), annotations.getObjects());
         return Wrap.create(res, imp.content()).add(annotations.getTriples()).add(body.getTriples()).add(head.getTriples());
     }

@@ -46,10 +46,10 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
 
     @Override
     Wrap<OWLObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
-        Wrap<? extends OWLIndividual> subject = ReadHelper._getIndividual(statement.getSubject().as(OntIndividual.class), getDataFactory());
-        Wrap<OWLObjectPropertyExpression> property = ReadHelper._getObjectProperty(statement.getPredicate().as(OntOPE.class), getDataFactory());
-        Wrap<? extends OWLIndividual> object = ReadHelper._getIndividual(statement.getObject().as(OntIndividual.class), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        Wrap<? extends OWLIndividual> subject = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class), getDataFactory());
+        Wrap<OWLObjectPropertyExpression> property = ReadHelper.getObjectProperty(statement.getPredicate().as(OntOPE.class), getDataFactory());
+        Wrap<? extends OWLIndividual> object = ReadHelper.getIndividual(statement.getObject().as(OntIndividual.class), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
         OWLObjectPropertyAssertionAxiom res = getDataFactory().getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
                 annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(subject).append(property).append(object);

@@ -42,9 +42,9 @@ class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPr
     Wrap<OWLSubPropertyChainOfAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory();
         OntOPE ope = statement.getSubject().as(OntOPE.class);
-        Wrap<OWLObjectPropertyExpression> subject = ReadHelper._getObjectProperty(ope, df);
-        Wrap.Collection<OWLObjectPropertyExpression> members = Wrap.Collection.create(ope.superPropertyOf().map(s -> ReadHelper._getObjectProperty(s, df)));
-        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        Wrap<OWLObjectPropertyExpression> subject = ReadHelper.getObjectProperty(ope, df);
+        Wrap.Collection<OWLObjectPropertyExpression> members = Wrap.Collection.create(ope.superPropertyOf().map(s -> ReadHelper.getObjectProperty(s, df)));
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
         // note: the input is a list. does it mean that the order is important?
         OWLSubPropertyChainOfAxiom res = df.getOWLSubPropertyChainOfAxiom(members.objects().collect(Collectors.toList()), subject.getObject(), annotations.getObjects());
         return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());

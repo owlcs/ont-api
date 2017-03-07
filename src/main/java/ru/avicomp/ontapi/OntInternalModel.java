@@ -14,11 +14,11 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.translators.AxiomParserProvider;
 import ru.avicomp.ontapi.translators.ReadHelper;
 import ru.avicomp.ontapi.translators.Wrap;
 import ru.avicomp.ontapi.translators.WriteHelper;
+import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
@@ -46,6 +46,11 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     public OntInternalModel(Graph base, OntPersonality personality) {
         super(base, personality);
         getGraph().getEventManager().register(new DirectListener());
+    }
+
+    public OWLDataFactory dataFactory() {
+        // todo: should be passed outside
+        return new OWLDataFactoryImpl();
     }
 
     @SuppressWarnings("unchecked")
@@ -101,22 +106,22 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
         List<OWLEntity> res = new ArrayList<>();
         if (e.canAs(OntClass.class)) {
-            res.add(ReadHelper.getClassExpression(e.as(OntClass.class)).asOWLClass());
+            res.add(ReadHelper.getClassExpression(e.as(OntClass.class), dataFactory()).getObject().asOWLClass());
         }
         if (e.canAs(OntDT.class)) {
-            res.add(ReadHelper.getDatatype(e.as(OntDT.class)));
+            res.add(ReadHelper.getDatatype(e.as(OntDT.class), dataFactory()).getObject());
         }
         if (e.canAs(OntNAP.class)) {
-            res.add(ReadHelper.getAnnotationProperty(e.as(OntNAP.class)));
+            res.add(ReadHelper.getAnnotationProperty(e.as(OntNAP.class), dataFactory()).getObject());
         }
         if (e.canAs(OntNDP.class)) {
-            res.add(ReadHelper.getDataProperty(e.as(OntNDP.class)));
+            res.add(ReadHelper.getDataProperty(e.as(OntNDP.class), dataFactory()).getObject());
         }
         if (e.canAs(OntNOP.class)) {
-            res.add(ReadHelper.getObjectProperty(e.as(OntNOP.class)).asOWLObjectProperty());
+            res.add(ReadHelper.getObjectProperty(e.as(OntNOP.class), dataFactory()).getObject().asOWLObjectProperty());
         }
         if (e.canAs(OntIndividual.Named.class)) {
-            res.add(ReadHelper.getIndividual(e.as(OntIndividual.Named.class)).asOWLNamedIndividual());
+            res.add(ReadHelper.getIndividual(e.as(OntIndividual.Named.class), dataFactory()).getObject().asOWLNamedIndividual());
         }
         return res;
     }
@@ -139,31 +144,18 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     }
 
     public void remove(OWLAnnotation annotation) {
-        Set<Triple> triples = new HashSet<>();
-        if (annotation.annotations().count() == 0) { // plain annotation
-            OntStatement ontAnnotation = getID().annotations().filter(a -> !a.hasAnnotations())
-                    .filter(a -> ReadHelper.getAnnotationProperty(a.getPredicate().as(OntNAP.class)).equals(annotation.getProperty()))
-                    .filter(a -> ReadHelper.getAnnotationValue(a.getObject()).equals(annotation.getValue())).findFirst().orElse(null);
-            if (ontAnnotation != null) {
-                triples.add(ontAnnotation.asTriple());
-                if (ontAnnotation.getObject().isAnon()) {// as value there could be anonymous individual (todo: seems incorrect - just add declaration)
-                    Models.getAssociatedStatements(ontAnnotation.getObject().asResource()).forEach(s -> triples.add(s.asTriple()));
-                }
-            }
-        } else { // bulk annotation
-            Wrap<OWLAnnotation> set = ReadHelper.getAnnotations(getID())
-                    .stream().filter(t -> t.getObject().equals(annotation)).findFirst().orElse(null);
-            if (set != null) {
-                triples.addAll(set.getTriples());
-            }
+        Wrap.Collection<OWLAnnotation> all = ReadHelper.getObjectAnnotations(getID(), dataFactory());
+        Optional<Wrap<OWLAnnotation>> res = Wrap.find(all, annotation);
+        if (!res.isPresent()) {
+            return;
         }
-        triples.stream().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
+        res.get().triples().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
         // todo: clear only those objects which belong to annotation
         owlObjectsCache.clear();
     }
 
     public Stream<OWLAnnotation> annotations() {
-        return ReadHelper.annotations(getID());
+        return ReadHelper.getObjectAnnotations(getID(), dataFactory()).objects();
     }
 
     public Set<OWLAnnotation> getAnnotations() {

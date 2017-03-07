@@ -37,9 +37,9 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
 
     @Override
     Wrap<OWLInverseObjectPropertiesAxiom> asAxiom(OntStatement statement) {
-        Wrap<? extends OWLObjectPropertyExpression> f = ReadHelper._getObjectProperty(statement.getSubject().as(OntOPE.class), getDataFactory());
-        Wrap<? extends OWLObjectPropertyExpression> s = ReadHelper._getObjectProperty(statement.getObject().as(OntOPE.class), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        Wrap<? extends OWLObjectPropertyExpression> f = ReadHelper.getObjectProperty(statement.getSubject().as(OntOPE.class), getDataFactory());
+        Wrap<? extends OWLObjectPropertyExpression> s = ReadHelper.getObjectProperty(statement.getObject().as(OntOPE.class), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
         OWLInverseObjectPropertiesAxiom res = getDataFactory().getOWLInverseObjectPropertiesAxiom(f.getObject(), s.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(f).append(s);
     }

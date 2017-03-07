@@ -28,8 +28,8 @@ class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<O
 
     @Override
     Wrap<OWLSymmetricObjectPropertyAxiom> asAxiom(OntStatement statement) {
-        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(getSubject(statement), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper.getObjectProperty(getSubject(statement), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
         OWLSymmetricObjectPropertyAxiom res = getDataFactory().getOWLSymmetricObjectPropertyAxiom(p.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }

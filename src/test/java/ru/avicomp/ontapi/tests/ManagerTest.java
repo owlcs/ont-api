@@ -25,6 +25,7 @@ import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.translators.ReadHelper;
+import ru.avicomp.ontapi.translators.Wrap;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -188,9 +189,11 @@ public class ManagerTest {
                 Assert.assertFalse("Found " + c + " inside original ontology", o1.containsResource(c))
         );
         OntologyModel ont = copy.getOntology(IRI.create(uri));
+        OWLDataFactory df = copy.getOWLDataFactory();
         Assert.assertNotNull(ont);
         List<OWLClass> newOWLClasses = newClasses.stream()
-                .map(ReadHelper::getClassExpression)
+                .map(ce -> ReadHelper.getClassExpression(ce, df))
+                .map(Wrap::getObject)
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: " + newOWLClasses);
         newOWLClasses.forEach(c ->

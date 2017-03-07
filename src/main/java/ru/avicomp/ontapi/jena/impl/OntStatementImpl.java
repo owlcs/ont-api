@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.iterator.Iter;
@@ -10,7 +9,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.StatementImpl;
-import org.apache.jena.util.iterator.UniqueFilter;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
@@ -59,15 +57,23 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public Stream<OntStatement> annotations() {
-        Resource root = findAnnotation(this, getAnnotationRoot());
+        Resource root = findAnnotationRoot(this, getAnnotationRoot());
         if (root == null) return Stream.empty();
         return children(root, getModel());
     }
 
     @Override
+    public boolean hasAnnotations() {
+        Resource root = findAnnotationRoot(this, getAnnotationRoot());
+        if (root == null) return false;
+        // skip rdf:type, owl:annotatedSource, owl:annotatedSource, owl:annotatedSource
+        return root.listProperties().toSet().size() > 4;
+    }
+
+    @Override
     public void deleteAnnotation(OntNAP property, RDFNode value) {
         checkAnnotationInput(property, value);
-        Resource root = findAnnotation(this, getAnnotationRoot());
+        Resource root = findAnnotationRoot(this, getAnnotationRoot());
         if (root == null) return;
         if (getModel().contains(root, property, value)) {
             CommonAnnotationImpl res = new CommonAnnotationImpl(root, property, value, getModel());
@@ -133,7 +139,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return {@link CommonAnnotationImpl}
      */
     public static CommonAnnotationImpl addAnnotation(OntStatement base, Resource type, OntNAP property, RDFNode value) {
-        Resource root = findAnnotation(base, type);
+        Resource root = findAnnotationRoot(base, type);
         if (root == null) {
             root = createAnnotation(base, type);
         }
@@ -148,16 +154,12 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param type owl:Axiom or owl:Annotation
      * @return Anonymous resource
      */
-    public static Resource findAnnotation(OntStatement base, Resource type) {
+    public static Resource findAnnotationRoot(OntStatement base, Resource type) {
         OntGraphModel model = base.getModel();
-        List<Resource> candidates = model.listStatements(null, OWL.annotatedSource, base.getSubject()).mapWith(Statement::getSubject).filterKeep(new UniqueFilter<>()).toList();
-        for (Resource res : candidates) {
-            if (!model.contains(res, RDF.type, type)) continue;
-            if (!model.contains(res, OWL.annotatedProperty, base.getPredicate())) continue;
-            if (!model.contains(res, OWL.annotatedTarget, base.getObject())) continue;
-            return res;
-        }
-        return null;
+        return Iter.asStream(model.listResourcesWithProperty(OWL.annotatedSource, base.getSubject()))
+                .filter(r -> r.hasProperty(RDF.type, type))
+                .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
+                .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject())).findFirst().orElse(null);
     }
 
     /**
@@ -241,6 +243,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         }
 
         @Override
+        public boolean hasAnnotations() {
+            return Iter.asStream(getSubject().listProperties()).map(Statement::getPredicate).anyMatch(p -> p.canAs(OntNAP.class)) || super.hasAnnotations();
+        }
+
+        @Override
         public void deleteAnnotation(OntNAP property, RDFNode value) {
             checkAnnotationInput(property, value);
             getModel().removeAll(getSubject(), property, value);
@@ -294,6 +301,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         public Stream<OntStatement> annotations() {
             if (isAssertion()) return Stream.empty();
             return super.annotations();
+        }
+
+        @Override
+        public boolean hasAnnotations() {
+            return !isAssertion() && super.hasAnnotations();
         }
 
         /**

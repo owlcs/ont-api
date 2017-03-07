@@ -6,7 +6,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.*;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Statement;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import ru.avicomp.ontapi.OntApiException;
@@ -75,9 +77,25 @@ public class Wrap<O extends OWLObject> {
         return hashCode = object.hashCode();
     }
 
+    /**
+     * finds {@link Wrap} by {@link OWLObject}
+     * Note: it does not take into account hashCode.
+     * the violation of contract inside OWLLiteral and any contained with literal inside/
+     * See description for method {@link ReadHelper#getLiteral(Literal, OWLDataFactory)}
+     *
+     * @param set the collection of {@link Wrap}
+     * @param key {@link OWLObject}
+     * @return Optional around {@link Wrap}
+     */
     public static <O extends OWLObject> Optional<Wrap<O>> find(java.util.Collection<Wrap<O>> set, O key) {
-        int h = OntApiException.notNull(key, "null key").hashCode();
-        return set.stream().filter(Objects::nonNull).filter(o -> o.hashCode() == h).filter(o -> key.equals(o.getObject())).findAny();
+        OntApiException.notNull(key, "null key");
+        return set.stream().filter(Objects::nonNull).filter(o -> key.equals(o.getObject())).findAny();
+        //int h = OntApiException.notNull(key, "null key").hashCode();
+        //return set.stream().filter(Objects::nonNull).filter(o -> o.hashCode() == h).filter(o -> key.equals(o.getObject())).findAny();
+    }
+
+    public static <O extends OWLObject> Optional<Wrap<O>> find(Collection<O> set, O key) {
+        return find(set.wraps, key);
     }
 
     public static <O extends OWLObject> Wrap<O> create(O o, Stream<? extends Statement> content) {

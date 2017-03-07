@@ -28,8 +28,8 @@ class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<O
 
     @Override
     Wrap<OWLReflexiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
-        Wrap<OWLObjectPropertyExpression> p = ReadHelper._getObjectProperty(getSubject(statement), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        Wrap<OWLObjectPropertyExpression> p = ReadHelper.getObjectProperty(getSubject(statement), getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
         OWLReflexiveObjectPropertyAxiom res = getDataFactory().getOWLReflexiveObjectPropertyAxiom(p.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }

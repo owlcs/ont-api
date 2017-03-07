@@ -16,6 +16,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Base Ont Resource.
+ * The analogue of {@link org.apache.jena.ontology.OntResource}
  * <p>
  * Created by szuev on 01.11.2016.
  */
@@ -60,6 +61,9 @@ public interface OntObject extends Resource {
      * @return {@link Optional} around {@link OntStatement}
      */
     Optional<OntStatement> statement(Property property, RDFNode object);
+
+    @Override
+    OntStatement getRequiredProperty(Property property);
 
     /**
      * returns the <b>first</b> statement for specified property.

@@ -41,9 +41,9 @@ class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUn
     Wrap<OWLDisjointUnionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory();
         OntClass clazz = statement.getSubject().as(OntClass.class);
-        Wrap<? extends OWLClassExpression> subject = ReadHelper._getClassExpression(clazz, df);
-        Wrap.Collection<? extends OWLClassExpression> members = Wrap.Collection.create(clazz.disjointUnionOf().map(s -> ReadHelper._getClassExpression(s, df)));
-        Wrap.Collection<OWLAnnotation> annotations = annotations(statement);
+        Wrap<? extends OWLClassExpression> subject = ReadHelper.getClassExpression(clazz, df);
+        Wrap.Collection<? extends OWLClassExpression> members = Wrap.Collection.create(clazz.disjointUnionOf().map(s -> ReadHelper.getClassExpression(s, df)));
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
         OWLDisjointUnionAxiom res = df.getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(), members.getObjects(), annotations.getObjects());
         return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }

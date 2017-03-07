@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 
@@ -66,16 +65,6 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link Wrap} around the {@link OWLAxiom}
      */
     abstract Wrap<Axiom> asAxiom(OntStatement statement);
-
-    /**
-     * returns the container with set of {@link OWLAnnotation} associated with the specified statement.
-     *
-     * @param statement {@link OntStatement}
-     * @return {@link ru.avicomp.ontapi.translators.Wrap.Collection} of {@link OWLAnnotation}
-     */
-    Wrap.Collection<OWLAnnotation> annotations(OntStatement statement) {
-        return new Wrap.Collection<>(ReadHelper.getAnnotations(statement));
-    }
 
     /**
      * todo: should be passed from outside
