@@ -110,7 +110,7 @@ public class ReadHelper {
     }
 
     /**
-     * NOTE: THE VIOLATION OF THE FUNDAMENTAL JAVA CONTRACT!
+     * NOTE: THE VIOLATION OF THE FUNDAMENTAL JAVA CONTRACT (OWL-API 5.0.5):
      * The different implementations of {@link OWLLiteral} have different mechanism to calculate hash.
      * For example {@link OWLLiteralImplInteger}.hashCode != {@link OWLLiteralImpl}.hashCode
      * So even if {@link OWLLiteral}s equal there is no guarantee that {@link Set}s of {@link OWLLiteral}s equal too.

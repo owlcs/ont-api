@@ -8,10 +8,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.HasAnnotations;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -78,10 +75,11 @@ class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualA
 
     @Override
     Wrap<OWLSameIndividualAxiom> asAxiom(OntStatement statement) {
-        Wrap<? extends OWLIndividual> a = ReadHelper.getIndividual(statement.getSubject().as(getView()), getDataFactory());
-        Wrap<? extends OWLIndividual> b = ReadHelper.getIndividual(statement.getObject().as(getView()), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLSameIndividualAxiom res = getDataFactory().getOWLSameIndividualAxiom(a.getObject(), b.getObject(), annotations.getObjects());
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<? extends OWLIndividual> a = ReadHelper.getIndividual(statement.getSubject().as(getView()), df);
+        Wrap<? extends OWLIndividual> b = ReadHelper.getIndividual(statement.getObject().as(getView()), df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLSameIndividualAxiom res = df.getOWLSameIndividualAxiom(a.getObject(), b.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }
 }

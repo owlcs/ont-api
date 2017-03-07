@@ -1,9 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataProperty;
-import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
-import org.semanticweb.owlapi.model.OWLDataRange;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntNDP;
@@ -22,10 +19,11 @@ class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLDat
 
     @Override
     Wrap<OWLDataPropertyRangeAxiom> asAxiom(OntStatement statement) {
-        Wrap<OWLDataProperty> p = ReadHelper.getDataProperty(statement.getSubject().as(getView()), getDataFactory());
-        Wrap<? extends OWLDataRange> d = ReadHelper.getDataRange(statement.getObject().as(OntDR.class), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLDataPropertyRangeAxiom res = getDataFactory().getOWLDataPropertyRangeAxiom(p.getObject(), d.getObject(), annotations.getObjects());
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<OWLDataProperty> p = ReadHelper.getDataProperty(statement.getSubject().as(getView()), df);
+        Wrap<? extends OWLDataRange> d = ReadHelper.getDataRange(statement.getObject().as(OntDR.class), df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLDataPropertyRangeAxiom res = df.getOWLDataPropertyRangeAxiom(p.getObject(), d.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(d);
     }
 }

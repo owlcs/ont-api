@@ -2,10 +2,7 @@ package ru.avicomp.ontapi.translators;
 
 import java.util.stream.Stream;
 
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -46,11 +43,12 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
 
     @Override
     Wrap<OWLObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
-        Wrap<? extends OWLIndividual> subject = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class), getDataFactory());
-        Wrap<OWLObjectPropertyExpression> property = ReadHelper.getObjectProperty(statement.getPredicate().as(OntOPE.class), getDataFactory());
-        Wrap<? extends OWLIndividual> object = ReadHelper.getIndividual(statement.getObject().as(OntIndividual.class), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLObjectPropertyAssertionAxiom res = getDataFactory().getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<? extends OWLIndividual> subject = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class), df);
+        Wrap<OWLObjectPropertyExpression> property = ReadHelper.getObjectProperty(statement.getPredicate().as(OntOPE.class), df);
+        Wrap<? extends OWLIndividual> object = ReadHelper.getIndividual(statement.getObject().as(OntIndividual.class), df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLObjectPropertyAssertionAxiom res = df.getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
                 annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(subject).append(property).append(object);
     }

@@ -2,10 +2,7 @@ package ru.avicomp.ontapi.translators;
 
 import java.util.stream.Stream;
 
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationPropertyDomainAxiom;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
@@ -37,10 +34,11 @@ class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTranslato
 
     @Override
     Wrap<OWLAnnotationPropertyDomainAxiom> asAxiom(OntStatement statement) {
-        Wrap<OWLAnnotationProperty> p = ReadHelper.getAnnotationProperty(statement.getSubject().as(getView()), getDataFactory());
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<OWLAnnotationProperty> p = ReadHelper.getAnnotationProperty(statement.getSubject().as(getView()), df);
         Wrap<IRI> d = ReadHelper.wrapIRI(statement.getObject().as(OntObject.class));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLAnnotationPropertyDomainAxiom res = getDataFactory().getOWLAnnotationPropertyDomainAxiom(p.getObject(), d.getObject(), annotations.getObjects());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLAnnotationPropertyDomainAxiom res = df.getOWLAnnotationPropertyDomainAxiom(p.getObject(), d.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(d);
     }
 }

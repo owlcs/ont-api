@@ -58,7 +58,7 @@ class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDif
 
     @Override
     Wrap<OWLDifferentIndividualsAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory();
+        OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap.Collection<? extends OWLIndividual> members;
         Stream<OntStatement> content;
         if (statement.getSubject().canAs(getDisjointView())) {
@@ -70,7 +70,7 @@ class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDif
             members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
                     .map(r -> r.as(getView())).map(m -> ReadHelper.getIndividual(m, df)));
         }
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLDifferentIndividualsAxiom res = df.getOWLDifferentIndividualsAxiom(members.getObjects(), annotations.getObjects());
         return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }

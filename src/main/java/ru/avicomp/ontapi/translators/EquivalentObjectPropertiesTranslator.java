@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
@@ -38,10 +39,11 @@ class EquivalentObjectPropertiesTranslator extends AbstractNaryTranslator<OWLEqu
 
     @Override
     Wrap<OWLEquivalentObjectPropertiesAxiom> asAxiom(OntStatement statement) {
-        Wrap<OWLObjectPropertyExpression> a = ReadHelper.getObjectProperty(statement.getSubject().as(getView()), getDataFactory());
-        Wrap<OWLObjectPropertyExpression> b = ReadHelper.getObjectProperty(statement.getObject().as(getView()), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLEquivalentObjectPropertiesAxiom res = getDataFactory().getOWLEquivalentObjectPropertiesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<OWLObjectPropertyExpression> a = ReadHelper.getObjectProperty(statement.getSubject().as(getView()), df);
+        Wrap<OWLObjectPropertyExpression> b = ReadHelper.getObjectProperty(statement.getObject().as(getView()), df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLEquivalentObjectPropertiesAxiom res = df.getOWLEquivalentObjectPropertiesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }
 }

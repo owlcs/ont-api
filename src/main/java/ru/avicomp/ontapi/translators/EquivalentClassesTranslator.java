@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntCE;
@@ -39,10 +40,11 @@ class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentCl
 
     @Override
     Wrap<OWLEquivalentClassesAxiom> asAxiom(OntStatement statement) {
-        Wrap<? extends OWLClassExpression> a = ReadHelper.getClassExpression(statement.getSubject().as(getView()), getDataFactory());
-        Wrap<? extends OWLClassExpression> b = ReadHelper.getClassExpression(statement.getObject().as(getView()), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLEquivalentClassesAxiom res = getDataFactory().getOWLEquivalentClassesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<? extends OWLClassExpression> a = ReadHelper.getClassExpression(statement.getSubject().as(getView()), df);
+        Wrap<? extends OWLClassExpression> b = ReadHelper.getClassExpression(statement.getObject().as(getView()), df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLEquivalentClassesAxiom res = df.getOWLEquivalentClassesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }
 }

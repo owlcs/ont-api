@@ -4,10 +4,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataRange;
-import org.semanticweb.owlapi.model.OWLDatatype;
-import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntDT;
@@ -39,10 +36,11 @@ class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinition
 
     @Override
     Wrap<OWLDatatypeDefinitionAxiom> asAxiom(OntStatement statement) {
-        Wrap<OWLDatatype> dt = ReadHelper.getDatatype(statement.getSubject().as(OntDT.class), getDataFactory());
-        Wrap<? extends OWLDataRange> dr = ReadHelper.getDataRange(statement.getObject().as(OntDR.class), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLDatatypeDefinitionAxiom res = getDataFactory().getOWLDatatypeDefinitionAxiom(dt.getObject(), dr.getObject(), annotations.getObjects());
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<OWLDatatype> dt = ReadHelper.getDatatype(statement.getSubject().as(OntDT.class), df);
+        Wrap<? extends OWLDataRange> dr = ReadHelper.getDataRange(statement.getObject().as(OntDR.class), df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLDatatypeDefinitionAxiom res = df.getOWLDatatypeDefinitionAxiom(dt.getObject(), dr.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(dt).append(dr);
     }
 }

@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.translators;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
@@ -31,9 +32,10 @@ class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
 
     @Override
     Wrap<OWLDeclarationAxiom> asAxiom(OntStatement statement) {
-        Wrap<OWLEntity> entity = ReadHelper.getEntity(statement.getSubject().as(OntEntity.class), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLDeclarationAxiom res = getDataFactory().getOWLDeclarationAxiom(entity.getObject(), annotations.getObjects());
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<OWLEntity> entity = ReadHelper.getEntity(statement.getSubject().as(OntEntity.class), df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLDeclarationAxiom res = df.getOWLDeclarationAxiom(entity.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples());
     }
 }

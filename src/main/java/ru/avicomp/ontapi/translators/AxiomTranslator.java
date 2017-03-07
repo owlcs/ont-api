@@ -7,11 +7,13 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.OntConfig;
+import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 /**
  * The base class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
@@ -20,10 +22,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
-
-    private AxiomParserProvider.Config config = AxiomParserProvider.DEFAULT_CONFIG;
-
-    public static final OWLDataFactory OWL_DATA_FACTORY = new OWLDataFactoryImpl();
 
     /**
      * writes axiom to model.
@@ -60,32 +58,33 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     abstract Stream<OntStatement> statements(OntGraphModel model);
 
     /**
-     *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @return {@link Wrap} around the {@link OWLAxiom}
      */
     abstract Wrap<Axiom> asAxiom(OntStatement statement);
 
     /**
-     * todo: should be passed from outside
-     *
+     * @param m {@link OntGraphModel}
      * @return {@link OWLDataFactory}
      */
-    public OWLDataFactory getDataFactory() {
-        return OWL_DATA_FACTORY;
+    OWLDataFactory getDataFactory(OntGraphModel m) {
+        return m instanceof OntInternalModel ? ((OntInternalModel) m).dataFactory() : AxiomParserProvider.DATA_FACTORY;
     }
 
     /**
-     * todo: will be removed (settings will be passed from outside)
-     * @return {@link ru.avicomp.ontapi.translators.AxiomParserProvider.Config} - it's a temporary solution.
+     * @param m {@link OntGraphModel}
+     * @return {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
      */
-    @Deprecated
-    public AxiomParserProvider.Config getConfig() {
-        return config;
+    OntConfig.LoaderConfiguration getLoaderConfig(OntGraphModel m) {
+        return AxiomParserProvider.LOADER_CONFIGURATION;
     }
 
-    @Deprecated
-    public void setConfig(AxiomParserProvider.Config config) {
-        this.config = OntApiException.notNull(config, "Null config.");
+    /**
+     * @param m {@link OntGraphModel}
+     * @return {@link OWLOntologyWriterConfiguration}
+     */
+    OWLOntologyWriterConfiguration getWriterConfig(OntGraphModel m) {
+        return AxiomParserProvider.WRITER_CONFIGURATION;
     }
+
 }

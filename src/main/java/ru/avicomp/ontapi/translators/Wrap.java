@@ -79,9 +79,9 @@ public class Wrap<O extends OWLObject> {
 
     /**
      * finds {@link Wrap} by {@link OWLObject}
-     * Note: it does not take into account hashCode.
-     * the violation of contract inside OWLLiteral and any contained with literal inside/
-     * See description for method {@link ReadHelper#getLiteral(Literal, OWLDataFactory)}
+     * Note: it does not take into account the hashCode.
+     * There is the violation of contract inside OWLLiteral and any other object (axiom, annotation) containing literals.
+     * See description of the method {@link ReadHelper#getLiteral(Literal, OWLDataFactory)}
      *
      * @param set the collection of {@link Wrap}
      * @param key {@link OWLObject}

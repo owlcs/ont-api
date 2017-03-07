@@ -4,10 +4,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -42,10 +39,11 @@ class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
 
     @Override
     Wrap<OWLClassAssertionAxiom> asAxiom(OntStatement statement) {
-        Wrap<? extends OWLIndividual> i = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class), getDataFactory());
-        Wrap<? extends OWLClassExpression> ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLClassAssertionAxiom res = getDataFactory().getOWLClassAssertionAxiom(ce.getObject(), i.getObject(), annotations.getObjects());
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<? extends OWLIndividual> i = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class), df);
+        Wrap<? extends OWLClassExpression> ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class), df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLClassAssertionAxiom res = df.getOWLClassAssertionAxiom(ce.getObject(), i.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(i).append(ce);
     }
 }

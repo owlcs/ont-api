@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -14,12 +13,15 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.reflect.ClassPath;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OntConfig;
+import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 /**
  * Axiom Graph Translator loader.
@@ -27,9 +29,12 @@ import ru.avicomp.ontapi.OntConfig;
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AxiomParserProvider {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AxiomParserProvider.class);
+    static final OWLDataFactory DATA_FACTORY = new OWLDataFactoryImpl();
+    private static final OntConfig CONFIG_HOLDER = new OntConfig();
+    static final OntConfig.LoaderConfiguration LOADER_CONFIGURATION = CONFIG_HOLDER.buildLoaderConfiguration();
+    static final OWLOntologyWriterConfiguration WRITER_CONFIGURATION = CONFIG_HOLDER.buildWriterConfiguration();
 
-    public static final Config DEFAULT_CONFIG = new Config();
+    private static final Logger LOGGER = LoggerFactory.getLogger(AxiomParserProvider.class);
 
     public static Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> getParsers() {
         return ParserHolder.PARSERS;
@@ -105,35 +110,6 @@ public abstract class AxiomParserProvider {
             } catch (ClassNotFoundException e) {
                 throw new OntApiException("Can't find class " + info, e);
             }
-        }
-    }
-
-    /**
-     * todo: use {@link OntConfig.LoaderConfiguration} instead.
-     */
-    @Deprecated
-    public static class Config {
-        private final EnumMap<Option, Object> options = new EnumMap<>(Option.class);
-
-        public boolean isCompressNaryAxioms() {
-            return is(Option.COMPRESS_NARY_AXIOMS);
-        }
-
-        public Config setCompressNaryAxioms(boolean compressNaryAxioms) {
-            return set(Option.COMPRESS_NARY_AXIOMS, compressNaryAxioms);
-        }
-
-        public boolean is(Option key) {
-            return Boolean.TRUE.equals(options.getOrDefault(key, Boolean.FALSE));
-        }
-
-        public Config set(Option key, boolean val) {
-            options.put(key, val);
-            return this;
-        }
-
-        public enum Option {
-            COMPRESS_NARY_AXIOMS,
         }
     }
 

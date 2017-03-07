@@ -32,6 +32,8 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  */
 public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel {
 
+    private static final OWLDataFactory OWL_DATA_FACTORY = new OWLDataFactoryImpl();
+
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
     private Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsCache = new HashMap<>();
@@ -50,7 +52,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
     public OWLDataFactory dataFactory() {
         // todo: should be passed outside
-        return new OWLDataFactoryImpl();
+        return OWL_DATA_FACTORY;
     }
 
     @SuppressWarnings("unchecked")

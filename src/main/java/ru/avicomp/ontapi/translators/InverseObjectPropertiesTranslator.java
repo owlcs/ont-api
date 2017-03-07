@@ -5,6 +5,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
@@ -37,10 +38,11 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
 
     @Override
     Wrap<OWLInverseObjectPropertiesAxiom> asAxiom(OntStatement statement) {
-        Wrap<? extends OWLObjectPropertyExpression> f = ReadHelper.getObjectProperty(statement.getSubject().as(OntOPE.class), getDataFactory());
-        Wrap<? extends OWLObjectPropertyExpression> s = ReadHelper.getObjectProperty(statement.getObject().as(OntOPE.class), getDataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
-        OWLInverseObjectPropertiesAxiom res = getDataFactory().getOWLInverseObjectPropertiesAxiom(f.getObject(), s.getObject(), annotations.getObjects());
+        OWLDataFactory df = getDataFactory(statement.getModel());
+        Wrap<? extends OWLObjectPropertyExpression> f = ReadHelper.getObjectProperty(statement.getSubject().as(OntOPE.class), df);
+        Wrap<? extends OWLObjectPropertyExpression> s = ReadHelper.getObjectProperty(statement.getObject().as(OntOPE.class), df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        OWLInverseObjectPropertiesAxiom res = df.getOWLInverseObjectPropertiesAxiom(f.getObject(), s.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(f).append(s);
     }
 }

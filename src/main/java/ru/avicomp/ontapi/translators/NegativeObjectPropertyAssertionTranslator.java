@@ -25,12 +25,12 @@ class NegativeObjectPropertyAssertionTranslator extends AbstractNegativeProperty
 
     @Override
     Wrap<OWLNegativeObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory();
+        OWLDataFactory df = getDataFactory(statement.getModel());
         OntNPA.ObjectAssertion npa = statement.getSubject().as(getView());
         Wrap<? extends OWLIndividual> s = ReadHelper.getIndividual(npa.getSource(), df);
         Wrap<OWLObjectPropertyExpression> p = ReadHelper.getObjectProperty(npa.getProperty(), df);
         Wrap<? extends OWLIndividual> o = ReadHelper.getIndividual(npa.getTarget(), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLNegativeObjectPropertyAssertionAxiom res = df.getOWLNegativeObjectPropertyAssertionAxiom(p.getObject(),
                 s.getObject(), o.getObject(), annotations.getObjects());
         return Wrap.create(res, npa.content()).add(annotations.getTriples()).append(s).append(p).append(o);

@@ -42,13 +42,13 @@ class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntC
 
     @Override
     Wrap<OWLHasKeyAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory();
+        OWLDataFactory df = getDataFactory(statement.getModel());
         OntCE ce = statement.getSubject().as(OntCE.class);
         Wrap<? extends OWLClassExpression> subject = ReadHelper.getClassExpression(ce, df);
         Wrap.Collection<? extends OWLPropertyExpression> members = Wrap.Collection.create(ce.hasKey()
                 .filter(p -> p.canAs(OntOPE.class) || p.canAs(OntNDP.class)) // only P or R (!)
                 .map(p -> ReadHelper.getProperty(p, df)));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, getDataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLHasKeyAxiom res = df.getOWLHasKeyAxiom(subject.getObject(), members.getObjects(), annotations.getObjects());
         return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }
