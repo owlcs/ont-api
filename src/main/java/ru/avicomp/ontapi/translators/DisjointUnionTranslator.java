@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
@@ -9,7 +8,6 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import uk.ac.manchester.cs.owl.owlapi.OWLDisjointUnionAxiomImpl;
 
 /**
  * base class: {@link AbstractSubChainedTranslator}
@@ -37,13 +35,6 @@ class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUn
     @Override
     Class<OntClass> getView() {
         return OntClass.class;
-    }
-
-    @Override
-    OWLDisjointUnionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OntClass clazz = statement.getSubject().as(OntClass.class);
-        Stream<OWLClassExpression> ces = clazz.disjointUnionOf().map(ReadHelper::getClassExpression);
-        return new OWLDisjointUnionAxiomImpl(ReadHelper.getClassExpression(clazz).asOWLClass(), ces, annotations);
     }
 
     @Override

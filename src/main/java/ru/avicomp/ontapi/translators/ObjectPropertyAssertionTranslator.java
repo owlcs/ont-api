@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -12,7 +11,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyAssertionAxiomImpl;
 
 /**
  * example:
@@ -44,14 +42,6 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
                 .filter(OntStatement::isObject)
                 .filter(s -> s.getSubject().canAs(OntIndividual.class))
                 .filter(s -> s.getObject().canAs(OntIndividual.class));
-    }
-
-    @Override
-    OWLObjectPropertyAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLIndividual subject = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
-        OWLObjectPropertyExpression property = ReadHelper.getObjectProperty(statement.getPredicate().as(OntOPE.class));
-        OWLIndividual object = ReadHelper.getIndividual(statement.getObject().as(OntIndividual.class));
-        return new OWLObjectPropertyAssertionAxiomImpl(subject, property, object, annotations);
     }
 
     @Override

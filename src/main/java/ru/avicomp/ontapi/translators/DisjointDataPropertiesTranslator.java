@@ -54,11 +54,6 @@ class DisjointDataPropertiesTranslator extends AbstractTwoWayNaryTranslator<OWLD
     }
 
     @Override
-    OWLDisjointDataPropertiesAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return create(components(statement).map(ReadHelper::getDataProperty), annotations);
-    }
-
-    @Override
     Wrap<OWLDisjointDataPropertiesAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory();
         Wrap.Collection<OWLDataProperty> members;

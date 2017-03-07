@@ -41,17 +41,13 @@ class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualA
         return new OWLSameIndividualAxiomImpl(components.collect(Collectors.toSet()), annotations);
     }
 
-    @Override
-    OWLSameIndividualAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return create(components(statement).map(ReadHelper::getIndividual), annotations);
-    }
-
     private Set<Wrap<OWLSameIndividualAxiom>> extractStandaloneAxioms(Set<Wrap<OWLSameIndividualAxiom>> set) {
         return set.stream().filter(a -> set.stream().filter(b -> !a.equals(b))
                 .noneMatch(b -> ReadHelper.isIntersect(a.getObject(), b.getObject()))).collect(Collectors.toSet());
     }
 
     /**
+     * todo: at the moment it is not used. see description of super method.
      * Compresses nary axioms to more compact form.
      * The difference with parent method is in fact that if individual 'A' is same as individual 'B', and
      * 'B' is same as 'C' then 'A' is same as 'C'.

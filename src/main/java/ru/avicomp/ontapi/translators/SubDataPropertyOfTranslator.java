@@ -1,12 +1,9 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
-
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLSubDataPropertyOfAxiomImpl;
 
 /**
  * see {@link AbstractSubPropertyTranslator}
@@ -27,13 +24,6 @@ class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubDa
     @Override
     Class<OntNDP> getView() {
         return OntNDP.class;
-    }
-
-    @Override
-    OWLSubDataPropertyOfAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLDataProperty sub = ReadHelper.getDataProperty(statement.getSubject().as(OntNDP.class));
-        OWLDataProperty sup = ReadHelper.getDataProperty(statement.getObject().as(OntNDP.class));
-        return new OWLSubDataPropertyOfAxiomImpl(sub, sup, annotations);
     }
 
     @Override

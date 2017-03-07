@@ -1,9 +1,7 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
@@ -44,16 +42,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      */
     public Set<Wrap<Axiom>> read(OntGraphModel model) {
         try {
-            Map<Axiom, Wrap<Axiom>> res = new HashMap<>();
-            statements(model).map(ReadHelper.AxiomStatement::new).forEach(c -> {
-                Axiom axiom = create(c.getStatement(), c.getAnnotations());
-                Set<Triple> triples = c.getTriples();
-                res.compute(axiom, (a, container) -> container == null ? new Wrap<>(a, triples) : container.add(triples));
-            });
-            return new HashSet<>(res.values());
+            return readAxioms(model);
         } catch (Exception e) {
             throw new OntApiException(String.format("Can't process reading. Translator <%s>.", getClass()), e);
         }
+    }
+
+    public Set<Wrap<Axiom>> readAxioms(OntGraphModel model) {
+        return statements(model).map(this::asAxiom).collect(Collectors.toSet());
     }
 
     /**
@@ -63,16 +59,6 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return Stream of {@link OntStatement}
      */
     abstract Stream<OntStatement> statements(OntGraphModel model);
-
-    /**
-     * todo: going to replace this method with {@link #asAxiom(OntStatement)}
-     *
-     * @param statement   {@link OntStatement}
-     * @param annotations Set of {@link OWLAnnotation}
-     * @return {@link OWLAxiom}
-     */
-    @Deprecated
-    abstract Axiom create(OntStatement statement, Set<OWLAnnotation> annotations);
 
     /**
      *
@@ -104,10 +90,12 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * todo: will be removed (settings will be passed from outside)
      * @return {@link ru.avicomp.ontapi.translators.AxiomParserProvider.Config} - it's a temporary solution.
      */
+    @Deprecated
     public AxiomParserProvider.Config getConfig() {
         return config;
     }
 
+    @Deprecated
     public void setConfig(AxiomParserProvider.Config config) {
         this.config = OntApiException.notNull(config, "Null config.");
     }

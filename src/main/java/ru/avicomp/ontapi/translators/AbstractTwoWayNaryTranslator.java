@@ -51,14 +51,6 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
                 model.ontObjects(getDisjointView()).filter(OntObject::isLocal).map(OntObject::getRoot));
     }
 
-    @Override
-    Stream<ONT> components(OntStatement statement) {
-        if (statement.getSubject().canAs(getDisjointView())) {
-            return statement.getSubject().as(getDisjointView()).members();
-        }
-        return super.components(statement);
-    }
-
     abstract Resource getMembersType();
 
     abstract Property getMembersPredicate();

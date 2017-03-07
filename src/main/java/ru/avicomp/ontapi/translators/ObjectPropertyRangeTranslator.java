@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
-
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -10,7 +8,6 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyRangeAxiomImpl;
 
 /**
  * see {@link AbstractPropertyRangeTranslator}
@@ -21,13 +18,6 @@ class ObjectPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLO
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
-    }
-
-    @Override
-    OWLObjectPropertyRangeAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLObjectPropertyExpression p = ReadHelper.getObjectProperty(statement.getSubject().as(OntOPE.class));
-        OWLClassExpression ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
-        return new OWLObjectPropertyRangeAxiomImpl(p, ce, annotations);
     }
 
     @Override

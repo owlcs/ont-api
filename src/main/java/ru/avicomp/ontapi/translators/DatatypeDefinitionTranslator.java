@@ -1,7 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -15,7 +14,6 @@ import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 
 /**
  * example:
@@ -37,13 +35,6 @@ class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinition
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .filter(OntStatement::isLocal);
-    }
-
-    @Override
-    OWLDatatypeDefinitionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLDatatype dt = ReadHelper.getDatatype(statement.getSubject().as(OntDT.class));
-        OWLDataRange dr = ReadHelper.getDataRange(statement.getObject().as(OntDR.class));
-        return new OWLDatatypeDefinitionAxiomImpl(dt, dr, annotations);
     }
 
     @Override

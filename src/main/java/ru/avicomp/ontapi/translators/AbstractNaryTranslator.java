@@ -64,10 +64,6 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
                 .filter(OntStatement::isLocal);
     }
 
-    Stream<ONT> components(OntStatement statement) {
-        return Stream.of(statement.getSubject().as(getView()), statement.getObject().as(getView()));
-    }
-
     private Set<Wrap<Axiom>> readPairwiseAxioms(OntGraphModel model) {
         Set<Wrap<Axiom>> init = super.read(model);
         Set<Wrap<Axiom>> res = new HashSet<>();
@@ -82,6 +78,7 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
     }
 
     /**
+     * todo: better place this mechanism as {@link ru.avicomp.ontapi.jena.converters.TransformAction}. At the moment it is not used.
      * Compresses collection of nary axioms to more compact form.
      * <p>
      * The mechanism is the same for all kind of nary-axioms with except of SameAs axiom.
@@ -154,7 +151,9 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
     }
 
     @Override
-    public Set<Wrap<Axiom>> read(OntGraphModel model) {
-        return getConfig().isCompressNaryAxioms() ? shrink(readPairwiseAxioms(model)) : super.read(model);
+    public Set<Wrap<Axiom>> readAxioms(OntGraphModel model) {
+        Map<Axiom, Wrap<Axiom>> res = new HashMap<>();
+        statements(model).map(this::asAxiom).forEach(c -> res.compute(c.getObject(), (a, w) -> w == null ? c : w.append(c)));
+        return new HashSet<>(res.values());
     }
 }

@@ -1,7 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -12,7 +11,6 @@ import org.semanticweb.owlapi.model.OWLIndividual;
 
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionAxiomImpl;
 
 /**
  * Creating individual (both named and anonymous):
@@ -40,13 +38,6 @@ class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .filter(OntStatement::isLocal);
-    }
-
-    @Override
-    OWLClassAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLIndividual i = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
-        OWLClassExpression ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
-        return new OWLClassAssertionAxiomImpl(i, ce, annotations);
     }
 
     @Override

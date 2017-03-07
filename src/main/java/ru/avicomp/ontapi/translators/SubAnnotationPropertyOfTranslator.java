@@ -1,12 +1,9 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
-
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLSubAnnotationPropertyOfAxiomImpl;
 
 /**
  * see {@link AbstractSubPropertyTranslator}
@@ -27,13 +24,6 @@ class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OW
     @Override
     Class<OntNAP> getView() {
         return OntNAP.class;
-    }
-
-    @Override
-    OWLSubAnnotationPropertyOfAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLAnnotationProperty sub = ReadHelper.getAnnotationProperty(statement.getSubject().as(OntNAP.class));
-        OWLAnnotationProperty sup = ReadHelper.getAnnotationProperty(statement.getObject().as(OntNAP.class));
-        return new OWLSubAnnotationPropertyOfAxiomImpl(sub, sup, annotations);
     }
 
     @Override

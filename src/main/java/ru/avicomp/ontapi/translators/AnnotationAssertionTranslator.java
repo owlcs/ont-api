@@ -1,13 +1,11 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.*;
-import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 
 /**
  * Examples:
@@ -34,14 +32,6 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
 
     private static boolean testAnnotationSubject(Resource candidate, OntID id) {
         return !candidate.equals(id) && (candidate.isURIResource() || candidate.canAs(OntIndividual.Anonymous.class));
-    }
-
-    @Override
-    OWLAnnotationAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLAnnotationSubject subject = ReadHelper.getAnnotationSubject(statement.getSubject());
-        OWLAnnotationProperty property = ReadHelper.getAnnotationProperty(statement.getPredicate().as(OntNAP.class));
-        OWLAnnotationValue value = ReadHelper.getAnnotationValue(statement.getObject());
-        return new OWLAnnotationAssertionAxiomImpl(subject, property, value, annotations);
     }
 
     @Override

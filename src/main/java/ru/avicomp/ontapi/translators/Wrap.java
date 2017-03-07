@@ -22,17 +22,9 @@ public class Wrap<O extends OWLObject> {
     private final Set<Triple> triples;
     private int hashCode;
 
-    protected Wrap(O object) { // special case for literals
-        this.object = OntApiException.notNull(object, "Null OWLObject.");
-        this.triples = Collections.emptySet();
-    }
-
     public Wrap(O object, Set<Triple> triples) {
         this.object = OntApiException.notNull(object, "Null OWLObject.");
-        if (OntApiException.notNull(triples, "Null triples.").isEmpty()) {
-            throw new OntApiException("Empty triple set.");
-        }
-        this.triples = Collections.unmodifiableSet(triples);
+        this.triples = Collections.unmodifiableSet(OntApiException.notNull(triples, "Null triples."));
     }
 
     public Wrap(O object, Triple triple) {

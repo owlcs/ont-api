@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -12,7 +11,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 
 /**
  * Declaration of OWLEntity.
@@ -29,12 +27,6 @@ class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontEntities().filter(OntObject::isLocal).map(OntObject::getRoot);
-    }
-
-    @Override
-    OWLDeclarationAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLEntity entity = ReadHelper.getEntity(statement.getSubject().as(OntEntity.class));
-        return new OWLDeclarationAxiomImpl(entity, annotations);
     }
 
     @Override

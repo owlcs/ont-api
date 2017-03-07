@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
-
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
@@ -10,7 +8,6 @@ import org.semanticweb.owlapi.model.OWLDataPropertyDomainAxiom;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyDomainAxiomImpl;
 
 /**
  * see {@link AbstractPropertyDomainTranslator}
@@ -22,13 +19,6 @@ class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLD
     @Override
     Class<OntNDP> getView() {
         return OntNDP.class;
-    }
-
-    @Override
-    OWLDataPropertyDomainAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLDataProperty p = ReadHelper.getDataProperty(statement.getSubject().as(OntNDP.class));
-        OWLClassExpression ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
-        return new OWLDataPropertyDomainAxiomImpl(p, ce, annotations);
     }
 
     @Override

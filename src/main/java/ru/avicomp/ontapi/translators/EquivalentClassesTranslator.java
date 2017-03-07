@@ -38,11 +38,6 @@ class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentCl
     }
 
     @Override
-    OWLEquivalentClassesAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return create(components(statement).map(ReadHelper::getClassExpression), annotations);
-    }
-
-    @Override
     Wrap<OWLEquivalentClassesAxiom> asAxiom(OntStatement statement) {
         Wrap<? extends OWLClassExpression> a = ReadHelper._getClassExpression(statement.getSubject().as(getView()), getDataFactory());
         Wrap<? extends OWLClassExpression> b = ReadHelper._getClassExpression(statement.getObject().as(getView()), getDataFactory());

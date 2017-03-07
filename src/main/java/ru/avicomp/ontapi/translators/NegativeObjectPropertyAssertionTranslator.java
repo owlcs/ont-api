@@ -1,13 +1,10 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
-
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLNegativeObjectPropertyAssertionAxiomImpl;
 
 /**
  * example:
@@ -24,15 +21,6 @@ class NegativeObjectPropertyAssertionTranslator extends AbstractNegativeProperty
     @Override
     Class<OntNPA.ObjectAssertion> getView() {
         return OntNPA.ObjectAssertion.class;
-    }
-
-    @Override
-    OWLNegativeObjectPropertyAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OntNPA.ObjectAssertion npa = statement.getSubject().as(OntNPA.ObjectAssertion.class);
-        OWLIndividual subject = ReadHelper.getIndividual(npa.getSource());
-        OWLObjectPropertyExpression property = ReadHelper.getObjectProperty(npa.getProperty());
-        OWLIndividual object = ReadHelper.getIndividual(npa.getTarget());
-        return new OWLNegativeObjectPropertyAssertionAxiomImpl(subject, property, object, annotations);
     }
 
     @Override

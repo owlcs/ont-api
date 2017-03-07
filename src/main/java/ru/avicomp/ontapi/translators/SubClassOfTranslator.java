@@ -1,7 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -13,7 +12,6 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLSubClassOfAxiomImpl;
 
 /**
  * Examples:
@@ -36,13 +34,6 @@ class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .filter(OntStatement::isLocal);
-    }
-
-    @Override
-    OWLSubClassOfAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLClassExpression sub = ReadHelper.getClassExpression(statement.getSubject().as(OntCE.class));
-        OWLClassExpression sup = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class));
-        return new OWLSubClassOfAxiomImpl(sub, sup, annotations);
     }
 
     @Override

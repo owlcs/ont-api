@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -11,7 +9,6 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import uk.ac.manchester.cs.owl.owlapi.OWLSubPropertyChainAxiomImpl;
 
 /**
  * base class : {@link AbstractSubChainedTranslator}
@@ -39,13 +36,6 @@ class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPr
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
-    }
-
-    @Override
-    OWLSubPropertyChainOfAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OntOPE subject = statement.getSubject().as(OntOPE.class);
-        List<OWLObjectPropertyExpression> children = subject.superPropertyOf().map(ReadHelper::getObjectProperty).collect(Collectors.toList());
-        return new OWLSubPropertyChainAxiomImpl(children, ReadHelper.getObjectProperty(subject), annotations);
     }
 
     @Override

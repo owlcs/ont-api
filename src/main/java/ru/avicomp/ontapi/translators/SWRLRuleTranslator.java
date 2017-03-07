@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,7 +12,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.SWRLRuleImpl;
 
 /**
  * for "Rule" Axiom {@link org.semanticweb.owlapi.model.AxiomType#SWRL_RULE}
@@ -33,14 +30,6 @@ class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(OntSWRL.Imp.class).filter(OntObject::isLocal).map(OntObject::getRoot);
-    }
-
-    @Override
-    SWRLRule create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
-        List<SWRLAtom> head = imp.head().map(ReadHelper::getSWRLAtom).collect(Collectors.toList());
-        List<SWRLAtom> body = imp.body().map(ReadHelper::getSWRLAtom).collect(Collectors.toList());
-        return new SWRLRuleImpl(head, body, annotations);
     }
 
     @Override

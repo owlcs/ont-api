@@ -13,7 +13,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
@@ -30,8 +29,6 @@ import uk.ac.manchester.cs.owl.owlapi.*;
 
 /**
  * Helper to translate rdf-graph to the owl-objects form.
- * TODO: need to handle bad recursions (the simplest example: "_:b0 rdfs:subClassOf _:b0")
- * TODO: replace the return types of all methods from OWLObject to Wrap<OWLObject>
  * <p>
  * Created by @szuev on 25.11.2016.
  */
@@ -64,10 +61,6 @@ public class ReadHelper {
      */
     public static Wrap<OWLEntity> _getEntity(OntEntity entity, OWLDataFactory df) {
         return Wrap.create(getEntity(entity, df), entity);
-    }
-
-    public static OWLEntity getEntity(OntEntity entity) {
-        return getEntity(entity, OWL_DATA_FACTORY);
     }
 
     public static OWLEntity getEntity(OntEntity entity, OWLDataFactory df) {
@@ -152,7 +145,7 @@ public class ReadHelper {
             txt = txt + "@" + lang;
         }
         OWLLiteral res = df.getOWLLiteral(txt, dt);
-        return new Wrap<>(res);
+        return Wrap.create(res, Stream.empty());
     }
 
     /**
@@ -187,16 +180,6 @@ public class ReadHelper {
         }
         if (resource.isAnon()) {
             return _getAnonymousIndividual(Models.asAnonymousIndividual(resource), df);
-        }
-        throw new OntApiException("Not an AnnotationSubject " + resource);
-    }
-
-    public static OWLAnnotationSubject getAnnotationSubject(Resource resource) {
-        if (OntApiException.notNull(resource, "Null resource").isURIResource()) {
-            return IRI.create(resource.getURI());
-        }
-        if (resource.isAnon()) {
-            return getAnonymousIndividual(Models.asAnonymousIndividual(resource));
         }
         throw new OntApiException("Not an AnnotationSubject " + resource);
     }
@@ -777,14 +760,6 @@ public class ReadHelper {
         return Wrap.create(df.getSWRLVariable(IRI.create(var.getURI())), var);
     }
 
-    public static SWRLVariable getSWRLVariable(OntSWRL.Variable var) {
-        if (!OntApiException.notNull(var, "Null swrl var").isURIResource()) {
-            throw new OntApiException("Anonymous swrl var " + var);
-        }
-        // not public access:
-        return OWL_DATA_FACTORY.getSWRLVariable(IRI.create(var.getURI()));
-    }
-
     /**
      * todo:
      *
@@ -802,16 +777,6 @@ public class ReadHelper {
         throw new OntApiException("Unsupported SWRL-D arg " + arg);
     }
 
-    public static SWRLDArgument getSWRLiteralDArg(OntSWRL.DArg arg) {
-        if (OntApiException.notNull(arg, "Null SWRL-D arg").isLiteral()) {
-            return new SWRLLiteralArgumentImpl(getLiteral(arg.asLiteral()));
-        }
-        if (arg.canAs(OntSWRL.Variable.class)) {
-            return getSWRLVariable(arg.as(OntSWRL.Variable.class));
-        }
-        throw new OntApiException("Unsupported SWRL-D arg " + arg);
-    }
-
     /**
      * todo:
      *
@@ -825,16 +790,6 @@ public class ReadHelper {
         }
         if (arg.canAs(OntSWRL.Variable.class)) {
             return _getSWRLVariable(arg.as(OntSWRL.Variable.class), df);
-        }
-        throw new OntApiException("Unsupported SWRL-I arg " + arg);
-    }
-
-    public static SWRLIArgument getSWRLIndividualArg(OntSWRL.IArg arg) {
-        if (OntApiException.notNull(arg, "Null SWRL-I arg").canAs(OntIndividual.class)) {
-            return new SWRLIndividualArgumentImpl(getIndividual(arg.as(OntIndividual.class)));
-        }
-        if (arg.canAs(OntSWRL.Variable.class)) {
-            return getSWRLVariable(arg.as(OntSWRL.Variable.class));
         }
         throw new OntApiException("Unsupported SWRL-I arg " + arg);
     }
@@ -900,42 +855,6 @@ public class ReadHelper {
         throw new OntApiException("Unsupported SWRL atom " + atom);
     }
 
-    public static SWRLAtom getSWRLAtom(OntSWRL.Atom atom) {
-        OntApiException.notNull(atom, "Null SWRL atom.");
-        if (OntSWRL.Atom.BuiltIn.class.isInstance(atom)) {
-            OntSWRL.Atom.BuiltIn a = (OntSWRL.Atom.BuiltIn) atom;
-            IRI i = IRI.create(a.getPredicate().getURI());
-            return new SWRLBuiltInAtomImpl(i, a.arguments().map(ReadHelper::getSWRLiteralDArg).collect(Collectors.toList()));
-        }
-        if (OntSWRL.Atom.OntClass.class.isInstance(atom)) {
-            OntSWRL.Atom.OntClass a = (OntSWRL.Atom.OntClass) atom;
-            return new SWRLClassAtomImpl(getClassExpression(a.getPredicate()), getSWRLIndividualArg(a.getArg()));
-        }
-        if (OntSWRL.Atom.DataProperty.class.isInstance(atom)) {
-            OntSWRL.Atom.DataProperty a = (OntSWRL.Atom.DataProperty) atom;
-            return new SWRLDataPropertyAtomImpl(getDataProperty(a.getPredicate()), getSWRLIndividualArg(a.getFirstArg()), getSWRLiteralDArg(a.getSecondArg()));
-        }
-        if (OntSWRL.Atom.ObjectProperty.class.isInstance(atom)) {
-            OntSWRL.Atom.ObjectProperty a = (OntSWRL.Atom.ObjectProperty) atom;
-            return new SWRLObjectPropertyAtomImpl(getObjectProperty(a.getPredicate()), getSWRLIndividualArg(a.getFirstArg()), getSWRLIndividualArg(a.getSecondArg()));
-        }
-        if (OntSWRL.Atom.DataRange.class.isInstance(atom)) {
-            OntSWRL.Atom.DataRange a = (OntSWRL.Atom.DataRange) atom;
-            return new SWRLDataRangeAtomImpl(getDataRange(a.getPredicate()), getSWRLiteralDArg(a.getArg()));
-        }
-        if (OntSWRL.Atom.DifferentIndividuals.class.isInstance(atom)) {
-            OntSWRL.Atom.DifferentIndividuals a = (OntSWRL.Atom.DifferentIndividuals) atom;
-            OWLObjectProperty property = new OWLObjectPropertyImpl(IRI.create(OWL.differentFrom.getURI())); // it is not true object property.
-            return new SWRLDifferentIndividualsAtomImpl(property, getSWRLIndividualArg(a.getFirstArg()), getSWRLIndividualArg(a.getSecondArg()));
-        }
-        if (OntSWRL.Atom.SameIndividuals.class.isInstance(atom)) {
-            OntSWRL.Atom.SameIndividuals a = (OntSWRL.Atom.SameIndividuals) atom;
-            OWLObjectProperty property = new OWLObjectPropertyImpl(IRI.create(OWL.sameAs.getURI())); // it is not true object property.
-            return new SWRLSameIndividualAtomImpl(property, getSWRLIndividualArg(a.getFirstArg()), getSWRLIndividualArg(a.getSecondArg()));
-        }
-        throw new OntApiException("Unsupported SWRL atom " + atom);
-    }
-
     /**
      * answers true if two nary axioms intersect, i.e. they have the same annotations and some components are included in both axioms.
      *
@@ -948,56 +867,6 @@ public class ReadHelper {
         Set set1 = ((Stream<?>) left.operands()).collect(Collectors.toSet());
         Set set2 = ((Stream<?>) right.operands()).collect(Collectors.toSet());
         return !Collections.disjoint(set1, set2);
-    }
-
-    /**
-     * A helper object, which helps
-     * to find all (owl-)annotations and triples related to the specified statement.
-     * todo: it seems it is wrong - the set should contain main triple, declaration triple and annotations triples.
-     */
-    @Deprecated
-    public static class AxiomStatement {
-        private final OntStatement statement;
-        private final Set<Triple> triples;
-        private final Set<OWLAnnotation> annotations;
-
-        public AxiomStatement(OntStatement main) {
-            this.statement = OntApiException.notNull(main, "Null statement.");
-            this.triples = new HashSet<>();
-            this.annotations = new HashSet<>();
-            triples.add(main.asTriple());
-            Resource subject = main.getSubject();
-            RDFNode object = main.getObject();
-            Stream<Statement> associated;
-
-            if (subject.isAnon()
-                    // todo: seems this place degrades the performance. need to change whole mechanism (separate to each translator)
-                    && !subject.canAs(OntIndividual.Anonymous.class)) { // for anonymous axioms (e.g. disjoint all)
-                associated = Models.getAssociatedStatements(subject).stream();
-            } else if (object.isAnon()) { // e.g. anon class expression in statement subClassOf
-                associated = Models.getAssociatedStatements(object.asResource()).stream();
-            } else {
-                associated = Stream.empty();
-            }
-            associated.map(Statement::asTriple).forEach(triples::add);
-            ReadHelper.getAnnotations(main).forEach(a -> {
-                triples.addAll(a.getTriples());
-                annotations.add(a.getObject());
-            });
-        }
-
-        public OntStatement getStatement() {
-            return statement;
-        }
-
-        public Set<Triple> getTriples() {
-            return triples;
-        }
-
-        public Set<OWLAnnotation> getAnnotations() {
-            return annotations;
-        }
-
     }
 
 }

@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
-
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -10,7 +8,6 @@ import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import uk.ac.manchester.cs.owl.owlapi.OWLReflexiveObjectPropertyAxiomImpl;
 
 /**
  * base classes {@link AbstractPropertyTypeTranslator}
@@ -27,11 +24,6 @@ class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<O
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
-    }
-
-    @Override
-    OWLReflexiveObjectPropertyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        return new OWLReflexiveObjectPropertyAxiomImpl(ReadHelper.getObjectProperty(getSubject(statement)), annotations);
     }
 
     @Override

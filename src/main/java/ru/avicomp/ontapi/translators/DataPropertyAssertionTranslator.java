@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
@@ -9,7 +8,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyAssertionAxiomImpl;
 
 /**
  * property that belongs to individual.
@@ -32,14 +30,6 @@ class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataPropertyAss
                 .filter(OntStatement::isData)
                 .filter(s -> s.getSubject().canAs(OntIndividual.class))
                 .filter(s -> s.getObject().isLiteral());
-    }
-
-    @Override
-    OWLDataPropertyAssertionAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLIndividual i = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class));
-        OWLDataProperty p = ReadHelper.getDataProperty(statement.getPredicate().as(OntNDP.class));
-        OWLLiteral l = ReadHelper.getLiteral(statement.getObject().asLiteral());
-        return new OWLDataPropertyAssertionAxiomImpl(i, p, l, annotations);
     }
 
     @Override

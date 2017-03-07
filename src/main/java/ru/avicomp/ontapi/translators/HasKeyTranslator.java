@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
@@ -12,7 +10,6 @@ import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import uk.ac.manchester.cs.owl.owlapi.OWLHasKeyAxiomImpl;
 
 /**
  * base class : {@link AbstractSubChainedTranslator}
@@ -41,13 +38,6 @@ class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntC
     @Override
     Class<OntCE> getView() {
         return OntCE.class;
-    }
-
-    @Override
-    OWLHasKeyAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OntCE subject = statement.getSubject().as(OntCE.class);
-        Set<OWLPropertyExpression> properties = subject.hasKey().map(ReadHelper::getProperty).collect(Collectors.toSet());
-        return new OWLHasKeyAxiomImpl(ReadHelper.getClassExpression(subject), properties, annotations);
     }
 
     @Override

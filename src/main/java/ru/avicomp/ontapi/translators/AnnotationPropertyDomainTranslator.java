@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.IRI;
@@ -12,7 +11,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
 
 /**
  * domain for annotation property.
@@ -24,13 +22,6 @@ class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTranslato
     @Override
     Class<OntNAP> getView() {
         return OntNAP.class;
-    }
-
-    @Override
-    OWLAnnotationPropertyDomainAxiom create(OntStatement statement, Set<OWLAnnotation> annotations) {
-        OWLAnnotationProperty p = ReadHelper.getAnnotationProperty(statement.getSubject().as(getView()));
-        IRI d = IRI.create(statement.getObject().asResource().getURI());
-        return new OWLAnnotationPropertyDomainAxiomImpl(p, d, annotations);
     }
 
     /**
