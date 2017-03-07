@@ -55,18 +55,18 @@ public class ReadHelper {
         } else if (OntNOP.class.equals(view)) {
             return getObjectProperty((OntNOP) entity, df);
         }
-        throw new OntApiException("Unsupported " + entity);    
+        throw new OntApiException("Unsupported " + entity);
     }
 
 
     /**
-     *
      * @param individual {@link OntIndividual.Named}
-     * @param df {@link OWLDataFactory}
+     * @param df         {@link OWLDataFactory}
      * @return {@link Wrap} around {@link OWLNamedIndividual}
      */
+    @SuppressWarnings("unchecked")
     public static Wrap<OWLNamedIndividual> getNamedIndividual(OntIndividual.Named individual, OWLDataFactory df) {
-        return Wrap.create(df.getOWLNamedIndividual(IRI.create(individual.getURI())), individual);
+        return (Wrap<OWLNamedIndividual>) getIndividual(individual, df);
     }
 
     /**
@@ -74,9 +74,9 @@ public class ReadHelper {
      * @param df   {@link OWLDataFactory}
      * @return {@link Wrap} around {@link OWLAnonymousIndividual}
      */
+    @SuppressWarnings("unchecked")
     public static Wrap<OWLAnonymousIndividual> getAnonymousIndividual(OntIndividual.Anonymous anon, OWLDataFactory df) {
-        String label = NodeFmtLib.encodeBNodeLabel(anon.asNode().getBlankNodeLabel());
-        return Wrap.create(df.getOWLAnonymousIndividual(label), anon);
+        return (Wrap<OWLAnonymousIndividual>) getIndividual(anon, df);
     }
 
     /**
@@ -86,9 +86,10 @@ public class ReadHelper {
      */
     public static Wrap<? extends OWLIndividual> getIndividual(OntIndividual individual, OWLDataFactory df) {
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
-            return getNamedIndividual(individual.as(OntIndividual.Named.class), df);
+            return Wrap.create(df.getOWLNamedIndividual(IRI.create(individual.getURI())), individual);
         }
-        return getAnonymousIndividual(individual.as(OntIndividual.Anonymous.class), df);
+        String label = NodeFmtLib.encodeBNodeLabel(individual.asNode().getBlankNodeLabel());
+        return Wrap.create(df.getOWLAnonymousIndividual(label), individual);
     }
 
     /**
@@ -157,13 +158,13 @@ public class ReadHelper {
      */
     public static Wrap<? extends OWLPropertyExpression> getProperty(OntPE property, OWLDataFactory df) {
         if (OntApiException.notNull(property, "Null property.").canAs(OntNAP.class)) {
-            return ReadHelper.getAnnotationProperty(property.as(OntNAP.class), df);
+            return getAnnotationProperty(property.as(OntNAP.class), df);
         }
         if (property.canAs(OntNDP.class)) {
-            return ReadHelper.getDataProperty(property.as(OntNDP.class), df);
+            return getDataProperty(property.as(OntNDP.class), df);
         }
         if (property.canAs(OntOPE.class)) {
-            return ReadHelper.getObjectProperty(property.as(OntOPE.class), df);
+            return getObjectProperty(property.as(OntOPE.class), df);
         }
         throw new OntApiException("Unsupported property " + property);
     }
@@ -179,17 +180,18 @@ public class ReadHelper {
     }
 
     /**
-     * @param nap {@link OntNDP}
+     * @param ndp {@link OntNDP}
      * @param df  {@link OWLDataFactory}
      * @return {@link Wrap} around {@link OWLDataProperty}
      */
-    public static Wrap<OWLDataProperty> getDataProperty(OntNDP nap, OWLDataFactory df) {
-        IRI iri = IRI.create(OntApiException.notNull(nap, "Null data property.").getURI());
-        return Wrap.create(df.getOWLDataProperty(iri), nap);
+    public static Wrap<OWLDataProperty> getDataProperty(OntNDP ndp, OWLDataFactory df) {
+        IRI iri = IRI.create(OntApiException.notNull(ndp, "Null data property.").getURI());
+        return Wrap.create(df.getOWLDataProperty(iri), ndp);
     }
 
-    public static Wrap<OWLObjectProperty> getObjectProperty(OntNOP npe, OWLDataFactory df) {
-        return Wrap.create(df.getOWLObjectProperty(IRI.create(npe.getURI())), npe);
+    @SuppressWarnings("unchecked")
+    public static Wrap<OWLObjectProperty> getObjectProperty(OntNOP nop, OWLDataFactory df) {
+        return (Wrap<OWLObjectProperty>) getObjectProperty((OntOPE) nop, df);
     }
 
     /**
@@ -204,7 +206,7 @@ public class ReadHelper {
             OWLObjectProperty op = df.getOWLObjectProperty(IRI.create(ope.as(OntOPE.Inverse.class).getDirect().getURI()));
             return Wrap.create(op.getInverseProperty(), ope);
         }
-        return getObjectProperty(ope.as(OntNOP.class), df);
+        return Wrap.create(df.getOWLObjectProperty(IRI.create(ope.getURI())), ope);
     }
 
     /**
@@ -212,9 +214,9 @@ public class ReadHelper {
      * @param df {@link OWLDataFactory}
      * @return {@link Wrap} around {@link OWLDatatype}
      */
+    @SuppressWarnings("unchecked")
     public static Wrap<OWLDatatype> getDatatype(OntDT dt, OWLDataFactory df) {
-        IRI iri = IRI.create(OntApiException.notNull(dt, "Null datatype.").getURI());
-        return Wrap.create(df.getOWLDatatype(iri), dt);
+        return (Wrap<OWLDatatype>) getDataRange(dt, df);
     }
 
     private static boolean isEntityDeclaration(OntStatement statement) { // todo: what about anonymous individuals?
@@ -332,7 +334,7 @@ public class ReadHelper {
         }
         seen.add(dr);
         if (dr.isURIResource()) {
-            return getDatatype(dr.as(OntDT.class), df);
+            return Wrap.create(df.getOWLDatatype(IRI.create(dr.getURI())), dr);
         }
         Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) dr).getActualClass(),
                 "Can't determine view of data range " + dr);
@@ -374,7 +376,7 @@ public class ReadHelper {
     public static Wrap<OWLClass> getClass(OntClass cl, OWLDataFactory df) {
         return (Wrap<OWLClass>) getClassExpression(cl, df);
     }
-    
+
     /**
      * @param ce {@link OntCE}
      * @param df {@link OWLDataFactory}
@@ -420,7 +422,7 @@ public class ReadHelper {
                 OntCE.DataAllValuesFrom.class.equals(view)) {
             OntCE.ComponentRestrictionCE<OntDR, OntNDP> _ce = (OntCE.ComponentRestrictionCE<OntDR, OntNDP>) ce;
             Wrap<OWLDataProperty> p = getDataProperty(_ce.getOnProperty(), df);
-            Wrap<? extends OWLDataRange> d = getDataRange(_ce.getValue(), df, new HashSet<>());
+            Wrap<? extends OWLDataRange> d = getDataRange(_ce.getValue(), df);
             OWLClassExpression res;
             if (OntCE.DataSomeValuesFrom.class.equals(view))
                 res = df.getOWLDataSomeValuesFrom(p.getObject(), d.getObject());
@@ -464,7 +466,7 @@ public class ReadHelper {
                 OntCE.DataCardinality.class.equals(view)) {
             OntCE.CardinalityRestrictionCE<OntDR, OntNDP> _ce = (OntCE.CardinalityRestrictionCE<OntDR, OntNDP>) ce;
             Wrap<OWLDataProperty> p = getDataProperty(_ce.getOnProperty(), df);
-            Wrap<? extends OWLDataRange> d = getDataRange(_ce.getValue() == null ? _ce.getModel().getRDFSLiteral() : _ce.getValue(), df, new HashSet<>());
+            Wrap<? extends OWLDataRange> d = getDataRange(_ce.getValue() == null ? _ce.getModel().getRDFSLiteral() : _ce.getValue(), df);
             OWLDataCardinalityRestriction res;
             if (OntCE.DataMinCardinality.class.equals(view))
                 res = df.getOWLDataMinCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
