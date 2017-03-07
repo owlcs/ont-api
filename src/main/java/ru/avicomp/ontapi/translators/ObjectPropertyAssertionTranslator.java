@@ -45,7 +45,7 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
     Wrap<OWLObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLIndividual> subject = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class), df);
-        Wrap<OWLObjectPropertyExpression> property = ReadHelper.getObjectProperty(statement.getPredicate().as(OntOPE.class), df);
+        Wrap<? extends OWLObjectPropertyExpression> property = ReadHelper.getObjectProperty(statement.getPredicate().as(OntOPE.class), df);
         Wrap<? extends OWLIndividual> object = ReadHelper.getIndividual(statement.getObject().as(OntIndividual.class), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLObjectPropertyAssertionAxiom res = df.getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),

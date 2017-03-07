@@ -27,13 +27,13 @@ class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontEntities().filter(OntObject::isLocal).map(OntObject::getRoot);
+        return model.ontEntities().map(OntObject::getRoot).filter(OntStatement::isLocal);
     }
 
     @Override
     Wrap<OWLDeclarationAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap<OWLEntity> entity = ReadHelper.getEntity(statement.getSubject().as(OntEntity.class), df);
+        Wrap<? extends OWLEntity> entity = ReadHelper.wrapEntity(statement.getSubject().as(OntEntity.class), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLDeclarationAxiom res = df.getOWLDeclarationAxiom(entity.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples());

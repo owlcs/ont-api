@@ -59,7 +59,7 @@ class DisjointObjectPropertiesTranslator extends AbstractTwoWayNaryTranslator<OW
     @Override
     Wrap<OWLDisjointObjectPropertiesAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap.Collection<OWLObjectPropertyExpression> members;
+        Wrap.Collection<? extends OWLObjectPropertyExpression> members;
         Stream<OntStatement> content;
         if (statement.getSubject().canAs(getDisjointView())) {
             OntDisjoint.ObjectProperties disjoint = statement.getSubject().as(getDisjointView());

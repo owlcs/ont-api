@@ -39,6 +39,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     private Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsCache = new HashMap<>();
     // OWL objects store to improve performance (to work through OWL)
     // any change in the graph resets this cache.
+    // TODO: change
     private Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsCache = new HashMap<>();
     // jena objects store to improve performance (contains OntObject and OntStatement),
     // any change in the graph resets this cache.
@@ -108,7 +109,7 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
         List<OWLEntity> res = new ArrayList<>();
         if (e.canAs(OntClass.class)) {
-            res.add(ReadHelper.getClassExpression(e.as(OntClass.class), dataFactory()).getObject().asOWLClass());
+            res.add(ReadHelper.getClass(e.as(OntClass.class), dataFactory()).getObject().asOWLClass());
         }
         if (e.canAs(OntDT.class)) {
             res.add(ReadHelper.getDatatype(e.as(OntDT.class), dataFactory()).getObject());
