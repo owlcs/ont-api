@@ -21,6 +21,13 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
         WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom.annotations());
     }
 
+    /**
+     * annotation assertion: the rule "s A t":
+     * see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
+     *
+     * @param model {@link OntGraphModel} the model
+     * @return Stream of {@link OntStatement}
+     */
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
         OntID id = model.getID();

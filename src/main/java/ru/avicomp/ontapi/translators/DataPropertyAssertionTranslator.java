@@ -21,9 +21,15 @@ class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataPropertyAss
         WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getObject(), axiom.annotations());
     }
 
+    /**
+     * positive data property assertion: the rule "a R v":
+     * see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
+     *
+     * @param model {@link OntGraphModel} the model
+     * @return Stream of {@link OntStatement}
+     */
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        // the rule "a R v":
         return model.statements()
                 .filter(OntStatement::isLocal)
                 .filter(OntStatement::isData)

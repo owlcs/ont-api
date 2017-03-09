@@ -39,11 +39,8 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
     private Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsCache = new HashMap<>();
     // OWL objects store to improve performance (to work through OWL)
     // any change in the graph resets this cache.
-    // TODO: change
+    // TODO: will be changed
     private Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsCache = new HashMap<>();
-    // jena objects store to improve performance (contains OntObject and OntStatement),
-    // any change in the graph resets this cache.
-    private Map<Class<?>, Set<?>> jenaObjectsCache = new HashMap<>();
 
     // todo: pass not a personality, but loader configuration.
     public OntInternalModel(Graph base, OntPersonality personality) {
@@ -56,17 +53,6 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         return OWL_DATA_FACTORY;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <O extends OntObject> Stream<O> ontObjects(Class<O> type) {
-        return (Stream<O>) jenaObjectsCache.computeIfAbsent(type, c -> OntInternalModel.super.ontObjects(type).collect(Collectors.toSet())).stream();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Stream<OntStatement> statements() {
-        return (Stream<OntStatement>) jenaObjectsCache.computeIfAbsent(OntStatement.class, c -> OntInternalModel.super.statements().collect(Collectors.toSet())).stream();
-    }
 
     public Stream<OWLImportsDeclaration> importDeclarations() {
         return getID().imports().map(IRI::create).map(OWLImportsDeclarationImpl::new);
@@ -322,10 +308,6 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
         owlObjectsCache.clear();
     }
 
-    public void clearJenaCache() {
-        jenaObjectsCache.clear();
-    }
-
     public class OwlObjectTriplesMap<O extends OWLObject> {
         protected Map<O, Set<Triple>> cache;
 
@@ -424,7 +406,6 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
          */
         @Override
         protected void addEvent(Triple t) {
-            clearJenaCache();
             if (hasObjectListener()) return;
             // we don't know which axiom would own this triple, so we clear whole cache.
             clearCache();
@@ -432,7 +413,6 @@ public class OntInternalModel extends OntGraphModelImpl implements OntGraphModel
 
         @Override
         protected void deleteEvent(Triple t) {
-            clearJenaCache();
             if (hasObjectListener()) return;
             clearCache(t);
         }

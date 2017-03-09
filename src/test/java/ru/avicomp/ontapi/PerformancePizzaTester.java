@@ -1,7 +1,6 @@
 package ru.avicomp.ontapi;
 
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
@@ -9,6 +8,9 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.junit.Assert;
+import org.semanticweb.owlapi.io.IRIDocumentSource;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -19,7 +21,8 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
- * todo
+ * Test performance on an example of the <a href='file:/test/resources/pizza.ttl'>pizza</a> ontology.
+ *
  * Created by @szuev on 16.12.2016.
  */
 public class PerformancePizzaTester {
@@ -27,31 +30,35 @@ public class PerformancePizzaTester {
 
     public static void main(String... strings) {
         final String fileName = "pizza.ttl";
-        IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
-        // init:
-        load(fileIRI, OntFormat.TURTLE);
-        System.gc();
-
+        final int axiomCount = 945; // if this is non-positive number, then the loading&checking axioms will be skipped (but OWL-API loads them always)
         final int num = 50;
         final int innerNum = 1;
-        final boolean loadAxioms = true;
-        final boolean testPureJena = true;
+        final boolean testPureJena = false; // if true, then don't use manager
         final boolean callGC = true;
+        OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(ReadWriteUtils.getResourceURI(fileName)),
+                OntFormat.TURTLE.createOwlFormat(), null);
+
+        // init:
+        Assert.assertEquals("[ONT]Incorrect axiom count", axiomCount, loadONT(source).getAxiomCount());
+        Assert.assertEquals("[OWL]Incorrect axiom count", axiomCount, loadOWL(source).getAxiomCount());
+        System.gc();
 
         Level level = Logger.getRootLogger().getLevel();
         float owlAverage, ontAverage;
         try {
             Logger.getRootLogger().setLevel(Level.OFF);
-            owlAverage = doTest(num, () -> testOWL(fileIRI, loadAxioms, innerNum), "OWL", callGC);
+            owlAverage = doTest(num, () -> testOWL(source, axiomCount, innerNum), "OWL", callGC);
             System.err.println("=============");
-            ontAverage = doTest(num, () -> testONT(fileIRI, loadAxioms, testPureJena, innerNum), "ONT", callGC);
+            ontAverage = doTest(num, () -> testONT(source, axiomCount, testPureJena, innerNum), "ONT", callGC);
         } finally {
             Logger.getRootLogger().setLevel(level);
         }
 
         LOGGER.info("ONT = " + ontAverage);
         LOGGER.info("OWL = " + owlAverage);
-        LOGGER.info("ONT/OWL = " + ontAverage / owlAverage);
+        float diff = ontAverage / owlAverage;
+        LOGGER.info("ONT/OWL = " + diff);
+        Assert.assertTrue("ONT-API should be faster then OWL-API", diff < 1);
     }
 
     @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
@@ -77,34 +84,41 @@ public class PerformancePizzaTester {
         void test();
     }
 
-    private static void testOWL(IRI file, boolean loadAxioms, int num) {
+    private static void testOWL(OWLOntologyDocumentSource file, int axiomCount, int num) {
         for (int j = 0; j < num; j++) {
-            OWLOntology o = load(file);
-            if (loadAxioms)
-                //noinspection ResultOfMethodCallIgnored
-                o.axioms().collect(Collectors.toSet());
+            OWLOntology o = loadONT(file);
+            if (axiomCount > 0) {
+                Assert.assertEquals(axiomCount, o.getAxiomCount());
+            }
         }
     }
 
-    private static void testONT(IRI file, boolean loadAxioms, boolean testPureJena, int num) {
+    private static void testONT(OWLOntologyDocumentSource file, int axiomCount, boolean testPureJena, int num) {
         for (int j = 0; j < num; j++) {
-            if (testPureJena) { // no graph-converter tuning here
+            if (testPureJena) {
+                // load without manager
                 Graph g = GraphFactory.createDefaultGraph();
-                RDFDataMgr.read(g, file.getIRIString(), Lang.TURTLE);
-                OntInternalModel i = new OntInternalModel(g, OntModelConfig.getPersonality());
-                i.getAxioms();
+                RDFDataMgr.read(g, file.getDocumentIRI().getIRIString(), Lang.TURTLE);
+                OntInternalModel i = new OntInternalModel(g, OntModelConfig.ONT_PERSONALITY_LAX);
+                if (axiomCount > 0)
+                    Assert.assertEquals(axiomCount, i.getAxioms().size());
                 continue;
-            } // whole cycle of loading:
-            OntologyModel o = load(file, OntFormat.TURTLE);
-            if (loadAxioms)
-                //noinspection ResultOfMethodCallIgnored
-                o.axioms().collect(Collectors.toSet());
+            }
+            // whole cycle of loading:
+            OntologyModel o = loadONT(file);
+            if (axiomCount > 0) {
+                Assert.assertEquals(axiomCount, o.getAxiomCount());
+            }
         }
     }
 
-    public static OntologyModel load(IRI file, OntFormat format) {
-        LOGGER.info("[ONT]Load " + file + "[" + format + "]");
+    public static OntologyModel loadONT(OWLOntologyDocumentSource file) {
+        LOGGER.info("[ONT]Load " + file.getDocumentIRI());
         OntologyManager m = OntManagers.createONT();
+        OntConfig.LoaderConfiguration conf = m.getOntologyLoaderConfiguration()
+                .setPersonality(OntModelConfig.ONT_PERSONALITY_LAX)
+                .setPerformTransformation(false);
+        m.setOntologyLoaderConfiguration(conf);
         try {
             return (OntologyModel) m.loadOntologyFromOntologyDocument(file);
         } catch (OWLOntologyCreationException e) {
@@ -112,8 +126,8 @@ public class PerformancePizzaTester {
         }
     }
 
-    public static OWLOntology load(IRI file) {
-        LOGGER.info("[OWL]Load " + file);
+    public static OWLOntology loadOWL(OWLOntologyDocumentSource file) {
+        LOGGER.info("[OWL]Load " + file.getDocumentIRI());
         OWLOntologyManager m = OntManagers.createOWL();
         try {
             return m.loadOntologyFromOntologyDocument(file);

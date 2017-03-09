@@ -30,10 +30,15 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
         WriteHelper.writeAssertionTriple(model, subject, property, object, axiom.annotations());
     }
 
+    /**
+     * positive object property assertion: "a1 PN a2"
+     * see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
+     *
+     * @param model {@link OntGraphModel} the model
+     * @return Stream of {@link OntStatement}
+     */
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        // skip everything that is not correspond axiom rule
-        // (e.g. OWL-API allows only Individual as an assertion object. rdf:List is not supported by this level of our api also)
         return model.statements()
                 .filter(OntStatement::isLocal)
                 .filter(OntStatement::isObject)
