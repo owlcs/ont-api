@@ -58,10 +58,9 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontObjects(getView())
-                .map(o -> o.statements(getPredicate()))
-                .flatMap(Function.identity())
-                .filter(OntStatement::isLocal);
+        return model.statements(null, getPredicate(), null)
+                .filter(OntStatement::isLocal)
+                .filter(s -> s.getSubject().canAs(getView()));
     }
 
     private Set<Wrap<Axiom>> readPairwiseAxioms(OntGraphModel model) {

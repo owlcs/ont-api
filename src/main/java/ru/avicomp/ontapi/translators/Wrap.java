@@ -114,7 +114,7 @@ public class Wrap<O extends OWLObject> {
      * The collection of {@link Wrap}
      */
     public static class Collection<O extends OWLObject> {
-        private final java.util.Collection<Wrap<O>> wraps;
+        protected final java.util.Collection<Wrap<O>> wraps;
 
         public Collection(java.util.Collection<Wrap<O>> wrappers) {
             this.wraps = wrappers;

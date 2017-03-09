@@ -191,6 +191,11 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
+    public Stream<OntEntity> ontEntities() {
+        return Stream.of(OntClass.class, OntDT.class, OntIndividual.Named.class, OntNOP.class, OntNAP.class, OntNDP.class).map(this::ontEntities).flatMap(Function.identity());
+    }
+
+    @Override
     public <T extends OntEntity> T getOntEntity(Class<T> type, String uri) {
         Node n = NodeFactory.createURI(OntJenaException.notNull(uri, "Null uri."));
         try { // returns not null in case it is present in graph or built-in.
@@ -240,6 +245,11 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     @Override
     public Stream<OntStatement> statements() {
         return Iter.asStream(listStatements()).map(s -> toOntStatement(null, s));
+    }
+
+    @Override
+    public Stream<OntStatement> statements(Resource s, Property p, RDFNode o) {
+        return Iter.asStream(listStatements(s, p, o)).map(_s -> toOntStatement(null, _s));
     }
 
     protected OntStatement toOntStatement(OntStatement main, Statement st) {

@@ -1,15 +1,14 @@
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -617,12 +616,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         public Configurable<OntFilter> getFilter() {
-            return mode -> (n, g) -> {
-                List<Node> nodes = g.asGraph().find(n, OWL.onProperty.asNode(), Node.ANY).mapWith(Triple::getObject).filterKeep(new UniqueFilter<>()).toList();
-                if (nodes.size() != 1) return false;
-                Node node = nodes.get(0);
-                return factory.get(mode).canWrap(node, g);
-            };
+            return mode -> (OntFilter) (n, g) -> Iter.asStream(g.asGraph().find(n, OWL.onProperty.asNode(), Node.ANY))
+                    .map(Triple::getObject)
+                    .map(_n -> factory.get(mode).canWrap(_n, g))
+                    .findAny().orElse(false);
         }
     }
 

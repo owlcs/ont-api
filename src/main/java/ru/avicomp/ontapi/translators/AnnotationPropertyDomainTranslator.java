@@ -29,7 +29,7 @@ class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTranslato
      */
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return super.statements(model);
+        return super.statements(model).filter(s -> s.getObject().isURIResource());
     }
 
     @Override

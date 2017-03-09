@@ -23,13 +23,12 @@ class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataPropertyAss
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        // skip everything that is not correspond axiom rule
-        // (e.g. OWL-API doesn't allow rdf:List of literals as assertion object)
+        // the rule "a R v":
         return model.statements()
                 .filter(OntStatement::isLocal)
                 .filter(OntStatement::isData)
-                .filter(s -> s.getSubject().canAs(OntIndividual.class))
-                .filter(s -> s.getObject().isLiteral());
+                .filter(s -> s.getObject().isLiteral())
+                .filter(s -> s.getSubject().canAs(OntIndividual.class));
     }
 
     @Override

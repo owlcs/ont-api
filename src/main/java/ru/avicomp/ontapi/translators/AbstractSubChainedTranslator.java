@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
@@ -34,11 +33,9 @@ abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, O ext
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontObjects(getView())
-                .map(o -> o.statement(getPredicate()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(OntStatement::isLocal);
+        return model.statements(null, getPredicate(), null)
+                .filter(OntStatement::isLocal)
+                .filter(s -> s.getSubject().canAs(getView()));
     }
 
     Stream<OntStatement> content(OntStatement statement) {

@@ -28,6 +28,13 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
+        // NOTE as a precaution: the first (commented) way is not correct
+        // since it includes anonymous object property expressions (based on owl:inverseOf),
+        // which could be treat as separated axioms, but OWL-API doesn't think so.
+        /*return model.statements(null, OWL.inverseOf, null)
+                .filter(OntStatement::isLocal)
+                .filter(s -> s.getSubject().canAs(OntOPE.class))
+                .filter(s -> s.getObject().canAs(OntOPE.class));*/
         return model.ontObjects(OntOPE.class)
                 .map(subj -> subj.inverseOf().map(obj -> subj.statement(OWL.inverseOf, obj)))
                 .flatMap(Function.identity())

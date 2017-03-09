@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -27,7 +28,7 @@ class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontEntities().map(OntObject::getRoot).filter(OntStatement::isLocal);
+        return model.ontEntities().map(OntObject::getRoot).filter(Objects::nonNull).filter(OntStatement::isLocal);
     }
 
     @Override

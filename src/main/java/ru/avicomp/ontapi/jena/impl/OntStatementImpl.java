@@ -155,11 +155,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return Anonymous resource
      */
     public static Resource findAnnotationRoot(OntStatement base, Resource type) {
-        OntGraphModel model = base.getModel();
-        return Iter.asStream(model.listResourcesWithProperty(OWL.annotatedSource, base.getSubject()))
-                .filter(r -> r.hasProperty(RDF.type, type))
+        return Iter.asStream(base.getModel().listResourcesWithProperty(RDF.type, type))
+                .filter(r -> r.hasProperty(OWL.annotatedSource, base.getSubject()))
                 .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
-                .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject())).findFirst().orElse(null);
+                .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
+                .findFirst().orElse(null);
     }
 
     /**

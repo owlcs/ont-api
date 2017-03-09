@@ -2,12 +2,13 @@ package ru.avicomp.ontapi.translators;
 
 import java.util.stream.Stream;
 
+import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLPropertyAssertionAxiom;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
-import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * for data and object negative property assertion
@@ -30,6 +31,8 @@ abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLProp
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontObjects(getView()).map(OntObject::getRoot).filter(OntStatement::isLocal);
+        return model.statements(null, RDF.type, OWL.NegativePropertyAssertion)
+                .filter(OntStatement::isLocal)
+                .filter(s -> s.getSubject().canAs(getView()));
     }
 }

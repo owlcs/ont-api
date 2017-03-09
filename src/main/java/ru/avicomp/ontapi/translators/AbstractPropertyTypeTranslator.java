@@ -1,6 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Resource;
@@ -38,11 +37,9 @@ abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProper
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontObjects(getView())
-                .map(o -> o.statement(RDF.type, getType()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(OntStatement::isLocal);
+        return model.statements(null, RDF.type, getType())
+                .filter(OntStatement::isLocal)
+                .filter(s -> s.getSubject().canAs(getView()));
     }
 
     @Override

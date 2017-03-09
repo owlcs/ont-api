@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.vocabulary.RDFS;
@@ -29,11 +27,8 @@ abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDoma
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontObjects(getView())
-                .map(p -> p.domain().map(d -> p.statement(RDFS.domain, d)))
-                .flatMap(Function.identity())
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(OntStatement::isLocal);
+        return model.statements(null, RDFS.domain, null)
+                .filter(OntStatement::isLocal)
+                .filter(s -> s.getSubject().canAs(getView()));
     }
 }

@@ -1,7 +1,5 @@
 package ru.avicomp.ontapi.translators;
 
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
@@ -29,12 +27,10 @@ class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontObjects(OntIndividual.class)
-                .map(i -> i.classes().map(ce -> i.statement(RDF.type, ce)))
-                .flatMap(Function.identity())
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(OntStatement::isLocal);
+        return model.statements(null, RDF.type, null)
+                .filter(OntStatement::isLocal)
+                .filter(s -> s.getObject().canAs(OntCE.class))
+                .filter(s -> s.getSubject().canAs(OntIndividual.class));
     }
 
     @Override

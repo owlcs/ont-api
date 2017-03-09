@@ -4,10 +4,7 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -56,9 +53,19 @@ public interface OntGraphModel extends Model {
 
     <O extends OntObject> Stream<O> ontObjects(Class<O> type);
 
+    /**
+     * Note: this method returns not distinct stream.
+     * This means that resources may have the same uri ('punnings')
+     *
+     * @return Stream of {@link OntEntity}
+     */
+    Stream<OntEntity> ontEntities();
+
     <E extends OntEntity> E getOntEntity(Class<E> type, String uri);
 
     Stream<OntStatement> statements();
+
+    Stream<OntStatement> statements(Resource s, Property p, RDFNode o);
 
     boolean isInBaseModel(Statement statement);
 
@@ -68,7 +75,7 @@ public interface OntGraphModel extends Model {
 
     <F extends OntFR> F createFacetRestriction(Class<F> view, Literal literal);
 
-    /**
+    /*
      * ===========================
      * Creation Disjoint sections:
      * ===========================
@@ -82,7 +89,7 @@ public interface OntGraphModel extends Model {
 
     OntDisjoint.DataProperties createDisjointDataProperties(Collection<OntNDP> properties);
 
-    /**
+    /*
      * =====================
      * Creation Data Ranges:
      * =====================
@@ -98,7 +105,7 @@ public interface OntGraphModel extends Model {
 
     OntDR.IntersectionOf createIntersectionOfDataRange(Collection<OntDR> values);
 
-    /**
+    /*
      * ===========================
      * Creation Class Expressions:
      * ===========================
@@ -142,7 +149,7 @@ public interface OntGraphModel extends Model {
 
     OntCE.ComplementOf createComplementOf(OntCE other);
 
-    /**
+    /*
      * ===================================
      * SWRL Objects (Variable, Atoms, Imp)
      * ===================================
@@ -166,15 +173,11 @@ public interface OntGraphModel extends Model {
 
     OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body);
 
-    /**
+    /*
      * ===================================
-     * default methods for simplification:
+     * Default methods for simplification:
      * ===================================
      */
-
-    default Stream<OntEntity> ontEntities() {
-        return ontObjects(OntEntity.class);
-    }
 
     default <E extends OntEntity> Stream<E> ontEntities(Class<E> type) {
         return ontObjects(type);
@@ -217,7 +220,7 @@ public interface OntGraphModel extends Model {
         return getOntEntity(OntNAP.class, uri);
     }
 
-    /**
+    /*
      * ==================
      * Built-in Entities:
      * ==================

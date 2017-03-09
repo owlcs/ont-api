@@ -16,12 +16,12 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * This is for following axioms with two or more than two entities:
- *
+ * <p>
  * DisjointClasses ({@link DisjointClassesTranslator}),
  * DisjointObjectProperties ({@link DisjointObjectPropertiesTranslator}),
  * DisjointDataProperties ({@link DisjointDataPropertiesTranslator}),
  * DifferentIndividuals ({@link DifferentIndividualsTranslator}).
- *
+ * <p>
  * Each of these axioms could be written in two ways: as single triple (or sequence of single triples) or as special anonymous node with rdf:List inside.
  * <p>
  * Created by szuev on 12.10.2016.
@@ -47,8 +47,10 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
 
     @Override
     Stream<OntStatement> statements(OntGraphModel model) {
-        return Stream.concat(super.statements(model),
-                model.ontObjects(getDisjointView()).filter(OntObject::isLocal).map(OntObject::getRoot));
+        return Stream.concat(
+                super.statements(model),
+                model.ontObjects(getDisjointView()).map(OntObject::getRoot).filter(OntStatement::isLocal)
+        );
     }
 
     abstract Resource getMembersType();

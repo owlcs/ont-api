@@ -1,8 +1,11 @@
 package ru.avicomp.ontapi.translators;
 
+import java.util.stream.Stream;
+
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntCE;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -16,6 +19,11 @@ class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLD
     @Override
     Class<OntNDP> getView() {
         return OntNDP.class;
+    }
+
+    @Override
+    Stream<OntStatement> statements(OntGraphModel model) {
+        return super.statements(model).filter(s -> s.getObject().canAs(OntCE.class));
     }
 
     @Override
