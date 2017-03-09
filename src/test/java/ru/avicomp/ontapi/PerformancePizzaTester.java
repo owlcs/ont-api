@@ -33,7 +33,7 @@ public class PerformancePizzaTester {
         final int axiomCount = 945; // if this is non-positive number, then the loading&checking axioms will be skipped (but OWL-API loads them always)
         final int num = 50;
         final int innerNum = 1;
-        final boolean testPureJena = false; // if true, then don't use manager
+        final boolean debugTestPureJena = false; // if true, then don't use manager
         final boolean callGC = true;
         OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(ReadWriteUtils.getResourceURI(fileName)),
                 OntFormat.TURTLE.createOwlFormat(), null);
@@ -49,7 +49,7 @@ public class PerformancePizzaTester {
             Logger.getRootLogger().setLevel(Level.OFF);
             owlAverage = doTest(num, () -> testOWL(source, axiomCount, innerNum), "OWL", callGC);
             System.err.println("=============");
-            ontAverage = doTest(num, () -> testONT(source, axiomCount, testPureJena, innerNum), "ONT", callGC);
+            ontAverage = doTest(num, () -> testONT(source, axiomCount, debugTestPureJena, innerNum), "ONT", callGC);
         } finally {
             Logger.getRootLogger().setLevel(level);
         }
@@ -58,7 +58,7 @@ public class PerformancePizzaTester {
         LOGGER.info("OWL = " + owlAverage);
         float diff = ontAverage / owlAverage;
         LOGGER.info("ONT/OWL = " + diff);
-        Assert.assertTrue("ONT-API should be faster then OWL-API", diff < 1);
+        Assert.assertTrue("ONT-API should not be slower (" + diff + ")", diff <= 1);
     }
 
     @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
@@ -86,7 +86,7 @@ public class PerformancePizzaTester {
 
     private static void testOWL(OWLOntologyDocumentSource file, int axiomCount, int num) {
         for (int j = 0; j < num; j++) {
-            OWLOntology o = loadONT(file);
+            OWLOntology o = loadOWL(file);
             if (axiomCount > 0) {
                 Assert.assertEquals(axiomCount, o.getAxiomCount());
             }
