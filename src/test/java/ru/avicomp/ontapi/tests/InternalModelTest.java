@@ -23,8 +23,10 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntInternalModel;
 import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.internal.AxiomParserProvider;
+import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.Wrap;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
@@ -33,8 +35,6 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import ru.avicomp.ontapi.translators.AxiomParserProvider;
-import ru.avicomp.ontapi.translators.Wrap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
@@ -79,7 +79,7 @@ public class InternalModelTest {
     public void testOntologyAnnotations() {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
-        OntInternalModel model = new OntInternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), OntModelConfig.getPersonality());
+        InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), OntModelConfig.getPersonality());
 
         Set<OWLAnnotation> annotations = model.getAnnotations();
         annotations.forEach(LOGGER::debug);
@@ -126,7 +126,7 @@ public class InternalModelTest {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
         OWLOntology owl = loadOWLOntology(file);
-        OntInternalModel jena = loadInternalModel(file, format);
+        InternalModel jena = loadInternalModel(file, format);
         debugPrint(jena, owl);
 
         test(OWLClass.class, jena.classes(), owl.classesInSignature());
@@ -185,7 +185,7 @@ public class InternalModelTest {
 
     private void testEntities(String file, OntFormat format) {
         OWLOntology owl = loadOWLOntology(file);
-        OntInternalModel jena = loadInternalModel(file, format);
+        InternalModel jena = loadInternalModel(file, format);
         debugPrint(jena, owl);
         test(OWLClass.class, jena.classes(), owl.classesInSignature());
         test(OWLDatatype.class, jena.datatypes(), owl.datatypesInSignature());
@@ -196,7 +196,7 @@ public class InternalModelTest {
         test(OWLDataProperty.class, jena.dataProperties(), owl.dataPropertiesInSignature());
     }
 
-    private void debugPrint(OntInternalModel jena, OWLOntology owl) {
+    private void debugPrint(InternalModel jena, OWLOntology owl) {
         ReadWriteUtils.print(owl);
         LOGGER.debug("==============================");
         ReadWriteUtils.print(jena);
@@ -222,12 +222,12 @@ public class InternalModelTest {
         return ReadWriteUtils.loadOWLOntology(manager, IRI.create(fileURI));
     }
 
-    private OntInternalModel loadInternalModel(String file, OntFormat format) {
+    private InternalModel loadInternalModel(String file, OntFormat format) {
         URI fileURI = ReadWriteUtils.getResourceURI(file);
         LOGGER.info("Load jena model from " + fileURI);
         Model init = ReadWriteUtils.load(fileURI, format);
         Graph graph = GraphTransformConfig.convert(init.getGraph());
-        return new OntInternalModel(graph, OntModelConfig.getPersonality());
+        return new InternalModel(graph, OntModelConfig.getPersonality());
     }
 
 }

@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.parameters.Navigation;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 
+import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntID;
@@ -38,7 +39,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     // binary format to provide serialization:
     private static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
 
-    protected transient OntInternalModel base;
+    protected transient InternalModel base;
     protected OntologyManager manager;
 
     protected OWLOntologyID ontologyID;
@@ -46,20 +47,20 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     public OntBaseModelImpl(OntologyManager manager, OWLOntologyID ontologyID) {
         OntApiException.notNull(ontologyID, "Null OWL ID.");
         setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
-        setBase(new OntInternalModel(OntFactory.createDefaultGraph(), manager.getOntologyLoaderConfiguration().getPersonality()));
+        setBase(new InternalModel(OntFactory.createDefaultGraph(), manager.getOntologyLoaderConfiguration().getPersonality()));
         setOntologyID(ontologyID);
     }
 
-    public OntBaseModelImpl(OntologyManager manager, OntInternalModel base) {
+    public OntBaseModelImpl(OntologyManager manager, InternalModel base) {
         setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
         setBase(OntApiException.notNull(base, "Null internal model."));
     }
 
-    public OntInternalModel getBase() {
+    public InternalModel getBase() {
         return base;
     }
 
-    protected void setBase(OntInternalModel m) {
+    protected void setBase(InternalModel m) {
         base = m;
     }
 
@@ -529,7 +530,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         Graph base = OntFactory.createDefaultGraph();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
-        setBase(new OntInternalModel(base, OntModelConfig.getPersonality()));
+        setBase(new InternalModel(base, OntModelConfig.getPersonality()));
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {

@@ -9,6 +9,7 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
 import com.google.inject.assistedinject.Assisted;
+import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
 
@@ -33,7 +34,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         super(manager, id);
     }
 
-    public OntologyModelImpl(OntologyManager manager, OntInternalModel base) {
+    public OntologyModelImpl(OntologyManager manager, InternalModel base) {
         super(manager, base);
     }
 

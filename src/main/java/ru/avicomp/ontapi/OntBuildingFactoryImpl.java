@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
@@ -253,7 +254,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 }
                 Graph graph = makeUnionGraph(info, new HashSet<>());
                 OntFormat format = info.getFormat();
-                OntInternalModel base = new OntInternalModel(graph, getPersonality());
+                InternalModel base = new InternalModel(graph, getPersonality());
                 OntologyModelImpl ont = new OntologyModelImpl(manager, base);
                 OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.toConcurrentModel() : ont;
                 ((OntologyManagerImpl) manager).ontologyCreated(res);

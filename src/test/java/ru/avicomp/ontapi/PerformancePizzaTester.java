@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import com.google.common.base.Stopwatch;
+import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -99,7 +100,7 @@ public class PerformancePizzaTester {
                 // load without manager
                 Graph g = GraphFactory.createDefaultGraph();
                 RDFDataMgr.read(g, file.getDocumentIRI().getIRIString(), Lang.TURTLE);
-                OntInternalModel i = new OntInternalModel(g, OntModelConfig.ONT_PERSONALITY_LAX);
+                InternalModel i = new InternalModel(g, OntModelConfig.ONT_PERSONALITY_LAX);
                 if (axiomCount > 0)
                     Assert.assertEquals(axiomCount, i.getAxioms().size());
                 continue;

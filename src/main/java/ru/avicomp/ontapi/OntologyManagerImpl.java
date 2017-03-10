@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Multimap;
+import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
@@ -1658,7 +1659,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                             .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);
             imports.forEach(base::addGraph);
-            m.setBase(new OntInternalModel(base, p));
+            m.setBase(new InternalModel(base, p));
         }
     }
 
