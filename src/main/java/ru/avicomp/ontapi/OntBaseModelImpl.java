@@ -188,7 +188,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public Stream<OWLNamedIndividual> individualsInSignature() {
-        return base.individuals();
+        return base.namedIndividuals();
     }
 
     @Override

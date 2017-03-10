@@ -45,7 +45,7 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
     Wrap<OWLAnnotationAssertionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLAnnotationSubject> s = ReadHelper.getAnnotationSubject(statement.getSubject(), df);
-        Wrap<OWLAnnotationProperty> p = ReadHelper.getAnnotationProperty(statement.getPredicate().as(OntNAP.class), df);
+        Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getPredicate().as(OntNAP.class), df);
         Wrap<? extends OWLAnnotationValue> v = ReadHelper.getAnnotationValue(statement.getObject(), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLAnnotationAssertionAxiom res = df.getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),

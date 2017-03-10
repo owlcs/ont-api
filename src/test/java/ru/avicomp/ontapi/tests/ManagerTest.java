@@ -192,7 +192,7 @@ public class ManagerTest {
         OWLDataFactory df = copy.getOWLDataFactory();
         Assert.assertNotNull(ont);
         List<OWLClass> newOWLClasses = newClasses.stream()
-                .map(ce -> ReadHelper.getClassExpression(ce, df))
+                .map(ce -> ReadHelper.fetchClassExpression(ce, df))
                 .map(Wrap::getObject)
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: " + newOWLClasses);

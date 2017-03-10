@@ -65,11 +65,11 @@ class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjoint
         if (statement.getSubject().canAs(getDisjointView())) {
             OntDisjoint.Classes disjoint = statement.getSubject().as(getDisjointView());
             content = disjoint.content();
-            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.getClassExpression(m, df)));
+            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.fetchClassExpression(m, df)));
         } else {
             content = Stream.of(statement);
             members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
-                    .map(r -> r.as(getView())).map(m -> ReadHelper.getClassExpression(m, df)));
+                    .map(r -> r.as(getView())).map(m -> ReadHelper.fetchClassExpression(m, df)));
         }
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLDisjointClassesAxiom res = df.getOWLDisjointClassesAxiom(members.getObjects(), annotations.getObjects());

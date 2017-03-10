@@ -30,7 +30,7 @@ class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTranslator<OW
     @Override
     Wrap<OWLFunctionalDataPropertyAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap<OWLDataProperty> p = ReadHelper.getDataProperty(getSubject(statement), df);
+        Wrap<OWLDataProperty> p = ReadHelper.fetchDataProperty(getSubject(statement), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLFunctionalDataPropertyAxiom res = df.getOWLFunctionalDataPropertyAxiom(p.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p);

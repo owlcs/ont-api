@@ -13,7 +13,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.riot.out.NodeFmtLib;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
@@ -43,21 +42,44 @@ public class ReadHelper {
         Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) entity).getActualClass(),
                 "Can't determine view of entity " + entity);
         if (OntClass.class.equals(view)) {
-            return getClass((OntClass) entity, df);
+            return fetchClass((OntClass) entity, df);
         } else if (OntDT.class.equals(view)) {
             return getDatatype((OntDT) entity, df);
         } else if (OntIndividual.Named.class.equals(view)) {
             return getNamedIndividual((OntIndividual.Named) entity, df);
         } else if (OntNAP.class.equals(view)) {
-            return getAnnotationProperty((OntNAP) entity, df);
+            return fetchAnnotationProperty((OntNAP) entity, df);
         } else if (OntNDP.class.equals(view)) {
-            return getDataProperty((OntNDP) entity, df);
+            return fetchDataProperty((OntNDP) entity, df);
         } else if (OntNOP.class.equals(view)) {
-            return getObjectProperty((OntNOP) entity, df);
+            return fetchObjectProperty((OntNOP) entity, df);
         }
         throw new OntApiException("Unsupported " + entity);
     }
 
+    public static Wrap<? extends OWLClassExpression> fetchClassExpression(OntCE ce, OWLDataFactory df) {
+        return ce.getModel() instanceof InternalModel ? ((InternalModel) ce.getModel()).fetchClassExpression(ce) : getClassExpression(ce, df);
+    }
+
+    public static Wrap<? extends OWLDataRange> fetchDataRange(OntDR dr, OWLDataFactory df) {
+        return dr.getModel() instanceof InternalModel ? ((InternalModel) dr.getModel()).fetchDataRange(dr) : getDataRange(dr, df);
+    }
+
+    public static Wrap<? extends OWLIndividual> fetchIndividual(OntIndividual indi, OWLDataFactory df) {
+        return indi.getModel() instanceof InternalModel ? ((InternalModel) indi.getModel()).fetchIndividual(indi) : getIndividual(indi, df);
+    }
+
+    public static Wrap<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap, OWLDataFactory df) {
+        return nap.getModel() instanceof InternalModel ? ((InternalModel) nap.getModel()).fetchAnnotationProperty(nap) : getAnnotationProperty(nap, df);
+    }
+
+    public static Wrap<OWLDataProperty> fetchDataProperty(OntNDP ndp, OWLDataFactory df) {
+        return ndp.getModel() instanceof InternalModel ? ((InternalModel) ndp.getModel()).fetchDataProperty(ndp) : getDataProperty(ndp, df);
+    }
+
+    public static Wrap<? extends OWLObjectPropertyExpression> fetchObjectPropertyExpression(OntOPE ope, OWLDataFactory df) {
+        return ope.getModel() instanceof InternalModel ? ((InternalModel) ope.getModel()).fetchObjectProperty(ope) : getObjectPropertyExpression(ope, df);
+    }
 
     /**
      * @param individual {@link OntIndividual.Named}
@@ -66,7 +88,7 @@ public class ReadHelper {
      */
     @SuppressWarnings("unchecked")
     public static Wrap<OWLNamedIndividual> getNamedIndividual(OntIndividual.Named individual, OWLDataFactory df) {
-        return (Wrap<OWLNamedIndividual>) getIndividual(individual, df);
+        return (Wrap<OWLNamedIndividual>) fetchIndividual(individual, df);
     }
 
     /**
@@ -76,7 +98,7 @@ public class ReadHelper {
      */
     @SuppressWarnings("unchecked")
     public static Wrap<OWLAnonymousIndividual> getAnonymousIndividual(OntIndividual.Anonymous anon, OWLDataFactory df) {
-        return (Wrap<OWLAnonymousIndividual>) getIndividual(anon, df);
+        return (Wrap<OWLAnonymousIndividual>) fetchIndividual(anon, df);
     }
 
     /**
@@ -88,7 +110,8 @@ public class ReadHelper {
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
             return Wrap.create(df.getOWLNamedIndividual(IRI.create(individual.getURI())), individual);
         }
-        String label = NodeFmtLib.encodeBNodeLabel(individual.asNode().getBlankNodeLabel());
+        String label = //NodeFmtLib.encodeBNodeLabel(individual.asNode().getBlankNodeLabel());
+                individual.asNode().getBlankNodeLabel();
         return Wrap.create(df.getOWLAnonymousIndividual(label), individual);
     }
 
@@ -158,13 +181,13 @@ public class ReadHelper {
      */
     public static Wrap<? extends OWLPropertyExpression> getProperty(OntPE property, OWLDataFactory df) {
         if (OntApiException.notNull(property, "Null property.").canAs(OntNAP.class)) {
-            return getAnnotationProperty(property.as(OntNAP.class), df);
+            return fetchAnnotationProperty(property.as(OntNAP.class), df);
         }
         if (property.canAs(OntNDP.class)) {
-            return getDataProperty(property.as(OntNDP.class), df);
+            return fetchDataProperty(property.as(OntNDP.class), df);
         }
         if (property.canAs(OntOPE.class)) {
-            return getObjectProperty(property.as(OntOPE.class), df);
+            return fetchObjectPropertyExpression(property.as(OntOPE.class), df);
         }
         throw new OntApiException("Unsupported property " + property);
     }
@@ -190,8 +213,8 @@ public class ReadHelper {
     }
 
     @SuppressWarnings("unchecked")
-    public static Wrap<OWLObjectProperty> getObjectProperty(OntNOP nop, OWLDataFactory df) {
-        return (Wrap<OWLObjectProperty>) getObjectProperty((OntOPE) nop, df);
+    public static Wrap<OWLObjectProperty> fetchObjectProperty(OntNOP nop, OWLDataFactory df) {
+        return (Wrap<OWLObjectProperty>) fetchObjectPropertyExpression(nop, df);
     }
 
     /**
@@ -199,9 +222,8 @@ public class ReadHelper {
      * @param df  {@link OWLDataFactory}
      * @return {@link Wrap} around {@link OWLObjectPropertyExpression}
      */
-    public static Wrap<? extends OWLObjectPropertyExpression> getObjectProperty(OntOPE ope, OWLDataFactory df) {
+    public static Wrap<? extends OWLObjectPropertyExpression> getObjectPropertyExpression(OntOPE ope, OWLDataFactory df) {
         OntApiException.notNull(ope, "Null object property.");
-        OWLObjectPropertyExpression res;
         if (ope.isAnon()) { //todo: handle inverse of inverseOf (?)
             OWLObjectProperty op = df.getOWLObjectProperty(IRI.create(ope.as(OntOPE.Inverse.class).getDirect().getURI()));
             return Wrap.create(op.getInverseProperty(), ope);
@@ -216,7 +238,7 @@ public class ReadHelper {
      */
     @SuppressWarnings("unchecked")
     public static Wrap<OWLDatatype> getDatatype(OntDT dt, OWLDataFactory df) {
-        return (Wrap<OWLDatatype>) getDataRange(dt, df);
+        return (Wrap<OWLDatatype>) fetchDataRange(dt, df);
     }
 
     private static boolean isEntityDeclaration(OntStatement statement) { // todo: what about anonymous individuals?
@@ -261,7 +283,7 @@ public class ReadHelper {
     }
 
     private static Wrap<OWLAnnotation> getPlainAnnotation(OntStatement a, OWLDataFactory df) {
-        Wrap<OWLAnnotationProperty> p = getAnnotationProperty(a.getPredicate().as(OntNAP.class), df);
+        Wrap<OWLAnnotationProperty> p = fetchAnnotationProperty(a.getPredicate().as(OntNAP.class), df);
         Wrap<? extends OWLAnnotationValue> v = getAnnotationValue(a.getObject(), df);
         OWLAnnotation res = df.getOWLAnnotation(p.getObject(), v.getObject(), Stream.empty());
         return Wrap.create(res, a).append(p).append(v);
@@ -271,7 +293,7 @@ public class ReadHelper {
         OntObject subject = ann.getSubject();
         Stream<OntStatement> content = Stream.concat(Stream.of(ann),
                 Stream.of(RDF.type, OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget).map(subject::getRequiredProperty));
-        Wrap<OWLAnnotationProperty> p = getAnnotationProperty(ann.getPredicate().as(OntNAP.class), df);
+        Wrap<OWLAnnotationProperty> p = fetchAnnotationProperty(ann.getPredicate().as(OntNAP.class), df);
         Wrap<? extends OWLAnnotationValue> v = getAnnotationValue(ann.getObject(), df);
         Wrap.Collection<OWLAnnotation> children = Wrap.Collection.create(ann.annotations().map(a -> getHierarchicalAnnotations(a, df)));
         OWLAnnotation res = df.getOWLAnnotation(p.getObject(), v.getObject(), children.getObjects());
@@ -373,8 +395,8 @@ public class ReadHelper {
     }
 
     @SuppressWarnings("unchecked")
-    public static Wrap<OWLClass> getClass(OntClass cl, OWLDataFactory df) {
-        return (Wrap<OWLClass>) getClassExpression(cl, df);
+    public static Wrap<OWLClass> fetchClass(OntClass cl, OWLDataFactory df) {
+        return (Wrap<OWLClass>) fetchClassExpression(cl, df);
     }
 
     /**
@@ -407,7 +429,7 @@ public class ReadHelper {
         if (OntCE.ObjectSomeValuesFrom.class.equals(view) ||
                 OntCE.ObjectAllValuesFrom.class.equals(view)) {
             OntCE.ComponentRestrictionCE<OntCE, OntOPE> _ce = (OntCE.ComponentRestrictionCE<OntCE, OntOPE>) ce;
-            Wrap<? extends OWLObjectPropertyExpression> p = getObjectProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLObjectPropertyExpression> p = fetchObjectPropertyExpression(_ce.getOnProperty(), df);
             Wrap<? extends OWLClassExpression> c = getClassExpression(_ce.getValue(), df, seen);
             OWLClassExpression res;
             if (OntCE.ObjectSomeValuesFrom.class.equals(view))
@@ -421,8 +443,8 @@ public class ReadHelper {
         if (OntCE.DataSomeValuesFrom.class.equals(view) ||
                 OntCE.DataAllValuesFrom.class.equals(view)) {
             OntCE.ComponentRestrictionCE<OntDR, OntNDP> _ce = (OntCE.ComponentRestrictionCE<OntDR, OntNDP>) ce;
-            Wrap<OWLDataProperty> p = getDataProperty(_ce.getOnProperty(), df);
-            Wrap<? extends OWLDataRange> d = getDataRange(_ce.getValue(), df);
+            Wrap<OWLDataProperty> p = fetchDataProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLDataRange> d = fetchDataRange(_ce.getValue(), df);
             OWLClassExpression res;
             if (OntCE.DataSomeValuesFrom.class.equals(view))
                 res = df.getOWLDataSomeValuesFrom(p.getObject(), d.getObject());
@@ -434,13 +456,13 @@ public class ReadHelper {
         }
         if (OntCE.ObjectHasValue.class.equals(view)) {
             OntCE.ObjectHasValue _ce = (OntCE.ObjectHasValue) ce;
-            Wrap<? extends OWLObjectPropertyExpression> p = getObjectProperty(_ce.getOnProperty(), df);
-            Wrap<? extends OWLIndividual> i = getIndividual(_ce.getValue(), df);
+            Wrap<? extends OWLObjectPropertyExpression> p = fetchObjectPropertyExpression(_ce.getOnProperty(), df);
+            Wrap<? extends OWLIndividual> i = fetchIndividual(_ce.getValue(), df);
             return Wrap.create(df.getOWLObjectHasValue(p.getObject(), i.getObject()), _ce).append(p).append(i);
         }
         if (OntCE.DataHasValue.class.equals(view)) {
             OntCE.DataHasValue _ce = (OntCE.DataHasValue) ce;
-            Wrap<OWLDataProperty> p = getDataProperty(_ce.getOnProperty(), df);
+            Wrap<OWLDataProperty> p = fetchDataProperty(_ce.getOnProperty(), df);
             Wrap<OWLLiteral> l = getLiteral(_ce.getValue(), df);
             return Wrap.create(df.getOWLDataHasValue(p.getObject(), l.getObject()), _ce).append(p);
         }
@@ -448,7 +470,7 @@ public class ReadHelper {
                 OntCE.ObjectMaxCardinality.class.equals(view) ||
                 OntCE.ObjectCardinality.class.equals(view)) {
             OntCE.CardinalityRestrictionCE<OntCE, OntOPE> _ce = (OntCE.CardinalityRestrictionCE<OntCE, OntOPE>) ce;
-            Wrap<? extends OWLObjectPropertyExpression> p = getObjectProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLObjectPropertyExpression> p = fetchObjectPropertyExpression(_ce.getOnProperty(), df);
             Wrap<? extends OWLClassExpression> c = getClassExpression(_ce.getValue() == null ? _ce.getModel().getOWLThing() : _ce.getValue(), df, seen);
             OWLObjectCardinalityRestriction res;
             if (OntCE.ObjectMinCardinality.class.equals(view))
@@ -465,8 +487,8 @@ public class ReadHelper {
                 OntCE.DataMaxCardinality.class.equals(view) ||
                 OntCE.DataCardinality.class.equals(view)) {
             OntCE.CardinalityRestrictionCE<OntDR, OntNDP> _ce = (OntCE.CardinalityRestrictionCE<OntDR, OntNDP>) ce;
-            Wrap<OWLDataProperty> p = getDataProperty(_ce.getOnProperty(), df);
-            Wrap<? extends OWLDataRange> d = getDataRange(_ce.getValue() == null ? _ce.getModel().getRDFSLiteral() : _ce.getValue(), df);
+            Wrap<OWLDataProperty> p = fetchDataProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLDataRange> d = fetchDataRange(_ce.getValue() == null ? _ce.getModel().getRDFSLiteral() : _ce.getValue(), df);
             OWLDataCardinalityRestriction res;
             if (OntCE.DataMinCardinality.class.equals(view))
                 res = df.getOWLDataMinCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
@@ -480,7 +502,7 @@ public class ReadHelper {
         }
         if (OntCE.HasSelf.class.equals(view)) {
             OntCE.HasSelf _ce = (OntCE.HasSelf) ce;
-            Wrap<? extends OWLObjectPropertyExpression> p = getObjectProperty(_ce.getOnProperty(), df);
+            Wrap<? extends OWLObjectPropertyExpression> p = fetchObjectPropertyExpression(_ce.getOnProperty(), df);
             return Wrap.create(df.getOWLObjectHasSelf(p.getObject()), _ce).append(p);
         }
         if (OntCE.UnionOf.class.equals(view) ||
@@ -502,7 +524,7 @@ public class ReadHelper {
         if (OntCE.OneOf.class.equals(view)) {
             OntCE.OneOf _ce = (OntCE.OneOf) ce;
             List<Wrap<? extends OWLIndividual>> components = _ce.components()
-                    .map(c -> getIndividual(c, df)).collect(Collectors.toList());
+                    .map(c -> fetchIndividual(c, df)).collect(Collectors.toList());
             OWLClassExpression res = df.getOWLObjectOneOf(components.stream().map(Wrap::getObject));
             Stream<Triple> triples = Stream.concat(_ce.content().map(FrontsTriple::asTriple),
                     components.stream().map(Wrap::triples).flatMap(Function.identity()));
@@ -550,7 +572,7 @@ public class ReadHelper {
      */
     public static Wrap<? extends SWRLIArgument> getSWRLIndividualArg(OntSWRL.IArg arg, OWLDataFactory df) {
         if (OntApiException.notNull(arg, "Null SWRL-I arg").canAs(OntIndividual.class)) {
-            return Wrap.create(df.getSWRLIndividualArgument(getIndividual(arg.as(OntIndividual.class), df).getObject()), arg);
+            return Wrap.create(df.getSWRLIndividualArgument(fetchIndividual(arg.as(OntIndividual.class), df).getObject()), arg);
         }
         if (arg.canAs(OntSWRL.Variable.class)) {
             return getSWRLVariable(arg.as(OntSWRL.Variable.class), df);
@@ -584,14 +606,14 @@ public class ReadHelper {
         }
         if (OntSWRL.Atom.DataProperty.class.equals(view)) {
             OntSWRL.Atom.DataProperty _atom = (OntSWRL.Atom.DataProperty) atom;
-            Wrap<OWLDataProperty> p = getDataProperty(_atom.getPredicate(), df);
+            Wrap<OWLDataProperty> p = fetchDataProperty(_atom.getPredicate(), df);
             Wrap<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), df);
             Wrap<? extends SWRLDArgument> s = getSWRLLiteralArg(_atom.getSecondArg(), df);
             return Wrap.create(df.getSWRLDataPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom).append(p).append(f).append(s);
         }
         if (OntSWRL.Atom.ObjectProperty.class.equals(view)) {
             OntSWRL.Atom.ObjectProperty _atom = (OntSWRL.Atom.ObjectProperty) atom;
-            Wrap<? extends OWLObjectPropertyExpression> p = getObjectProperty(_atom.getPredicate(), df);
+            Wrap<? extends OWLObjectPropertyExpression> p = fetchObjectPropertyExpression(_atom.getPredicate(), df);
             Wrap<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), df);
             Wrap<? extends SWRLIArgument> s = getSWRLIndividualArg(_atom.getSecondArg(), df);
             return Wrap.create(df.getSWRLObjectPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom).append(p).append(f).append(s);

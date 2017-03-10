@@ -61,10 +61,10 @@ class DisjointDataPropertiesTranslator extends AbstractTwoWayNaryTranslator<OWLD
         if (statement.getSubject().canAs(getDisjointView())) {
             OntDisjoint.DataProperties disjoint = statement.getSubject().as(getDisjointView());
             content = disjoint.content();
-            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.getDataProperty(m, df)));
+            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.fetchDataProperty(m, df)));
         } else {
             content = Stream.of(statement);
-            members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject()).map(r -> r.as(getView())).map(m -> ReadHelper.getDataProperty(m, df)));
+            members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject()).map(r -> r.as(getView())).map(m -> ReadHelper.fetchDataProperty(m, df)));
         }
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLDisjointDataPropertiesAxiom res = df.getOWLDisjointDataPropertiesAxiom(members.getObjects(), annotations.getObjects());

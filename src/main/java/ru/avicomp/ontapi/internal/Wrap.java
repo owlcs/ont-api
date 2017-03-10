@@ -94,10 +94,6 @@ public class Wrap<O extends OWLObject> {
         //return set.stream().filter(Objects::nonNull).filter(o -> o.hashCode() == h).filter(o -> key.equals(o.getObject())).findAny();
     }
 
-    public static <O extends OWLObject> Optional<Wrap<O>> find(Collection<O> set, O key) {
-        return find(set.wraps, key);
-    }
-
     public static <O extends OWLObject> Wrap<O> create(O o, Stream<? extends Statement> content) {
         return new Wrap<>(o, content.map(FrontsTriple::asTriple).collect(Collectors.toSet()));
     }
@@ -134,6 +130,10 @@ public class Wrap<O extends OWLObject> {
 
         public Set<Triple> getTriples() {
             return triples().collect(Collectors.toSet());
+        }
+
+        public Optional<Wrap<O>> find(O key) {
+            return Wrap.find(wraps, key);
         }
 
         /**

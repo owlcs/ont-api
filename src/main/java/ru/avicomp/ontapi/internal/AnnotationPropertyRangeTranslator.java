@@ -35,7 +35,7 @@ class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<
     @Override
     Wrap<OWLAnnotationPropertyRangeAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap<OWLAnnotationProperty> p = ReadHelper.getAnnotationProperty(statement.getSubject().as(getView()), df);
+        Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(getView()), df);
         Wrap<IRI> d = ReadHelper.wrapIRI(statement.getObject().as(OntObject.class));
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLAnnotationPropertyRangeAxiom res = df.getOWLAnnotationPropertyRangeAxiom(p.getObject(), d.getObject(), annotations.getObjects());

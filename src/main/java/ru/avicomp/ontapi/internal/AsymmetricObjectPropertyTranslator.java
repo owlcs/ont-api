@@ -30,7 +30,7 @@ class AsymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<
     @Override
     Wrap<OWLAsymmetricObjectPropertyAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap<? extends OWLObjectPropertyExpression> p = ReadHelper.getObjectProperty(getSubject(statement), df);
+        Wrap<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(getSubject(statement), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLAsymmetricObjectPropertyAxiom res = df.getOWLAsymmetricObjectPropertyAxiom(p.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p);

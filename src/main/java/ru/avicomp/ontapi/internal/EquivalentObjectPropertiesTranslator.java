@@ -40,8 +40,8 @@ class EquivalentObjectPropertiesTranslator extends AbstractNaryTranslator<OWLEqu
     @Override
     Wrap<OWLEquivalentObjectPropertiesAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap<? extends OWLObjectPropertyExpression> a = ReadHelper.getObjectProperty(statement.getSubject().as(getView()), df);
-        Wrap<? extends OWLObjectPropertyExpression> b = ReadHelper.getObjectProperty(statement.getObject().as(getView()), df);
+        Wrap<? extends OWLObjectPropertyExpression> a = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(getView()), df);
+        Wrap<? extends OWLObjectPropertyExpression> b = ReadHelper.fetchObjectPropertyExpression(statement.getObject().as(getView()), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLEquivalentObjectPropertiesAxiom res = df.getOWLEquivalentObjectPropertiesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);

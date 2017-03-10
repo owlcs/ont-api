@@ -29,8 +29,8 @@ class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubDa
     @Override
     Wrap<OWLSubDataPropertyOfAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap<OWLDataProperty> sub = ReadHelper.getDataProperty(statement.getSubject().as(OntNDP.class), df);
-        Wrap<OWLDataProperty> sup = ReadHelper.getDataProperty(statement.getObject().as(OntNDP.class), df);
+        Wrap<OWLDataProperty> sub = ReadHelper.fetchDataProperty(statement.getSubject().as(OntNDP.class), df);
+        Wrap<OWLDataProperty> sup = ReadHelper.fetchDataProperty(statement.getObject().as(OntNDP.class), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLSubDataPropertyOfAxiom res = df.getOWLSubDataPropertyOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(sub).append(sup);

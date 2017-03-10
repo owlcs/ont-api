@@ -131,7 +131,7 @@ public class InternalModelTest {
 
         test(OWLClass.class, jena.classes(), owl.classesInSignature());
         test(OWLDatatype.class, jena.datatypes(), owl.datatypesInSignature());
-        test(OWLNamedIndividual.class, jena.individuals(), owl.individualsInSignature());
+        test(OWLNamedIndividual.class, jena.namedIndividuals(), owl.individualsInSignature());
         test(OWLAnonymousIndividual.class, jena.anonymousIndividuals(), owl.anonymousIndividuals());
         Set<OWLAnnotationProperty> expectedAnnotationProperties = owl.annotationPropertiesInSignature().collect(Collectors.toSet());
         Set<OWLDataProperty> expectedDataProperties = owl.dataPropertiesInSignature().collect(Collectors.toSet());
@@ -189,7 +189,7 @@ public class InternalModelTest {
         debugPrint(jena, owl);
         test(OWLClass.class, jena.classes(), owl.classesInSignature());
         test(OWLDatatype.class, jena.datatypes(), owl.datatypesInSignature());
-        test(OWLNamedIndividual.class, jena.individuals(), owl.individualsInSignature());
+        test(OWLNamedIndividual.class, jena.namedIndividuals(), owl.individualsInSignature());
         test(OWLAnonymousIndividual.class, jena.anonymousIndividuals(), owl.anonymousIndividuals());
         test(OWLAnnotationProperty.class, jena.annotationProperties(), owl.annotationPropertiesInSignature());
         test(OWLObjectProperty.class, jena.objectProperties(), owl.objectPropertiesInSignature());

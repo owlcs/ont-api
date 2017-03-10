@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -26,6 +25,8 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  * This is a nonserializable(!) {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities.
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
  * it is used by {@link ru.avicomp.ontapi.OntologyModel} to read and write structural representation of ontology.
+ *
+ * todo: should return {@link Wrap}s, not just naked {@link OWLObject}s
  * <p>
  * Created by @szuev on 26.10.2016.
  */
@@ -35,11 +36,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
-    private Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsCache = new HashMap<>();
-    // OWL objects store to improve performance (to work through OWL)
-    // any change in the graph resets this cache.
-    // TODO: will be changed
-    private Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsCache = new HashMap<>();
+    protected Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsStore = new HashMap<>();
+    // OWL objects store to improve performance (working through OWL-API interface)
+    // any change in the graph resets these caches.
+    protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsStore = new HashMap<>();
+    // Temporary stores for collecting axioms, should be reset after axioms getting
+    protected Map<OntCE, Wrap<? extends OWLClassExpression>> owlCLEStore = new HashMap<>();
+    protected Map<OntDR, Wrap<? extends OWLDataRange>> owlDRGStore = new HashMap<>();
+    protected Map<OntIndividual, Wrap<? extends OWLIndividual>> owlINDStore = new HashMap<>();
+    protected Map<OntNAP, Wrap<OWLAnnotationProperty>> owlNAPStore = new HashMap<>();
+    protected Map<OntNDP, Wrap<OWLDataProperty>> owlNDPStore = new HashMap<>();
+    protected Map<OntOPE, Wrap<? extends OWLObjectPropertyExpression>> owlOPEStore = new HashMap<>();
 
     // todo: pass not a personality, but loader configuration.
     public InternalModel(Graph base, OntPersonality personality) {
@@ -48,10 +55,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     }
 
     public OWLDataFactory dataFactory() {
-        // todo: should be passed outside
+        // todo: should be passed outside (from manager)
         return OWL_DATA_FACTORY;
     }
-
 
     public Stream<OWLImportsDeclaration> importDeclarations() {
         return getID().imports().map(IRI::create).map(OWLImportsDeclarationImpl::new);
@@ -61,11 +67,39 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         return getAxioms().isEmpty() && getAnnotations().isEmpty();
     }
 
+    protected Wrap<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
+        return owlCLEStore.computeIfAbsent(ce, c -> ReadHelper.getClassExpression(c, dataFactory()));
+    }
+
+    protected Wrap<? extends OWLDataRange> fetchDataRange(OntDR dr) {
+        return owlDRGStore.computeIfAbsent(dr, d -> ReadHelper.getDataRange(d, dataFactory()));
+    }
+
+    protected Wrap<? extends OWLIndividual> fetchIndividual(OntIndividual indi) {
+        return owlINDStore.computeIfAbsent(indi, i -> ReadHelper.getIndividual(i, dataFactory()));
+    }
+
+    protected Wrap<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap) {
+        return owlNAPStore.computeIfAbsent(nap, p -> ReadHelper.getAnnotationProperty(p, dataFactory()));
+    }
+
+    protected Wrap<OWLDataProperty> fetchDataProperty(OntNDP ndp) {
+        return owlNDPStore.computeIfAbsent(ndp, p -> ReadHelper.getDataProperty(p, dataFactory()));
+    }
+
+    protected Wrap<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
+        return owlOPEStore.computeIfAbsent(ope, p -> ReadHelper.getObjectPropertyExpression(p, dataFactory()));
+    }
+
+    public Stream<OWLIndividual> individuals() {
+        return objects(OWLIndividual.class);
+    }
+
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
         return objects(OWLAnonymousIndividual.class);
     }
 
-    public Stream<OWLNamedIndividual> individuals() {
+    public Stream<OWLNamedIndividual> namedIndividuals() {
         return objects(OWLNamedIndividual.class);
     }
 
@@ -75,6 +109,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     public Stream<OWLDataProperty> dataProperties() {
         return objects(OWLDataProperty.class);
+    }
+
+    public Stream<OWLObjectPropertyExpression> objectPropertyExpressions() {
+        return objects(OWLObjectPropertyExpression.class);
     }
 
     public Stream<OWLObjectProperty> objectProperties() {
@@ -94,22 +132,22 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
         List<OWLEntity> res = new ArrayList<>();
         if (e.canAs(OntClass.class)) {
-            res.add(ReadHelper.getClass(e.as(OntClass.class), dataFactory()).getObject().asOWLClass());
+            res.add(ReadHelper.fetchClass(e.as(OntClass.class), dataFactory()).getObject().asOWLClass());
         }
         if (e.canAs(OntDT.class)) {
             res.add(ReadHelper.getDatatype(e.as(OntDT.class), dataFactory()).getObject());
         }
         if (e.canAs(OntNAP.class)) {
-            res.add(ReadHelper.getAnnotationProperty(e.as(OntNAP.class), dataFactory()).getObject());
+            res.add(ReadHelper.fetchAnnotationProperty(e.as(OntNAP.class), dataFactory()).getObject());
         }
         if (e.canAs(OntNDP.class)) {
-            res.add(ReadHelper.getDataProperty(e.as(OntNDP.class), dataFactory()).getObject());
+            res.add(ReadHelper.fetchDataProperty(e.as(OntNDP.class), dataFactory()).getObject());
         }
         if (e.canAs(OntNOP.class)) {
-            res.add(ReadHelper.getObjectProperty(e.as(OntNOP.class), dataFactory()).getObject().asOWLObjectProperty());
+            res.add(ReadHelper.fetchObjectProperty(e.as(OntNOP.class), dataFactory()).getObject().asOWLObjectProperty());
         }
         if (e.canAs(OntIndividual.Named.class)) {
-            res.add(ReadHelper.getIndividual(e.as(OntIndividual.Named.class), dataFactory()).getObject().asOWLNamedIndividual());
+            res.add(ReadHelper.fetchIndividual(e.as(OntIndividual.Named.class), dataFactory()).getObject().asOWLNamedIndividual());
         }
         return res;
     }
@@ -121,8 +159,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     }
 
     @SuppressWarnings("unchecked")
-    public <E extends OWLObject> Stream<E> objects(Class<E> view) {
-        return (Stream<E>) owlObjectsCache.computeIfAbsent(view, c ->
+    protected <E extends OWLObject> Stream<E> objects(Class<E> view) {
+        return (Stream<E>) owlObjectsStore.computeIfAbsent(view, c ->
                 Stream.concat(annotations().map(annotation -> OwlObjects.objects(view, annotation)).flatMap(Function.identity()),
                         axioms().map(axiom -> OwlObjects.objects(view, axiom)).flatMap(Function.identity())).collect(Collectors.toSet())).stream();
     }
@@ -133,13 +171,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     public void remove(OWLAnnotation annotation) {
         Wrap.Collection<OWLAnnotation> all = ReadHelper.getObjectAnnotations(getID(), dataFactory());
-        Optional<Wrap<OWLAnnotation>> res = Wrap.find(all, annotation);
+        Optional<Wrap<OWLAnnotation>> res = all.find(annotation);
         if (!res.isPresent()) {
             return;
         }
         res.get().triples().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
         // todo: clear only those objects which belong to annotation
-        owlObjectsCache.clear();
+        clearObjectsCache();
     }
 
     public Stream<OWLAnnotation> annotations() {
@@ -159,12 +197,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     }
 
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
-        // pizza-load-performance-test (PerformancePizzaTester.java) shows that parallel stream really makes this calculation faster.
-        // anyway I am going to change this place by switching to bulk computing (not one by one)
-        return StreamSupport.stream(types.spliterator(), axiomsCache.isEmpty())
-                //types.stream()
-                        .map(this::getAxioms)
-                        .map(Collection::stream).flatMap(Function.identity());
+        // todo: change this place by switching to the bulk computing (not one by one)
+        return types.stream()
+                .map(this::getAxioms)
+                .map(Collection::stream).flatMap(Function.identity());
     }
 
     public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
@@ -257,11 +293,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         store.clear(axiom);
         triples.stream().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
         // todo: clear only those objects which belong to axiom
-        owlObjectsCache.clear();
+        clearObjectsCache();
     }
 
     private Set<Class<? extends OWLAxiom>> getAxiomTypes(Triple triple) {
-        return axiomsCache.values().stream()
+        return axiomsStore.values().stream()
                 .map(s -> s.get(triple).stream())
                 .flatMap(Function.identity())
                 .map(a -> a.getAxiomType().getActualClass())
@@ -276,7 +312,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      */
     private boolean canDelete(Triple triple) {
         int count = 0;
-        for (OwlObjectTriplesMap<? extends OWLAxiom> store : axiomsCache.values()) {
+        for (OwlObjectTriplesMap<? extends OWLAxiom> store : axiomsStore.values()) {
             count += store.get(triple).size();
             if (count > 1) return false;
         }
@@ -290,7 +326,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     @SuppressWarnings("unchecked")
     private <A extends OWLAxiom> OwlObjectTriplesMap<A> getAxiomTripleStore(Class<A> type) {
-        return (OwlObjectTriplesMap<A>) axiomsCache.computeIfAbsent(type, c -> new OwlObjectTriplesMap<>(AxiomParserProvider.get(type).read(this)));
+        return (OwlObjectTriplesMap<A>) axiomsStore.computeIfAbsent(type, c -> new OwlObjectTriplesMap<>(AxiomParserProvider.get(c).read(this)));
     }
 
     @Override
@@ -299,25 +335,35 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         return super.removeAll();
     }
 
+    protected void clearTemporaryStores() {
+        owlCLEStore.clear();
+        owlINDStore.clear();
+        owlDRGStore.clear();
+        owlOPEStore.clear();
+        owlNAPStore.clear();
+        owlNDPStore.clear();
+    }
+
+    protected void clearObjectsCache() {
+        owlObjectsStore.clear();
+        clearTemporaryStores();
+    }
+
     public void clearCache() {
-        axiomsCache.clear();
-        owlObjectsCache.clear();
+        axiomsStore.clear();
+        clearObjectsCache();
     }
 
     public void clearCache(Triple triple) {
-        getAxiomTypes(triple).forEach(axiomsCache::remove);
-        owlObjectsCache.clear();
+        getAxiomTypes(triple).forEach(axiomsStore::remove);
+        clearObjectsCache();
     }
 
     public class OwlObjectTriplesMap<O extends OWLObject> {
         protected Map<O, Set<Triple>> cache;
 
-        public OwlObjectTriplesMap(Map<O, Set<Triple>> map) {
-            this.cache = new HashMap<>(map);
-        }
-
         public OwlObjectTriplesMap(Set<Wrap<O>> set) {
-            this(set.stream().collect(Collectors.toMap(Wrap::getObject, Wrap::getTriples)));
+            this.cache = set.stream().collect(Collectors.toMap(Wrap::getObject, Wrap::getTriples));
         }
 
         public void add(O object, Triple triple) {
@@ -332,16 +378,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
             return cache.entrySet().parallelStream().filter(e -> e.getValue().contains(triple)).map(Map.Entry::getKey).collect(Collectors.toSet());
         }
 
-        public long count(Triple triple) {
-            return cache.values().stream().filter(triples -> triples.contains(triple)).count();
-        }
-
         public void delete(O object, Triple triple) {
             get(object).remove(triple);
-        }
-
-        public void put(O object, Set<Triple> triples) {
-            cache.put(object, triples);
         }
 
         public void clear() {
@@ -352,10 +390,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
             cache.remove(object);
         }
 
-        public boolean isEmpty() {
-            return cache.isEmpty();
-        }
-
         public Set<O> getObjects() {
             return cache.keySet();
         }
@@ -364,6 +398,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
             return new OwlObjectListener<>(this, obj);
         }
     }
+
 
     /**
      * Listener to monitor the addition and deletion of axioms.

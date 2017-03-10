@@ -36,8 +36,8 @@ class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     @Override
     Wrap<OWLSubClassOfAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap<? extends OWLClassExpression> sub = ReadHelper.getClassExpression(statement.getSubject().as(OntCE.class), df);
-        Wrap<? extends OWLClassExpression> sup = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class), df);
+        Wrap<? extends OWLClassExpression> sub = ReadHelper.fetchClassExpression(statement.getSubject().as(OntCE.class), df);
+        Wrap<? extends OWLClassExpression> sup = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLSubClassOfAxiom res = df.getOWLSubClassOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(sub).append(sup);

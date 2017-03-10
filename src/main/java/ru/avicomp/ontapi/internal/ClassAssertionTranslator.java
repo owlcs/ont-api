@@ -36,8 +36,8 @@ class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
     @Override
     Wrap<OWLClassAssertionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap<? extends OWLIndividual> i = ReadHelper.getIndividual(statement.getSubject().as(OntIndividual.class), df);
-        Wrap<? extends OWLClassExpression> ce = ReadHelper.getClassExpression(statement.getObject().as(OntCE.class), df);
+        Wrap<? extends OWLIndividual> i = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), df);
+        Wrap<? extends OWLClassExpression> ce = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLClassAssertionAxiom res = df.getOWLClassAssertionAxiom(ce.getObject(), i.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(i).append(ce);

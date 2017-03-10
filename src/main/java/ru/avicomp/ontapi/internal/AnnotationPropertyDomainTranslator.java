@@ -35,7 +35,7 @@ class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTranslato
     @Override
     Wrap<OWLAnnotationPropertyDomainAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
-        Wrap<OWLAnnotationProperty> p = ReadHelper.getAnnotationProperty(statement.getSubject().as(getView()), df);
+        Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(getView()), df);
         Wrap<IRI> d = ReadHelper.wrapIRI(statement.getObject().as(OntObject.class));
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
         OWLAnnotationPropertyDomainAxiom res = df.getOWLAnnotationPropertyDomainAxiom(p.getObject(), d.getObject(), annotations.getObjects());
