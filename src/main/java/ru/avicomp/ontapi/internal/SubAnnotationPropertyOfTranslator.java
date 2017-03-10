@@ -27,7 +27,7 @@ class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OW
     }
 
     @Override
-    Wrap<OWLSubAnnotationPropertyOfAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLSubAnnotationPropertyOfAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<OWLAnnotationProperty> sub = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(OntNAP.class), df);
         Wrap<OWLAnnotationProperty> sup = ReadHelper.fetchAnnotationProperty(statement.getObject().as(OntNAP.class), df);

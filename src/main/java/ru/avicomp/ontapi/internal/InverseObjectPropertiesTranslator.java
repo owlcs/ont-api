@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
+import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
@@ -27,7 +28,7 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
     }
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         // NOTE as a precaution: the first (commented) way is not correct
         // since it includes anonymous object property expressions (based on owl:inverseOf),
         // which could be treat as separated axioms, but OWL-API doesn't think so.
@@ -44,7 +45,17 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
     }
 
     @Override
-    Wrap<OWLInverseObjectPropertiesAxiom> asAxiom(OntStatement statement) {
+    public boolean testStatement(OntStatement statement) {
+        if (!statement.getPredicate().equals(OWL.inverseOf) || !statement.getObject().isResource()) return false;
+        OntObject subject = statement.getSubject();
+        OntObject object = statement.getObject().as(OntObject.class);
+        // to not take into account the object property expressions:
+        return (subject.isURIResource() || subject.hasType(OWL.ObjectProperty))
+                && (object.isURIResource() || object.hasType(OWL.ObjectProperty));
+    }
+
+    @Override
+    public Wrap<OWLInverseObjectPropertiesAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLObjectPropertyExpression> f = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(OntOPE.class), df);
         Wrap<? extends OWLObjectPropertyExpression> s = ReadHelper.fetchObjectPropertyExpression(statement.getObject().as(OntOPE.class), df);

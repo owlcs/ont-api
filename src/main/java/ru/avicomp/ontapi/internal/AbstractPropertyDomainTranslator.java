@@ -26,9 +26,15 @@ abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDoma
     abstract Class<P> getView();
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return model.statements(null, RDFS.domain, null)
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(getView()));
+    }
+
+    @Override
+    public boolean testStatement(OntStatement statement) {
+        return statement.getPredicate().equals(RDFS.domain)
+                && statement.getSubject().canAs(getView());
     }
 }

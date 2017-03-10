@@ -36,10 +36,17 @@ abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProper
     }
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return model.statements(null, RDF.type, getType())
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(getView()));
+    }
+
+    @Override
+    public boolean testStatement(OntStatement statement) {
+        return statement.getPredicate().equals(RDF.type)
+                && statement.getObject().equals(getType())
+                && statement.getSubject().canAs(getView());
     }
 
     @Override

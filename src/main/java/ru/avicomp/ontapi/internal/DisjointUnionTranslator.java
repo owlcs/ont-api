@@ -38,7 +38,7 @@ class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUn
     }
 
     @Override
-    Wrap<OWLDisjointUnionAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLDisjointUnionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         OntClass clazz = statement.getSubject().as(OntClass.class);
         Wrap<? extends OWLClassExpression> subject = ReadHelper.fetchClassExpression(clazz, df);

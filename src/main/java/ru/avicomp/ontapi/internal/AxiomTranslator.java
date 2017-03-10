@@ -23,7 +23,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     /**
-     * writes axiom to model.
+     * Writes axiom to model.
      *
      * @param axiom {@link OWLAxiom}
      * @param model {@link OntGraphModel}
@@ -31,7 +31,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     public abstract void write(Axiom axiom, OntGraphModel model);
 
     /**
-     * reads axioms and triples from model.
+     * Reads axioms and triples from model.
      *
      * @param model {@link OntGraphModel}
      * @return Set of {@link Wrap} with {@link OWLAxiom} as key and Set of {@link Triple} as value
@@ -49,20 +49,29 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     }
 
     /**
-     * returns the stream of statements defining the axiom.
+     * Returns the stream of statements defining the axiom in the base graph of the specified model.
      *
      * @param model {@link OntGraphModel} the model
-     * @return Stream of {@link OntStatement}
+     * @return Stream of {@link OntStatement}, always local (not from imports)
      */
-    abstract Stream<OntStatement> statements(OntGraphModel model);
+    public abstract Stream<OntStatement> statements(OntGraphModel model);
 
     /**
+     * Tests if the specified statement answers the axiom's definition.
+     * @param statement {@link OntStatement} any statement, not necessarily local.
+     * @return true if the statement corresponds the {@link Axiom}.
+     */
+    public abstract boolean testStatement(OntStatement statement);
+
+    /**
+     * Wraps the statement as OWL Axiom.
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @return {@link Wrap} around the {@link OWLAxiom}
      */
-    abstract Wrap<Axiom> asAxiom(OntStatement statement);
+    public abstract Wrap<Axiom> asAxiom(OntStatement statement);
 
     /**
+     * Gets {@link OWLDataFactory} from {@link InternalModel} or {@link AxiomParserProvider#DATA_FACTORY} in case any other {@link OntGraphModel}.
      * @param m {@link OntGraphModel}
      * @return {@link OWLDataFactory}
      */

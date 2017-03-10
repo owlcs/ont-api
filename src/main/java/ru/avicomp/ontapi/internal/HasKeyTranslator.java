@@ -41,7 +41,7 @@ class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntC
     }
 
     @Override
-    Wrap<OWLHasKeyAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLHasKeyAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         OntCE ce = statement.getSubject().as(OntCE.class);
         Wrap<? extends OWLClassExpression> subject = ReadHelper.fetchClassExpression(ce, df);

@@ -44,9 +44,9 @@ public class ReadHelper {
         if (OntClass.class.equals(view)) {
             return fetchClass((OntClass) entity, df);
         } else if (OntDT.class.equals(view)) {
-            return getDatatype((OntDT) entity, df);
+            return fetchDatatype((OntDT) entity, df);
         } else if (OntIndividual.Named.class.equals(view)) {
-            return getNamedIndividual((OntIndividual.Named) entity, df);
+            return fetchNamedIndividual((OntIndividual.Named) entity, df);
         } else if (OntNAP.class.equals(view)) {
             return fetchAnnotationProperty((OntNAP) entity, df);
         } else if (OntNDP.class.equals(view)) {
@@ -87,7 +87,7 @@ public class ReadHelper {
      * @return {@link Wrap} around {@link OWLNamedIndividual}
      */
     @SuppressWarnings("unchecked")
-    public static Wrap<OWLNamedIndividual> getNamedIndividual(OntIndividual.Named individual, OWLDataFactory df) {
+    public static Wrap<OWLNamedIndividual> fetchNamedIndividual(OntIndividual.Named individual, OWLDataFactory df) {
         return (Wrap<OWLNamedIndividual>) fetchIndividual(individual, df);
     }
 
@@ -237,7 +237,7 @@ public class ReadHelper {
      * @return {@link Wrap} around {@link OWLDatatype}
      */
     @SuppressWarnings("unchecked")
-    public static Wrap<OWLDatatype> getDatatype(OntDT dt, OWLDataFactory df) {
+    public static Wrap<OWLDatatype> fetchDatatype(OntDT dt, OWLDataFactory df) {
         return (Wrap<OWLDatatype>) fetchDataRange(dt, df);
     }
 
@@ -362,7 +362,7 @@ public class ReadHelper {
                 "Can't determine view of data range " + dr);
         if (OntDR.Restriction.class.equals(view)) {
             OntDR.Restriction _dr = (OntDR.Restriction) dr;
-            Wrap<OWLDatatype> d = getDatatype(_dr.getDatatype(), df);
+            Wrap<OWLDatatype> d = fetchDatatype(_dr.getDatatype(), df);
             List<Wrap<OWLFacetRestriction>> restrictions = _dr.facetRestrictions().map(f -> getFacetRestriction(f, df)).collect(Collectors.toList());
             OWLDataRange res = df.getOWLDatatypeRestriction(d.getObject(), restrictions.stream().map(Wrap::getObject).collect(Collectors.toList()));
             Stream<Triple> triples = Stream.concat(_dr.content().map(FrontsTriple::asTriple),

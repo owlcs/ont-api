@@ -26,7 +26,7 @@ class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return model.statements(null, RDFS.subClassOf, null)
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(OntCE.class))
@@ -34,7 +34,14 @@ class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    Wrap<OWLSubClassOfAxiom> asAxiom(OntStatement statement) {
+    public boolean testStatement(OntStatement statement) {
+        return statement.getPredicate().equals(RDFS.subClassOf)
+                && statement.getSubject().canAs(OntCE.class)
+                && statement.getObject().canAs(OntCE.class);
+    }
+
+    @Override
+    public Wrap<OWLSubClassOfAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLClassExpression> sub = ReadHelper.fetchClassExpression(statement.getSubject().as(OntCE.class), df);
         Wrap<? extends OWLClassExpression> sup = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), df);

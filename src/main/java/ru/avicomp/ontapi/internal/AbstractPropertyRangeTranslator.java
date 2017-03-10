@@ -26,10 +26,15 @@ abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasPrope
     abstract Class<P> getView();
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return model.statements(null, RDFS.range, null)
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(getView()));
+    }
+
+    @Override
+    public boolean testStatement(OntStatement statement) {
+        return statement.getPredicate().equals(RDFS.range) && statement.getSubject().canAs(getView());
     }
 
 }

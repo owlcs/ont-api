@@ -28,12 +28,17 @@ class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return model.ontObjects(OntSWRL.Imp.class).filter(OntObject::isLocal).map(OntObject::getRoot);
     }
 
     @Override
-    Wrap<SWRLRule> asAxiom(OntStatement statement) {
+    public boolean testStatement(OntStatement statement) {
+        return statement.getSubject().canAs(OntSWRL.Imp.class);
+    }
+
+    @Override
+    public Wrap<SWRLRule> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
 

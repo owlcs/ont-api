@@ -39,7 +39,7 @@ class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentCl
     }
 
     @Override
-    Wrap<OWLEquivalentClassesAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLEquivalentClassesAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLClassExpression> a = ReadHelper.fetchClassExpression(statement.getSubject().as(getView()), df);
         Wrap<? extends OWLClassExpression> b = ReadHelper.fetchClassExpression(statement.getObject().as(getView()), df);

@@ -74,7 +74,7 @@ class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualA
     }
 
     @Override
-    Wrap<OWLSameIndividualAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLSameIndividualAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLIndividual> a = ReadHelper.fetchIndividual(statement.getSubject().as(getView()), df);
         Wrap<? extends OWLIndividual> b = ReadHelper.fetchIndividual(statement.getObject().as(getView()), df);

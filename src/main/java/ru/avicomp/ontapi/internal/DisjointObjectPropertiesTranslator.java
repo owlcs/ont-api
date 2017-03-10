@@ -57,7 +57,7 @@ class DisjointObjectPropertiesTranslator extends AbstractTwoWayNaryTranslator<OW
     }
 
     @Override
-    Wrap<OWLDisjointObjectPropertiesAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLDisjointObjectPropertiesAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap.Collection<? extends OWLObjectPropertyExpression> members;
         Stream<OntStatement> content;

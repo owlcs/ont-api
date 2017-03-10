@@ -25,11 +25,18 @@ abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P extends O
 
     abstract Class<P> getView();
 
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return model.statements(null, RDFS.subPropertyOf, null)
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(getView()))
                 .filter(s -> s.getObject().canAs(getView()));
+    }
+
+    @Override
+    public boolean testStatement(OntStatement statement) {
+        return statement.getPredicate().equals(RDFS.subPropertyOf)
+                && statement.getSubject().canAs(getView())
+                && statement.getObject().canAs(getView());
     }
 
     @Override

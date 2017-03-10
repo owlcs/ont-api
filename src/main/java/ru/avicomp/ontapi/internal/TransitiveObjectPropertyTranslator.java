@@ -28,7 +28,7 @@ class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<
     }
 
     @Override
-    Wrap<OWLTransitiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLTransitiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(getSubject(statement), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);

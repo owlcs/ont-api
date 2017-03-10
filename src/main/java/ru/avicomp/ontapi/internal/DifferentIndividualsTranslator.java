@@ -57,7 +57,7 @@ class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDif
     }
 
     @Override
-    Wrap<OWLDifferentIndividualsAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLDifferentIndividualsAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap.Collection<? extends OWLIndividual> members;
         Stream<OntStatement> content;

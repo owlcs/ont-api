@@ -28,12 +28,17 @@ class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<
      * @return {@link OntStatement}
      */
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return super.statements(model).filter(s -> s.getObject().isURIResource());
     }
 
     @Override
-    Wrap<OWLAnnotationPropertyRangeAxiom> asAxiom(OntStatement statement) {
+    public boolean testStatement(OntStatement statement) {
+        return super.testStatement(statement) && statement.getObject().isURIResource();
+    }
+
+    @Override
+    public Wrap<OWLAnnotationPropertyRangeAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(getView()), df);
         Wrap<IRI> d = ReadHelper.wrapIRI(statement.getObject().as(OntObject.class));

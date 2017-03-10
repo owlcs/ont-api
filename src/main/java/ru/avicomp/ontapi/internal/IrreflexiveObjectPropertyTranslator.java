@@ -29,7 +29,7 @@ class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator
     }
 
     @Override
-    Wrap<OWLIrreflexiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLIrreflexiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(getSubject(statement), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);

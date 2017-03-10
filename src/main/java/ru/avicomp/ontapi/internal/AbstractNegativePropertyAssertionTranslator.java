@@ -30,9 +30,16 @@ abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLProp
     }
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return model.statements(null, RDF.type, OWL.NegativePropertyAssertion)
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(getView()));
+    }
+
+    @Override
+    public boolean testStatement(OntStatement statement) {
+        return statement.getPredicate().equals(RDF.type)
+                && statement.getObject().equals(OWL.NegativePropertyAssertion)
+                && statement.getSubject().canAs(getView());
     }
 }

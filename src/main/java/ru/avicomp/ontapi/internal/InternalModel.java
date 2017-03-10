@@ -135,7 +135,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
             res.add(ReadHelper.fetchClass(e.as(OntClass.class), dataFactory()).getObject().asOWLClass());
         }
         if (e.canAs(OntDT.class)) {
-            res.add(ReadHelper.getDatatype(e.as(OntDT.class), dataFactory()).getObject());
+            res.add(ReadHelper.fetchDatatype(e.as(OntDT.class), dataFactory()).getObject());
         }
         if (e.canAs(OntNAP.class)) {
             res.add(ReadHelper.fetchAnnotationProperty(e.as(OntNAP.class), dataFactory()).getObject());

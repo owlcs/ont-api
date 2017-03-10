@@ -21,12 +21,17 @@ class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLDat
     }
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return super.statements(model).filter(s -> s.getObject().canAs(OntDR.class));
     }
 
     @Override
-    Wrap<OWLDataPropertyRangeAxiom> asAxiom(OntStatement statement) {
+    public boolean testStatement(OntStatement statement) {
+        return super.testStatement(statement) && statement.getObject().canAs(OntDR.class);
+    }
+
+    @Override
+    public Wrap<OWLDataPropertyRangeAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<OWLDataProperty> p = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), df);
         Wrap<? extends OWLDataRange> d = ReadHelper.fetchDataRange(statement.getObject().as(OntDR.class), df);

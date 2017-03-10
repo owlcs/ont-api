@@ -116,6 +116,10 @@ public enum Entities implements Configurable<OntObjectFactory> {
         this.type = type;
     }
 
+    public Resource type() {
+        return type;
+    }
+
     Stream<Resource> bannedTypes(Configurable.Mode mode) {
         return Stream.empty();
     }

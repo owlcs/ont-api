@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.internal;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFList;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -32,10 +33,18 @@ abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, O ext
     }
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return model.statements(null, getPredicate(), null)
                 .filter(OntStatement::isLocal)
-                .filter(s -> s.getSubject().canAs(getView()));
+                .filter(s -> s.getSubject().canAs(getView()))
+                .filter(s -> s.getObject().canAs(RDFList.class));
+    }
+
+    @Override
+    public boolean testStatement(OntStatement statement) {
+        return statement.getSubject().equals(getPredicate())
+                && statement.getSubject().canAs(getView())
+                && statement.getObject().canAs(RDFList.class);
     }
 
     Stream<OntStatement> content(OntStatement statement) {

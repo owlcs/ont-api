@@ -28,7 +28,7 @@ class InverseFunctionalObjectPropertyTranslator extends AbstractPropertyTypeTran
     }
 
     @Override
-    Wrap<OWLInverseFunctionalObjectPropertyAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLInverseFunctionalObjectPropertyAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(getSubject(statement), df);
         Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);

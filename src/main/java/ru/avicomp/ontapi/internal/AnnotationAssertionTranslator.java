@@ -29,7 +29,7 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
      * @return Stream of {@link OntStatement}
      */
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         OntID id = model.getID();
         return model.statements()
                 .filter(OntStatement::isLocal)
@@ -42,7 +42,12 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
     }
 
     @Override
-    Wrap<OWLAnnotationAssertionAxiom> asAxiom(OntStatement statement) {
+    public boolean testStatement(OntStatement statement) {
+        return statement.isAnnotation() && testAnnotationSubject(statement.getSubject(), statement.getModel().getID());
+    }
+
+    @Override
+    public Wrap<OWLAnnotationAssertionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLAnnotationSubject> s = ReadHelper.getAnnotationSubject(statement.getSubject(), df);
         Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getPredicate().as(OntNAP.class), df);

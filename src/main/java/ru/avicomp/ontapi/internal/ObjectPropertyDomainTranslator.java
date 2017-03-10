@@ -21,12 +21,17 @@ class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OW
     }
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return super.statements(model).filter(s -> s.getObject().canAs(OntCE.class));
     }
 
     @Override
-    Wrap<OWLObjectPropertyDomainAxiom> asAxiom(OntStatement statement) {
+    public boolean testStatement(OntStatement statement) {
+        return super.testStatement(statement) && statement.getObject().canAs(OntCE.class);
+    }
+
+    @Override
+    public Wrap<OWLObjectPropertyDomainAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(getView()), df);
         Wrap<? extends OWLClassExpression> ce = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), df);

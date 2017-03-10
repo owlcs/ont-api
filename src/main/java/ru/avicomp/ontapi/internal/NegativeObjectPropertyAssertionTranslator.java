@@ -24,7 +24,7 @@ class NegativeObjectPropertyAssertionTranslator extends AbstractNegativeProperty
     }
 
     @Override
-    Wrap<OWLNegativeObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
+    public Wrap<OWLNegativeObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         OntNPA.ObjectAssertion npa = statement.getSubject().as(getView());
         Wrap<? extends OWLIndividual> s = ReadHelper.fetchIndividual(npa.getSource(), df);

@@ -38,7 +38,7 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
      * @return Stream of {@link OntStatement}
      */
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return model.statements()
                 .filter(OntStatement::isLocal)
                 .filter(OntStatement::isObject)
@@ -47,7 +47,14 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
     }
 
     @Override
-    Wrap<OWLObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
+    public boolean testStatement(OntStatement statement) {
+        return statement.isObject()
+                && statement.getSubject().canAs(OntIndividual.class)
+                && statement.getObject().canAs(OntIndividual.class);
+    }
+
+    @Override
+    public Wrap<OWLObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
         Wrap<? extends OWLIndividual> subject = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), df);
         Wrap<? extends OWLObjectPropertyExpression> property = ReadHelper.fetchObjectPropertyExpression(statement.getPredicate().as(OntOPE.class), df);

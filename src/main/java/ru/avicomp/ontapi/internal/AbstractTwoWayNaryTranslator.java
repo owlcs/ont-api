@@ -46,11 +46,16 @@ abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxio
     }
 
     @Override
-    Stream<OntStatement> statements(OntGraphModel model) {
+    public Stream<OntStatement> statements(OntGraphModel model) {
         return Stream.concat(
                 super.statements(model),
                 model.ontObjects(getDisjointView()).map(OntObject::getRoot).filter(OntStatement::isLocal)
         );
+    }
+
+    @Override
+    public boolean testStatement(OntStatement statement) {
+        return super.testStatement(statement) || statement.getSubject().canAs(getDisjointView());
     }
 
     abstract Resource getMembersType();
