@@ -1,7 +1,6 @@
 package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
@@ -29,7 +28,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      * @param manager ontology manager
      * @param id      the id
      */
-    @Inject
     public OntologyModelImpl(@Assisted OntologyManager manager, @Assisted OWLOntologyID id) {
         super(manager, id);
     }

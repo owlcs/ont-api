@@ -87,7 +87,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
      */
     OntConfig.LoaderConfiguration getLoaderConfig(OntGraphModel m) {
-        return AxiomParserProvider.LOADER_CONFIGURATION;
+        return m instanceof InternalModel ? ((InternalModel) m).loaderConfig() : AxiomParserProvider.LOADER_CONFIGURATION;
     }
 
     /**
@@ -95,7 +95,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link OWLOntologyWriterConfiguration}
      */
     OWLOntologyWriterConfiguration getWriterConfig(OntGraphModel m) {
-        return AxiomParserProvider.WRITER_CONFIGURATION;
+        return m instanceof InternalModel ? ((InternalModel) m).writerConfig() : AxiomParserProvider.WRITER_CONFIGURATION;
     }
 
 }

@@ -13,11 +13,11 @@ import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
@@ -32,8 +32,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  * Created by @szuev on 26.10.2016.
  */
 public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
-
-    private static final OWLDataFactory OWL_DATA_FACTORY = new OWLDataFactoryImpl();
 
     /**
      * the experimental flag which specifies the behaviour on axioms loading.
@@ -56,15 +54,43 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     protected Map<OntNDP, Wrap<OWLDataProperty>> owlNDPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
     protected Map<OntOPE, Wrap<? extends OWLObjectPropertyExpression>> owlOPEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
 
-    // todo: pass not a personality, but loader configuration.
+    private OWLDataFactory dataFactory;
+    private OntConfig.LoaderConfiguration loaderConf;
+    private OWLOntologyWriterConfiguration writerConf;
+
+    /**
+     * For internal use only.
+     *
+     * @param base        {@link Graph}
+     * @param personality {@link OntPersonality}
+     */
     public InternalModel(Graph base, OntPersonality personality) {
         super(base, personality);
         getGraph().getEventManager().register(new DirectListener());
     }
 
     public OWLDataFactory dataFactory() {
-        // todo: should be passed outside (from manager)
-        return OWL_DATA_FACTORY;
+        return dataFactory == null ? AxiomParserProvider.DATA_FACTORY : dataFactory;
+    }
+
+    public OntConfig.LoaderConfiguration loaderConfig() {
+        return loaderConf == null ? AxiomParserProvider.LOADER_CONFIGURATION : loaderConf;
+    }
+
+    public OWLOntologyWriterConfiguration writerConfig() {
+        return writerConf == null ? AxiomParserProvider.WRITER_CONFIGURATION : writerConf;
+    }
+
+    public void setDataFactory(OWLDataFactory factory) {
+        this.dataFactory = factory;
+    }
+
+    public void setLoaderConfig(OntConfig.LoaderConfiguration conf) {
+        this.loaderConf = conf;
+    }
+
+    public void setWriterConfig(OWLOntologyWriterConfiguration conf) {
+        this.writerConf = conf;
     }
 
     public Stream<OWLImportsDeclaration> importDeclarations() {

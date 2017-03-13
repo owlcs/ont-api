@@ -47,6 +47,9 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         OntApiException.notNull(ontologyID, "Null OWL ID.");
         setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
         setBase(new InternalModel(OntFactory.createDefaultGraph(), manager.getOntologyLoaderConfiguration().getPersonality()));
+        getBase().setDataFactory(manager.getOWLDataFactory());
+        getBase().setLoaderConfig(manager.getOntologyLoaderConfiguration());
+        getBase().setWriterConfig(manager.getOntologyWriterConfiguration());
         setOntologyID(ontologyID);
     }
 

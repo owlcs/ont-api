@@ -1410,6 +1410,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @Nullable
     protected OntologyModel load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
+        OntConfig.LoaderConfiguration config = conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
         for (OWLOntologyFactory factory : ontologyFactories) {
             if (factory.canAttemptLoading(source)) { // todo: only single factory by now
                 try {
@@ -1420,7 +1421,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                         ((HasTrimToSize) res).trimToSize();
                     }
                     return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
-                            .addDocumentIRI(source.getDocumentIRI()).addLoaderConf(conf).get();
+                            .addDocumentIRI(source.getDocumentIRI()).addLoaderConf(config).get();
                 } catch (OWLOntologyRenameException e) {
                     // We loaded an ontology from a document and the
                     // ontology turned out to have an IRI the same
@@ -1625,7 +1626,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static OutputStream openStream(IRI iri) throws IOException {
-        if ("file".equals(iri.getScheme())) {
+        if (OntConfig.Scheme.FILE.same(iri)) {
             File file = new File(iri.toURI());
             file.getParentFile().mkdirs();
             return new FileOutputStream(file);
@@ -1650,17 +1651,24 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         in.defaultReadObject();
         loaderConfig = (OntConfig.LoaderConfiguration) in.readObject();
         writerConfig = (OWLOntologyWriterConfiguration) in.readObject();
-        Set<OntBaseModelImpl> models = ontologies().map(OntBaseModelImpl.class::cast).collect(Collectors.toSet());
-        OntPersonality p = getOntologyLoaderConfiguration().getPersonality();
-        for (OntBaseModelImpl m : models) {
-            UnionGraph base = m.getBase().getGraph();
-            Stream<UnionGraph> imports = Graphs.getImports(base).stream()
-                    .map(s -> models.stream().map(OntBaseModelImpl::getBase).map(OntGraphModelImpl::getGraph)
+        content.values().forEach(info -> {
+            OntBaseModelImpl m = (OntBaseModelImpl) info.get();
+            OntConfig.LoaderConfiguration loaderConf = info.getLoaderConf();
+            OWLOntologyWriterConfiguration writerConf = info.getWriterConf();
+            OntPersonality p1 = loaderConfig.getPersonality();
+            UnionGraph baseGraph = m.getBase().getGraph();
+            Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
+                    .map(s -> content.values().map(OntInfo::get).map(OntBaseModelImpl.class::cast)
+                            .map(OntBaseModelImpl::getBase).map(OntGraphModelImpl::getGraph)
                             .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);
-            imports.forEach(base::addGraph);
-            m.setBase(new InternalModel(base, p));
-        }
+            imports.forEach(baseGraph::addGraph);
+            InternalModel baseModel = new InternalModel(baseGraph, p1);
+            baseModel.setDataFactory(getOWLDataFactory());
+            baseModel.setLoaderConfig(loaderConf);
+            baseModel.setWriterConfig(writerConf);
+            m.setBase(baseModel);
+        });
     }
 
     /**
@@ -2004,7 +2012,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public class OntInfo implements Serializable {
         private final OntologyModel ont;
         private IRI documentIRI;
-        private OWLOntologyLoaderConfiguration loaderConf;
+        private OntConfig.LoaderConfiguration loaderConf;
         private OWLOntologyWriterConfiguration writerConf;
         private OWLDocumentFormat format;
 
@@ -2031,7 +2039,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return this;
         }
 
-        public OntInfo addLoaderConf(OWLOntologyLoaderConfiguration loaderConf) {
+        public OntInfo addLoaderConf(OntConfig.LoaderConfiguration loaderConf) {
             this.loaderConf = loaderConf;
             return this;
         }
@@ -2052,7 +2060,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         @Nonnull
-        public OWLOntologyLoaderConfiguration getLoaderConf() {
+        public OntConfig.LoaderConfiguration getLoaderConf() {
             return loaderConf == null ? getOntologyLoaderConfiguration() : loaderConf;
         }
 

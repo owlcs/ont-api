@@ -1,11 +1,12 @@
 package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
+import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.input.ReaderInputStream;
@@ -16,8 +17,10 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
+import org.semanticweb.owlapi.io.DocumentSources;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.io.OWLOntologyInputSourceException;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +28,7 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
 import ru.avicomp.ontapi.jena.converters.TransformAction;
-import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
-import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
@@ -41,7 +41,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 @SuppressWarnings("WeakerAccess")
 public class OntBuildingFactoryImpl implements OntologyManager.Factory {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntBuildingFactoryImpl.class);
-    protected static final Set<String> SUPPORTED_SCHEMES = Stream.of("http", "https", "file", "ftp").collect(Collectors.toSet());
 
     static {
         ErrorHandlerFactory.setDefaultErrorHandler(ErrorHandlerFactory.errorHandlerNoLogging);
@@ -62,7 +61,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
     public boolean canAttemptLoading(@Nonnull OWLOntologyDocumentSource source) {
         return !source.hasAlredyFailedOnStreams() ||
                 !source.hasAlredyFailedOnIRIResolution() &&
-                        SUPPORTED_SCHEMES.contains(source.getDocumentIRI().getScheme());
+                        OntConfig.Scheme.all().anyMatch(s -> s.same(source.getDocumentIRI()));
     }
 
     @Override
@@ -127,11 +126,11 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
     @SuppressWarnings("WeakerAccess")
     public static abstract class OntLoader implements Serializable {
         protected final OntologyManager manager;
-        protected final OWLOntologyLoaderConfiguration configuration;
+        protected final OntConfig.LoaderConfiguration configuration;
 
-        public OntLoader(OntologyManager manager, OWLOntologyLoaderConfiguration configuration) {
+        public OntLoader(OntologyManager manager, OWLOntologyLoaderConfiguration conf) {
             this.manager = OntApiException.notNull(manager, "Null manager.");
-            this.configuration = OntApiException.notNull(configuration, "Null configuration.");
+            this.configuration = conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
         }
 
         /**
@@ -227,7 +226,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 format = _source.getOntFormat();
             } else {
                 graph = OntFactory.createDefaultGraph();
-                format = readGraph(graph, source);
+                format = readGraph(graph, source, configuration);
             }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("The format (" + source.getClass().getSimpleName() + "): " + format);
@@ -254,7 +253,10 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 }
                 Graph graph = makeUnionGraph(info, new HashSet<>());
                 OntFormat format = info.getFormat();
-                InternalModel base = new InternalModel(graph, getPersonality());
+                InternalModel base = new InternalModel(graph, configuration.getPersonality());
+                base.setLoaderConfig(configuration);
+                base.setWriterConfig(manager.getOntologyWriterConfiguration());
+                base.setDataFactory(manager.getOWLDataFactory());
                 OntologyModelImpl ont = new OntologyModelImpl(manager, base);
                 OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.toConcurrentModel() : ont;
                 ((OntologyManagerImpl) manager).ontologyCreated(res);
@@ -269,13 +271,6 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
             } finally { // just in case.
                 info.setProcessed();
             }
-        }
-
-        protected OntPersonality getPersonality() {
-            if (configuration instanceof OntConfig.LoaderConfiguration) {
-                return ((OntConfig.LoaderConfiguration) configuration).getPersonality();
-            }
-            return OntModelConfig.getPersonality();
         }
 
         /**
@@ -306,16 +301,12 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
         }
 
         protected Graph transform(Graph graph) {
-            if (configuration instanceof OntConfig.LoaderConfiguration) {
-                OntConfig.LoaderConfiguration conf = (OntConfig.LoaderConfiguration) configuration;
-                if (conf.isPerformTransformation()) {
-                    if (LOGGER.isDebugEnabled())
-                        LOGGER.debug("Perform graph transformations");
-                    conf.getGraphTransformers().actions(graph).forEach(TransformAction::process);
-                }
-                return graph;
+            if (configuration.isPerformTransformation()) {
+                if (LOGGER.isDebugEnabled())
+                    LOGGER.debug("Perform graph transformations");
+                configuration.getGraphTransformers().actions(graph).forEach(TransformAction::process);
             }
-            return GraphTransformConfig.convert(graph);
+            return graph;
         }
 
         /**
@@ -366,20 +357,21 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          *
          * @param g      {@link Graph} the graph to put in. Could be empty.
          * @param source {@link OWLOntologyDocumentSource} the source (encapsulates IO-stream, IO-Reader or IRI of document)
+         * @param conf {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration} config
          * @return {@link OntFormat} corresponding to the specified source.
          * @throws OntApiException if source can't be read into graph.
          */
-        public static OntFormat readGraph(Graph g, OWLOntologyDocumentSource source) throws OntApiException {
+        public static OntFormat readGraph(Graph g, OWLOntologyDocumentSource source, OntConfig.LoaderConfiguration conf) throws OntApiException {
             IRI iri = OntApiException.notNull(source, "Null document source.").getDocumentIRI();
             if (LOGGER.isDebugEnabled())
                 LOGGER.debug("Read graph from <" + iri + ">.");
             if (source.getInputStream().isPresent()) {
-                return readFromStream(g, source);
+                return readFromInputStream(g, source);
             }
             if (source.getReader().isPresent()) {
                 return readFromReader(g, source);
             }
-            return readFromDocument(g, source);
+            return readFromDocument(g, source, conf);
         }
 
         /**
@@ -399,26 +391,30 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
             return lang == null ? null : OntFormat.get(lang);
         }
 
-        private static OntFormat readFromDocument(Graph graph, OWLOntologyDocumentSource source) {
+        private static OntFormat readFromDocument(Graph graph, OWLOntologyDocumentSource source, OntConfig.LoaderConfiguration conf) {
             OntFormat format = source.getFormat().map(OntFormat::get).orElse(guessFormat(source));
             if (format != null && format.isOWLOnly()) // not even try
                 throw new OntApiException("Format " + format + " is not supported by jena.");
-            String uri = source.getDocumentIRI().getIRIString();
+            IRI iri = source.getDocumentIRI();
+            if (conf.getSupportedSchemes().stream().noneMatch(s -> s.same(iri))) {
+                throw new OntApiException("Not allowed scheme: " + iri);
+            }
             try {
-                RDFDataMgr.read(graph, uri, format == null ? null : format.getLang());
+                InputStream is = DocumentSources.getInputStream(iri, conf).orElseThrow(OntApiException.supplier("Can't get input stream from " + iri));
+                RDFDataMgr.read(graph, is, format == null ? null : format.getLang());
                 return format;
-            } catch (RiotException e) {
-                throw new OntApiException("Can't read " + format + " from iri <" + uri + ">", e);
+            } catch (RiotException | OWLOntologyInputSourceException e) {
+                throw new OntApiException("Can't read " + format + " from iri <" + iri + ">", e);
             }
         }
 
-        private static OntFormat readFromStream(Graph graph, OWLOntologyDocumentSource source) {
+        private static OntFormat readFromInputStream(Graph graph, OWLOntologyDocumentSource source) {
             if (!source.getInputStream().isPresent()) {
                 throw new OntApiException("No input stream inside " + source);
             }
             return formats(source)
                     .filter(OntFormat::isJena)
-                    .filter(format -> read(source.getInputStream().get(), graph, format.getLang()))
+                    .filter(format -> read(buffer(source.getInputStream().get()), graph, format.getLang()))
                     .findFirst().orElseThrow(() -> new OntApiException("Can't read from stream " + source));
         }
 
@@ -428,12 +424,16 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
             }
             return formats(source)
                     .filter(OntFormat::isJena)
-                    .filter(format -> read(new ReaderInputStream(source.getReader().get(), StandardCharsets.UTF_8), graph, format.getLang()))
+                    .filter(format -> read(buffer(asInputStream(source.getReader().get())), graph, format.getLang()))
                     .findFirst().orElseThrow(() -> new OntApiException("Can't read from reader " + source));
         }
 
-        private static Stream<OntFormat> formats(OWLOntologyDocumentSource source) {
-            return source.getFormat().map(OntFormat::get).map(Stream::of).orElse(OntFormat.supported());
+        protected static InputStream asInputStream(Reader reader) {
+            return new ReaderInputStream(reader, StandardCharsets.UTF_8);
+        }
+
+        protected static InputStream buffer(InputStream is) {
+            return new BufferedInputStream(is);
         }
 
         private static boolean read(InputStream is, Graph graph, Lang lang) {
@@ -448,6 +448,11 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 return false;
             }
         }
+
+        private static Stream<OntFormat> formats(OWLOntologyDocumentSource source) {
+            return source.getFormat().map(OntFormat::get).map(Stream::of).orElse(OntFormat.supported());
+        }
+
 
     }
 

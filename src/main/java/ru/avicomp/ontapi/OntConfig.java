@@ -1,7 +1,12 @@
 package ru.avicomp.ontapi;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
 
@@ -48,6 +53,7 @@ public class OntConfig extends OntologyConfigurator {
         protected transient OntPersonality personality;
         protected GraphTransformConfig.Store transformers;
         protected boolean performTransformation = true;
+        protected HashSet<Scheme> supportedSchemes;
 
         public LoaderConfiguration(OWLOntologyLoaderConfiguration owl) {
             this.inner = owl == null ? new OWLOntologyLoaderConfiguration() :
@@ -80,10 +86,10 @@ public class OntConfig extends OntologyConfigurator {
         }
 
         /**
-         * ONT-API config method.
+         * ONT-API config setter.
          *
          * @param b if false all graph transformations will be disabled.
-         * @return new Config.
+         * @return {@link LoaderConfiguration}
          * @see #getGraphTransformers()
          * @see #setGraphTransformers(GraphTransformConfig.Store)
          */
@@ -105,10 +111,10 @@ public class OntConfig extends OntologyConfigurator {
         }
 
         /**
-         * ONT-API config method.
+         * ONT-API config setter.
          *
          * @param p {@link OntPersonality} new personality. Null means default ({@link OntModelConfig#getPersonality()})
-         * @return new Config.
+         * @return {@link LoaderConfiguration}
          */
         public LoaderConfiguration setPersonality(OntPersonality p) {
             if (Objects.equals(personality, p)) return this;
@@ -129,10 +135,10 @@ public class OntConfig extends OntologyConfigurator {
         }
 
         /**
-         * ONT-API config method.
+         * ONT-API config setter.
          *
          * @param t {@link GraphTransformConfig.Store} new graph transformers store. null means default
-         * @return the {@link ru.avicomp.ontapi.jena.converters.GraphTransformConfig.Store}
+         * @return {@link LoaderConfiguration}
          * @see #isPerformTransformation()
          * @see #setPerformTransformation(boolean)
          */
@@ -140,6 +146,28 @@ public class OntConfig extends OntologyConfigurator {
             if (Objects.equals(transformers, t)) return this;
             LoaderConfiguration res = copy(inner);
             res.transformers = t;
+            return res;
+        }
+
+        /**
+         * ONT-API config method.
+         *
+         * @return Set of {@link Scheme}
+         */
+        public Set<Scheme> getSupportedSchemes() {
+            return supportedSchemes == null ? supportedSchemes = Scheme.all().collect(Collectors.toCollection(HashSet::new)) : supportedSchemes;
+        }
+
+        /**
+         * ONT-API config setter.
+         *
+         * @param schemes the collection of {@link Scheme}
+         * @return {@link LoaderConfiguration}
+         */
+        public LoaderConfiguration setSupportedSchemes(Collection<Scheme> schemes) {
+            if (Objects.equals(supportedSchemes, schemes)) return this;
+            LoaderConfiguration res = copy(inner);
+            res.supportedSchemes = new HashSet<>(schemes);
             return res;
         }
 
@@ -294,5 +322,24 @@ public class OntConfig extends OntologyConfigurator {
             return copy(inner.setReportStackTraces(b));
         }
 
+    }
+
+    public enum Scheme {
+        HTTP,
+        HTTPS,
+        FTP,
+        FILE,;
+
+        public String key() {
+            return name().toLowerCase();
+        }
+
+        public boolean same(IRI iri) {
+            return Objects.equals(key(), iri.getScheme());
+        }
+
+        public static Stream<Scheme> all() {
+            return Stream.of(values());
+        }
     }
 }
