@@ -38,8 +38,8 @@ abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLProp
 
     @Override
     public boolean testStatement(OntStatement statement) {
-        return statement.getPredicate().equals(RDF.type)
-                && statement.getObject().equals(OWL.NegativePropertyAssertion)
+        return statement.getObject().equals(OWL.NegativePropertyAssertion)
+                && statement.getPredicate().equals(RDF.type)
                 && statement.getSubject().canAs(getView());
     }
 }

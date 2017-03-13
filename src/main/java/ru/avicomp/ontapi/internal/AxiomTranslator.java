@@ -58,6 +58,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     /**
      * Tests if the specified statement answers the axiom's definition.
+     *
      * @param statement {@link OntStatement} any statement, not necessarily local.
      * @return true if the statement corresponds the {@link Axiom}.
      */
@@ -65,6 +66,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     /**
      * Wraps the statement as OWL Axiom.
+     *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @return {@link Wrap} around the {@link OWLAxiom}
      */
@@ -72,6 +74,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     /**
      * Gets {@link OWLDataFactory} from {@link InternalModel} or {@link AxiomParserProvider#DATA_FACTORY} in case any other {@link OntGraphModel}.
+     *
      * @param m {@link OntGraphModel}
      * @return {@link OWLDataFactory}
      */

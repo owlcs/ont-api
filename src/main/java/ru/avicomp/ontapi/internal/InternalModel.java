@@ -1,6 +1,7 @@
 package ru.avicomp.ontapi.internal;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,19 +35,26 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     private static final OWLDataFactory OWL_DATA_FACTORY = new OWLDataFactoryImpl();
 
+    /**
+     * the experimental flag which specifies the behaviour on axioms loading.
+     * if true then {@link AxiomTranslator}s works in parallel mode (see {@link #axioms(Set)}).
+     * As shown by pizza-performance-test it really helps to speed up the initial loading.
+     */
+    protected static boolean optimizeCollecting = true;
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
-    protected Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsStore = new HashMap<>();
-    // OWL objects store to improve performance (working through OWL-API interface)
+    protected Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsStore = optimizeCollecting ? new ConcurrentHashMap<>(16, 0.75f, 39) : new HashMap<>();
+    // OWL objects store to improve performance (working through OWL-API interface with 'signature')
     // any change in the graph resets these caches.
     protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsStore = new HashMap<>();
-    // Temporary stores for collecting axioms, should be reset after axioms getting
-    protected Map<OntCE, Wrap<? extends OWLClassExpression>> owlCLEStore = new HashMap<>();
-    protected Map<OntDR, Wrap<? extends OWLDataRange>> owlDRGStore = new HashMap<>();
-    protected Map<OntIndividual, Wrap<? extends OWLIndividual>> owlINDStore = new HashMap<>();
-    protected Map<OntNAP, Wrap<OWLAnnotationProperty>> owlNAPStore = new HashMap<>();
-    protected Map<OntNDP, Wrap<OWLDataProperty>> owlNDPStore = new HashMap<>();
-    protected Map<OntOPE, Wrap<? extends OWLObjectPropertyExpression>> owlOPEStore = new HashMap<>();
+    // Temporary stores for collecting axioms, should be reset after axioms getting.
+    // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests, the reasons for this are not clear to me (todo: investigate!)
+    protected Map<OntCE, Wrap<? extends OWLClassExpression>> owlCLEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+    protected Map<OntDR, Wrap<? extends OWLDataRange>> owlDRGStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+    protected Map<OntIndividual, Wrap<? extends OWLIndividual>> owlINDStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+    protected Map<OntNAP, Wrap<OWLAnnotationProperty>> owlNAPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+    protected Map<OntNDP, Wrap<OWLDataProperty>> owlNDPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+    protected Map<OntOPE, Wrap<? extends OWLObjectPropertyExpression>> owlOPEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
 
     // todo: pass not a personality, but loader configuration.
     public InternalModel(Graph base, OntPersonality personality) {
@@ -64,7 +72,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     }
 
     public boolean isOntologyEmpty() {
-        return getAxioms().isEmpty() && getAnnotations().isEmpty();
+        return axioms().count() == 0 && getAnnotations().isEmpty();
     }
 
     protected Wrap<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
@@ -188,23 +196,51 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         return annotations().collect(Collectors.toSet());
     }
 
-    public Set<OWLAxiom> getAxioms() {
-        return axioms().collect(Collectors.toSet());
-    }
-
     public Stream<OWLAxiom> axioms() {
         return axioms(AxiomType.AXIOM_TYPES);
     }
 
+    /**
+     * The main method for loading/getting axioms.
+     * NOTE: there is a parallel collecting in case {@link #optimizeCollecting} equals true,
+     * {@link #axiomsStore} is empty and the set of {@link AxiomType}s contains more then one element.
+     *
+     * @param types Set of {@link AxiomType}s
+     * @return Stream of {@link OWLAxiom}
+     */
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
-        // todo: change this place by switching to the bulk computing (not one by one)
+        if (optimizeCollecting && axiomsStore.isEmpty() && types.size() > 1) {
+            types.parallelStream().forEach(this::getAxioms);
+            return axiomsStore.values().stream()
+                    .map(OwlObjectTriplesMap::getObjects)
+                    .map(Collection::stream).flatMap(Function.identity());
+        }
         return types.stream()
                 .map(this::getAxioms)
                 .map(Collection::stream).flatMap(Function.identity());
     }
 
+    private <A extends OWLAxiom> Set<A> getAxioms(AxiomType<A> type) {
+        return type == null ? Collections.emptySet() : getAxiomTripleStore(type.getActualClass()).getObjects();
+    }
+
+    @SuppressWarnings("unchecked")
+    private <A extends OWLAxiom> OwlObjectTriplesMap<A> getAxiomTripleStore(AxiomType<? extends OWLAxiom> type) {
+        return getAxiomTripleStore((Class<A>) type.getActualClass());
+    }
+
+    @SuppressWarnings("unchecked")
+    private <A extends OWLAxiom> OwlObjectTriplesMap<A> getAxiomTripleStore(Class<A> type) {
+        return (OwlObjectTriplesMap<A>) axiomsStore.computeIfAbsent(type, c -> new OwlObjectTriplesMap<>(AxiomParserProvider.get(c).read(this)));
+    }
+
     public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
-        return getAxioms(view).stream();
+        return axioms(AxiomType.getTypeForClass(OntApiException.notNull(view, "Null axiom class type.")));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <A extends OWLAxiom> Stream<A> axioms(AxiomType<A> type) {
+        return axioms(Collections.singleton(type)).map(x -> (A) x);
     }
 
     public Stream<OWLClassAxiom> classAxioms() {
@@ -212,7 +248,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
                 OWLDisjointUnionAxiom.class,
                 OWLEquivalentClassesAxiom.class,
                 OWLSubClassOfAxiom.class)
-                .map(this::getAxioms).map(Collection::stream).flatMap(Function.identity());
+                .map(this::axioms).flatMap(Function.identity());
     }
 
     public Stream<OWLObjectPropertyAxiom> objectPropertyAxioms() {
@@ -233,7 +269,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
                 OWLFunctionalObjectPropertyAxiom.class,
                 OWLInverseFunctionalObjectPropertyAxiom.class,
                 OWLAsymmetricObjectPropertyAxiom.class
-        ).map(this::getAxioms).map(Collection::stream).flatMap(Function.identity());
+        ).map(this::axioms).flatMap(Function.identity());
     }
 
     public Stream<OWLDataPropertyAxiom> dataPropertyAxioms() {
@@ -246,7 +282,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
                 OWLEquivalentDataPropertiesAxiom.class,
 
                 OWLFunctionalDataPropertyAxiom.class
-        ).map(this::getAxioms).map(Collection::stream).flatMap(Function.identity());
+        ).map(this::axioms).flatMap(Function.identity());
     }
 
     public Stream<OWLIndividualAxiom> individualAxioms() {
@@ -260,19 +296,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
                 OWLSameIndividualAxiom.class,
                 OWLDifferentIndividualsAxiom.class
-        ).map(this::getAxioms).map(Collection::stream).flatMap(Function.identity());
+        ).map(this::axioms).flatMap(Function.identity());
     }
 
     public Stream<OWLLogicalAxiom> logicalAxioms() {
         return axioms(AxiomType.AXIOM_TYPES.stream().filter(AxiomType::isLogical).collect(Collectors.toSet())).map(OWLLogicalAxiom.class::cast);
-    }
-
-    public <A extends OWLAxiom> Set<A> getAxioms(Class<A> view) {
-        return getAxiomTripleStore(view).getObjects();
-    }
-
-    public <A extends OWLAxiom> Set<A> getAxioms(AxiomType<A> type) {
-        return type == null ? Collections.emptySet() : getAxiomTripleStore(type.getActualClass()).getObjects();
     }
 
     public <A extends OWLAxiom> void add(A axiom) {
@@ -317,16 +345,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
             if (count > 1) return false;
         }
         return count == 0;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <A extends OWLAxiom> OwlObjectTriplesMap<A> getAxiomTripleStore(AxiomType<? extends OWLAxiom> type) {
-        return getAxiomTripleStore((Class<A>) type.getActualClass());
-    }
-
-    @SuppressWarnings("unchecked")
-    private <A extends OWLAxiom> OwlObjectTriplesMap<A> getAxiomTripleStore(Class<A> type) {
-        return (OwlObjectTriplesMap<A>) axiomsStore.computeIfAbsent(type, c -> new OwlObjectTriplesMap<>(AxiomParserProvider.get(c).read(this)));
     }
 
     @Override

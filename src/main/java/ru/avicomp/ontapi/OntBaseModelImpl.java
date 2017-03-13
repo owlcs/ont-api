@@ -5,7 +5,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -229,7 +228,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public boolean isDeclared(@Nullable OWLEntity owlEntity) {
-        return base.getAxioms(OWLDeclarationAxiom.class).stream().map(OWLDeclarationAxiom::getEntity)
+        return base.axioms(OWLDeclarationAxiom.class).map(OWLDeclarationAxiom::getEntity)
                 .anyMatch(obj -> obj.equals(owlEntity));
     }
 
@@ -311,7 +310,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public <T extends OWLAxiom> Stream<T> axioms(@Nonnull AxiomType<T> axiomType) {
-        return base.getAxioms(axiomType).stream();
+        return base.axioms(axiomType);
     }
 
     @Override
@@ -336,7 +335,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public Stream<OWLDatatypeDefinitionAxiom> axioms(@Nonnull OWLDatatype datatype) {
-        return base.getAxioms(OWLDatatypeDefinitionAxiom.class).stream().filter(a -> datatype.equals(a.getDatatype()));
+        return base.axioms(OWLDatatypeDefinitionAxiom.class).filter(a -> datatype.equals(a.getDatatype()));
     }
 
     @SuppressWarnings("unchecked")
@@ -419,10 +418,10 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public Stream<OWLClassAxiom> generalClassAxioms() {
-        Stream<OWLSubClassOfAxiom> subClassOfAxioms = base.getAxioms(OWLSubClassOfAxiom.class).stream()
+        Stream<OWLSubClassOfAxiom> subClassOfAxioms = base.axioms(OWLSubClassOfAxiom.class)
                 .filter(a -> a.getSubClass().isAnonymous());
         Stream<? extends OWLNaryClassAxiom> naryClassAxioms = Stream.of(OWLEquivalentClassesAxiom.class, OWLDisjointClassesAxiom.class)
-                .map(base::getAxioms).map(Collection::stream).flatMap(Function.identity())
+                .map(base::axioms).flatMap(Function.identity())
                 .filter(a -> a.classExpressions().allMatch(IsAnonymous::isAnonymous));
         return Stream.concat(subClassOfAxioms, naryClassAxioms);
     }
@@ -473,8 +472,8 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     }
 
     @Override
-    public <T extends OWLAxiom> int getAxiomCount(@Nullable AxiomType<T> axiomType) {
-        return base.getAxioms(axiomType).size();
+    public <T extends OWLAxiom> int getAxiomCount(@Nonnull AxiomType<T> axiomType) {
+        return (int) axioms(axiomType).count();
     }
 
     @Override

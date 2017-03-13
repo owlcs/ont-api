@@ -137,7 +137,7 @@ public class ReadHelper {
     }
 
     public static Wrap<IRI> wrapIRI(OntObject object) {
-        return Wrap.create(IRI.create(object.getURI()), object);
+        return Wrap.create(IRI.create(object.getURI()), object.canAs(OntEntity.class) ? object.as(OntEntity.class) : object);
     }
 
     /**
@@ -165,8 +165,7 @@ public class ReadHelper {
             return getLiteral(node.asLiteral(), df);
         }
         if (node.isURIResource()) {
-            OntObject r = node.as(OntObject.class);
-            return Wrap.create(IRI.create(r.getURI()), r);
+            return wrapIRI(node.as(OntObject.class));
         }
         if (node.isAnon()) {
             return getAnonymousIndividual(Models.asAnonymousIndividual(node), df);
