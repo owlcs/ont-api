@@ -41,7 +41,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     protected static boolean optimizeCollecting = true;
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
-    protected Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsStore = optimizeCollecting ? new ConcurrentHashMap<>(16, 0.75f, 39) : new HashMap<>();
+    protected Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsStore = optimizeCollecting ? new ConcurrentHashMap<>(29, 0.75f, 39) : new HashMap<>();
     // OWL objects store to improve performance (working through OWL-API interface with 'signature')
     // any change in the graph resets these caches.
     protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsStore = new HashMap<>();
@@ -329,7 +329,21 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         return axioms(AxiomType.AXIOM_TYPES.stream().filter(AxiomType::isLogical).collect(Collectors.toSet())).map(OWLLogicalAxiom.class::cast);
     }
 
-    public <A extends OWLAxiom> void add(A axiom) {
+    public Stream<OWLNaryAxiom> naryAxioms() {
+        return Stream.of(
+                OWLEquivalentClassesAxiom.class,
+                OWLEquivalentDataPropertiesAxiom.class,
+                OWLEquivalentObjectPropertiesAxiom.class,
+                OWLSameIndividualAxiom.class,
+
+                OWLDisjointClassesAxiom.class,
+                OWLDisjointDataPropertiesAxiom.class,
+                OWLDisjointObjectPropertiesAxiom.class,
+                OWLDifferentIndividualsAxiom.class
+        ).map(this::axioms).flatMap(Function.identity());
+    }
+
+    public void add(OWLAxiom axiom) {
         OwlObjectListener<OWLAxiom> listener = getAxiomTripleStore(axiom.getAxiomType()).createListener(axiom);
         try {
             getGraph().getEventManager().register(listener);
@@ -341,8 +355,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         }
     }
 
-    public <A extends OWLAxiom> void remove(A axiom) {
-        OwlObjectTriplesMap<A> store = getAxiomTripleStore(axiom.getAxiomType());
+    public void remove(OWLAxiom axiom) {
+        OwlObjectTriplesMap<OWLAxiom> store = getAxiomTripleStore(axiom.getAxiomType());
         Set<Triple> triples = store.get(axiom);
         store.clear(axiom);
         triples.stream().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
