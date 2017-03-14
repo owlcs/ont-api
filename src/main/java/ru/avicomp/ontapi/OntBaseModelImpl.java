@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -19,6 +20,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.Navigation;
+import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 
@@ -40,6 +42,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     protected transient InternalModel base;
     protected OntologyManager manager;
+    protected transient OntologyManager managerBackCopy;
 
     protected OWLOntologyID ontologyID;
 
@@ -74,13 +77,29 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     /**
      * Sets the manager.
      * The parameter could be null (e.g. during {@link OWLOntologyManager#clearOntologies})
+     * Used also during {@link OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)}
      *
      * @param manager {@link OntologyManager}, nullable.
-     * @throws ClassCastException in case wrong manager specified.
+     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)
+     * @throws OntApiException in case wrong manager specified.
      */
     @Override
     public void setOWLOntologyManager(OWLOntologyManager manager) {
-        this.manager = (OntologyManager) manager;
+        if (Objects.equals(this.manager, manager)) return;
+        OntologyManager m;
+        try {
+            m = (OntologyManager) manager;
+        } catch (ClassCastException ce) {
+            if (this.managerBackCopy != null) {
+                // rollback changes made while coping (inside OWL-API 5.0.5)
+                ((OntologyManagerImpl) this.managerBackCopy).rollBackMoving(this, manager);
+                this.manager = this.managerBackCopy;
+                this.managerBackCopy = null;
+            }
+            throw new OntApiException("Trying to move? Don't do it!", ce);
+        }
+        this.managerBackCopy = this.manager;
+        this.manager = m;
     }
 
     /**
@@ -358,31 +377,50 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     /**
      * Generic search method: results all axioms which refer object, are instances of type.
      * WARNING: it differs from original OWL-API method (see {@link uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl#axioms(Class, Class, OWLObject, Navigation)}).
+     * For internal use only.
      *
-     * @param type           OWLAxiom Class, not null.
-     * @param explicitClass  any class. it is never used.
-     * @param object         OWLObject to find occurrences
-     * @param forSubPosition could be {@link Navigation#IN_SUPER_POSITION} or anything else. used only to find sub-property/class axioms.
+     * @param type     {@link Class<OWLAxiom>}, not null, type of axioms.
+     * @param view     {@link Class<OWLObject>}. anything. ignored.
+     * @param object   {@link OWLObject} to find occurrences.
+     * @param position {@link Navigation} used in conjunction with {@code object} for some several kind of axioms.
      * @return Stream of {@link OWLAxiom}s
+     * @see uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl#axioms(Class, Class, OWLObject, Navigation)
+     * @see uk.ac.manchester.cs.owl.owlapi.Internals#get(Class, Class, Navigation)
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <A extends OWLAxiom> Stream<A> axioms(@Nonnull Class<A> type, @Nullable Class<? extends OWLObject> explicitClass, @Nonnull OWLObject object, @Nullable Navigation forSubPosition) {
+    public <A extends OWLAxiom> Stream<A> axioms(@Nonnull Class<A> type, @Nullable Class<? extends OWLObject> view, @Nonnull OWLObject object, @Nullable Navigation position) {
         if (OWLSubObjectPropertyOfAxiom.class.equals(type) && OWLObjectPropertyExpression.class.isInstance(object)) {
             return (Stream<A>) base.axioms(OWLSubObjectPropertyOfAxiom.class)
-                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(forSubPosition) ? a.getSuperProperty() : a.getSubProperty()));
+                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
         if (OWLSubDataPropertyOfAxiom.class.equals(type) && OWLDataPropertyExpression.class.isInstance(object)) {
             return (Stream<A>) base.axioms(OWLSubDataPropertyOfAxiom.class)
-                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(forSubPosition) ? a.getSuperProperty() : a.getSubProperty()));
+                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
         if (OWLSubAnnotationPropertyOfAxiom.class.equals(type) && OWLAnnotationProperty.class.isInstance(object)) { // the difference: this axiom type is ignored in original OWL-API method:
             return (Stream<A>) base.axioms(OWLSubAnnotationPropertyOfAxiom.class)
-                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(forSubPosition) ? a.getSuperProperty() : a.getSubProperty()));
+                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
         if (OWLSubClassOfAxiom.class.equals(type) && OWLClassExpression.class.isInstance(object)) {
             return (Stream<A>) base.axioms(OWLSubClassOfAxiom.class)
-                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(forSubPosition) ? a.getSuperClass() : a.getSubClass()));
+                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperClass() : a.getSubClass()));
+        }
+        if (OWLInverseObjectPropertiesAxiom.class.equals(type) && OWLObjectPropertyExpression.class.isInstance(object)) {
+            return (Stream<A>) base.axioms(OWLInverseObjectPropertiesAxiom.class)
+                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSecondProperty() : a.getFirstProperty()));
+        }
+        if (OWLObjectPropertyAssertionAxiom.class.equals(type) && OWLIndividual.class.isInstance(object)) {
+            return (Stream<A>) base.axioms(OWLObjectPropertyAssertionAxiom.class)
+                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getObject() : a.getSubject()));
+        }
+        if (OWLNegativeObjectPropertyAssertionAxiom.class.equals(type) && OWLIndividual.class.isInstance(object)) {
+            return (Stream<A>) base.axioms(OWLNegativeObjectPropertyAssertionAxiom.class)
+                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getObject() : a.getSubject()));
+        }
+        if (OWLAnnotationAssertionAxiom.class.equals(type) && OWLAnnotationObject.class.isInstance(object)) {
+            return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class)
+                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getValue() : a.getSubject()));
         }
         if (OWLClassAxiom.class.equals(type) && OWLClass.class.isInstance(object)) {
             return (Stream<A>) axioms((OWLClass) object);
@@ -396,6 +434,11 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         if (OWLIndividualAxiom.class.equals(type) && OWLIndividual.class.isInstance(object)) {
             return (Stream<A>) axioms((OWLIndividual) object);
         }
+        if (OWLNaryAxiom.class.isAssignableFrom(type)) {
+            return base.axioms(type)
+                    .filter(a -> ((OWLNaryAxiom) a).operands().anyMatch(o -> Objects.equals(o, object)));
+        }
+        // default:
         return base.axioms(type).filter(a -> OwlObjects.objects(object.getClass(), a).anyMatch(object::equals));
     }
 

@@ -17,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
+import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.internal.ReadHelper;
@@ -117,11 +118,105 @@ public class ManagerTest {
         OWLOntologyManager copy = (OWLOntologyManager) inStream.readObject();
         ManagerTest.fixAfterSerialization(origin, copy);
         ManagerTest.debug(copy);
-        ManagerTest.testCompareManagers(origin, copy);
+        ManagerTest.compareManagersTest(origin, copy);
 
         if (OntologyManager.class.isInstance(origin)) {
-            ManagerTest.testEdit((OntologyManager) origin, (OntologyManager) copy);
+            ManagerTest.editTest((OntologyManager) origin, (OntologyManager) copy);
         }
+    }
+
+    @Test
+    public void testCoping() throws Exception {
+        copyTest(OntManagers.createONT(), OntManagers.createOWL(), OntologyCopy.SHALLOW);
+        copyTest(OntManagers.createONT(), OntManagers.createOWL(), OntologyCopy.DEEP);
+        copyTest(OntManagers.createOWL(), OntManagers.createONT(), OntologyCopy.SHALLOW);
+        copyTest(OntManagers.createOWL(), OntManagers.createONT(), OntologyCopy.DEEP);
+        copyTest(OntManagers.createONT(), OntManagers.createONT(), OntologyCopy.SHALLOW);
+        copyTest(OntManagers.createONT(), OntManagers.createONT(), OntologyCopy.DEEP);
+    }
+
+    @Test
+    public void testMoving() throws Exception {
+        LOGGER.info("1) Move OWL -> ONT");
+        OWLDataFactory df = OntManagers.getDataFactory();
+        OWLOntologyManager m1 = OntManagers.createOWL();
+        OWLOntologyManager m2 = OntManagers.createONT();
+        OWLOntologyManager m3 = OntManagers.createONT();
+        IRI iri1 = IRI.create("http://test/1");
+        OWLOntology o1 = m1.createOntology(iri1);
+        o1.add(df.getOWLSubClassOfAxiom(df.getOWLClass("a"), df.getOWLClass("b")));
+        try {
+            m2.copyOntology(o1, OntologyCopy.MOVE);
+            Assert.fail("Moving from OWL to ONT should be disabled");
+        } catch (OWLOntologyCreationException e) {
+            LOGGER.info(e);
+        }
+        Assert.assertEquals("Incorrect ont-count in source", 1, m1.ontologies().count());
+        Assert.assertEquals("Incorrect ont-count in destinaction", 0, m2.ontologies().count());
+
+        LOGGER.info("2) Move ONT -> OWL");
+        IRI iri2 = IRI.create("http://test/2");
+        IRI docIRI = IRI.create("file://nothing");
+        OWLDocumentFormat format = OntFormat.JSON_LD.createOwlFormat();
+        OWLOntology o2 = m2.createOntology(iri2);
+        m2.setOntologyFormat(o2, format);
+        m2.setOntologyDocumentIRI(o2, docIRI);
+        o2.add(df.getOWLEquivalentClassesAxiom(df.getOWLClass("a"), df.getOWLClass("b")));
+
+        try {
+            m1.copyOntology(o2, OntologyCopy.MOVE);
+            Assert.fail("Expected exception while moving from ONT -> OWL");
+        } catch (OntApiException a) {
+            LOGGER.info(a);
+        }
+        // check ONT manager
+        // And don't care about OWL manager, we can't help him anymore.
+        Assert.assertTrue("Can't find " + iri2, m2.contains(iri2));
+        Assert.assertTrue("Can't find " + o2, m2.contains(o2));
+        Assert.assertSame("Incorrect manager!", m2, o2.getOWLOntologyManager());
+        Assert.assertEquals("Incorrect document IRI", docIRI, m2.getOntologyDocumentIRI(o2));
+        Assert.assertEquals("Incorrect format", format, m2.getOntologyFormat(o2));
+
+        LOGGER.info("3) Move ONT -> ONT");
+        Assert.assertSame("Not same ontology!", o2, m3.copyOntology(o2, OntologyCopy.MOVE));
+        Assert.assertTrue("Can't find " + iri2, m3.contains(iri2));
+        Assert.assertFalse("There is still " + iri2, m2.contains(iri2));
+        Assert.assertTrue("Can't find " + o2, m3.contains(o2));
+        Assert.assertFalse("There is still " + o2, m2.contains(o2));
+        Assert.assertSame("Not the same ontology", o2, m3.getOntology(iri2));
+        Assert.assertSame("Incorrect manager!", m3, o2.getOWLOntologyManager());
+        Assert.assertEquals("Incorrect document IRI", docIRI, m3.getOntologyDocumentIRI(o2));
+        Assert.assertEquals("Incorrect format", format, m3.getOntologyFormat(o2));
+        Assert.assertNull("Still have ont-format", m2.getOntologyFormat(o2));
+        try {
+            Assert.fail("Expected exception, but found some doc iri " + m2.getOntologyDocumentIRI(o2));
+        } catch (UnknownOWLOntologyException u) {
+            LOGGER.info(u);
+        }
+    }
+
+    private static void copyTest(OWLOntologyManager from, OWLOntologyManager to, OntologyCopy mode) throws Exception {
+        LOGGER.info("Copy (" + mode + ") " + from.getClass().getInterfaces()[0].getSimpleName() + " -> " + to.getClass().getInterfaces()[0].getSimpleName());
+        long fromCount = from.ontologies().count();
+        long toCount = to.ontologies().count();
+
+        OWLDataFactory df = from.getOWLDataFactory();
+        IRI iri = IRI.create("test" + System.currentTimeMillis());
+        LOGGER.debug("Create ontology " + iri);
+        OWLClass clazz = df.getOWLClass("x");
+        OWLOntology o1 = from.createOntology(iri);
+        o1.add(df.getOWLDeclarationAxiom(clazz));
+
+        to.copyOntology(o1, OntologyCopy.DEEP);
+        Assert.assertEquals("Incorrect ontologies count inside OWL-manager", fromCount + 1, from.ontologies().count());
+        Assert.assertEquals("Incorrect ontologies count inside ONT-manager", toCount + 1, to.ontologies().count());
+        Assert.assertTrue("Can't find " + iri, to.contains(iri));
+        OWLOntology o2 = to.getOntology(iri);
+        Assert.assertNotNull("Can't find " + to, o2);
+        Assert.assertNotSame("Should not be same", o1, o2);
+        Set<OWLClass> classes = o2.classesInSignature().collect(Collectors.toSet());
+        Assert.assertEquals("Should be single class inside", 1, classes.size());
+        Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
     }
 
     private static void fixAfterSerialization(OWLOntologyManager origin, OWLOntologyManager copy) {
@@ -164,7 +259,7 @@ public class ManagerTest {
         return m;
     }
 
-    private static void testEdit(OntologyManager origin, OntologyManager copy) {
+    private static void editTest(OntologyManager origin, OntologyManager copy) {
         String uri = "urn:iri.com#1";
         OntGraphModel o1 = origin.getGraphModel(uri);
         OntGraphModel o2 = copy.getGraphModel(uri);
@@ -201,7 +296,7 @@ public class ManagerTest {
         );
     }
 
-    public static void testCompareManagers(OWLOntologyManager expected, OWLOntologyManager actual) {
+    public static void compareManagersTest(OWLOntologyManager expected, OWLOntologyManager actual) {
         Assert.assertEquals("Incorrect number of ontologies.", expected.ontologies().count(), actual.ontologies().count());
         actual.ontologies().forEach(test -> {
             OWLOntologyID id = test.getOntologyID();
@@ -226,12 +321,12 @@ public class ManagerTest {
             Map<String, String> actualPrefixes = actualFormat != null && actualFormat.isPrefixOWLDocumentFormat() ?
                     actualFormat.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap() : null;
             Assert.assertEquals("Incorrect prefixes for " + id, expectedPrefixes, actualPrefixes);
-            testCompareEntities(origin, test);
+            compareEntitiesTest(origin, test);
         });
     }
 
     @SuppressWarnings("ConstantConditions")
-    public static void testCompareEntities(OWLOntology expectedOnt, OWLOntology actualOnt) {
+    public static void compareEntitiesTest(OWLOntology expectedOnt, OWLOntology actualOnt) {
         for (Imports i : Imports.values()) {
             Set<OWLEntity> actualEntities = actualOnt.signature(i).collect(Collectors.toSet());
             Set<OWLEntity> expectedEntities = expectedOnt.signature(i).collect(Collectors.toSet());

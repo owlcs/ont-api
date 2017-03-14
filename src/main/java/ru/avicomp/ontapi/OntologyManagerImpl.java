@@ -748,7 +748,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().writeLock().lock();
         try {
             removeOntology(ontology.getOntologyID());
-            ontology.setOWLOntologyManager(null);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -886,7 +885,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param ontology {@link OWLOntology}
      * @return {@link OWLDocumentFormat}
-     * @throws UnknownOWLOntologyException e
      * @see OWLOntologyManagerImpl#getOntologyFormat(OWLOntology)
      */
     @Nullable
@@ -895,8 +893,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().readLock().lock();
         try {
             OWLOntologyID id = ontology.getOntologyID();
-            OntInfo res = content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id));
-            return res.getFormat();
+            return content.get(id).map(OntInfo::getFormat).orElse(null);
         } finally {
             getLock().readLock().unlock();
         }
@@ -1259,8 +1256,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             switch (settings) {
                 case MOVE:
                     if (!OntologyModel.class.isInstance(toCopy)) {
-                        throw new OWLOntologyCreationException(String.format("Can't copy %s: not an %s. Use %s parameter.",
-                                toCopy.getOntologyID(), OntologyModel.class.getSimpleName(), OntologyCopy.DEEP));
+                        throw new OWLOntologyCreationException(String.format("Can't move %s: not an %s. Use %s or %s parameter.",
+                                toCopy.getOntologyID(), OntologyModel.class.getSimpleName(), OntologyCopy.DEEP, OntologyCopy.SHALLOW));
                     }
                     res = (OntologyModel) toCopy;
                     ontologyCreated(res);
@@ -1294,6 +1291,26 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return res;
         } finally {
             getLock().writeLock().unlock();
+        }
+    }
+
+    /**
+     * in case of coping from ONT to OWL there will be an exception.
+     * This method helps to fix origin manager.
+     *
+     * @param o          {@link OWLOntology o}, must be our (ONT) object.
+     * @param owlManager {@link OWLOntologyManager} some OWL manager.
+     * @see OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)
+     */
+    protected void rollBackMoving(OWLOntology o, OWLOntologyManager owlManager) {
+        ontologyCreated(o);
+        OWLDocumentFormat f = owlManager.getOntologyFormat(o);
+        if (f != null) {
+            setOntologyFormat(o, f);
+        }
+        IRI s = owlManager.getOntologyDocumentIRI(o);
+        if (s != null) {
+            setOntologyDocumentIRI(o, s);
         }
     }
 
