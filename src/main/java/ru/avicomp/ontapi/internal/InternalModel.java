@@ -18,7 +18,6 @@ import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
-import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
  * Buffer RDF-OWL model.
@@ -94,7 +93,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     }
 
     public Stream<OWLImportsDeclaration> importDeclarations() {
-        return getID().imports().map(IRI::create).map(OWLImportsDeclarationImpl::new);
+        return getID().imports().map(IRI::create).map(i -> dataFactory().getOWLImportsDeclaration(i));
     }
 
     public boolean isOntologyEmpty() {

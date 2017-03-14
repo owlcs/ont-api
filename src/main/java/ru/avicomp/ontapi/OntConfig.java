@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashSet;
@@ -155,7 +156,7 @@ public class OntConfig extends OntologyConfigurator {
          * @return Set of {@link Scheme}
          */
         public Set<Scheme> getSupportedSchemes() {
-            return supportedSchemes == null ? supportedSchemes = Scheme.all().collect(Collectors.toCollection(HashSet::new)) : supportedSchemes;
+            return supportedSchemes == null ? supportedSchemes = DefaultScheme.all().collect(Collectors.toCollection(HashSet::new)) : supportedSchemes;
         }
 
         /**
@@ -324,22 +325,30 @@ public class OntConfig extends OntologyConfigurator {
 
     }
 
-    public enum Scheme {
+    public enum DefaultScheme implements Scheme {
         HTTP,
         HTTPS,
         FTP,
         FILE,;
 
+        @Override
         public String key() {
             return name().toLowerCase();
         }
 
+        @Override
         public boolean same(IRI iri) {
             return Objects.equals(key(), iri.getScheme());
         }
 
-        public static Stream<Scheme> all() {
+        public static Stream<DefaultScheme> all() {
             return Stream.of(values());
         }
+    }
+
+    public interface Scheme extends Serializable {
+        String key();
+
+        boolean same(IRI iri);
     }
 }

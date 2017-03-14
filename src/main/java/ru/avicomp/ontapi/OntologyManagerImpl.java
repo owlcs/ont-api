@@ -1643,7 +1643,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static OutputStream openStream(IRI iri) throws IOException {
-        if (OntConfig.Scheme.FILE.same(iri)) {
+        if (OntConfig.DefaultScheme.FILE.same(iri)) {
             File file = new File(iri.toURI());
             file.getParentFile().mkdirs();
             return new FileOutputStream(file);

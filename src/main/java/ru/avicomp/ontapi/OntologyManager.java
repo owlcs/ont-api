@@ -128,7 +128,7 @@ public interface OntologyManager extends OWLOntologyManager {
         OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager,
                                         @Nonnull OWLOntologyID id,
                                         @Nonnull IRI documentIRI,
-                                        @Nonnull OWLOntologyCreationHandler handler) throws OWLOntologyCreationException;
+                                        @Nonnull OWLOntologyCreationHandler handler);
 
         @Override
         OntologyModel loadOWLOntology(@Nonnull OWLOntologyManager manager,
