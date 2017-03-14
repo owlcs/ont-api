@@ -102,10 +102,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             back.map(e -> getOWLOntologyManager().getOWLDataFactory().getOWLDeclarationAxiom(e)).forEach(a -> getBase().add(a));
         }
 
-        private IRI chooseIRI(OWLOntology ont, OWLImportsDeclaration declaration) {
-            return ont == null || ont.isAnonymous() ? declaration.getIRI() : ont.getOntologyID().getOntologyIRI().orElse(null);
-        }
-
         /**
          * @param change AddAxiom object
          * @return ChangeApplied enum

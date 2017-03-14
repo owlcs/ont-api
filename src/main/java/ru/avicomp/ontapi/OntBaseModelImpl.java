@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.Navigation;
+import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 
@@ -41,6 +42,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     protected transient InternalModel base;
     protected OntologyManager manager;
+    protected transient OntologyManager managerBackCopy;
 
     protected OWLOntologyID ontologyID;
 
@@ -75,13 +77,29 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
     /**
      * Sets the manager.
      * The parameter could be null (e.g. during {@link OWLOntologyManager#clearOntologies})
+     * Used also during {@link OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)}
      *
      * @param manager {@link OntologyManager}, nullable.
-     * @throws ClassCastException in case wrong manager specified.
+     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)
+     * @throws OntApiException in case wrong manager specified.
      */
     @Override
     public void setOWLOntologyManager(OWLOntologyManager manager) {
-        this.manager = (OntologyManager) manager;
+        if (Objects.equals(this.manager, manager)) return;
+        OntologyManager m;
+        try {
+            m = (OntologyManager) manager;
+        } catch (ClassCastException ce) {
+            if (this.managerBackCopy != null) {
+                // rollback changes made while coping (inside OWL-API 5.0.5)
+                ((OntologyManagerImpl) this.managerBackCopy).rollBackMoving(this, manager);
+                this.manager = this.managerBackCopy;
+                this.managerBackCopy = null;
+            }
+            throw new OntApiException("Trying to move? Don't do it!", ce);
+        }
+        this.managerBackCopy = this.manager;
+        this.manager = m;
     }
 
     /**
