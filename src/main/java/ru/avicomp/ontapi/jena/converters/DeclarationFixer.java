@@ -24,6 +24,8 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * todo: rewrite
  * Class to perform the final tuning of the ontology: mostly for fixing missed owl-declarations where it is possible.
  * Consists of several other converters.
+ * The author of OWL-API is very fond of puzzles.
+ * And here we have to solve such puzzles using incomplete or wrong ontologies provided by tests in OWL-API contract.
  */
 public class DeclarationFixer extends TransformAction {
     private final List<TransformAction> inner;
@@ -108,6 +110,16 @@ public class DeclarationFixer extends TransformAction {
             fixAmbiguousTypes(m, OWL.equivalentClass, OWL.Class, RDFS.Datatype);
 
             Stream.of(RDFS.subClassOf, OWL.disjointWith, OWL.onClass).forEach(p -> fixExplicitTypes(m, p, OWL.Class));
+
+            Stream.of(RDFS.subClassOf, OWL.disjointWith).map(p -> statements(getBaseModel(), null, p, null).map(Statement::getObject))
+                    .flatMap(Function.identity())
+                    .filter(RDFNode::isResource)
+                    .map(RDFNode::asResource).forEach(r -> {
+                if (r.isURIResource() ||
+                        (r.hasProperty(OWL.intersectionOf) || r.hasProperty(OWL.oneOf) || r.hasProperty(OWL.unionOf) || r.hasProperty(OWL.complementOf))) {
+                    r.addProperty(RDF.type, OWL.Class);
+                }
+            });
 
             fixExplicitTypes(m, OWL.onDataRange, RDFS.Datatype);
 
@@ -278,13 +290,23 @@ public class DeclarationFixer extends TransformAction {
         }
 
         private void fixClassesAndDatatypes(Model m) {
+            Stream.of(RDFS.subClassOf, OWL.disjointWith).map(p -> statements(getBaseModel(), null, p, null).map(Statement::getSubject))
+                    .flatMap(Function.identity()).filter(RDFNode::isURIResource).forEach(r -> declare(r, OWL.Class, true));
             // left part of triple for owl:equivalentClass
             m.listStatements(null, OWL.equivalentClass, (RDFNode) null)
                     .forEachRemaining(s -> declare(s.getSubject(), chooseExpressionType(s.getObject()), true));
 
+            Stream.of(OWL.onProperties, OWL.onProperty).map(p -> statements(getBaseModel(), null, p, null))
+                    .flatMap(Function.identity())
+                    .map(Statement::getSubject)
+                    .filter(Resource::isAnon)
+                    .forEach(r -> r.addProperty(RDF.type, OWL.Restriction));
         }
 
         private void fixObjectProperties(Model m) {
+            statements(getBaseModel(), null, OWL.inverseOf, null)
+                    .map(Statement::getSubject)
+                    .filter(RDFNode::isURIResource).forEach(r -> declare(r, OWL.ObjectProperty, true));
             //always object properties.
             Stream.of(OWL.InverseFunctionalProperty, OWL.ReflexiveProperty, OWL.IrreflexiveProperty,
                     OWL.SymmetricProperty, OWL.AsymmetricProperty, OWL.TransitiveProperty, OWL.propertyChainAxiom)
@@ -348,7 +370,28 @@ public class DeclarationFixer extends TransformAction {
                     .filter(s -> s.getSubject().isURIResource())
                     .filter(s -> isDefinitelyClass(s.getObject()))
                     .map(Statement::getSubject).collect(Collectors.toSet());
+
+            individuals.addAll(statements(getModel(), null, RDF.type, OWL.ObjectProperty).map(Statement::getSubject)
+                    .filter(RDFNode::isURIResource)
+                    .map(r -> r.as(Property.class))
+                    .map(p -> statements(getBaseModel(), null, p, null))
+                    .flatMap(Function.identity())
+                    .filter(s -> s.getObject().isURIResource() && s.getSubject().isURIResource())
+                    .map(s -> Stream.of(s.getSubject(), s.getObject()))
+                    .flatMap(Function.identity())
+                    .map(RDFNode::asResource).collect(Collectors.toSet()));
+
+            individuals.addAll(statements(getModel(), null, RDF.type, OWL.DatatypeProperty).map(Statement::getSubject)
+                    .filter(RDFNode::isURIResource)
+                    .map(r -> r.as(Property.class))
+                    .map(p -> statements(getBaseModel(), null, p, null))
+                    .flatMap(Function.identity())
+                    .filter(s -> s.getObject().isLiteral() && s.getSubject().isURIResource())
+                    .map(Statement::getSubject).collect(Collectors.toSet()));
+
             individuals.forEach(r -> declare(r, OWL.NamedIndividual, true));
+
+
         }
     }
 

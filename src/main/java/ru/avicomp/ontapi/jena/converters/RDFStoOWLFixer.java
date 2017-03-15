@@ -2,17 +2,12 @@ package ru.avicomp.ontapi.jena.converters;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -30,11 +25,14 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * For some additional info see <a href='https://www.w3.org/TR/rdf-schema'>RDFS specification</a> and
  * <a href='https://www.w3.org/TR/2012/REC-owl2-overview-20121211/#Relationship_to_OWL_1'>some words about OWL 1</a>
  */
+@SuppressWarnings("WeakerAccess")
 public class RDFStoOWLFixer extends TransformAction {
-    private static final Set<Node> DATATYPES = BuiltIn.DATATYPES.stream().map(FrontsNode::asNode).collect(Collectors.toSet());
+
+    protected final OntRules.RuleEngine engine;
 
     public RDFStoOWLFixer(Graph graph) {
         super(graph);
+        engine = new OntRules.DefaultRuleEngine();
     }
 
     @Override
@@ -47,13 +45,13 @@ public class RDFStoOWLFixer extends TransformAction {
     private void declareRDFProperty(Resource resource) {
         Model m = resource.getModel();
         List<Resource> types = new ArrayList<>();
-        if (OntRules.isObjectPropertyExpression(m, resource)) {
+        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testObjectPropertyExpression(m, resource))) {
             types.add(OWL.ObjectProperty);
         }
-        if (OntRules.isDataProperty(m, resource)) {
+        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testDataProperty(m, resource))) {
             types.add(OWL.DatatypeProperty);
         }
-        if (OntRules.isAnnotationProperty(m, resource)) {
+        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testAnnotationProperty(m, resource))) {
             types.add(OWL.AnnotationProperty);
         }
         if (types.isEmpty()) types.add(OWL.AnnotationProperty);
@@ -63,10 +61,10 @@ public class RDFStoOWLFixer extends TransformAction {
     private void declareRDFSClass(Resource resource) {
         Model m = resource.getModel();
         List<Resource> types = new ArrayList<>();
-        if (OntRules.isClass(m, resource)) {
+        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testClassExpression(m, resource))) {
             types.add(OWL.Class);
         }
-        if (OntRules.isDatatype(m, resource)) {
+        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testDataRange(m, resource))) {
             types.add(RDFS.Datatype);
         }
         if (types.isEmpty()) types.add(OWL.Class);

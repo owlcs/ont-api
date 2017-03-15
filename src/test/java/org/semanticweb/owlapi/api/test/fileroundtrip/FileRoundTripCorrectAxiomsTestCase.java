@@ -3,58 +3,75 @@ package org.semanticweb.owlapi.api.test.fileroundtrip;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
+import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.BufferingMode;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasoner;
 import org.semanticweb.owlapi.search.Searcher;
+import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
 import com.google.common.collect.Sets;
+import ru.avicomp.ontapi.utils.ModifiedForONTApi;
 
-import static org.junit.Assert.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Float;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Integer;
-import static org.semanticweb.owlapi.model.parameters.Imports.EXCLUDED;
-import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
+@ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
 
-    protected OWLDataProperty dp = DataProperty(iri("p"));
+    protected OWLDataProperty dp = OWLFunctionalSyntaxFactory.DataProperty(iri("p"));
     protected OWLClass clA = Class(iri("A"));
-    protected OWLObjectProperty or = ObjectProperty(iri("r"));
-    protected OWLObjectProperty oq = ObjectProperty(iri("q"));
-    protected OWLObjectProperty op = ObjectProperty(iri("p"));
-    protected OWLDatatype dt = Datatype(iri("B"));
-    protected OWLClass clB = Class(iri("B"));
-    protected OWLClass classC = Class(iri("C"));
+    protected OWLObjectProperty or = OWLFunctionalSyntaxFactory.ObjectProperty(iri("r"));
+    protected OWLObjectProperty oq = OWLFunctionalSyntaxFactory.ObjectProperty(iri("q"));
+    protected OWLObjectProperty op = OWLFunctionalSyntaxFactory.ObjectProperty(iri("p"));
+    protected OWLDatatype dt = OWLFunctionalSyntaxFactory.Datatype(iri("B"));
+    protected OWLClass clB = OWLFunctionalSyntaxFactory.Class(iri("B"));
+    protected OWLClass classC = OWLFunctionalSyntaxFactory.Class(iri("C"));
 
     protected void assertEqualsSet(String ontology, OWLAxiom... axioms) {
-        assertEquals(asUnorderedSet(ontologyFromClasspathFile(ontology).axioms()), Sets.newHashSet(axioms));
+        Set<OWLAxiom> expected = Sets.newHashSet(axioms);
+        LOGGER.debug("Ontology file: " + ontology);
+        OWLOntology o = ontologyFromClasspathFile(ontology);
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
+        Set<OWLAxiom> actual = o.axioms().collect(Collectors.toSet());
+        LOGGER.debug("Actual:");
+        actual.forEach(a -> LOGGER.info(String.valueOf(a)));
+        LOGGER.debug("COUNT: " + actual.size());
+        LOGGER.debug("Expected:");
+        expected.forEach(a -> LOGGER.info(String.valueOf(a)));
+        if (DEBUG_USE_OWL) {
+            Assert.assertEquals("Incorrect set of axioms", expected, actual);
+        } else { // all explicit declarations are included!
+            Assert.assertTrue("Some axioms are absent", actual.containsAll(expected));
+        }
     }
 
     @Test
     public void testCorrectAxiomAnnotatedPropertyAssertions() {
         OWLOntology ontology = ontologyFromClasspathFile("AnnotatedPropertyAssertions.rdf");
-        OWLNamedIndividual subject = NamedIndividual(IRI("http://Example.com#", "myBuilding"));
-        OWLObjectProperty predicate = ObjectProperty(IRI("http://Example.com#", "located_at"));
-        OWLNamedIndividual object = NamedIndividual(IRI("http://Example.com#", "myLocation"));
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
+        OWLNamedIndividual subject = OWLFunctionalSyntaxFactory.NamedIndividual(IRI("http://Example.com#", "myBuilding"));
+        OWLObjectProperty predicate = OWLFunctionalSyntaxFactory.ObjectProperty(IRI("http://Example.com#", "located_at"));
+        OWLNamedIndividual object = OWLFunctionalSyntaxFactory.NamedIndividual(IRI("http://Example.com#", "myLocation"));
         OWLAxiom ax = ObjectPropertyAssertion(predicate, subject, object);
-        assertTrue(ontology.containsAxiom(ax, EXCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS));
-        Set<OWLAxiom> axioms = asUnorderedSet(ontology.axiomsIgnoreAnnotations(ax, EXCLUDED));
-        assertEquals(1, axioms.size());
+        Assert.assertTrue(ontology.containsAxiom(ax, Imports.EXCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS));
+        Set<OWLAxiom> axioms = OWLAPIStreamUtils.asUnorderedSet(ontology.axiomsIgnoreAnnotations(ax, Imports.EXCLUDED));
+        Assert.assertEquals(1, axioms.size());
         OWLAxiom theAxiom = axioms.iterator().next();
-        assertTrue(theAxiom.isAnnotated());
+        Assert.assertTrue(theAxiom.isAnnotated());
     }
 
     @Test
@@ -145,10 +162,9 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
     public void testDeprecatedAnnotationAssertionsPresent() {
         OWLOntology ont = ontologyFromClasspathFile("Deprecated.rdf");
         OWLClass cls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "ClsA"));
-        Searcher.annotationObjects(ont.annotationAssertionAxioms(cls.getIRI(), INCLUDED)).forEach(a -> a
-                .isDeprecatedIRIAnnotation());
+        Searcher.annotationObjects(ont.annotationAssertionAxioms(cls.getIRI(), Imports.INCLUDED)).forEach(OWLAnnotation::isDeprecatedIRIAnnotation);
         OWLDataProperty prop = DataProperty(IRI("http://www.semanticweb.org/owlapi/test#", "prop"));
-        Searcher.annotationObjects(ont.annotationAssertionAxioms(prop.getIRI(), INCLUDED)).forEach(a -> assertTrue(a
+        Searcher.annotationObjects(ont.annotationAssertionAxioms(prop.getIRI(), Imports.INCLUDED)).forEach(a -> Assert.assertTrue(a
                 .isDeprecatedIRIAnnotation()));
     }
 
@@ -258,7 +274,7 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         IRI clsIRI = IRI("http://owlapi.sourceforge.net/ontology#", "ClsA");
         OWLClass cls = Class(clsIRI);
         OWLDeclarationAxiom ax = Declaration(cls);
-        assertTrue(ont.containsAxiom(ax));
+        Assert.assertTrue(ont.containsAxiom(ax));
     }
 
     @Test
@@ -284,38 +300,39 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
     public void testIsGCIMethodSubClassAxiom() {
         OWLClassExpression desc = ObjectIntersectionOf(clA, classC);
         OWLSubClassOfAxiom ax1 = SubClassOf(clA, clB);
-        assertFalse(ax1.isGCI());
+        Assert.assertFalse(ax1.isGCI());
         OWLSubClassOfAxiom ax2 = SubClassOf(desc, clB);
-        assertTrue(ax2.isGCI());
+        Assert.assertTrue(ax2.isGCI());
     }
 
     @Test
     public void testParsedAxiomsSubClassOfUntypedOWLClass() {
         OWLOntology ontology = ontologyFromClasspathFile("SubClassOfUntypedOWLClass.rdf");
-        List<OWLSubClassOfAxiom> axioms = asList(ontology.axioms(AxiomType.SUBCLASS_OF));
-        assertEquals(1, axioms.size());
+        List<OWLSubClassOfAxiom> axioms = OWLAPIStreamUtils.asList(ontology.axioms(AxiomType.SUBCLASS_OF));
+        Assert.assertEquals(1, axioms.size());
         OWLSubClassOfAxiom ax = axioms.iterator().next();
         OWLClass subCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "A"));
         OWLClass supCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "B"));
-        assertEquals(subCls, ax.getSubClass());
-        assertEquals(supCls, ax.getSuperClass());
+        Assert.assertEquals(subCls, ax.getSubClass());
+        Assert.assertEquals(supCls, ax.getSuperClass());
     }
 
     @Test
     public void testParsedAxiomsSubClassOfUntypedSomeValuesFrom() {
         OWLOntology ontology = ontologyFromClasspathFile("SubClassOfUntypedSomeValuesFrom.rdf");
-        List<OWLSubClassOfAxiom> axioms = asList(ontology.axioms(AxiomType.SUBCLASS_OF));
-        assertEquals(1, axioms.size());
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
+        List<OWLSubClassOfAxiom> axioms = OWLAPIStreamUtils.asList(ontology.axioms(AxiomType.SUBCLASS_OF));
+        Assert.assertEquals(1, axioms.size());
         OWLSubClassOfAxiom ax = axioms.iterator().next();
         OWLClass subCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "A"));
-        assertEquals(subCls, ax.getSubClass());
+        Assert.assertEquals(subCls, ax.getSubClass());
         OWLClassExpression supCls = ax.getSuperClass();
-        assertTrue(supCls instanceof OWLObjectSomeValuesFrom);
+        Assert.assertTrue(supCls instanceof OWLObjectSomeValuesFrom);
         OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) supCls;
         OWLObjectProperty property = ObjectProperty(IRI("http://www.semanticweb.org/owlapi/test#", "P"));
         OWLClass fillerCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "C"));
-        assertEquals(property, someValuesFrom.getProperty());
-        assertEquals(fillerCls, someValuesFrom.getFiller());
+        Assert.assertEquals(property, someValuesFrom.getProperty());
+        Assert.assertEquals(fillerCls, someValuesFrom.getFiller());
     }
 
     @Test
