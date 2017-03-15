@@ -371,27 +371,30 @@ public class DeclarationFixer extends TransformAction {
                     .filter(s -> isDefinitelyClass(s.getObject()))
                     .map(Statement::getSubject).collect(Collectors.toSet());
 
-            individuals.addAll(statements(getModel(), null, RDF.type, OWL.ObjectProperty).map(Statement::getSubject)
-                    .filter(RDFNode::isURIResource)
-                    .map(r -> r.as(Property.class))
+            Stream<Resource> objectPropertyAssertionIndividuals = statements(getModel(), null, RDF.type, OWL.ObjectProperty)
+                    .map(Statement::getSubject).filter(RDFNode::isURIResource).map(r -> r.as(Property.class))
                     .map(p -> statements(getBaseModel(), null, p, null))
                     .flatMap(Function.identity())
-                    .filter(s -> s.getObject().isURIResource() && s.getSubject().isURIResource())
+                    .filter(s -> couldBeIndividual(s.getObject()) && couldBeIndividual(s.getSubject()))
                     .map(s -> Stream.of(s.getSubject(), s.getObject()))
                     .flatMap(Function.identity())
-                    .map(RDFNode::asResource).collect(Collectors.toSet()));
+                    .map(RDFNode::asResource)
+                    .filter(RDFNode::isURIResource);
+            individuals.addAll(objectPropertyAssertionIndividuals.collect(Collectors.toSet()));
 
-            individuals.addAll(statements(getModel(), null, RDF.type, OWL.DatatypeProperty).map(Statement::getSubject)
-                    .filter(RDFNode::isURIResource)
-                    .map(r -> r.as(Property.class))
+            Stream<Resource> dataPropertyAssertionIndividuals = statements(getModel(), null, RDF.type, OWL.DatatypeProperty).map(Statement::getSubject)
+                    .filter(RDFNode::isURIResource).map(r -> r.as(Property.class))
                     .map(p -> statements(getBaseModel(), null, p, null))
                     .flatMap(Function.identity())
                     .filter(s -> s.getObject().isLiteral() && s.getSubject().isURIResource())
-                    .map(Statement::getSubject).collect(Collectors.toSet()));
+                    .map(Statement::getSubject);
+            individuals.addAll(dataPropertyAssertionIndividuals.collect(Collectors.toSet()));
 
             individuals.forEach(r -> declare(r, OWL.NamedIndividual, true));
+        }
 
-
+        public boolean couldBeIndividual(RDFNode n) {
+            return n.isResource() && (n.isURIResource() || !n.asResource().canAs(RDFList.class));
         }
     }
 

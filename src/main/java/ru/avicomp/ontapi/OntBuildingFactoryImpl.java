@@ -317,14 +317,15 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          */
         protected GraphInfo fetchGraph(String uri) throws OWLOntologyCreationException {
             IRI ontologyIRI = IRI.create(uri);
-            OWLOntologyID id = new OWLOntologyID(Optional.of(ontologyIRI), Optional.empty());
+            IRI documentIRI = Iter.asStream(manager.getIRIMappers().iterator())
+                    .map(m -> m.getDocumentIRI(ontologyIRI)).filter(Objects::nonNull)
+                    .findFirst().orElse(ontologyIRI);
+            // handle also the strange situation when there is no resource-mapping but a mapping on some existing ontology
+            OWLOntologyID id = new OWLOntologyID(Optional.of(documentIRI), Optional.empty());
             if (manager.contains(id)) {
                 OntologyModel model = OntApiException.notNull(manager.getOntology(id), "Can't find ontology " + id);
                 return toGraphInfo(model);
             }
-            IRI documentIRI = Iter.asStream(manager.getIRIMappers().iterator())
-                    .map(m -> m.getDocumentIRI(ontologyIRI)).filter(Objects::nonNull)
-                    .findFirst().orElse(ontologyIRI);
             IRIDocumentSource source = new IRIDocumentSource(documentIRI);
             try {
                 return loadGraph(source);
