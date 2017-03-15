@@ -267,7 +267,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                             throw new UnloadableImportException(e, declaration);
                         }
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Can't process sub graph with " + declaration + ". exception: " + e);
+                            LOGGER.debug("Can't process sub graph with " + declaration + ". Exception: " + e);
                         }
                         continue;
                     }

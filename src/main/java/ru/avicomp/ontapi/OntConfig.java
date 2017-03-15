@@ -72,6 +72,7 @@ public class OntConfig extends OntologyConfigurator {
             res.personality = this.personality;
             res.transformers = this.transformers;
             res.performTransformation = this.performTransformation;
+            res.supportedSchemes = this.supportedSchemes;
             return res;
         }
 
