@@ -6,9 +6,7 @@ import java.util.stream.Stream;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
@@ -80,12 +78,19 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public OntStatement getRoot() {
-            return new OntStatementImpl.RootImpl(this, OWL.inverseOf, getDirect(), getModel());
+            return new OntStatementImpl.RootImpl(this, OWL.inverseOf, getRequiredDirectProperty(), getModel());
+        }
+
+        protected Resource getRequiredDirectProperty() {
+            return getModel().statements(this, OWL.inverseOf, null).findFirst()
+                    .map(Statement::getObject).map(RDFNode::asResource)
+                    .orElseThrow(OntJenaException.supplier("Can't find owl:inverseOf object prop"));
         }
 
         @Override
         public OntOPE getDirect() {
-            return getRequiredObject(OWL.inverseOf, OntOPE.class);
+            Resource res = getRequiredDirectProperty();
+            return res.as(OntOPE.class);
         }
     }
 

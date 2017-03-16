@@ -4,9 +4,7 @@ import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.semanticweb.owlapi.model.HasAnnotations;
-import org.semanticweb.owlapi.model.HasComponents;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.*;
 
 /**
  * Helper to work with {@link OWLObject} (mostly for parsing {@link org.semanticweb.owlapi.model.OWLAxiom})
@@ -25,6 +23,11 @@ public class OwlObjects {
 
     public static <O extends OWLObject, A extends HasAnnotations & HasComponents> Stream<O> objects(Class<O> view, A container) {
         return Stream.concat(parseComponents(view, container), parseAnnotations(view, container));
+    }
+
+    public static <A extends HasAnnotations & HasComponents> Stream<IRI> iris(A container) {
+        return Stream.concat(objects(IRI.class, container),
+                objects(OWLObject.class, container).filter(HasIRI.class::isInstance).map(h -> ((HasIRI) h).getIRI()));
     }
 
     private static <O extends OWLObject> Stream<O> toStream(Class<O> view, Object o) {

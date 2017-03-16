@@ -12,14 +12,15 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 package org.semanticweb.owlapi.profiles;
 
-import javax.annotation.Nonnull;
 import java.lang.Class;
 import java.util.*;
 import java.util.stream.Stream;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
+import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
@@ -27,62 +28,38 @@ import org.semanticweb.owlapi.profiles.violations.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
-import static org.junit.Assert.assertEquals;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Boolean;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Double;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Integer;
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc", "rawtypes"})
 public class OWLProfileTestCase extends TestBase {
 
-    private static final
-    @Nonnull
-    String START = OWLThing().getIRI().getNamespace();
-    private static final
-    @Nonnull
-    OWLClass CL = Class(IRI("urn:test#", "fakeclass"));
-    private static final
-    @Nonnull
-    OWLDataProperty DATAP = DataProperty(IRI("urn:datatype#", "fakedatatypeproperty"));
-    private static final
-    @Nonnull
-    OWLDataPropertyRangeAxiom DATA_PROPERTY_RANGE2 = DataPropertyRange(DATAP,
-            DatatypeRestriction(Integer(), FacetRestriction(OWLFacet.LANG_RANGE, Literal(1))));
-    private static final
-    @Nonnull
-    OWLDataPropertyRangeAxiom DATA_PROPERTY_RANGE = DataPropertyRange(DATAP,
-            DatatypeRestriction(Integer(), FacetRestriction(OWLFacet.MAX_EXCLUSIVE, Literal(1))));
-    private static final
-    @Nonnull
-    OWLObjectProperty OP = ObjectProperty(IRI("urn:datatype#", "fakeobjectproperty"));
-    private static final
-    @Nonnull
-    OWLDatatype UNKNOWNFAKEDATATYPE = Datatype(IRI(START, "unknownfakedatatype"));
-    private static final
-    @Nonnull
-    OWLDatatype FAKEUNDECLAREDDATATYPE = Datatype(IRI("urn:datatype#",
-            "fakeundeclareddatatype"));
-    private static final
-    @Nonnull
-    OWLDatatype FAKEDATATYPE = Datatype(IRI("urn:datatype#", "fakedatatype"));
-    private static final
-    @Nonnull
-    IRI onto = IRI.create("urn:test#", "ontology");
-    private static final
-    @Nonnull
-    OWLDataFactory DF = OWLManager.getOWLDataFactory();
-    private static final
-    @Nonnull
-    OWLObjectProperty P = ObjectProperty(IRI("urn:test#", "objectproperty"));
-    OWLOntology o;
+    private static final String START = OWLThing().getIRI().getNamespace();
+    private static final OWLClass CL = Class(IRI("urn:test#", "fakeclass"));
+    private static final OWLDataProperty DATAP = DataProperty(IRI("urn:datatype#", "fakedatatypeproperty"));
+    private static final OWLDataPropertyRangeAxiom DATA_PROPERTY_RANGE2 = DataPropertyRange(DATAP, DatatypeRestriction(Integer(), FacetRestriction(OWLFacet.LANG_RANGE, Literal(1))));
+    private static final OWLDataPropertyRangeAxiom DATA_PROPERTY_RANGE = DataPropertyRange(DATAP, DatatypeRestriction(Integer(), FacetRestriction(OWLFacet.MAX_EXCLUSIVE, Literal(1))));
+    private static final OWLObjectProperty OP = ObjectProperty(IRI("urn:datatype#", "fakeobjectproperty"));
+    private static final OWLDatatype UNKNOWNFAKEDATATYPE = Datatype(IRI(START, "unknownfakedatatype"));
+    private static final OWLDatatype FAKEUNDECLAREDDATATYPE = Datatype(IRI("urn:datatype#", "fakeundeclareddatatype"));
+    private static final OWLDatatype FAKEDATATYPE = Datatype(IRI("urn:datatype#", "fakedatatype"));
+    private static final IRI onto = IRI.create("urn:test#", "ontology");
+    private static final OWLDataFactory DF = OWLManager.getOWLDataFactory();
+    private static final OWLObjectProperty P = ObjectProperty(IRI("urn:test#", "objectproperty"));
+    private OWLOntology o;
 
     @Before
     @Override
     public void setupManagersClean() {
         super.setupManagersClean();
+        if (!DEBUG_USE_OWL) {
+            ru.avicomp.ontapi.OntConfig.LoaderConfiguration conf = ((ru.avicomp.ontapi.OntologyManager) m).getOntologyLoaderConfiguration();
+            m.setOntologyLoaderConfiguration(conf.setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX));
+        }
         try {
             o = getOWLOntology(onto);
         } catch (OWLOntologyCreationException e) {
@@ -90,29 +67,26 @@ public class OWLProfileTestCase extends TestBase {
         }
     }
 
-    public void declare(OWLOntology ont, OWLEntity... entities) {
-        Stream.of(entities).map(e -> Declaration(e)).forEach(ax -> ont.add(ax));
+    private void declare(OWLOntology ont, OWLEntity... entities) {
+        Stream.of(entities).map(OWLFunctionalSyntaxFactory::Declaration).forEach(ont::add);
     }
 
-    protected static final
-    @Nonnull
-    Comparator<Class> comp = (o1, o2) -> o1.getSimpleName().compareTo(o2
-            .getSimpleName());
+    private static final Comparator<Class> comp = Comparator.comparing(Class::getSimpleName);
 
-    public void checkInCollection(List<OWLProfileViolation> violations, Class[] inputList) {
+    private void checkInCollection(List<OWLProfileViolation> violations, Class[] inputList) {
         List<Class> list = new ArrayList<>(Arrays.asList(inputList));
         List<Class> list1 = new ArrayList<>();
         for (OWLProfileViolation v : violations) {
             list1.add(v.getClass());
         }
-        Collections.sort(list, comp);
-        Collections.sort(list1, comp);
-        assertEquals(list1.toString(), list, list1);
+        list.sort(comp);
+        list1.sort(comp);
+        Assert.assertEquals(list1.toString(), list, list1);
     }
 
-    public void runAssert(OWLOntology ontology, OWLProfile profile, int expected, Class[] expectedViolations) {
+    private void runAssert(OWLOntology ontology, OWLProfile profile, int expected, Class[] expectedViolations) {
         List<OWLProfileViolation> violations = profile.checkOntology(ontology).getViolations();
-        assertEquals(violations.toString(), expected, violations.size());
+        Assert.assertEquals(violations.toString(), expected, violations.size());
         checkInCollection(violations, expectedViolations);
         for (OWLProfileViolation violation : violations) {
             ontology.getOWLOntologyManager().applyChanges(violation.repair());
@@ -122,12 +96,12 @@ public class OWLProfileTestCase extends TestBase {
 
                 @Override
                 public Optional<String> doDefault(OWLProfileViolation object) {
-                    return optional(object.toString());
+                    return Optional.of(object.toString());
                 }
             });
         }
         violations = profile.checkOntology(ontology).getViolations();
-        assertEquals(0, violations.size());
+        Assert.assertEquals(0, violations.size());
     }
 
     @Test
@@ -230,7 +204,7 @@ public class OWLProfileTestCase extends TestBase {
     @Test
     @Tests(method = "public Object visit(OWLOntology ontology)")
     public void shouldCreateViolationForOWLOntologyInOWL2DLProfile() throws OWLOntologyCreationException {
-        o = m.createOntology(new OWLOntologyID(optional(IRI(START, "test")), optional(IRI(START, "test1"))));
+        o = m.createOntology(new OWLOntologyID(Optional.of(IRI(START, "test")), Optional.of(IRI(START, "test1"))));
         int expected = 2;
         Class[] expectedViolations = {UseOfReservedVocabularyForOntologyIRI.class,
                 UseOfReservedVocabularyForVersionIRI.class};
@@ -509,7 +483,7 @@ public class OWLProfileTestCase extends TestBase {
     public void shouldCreateViolationForOWLSubPropertyChainOfAxiomInOWL2DLProfile() {
         OWLObjectProperty op1 = ObjectProperty(IRI("urn:test#", "op"));
         declare(o, OP, op1);
-        o.add(SubPropertyChainOf(Arrays.asList(op1), OP), SubPropertyChainOf(Arrays.asList(OP, op1, OP), OP),
+        o.add(SubPropertyChainOf(Collections.singletonList(op1), OP), SubPropertyChainOf(Arrays.asList(OP, op1, OP), OP),
                 SubPropertyChainOf(Arrays.asList(OP, op1), OP), SubPropertyChainOf(Arrays.asList(op1, OP, op1, OP), OP));
         int expected = 4;
         Class[] expectedViolations = {InsufficientPropertyExpressions.class, UseOfPropertyInChainCausesCycle.class,
@@ -520,7 +494,7 @@ public class OWLProfileTestCase extends TestBase {
     @Test
     @Tests(method = "public Object visit(OWLOntology ont)")
     public void shouldCreateViolationForOWLOntologyInOWL2Profile() throws OWLOntologyCreationException {
-        o = m.createOntology(new OWLOntologyID(optional(IRI("test", "")), optional(IRI("test1", ""))));
+        o = m.createOntology(new OWLOntologyID(Optional.of(IRI("test", "")), Optional.of(IRI("test1", ""))));
         int expected = 2;
         Class[] expectedViolations = {OntologyIRINotAbsolute.class, OntologyVersionIRINotAbsolute.class};
         runAssert(o, Profiles.OWL2_FULL, expected, expectedViolations);
@@ -852,7 +826,7 @@ public class OWLProfileTestCase extends TestBase {
     @Test
     @Tests(method = "public Object visit(SWRLRule rule)")
     public void shouldCreateViolationForSWRLRuleInOWL2ELProfile() {
-        o.add(DF.getSWRLRule(new HashSet<SWRLAtom>(), new HashSet<SWRLAtom>()));
+        o.add(DF.getSWRLRule(new HashSet<>(), new HashSet<>()));
         int expected = 1;
         Class[] expectedViolations = {UseOfIllegalAxiom.class};
         runAssert(o, Profiles.OWL2_EL, expected, expectedViolations);
@@ -1078,7 +1052,7 @@ public class OWLProfileTestCase extends TestBase {
     @Test
     @Tests(method = "public Object visit(SWRLRule rule)")
     public void shouldCreateViolationForSWRLRuleInOWL2QLProfile() {
-        o.add(DF.getSWRLRule(new HashSet<SWRLAtom>(), new HashSet<SWRLAtom>()));
+        o.add(DF.getSWRLRule(new HashSet<>(), new HashSet<>()));
         int expected = 1;
         Class[] expectedViolations = {UseOfIllegalAxiom.class};
         runAssert(o, Profiles.OWL2_QL, expected, expectedViolations);
@@ -1246,7 +1220,7 @@ public class OWLProfileTestCase extends TestBase {
     @Test
     @Tests(method = "public Object visit(SWRLRule rule)")
     public void shouldCreateViolationForSWRLRuleInOWL2RLProfile() {
-        o.add(DF.getSWRLRule(new HashSet<SWRLAtom>(), new HashSet<SWRLAtom>()));
+        o.add(DF.getSWRLRule(new HashSet<>(), new HashSet<>()));
         int expected = 1;
         Class[] expectedViolations = {UseOfIllegalAxiom.class};
         runAssert(o, Profiles.OWL2_RL, expected, expectedViolations);

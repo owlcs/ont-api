@@ -24,6 +24,8 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
@@ -31,6 +33,7 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
 
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class TurtleTestCase extends TestBase {
 
@@ -115,13 +118,22 @@ public class TurtleTestCase extends TestBase {
     public void shouldResolveAgainstBase() throws OWLOntologyCreationException {
         // given
         String input = "@base <http://test.org/path#> .\n <a1> <b1> <c1> .";
+        if (!DEBUG_USE_OWL) {
+            // in ONT-API we can't work with such naked triples.
+            // There is no any reasons and tips to believe that it is annotation property assertion but not something else.
+            // So, add explicit type:
+            input += String.format("\n <b1> a <%s> .", OWL.AnnotationProperty.getURI());
+        }
         // when
         OWLOntology o = loadOntologyFromString(input);
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
         // then
-        String axioms = o.axioms().iterator().next().toString();
-        assertTrue(axioms.contains("http://test.org/a1"));
-        assertTrue(axioms.contains("http://test.org/b1"));
-        assertTrue(axioms.contains("http://test.org/c1"));
+        OWLAxiom axioms = o.axioms(AxiomType.ANNOTATION_ASSERTION).findFirst().orElseThrow(() -> new AssertionError("Can't find annotation assertion."));
+        String s = axioms.toString();
+        LOGGER.debug(s);
+        assertTrue(s.contains("http://test.org/a1"));
+        assertTrue(s.contains("http://test.org/b1"));
+        assertTrue(s.contains("http://test.org/c1"));
     }
 
     // test for 3543488

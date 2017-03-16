@@ -484,6 +484,9 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public Stream<OWLAxiom> referencingAxioms(@Nonnull OWLPrimitive primitive) {
+        if (primitive instanceof IRI) {
+            return axioms().filter(a -> OwlObjects.iris(a).anyMatch(primitive::equals));
+        }
         return axioms().filter(a -> OwlObjects.objects(OWLPrimitive.class, a).anyMatch(primitive::equals));
     }
 

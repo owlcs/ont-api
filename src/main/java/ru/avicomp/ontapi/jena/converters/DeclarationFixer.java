@@ -33,7 +33,8 @@ public class DeclarationFixer extends TransformAction {
     public DeclarationFixer(Graph graph) {
         super(graph);
         inner = Stream.of(
-                new ObjectTripleDeclarationFixer(graph)
+                new ClassDeclarationFixer(graph)
+                , new ObjectTripleDeclarationFixer(graph)
                 , new SubjectTripleDeclarationFixer(graph)
 
                 , new StandaloneURIFixer(graph)
@@ -48,6 +49,37 @@ public class DeclarationFixer extends TransformAction {
     @Override
     public void perform() {
         inner.forEach(TransformAction::perform);
+    }
+
+    private static class ClassDeclarationFixer extends BaseTripleDeclarationFixer {
+        ClassDeclarationFixer(Graph graph) {
+            super(graph);
+        }
+
+        @Override
+        public void perform() {
+            Set<Resource> resources = Stream.of(RDFS.subClassOf, OWL.disjointWith, OWL.onClass)
+                    .map(p -> statements(getBaseModel(), null, p, null))
+                    .flatMap(Function.identity())
+                    .map(s -> Stream.of(s.getSubject(), s.getObject()))
+                    .flatMap(Function.identity())
+                    .filter(RDFNode::isResource)
+                    .map(RDFNode::asResource).collect(Collectors.toSet());
+            resources.forEach(r -> {
+                if (BuiltIn.CLASSES.contains(r)) return;
+                Resource type;
+                if (r.isURIResource() ||
+                        (r.hasProperty(OWL.intersectionOf) ||
+                                r.hasProperty(OWL.oneOf) ||
+                                r.hasProperty(OWL.unionOf) ||
+                                r.hasProperty(OWL.complementOf))) {
+                    type = OWL.Class;
+                } else {
+                    type = OWL.Restriction;
+                }
+                r.addProperty(RDF.type, type);
+            });
+        }
     }
 
     /**
@@ -107,19 +139,8 @@ public class DeclarationFixer extends TransformAction {
 
         private void fixClassesAndDatatypes() {
             Model m = getModel();
+
             fixAmbiguousTypes(m, OWL.equivalentClass, OWL.Class, RDFS.Datatype);
-
-            Stream.of(RDFS.subClassOf, OWL.disjointWith, OWL.onClass).forEach(p -> fixExplicitTypes(m, p, OWL.Class));
-
-            Stream.of(RDFS.subClassOf, OWL.disjointWith).map(p -> statements(getBaseModel(), null, p, null).map(Statement::getObject))
-                    .flatMap(Function.identity())
-                    .filter(RDFNode::isResource)
-                    .map(RDFNode::asResource).forEach(r -> {
-                if (r.isURIResource() ||
-                        (r.hasProperty(OWL.intersectionOf) || r.hasProperty(OWL.oneOf) || r.hasProperty(OWL.unionOf) || r.hasProperty(OWL.complementOf))) {
-                    r.addProperty(RDF.type, OWL.Class);
-                }
-            });
 
             fixExplicitTypes(m, OWL.onDataRange, RDFS.Datatype);
 
@@ -290,8 +311,6 @@ public class DeclarationFixer extends TransformAction {
         }
 
         private void fixClassesAndDatatypes(Model m) {
-            Stream.of(RDFS.subClassOf, OWL.disjointWith).map(p -> statements(getBaseModel(), null, p, null).map(Statement::getSubject))
-                    .flatMap(Function.identity()).filter(RDFNode::isURIResource).forEach(r -> declare(r, OWL.Class, true));
             // left part of triple for owl:equivalentClass
             m.listStatements(null, OWL.equivalentClass, (RDFNode) null)
                     .forEachRemaining(s -> declare(s.getSubject(), chooseExpressionType(s.getObject()), true));
