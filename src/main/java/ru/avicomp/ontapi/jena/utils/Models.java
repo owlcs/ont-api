@@ -138,6 +138,7 @@ public class Models {
     private static void calcAssociatedStatements(Resource root, Set<Statement> res) {
         if (root.canAs(RDFList.class)) {
             RDFListImpl list = (RDFListImpl) root.as(RDFList.class);
+            if (list.isEmpty()) return;
             list.collectStatements().forEach(statement -> {
                 res.add(statement);
                 if (!list.listFirst().equals(statement.getPredicate())) return;

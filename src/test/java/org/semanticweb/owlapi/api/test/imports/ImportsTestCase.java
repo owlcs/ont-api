@@ -35,17 +35,13 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
-import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.utils.ModifiedForONTApi;
-
-
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health
  *         Informatics Group
  * @since 3.1.0
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
-@ModifiedForONTApi
 public class ImportsTestCase extends TestBase {
 
     @Test
@@ -197,7 +193,7 @@ public class ImportsTestCase extends TestBase {
         // the explicit type for ONT-API, otherwise this(^^^) data would be considered as RDF/XML,
         // and the corresponding(valid) graph will have the strange URI's
         StringDocumentSource source = new StringDocumentSource(input, IRI.getNextDocumentIRI("string:ontology"),
-                OntFormat.OWL_XML.createOwlFormat(), OntFormat.OWL_XML.getID());
+                ru.avicomp.ontapi.OntFormat.OWL_XML.createOwlFormat(), ru.avicomp.ontapi.OntFormat.OWL_XML.getID());
         IRI testImport = IRI.create("http://test.org/", "TestPizzaImport.owl");
         IRI remap = IRI.create("urn:test:", "mockImport");
         OWLOntologyIRIMapper mock = Mockito.mock(OWLOntologyIRIMapper.class);

@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -43,12 +44,13 @@ class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntC
     @Override
     public Wrap<OWLHasKeyAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         OntCE ce = statement.getSubject().as(OntCE.class);
         Wrap<? extends OWLClassExpression> subject = ReadHelper.fetchClassExpression(ce, df);
         Wrap.Collection<? extends OWLPropertyExpression> members = Wrap.Collection.create(ce.hasKey()
                 .filter(p -> p.canAs(OntOPE.class) || p.canAs(OntNDP.class)) // only P or R (!)
                 .map(p -> ReadHelper.getProperty(p, df)));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLHasKeyAxiom res = df.getOWLHasKeyAxiom(subject.getObject(), members.getObjects(), annotations.getObjects());
         return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }

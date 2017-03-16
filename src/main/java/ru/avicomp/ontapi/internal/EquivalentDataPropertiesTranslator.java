@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -37,9 +38,10 @@ class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<OWLEquiv
     @Override
     public Wrap<OWLEquivalentDataPropertiesAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap<OWLDataProperty> a = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), df);
         Wrap<OWLDataProperty> b = ReadHelper.fetchDataProperty(statement.getObject().as(getView()), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLEquivalentDataPropertiesAxiom res = df.getOWLEquivalentDataPropertiesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }

@@ -13,21 +13,21 @@
 package org.semanticweb.owlapi.api.test.annotations;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.jena.rdf.model.Model;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
+import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 
 import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
-import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
+
 
 @ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc", "null"})
@@ -55,9 +55,9 @@ public class SWRLAnnotationTestCase extends TestBase {
             + "    <rdfs:comment rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">:i62, :i61</rdfs:comment></swrl:Imp>\n"
             + "</rdf:RDF>";
     @Nonnull
-    protected OWLClass a = Class(IRI(NS + "#", "A"));
+    protected OWLClass a = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(NS + "#", "A"));
     @Nonnull
-    protected OWLClass b = Class(IRI(NS + "#", "B"));
+    protected OWLClass b = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(NS + "#", "B"));
     protected OWLAxiom axiom;
 
     @Before
@@ -73,6 +73,7 @@ public class SWRLAnnotationTestCase extends TestBase {
         Set<SWRLAtom> body = new TreeSet<>();
         body.add(atom2);
         axiom = df.getSWRLRule(body, consequent, annotations);
+        m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration());
     }
 
     @Test
@@ -93,25 +94,65 @@ public class SWRLAnnotationTestCase extends TestBase {
     @Test
     public void replicateFailure() throws Exception {
         String input = HEAD + " rdf:ID=\"test-table5-prp-inv2-rule\"" + TAIL;
-        OWLOntology ontology = loadOntologyFromString(new StringDocumentSource(input, "test",
-                new RDFXMLDocumentFormat(), null));
-        assertTrue(ontology.axioms(AxiomType.SWRL_RULE).anyMatch(ax -> ax.toString().contains(
-                "DLSafeRule(Annotation(<http://swrl.stanford.edu/ontologies/3.3/swrla.owl#isRuleEnabled> \"true\"^^xsd:boolean) Annotation(rdfs:comment \":i62, :i61\"^^xsd:string)  Body() Head(ObjectPropertyAtom(<#drives> <#i61> <#i62>)) )")));
+        OWLOntologyManager manager = setupManager();
+        manager.setOntologyLoaderConfiguration(manager.getOntologyLoaderConfiguration().setLoadAnnotationAxioms(false));
+        OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(input, "test2test", new RDFXMLDocumentFormat(), null));
+        debug(ontology);
+        assertTrue(ontology.axioms(AxiomType.SWRL_RULE).anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
     }
 
     @Test
     public void replicateSuccess() throws Exception {
         String input = HEAD + TAIL;
-        Model m = ru.avicomp.ontapi.utils.ReadWriteUtils.loadFromString(input, ru.avicomp.ontapi.OntFormat.RDF_XML);
-        LOGGER.debug("Initial model: ");
-        ru.avicomp.ontapi.utils.ReadWriteUtils.print(m);
-
-        OWLOntology ontology = loadOntologyFromString(new StringDocumentSource(input, "test",
-                new RDFXMLDocumentFormat(), null));
-        LOGGER.debug("Result model: "); // there is converting
-        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
-
-        assertTrue(ontology.axioms(AxiomType.SWRL_RULE).anyMatch(ax -> ax.toString().contains(
-                "DLSafeRule(Annotation(<http://swrl.stanford.edu/ontologies/3.3/swrla.owl#isRuleEnabled> \"true\"^^xsd:boolean) Annotation(rdfs:comment \":i62, :i61\"^^xsd:string)  Body() Head(ObjectPropertyAtom(<#drives> <#i61> <#i62>)) )")));
+        OWLOntology ontology = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(input, "test", new RDFXMLDocumentFormat(), null));
+        debug(ontology);
+        assertTrue(ontology.axioms(AxiomType.SWRL_RULE).anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
     }
+
+    private OWLOntology debug(OWLOntology ontology) {
+        LOGGER.debug("Model: ");
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
+        ontology.axioms().forEach(x -> LOGGER.debug(x.toString()));
+        return ontology;
+    }
+
+    private String makeSWRLRuleAnnotatedAxiomString(OWLOntology ontology) {
+        OWLObjectProperty drives = ontology.objectPropertiesInSignature()
+                .filter(o -> Objects.equals(o.getIRI().getRemainder().orElse(null), "drives"))
+                .findFirst().orElseThrow(() -> new AssertionError("Can't find #drives"));
+        OWLNamedIndividual i61 = ontology.individualsInSignature()
+                .filter(o -> Objects.equals(o.getIRI().getRemainder().orElse(null), "i61"))
+                .findFirst().orElseThrow(() -> new AssertionError("Can't find #i61"));
+        OWLNamedIndividual i62 = ontology.individualsInSignature()
+                .filter(o -> Objects.equals(o.getIRI().getRemainder().orElse(null), "i62"))
+                .findFirst().orElseThrow(() -> new AssertionError("Can't find #i62"));
+        // such way works both for OWL-API and ONT-API (in the OWL-API there are broken IRIs for all entities,
+        // e.g. <#drives> instead of <urn:test#drives>. I presume that absolute IRI's are always correct)
+        return String.format("DLSafeRule(" +
+                "Annotation(<%s> \"true\"^^xsd:boolean) " +
+                "Annotation(rdfs:comment \":i62, :i61\"^^xsd:string)  " +
+                "Body() " +
+                "Head(ObjectPropertyAtom(<%s> <%s> <%s>)) )", SWRLA.isRuleEnabled.getURI(), drives.getIRI(), i61.getIRI(), i62.getIRI());
+    }
+
+    /**
+     * <a href='http://swrl.stanford.edu/ontologies/3.3/swrla.owl#'>SWRLA scheme</a>
+     *
+     * @see {@link ru.avicomp.ontapi.jena.vocabulary.SWRL}
+     */
+    public static class SWRLA {
+        public final static String URI = "http://swrl.stanford.edu/ontologies/3.3/swrla.owl";
+        public final static String NS = URI + "#";
+
+        public static org.apache.jena.rdf.model.Property isRuleEnabled = property("isRuleEnabled");
+
+        protected static org.apache.jena.rdf.model.Resource resource(String local) {
+            return org.apache.jena.rdf.model.ResourceFactory.createResource(NS + local);
+        }
+
+        protected static org.apache.jena.rdf.model.Property property(String local) {
+            return org.apache.jena.rdf.model.ResourceFactory.createProperty(NS + local);
+        }
+    }
+
 }

@@ -6,6 +6,7 @@ import org.semanticweb.owlapi.model.OWLAsymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -30,8 +31,9 @@ class AsymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<
     @Override
     public Wrap<OWLAsymmetricObjectPropertyAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(getSubject(statement), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLAsymmetricObjectPropertyAxiom res = df.getOWLAsymmetricObjectPropertyAxiom(p.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
     }

@@ -4,6 +4,7 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNDP;
@@ -33,9 +34,10 @@ class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLD
     @Override
     public Wrap<OWLDataPropertyDomainAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap<OWLDataProperty> p = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), df);
         Wrap<? extends OWLClassExpression> ce = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLDataPropertyDomainAxiom res = df.getOWLDataPropertyDomainAxiom(p.getObject(), ce.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(ce);
     }

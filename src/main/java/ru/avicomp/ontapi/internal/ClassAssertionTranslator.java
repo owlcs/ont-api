@@ -4,6 +4,7 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -43,9 +44,10 @@ class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
     @Override
     public Wrap<OWLClassAssertionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap<? extends OWLIndividual> i = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), df);
         Wrap<? extends OWLClassExpression> ce = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLClassAssertionAxiom res = df.getOWLClassAssertionAxiom(ce.getObject(), i.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(i).append(ce);
     }

@@ -4,6 +4,7 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
@@ -47,10 +48,11 @@ class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataPropertyAss
     @Override
     public Wrap<OWLDataPropertyAssertionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap<? extends OWLIndividual> i = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), df);
         Wrap<OWLDataProperty> p = ReadHelper.fetchDataProperty(statement.getPredicate().as(OntNDP.class), df);
         Wrap<OWLLiteral> l = ReadHelper.getLiteral(statement.getObject().asLiteral(), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLDataPropertyAssertionAxiom res = df.getOWLDataPropertyAssertionAxiom(p.getObject(), i.getObject(), l.getObject(),
                 annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(i).append(p).append(l);

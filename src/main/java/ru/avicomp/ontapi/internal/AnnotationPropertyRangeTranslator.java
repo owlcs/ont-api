@@ -4,6 +4,7 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -29,6 +30,7 @@ class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<
      */
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
+        if (!getLoaderConfig(model).isLoadAnnotationAxioms()) return Stream.empty();
         return super.statements(model).filter(s -> s.getObject().isURIResource());
     }
 
@@ -40,9 +42,10 @@ class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<
     @Override
     public Wrap<OWLAnnotationPropertyRangeAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(getView()), df);
         Wrap<IRI> d = ReadHelper.wrapIRI(statement.getObject().as(OntObject.class));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLAnnotationPropertyRangeAxiom res = df.getOWLAnnotationPropertyRangeAxiom(p.getObject(), d.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(d);
     }

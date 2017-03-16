@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -60,6 +61,7 @@ class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjoint
     @Override
     public Wrap<OWLDisjointClassesAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap.Collection<? extends OWLClassExpression> members;
         Stream<OntStatement> content;
         if (statement.getSubject().canAs(getDisjointView())) {
@@ -71,7 +73,7 @@ class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjoint
             members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
                     .map(r -> r.as(getView())).map(m -> ReadHelper.fetchClassExpression(m, df)));
         }
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLDisjointClassesAxiom res = df.getOWLDisjointClassesAxiom(members.getObjects(), annotations.getObjects());
         return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }

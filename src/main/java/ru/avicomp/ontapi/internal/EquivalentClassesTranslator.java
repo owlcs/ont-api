@@ -10,6 +10,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -41,9 +42,10 @@ class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentCl
     @Override
     public Wrap<OWLEquivalentClassesAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap<? extends OWLClassExpression> a = ReadHelper.fetchClassExpression(statement.getSubject().as(getView()), df);
         Wrap<? extends OWLClassExpression> b = ReadHelper.fetchClassExpression(statement.getObject().as(getView()), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLEquivalentClassesAxiom res = df.getOWLEquivalentClassesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }

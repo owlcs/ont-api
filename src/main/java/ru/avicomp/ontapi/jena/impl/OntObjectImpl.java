@@ -169,6 +169,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .filterKeep(n -> n.canAs(RDFList.class))
                 .mapWith(n -> n.as(RDFList.class)))
                 .map(RDFListImpl.class::cast)
+                .filter(list -> !list.isEmpty())
                 .map(RDFListImpl::collectStatements)
                 .map(Collection::stream)
                 .flatMap(Function.identity())

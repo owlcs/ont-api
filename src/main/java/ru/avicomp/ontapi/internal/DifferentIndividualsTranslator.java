@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -59,6 +60,7 @@ class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDif
     @Override
     public Wrap<OWLDifferentIndividualsAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap.Collection<? extends OWLIndividual> members;
         Stream<OntStatement> content;
         if (statement.getSubject().canAs(getDisjointView())) {
@@ -70,7 +72,7 @@ class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDif
             members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
                     .map(r -> r.as(getView())).map(m -> ReadHelper.fetchIndividual(m, df)));
         }
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLDifferentIndividualsAxiom res = df.getOWLDifferentIndividualsAxiom(members.getObjects(), annotations.getObjects());
         return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }

@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
@@ -244,14 +245,23 @@ public class ReadHelper {
         return statement.isRoot() && statement.isDeclaration() && statement.getSubject().isURIResource();
     }
 
-    private static Set<Wrap<OWLAnnotation>> getAnnotations(OntStatement statement, OWLDataFactory df) {
-        if (isEntityDeclaration(statement) && statement.annotations().noneMatch(OntStatement::hasAnnotations)) {
+    private static Set<Wrap<OWLAnnotation>> getAnnotations(OntStatement statement, OWLDataFactory df, OntConfig.LoaderConfiguration conf) {
+        if (isAnnotationAssertionsAllowed(conf) && isEntityDeclaration(statement) && statement.annotations().noneMatch(OntStatement::hasAnnotations)) {
             // for compatibility with OWL-API skip plain annotations attached to an entity:
             // they would go separately as annotation-assertions.
-            // todo: it should be configurable.
             return Collections.emptySet();
         }
         return getAllAnnotations(statement, df);
+    }
+
+    /**
+     * by default we prefer annotation assertions rather then bulk annotations.
+     *
+     * @param conf {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
+     * @return true if annotation assertions are allowed
+     */
+    private static boolean isAnnotationAssertionsAllowed(OntConfig.LoaderConfiguration conf) {
+        return conf == null || conf.isLoadAnnotationAxioms();
     }
 
     /**
@@ -260,8 +270,8 @@ public class ReadHelper {
      * @param statement {@link OntStatement}
      * @return {@link ru.avicomp.ontapi.internal.Wrap.Collection} of {@link OWLAnnotation}
      */
-    public static Wrap.Collection<OWLAnnotation> getStatementAnnotations(OntStatement statement, OWLDataFactory df) {
-        return new Wrap.Collection<>(getAnnotations(statement, df));
+    public static Wrap.Collection<OWLAnnotation> getStatementAnnotations(OntStatement statement, OWLDataFactory df, OntConfig.LoaderConfiguration conf) {
+        return new Wrap.Collection<>(getAnnotations(statement, df, conf));
     }
 
     /**

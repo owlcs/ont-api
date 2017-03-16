@@ -15,7 +15,6 @@ package org.semanticweb.owlapi.api.test.individuals;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.jena.shared.InvalidPropertyURIException;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.AxiomsRoundTrippingBase;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
@@ -41,7 +40,7 @@ public class NoQNameTestCase extends TestBase {
      * (caused by {@link org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException})
      * while store ontology (during {@link org.semanticweb.owlapi.model.OWLOntologyManager#saveOntology}.
      * <p>
-     * ONT-API throws an unchecked exception {@link ru.avicomp.ontapi.OntApiException} (caused by {@link InvalidPropertyURIException})
+     * ONT-API throws an unchecked exception {@link ru.avicomp.ontapi.OntApiException} (caused by {@link org.apache.jena.shared.InvalidPropertyURIException})
      * while adding axioms (while {@link org.semanticweb.owlapi.model.OWLOntology#addAxioms}).
      * So we can't make behaviour the same for ONT-API. And i'm not sure we really need it.
      *
@@ -55,7 +54,7 @@ public class NoQNameTestCase extends TestBase {
         } catch (ru.avicomp.ontapi.OntApiException e) {
             LOGGER.info("Exception:::" + e);
             Throwable cause = e.getCause();
-            if (!(cause instanceof InvalidPropertyURIException)) {
+            if (!(cause instanceof org.apache.jena.shared.InvalidPropertyURIException)) {
                 throw e;
             }
         }

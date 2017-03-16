@@ -21,14 +21,13 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
 import com.google.common.collect.Sets;
-import ru.avicomp.ontapi.utils.ModifiedForONTApi;
 
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Float;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Integer;
 
-@ModifiedForONTApi
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
 

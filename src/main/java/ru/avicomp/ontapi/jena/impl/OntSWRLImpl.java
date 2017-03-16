@@ -316,11 +316,16 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
             super(n, m);
         }
 
-        private Stream<Atom> list(Property predicate) {
+        protected Stream<Atom> list(Property predicate) {
             Statement st = getProperty(predicate);
             if (st == null || !st.getObject().isResource())
                 return Stream.empty();
             Resource list = st.getObject().asResource();
+            if (list.listProperties().filterDrop(s -> RDF.type.equals(s.getPredicate()) && SWRL.AtomList.equals(s.getObject())).toSet().isEmpty()) {
+                // swrl:AtomicList is a stupid huck. Some formats (e.g. json-ld) ignore any  types in rdf:List
+                // special case of list. empty list would be like this: "[ a  swrl:AtomList ]"
+                return Stream.empty();
+            }
             return list.as(RDFList.class).asJavaList().stream().filter(n -> n.canAs(Atom.class)).map(n -> n.as(Atom.class)).distinct();
         }
 

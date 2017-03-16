@@ -12,14 +12,15 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 package org.semanticweb.owlapi.api.test;
 
-import javax.annotation.Nonnull;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hamcrest.core.IsEqual;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
@@ -28,63 +29,50 @@ import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
-import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-
 @ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc"})
 public class SerializationTestCase extends TestBase {
 
-    @Nonnull
+    /**
+     * Invite {@link #TEST_STRING_1}, it is to avoid illegal punning Class <-> Datatype
+     * (default {@link ru.avicomp.ontapi.jena.impl.configuration.OntPersonality} does not allow such things,
+     * mode = {@link ru.avicomp.ontapi.jena.impl.configuration.Configurable.Mode#MEDIUM}).
+     * And NOTE: neither {@link ru.avicomp.ontapi.jena.impl.configuration.OntPersonality} and
+     * {@link OWLOntologyLoaderConfiguration} in the manager (OWL-5.0.5) are not serializable.
+     * So the list of axioms from origin and copy ontologies could be different.
+     */
+    private static final String TEST_STRING_1 = "testString";
+    private static final String TEST_STRING_2 = "testString2";
     private final OWL2Datatype owl2datatype = OWL2Datatype.XSD_INT;
-    @Nonnull
     private final OWLDataProperty dp = df.getOWLDataProperty("urn:test#", "dp");
-    @Nonnull
     private final OWLObjectProperty op = df.getOWLObjectProperty("urn:test#", "op");
-    @Nonnull
     private final IRI iri = IRI.create("urn:test#", "iri");
-    @Nonnull
     private final OWLLiteral owlliteral = df.getOWLLiteral(true);
-    @Nonnull
     private final OWLAnnotationSubject as = IRI.create("urn:test#", "i");
-    @Nonnull
     private final OWLDatatype owldatatype = df.getOWLDatatype(owl2datatype);
-    @Nonnull
     private final OWLDataRange dr = df.getOWLDatatypeRestriction(owldatatype);
-    @Nonnull
     private final OWLAnnotationProperty ap = df.getOWLAnnotationProperty("urn:test#", "ap");
-    @Nonnull
     private final OWLFacet owlfacet = OWLFacet.MIN_EXCLUSIVE;
-    @Nonnull
-    private final String string = "testString";
-    @Nonnull
     private final OWLClassExpression c = df.getOWLClass("urn:test#", "classexpression");
-    @Nonnull
     private final PrefixManager prefixmanager = new DefaultPrefixManager();
-    @Nonnull
     private final OWLIndividual ai = df.getOWLAnonymousIndividual();
-    @Nonnull
     private final OWLAnnotationValue owlannotationvalue = owlliteral;
-    @Nonnull
     private final Set<OWLObjectPropertyExpression> setop = new HashSet<>();
-    @Nonnull
     private final Set<OWLDataPropertyExpression> setdp = new HashSet<>();
-    @Nonnull
     private final List<OWLObjectPropertyExpression> listowlobjectproperties = new ArrayList<>();
-    @Nonnull
     private final Set<OWLIndividual> setowlindividual = new HashSet<>();
-    @Nonnull
     private final Set<OWLPropertyExpression> setowlpropertyexpression = new HashSet<>();
+
 
     @SuppressWarnings("null")
     @Test
     public void testrun() throws Exception {
         m.getIRIMappers().set(new AutoIRIMapper(new File("."), false));
         OWLOntology o = m.loadOntologyFromOntologyDocument(getClass().getResourceAsStream("/owlapi/pizza.owl"));
+
         o.applyChange(new AddImport(o, df.getOWLImportsDeclaration(iri)));
         o.add(df.getOWLDeclarationAxiom(df.getOWLClass(iri)));
-        o.add(sub(c, df.getOWLClass(string, prefixmanager)));
+        o.add(sub(c, df.getOWLClass(TEST_STRING_2, prefixmanager)));
         o.add(df.getOWLEquivalentClassesAxiom(df.getOWLClass(iri), c));
         o.add(df.getOWLDisjointClassesAxiom(df.getOWLClass(iri), c));
         o.add(df.getOWLSubObjectPropertyOfAxiom(op, op));
@@ -127,14 +115,14 @@ public class SerializationTestCase extends TestBase {
         o.add(sub(c, df.getOWLObjectExactCardinality(1, op)));
         o.add(sub(c, df.getOWLObjectMaxCardinality(1, op)));
         o.add(sub(c, df.getOWLObjectMinCardinality(1, op)));
-        o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDatatype(string, prefixmanager)));
-        o.add(df.getOWLDataPropertyAssertionAxiom(dp, ai, df.getOWLLiteral(string, owldatatype)));
+        o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDatatype(TEST_STRING_1, prefixmanager)));
+        o.add(df.getOWLDataPropertyAssertionAxiom(dp, ai, df.getOWLLiteral(TEST_STRING_1, owldatatype)));
         o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDataOneOf(owlliteral)));
         o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDataUnionOf(dr)));
         o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDataIntersectionOf(dr)));
         o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDatatypeRestriction(owldatatype, owlfacet, owlliteral)));
         o.add(df.getOWLDataPropertyRangeAxiom(dp, df.getOWLDatatypeRestriction(owldatatype, df.getOWLFacetRestriction(owlfacet, 1))));
-        o.add(sub(c, df.getOWLObjectIntersectionOf(c, df.getOWLClass(string, prefixmanager))));
+        o.add(sub(c, df.getOWLObjectIntersectionOf(c, df.getOWLClass(TEST_STRING_2, prefixmanager))));
         o.add(sub(c, df.getOWLDataSomeValuesFrom(dp, dr)));
         o.add(sub(c, df.getOWLDataAllValuesFrom(dp, dr)));
         o.add(sub(c, df.getOWLDataHasValue(dp, owlliteral)));
@@ -158,18 +146,20 @@ public class SerializationTestCase extends TestBase {
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         ObjectInputStream inStream = new ObjectInputStream(in);
         OWLOntologyManager copy = (OWLOntologyManager) inStream.readObject();
+
         copy.ontologies().forEach(ont -> {
             OWLOntologyID id = ont.getOntologyID();
             LOGGER.debug("Test " + id);
             OWLOntology init = m.getOntology(id);
-            assertNotNull("Can't find init ontology with id " + id, init);
+            Assert.assertNotNull("Can't find init ontology with id " + id, init);
+
             AxiomType.AXIOM_TYPES.forEach(t -> {
-                Set<OWLAxiom> expected = init.axioms(t).collect(toSet());
-                Set<OWLAxiom> actual = ont.axioms(t).collect(toSet());
-                assertThat("Incorrect axioms for type <" + t + "> (expected=" + expected.size() + ", actual=" + actual.size() + ")",
-                        actual, IsEqual.equalTo(expected));
+                if (AxiomType.DECLARATION.equals(t)) return;
+                Set<OWLAxiom> expected = init.axioms(t).collect(Collectors.toSet());
+                Set<OWLAxiom> actual = ont.axioms(t).collect(Collectors.toSet());
+                Assert.assertThat("Incorrect axioms for type <" + t + "> (expected=" + expected.size() +
+                        ", actual=" + actual.size() + ")", actual, IsEqual.equalTo(expected));
             });
-            //assertTrue("Troubles with ontology " + id, init.equalAxioms(ont));
         });
     }
 

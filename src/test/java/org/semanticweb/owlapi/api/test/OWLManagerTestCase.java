@@ -1,23 +1,22 @@
 package org.semanticweb.owlapi.api.test;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.locks.ReadWriteLock;
 
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import ru.avicomp.ontapi.OntManagers;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 10/04/15
- *
  */
 @ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
@@ -28,41 +27,52 @@ public class OWLManagerTestCase {
 
     @Before
     public void setUp() throws Exception {
-        manager = // OWLManager.createOWLOntologyManager();
-                OntManagers.createConcurrentONT();
+        manager = TestBase.DEBUG_USE_OWL ? ru.avicomp.ontapi.OntManagers.createConcurrentOWL() : ru.avicomp.ontapi.OntManagers.createConcurrentONT();
         ontology = manager.createOntology();
     }
 
     @Test
     public void shouldCreateOntologyWithCorrectManager() {
-        assertThat(ontology.getOWLOntologyManager(), is(manager));
+        Assert.assertThat(ontology.getOWLOntologyManager(), CoreMatchers.is(manager));
     }
 
     @Test
     public void shouldCreateConcurrentOntologyByDefault() {
-        //assertThat(ontology, is(instanceOf(ru.avicomp.ontapi.OntologyModelImpl.Concurrent.class)));
-        assertThat(ontology, is(instanceOf(ru.avicomp.ontapi.OntologyModelImpl.Concurrent.class)));
+        if (TestBase.DEBUG_USE_OWL) {
+            Assert.assertThat(ontology, CoreMatchers.is(CoreMatchers.instanceOf(ConcurrentOWLOntologyImpl.class)));
+        } else {
+            Assert.assertThat(ontology, CoreMatchers.is(CoreMatchers.instanceOf(ru.avicomp.ontapi.OntologyModelImpl.Concurrent.class)));
+        }
     }
 
     @Test
     public void shouldShareReadWriteLock() throws Exception {
         // Nasty, but not sure of another way to do this without exposing it in
         // the interface
-        Field ontologyLockField = ConcurrentOWLOntologyImpl.class
-                .getDeclaredField("readLock");
+        Object managerReadLock, managerWriteLock;
+        if (TestBase.DEBUG_USE_OWL) {
+            Field ontologyManagerField = OWLOntologyManagerImpl.class.getDeclaredField("readLock");
+            ontologyManagerField.setAccessible(true);
+            managerReadLock = ontologyManagerField.get(manager);
+            ontologyManagerField = OWLOntologyManagerImpl.class.getDeclaredField("writeLock");
+            ontologyManagerField.setAccessible(true);
+            managerWriteLock = ontologyManagerField.get(manager);
+        } else {
+            Field ontologyManagerField = ru.avicomp.ontapi.OntologyManagerImpl.class.getDeclaredField("lock");
+            ontologyManagerField.setAccessible(true);
+            managerReadLock = ((ReadWriteLock) ontologyManagerField.get(manager)).readLock();
+            managerWriteLock = ((ReadWriteLock) ontologyManagerField.get(manager)).writeLock();
+        }
+
+        Field ontologyLockField = ConcurrentOWLOntologyImpl.class.getDeclaredField("readLock");
         ontologyLockField.setAccessible(true);
-        Field ontologyManagerField = OWLOntologyManagerImpl.class
-                .getDeclaredField("readLock");
-        ontologyManagerField.setAccessible(true);
-        assertThat(ontologyLockField.get(ontology),
-                is(ontologyManagerField.get(manager)));
-        ontologyLockField = ConcurrentOWLOntologyImpl.class
-                .getDeclaredField("writeLock");
+        Object ontologyReadLock = ontologyLockField.get(ontology);
+        ontologyLockField = ConcurrentOWLOntologyImpl.class.getDeclaredField("writeLock");
         ontologyLockField.setAccessible(true);
-        ontologyManagerField = OWLOntologyManagerImpl.class
-                .getDeclaredField("writeLock");
-        ontologyManagerField.setAccessible(true);
-        assertThat(ontologyLockField.get(ontology),
-                is(ontologyManagerField.get(manager)));
+        Object ontologyWriteLock = ontologyLockField.get(ontology);
+
+        Assert.assertThat(ontologyReadLock, CoreMatchers.is(managerReadLock));
+        Assert.assertThat(ontologyWriteLock, CoreMatchers.is(managerWriteLock));
     }
+
 }

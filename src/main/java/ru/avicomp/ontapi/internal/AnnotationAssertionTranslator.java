@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
@@ -30,6 +31,7 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
      */
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
+        if (!getLoaderConfig(model).isLoadAnnotationAxioms()) return Stream.empty();
         OntID id = model.getID();
         return model.statements()
                 .filter(OntStatement::isLocal)
@@ -49,10 +51,11 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
     @Override
     public Wrap<OWLAnnotationAssertionAxiom> asAxiom(OntStatement statement) {
         OWLDataFactory df = getDataFactory(statement.getModel());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
         Wrap<? extends OWLAnnotationSubject> s = ReadHelper.getAnnotationSubject(statement.getSubject(), df);
         Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getPredicate().as(OntNAP.class), df);
         Wrap<? extends OWLAnnotationValue> v = ReadHelper.getAnnotationValue(statement.getObject(), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df);
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
         OWLAnnotationAssertionAxiom res = df.getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
                 annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(s).append(p).append(v);

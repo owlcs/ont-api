@@ -48,14 +48,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
-
-import ru.avicomp.ontapi.OntManagers;
 
 import static org.junit.Assert.fail;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
 
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class RaceTestCase {
 
@@ -121,7 +121,7 @@ public class RaceTestCase {
             OWLClass y;
 
             public SubClassLHSCallback() throws OWLOntologyCreationException {
-                manager = OntManagers.createConcurrentONT();
+                manager = TestBase.DEBUG_USE_OWL ? ru.avicomp.ontapi.OntManagers.createConcurrentOWL() : ru.avicomp.ontapi.OntManagers.createConcurrentONT();
                 factory = manager.getOWLDataFactory();
                 ontology = manager.createOntology();
                 x = factory.getOWLClass(IRI.create(NS, "X"));
