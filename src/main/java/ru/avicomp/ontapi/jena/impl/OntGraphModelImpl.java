@@ -68,7 +68,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntID getID() {
-        return getNodeAs(Graphs.getOntology(getBaseGraph()).orElse(createResource().asNode()), OntID.class);
+        return getNodeAs(Graphs.getOntology(getBaseGraph())
+                .orElseGet(() -> createResource().addProperty(RDF.type, OWL.Ontology).asNode()), OntID.class);
     }
 
     @Override

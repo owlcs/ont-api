@@ -69,7 +69,7 @@ public class OWLtoOWL2DLFixer extends TransformAction {
         // choose or create the new one:
         Resource ontology = Graphs.getOntology(getBaseGraph())
                 .map(m::getRDFNode).map(RDFNode::asResource)
-                .orElse(m.createResource().addProperty(RDF.type, OWL.Ontology));
+                .orElseGet(() -> m.createResource().addProperty(RDF.type, OWL.Ontology));
         // move all content from other ontologies to the selected one
         Stream<Resource> other = Iter.asStream(m.listStatements(null, RDF.type, OWL.Ontology)
                 .mapWith(Statement::getSubject)
