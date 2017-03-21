@@ -27,6 +27,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by @szuev on 28.01.2017.
  */
+@Deprecated // will be removed
 public class OntRules {
     private static RuleEngine rules = new DefaultRuleEngine();
 

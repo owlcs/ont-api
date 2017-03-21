@@ -1,8 +1,5 @@
 package ru.avicomp.ontapi.jena.converters;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -15,7 +12,8 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * To perform preliminary fixing: transform the RDFS ontological graph to the OWL ontological graph.
  * After this conversion is completed there would be a valid owl-dl-ontology but maybe with missing declarations and
  * with some RDFS-garbage (rdfs:Class, rdf:Property).
- * It seems it can be considered as an OWL1 (till rdfs:Class, rdf:Property, etc would be removed by {@link OWLtoOWL2DLFixer})
+ * It seems it can be considered as an OWL1 (till rdfs:Class, rdf:Property, etc would be removed by {@link OWLtoOWL2DLFixer}).
+ * Note: currently it just adds the owl:AnnotationProperty type to all instances of rdf:Property and owl:Class to all rdfs:Class.
  * <p>
  * This transformer is optional:
  * if ontology graph already contains one of the five main owl-declarations (owl:Class,
@@ -28,47 +26,23 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 @SuppressWarnings("WeakerAccess")
 public class RDFStoOWLFixer extends TransformAction {
 
-    protected final OntRules.RuleEngine engine;
-
     public RDFStoOWLFixer(Graph graph) {
         super(graph);
-        engine = new OntRules.DefaultRuleEngine();
     }
 
     @Override
     public void perform() {
-        Model m = getBaseModel(); // TODO: check and change underlying rules.
+        Model m = getBaseModel();
         m.listResourcesWithProperty(RDF.type, RDF.Property).forEachRemaining(this::declareRDFProperty);
         m.listResourcesWithProperty(RDF.type, RDFS.Class).forEachRemaining(this::declareRDFSClass);
     }
 
     private void declareRDFProperty(Resource resource) {
-        Model m = resource.getModel();
-        List<Resource> types = new ArrayList<>();
-        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testObjectPropertyExpression(m, resource))) {
-            types.add(OWL.ObjectProperty);
-        }
-        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testDataProperty(m, resource))) {
-            types.add(OWL.DatatypeProperty);
-        }
-        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testAnnotationProperty(m, resource))) {
-            types.add(OWL.AnnotationProperty);
-        }
-        if (types.isEmpty()) types.add(OWL.AnnotationProperty);
-        types.forEach(t -> resource.addProperty(RDF.type, t));
+        resource.addProperty(RDF.type, OWL.AnnotationProperty);
     }
 
     private void declareRDFSClass(Resource resource) {
-        Model m = resource.getModel();
-        List<Resource> types = new ArrayList<>();
-        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testClassExpression(m, resource))) {
-            types.add(OWL.Class);
-        }
-        if (OntRules.RuleEngine.Result.TRUE.equals(engine.testDataRange(m, resource))) {
-            types.add(RDFS.Datatype);
-        }
-        if (types.isEmpty()) types.add(OWL.Class);
-        types.forEach(t -> resource.addProperty(RDF.type, t));
+        resource.addProperty(RDF.type, OWL.Class);
     }
 
     @Override

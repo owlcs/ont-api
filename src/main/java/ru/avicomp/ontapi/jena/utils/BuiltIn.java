@@ -49,9 +49,10 @@ public class BuiltIn {
             OWL.versionInfo, OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated).collect(Collectors.toSet());
     public static final Set<Resource> DATA_PROPERTIES = Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Collectors.toSet());
     public static final Set<Resource> OBJECT_PROPERTIES = Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Collectors.toSet());
-    public static final Set<Resource> ENTITIES =
-            Stream.of(CLASSES, DATATYPES, ANNOTATION_PROPERTIES, DATA_PROPERTIES, OBJECT_PROPERTIES)
-                    .flatMap(Collection::stream).collect(Collectors.toSet());
+    public static final Set<Resource> OWL_PROPERTIES = Stream.of(ANNOTATION_PROPERTIES, DATA_PROPERTIES, OBJECT_PROPERTIES)
+            .flatMap(Collection::stream).collect(Collectors.toSet());
+    public static final Set<Resource> ENTITIES = Stream.of(CLASSES, DATATYPES, OWL_PROPERTIES)
+            .flatMap(Collection::stream).collect(Collectors.toSet());
 
     public static final Set<Property> PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);
     public static final Set<Resource> RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);

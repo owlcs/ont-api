@@ -7,8 +7,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 
@@ -20,7 +18,6 @@ import ru.avicomp.ontapi.jena.OntJenaException;
  * Created by szuev on 28.10.2016.
  */
 public abstract class GraphTransformConfig {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(GraphTransformConfig.class);
     private static Store converters = new Store()
             .add(RDFStoOWLFixer::new)
             .add(OWLtoOWL2DLFixer::new)
