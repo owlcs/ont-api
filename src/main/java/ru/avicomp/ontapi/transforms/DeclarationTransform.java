@@ -374,10 +374,18 @@ public class DeclarationTransform extends Transform {
     @SuppressWarnings("WeakerAccess")
     public static class ReasonerDeclarator extends BaseDeclarator {
         protected static final int MAX_TAIL_COUNT = 10;
+        protected static final boolean PREFER_ANNOTATIONS_IN_UNCLEAR_CASES_DEFAULT = true;
         public Map<Statement, Function<Statement, Res>> rerun = new HashMap<>();
 
-        protected ReasonerDeclarator(Graph graph) {
+        private boolean annotationsOpt;
+
+        protected ReasonerDeclarator(Graph graph, boolean annotationsOpt) {
             super(graph);
+            this.annotationsOpt = annotationsOpt;
+        }
+
+        protected ReasonerDeclarator(Graph graph) {
+            this(graph, PREFER_ANNOTATIONS_IN_UNCLEAR_CASES_DEFAULT);
         }
 
         @Override
@@ -430,13 +438,13 @@ public class DeclarationTransform extends Transform {
             // "P rdfs:domain C" or "R rdfs:domain C" or "A rdfs:domain U"
             statements(null, RDFS.domain, null)
                     .filter(s -> s.getObject().isResource()).forEach(s -> {
-                if (Res.UNKNOWN.equals(propertyDomains(s))) {
-                    rerun.put(s, this::propertyDomains);
+                if (Res.UNKNOWN.equals(propertyDomains(s, false))) {
+                    rerun.put(s, statement -> propertyDomains(statement, annotationsOpt));
                 }
             });
         }
 
-        public Res propertyDomains(Statement statement) {
+        public Res propertyDomains(Statement statement, boolean preferAnnotationsInUnknownCases) {
             Resource left = statement.getSubject();
             Resource right = statement.getObject().asResource();
             if (isAnnotationProperty(left) && right.isURIResource()) {
@@ -449,6 +457,10 @@ public class DeclarationTransform extends Transform {
             if (right.isAnon()) {
                 declareClass(right);
             }
+            if (preferAnnotationsInUnknownCases) {
+                declareAnnotationProperty(left);
+                return Res.TRUE;
+            }
             return Res.UNKNOWN;
         }
 
@@ -456,13 +468,13 @@ public class DeclarationTransform extends Transform {
             // "P rdfs:range C" or "R rdfs:range D" or "A rdfs:range U"
             statements(null, RDFS.range, null)
                     .filter(s -> s.getObject().isResource()).forEach(s -> {
-                if (Res.UNKNOWN.equals(propertyRanges(s))) {
-                    rerun.put(s, this::propertyRanges);
+                if (Res.UNKNOWN.equals(propertyRanges(s, false))) {
+                    rerun.put(s, statement -> propertyRanges(statement, annotationsOpt));
                 }
             });
         }
 
-        public Res propertyRanges(Statement statement) {
+        public Res propertyRanges(Statement statement, boolean preferAnnotationsInUnknownCases) {
             Resource left = statement.getSubject();
             Resource right = statement.getObject().asResource();
             if (isAnnotationProperty(left) && right.isURIResource()) {
@@ -479,6 +491,10 @@ public class DeclarationTransform extends Transform {
                 declareDataProperty(left);
                 return Res.TRUE;
             }
+            if (preferAnnotationsInUnknownCases) {
+                declareAnnotationProperty(left);
+                return Res.TRUE;
+            }
             return Res.UNKNOWN;
         }
 
@@ -488,7 +504,7 @@ public class DeclarationTransform extends Transform {
                     .filter(s -> !BuiltIn.ALL.contains(s.getPredicate())).collect(Collectors.toSet());
             statements.forEach(s -> {
                 if (Res.UNKNOWN.equals(propertyAssertions(s, false))) {
-                    rerun.put(s, statement -> propertyAssertions(statement, true));
+                    rerun.put(s, statement -> propertyAssertions(statement, annotationsOpt));
                 }
             });
         }
@@ -612,7 +628,6 @@ public class DeclarationTransform extends Transform {
                             declareAnnotationProperty(b, BuiltIn.OWL_PROPERTIES);
                         }
                     });
-
             // "_:x owl:unionOf ( D1 ... Dn )", "_:x owl:intersectionOf ( C1 ... Cn )"
             Stream.of(OWL.unionOf, OWL.intersectionOf).map(p -> statements(null, p, null))
                     .flatMap(Function.identity())
@@ -626,7 +641,6 @@ public class DeclarationTransform extends Transform {
                     set.forEach(this::declareDatatype);
                 }
             });
-
             // "_:x rdf:type owl:AllDisjointProperties; owl:members ( P1 ... Pn )"
             statements(null, RDF.type, OWL.AllDisjointClasses)
                     .map(Statement::getSubject)
@@ -763,7 +777,14 @@ public class DeclarationTransform extends Transform {
         }
 
         public void declareIndividual(Resource resource) {
-            declare(resource, resource.isAnon() ? AVC.AnonymousIndividual : OWL.NamedIndividual);
+            if (resource.isAnon()) {
+                // test data from owl-api-contact contains such things also:
+                undeclare(resource, OWL.NamedIndividual);
+                // the temporary declaration:
+                declare(resource, AVC.AnonymousIndividual);
+            } else {
+                declare(resource, OWL.NamedIndividual);
+            }
         }
 
         public void declareDatatype(Resource resource) {

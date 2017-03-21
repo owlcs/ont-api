@@ -69,6 +69,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
     /**
      * see description to the interface {@link OntIndividual.Anonymous}
+     * TODO: seems need to be changed (vvv).
      * It seems that checking for conditions 7, 8, 9 could be displaced by checking that tested b-node is
      * an object in a triple from annotation or object property assertion (triple where predicate is object or annotation property).
      * About this there are following reflections:

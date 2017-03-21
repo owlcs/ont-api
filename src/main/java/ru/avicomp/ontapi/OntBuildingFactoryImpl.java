@@ -482,7 +482,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 RDFDataMgr.read(g, is, format == null ? null : format.getLang());
                 return format;
             } catch (RiotException e) {
-                throw new UnsupportedFormatException("Can't read " + format + " from iri <" + iri + ">", e);
+                throw new UnsupportedFormatException(String.format("Can't read %s from iri <%s>: %s", format, iri, e.getMessage()), e);
             } catch (OWLOntologyInputSourceException e) {
                 throw new OWLOntologyCreationException("Can't get input stream for " + iri, e);
             }

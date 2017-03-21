@@ -6,9 +6,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -26,6 +23,7 @@ import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
@@ -46,7 +44,7 @@ public class GraphConverterJenaTest {
         GraphTransformers.getTransformers().add(g -> new Transform(g) {
             @Override
             public void perform() {
-                LOGGER.info("Finish transformation (" + getOntURI(g) + ").");
+                LOGGER.info("Finish transformation (" + Graphs.getURI(g) + ").");
             }
         });
 
@@ -91,11 +89,6 @@ public class GraphConverterJenaTest {
         ReadWriteUtils.print(jenaSPL);
         LOGGER.info("SPL-SPIN(Jena) All entities: ");
         jenaSPL.ontEntities().forEach(LOGGER::debug);
-    }
-
-    private static String getOntURI(Graph graph) {
-        List<String> res = graph.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()).mapWith(Triple::getSubject).mapWith(Node::getURI).toList();
-        return res.isEmpty() ? null : res.get(0);
     }
 
     private static void testSignature(OWLOntology owl, OntGraphModel jena) {

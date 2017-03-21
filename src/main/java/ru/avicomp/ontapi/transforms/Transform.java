@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -46,7 +47,7 @@ public abstract class Transform {
     public void process() {
         if (test()) {
             if (LOGGER.isDebugEnabled())
-                LOGGER.debug("Process <" + name() + ">");
+                LOGGER.debug(String.format("Process <%s> on <%s>", name(), Graphs.getURI(getBaseGraph())));
             perform();
         }
     }

@@ -24,16 +24,16 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  */
 @SuppressWarnings("WeakerAccess")
 public class OWLTransform extends Transform {
-    private boolean processIndividuals = false;
+    protected static final boolean PROCESS_INDIVIDUALS_DEFAULT = false;
+    private boolean processIndividuals;
 
     public OWLTransform(Graph graph) {
-        super(graph);
+        this(graph, PROCESS_INDIVIDUALS_DEFAULT);
     }
 
-    public Transform setProcessNamedIndividuals(boolean processIndividuals) {
-        OWLTransform res = new OWLTransform(graph);
-        res.processIndividuals = processIndividuals;
-        return res;
+    protected OWLTransform(Graph graph, boolean processIndividuals) {
+        super(graph);
+        this.processIndividuals = processIndividuals;
     }
 
     @Override
@@ -123,6 +123,7 @@ public class OWLTransform extends Transform {
 
     protected void fixNamedIndividuals() {
         Set<Statement> statements = statements(null, RDF.type, null)
+                .filter(s -> s.getSubject().isURIResource())
                 .filter(s -> s.getObject().isResource())
                 .filter(s -> !BuiltIn.ALL.contains(s.getObject().asResource())).collect(Collectors.toSet());
         statements.forEach(s -> declare(s.getSubject(), OWL.NamedIndividual));
