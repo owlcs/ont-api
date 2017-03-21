@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi.jena.converters;
+package ru.avicomp.ontapi.transforms;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,14 +18,14 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * todo: add configurable logger to record all changes.
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class TransformAction {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(TransformAction.class);
+public abstract class Transform {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(Transform.class);
 
     protected final Graph graph;
     private Model model;
     private Model base;
 
-    protected TransformAction(Graph graph) {
+    protected Transform(Graph graph) {
         this.graph = graph;
     }
 

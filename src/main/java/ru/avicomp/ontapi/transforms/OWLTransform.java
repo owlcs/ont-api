@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi.jena.converters;
+package ru.avicomp.ontapi.transforms;
 
 import java.util.List;
 import java.util.Set;
@@ -6,7 +6,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
@@ -24,15 +23,15 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  *
  */
 @SuppressWarnings("WeakerAccess")
-public class OWLtoOWL2DLFixer extends TransformAction {
+public class OWLTransform extends Transform {
     private boolean processIndividuals = false;
 
-    public OWLtoOWL2DLFixer(Graph graph) {
+    public OWLTransform(Graph graph) {
         super(graph);
     }
 
-    public TransformAction setProcessNamedIndividuals(boolean processIndividuals) {
-        OWLtoOWL2DLFixer res = new OWLtoOWL2DLFixer(graph);
+    public Transform setProcessNamedIndividuals(boolean processIndividuals) {
+        OWLTransform res = new OWLTransform(graph);
         res.processIndividuals = processIndividuals;
         return res;
     }
@@ -83,11 +82,11 @@ public class OWLtoOWL2DLFixer extends TransformAction {
                 .map(m::getRDFNode).map(RDFNode::asResource)
                 .orElseGet(() -> m.createResource().addProperty(RDF.type, OWL.Ontology));
         // move all content from other ontologies to the selected one
-        Stream<Resource> other = Iter.asStream(m.listStatements(null, RDF.type, OWL.Ontology)
-                .mapWith(Statement::getSubject)
-                .filterDrop(ontology::equals));
+        Stream<Resource> other = statements(null, RDF.type, OWL.Ontology)
+                .map(Statement::getSubject)
+                .filter(s -> !ontology.equals(s));
         List<Statement> rest = other
-                .map(o -> Iter.asStream(m.listStatements(o, null, (RDFNode) null)))
+                .map(o -> statements(o, null, null))
                 .flatMap(Function.identity()).collect(Collectors.toList());
         rest.forEach(s -> ontology.addProperty(s.getPredicate(), s.getObject()));
         // remove all other ontologies

@@ -23,11 +23,11 @@ import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.internal.ReadHelper;
 import ru.avicomp.ontapi.internal.Wrap;
-import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -92,7 +92,7 @@ public class ManagerTest {
         m1.setOntologyLoaderConfiguration(conf2.setPerformTransformation(doTransformation));
         Assert.assertEquals("The same 'perform transformation' flag", doTransformation, m1.getOntologyLoaderConfiguration().isPerformTransformation());
 
-        GraphTransformConfig.Store store = new GraphTransformConfig.Store().add((GraphTransformConfig.Maker) graph -> null);
+        GraphTransformers.Store store = new GraphTransformers.Store().add((GraphTransformers.Maker) graph -> null);
         OntConfig.LoaderConfiguration conf3 = m1.getOntologyLoaderConfiguration().setGraphTransformers(store);
         Assert.assertNotEquals("Graph transform action store is changed", store, m1.getOntologyLoaderConfiguration().getGraphTransformers());
         m1.setOntologyLoaderConfiguration(conf3);

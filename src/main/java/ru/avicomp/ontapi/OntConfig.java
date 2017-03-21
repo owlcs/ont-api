@@ -11,9 +11,9 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 /**
  * The config builder.
@@ -52,7 +52,7 @@ public class OntConfig extends OntologyConfigurator {
         protected final OWLOntologyLoaderConfiguration inner;
         // WARNING: OntPersonality is not serializable:
         protected transient OntPersonality personality;
-        protected GraphTransformConfig.Store transformers;
+        protected GraphTransformers.Store transformers;
         protected boolean performTransformation = true;
         protected HashSet<Scheme> supportedSchemes;
 
@@ -81,7 +81,7 @@ public class OntConfig extends OntologyConfigurator {
          *
          * @return if true some graph transformations will be performed after loading graph.
          * @see #getGraphTransformers()
-         * @see #setGraphTransformers(GraphTransformConfig.Store)
+         * @see #setGraphTransformers(GraphTransformers.Store)
          */
         public boolean isPerformTransformation() {
             return performTransformation;
@@ -93,7 +93,7 @@ public class OntConfig extends OntologyConfigurator {
          * @param b if false all graph transformations will be disabled.
          * @return {@link LoaderConfiguration}
          * @see #getGraphTransformers()
-         * @see #setGraphTransformers(GraphTransformConfig.Store)
+         * @see #setGraphTransformers(GraphTransformers.Store)
          */
         public LoaderConfiguration setPerformTransformation(boolean b) {
             if (b == performTransformation) return this;
@@ -128,23 +128,23 @@ public class OntConfig extends OntologyConfigurator {
         /**
          * ONT-API config method.
          *
-         * @return {@link GraphTransformConfig.Store} a collection with {@link GraphTransformConfig.Maker}s.
+         * @return {@link GraphTransformers.Store} a collection with {@link GraphTransformers.Maker}s.
          * @see #isPerformTransformation()
          * @see #setPerformTransformation(boolean)
          */
-        public GraphTransformConfig.Store getGraphTransformers() {
-            return transformers == null ? transformers = GraphTransformConfig.getTransformers() : transformers;
+        public GraphTransformers.Store getGraphTransformers() {
+            return transformers == null ? transformers = GraphTransformers.getTransformers() : transformers;
         }
 
         /**
          * ONT-API config setter.
          *
-         * @param t {@link GraphTransformConfig.Store} new graph transformers store. null means default
+         * @param t {@link GraphTransformers.Store} new graph transformers store. null means default
          * @return {@link LoaderConfiguration}
          * @see #isPerformTransformation()
          * @see #setPerformTransformation(boolean)
          */
-        public LoaderConfiguration setGraphTransformers(GraphTransformConfig.Store t) {
+        public LoaderConfiguration setGraphTransformers(GraphTransformers.Store t) {
             if (Objects.equals(transformers, t)) return this;
             LoaderConfiguration res = copy(inner);
             res.transformers = t;

@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi.jena.converters;
+package ru.avicomp.ontapi.transforms;
 
 import java.util.*;
 import java.util.function.Function;
@@ -38,9 +38,10 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  *
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Short Guide</a>
  */
-public class DeclarationFixer extends TransformAction {
+@SuppressWarnings("WeakerAccess")
+public class DeclarationTransform extends Transform {
 
-    public DeclarationFixer(Graph graph) {
+    public DeclarationTransform(Graph graph) {
         super(graph);
     }
 
@@ -674,7 +675,7 @@ public class DeclarationFixer extends TransformAction {
      * The collection of base methods for {@link ManifestDeclarator} and {@link ReasonerDeclarator}
      */
     @SuppressWarnings("WeakerAccess")
-    public static abstract class BaseDeclarator extends TransformAction {
+    public static abstract class BaseDeclarator extends Transform {
         protected BaseDeclarator(Graph graph) {
             super(graph);
         }

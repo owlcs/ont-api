@@ -82,7 +82,7 @@ abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>
     }
 
     /**
-     * todo: better place this mechanism as {@link ru.avicomp.ontapi.jena.converters.TransformAction}. At the moment it is not used.
+     * todo: better place this mechanism as {@link ru.avicomp.ontapi.transforms.Transform}. At the moment it is not used.
      * Compresses collection of nary axioms to more compact form.
      * <p>
      * The mechanism is the same for all kind of nary-axioms with except of SameAs axiom.

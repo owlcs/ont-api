@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi.jena.converters;
+package ru.avicomp.ontapi.transforms;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
@@ -12,7 +12,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * To perform preliminary fixing: transform the RDFS ontological graph to the OWL ontological graph.
  * After this conversion is completed there would be a valid owl-dl-ontology but maybe with missing declarations and
  * with some RDFS-garbage (rdfs:Class, rdf:Property).
- * It seems it can be considered as an OWL1 (till rdfs:Class, rdf:Property, etc would be removed by {@link OWLtoOWL2DLFixer}).
+ * It seems it can be considered as an OWL1 (till rdfs:Class, rdf:Property, etc would be removed by {@link OWLTransform}).
  * Note: currently it just adds the owl:AnnotationProperty type to all instances of rdf:Property and owl:Class to all rdfs:Class.
  * <p>
  * This transformer is optional:
@@ -24,9 +24,9 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <a href='https://www.w3.org/TR/2012/REC-owl2-overview-20121211/#Relationship_to_OWL_1'>some words about OWL 1</a>
  */
 @SuppressWarnings("WeakerAccess")
-public class RDFStoOWLFixer extends TransformAction {
+public class RDFSTransform extends Transform {
 
-    public RDFStoOWLFixer(Graph graph) {
+    public RDFSTransform(Graph graph) {
         super(graph);
     }
 

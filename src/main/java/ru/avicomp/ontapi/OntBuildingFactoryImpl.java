@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.converters.TransformAction;
 import ru.avicomp.ontapi.jena.utils.Graphs;
+import ru.avicomp.ontapi.transforms.Transform;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 
 /**
@@ -291,13 +291,13 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          *
          * @param graph {@link Graph}
          * @return {@link Graph}
-         * @see TransformAction
+         * @see Transform
          */
         protected Graph transform(Graph graph) {
             if (configuration.isPerformTransformation()) {
                 if (LOGGER.isDebugEnabled())
                     LOGGER.debug("Perform graph transformations.");
-                configuration.getGraphTransformers().actions(graph).forEach(TransformAction::process);
+                configuration.getGraphTransformers().actions(graph).forEach(Transform::process);
             }
             return graph;
         }

@@ -28,13 +28,13 @@ import ru.avicomp.ontapi.internal.AxiomParserProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.Wrap;
 import ru.avicomp.ontapi.jena.OntFactory;
-import ru.avicomp.ontapi.jena.converters.GraphTransformConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
@@ -226,7 +226,7 @@ public class InternalModelTest {
         URI fileURI = ReadWriteUtils.getResourceURI(file);
         LOGGER.info("Load jena model from " + fileURI);
         Model init = ReadWriteUtils.load(fileURI, format);
-        Graph graph = GraphTransformConfig.convert(init.getGraph());
+        Graph graph = GraphTransformers.convert(init.getGraph());
         return new InternalModel(graph, OntModelConfig.getPersonality());
     }
 
