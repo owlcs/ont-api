@@ -58,6 +58,16 @@ public class Graphs {
     }
 
     /**
+     * gets "name" of graph: uri, blank-node-id as string or dummy string if no ontology at all.
+     *
+     * @param graph {@link Graph}
+     * @return String
+     */
+    public static String getName(Graph graph) {
+        return getOntology(graph).map(Node::toString).orElse("NullOntology");
+    }
+
+    /**
      * gets ontology node (subject in "_:x rdf:type owl:Ontology") from graph or null if there are no ontology sections.
      * if there several ontologies it chooses the most bulky.
      *

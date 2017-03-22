@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
@@ -204,13 +205,13 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
         protected OntologyModel createModel(GraphInfo info) {
             if (!info.isFresh()) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("The ontology <" + info.getURI() + "> is already configured.");
+                    LOGGER.debug("The ontology <" + info.name() + "> is already configured.");
                 }
                 return null;
             }
             try {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Set up ontology <" + info.getURI() + ">.");
+                    LOGGER.debug("Set up ontology <" + info.name() + ">.");
                 }
                 Graph graph = makeUnionGraph(info, new HashSet<>());
                 OntFormat format = info.getFormat();
@@ -261,6 +262,13 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 if (info == null) {
                     try {
                         info = fetchGraph(uri);
+                        // Anonymous ontology or ontology without header(i.e. no "_:x rdf:type owl:Ontology") could be loaded if
+                        // there is some resource-mapping in the manager on the import declaration.
+                        // In this case we may load it as separated model or include to the parent graph:
+                        if (info.isAnonymous() && MissingOntologyHeaderStrategy.INCLUDE_GRAPH.equals(configuration.getMissingOntologyHeaderStrategy())) {
+                            GraphUtil.addInto(pure, info.getGraph());
+                            continue;
+                        }
                         graphs.put(uri, info);
                     } catch (OWLOntologyCreationException e) {
                         if (MissingImportHandlingStrategy.THROW_EXCEPTION.equals(configuration.getMissingImportHandlingStrategy())) {
@@ -317,12 +325,16 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          */
         protected GraphInfo fetchGraph(String uri) throws OWLOntologyCreationException {
             IRI ontologyIRI = IRI.create(uri);
+            OWLOntologyID id;
+            if (manager.contains(id = new OWLOntologyID(Optional.of(ontologyIRI), Optional.empty()))) {
+                OntologyModel model = OntApiException.notNull(manager.getOntology(id), "Can't find ontology " + id);
+                return toGraphInfo(model);
+            }
             IRI documentIRI = Iter.asStream(manager.getIRIMappers().iterator())
                     .map(m -> m.getDocumentIRI(ontologyIRI)).filter(Objects::nonNull)
                     .findFirst().orElse(ontologyIRI);
             // handle also the strange situation when there is no resource-mapping but a mapping on some existing ontology
-            OWLOntologyID id = new OWLOntologyID(Optional.of(documentIRI), Optional.empty());
-            if (manager.contains(id)) {
+            if (manager.contains(id = new OWLOntologyID(Optional.of(documentIRI), Optional.empty()))) {
                 OntologyModel model = OntApiException.notNull(manager.getOntology(id), "Can't find ontology " + id);
                 return toGraphInfo(model);
             }
@@ -394,6 +406,14 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 return uri == null ? uri = Graphs.getURI(graph) : uri;
             }
 
+            protected boolean isAnonymous() {
+                return getURI() == null;
+            }
+
+            protected String name() {
+                return Graphs.getName(graph);
+            }
+
             protected Set<String> getImports() {
                 return imports == null ? imports = Graphs.getImports(graph) : imports;
             }
@@ -403,7 +423,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
             }
 
             protected void setProcessed() {
-                this.fresh = true;
+                this.fresh = false;
             }
 
             protected OntFormat getFormat() {

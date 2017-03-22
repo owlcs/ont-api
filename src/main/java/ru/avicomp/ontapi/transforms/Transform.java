@@ -47,7 +47,7 @@ public abstract class Transform {
     public void process() {
         if (test()) {
             if (LOGGER.isDebugEnabled())
-                LOGGER.debug(String.format("Process <%s> on <%s>", name(), Graphs.getURI(getBaseGraph())));
+                LOGGER.debug(String.format("Process <%s> on <%s>", name(), Graphs.getName(getBaseGraph())));
             perform();
         }
     }

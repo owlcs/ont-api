@@ -791,8 +791,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration) {
         getLock().readLock().lock();
         try {
-            IRI iri = declaration.getIRI();
-            Optional<OntInfo> res = content.values().filter(e -> e.id().matchOntology(iri)).findFirst();
+            Optional<OntInfo> res = content.values().filter(e -> Objects.equals(e.getImportDeclaration(), declaration)).findFirst();
             if (!res.isPresent()) {
                 // No such ontology has been loaded through an import
                 // declaration, but it might have been loaded manually.
@@ -800,7 +799,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 // return null.
                 // Last possibility is an import by document IRI; if the
                 // ontology is not found by IRI, check by document IRI.
-                res = content.values().filter(e -> Objects.equals(e.getDocumentIRI(), iri)).findFirst();
+                res = content.values().filter(e -> Objects.equals(e.getDocumentIRI(), declaration.getIRI())).findFirst();
             }
             return res.map(OntInfo::get).orElse(null);
         } finally {
@@ -1520,7 +1519,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             if (conf.isIgnoredImport(declaration.getIRI())) return;
             if (getImportedOntology(declaration) != null) return;
             try {
-                loadImports(declaration, conf);
+                OntologyModel m = loadImports(declaration, conf);
+                if (m != null) {
+                    content.get(m.getOntologyID()).ifPresent(ontInfo -> ontInfo.addImportDeclaration(declaration));
+                }
             } catch (OWLOntologyCreationException e) {
                 // Wrap as UnloadableImportException and throw
                 throw new UnloadableImportException(e, declaration);
@@ -2029,6 +2031,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public class OntInfo implements Serializable {
         private final OntologyModel ont;
         private IRI documentIRI;
+        private OWLImportsDeclaration declaration;
         private OntConfig.LoaderConfiguration loaderConf;
         private OWLOntologyWriterConfiguration writerConf;
         private OWLDocumentFormat format;
@@ -2066,6 +2069,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return this;
         }
 
+        public OntInfo addImportDeclaration(OWLImportsDeclaration declaration) {
+            this.declaration = declaration;
+            return this;
+        }
+
         @Nullable
         public IRI getDocumentIRI() {
             return documentIRI;
@@ -2084,6 +2092,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         @Nonnull
         public OWLOntologyWriterConfiguration getWriterConf() {
             return writerConf == null ? getOntologyWriterConfiguration() : writerConf;
+        }
+
+        @Nullable
+        public OWLImportsDeclaration getImportDeclaration() {
+            return declaration != null ? declaration : id().getOntologyIRI().map(dataFactory::getOWLImportsDeclaration).orElse(null);
         }
     }
 }
