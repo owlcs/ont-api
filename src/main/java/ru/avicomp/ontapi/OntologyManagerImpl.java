@@ -33,7 +33,6 @@ import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
-import uk.ac.manchester.cs.owl.owlapi.HasTrimToSize;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentPriorityCollection;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
@@ -1428,22 +1427,20 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected OntologyModel load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         OntConfig.LoaderConfiguration config = conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
         for (OWLOntologyFactory factory : ontologyFactories) {
-            if (factory.canAttemptLoading(source)) { // todo: only single factory by now
-                try {
-                    OntologyModel res = (OntologyModel) factory.loadOWLOntology(this, source, this, conf);
-                    OWLOntologyID id = res.getOntologyID();
-                    fixIllegalPunnings(res);
-                    if (res instanceof HasTrimToSize) { // todo: no trimToSize in our ontologies.
-                        ((HasTrimToSize) res).trimToSize();
-                    }
-                    return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
-                            .addDocumentIRI(source.getDocumentIRI()).addLoaderConf(config).get();
-                } catch (OWLOntologyRenameException e) {
-                    // We loaded an ontology from a document and the
-                    // ontology turned out to have an IRI the same
-                    // as a previously loaded ontology
-                    throw new OWLOntologyAlreadyExistsException(e.getOntologyID(), e);
-                }
+            if (!factory.canAttemptLoading(source))
+                continue;
+            // todo: only single factory by now. implement wrapper-factory for native owl-factories.
+            try {
+                OntologyModel res = (OntologyModel) factory.loadOWLOntology(this, source, this, conf);
+                OWLOntologyID id = res.getOntologyID();
+                fixIllegalPunnings(res);
+                return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
+                        .addDocumentIRI(source.getDocumentIRI()).addLoaderConf(config).get();
+            } catch (OWLOntologyRenameException e) {
+                // We loaded an ontology from a document and the
+                // ontology turned out to have an IRI the same
+                // as a previously loaded ontology
+                throw new OWLOntologyAlreadyExistsException(e.getOntologyID(), e);
             }
         }
         return null;
@@ -1524,7 +1521,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                     content.get(m.getOntologyID()).ifPresent(ontInfo -> ontInfo.addImportDeclaration(declaration));
                 }
             } catch (OWLOntologyCreationException e) {
-                // Wrap as UnloadableImportException and throw
                 throw new UnloadableImportException(e, declaration);
             }
         } finally {
