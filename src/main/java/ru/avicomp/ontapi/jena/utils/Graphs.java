@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.iterator.Iter;
@@ -31,62 +32,105 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 @SuppressWarnings("WeakerAccess")
 public class Graphs {
 
+    /**
+     * Returns stream of sub-graphs or empty stream if the specified one is not composite.
+     *
+     * @param graph {@link Graph}
+     * @return Stream of {@link Graph}s.
+     */
     public static Stream<Graph> subGraphs(Graph graph) {
         return graph instanceof UnionGraph ? ((UnionGraph) graph).getUnderlying().graphs() :
                 graph instanceof Polyadic ? ((Polyadic) graph).getSubGraphs().stream() :
                         graph instanceof Dyadic ? Stream.of((Graph) ((Dyadic) graph).getR()) : Stream.empty();
     }
 
+    /**
+     * Gets base (primary) graph from the specified graph if it is composite, otherwise returns the same one.
+     *
+     * @param graph {@link Graph}
+     * @return {@link Graph}
+     */
     public static Graph getBase(Graph graph) {
         return graph instanceof UnionGraph ? ((UnionGraph) graph).getBaseGraph() :
                 graph instanceof Polyadic ? ((Polyadic) graph).getBaseGraph() :
                         graph instanceof Dyadic ? (Graph) ((Dyadic) graph).getL() : graph;
     }
 
+    /**
+     * Returns all graphs from composite graph including the base as flat stream of non-composite graphs.
+     * Note: this is a recursive method.
+     *
+     * @param graph {@link Graph}
+     * @return Stream of {@link Graph}
+     */
     public static Stream<Graph> flat(Graph graph) {
         return Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).map(Graphs::flat).flatMap(Function.identity()));
     }
 
     /**
-     * gets Ontology URI or null (if no owl:Ontology or it is anonymous ontology).
+     * Gets Ontology URI from the base graph or null (if no owl:Ontology or it is anonymous ontology).
      *
      * @param graph {@link Graph}
      * @return String
      */
     public static String getURI(Graph graph) {
-        return getOntology(graph).filter(Node::isURI).map(Node::getURI).orElse(null);
+        return getOntology(getBase(graph)).filter(Node::isURI).map(Node::getURI).orElse(null);
     }
 
     /**
-     * gets "name" of graph: uri, blank-node-id as string or dummy string if no ontology at all.
+     * Gets "name" of the base graph: uri, blank-node-id as string or dummy string if there is no ontology at all.
      *
      * @param graph {@link Graph}
      * @return String
      */
     public static String getName(Graph graph) {
-        return getOntology(graph).map(Node::toString).orElse("NullOntology");
+        return getOntology(getBase(graph)).map(Node::toString).orElse("NullOntology");
     }
 
     /**
-     * gets ontology node (subject in "_:x rdf:type owl:Ontology") from graph or null if there are no ontology sections.
-     * if there several ontologies it chooses the most bulky.
+     * Gets the ontology root node (subject in "_:x rdf:type owl:Ontology") from graph or null if there are no ontology sections.
+     * If there are uri and blank node it prefers uri.
+     * If there are several other ontological nodes it chooses the most bulky.
+     * Note: works with any graph, not only the base.
+     * If it is composite then a lot of ontology nodes expected, otherwise only single one.
      *
-     * @param graph {@link Graph}
+     * @param g {@link Graph}
      * @return {@link Optional} around the {@link Node} which could be uri or blank.
      */
-    public static Optional<Node> getOntology(Graph graph) {
-        return Iter.asStream(getBase(graph).find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()))
+    public static Optional<Node> getOntology(Graph g) {
+        return Iter.asStream(g.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()))
                 .map(Triple::getSubject)
                 .filter(node -> node.isBlank() || node.isURI())
-                .sorted(Comparator.comparingInt((ToIntFunction<Node>) subj -> graph.find(subj, Node.ANY, Node.ANY).toList().size()).reversed())
+                .sorted(rootNodeComparator(g))
                 .findFirst();
     }
 
+    /**
+     * Returns comparator for root nodes.
+     * Tricky logic:
+     * first compares roots as standalone nodes and the any uri-node is considered less then any blank-node,
+     * then compares roots as part of the graph using the rule 'the fewer children -> the greater the weight'.
+     *
+     * @param graph {@link Graph}
+     * @return {@link Comparator}
+     */
+    public static Comparator<Node> rootNodeComparator(Graph graph) {
+        return ((Comparator<Node>) (a, b) -> Boolean.compare(b.isURI(), a.isURI()))
+                .thenComparing(Comparator.comparingInt((ToIntFunction<Node>) subj ->
+                        graph.find(subj, Node.ANY, Node.ANY).toList().size()).reversed());
+    }
+
+    /**
+     * Returns uri-subject from owl:imports statements
+     *
+     * @param graph {@link Graph}
+     * @return unordered Set of uris from whole graph (it may be composite).
+     */
     public static Set<String> getImports(Graph graph) {
-        return getBase(graph).find(Node.ANY, OWL.imports.asNode(), Node.ANY)
-                .mapWith(Triple::getObject)
-                .filterKeep(Node::isURI)
-                .mapWith(Node::getURI).toSet();
+        return Iter.asStream(graph.find(Node.ANY, OWL.imports.asNode(), Node.ANY))
+                .map(Triple::getObject)
+                .filter(Node::isURI)
+                .map(Node::getURI).collect(Collectors.toSet());
     }
 
     /**

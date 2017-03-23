@@ -143,26 +143,44 @@ public class ImportsTestCase extends TestBase {
         m.loadOntologyFromOntologyDocument(IRI.create(new File(RESOURCES, "importscyclic/D.owl")));
     }
 
+    /**
+     * ONT-API: This is a borderline case.
+     * The original ontologies (subject-amy.ttl, subject-bob.ttl and subject-sue.ttl) did NOT contain prefix 'owl'
+     * until I added it.
+     * But they had (and have) resources in short form which use this prefix (e.g. 'owl:Ontology', 'owl:imports' etc).
+     * So they were NOT correct ontologies until now.
+     * And jena parser collapsed on them with the fully correct error ('[line: 9, col: 77] Undefined prefix: owl').
+     * In case of failure with jena the current implementation of ONT-API {@link ru.avicomp.ontapi.OntologyManager.Factory}
+     * tries the original ('pure') OWL-API parser (the mixed loading).
+     * But in this case there is no trimming with transformation mechanism
+     * ({@link ru.avicomp.ontapi.transforms.Transform}).
+     * Only the anonymous base ontology (core.ttl) and the top-level ontology (subject.ttl) were transformed.
+     * But it seems it was not enough for correct working of the logic embedded in the testcase
+     * (the declarations for NamedIndividuals occurred to be missed and
+     * instead object and data property assertions there were annotation assertions).
+     * So the conclusion is this: if you have corrupted ontology then you may encounter some problems.
+     * No one knows what exactly since we use OWL-API native implementations as last attempt to load
+     * which is not strict to the syntax in most owl-api-parsers.
+     *
+     * @throws OWLOntologyCreationException
+     */
     @Test
     public void testTurtleGraphImport() throws OWLOntologyCreationException {
-        // document without ontology declaration should be removed and
-        // reimported
         File ontologyDirectory = new File(RESOURCES, "importNoOntology");
         String ns = "http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/";
         IRI bobsOntologyName = IRI.create(ns, "subject-bob");
-        OWLNamedIndividual bobsIndividual = df.getOWLNamedIndividual(ns + "subject-bob#",
-                "subjectOnImmunosuppressantA2");
-        m.getIRIMappers().add(new SimpleIRIMapper(IRI.create(ns, "subject-amy"), IRI.create(new File(ontologyDirectory,
-                "subject-amy.ttl"))));
-        m.getIRIMappers().add(new SimpleIRIMapper(bobsOntologyName, IRI.create(new File(ontologyDirectory,
-                "subject-bob.ttl"))));
-        m.getIRIMappers().add(new SimpleIRIMapper(IRI.create(ns, "subject-sue"), IRI.create(new File(ontologyDirectory,
-                "subject-sue.ttl"))));
-        m.getIRIMappers().add(new SimpleIRIMapper(IRI.create("http://www.w3.org/2013/12/FDA-TA/", "core"), IRI.create(
-                new File(ontologyDirectory, "core.ttl"))));
-        OWLOntology topLevelImport = m.loadOntologyFromOntologyDocument(new File(ontologyDirectory, "subjects.ttl"));
-        ru.avicomp.ontapi.utils.ReadWriteUtils.print(topLevelImport);
-        Assert.assertTrue("Individuals about Bob are missing...", topLevelImport.containsEntityInSignature(bobsIndividual, Imports.INCLUDED));
+        OWLNamedIndividual bobsIndividual = df.getOWLNamedIndividual(ns + "subject-bob#", "subjectOnImmunosuppressantA2");
+        m.getIRIMappers().add(new SimpleIRIMapper(IRI.create(ns, "subject-amy"), IRI.create(new File(ontologyDirectory, "subject-amy.ttl"))));
+        m.getIRIMappers().add(new SimpleIRIMapper(bobsOntologyName, IRI.create(new File(ontologyDirectory, "subject-bob.ttl"))));
+        m.getIRIMappers().add(new SimpleIRIMapper(IRI.create(ns, "subject-sue"), IRI.create(new File(ontologyDirectory, "subject-sue.ttl"))));
+        m.getIRIMappers().add(new SimpleIRIMapper(IRI.create("http://www.w3.org/2013/12/FDA-TA/", "core"), IRI.create(new File(ontologyDirectory, "core.ttl"))));
+        OWLOntology top = m.loadOntologyFromOntologyDocument(new File(ontologyDirectory, "subjects.ttl"));
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(top);
+        OWLOntology bob = m.getOntology(bobsOntologyName);
+        Assert.assertNotNull("Can't find Bob.", bob);
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(bob);
+        Assert.assertEquals("Unexpected ontologies count.", 4, m.ontologies().count());
+        Assert.assertTrue("Individuals about Bob are missing...", top.containsEntityInSignature(bobsIndividual, Imports.INCLUDED));
     }
 
     /**

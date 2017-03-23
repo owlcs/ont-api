@@ -13,11 +13,14 @@ import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
+import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.io.DocumentSources;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -178,7 +181,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                     }
                     if (LOGGER.isDebugEnabled()) {
                         String cause = e.getCause() != null ? e.getCause().getMessage() : null;
-                        LOGGER.debug(String.format("Can't load using jena (%s|%s), use original method.", e.getMessage(), cause));
+                        LOGGER.debug("Can't load using jena ({}|{}), use original method.", e.getMessage(), cause);
                     }
                     // if we are not success with primary graph there is no reason to continue loading through this class.
                     return alternative.load(source);
@@ -213,7 +216,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Set up ontology <" + info.name() + ">.");
                 }
-                Graph graph = makeUnionGraph(info, new HashSet<>());
+                Graph graph = makeUnionGraph(info, new HashSet<>(), graphs.size() == 1);
                 OntFormat format = info.getFormat();
                 InternalModel base = new InternalModel(graph, configuration.getPersonality());
                 base.setLoaderConfig(configuration);
@@ -239,16 +242,19 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          * Assembles the {@link UnionGraph} from the inner collection ({@link #graphs}).
          * Takes into account config settings ({@link #configuration}).
          *
-         * @param node {@link GraphInfo}
-         * @param seen Collection of URIs to avoid cycles in imports.
+         * @param node      {@link GraphInfo}
+         * @param seen      Collection of URIs to avoid cycles in imports.
+         * @param transform performs graph-transformation on the specified graph if true.
          * @return {@link Graph}
          * @throws OntApiException if something wrong.
          */
-        protected Graph makeUnionGraph(GraphInfo node, Collection<String> seen) {
+        protected Graph makeUnionGraph(GraphInfo node, Collection<String> seen, boolean transform) {
             Set<GraphInfo> children = new HashSet<>();
-            Graph pure = node.getGraph();
+            Graph main = node.getGraph();
             seen.add(node.getURI());
-            for (String uri : node.getImports()) {
+            List<String> imports = new ArrayList<>(node.getImports());
+            for (int i = 0; i < imports.size(); i++) {
+                String uri = imports.get(i);
                 if (seen.contains(uri)) continue;
                 OWLImportsDeclaration declaration = manager.getOWLDataFactory().getOWLImportsDeclaration(IRI.create(uri));
                 if (configuration.isIgnoredImport(declaration.getIRI())) {
@@ -259,38 +265,39 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 }
                 // graphs#computeIfAbsent:
                 GraphInfo info = graphs.get(uri);
-                if (info == null) {
-                    try {
+                try {
+                    if (info == null)
                         info = fetchGraph(uri);
-                        // Anonymous ontology or ontology without header(i.e. no "_:x rdf:type owl:Ontology") could be loaded if
-                        // there is some resource-mapping in the manager on the import declaration.
-                        // In this case we may load it as separated model or include to the parent graph:
-                        if (info.isAnonymous() && MissingOntologyHeaderStrategy.INCLUDE_GRAPH.equals(configuration.getMissingOntologyHeaderStrategy())) {
-                            GraphUtil.addInto(pure, info.getGraph());
-                            continue;
-                        }
-                        graphs.put(uri, info);
-                    } catch (OWLOntologyCreationException e) {
-                        if (MissingImportHandlingStrategy.THROW_EXCEPTION.equals(configuration.getMissingImportHandlingStrategy())) {
-                            throw new UnloadableImportException(e, declaration);
-                        }
+                    graphs.put(uri, info);
+                    // Anonymous ontology or ontology without header(i.e. no "_:x rdf:type owl:Ontology") could be loaded if
+                    // there is some resource-mapping in the manager on the import declaration.
+                    // In this case we may load it as separated model or include to the parent graph:
+                    if (info.isAnonymous() && MissingOntologyHeaderStrategy.INCLUDE_GRAPH.equals(configuration.getMissingOntologyHeaderStrategy())) {
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Can't process sub graph with " + declaration + ". Exception: " + e);
+                            LOGGER.debug("<{}>: remove import declaration <{}>.", node.name(), uri);
                         }
+                        main.remove(Node.ANY, OWL.imports.asNode(), NodeFactory.createURI(uri));
+                        GraphUtil.addInto(main, info.getGraph());
+                        graphs.put(uri, info);
+                        // skip assembling model for this graph:
+                        info.setProcessed();
+                        // recollect imports (if it is anonymous node then there could be another owl:imports).
+                        imports.addAll(i + 1, info.getImports());
                         continue;
                     }
+                    children.add(info);
+                } catch (OWLOntologyCreationException e) {
+                    if (MissingImportHandlingStrategy.THROW_EXCEPTION.equals(configuration.getMissingImportHandlingStrategy())) {
+                        throw new UnloadableImportException(e, declaration);
+                    }
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Can't process sub graph with " + declaration + ". Exception: " + e);
+                    }
                 }
-                children.add(info);
             }
-            if (children.isEmpty()) {
-                if (node.isFresh() || !node.getImports().isEmpty()) {
-                    pure = transform(pure);
-                }
-                return pure;
-            }
-            UnionGraph res = new UnionGraph(pure);
-            children.forEach(ch -> res.addGraph(makeUnionGraph(ch, seen)));
-            return transform(res);
+            UnionGraph res = new UnionGraph(main);
+            children.forEach(ch -> res.addGraph(makeUnionGraph(ch, seen, transform)));
+            return transform ? transform(res) : res;
         }
 
         /**
@@ -374,7 +381,8 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 format = readGraph(graph, source, configuration);
             }
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(String.format("Graph loaded. Source: %s. Format: %s", source.getClass().getSimpleName(), format));
+                LOGGER.debug("Graph <{}> is loaded. Source: {}[{}]. Format: {}",
+                        Graphs.getName(graph), source.getClass().getSimpleName(), source.getDocumentIRI(), format);
             }
             return new GraphInfo(graph, format, true);
         }
