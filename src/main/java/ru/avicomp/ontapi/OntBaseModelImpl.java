@@ -422,6 +422,14 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
             return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getValue() : a.getSubject()));
         }
+        if (OWLDisjointUnionAxiom.class.equals(type) && OWLClassExpression.class.isInstance(object)) {
+            return (Stream<A>) base.axioms(OWLDisjointUnionAxiom.class)
+                    .filter(a -> Navigation.IN_SUPER_POSITION.equals(position) ? a.classExpressions().anyMatch(object::equals) : object.equals(a.getOWLClass()));
+        }
+        if (OWLSubPropertyChainOfAxiom.class.equals(type) && OWLObjectPropertyExpression.class.isInstance(object)) {
+            return (Stream<A>) base.axioms(OWLSubPropertyChainOfAxiom.class)
+                    .filter(a -> Navigation.IN_SUPER_POSITION.equals(position) ? a.getPropertyChain().stream().anyMatch(object::equals) : object.equals(a.getSuperProperty()));
+        }
         if (OWLClassAxiom.class.equals(type) && OWLClass.class.isInstance(object)) {
             return (Stream<A>) axioms((OWLClass) object);
         }
