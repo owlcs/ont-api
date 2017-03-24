@@ -332,7 +332,9 @@ public class DeclarationTransform extends Transform {
             // "a rdf:type C"
             Set<Statement> statements = statements(null, RDF.type, null)
                     .filter(s -> s.getObject().isResource())
-                    .filter(s -> !BuiltIn.ALL.contains(s.getObject().asResource())).collect(Collectors.toSet());
+                    .filter(s -> !BuiltIn.ALL.contains(s.getObject().asResource()))
+                    .filter(s -> !AVC.AnonymousIndividual.equals(s.getObject()))
+                    .collect(Collectors.toSet());
             statements.forEach(s -> {
                 declareIndividual(s.getSubject());
                 declareClass(s.getObject().asResource());
@@ -732,20 +734,23 @@ public class DeclarationTransform extends Transform {
             return BuiltIn.DATATYPES.contains(candidate) || hasType(candidate, RDFS.Datatype);
         }
 
+        @SuppressWarnings("SuspiciousMethodCalls")
         public boolean isObjectPropertyExpression(Resource candidate) {
             return BuiltIn.OBJECT_PROPERTIES.contains(candidate) || hasType(candidate, OWL.ObjectProperty) || candidate.hasProperty(OWL.inverseOf);
         }
 
+        @SuppressWarnings("SuspiciousMethodCalls")
         public boolean isDataProperty(Resource candidate) {
             return BuiltIn.DATA_PROPERTIES.contains(candidate) || hasType(candidate, OWL.DatatypeProperty);
         }
 
-        public boolean isIndividual(Resource candidate) {
-            return hasType(candidate, OWL.NamedIndividual) || hasType(candidate, AVC.AnonymousIndividual);
-        }
-
+        @SuppressWarnings("SuspiciousMethodCalls")
         public boolean isAnnotationProperty(Resource candidate) {
             return BuiltIn.ANNOTATION_PROPERTIES.contains(candidate) || hasType(candidate, OWL.AnnotationProperty);
+        }
+
+        public boolean isIndividual(Resource candidate) {
+            return hasType(candidate, OWL.NamedIndividual) || hasType(candidate, AVC.AnonymousIndividual);
         }
 
         public void declareObjectProperty(Resource resource) {
@@ -792,7 +797,9 @@ public class DeclarationTransform extends Transform {
         }
 
         public void declareClass(Resource resource) {
-            if (BuiltIn.CLASSES.contains(resource)) return;
+            if (BuiltIn.CLASSES.contains(resource)) {
+                return;
+            }
             Resource type = resource.isURIResource() ? OWL.Class :
                     containsClassExpressionProperty(resource) ? OWL.Class :
                             containsRestrictionProperty(resource) ? OWL.Restriction : null;
