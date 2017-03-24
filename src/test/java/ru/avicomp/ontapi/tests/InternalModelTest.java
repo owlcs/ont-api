@@ -81,7 +81,7 @@ public class InternalModelTest {
 
         InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), OntModelConfig.getPersonality());
 
-        Set<OWLAnnotation> annotations = model.getAnnotations();
+        Set<OWLAnnotation> annotations = model.annotations().collect(Collectors.toSet());
         annotations.forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
 
@@ -89,14 +89,14 @@ public class InternalModelTest {
         OWLAnnotation bulk = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("the label"),
                 Stream.of(factory.getRDFSComment("just comment to ontology annotation")));
         model.add(bulk);
-        annotations = model.getAnnotations();
+        annotations = model.annotations().collect(Collectors.toSet());
         annotations.forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect annotations count", 5, annotations.size());
 
         LOGGER.info("Create plain(assertion) annotation.");
         OWLAnnotation plain = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), IRI.create("http://please.click.me/"));
         model.add(plain);
-        annotations = model.getAnnotations();
+        annotations = model.annotations().collect(Collectors.toSet());
         annotations.forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect annotations count", 6, annotations.size());
 
@@ -107,7 +107,7 @@ public class InternalModelTest {
         LOGGER.info("Delete " + comment);
         model.remove(comment);
 
-        annotations = model.getAnnotations();
+        annotations = model.annotations().collect(Collectors.toSet());
         annotations.forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
     }

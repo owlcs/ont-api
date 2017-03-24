@@ -30,6 +30,7 @@ import ru.avicomp.ontapi.jena.model.*;
  * <p>
  * Created by @szuev on 26.10.2016.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     /**
@@ -97,7 +98,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     }
 
     public boolean isOntologyEmpty() {
-        return axioms().count() == 0 && getAnnotations().isEmpty();
+        return axioms().count() == 0 && annotations().count() == 0;
     }
 
     protected Wrap<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
@@ -194,12 +195,16 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     @SuppressWarnings("unchecked")
     protected <E extends OWLObject> Stream<E> objects(Class<E> view) {
         return (Stream<E>) owlObjectsStore.computeIfAbsent(view, c ->
-                Stream.concat(annotations().map(annotation -> OwlObjects.objects(view, annotation)).flatMap(Function.identity()),
-                        axioms().map(axiom -> OwlObjects.objects(view, axiom)).flatMap(Function.identity())).collect(Collectors.toSet())).stream();
+                Stream.concat(
+                        annotations().map(annotation -> OwlObjects.objects(c, annotation)).flatMap(Function.identity()),
+                        axioms().map(axiom -> OwlObjects.objects(c, axiom)).flatMap(Function.identity())
+                ).collect(Collectors.toSet())).stream();
     }
 
     public void add(OWLAnnotation annotation) {
         WriteHelper.addAnnotations(getID(), Stream.of(annotation));
+        // todo: clear only those objects which belong to annotation
+        clearObjectsCache();
     }
 
     public void remove(OWLAnnotation annotation) {
@@ -213,12 +218,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         clearObjectsCache();
     }
 
+    @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> annotations() {
-        return ReadHelper.getObjectAnnotations(getID(), dataFactory()).objects();
-    }
-
-    public Set<OWLAnnotation> getAnnotations() {
-        return annotations().collect(Collectors.toSet());
+        return (Stream<OWLAnnotation>) owlObjectsStore.computeIfAbsent(OWLAnnotation.class, c -> ReadHelper.getObjectAnnotations(getID(), dataFactory()).getObjects()).stream();
+        //return ReadHelper.getObjectAnnotations(getID(), dataFactory()).objects();
     }
 
     public Stream<OWLAxiom> axioms() {
