@@ -760,7 +760,7 @@ public class DeclarationTransform extends Transform {
             declareAnnotationProperty(resource, BuiltIn.ANNOTATION_PROPERTIES);
         }
 
-        public void declareObjectProperty(Resource resource, Set<Resource> builtIn) {
+        public void declareObjectProperty(Resource resource, Set<? extends Resource> builtIn) {
             if (resource.isAnon()) {
                 undeclare(resource, OWL.ObjectProperty);
                 return;
@@ -768,11 +768,11 @@ public class DeclarationTransform extends Transform {
             declare(resource, OWL.ObjectProperty, builtIn);
         }
 
-        public void declareDataProperty(Resource resource, Set<Resource> builtIn) {
+        public void declareDataProperty(Resource resource, Set<? extends Resource> builtIn) {
             declare(resource, OWL.DatatypeProperty, builtIn);
         }
 
-        public void declareAnnotationProperty(Resource resource, Set<Resource> builtIn) {
+        public void declareAnnotationProperty(Resource resource, Set<? extends Resource> builtIn) {
             declare(resource, OWL.AnnotationProperty, builtIn);
         }
 
@@ -811,7 +811,7 @@ public class DeclarationTransform extends Transform {
                     OWL.maxQualifiedCardinality, OWL.onProperties).anyMatch(candidate::hasProperty);
         }
 
-        public void declare(Resource subject, Resource type, Set<Resource> forbidden) {
+        public void declare(Resource subject, Resource type, Set<? extends Resource> forbidden) {
             if (type == null || forbidden.contains(subject)) {
                 return;
             }

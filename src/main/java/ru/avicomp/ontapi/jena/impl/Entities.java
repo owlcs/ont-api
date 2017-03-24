@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 
@@ -63,7 +64,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
         }
 
         @Override
-        Set<Resource> builtInURIs() {
+        Set<Property> builtInURIs() {
             return BuiltIn.ANNOTATION_PROPERTIES;
         }
     },
@@ -81,7 +82,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
         }
 
         @Override
-        Set<Resource> builtInURIs() {
+        Set<Property> builtInURIs() {
             return BuiltIn.DATA_PROPERTIES;
         }
     },
@@ -99,7 +100,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
         }
 
         @Override
-        Set<Resource> builtInURIs() {
+        Set<Property> builtInURIs() {
             return BuiltIn.OBJECT_PROPERTIES;
         }
     },
@@ -124,7 +125,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
         return Stream.empty();
     }
 
-    Set<Resource> builtInURIs() {
+    Set<? extends Resource> builtInURIs() {
         return Collections.emptySet();
     }
 

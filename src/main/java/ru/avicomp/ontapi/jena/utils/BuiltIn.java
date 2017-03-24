@@ -45,11 +45,11 @@ public class BuiltIn {
     public static final Set<Resource> DATATYPES = RDF_DATATYPE_SET.stream().map(RDFDatatype::getURI).
             map(ResourceFactory::createResource).collect(Collectors.toSet());
     public static final Set<Resource> CLASSES = Stream.of(OWL.Nothing, OWL.Thing).collect(Collectors.toSet());
-    public static final Set<Resource> ANNOTATION_PROPERTIES = Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy,
+    public static final Set<Property> ANNOTATION_PROPERTIES = Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy,
             OWL.versionInfo, OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated).collect(Collectors.toSet());
-    public static final Set<Resource> DATA_PROPERTIES = Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Collectors.toSet());
-    public static final Set<Resource> OBJECT_PROPERTIES = Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Collectors.toSet());
-    public static final Set<Resource> OWL_PROPERTIES = Stream.of(ANNOTATION_PROPERTIES, DATA_PROPERTIES, OBJECT_PROPERTIES)
+    public static final Set<Property> DATA_PROPERTIES = Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Collectors.toSet());
+    public static final Set<Property> OBJECT_PROPERTIES = Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Collectors.toSet());
+    public static final Set<Property> OWL_PROPERTIES = Stream.of(ANNOTATION_PROPERTIES, DATA_PROPERTIES, OBJECT_PROPERTIES)
             .flatMap(Collection::stream).collect(Collectors.toSet());
     public static final Set<Resource> ENTITIES = Stream.of(CLASSES, DATATYPES, OWL_PROPERTIES)
             .flatMap(Collection::stream).collect(Collectors.toSet());
