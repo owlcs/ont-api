@@ -256,7 +256,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     protected OntStatement toOntStatement(OntStatement main, Statement st) {
         if (st.equals(main)) return main;
         if (main != null && st.getPredicate().canAs(OntNAP.class)) {
-            return OntStatementImpl.createAnnotationStatement(main, st.getPredicate().as(OntNAP.class), st.getObject());
+            return new OntStatementImpl(main.getSubject(), st.getPredicate().as(OntNAP.class), st.getObject(), this);
         }
         return new OntStatementImpl(st.getSubject(), st.getPredicate(), st.getObject(), this);
     }

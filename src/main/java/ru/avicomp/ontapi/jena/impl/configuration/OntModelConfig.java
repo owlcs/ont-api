@@ -36,7 +36,7 @@ public class OntModelConfig {
             .add(OntID.class, OntIDImpl.idFactory)
 
             // annotation object:
-            .add(OntAnnotation.class, OntStatementImpl.OntAnnotationImpl.annotationFactory)
+            .add(OntAnnotation.class, OntAnnotationImpl.annotationFactory)
 
             // entities:
             .add(OntObject.class, OntObjectImpl.objectFactory)

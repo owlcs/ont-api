@@ -25,6 +25,7 @@ public interface OntAnnotation extends OntObject {
 
     /**
      * Returns the annotations assertions attached to this object.
+     * The annotation assertion is a statements with annotation property ({@link OntNAP}) as predicate.
      * The example above contains two such statements: '_:x rdfs:comment "comment1";' and '_:x rdfs:comment "comment2"@fr'.
      *
      * @return Stream of annotation statements {@link OntStatement}s,

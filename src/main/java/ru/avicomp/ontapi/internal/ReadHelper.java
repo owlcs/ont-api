@@ -239,17 +239,27 @@ public class ReadHelper {
         return (Wrap<OWLDatatype>) fetchDataRange(dt, df);
     }
 
-    private static boolean isEntityDeclaration(OntStatement statement) { // todo: what about anonymous individuals?
-        return statement.isRoot() && statement.isDeclaration() && statement.getSubject().isURIResource();
+    public static boolean isDeclarationStatement(OntStatement statement) {
+        return statement.isRoot() && statement.isDeclaration() && isEntityOrAnonymousIndividual(statement.getSubject());
+    }
+
+    public static boolean isEntityOrAnonymousIndividual(OntObject subject) {
+        return (subject.isURIResource() && !subject.canAs(OntID.class)) || subject.canAs(OntIndividual.Anonymous.class);
+    }
+
+    public static boolean isAnnotationAssertionStatement(OntStatement statement) {
+        return statement.isAnnotation() && !statement.getSubject().canAs(OntAnnotation.class) && !statement.hasAnnotations();
     }
 
     private static Set<Wrap<OWLAnnotation>> getAnnotations(OntStatement statement, OWLDataFactory df, OntConfig.LoaderConfiguration conf) {
-        if (isAnnotationAssertionsAllowed(conf) && isEntityDeclaration(statement) && statement.annotations().noneMatch(OntStatement::hasAnnotations)) {
-            // for compatibility with OWL-API skip plain annotations attached to an entity:
+        Set<Wrap<OWLAnnotation>> res = getAllAnnotations(statement, df);
+        if (isAnnotationAssertionsAllowed(conf) && isDeclarationStatement(statement)) {
+            // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
-            return Collections.emptySet();
+            statement.annotations().filter(ReadHelper::isAnnotationAssertionStatement)
+                    .map(a -> getPlainAnnotation(a, df)).forEach(res::remove);
         }
-        return getAllAnnotations(statement, df);
+        return res;
     }
 
     /**

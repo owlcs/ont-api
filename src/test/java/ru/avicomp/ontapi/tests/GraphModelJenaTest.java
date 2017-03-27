@@ -139,7 +139,7 @@ public class GraphModelJenaTest {
         ReadWriteUtils.print(m);
         cl.annotations().forEach(LOGGER::debug);
         Assert.assertTrue("Can't find owl:Axiom section.", m.contains(null, RDF.type, OWL.Axiom));
-        Assert.assertTrue("Can't find owl:Annotation section.", m.contains(null, RDF.type, OWL.Annotation));
+        Assert.assertFalse("There is owl:Annotation section.", m.contains(null, RDF.type, OWL.Annotation));
 
         LOGGER.info("4) Create annotation property and annotate " + seeAlsoForLabel2 + " and " + labelForLabel2);
         OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "annotation-prop-1");
@@ -148,7 +148,7 @@ public class GraphModelJenaTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals("Expected two roots with owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation)
                 .filterKeep(s -> !m.contains(null, null, s.getSubject())).filterKeep(new UniqueFilter<>()).toList().size());
-        Assert.assertEquals("Expected three owl:Annotation.", 3, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
         Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
         LOGGER.info("5) Delete annotations for " + labelForLabel2);
@@ -156,7 +156,7 @@ public class GraphModelJenaTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals("Expected one root with owl:Annotation.", 1, m.listStatements(null, RDF.type, OWL.Annotation)
                 .filterKeep(s -> !m.contains(null, null, s.getSubject())).filterKeep(new UniqueFilter<>()).toList().size());
-        Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Expected single owl:Annotation.", 1, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
         Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
 

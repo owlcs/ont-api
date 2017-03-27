@@ -283,6 +283,49 @@ public class ManagerTest {
     }
 
     @Test
+    public void testLoadAnnotationsOption() throws Exception {
+        OntologyManager m = OntManagers.createONT();
+        Assert.assertEquals("Incorrect default settings", true, m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
+        OWLDataFactory df = m.getOWLDataFactory();
+
+        OntologyModel o1 = m.createOntology();
+        OWLClass cl = df.getOWLClass(IRI.create("C"));
+        OWLAnnotationProperty ap = df.getOWLAnnotationProperty(IRI.create("A"));
+        OWLAnnotation a1 = df.getOWLAnnotation(ap, df.getOWLLiteral("assertion1"));
+        OWLAnnotation a2 = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("assertion2"));
+
+        o1.add(df.getOWLDeclarationAxiom(cl));
+        o1.add(df.getOWLDeclarationAxiom(ap));
+        o1.add(df.getOWLAnnotationPropertyDomainAxiom(ap, IRI.create("domain")));
+        o1.add(df.getOWLAnnotationPropertyRangeAxiom(ap, IRI.create("range")));
+        o1.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1));
+        o1.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a2));
+        List<OWLAxiom> axioms = o1.axioms().collect(Collectors.toList());
+        axioms.forEach(LOGGER::debug);
+        ReadWriteUtils.print(o1);
+
+        LOGGER.info("Change Load Annotation settings");
+        m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadAnnotationAxioms(false));
+        Assert.assertEquals("Incorrect default settings", false, m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
+        // check the axioms changed.
+        List<OWLAxiom> axioms1 = o1.axioms().collect(Collectors.toList());
+        axioms1.forEach(LOGGER::debug);
+        Assert.assertEquals("Should be 2 axioms only", 2, axioms1.size());
+        Assert.assertTrue("Can't find declaration for " + ap, axioms1.contains(df.getOWLDeclarationAxiom(ap)));
+        Assert.assertTrue("The declaration for " + cl + " should be with annotations now", axioms1.contains(df.getOWLDeclarationAxiom(cl, Arrays.asList(a1, a2))));
+
+        LOGGER.info("Create new ontology ");
+        OntologyModel o2 = m.createOntology();
+        axioms.forEach(o2::add);
+        ReadWriteUtils.print(o2);
+        List<OWLAxiom> axioms2 = o2.axioms().collect(Collectors.toList());
+        axioms2.forEach(LOGGER::debug);
+        Assert.assertEquals("Should be 2 axioms only", 2, axioms2.size());
+        Assert.assertTrue("Can't find declaration for " + ap, axioms2.contains(df.getOWLDeclarationAxiom(ap)));
+        Assert.assertTrue("The declaration for " + cl + " should not be unannotated now", axioms2.contains(df.getOWLDeclarationAxiom(cl)));
+    }
+
+    @Test
     public void testLoadCorruptedOntology() throws Exception {
         OWLOntologyManager m = OntManagers.createONT();
 

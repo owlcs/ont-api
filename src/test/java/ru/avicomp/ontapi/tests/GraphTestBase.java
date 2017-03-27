@@ -42,7 +42,7 @@ public abstract class GraphTestBase {
         LOGGER.info("Load ontology to another manager from jena graph.");
         OWLOntologyManager manager = OntManagers.createOWL();
         OWLOntology result = ReadWriteUtils.convertJenaToOWL(manager, original.asGraphModel());
-        LOGGER.info("All (actual) axioms from reloaded ontology:");
+        LOGGER.info("All (actual) axioms from reloaded ontology[OWL]:");
         result.axioms().forEach(LOGGER::info);
         Map<AxiomType, List<OWLAxiom>> expected = TestUtils.toMap(filterAxioms(original, excluded));
         Map<AxiomType, List<OWLAxiom>> actual = TestUtils.toMap(filterAxioms(result, excluded));

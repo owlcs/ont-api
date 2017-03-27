@@ -132,7 +132,19 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
-            loaderConfig = conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
+            OntConfig.LoaderConfiguration newConf = conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
+            // if there is some changes related to axiom reading we must pass new config to the interior model.
+            // maybe it is better to store in the base model link to the manager?
+            if (loaderConfig != null && !Objects.equals(newConf.isLoadAnnotationAxioms(), loaderConfig.isLoadAnnotationAxioms())) {
+                content.values().forEach(info -> {
+                    if (info.loaderConf != null) { // don't touch custom configs:
+                        return;
+                    }
+                    ((OntBaseModelImpl) info.ont).getBase().setLoaderConfig(newConf);
+                    info.ont.clearCache();
+                });
+            }
+            loaderConfig = newConf;
         } finally {
             getLock().writeLock().unlock();
         }

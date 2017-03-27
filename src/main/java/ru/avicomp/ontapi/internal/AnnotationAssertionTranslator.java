@@ -32,11 +32,10 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
         if (!getLoaderConfig(model).isLoadAnnotationAxioms()) return Stream.empty();
-        OntID id = model.getID();
         return model.statements()
                 .filter(OntStatement::isLocal)
-                .filter(OntStatement::isAnnotation)
-                .filter(s -> testAnnotationSubject(s.getSubject(), id));
+                .filter(ReadHelper::isAnnotationAssertionStatement)
+                .filter(s -> ReadHelper.isEntityOrAnonymousIndividual(s.getSubject()));
     }
 
     private static boolean testAnnotationSubject(Resource candidate, OntID id) {

@@ -261,7 +261,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 OWLDocumentFormat owlFormat = format.createOwlFormat();
                 if (PrefixManager.class.isInstance(owlFormat)) {
                     PrefixManager pm = (PrefixManager) owlFormat;
-                    graph.getPrefixMapping().getNsPrefixMap().entrySet().forEach(e -> pm.setPrefix(e.getKey(), e.getValue()));
+                    graph.getPrefixMapping().getNsPrefixMap().forEach(pm::setPrefix);
                     OntologyManagerImpl.setDefaultPrefix(pm, ont);
                 }
                 manager.setOntologyFormat(res, owlFormat);
