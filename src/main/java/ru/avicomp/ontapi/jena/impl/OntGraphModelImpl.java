@@ -245,20 +245,18 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public Stream<OntStatement> statements() {
-        return Iter.asStream(listStatements()).map(s -> toOntStatement(null, s));
+        return Iter.asStream(listStatements()).map(st -> toOntStatement(null, st));
     }
 
     @Override
     public Stream<OntStatement> statements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(listStatements(s, p, o)).map(_s -> toOntStatement(null, _s));
+        return Iter.asStream(listStatements(s, p, o)).map(st -> toOntStatement(null, st));
     }
 
     protected OntStatement toOntStatement(OntStatement main, Statement st) {
         if (st.equals(main)) return main;
         if (main != null && st.getPredicate().canAs(OntNAP.class)) {
-            // if subject is anon -> general annotation wrapper.
-            return main.getSubject().isURIResource() ? new OntStatementImpl.AssertionAnnotationImpl(main, st.getPredicate().as(OntNAP.class), st.getObject()) :
-                    new OntStatementImpl.CommonAnnotationImpl(main.getSubject(), st.getPredicate().as(OntNAP.class), st.getObject(), main.getModel());
+            return OntStatementImpl.createAnnotationStatement(main, st.getPredicate().as(OntNAP.class), st.getObject());
         }
         return new OntStatementImpl(st.getSubject(), st.getPredicate(), st.getObject(), this);
     }

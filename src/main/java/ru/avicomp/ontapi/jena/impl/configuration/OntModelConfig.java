@@ -32,8 +32,11 @@ public class OntModelConfig {
             .add(RDFNode.class, ResourceImpl.rdfNodeFactory);
 
     private static final PersonalityBuilder ONT_PERSONALITY_BUILDER = new PersonalityBuilder()
-            // ont-id
+            // ont-id:
             .add(OntID.class, OntIDImpl.idFactory)
+
+            // annotation object:
+            .add(OntAnnotation.class, OntStatementImpl.OntAnnotationImpl.annotationFactory)
 
             // entities:
             .add(OntObject.class, OntObjectImpl.objectFactory)
@@ -76,16 +79,16 @@ public class OntModelConfig {
             .add(OntOPE.class, OntPEImpl.abstractOPEFactory)
             .add(OntPE.class, OntPEImpl.abstractPEFactory)
 
-            // individuals
+            // individuals:
             .add(OntIndividual.Anonymous.class, OntIndividualImpl.anonymousIndividualFactory)
             .add(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory)
 
-            // negative property assertions
+            // negative property assertions:
             .add(OntNPA.ObjectAssertion.class, OntNPAImpl.objectNPAFactory)
             .add(OntNPA.DataAssertion.class, OntNPAImpl.dataNPAFactory)
             .add(OntNPA.class, OntNPAImpl.abstractNPAFactory)
 
-            // disjoint anonymous collections
+            // disjoint anonymous collections:
             .add(OntDisjoint.Classes.class, OntDisjointImpl.disjointClassesFactory)
             .add(OntDisjoint.Individuals.class, OntDisjointImpl.differentIndividualsFactory)
             .add(OntDisjoint.ObjectProperties.class, OntDisjointImpl.objectPropertiesFactory)
@@ -93,7 +96,7 @@ public class OntModelConfig {
             .add(OntDisjoint.Properties.class, OntDisjointImpl.abstractPropertiesFactory)
             .add(OntDisjoint.class, OntDisjointImpl.abstractDisjointFactory)
 
-            // facet restrictions
+            // facet restrictions:
             .add(OntFR.Length.class, OntFRImpl.lengthFRFactory)
             .add(OntFR.MinLength.class, OntFRImpl.minLengthFRFactory)
             .add(OntFR.MaxLength.class, OntFRImpl.maxLengthFRFactory)
@@ -107,7 +110,7 @@ public class OntModelConfig {
             .add(OntFR.LangRange.class, OntFRImpl.langRangeFRFactory)
             .add(OntFR.class, OntFRImpl.abstractFRFactory)
 
-            // data ranges
+            // data ranges:
             .add(OntDR.OneOf.class, OntDRImpl.oneOfDRFactory)
             .add(OntDR.Restriction.class, OntDRImpl.restrictionDRFactory)
             .add(OntDR.ComplementOf.class, OntDRImpl.complementOfDRFactory)
@@ -115,7 +118,7 @@ public class OntModelConfig {
             .add(OntDR.IntersectionOf.class, OntDRImpl.intersectionOfDRFactory)
             .add(OntDR.class, OntDRImpl.abstractDRFactory)
 
-            // SWRL objects
+            // SWRL objects:
             .add(OntSWRL.Variable.class, OntSWRLImpl.variableSWRLFactory)
             .add(OntSWRL.IArg.class, OntSWRLImpl.iArgSWRLFactory)
             .add(OntSWRL.DArg.class, OntSWRLImpl.dArgSWRLFactory)

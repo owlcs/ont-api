@@ -22,8 +22,6 @@ import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplInteger;
 
@@ -286,22 +284,33 @@ public class ReadHelper {
     }
 
     private static Set<Wrap<OWLAnnotation>> getAllAnnotations(OntStatement statement, OWLDataFactory df) {
-        return statement.annotations().map(a -> a.hasAnnotations() ?
-                getHierarchicalAnnotations(a, df) :
-                getPlainAnnotation(a, df)).collect(Collectors.toSet());
+        return statement.annotations().map(a -> getAnnotation(a, df)).collect(Collectors.toSet());
     }
 
-    private static Wrap<OWLAnnotation> getPlainAnnotation(OntStatement a, OWLDataFactory df) {
-        Wrap<OWLAnnotationProperty> p = fetchAnnotationProperty(a.getPredicate().as(OntNAP.class), df);
-        Wrap<? extends OWLAnnotationValue> v = getAnnotationValue(a.getObject(), df);
+    /**
+     * Translates {@link OntStatement} to {@link Wrap} encapsulated {@link OWLAnnotation}.
+     *
+     * @param ann {@link OntStatement}
+     * @param df  {@link OWLDataFactory}
+     * @return {@link Wrap} around {@link OWLAnnotation}
+     */
+    public static Wrap<OWLAnnotation> getAnnotation(OntStatement ann, OWLDataFactory df) {
+        return ann.hasAnnotations() ? getHierarchicalAnnotations(ann, df) : getPlainAnnotation(ann, df);
+    }
+
+    private static Wrap<OWLAnnotation> getPlainAnnotation(OntStatement ann, OWLDataFactory df) {
+        Wrap<OWLAnnotationProperty> p = fetchAnnotationProperty(ann.getPredicate().as(OntNAP.class), df);
+        Wrap<? extends OWLAnnotationValue> v = getAnnotationValue(ann.getObject(), df);
         OWLAnnotation res = df.getOWLAnnotation(p.getObject(), v.getObject(), Stream.empty());
-        return Wrap.create(res, a).append(p).append(v);
+        return Wrap.create(res, ann).append(p).append(v);
     }
 
     private static Wrap<OWLAnnotation> getHierarchicalAnnotations(OntStatement ann, OWLDataFactory df) {
         OntObject subject = ann.getSubject();
-        Stream<OntStatement> content = Stream.concat(Stream.of(ann),
-                Stream.of(RDF.type, OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget).map(subject::getRequiredProperty));
+        Stream<OntStatement> content = Stream.of(ann);
+        if (subject.canAs(OntAnnotation.class)) {
+            content = Stream.concat(content, subject.content());
+        }
         Wrap<OWLAnnotationProperty> p = fetchAnnotationProperty(ann.getPredicate().as(OntNAP.class), df);
         Wrap<? extends OWLAnnotationValue> v = getAnnotationValue(ann.getObject(), df);
         Wrap.Collection<OWLAnnotation> children = Wrap.Collection.create(ann.annotations().map(a -> getHierarchicalAnnotations(a, df)));

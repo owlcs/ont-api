@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 /**
  * The map between jena languages ({@link Lang}) and OWL-API formats ({@link OWLDocumentFormat}).
  * There are 21 ONT formats (22 OWL formats + 14 jena languages)
- *
+ * <p>
  * Created by @szuev on 27.09.2016.
  */
 public enum OntFormat {
@@ -50,48 +50,85 @@ public enum OntFormat {
     private final List<Class<? extends OWLDocumentFormat>> owlTypes;
 
     /**
-     *
-     * @param id       String, "short name", could be used inside jena {@link org.apache.jena.rdf.model.Model} model to read and write.
-     * @param ext      String, primary extension.
-     * @param jena     List of language objects ({@link Lang}). Could be used inside jena {@link org.apache.jena.riot.RDFDataMgr} manager to read and write.
-     * @param owl      List of {@link OWLDocumentFormat} classes. OWLDocumentFormat is used to read and write in OWL-API (... and also to store prefixes sometimes).
+     * @param id   String, "short name", could be used inside jena {@link org.apache.jena.rdf.model.Model} model to read and write.
+     * @param ext  String, primary extension.
+     * @param jena List of language objects ({@link Lang}). Could be used inside jena {@link org.apache.jena.riot.RDFDataMgr} manager to read and write.
+     * @param owl  List of {@link OWLDocumentFormat} classes. OWLDocumentFormat is used to read and write in OWL-API (... and also to store prefixes sometimes).
      */
     OntFormat(String id, String ext, List<Lang> jena, List<Class<? extends OWLDocumentFormat>> owl) {
         this.id = OntApiException.notNull(id, "Id is required.");
         this.ext = ext;
-        this.jenaLangs = jena == null ? Collections.emptyList() : jena;
-        this.owlTypes = owl == null ? Collections.emptyList() : owl;
+        this.jenaLangs = jena == null ? Collections.emptyList() : Collections.unmodifiableList(jena);
+        this.owlTypes = owl == null ? Collections.emptyList() : Collections.unmodifiableList(owl);
     }
 
     public String getID() {
         return id;
     }
 
+    /**
+     * The primary file extension.
+     * There is no usage in the API.
+     * It's for convenience only.
+     *
+     * @return String.
+     */
     public String getExt() {
         return ext;
     }
 
+    /**
+     * The primary jena Language.
+     *
+     * @return {@link Lang}, could be null.
+     */
     public Lang getLang() {
         return jenaLangs.isEmpty() ? null : jenaLangs.get(0);
     }
 
     /**
-     * creates new instance of {@link OWLDocumentFormat} by type setting.
-     * if there is no any owl-document format in this map then return instance of fake format ({@link SimpleDocumentFormat}).
+     * Gets all jena Languages associated with this type in the form of Stream.
      *
-     * @return {@link OWLDocumentFormat}
+     * @return Stream of {@link Lang}, could be empty.
+     */
+    public Stream<Lang> jenaLangs() {
+        return jenaLangs.stream();
+    }
+
+    /**
+     * Gets instances of all OWL-API formats associated with this type in the form of Stream
+     *
+     * @return Stream of {@link OWLDocumentFormat}, could be empty.
+     */
+    public Stream<OWLDocumentFormat> owlFormats() {
+        return owlTypes.stream().map(OntFormat::owlFormatInstance);
+    }
+
+    /**
+     * Creates new instance of {@link OWLDocumentFormat} by type setting.
+     * if there is no any owl-document format in this map then return instance of fake format ({@link SimpleDocumentFormat})
+     * with reference to this instance inside.
+     * So there is a support OWL-API-style even for pure jena formats.
+     *
+     * @return {@link OWLDocumentFormat}, no null.
+     * @throws OntApiException if something wrong.
      */
     public OWLDocumentFormat createOwlFormat() {
+        return owlTypes.isEmpty() ? new SimpleDocumentFormat() : owlFormatInstance(owlTypes.get(0));
+    }
+
+    protected static OWLDocumentFormat owlFormatInstance(Class<? extends OWLDocumentFormat> type) {
         try {
-            return owlTypes.isEmpty() ? new SimpleDocumentFormat() : owlTypes.get(0).newInstance();
+            return type.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new OntApiException(e);
+            throw new OntApiException("Can't create " + type.getSimpleName(), e);
         }
     }
 
     /**
-     * checks if format is good for using.
-     * todo: check this list.
+     * Checks if format is good for using.
+     * todo: need to retest this list.
+     *
      * @return false if format is broken by some reasons.
      */
     public boolean isSupported() {
@@ -115,7 +152,7 @@ public enum OntFormat {
     }
 
     /**
-     * there are two xml formats: RDF/XML and OWL/XML
+     * Currently there are only two xml formats: RDF/XML and OWL/XML
      *
      * @return true if one of them.
      */
@@ -124,7 +161,7 @@ public enum OntFormat {
     }
 
     /**
-     * there are two json formats: RDF/JSON and JSONLD
+     * Currently there are only two json formats: RDF/JSON and JSONLD
      *
      * @return true if one of them.
      */
@@ -185,7 +222,7 @@ public enum OntFormat {
         return null;
     }
 
-    protected class SimpleDocumentFormat extends AbstractRDFPrefixDocumentFormat {
+    public class SimpleDocumentFormat extends AbstractRDFPrefixDocumentFormat {
         @Override
         public String getKey() {
             return id;
