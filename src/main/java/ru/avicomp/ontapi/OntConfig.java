@@ -46,6 +46,7 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * Extended {@link OWLOntologyLoaderConfiguration} with ONT-API specific settings.
      * It is a wrapper since all members of original base class are private.
+     * TODO: new (ONT-API) options should be configured in global ({@link OntConfig}) config also.
      */
     @SuppressWarnings({"NullableProblems", "WeakerAccess"})
     public static class LoaderConfiguration extends OWLOntologyLoaderConfiguration {
@@ -55,6 +56,7 @@ public class OntConfig extends OntologyConfigurator {
         protected GraphTransformers.Store transformers;
         protected boolean performTransformation = true;
         protected HashSet<Scheme> supportedSchemes;
+        protected boolean allowBulkAnnotationAssertions = true;
 
         public LoaderConfiguration(OWLOntologyLoaderConfiguration owl) {
             this.inner = owl == null ? new OWLOntologyLoaderConfiguration() :
@@ -73,6 +75,7 @@ public class OntConfig extends OntologyConfigurator {
             res.transformers = this.transformers;
             res.performTransformation = this.performTransformation;
             res.supportedSchemes = this.supportedSchemes;
+            res.allowBulkAnnotationAssertions = this.allowBulkAnnotationAssertions;
             return res;
         }
 
@@ -173,6 +176,61 @@ public class OntConfig extends OntologyConfigurator {
             return res;
         }
 
+        /**
+         * ONT-API config method.
+         * The additional to the {@link #isLoadAnnotationAxioms()} optional setting to manage behaviour of annotation axioms.
+         * By default annotated annotation assertions are allowed.
+         * See the example in the description of {@link #setAllowBulkAnnotationAssertions(boolean)}
+         *
+         * @return true if annotation assertions could be annotated.
+         * @see #setAllowBulkAnnotationAssertions(boolean)
+         * @see #setLoadAnnotationAxioms(boolean)
+         * @see #isLoadAnnotationAxioms()
+         */
+        public boolean isAllowBulkAnnotationAssertions() {
+            return allowBulkAnnotationAssertions;
+        }
+
+        /**
+         * ONT-API config setter.
+         * This option manages annotation assertion axioms in conjunction with declaration axioms.
+         * In depends of parameter specified bulk annotations fall either into declaration or annotation assertion.
+         * Consider the following example:
+         * <pre>
+         * <http://class>   a                       owl:Class ;
+         *                  rdfs:comment            "plain assertion" ;
+         *                  rdfs:label              "bulk assertion" .
+         * [                a                       owl:Axiom ;
+         *                  rdfs:comment            "the child" ;
+         *                  owl:annotatedProperty   rdfs:label ;
+         *                  owl:annotatedSource     <http://class> ;
+         *                  owl:annotatedTarget     "bulk assertion"
+         * ] .
+         * </pre>
+         * In case {@link #isAllowBulkAnnotationAssertions()} equals {@code true} this slice of graph corresponds to the following list of axioms:
+         * * AnnotationAssertion(rdfs:comment <http://class> "plain assertion"^^xsd:string)
+         * * AnnotationAssertion(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label <http://class> "bulk assertion"^^xsd:string)
+         * * Declaration(Class(<http://class>))
+         * In case {@link #isAllowBulkAnnotationAssertions()} equals {@code false} there would be following axioms:
+         * * Declaration(Annotation(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label "bulk assertion"^^xsd:string) Class(<http://class>))
+         * * AnnotationAssertion(rdfs:comment <http://class> "plain assertion"^^xsd:string)
+         * Note: the {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} does NOT work correctly
+         * in the second case (to test try to reload ontology in manchester syntax. The loss of annotations is expected).
+         *
+         * @param b if false only plain annotation assertions axioms expected.
+         * @return {@link LoaderConfiguration}
+         * @see #isAllowBulkAnnotationAssertions()
+         * @see #setLoadAnnotationAxioms(boolean)
+         * @see #isLoadAnnotationAxioms()
+         * @see OntFormat#MANCHESTER_SYNTAX
+         */
+        public LoaderConfiguration setAllowBulkAnnotationAssertions(boolean b) {
+            if (b == allowBulkAnnotationAssertions) return this;
+            LoaderConfiguration res = copy(inner);
+            res.allowBulkAnnotationAssertions = b;
+            return res;
+        }
+
         @Override
         public LoaderConfiguration addIgnoredImport(IRI iri) {
             return copy(inner.addIgnoredImport(iri));
@@ -264,6 +322,13 @@ public class OntConfig extends OntologyConfigurator {
             return copy(inner.setFollowRedirects(value));
         }
 
+        /**
+         * Determines whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded.
+         * By default the loading of annotation axioms is enabled.
+         *
+         * @return if {@code false} all annotation axioms (assertion, range and domain) will be discarded on loading.
+         * @see OWLOntologyLoaderConfiguration#isLoadAnnotationAxioms()
+         */
         @Override
         public boolean isLoadAnnotationAxioms() {
             return inner.isLoadAnnotationAxioms();

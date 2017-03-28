@@ -306,7 +306,7 @@ public class ManagerTest {
 
         LOGGER.info("Change Load Annotation settings");
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadAnnotationAxioms(false));
-        Assert.assertEquals("Incorrect default settings", false, m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
+        Assert.assertEquals("Incorrect settings", false, m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
         // check the axioms changed.
         List<OWLAxiom> axioms1 = o1.axioms().collect(Collectors.toList());
         axioms1.forEach(LOGGER::debug);
@@ -323,6 +323,49 @@ public class ManagerTest {
         Assert.assertEquals("Should be 2 axioms only", 2, axioms2.size());
         Assert.assertTrue("Can't find declaration for " + ap, axioms2.contains(df.getOWLDeclarationAxiom(ap)));
         Assert.assertTrue("The declaration for " + cl + " should not be unannotated now", axioms2.contains(df.getOWLDeclarationAxiom(cl)));
+    }
+
+    @Test
+    public void testBulkAnnotationsSetting() throws Exception {
+        OntologyManager m = OntManagers.createONT();
+        Assert.assertEquals("Incorrect default settings", true, m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
+        OWLDataFactory df = m.getOWLDataFactory();
+
+        OntologyModel o1 = m.createOntology();
+        OWLClass cl = df.getOWLClass(IRI.create("http://class"));
+        OWLAnnotation a1 = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("plain assertion"));
+        OWLAnnotation a2 = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("bulk assertion"),
+                df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("the child")));
+        Set<OWLAxiom> axioms1 = Stream.of(
+                df.getOWLDeclarationAxiom(cl),
+                df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1),
+                df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a2)
+        ).collect(Collectors.toSet());
+        LOGGER.debug("Axioms to be added: ");
+        axioms1.forEach(LOGGER::debug);
+        axioms1.forEach(o1::add);
+
+        LOGGER.debug("Create second ontology with the same content.");
+        String txt = ReadWriteUtils.toString(o1, OntFormat.TURTLE);
+        LOGGER.debug("\n" + txt);
+        OWLOntology o2 = m.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(txt));
+        Assert.assertEquals("Incorrect axioms collection in the copied ontology", axioms1, o2.axioms().collect(Collectors.toSet()));
+
+        LOGGER.info("Change Allow Bulk Annotation Assertion setting");
+        m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setAllowBulkAnnotationAssertions(false));
+        Assert.assertEquals("Incorrect settings", false, m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
+        o1.axioms().forEach(LOGGER::debug);
+        Set<OWLAxiom> axioms2 = Stream.of(
+                df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1),
+                df.getOWLDeclarationAxiom(cl, Stream.of(a2).collect(Collectors.toSet()))
+        ).collect(Collectors.toSet());
+
+        Assert.assertEquals("Incorrect axioms count", axioms2.size(), o1.getAxiomCount());
+        Assert.assertEquals("Incorrect axioms collection in the first ontology", axioms2, o1.axioms().collect(Collectors.toSet()));
+        Assert.assertEquals("Incorrect axioms collection in the second ontology", axioms2, o2.axioms().collect(Collectors.toSet()));
+        LOGGER.debug("Create third ontology with the same content.");
+        OWLOntology o3 = m.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(txt));
+        Assert.assertEquals("Incorrect axioms collection in the third ontology", axioms2, o3.axioms().collect(Collectors.toSet()));
     }
 
     @Test

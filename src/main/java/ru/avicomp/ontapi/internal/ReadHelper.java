@@ -247,8 +247,9 @@ public class ReadHelper {
         return (subject.isURIResource() && !subject.canAs(OntID.class)) || subject.canAs(OntIndividual.Anonymous.class);
     }
 
-    public static boolean isAnnotationAssertionStatement(OntStatement statement) {
-        return statement.isAnnotation() && !statement.getSubject().canAs(OntAnnotation.class) && !statement.hasAnnotations();
+    public static boolean isAnnotationAssertionStatement(OntStatement statement, OntConfig.LoaderConfiguration conf) {
+        return statement.isAnnotation() && !statement.getSubject().canAs(OntAnnotation.class) &&
+                (isAllowBulkAnnotationAssertions(conf) || !statement.hasAnnotations());
     }
 
     private static Set<Wrap<OWLAnnotation>> getAnnotations(OntStatement statement, OWLDataFactory df, OntConfig.LoaderConfiguration conf) {
@@ -256,20 +257,30 @@ public class ReadHelper {
         if (isAnnotationAssertionsAllowed(conf) && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
-            statement.annotations().filter(ReadHelper::isAnnotationAssertionStatement)
-                    .map(a -> getPlainAnnotation(a, df)).forEach(res::remove);
+            statement.annotations().filter(s -> isAnnotationAssertionStatement(s, conf))
+                    .map(a -> getAnnotation(a, df)).forEach(res::remove);
         }
         return res;
     }
 
     /**
-     * by default we prefer annotation assertions rather then bulk annotations.
+     * by default annotation axioms are allowed.
      *
      * @param conf {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
-     * @return true if annotation assertions are allowed
+     * @return true if annotation axioms are allowed
      */
     private static boolean isAnnotationAssertionsAllowed(OntConfig.LoaderConfiguration conf) {
         return conf == null || conf.isLoadAnnotationAxioms();
+    }
+
+    /**
+     * by default we prefer bulk annotation assertions rather then annotated declarations.
+     *
+     * @param conf {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
+     * @return true if bulk assertions are preferable.
+     */
+    private static boolean isAllowBulkAnnotationAssertions(OntConfig.LoaderConfiguration conf) {
+        return conf == null || conf.isAllowBulkAnnotationAssertions();
     }
 
     /**

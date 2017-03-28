@@ -1453,8 +1453,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 OntologyModel res = (OntologyModel) factory.loadOWLOntology(this, source, this, conf);
                 OWLOntologyID id = res.getOntologyID();
                 fixIllegalPunnings(res);
+                OntConfig.LoaderConfiguration ontLoadConf = Objects.equals(config, loaderConfig) ? null : config;
                 return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
-                        .addDocumentIRI(source.getDocumentIRI()).addLoaderConf(config).get();
+                        .addDocumentIRI(source.getDocumentIRI()).addLoaderConf(ontLoadConf).get();
             } catch (OWLOntologyRenameException e) {
                 // We loaded an ontology from a document and the
                 // ontology turned out to have an IRI the same

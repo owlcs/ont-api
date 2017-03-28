@@ -104,7 +104,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
     public void testComplexAnnotations() throws Exception {
         OntIRI iri = OntIRI.create("http://test.org/annotations/2");
         OntologyManager manager = OntManagers.createONT();
-        OWLDataFactory factory = manager.getOWLDataFactory();
+        OWLDataFactory df = manager.getOWLDataFactory();
         long count = manager.ontologies().count();
 
         OWLOntologyID id1 = iri.toOwlOntologyID(iri.addPath("1.0"));
@@ -112,29 +112,29 @@ public class AnnotationsGraphTest extends GraphTestBase {
         OntologyModel owl1 = manager.createOntology(id1);
 
         // plain annotations will go as assertion annotation axioms after reloading owl. so disable
-        OWLAnnotation simple1 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("PLAIN-1"));
-        OWLAnnotation simple2 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("PLAIN-2"));
+        OWLAnnotation simple1 = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("PLAIN-1"));
+        OWLAnnotation simple2 = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("PLAIN-2"));
 
-        OWLAnnotation root1child2child1child1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("ROOT1->CHILD2->CHILD1->CHILD1 (NIL)"));
-        OWLAnnotation root1child2child1child2 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("ROOT1->CHILD2->CHILD1->CHILD2 (NIL)"));
+        OWLAnnotation root1child2child1child1 = df.getOWLAnnotation(df.getRDFSSeeAlso(), df.getOWLLiteral("ROOT1->CHILD2->CHILD1->CHILD1 (NIL)"));
+        OWLAnnotation root1child2child1child2 = df.getOWLAnnotation(df.getRDFSSeeAlso(), df.getOWLLiteral("ROOT1->CHILD2->CHILD1->CHILD2 (NIL)"));
 
-        OWLAnnotation root1child2child1 = factory.getOWLAnnotation(factory.getRDFSIsDefinedBy(), factory.getOWLLiteral("ROOT1->CHILD2->CHILD1"), Stream.of(root1child2child1child1, root1child2child1child2));
-        OWLAnnotation root1child2child2 = factory.getOWLAnnotation(factory.getRDFSIsDefinedBy(), factory.getOWLLiteral("ROOT1->CHILD2->CHILD2 (NIL)"));
+        OWLAnnotation root1child2child1 = df.getOWLAnnotation(df.getRDFSIsDefinedBy(), df.getOWLLiteral("ROOT1->CHILD2->CHILD1"), Stream.of(root1child2child1child1, root1child2child1child2));
+        OWLAnnotation root1child2child2 = df.getOWLAnnotation(df.getRDFSIsDefinedBy(), df.getOWLLiteral("ROOT1->CHILD2->CHILD2 (NIL)"));
 
-        OWLAnnotation root1child1child1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("ROOT1->CHILD1->CHILD1 (NIL)"));
-        OWLAnnotation root1child1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("ROOT1->CHILD1"), root1child1child1);
-        OWLAnnotation root1child2 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("ROOT1->CHILD2"), Stream.of(root1child2child1, root1child2child2));
-        OWLAnnotation root1 = factory.getOWLAnnotation(factory.getRDFSIsDefinedBy(), factory.getOWLLiteral("ROOT1"), Stream.of(root1child2, root1child1));
+        OWLAnnotation root1child1child1 = df.getOWLAnnotation(df.getRDFSSeeAlso(), df.getOWLLiteral("ROOT1->CHILD1->CHILD1 (NIL)"));
+        OWLAnnotation root1child1 = df.getOWLAnnotation(df.getRDFSSeeAlso(), df.getOWLLiteral("ROOT1->CHILD1"), root1child1child1);
+        OWLAnnotation root1child2 = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("ROOT1->CHILD2"), Stream.of(root1child2child1, root1child2child2));
+        OWLAnnotation root1 = df.getOWLAnnotation(df.getRDFSIsDefinedBy(), df.getOWLLiteral("ROOT1"), Stream.of(root1child2, root1child1));
 
-        OWLAnnotation root2child1 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("ROOT2->CHILD1 (NIL)"));
-        OWLAnnotation root2 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("ROOT2"), root2child1);
+        OWLAnnotation root2child1 = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("ROOT2->CHILD1 (NIL)"));
+        OWLAnnotation root2 = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("ROOT2"), root2child1);
 
-        OWLClass owlClass = factory.getOWLClass(iri.addFragment("SomeClass1"));
-        OWLAxiom classAxiom = factory.getOWLDeclarationAxiom(owlClass, Stream.of(root1, root2, simple2, simple1).collect(Collectors.toSet()));
+        OWLClass clazz = df.getOWLClass(iri.addFragment("SomeClass1"));
+        OWLAxiom classAxiom = df.getOWLDeclarationAxiom(clazz, Stream.of(root1, root2, simple2, simple1).collect(Collectors.toSet()));
         owl1.applyChange(new AddAxiom(owl1, classAxiom));
 
-        OWLAnnotation individualAnn = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("INDI-ANN"), factory.getRDFSComment("indi-comment"));
-        OWLAxiom individualAxiom = factory.getOWLClassAssertionAxiom(owlClass, factory.getOWLNamedIndividual(iri.addFragment("Indi")), Stream.of(individualAnn).collect(Collectors.toSet()));
+        OWLAnnotation individualAnn = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("INDI-ANN"), df.getRDFSComment("indi-comment"));
+        OWLAxiom individualAxiom = df.getOWLClassAssertionAxiom(clazz, df.getOWLNamedIndividual(iri.addFragment("Indi")), Stream.of(individualAnn).collect(Collectors.toSet()));
         owl1.applyChange(new AddAxiom(owl1, individualAxiom));
 
         debug(owl1);
@@ -152,16 +152,25 @@ public class AnnotationsGraphTest extends GraphTestBase {
         target.setNsPrefixes(source.getNsPrefixMap()); // just in case
         debug(owl2);
 
-        LOGGER.info("Validate axioms");
-        Assert.assertEquals("Incorrect axioms count", 5, owl2.getAxiomCount());
+        LOGGER.info("Validate axioms"); // By default bulk assertions are allowed:
         Assert.assertEquals("Should be single class-assertion", 1, owl2.axioms(AxiomType.CLASS_ASSERTION).count());
-        Assert.assertEquals("Should be two annotation-assertions", 2, owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
         Assert.assertEquals("Should be two declarations(class + individual)", 2, owl2.axioms(AxiomType.DECLARATION).count());
-        Assert.assertEquals("Should be two annotated axioms", 2, owl2.axioms().filter(OWLAxiom::isAnnotated).count());
-        // no assertion annotations inside:
-        OWLAxiom expectedClassAxiom = factory.getOWLDeclarationAxiom(owlClass, Stream.of(root1, root2).collect(Collectors.toSet()));
-        Assert.assertTrue("Incorrect declaration class axiom", owl2.containsAxiom(expectedClassAxiom));
-        Assert.assertTrue("Incorrect class assertion axiom", owl2.containsAxiom(individualAxiom));
+        Assert.assertTrue("Incorrect class assertion axiom.", owl2.containsAxiom(individualAxiom));
+        if (manager.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions()) {
+            Assert.assertEquals("Incorrect axioms count", 7, owl2.getAxiomCount());
+            Assert.assertEquals("Incorrect annotation-assertions count", 4, owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+            Assert.assertEquals("Incorrect count of annotated axioms", 3, owl2.axioms().filter(OWLAxiom::isAnnotated).count());
+            Assert.assertTrue("Can't find bulk assertion N1", owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root1)));
+            Assert.assertTrue("Can't find bulk assertion N2", owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root2)));
+            Assert.assertTrue("No unannotated class-declaration", owl2.containsAxiom(df.getOWLDeclarationAxiom(clazz)));
+        } else {
+            Assert.assertEquals("Incorrect axioms count", 5, owl2.getAxiomCount());
+            Assert.assertEquals("Incorrect annotation-assertions count", 2, owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+            Assert.assertEquals("Incorrect count of annotated axioms", 2, owl2.axioms().filter(OWLAxiom::isAnnotated).count());
+            // no assertion annotations inside:
+            OWLAxiom expectedClassAxiom = df.getOWLDeclarationAxiom(clazz, Stream.of(root1, root2).collect(Collectors.toSet()));
+            Assert.assertTrue("Incorrect declaration class axiom", owl2.containsAxiom(expectedClassAxiom));
+        }
     }
 
     /**
