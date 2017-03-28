@@ -158,14 +158,16 @@ public class AnnotationsGraphTest extends GraphTestBase {
         Assert.assertEquals("Should be two annotation-assertions", 2, owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
         Assert.assertEquals("Should be two declarations(class + individual)", 2, owl2.axioms(AxiomType.DECLARATION).count());
         Assert.assertEquals("Should be two annotated axioms", 2, owl2.axioms().filter(OWLAxiom::isAnnotated).count());
-        // no assertion annotations iside:
+        // no assertion annotations inside:
         OWLAxiom expectedClassAxiom = factory.getOWLDeclarationAxiom(owlClass, Stream.of(root1, root2).collect(Collectors.toSet()));
         Assert.assertTrue("Incorrect declaration class axiom", owl2.containsAxiom(expectedClassAxiom));
         Assert.assertTrue("Incorrect class assertion axiom", owl2.containsAxiom(individualAxiom));
     }
 
     /**
-     * test DifferentIndividuals, DisjointClasses, NegativeObjectPropertyAssertion, DisjointObjectProperties axioms.
+     * Tests DifferentIndividuals, DisjointClasses, NegativeObjectPropertyAssertion, DisjointObjectProperties axioms.
+     * WARNING: ANNOTATIONS is not supported for DifferentIndividuals AXIOM by the OWL API (version 5.0.5)
+     * Also for class-assertion if it binds anonymous individual
      */
     @Test
     public void testBulkNaryAnnotatedAxioms() {
@@ -225,14 +227,11 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         debug(owl);
 
-        // TODO: WARNING: ANNOTATIONS is not supported for DifferentIndividuals AXIOM by the OWL API (version 5.0.3)
-        // TODO: Also for class-assertion if it binds anonymous individual
-        // TODO: need to rewrite owl-loader to fix it.
         checkAxioms(owl, AxiomType.DIFFERENT_INDIVIDUALS, AxiomType.CLASS_ASSERTION);
     }
 
     /**
-     * test "nary" annotated axioms: EquivalentClasses, EquivalentDataProperties, EquivalentObjectProperties, SameIndividual
+     * Tests the "Nary" annotated axioms: EquivalentClasses, EquivalentDataProperties, EquivalentObjectProperties, SameIndividual
      */
     @Test
     public void testNaryAnnotatedAxioms() {
@@ -297,7 +296,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
     }
 
     /**
-     * test axioms with a sub chain: DisjointUnion, SubPropertyChainOf, HasKey
+     * Tests axioms with a sub chain: DisjointUnion, SubPropertyChainOf, HasKey
      */
     @Test
     public void testAnnotatedAxiomsWithSubChain() {
@@ -361,8 +360,7 @@ public class AnnotationsGraphTest extends GraphTestBase {
 
         debug(owl);
 
-        // Does't work due incorrect working with complex annotations in OWL-API (just try to reload ontology using only original OWL-API ver 5.0.3)
-        // TODO: need to change OWL-API rdf-loader.
+        // WARNING: Does't work due to incorrect working with complex annotations in OWL-API (just try to reload ontology using only original OWL-API ver 5.0.5)
         //checkAxioms(owl);
     }
 

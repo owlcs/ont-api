@@ -127,7 +127,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * Creates new annotation section (resource).
+     * Creates the new annotation section (resource).
      *
      * @param base base ont-statement
      * @param type owl:Axiom or owl:Annotation
@@ -143,8 +143,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * Determines of Annotation type.
-     * Root annotations goes with type owl:Axiom {@link OWL#Axiom}
+     * Determines the annotation type.
+     * Root annotations (including some anon-axioms bodies) go with the type owl:Axiom {@link OWL#Axiom}
+     *
      * @param subject {@link Resource} the subject resource to test
      * @return {@link OWL#Axiom} or {@link OWL#Annotation}
      */
@@ -153,8 +154,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * The class-implementation for root statements.
-     * see {@link OntObject#getRoot()}
+     * The class-implementation of the root statement.
+     * The new annotations comes in the form of plain annotation-assertions
+     * while in the base {@link OntStatement} the would be {@link OntAnnotation} resource.
+     * @see OntObject#getRoot
      */
     public static class RootImpl extends OntStatementImpl {
 

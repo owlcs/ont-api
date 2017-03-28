@@ -2,11 +2,12 @@ package ru.avicomp.ontapi.internal;
 
 import java.util.stream.Stream;
 
-import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntConfig;
-import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntNAP;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * Examples:
@@ -23,8 +24,12 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
     }
 
     /**
-     * annotation assertion: the rule "s A t":
-     * see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
+     * Annotation assertion: the rule "s A t":
+     * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
+     * Currently there is following default behaviour:
+     * if the annotation value has its own annotations then the specified statement is skipped from consideration
+     * but comes as annotation of some other axiom.
+     * Also it is skipped if load annotations is disabled in configuration.
      *
      * @param model {@link OntGraphModel} the model
      * @return Stream of {@link OntStatement}
@@ -34,17 +39,13 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
         if (!getLoaderConfig(model).isLoadAnnotationAxioms()) return Stream.empty();
         return model.statements()
                 .filter(OntStatement::isLocal)
-                .filter(ReadHelper::isAnnotationAssertionStatement)
-                .filter(s -> ReadHelper.isEntityOrAnonymousIndividual(s.getSubject()));
-    }
-
-    private static boolean testAnnotationSubject(Resource candidate, OntID id) {
-        return !candidate.equals(id) && (candidate.isURIResource() || candidate.canAs(OntIndividual.Anonymous.class));
+                .filter(this::testStatement);
     }
 
     @Override
     public boolean testStatement(OntStatement statement) {
-        return statement.isAnnotation() && testAnnotationSubject(statement.getSubject(), statement.getModel().getID());
+        return ReadHelper.isAnnotationAssertionStatement(statement) &&
+                ReadHelper.isEntityOrAnonymousIndividual(statement.getSubject());
     }
 
     @Override

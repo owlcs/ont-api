@@ -125,6 +125,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * Sets {@link OntConfig.LoaderConfiguration} config to the manager and also passes it inside interior models.
+     * Custom configs ({@link OntInfo#loaderConf}) are not touched.
+     * Currently they could be seted only once while loading.
+     *
      * @param conf {@link OWLOntologyLoaderConfiguration}
      * @see OWLOntologyManagerImpl#setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)
      */
@@ -132,19 +136,14 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
-            OntConfig.LoaderConfiguration newConf = conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
-            // if there is some changes related to axiom reading we must pass new config to the interior model.
-            // maybe it is better to store in the base model link to the manager?
-            if (loaderConfig != null && !Objects.equals(newConf.isLoadAnnotationAxioms(), loaderConfig.isLoadAnnotationAxioms())) {
-                content.values().forEach(info -> {
-                    if (info.loaderConf != null) { // don't touch custom configs:
-                        return;
-                    }
-                    ((OntBaseModelImpl) info.ont).getBase().setLoaderConfig(newConf);
-                    info.ont.clearCache();
-                });
-            }
-            loaderConfig = newConf;
+            if (Objects.equals(loaderConfig, conf)) return;
+            loaderConfig = conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
+            content.values()
+                    .filter(i -> Objects.isNull(i.loaderConf))
+                    .forEach(i -> {
+                        ((OntBaseModelImpl) i.ont).getBase().setLoaderConfig(loaderConfig);
+                        i.ont.clearCache();
+                    });
         } finally {
             getLock().writeLock().unlock();
         }
@@ -166,6 +165,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * Sets {@link OWLOntologyWriterConfiguration} config to the manager and also passes it inside interior models.
+     *
      * @param conf {@link OWLOntologyWriterConfiguration}
      * @see OWLOntologyManagerImpl#setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)
      */
@@ -173,7 +174,13 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyWriterConfiguration(@Nullable OWLOntologyWriterConfiguration conf) {
         getLock().writeLock().lock();
         try {
+            if (Objects.equals(writerConfig, conf)) return;
             writerConfig = conf;
+            content.values()
+                    .filter(i -> Objects.isNull(i.writerConf))
+                    .forEach(i -> {
+                        ((OntBaseModelImpl) i.ont).getBase().setWriterConfig(writerConfig);
+                    });
         } finally {
             getLock().writeLock().unlock();
         }
@@ -2005,7 +2012,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return map.stream();
         }
 
-        protected Stream<OWLOntologyID> keys() { // distinct!
+        protected Stream<OWLOntologyID> keys() {
             return values().map(OntInfo::id);
         }
 
@@ -2030,11 +2037,18 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             res.ifPresent(map::remove);
             return res;
         }
-
     }
 
     /**
      * Container for {@link OntologyModel}.
+     * For internal usage only.
+     * It has been introduced to provide better synchronization different parts of ontology and also for serialization.
+     * The {@link InternalModel} are not Serializable since it is an extended Jena-model and could be considered separately.
+     * Also it has no reference to manager by the same architectural reasons.
+     * So it is important to be sure that this container and internal model are in consistent state...
+     * This applies mainly to the load and write configs.
+     * @see OntologyManagerImpl#setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)
+     * @see OntologyManagerImpl#setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)
      */
     public class OntInfo implements Serializable {
         private final OntologyModel ont;
