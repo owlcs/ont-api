@@ -7,6 +7,7 @@ import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.shared.JenaException;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
@@ -56,7 +57,7 @@ public interface OntMaker {
 
     /**
      * The base maker implementation for our project.
-     *
+     * <p>
      * Creation in graph is disabled for this maker
      */
     class Default implements OntMaker {
@@ -85,8 +86,11 @@ public interface OntMaker {
         public EnhNode instance(Node node, EnhGraph eg) {
             try {
                 return impl.getDeclaredConstructor(Node.class, EnhGraph.class).newInstance(node, eg);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException e) {
                 throw new OntJenaException("Can't create instance of " + impl, e);
+            } catch (InvocationTargetException e) {
+                if (e.getCause() instanceof JenaException) throw (JenaException) e.getCause();
+                throw new OntJenaException("Can't init " + impl, e);
             }
         }
 

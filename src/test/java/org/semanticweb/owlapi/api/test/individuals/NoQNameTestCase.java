@@ -15,16 +15,15 @@ package org.semanticweb.owlapi.api.test.individuals;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.AxiomsRoundTrippingBase;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
+import org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException;
 
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
-import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information
@@ -41,20 +40,43 @@ public class NoQNameTestCase extends TestBase {
      * while store ontology (during {@link org.semanticweb.owlapi.model.OWLOntologyManager#saveOntology}.
      * <p>
      * ONT-API throws an unchecked exception {@link ru.avicomp.ontapi.OntApiException} (caused by {@link org.apache.jena.shared.InvalidPropertyURIException})
-     * while adding axioms (while {@link org.semanticweb.owlapi.model.OWLOntology#addAxioms}).
+     * while adding axioms (during {@link org.semanticweb.owlapi.model.OWLOntology#addAxioms}).
      * So we can't make behaviour the same for ONT-API. And i'm not sure we really need it.
-     *
+     * <p>
      * Therefore this class is not inherited {@link AxiomsRoundTrippingBase} anymore and has only a single testcase.
      */
     @Test
-    public void testCreate() {
+    public void testCreate() throws Exception {
+        if (DEBUG_USE_OWL) {
+            testOWLAPI();
+        } else {
+            testONTAPI();
+        }
+    }
+
+    private void testONTAPI() {
         try {
-            createOntology();
-            throw new AssertionError("Expected an exception specifying that a QName could not be generated");
+            LOGGER.warn("Ontology::{}" + createOntology());
+            Assert.fail("Expected an exception specifying that a QName could not be generated");
         } catch (ru.avicomp.ontapi.OntApiException e) {
             LOGGER.info("Exception:::" + e);
             Throwable cause = e.getCause();
+            LOGGER.info("Cause:::" + cause);
             if (!(cause instanceof org.apache.jena.shared.InvalidPropertyURIException)) {
+                throw e;
+            }
+        }
+    }
+
+    private void testOWLAPI() throws Exception {
+        try {
+            roundTripOntology(createOntology());
+            Assert.fail("Expected an exception specifying that a QName could not be generated");
+        } catch (OWLOntologyStorageException e) {
+            LOGGER.info("Exception:::" + e);
+            Throwable cause = e.getCause();
+            LOGGER.info("Cause:::" + cause);
+            if (!(cause instanceof IllegalElementNameException)) {
                 throw e;
             }
         }
@@ -62,15 +84,13 @@ public class NoQNameTestCase extends TestBase {
 
     protected OWLOntology createOntology() {
         Set<OWLAxiom> axioms = new HashSet<>();
-        OWLNamedIndividual indA = NamedIndividual(IRI(
-                "http://example.com/place/112013e2-df48-4a34-8a9d-99ef572a395A", ""));
-        OWLNamedIndividual indB = NamedIndividual(IRI(
-                "http://example.com/place/112013e2-df48-4a34-8a9d-99ef572a395B", ""));
+        OWLNamedIndividual indA = NamedIndividual(IRI("http://example.com/place/112013e2-df48-4a34-8a9d-99ef572a395A", ""));
+        OWLNamedIndividual indB = NamedIndividual(IRI("http://example.com/place/112013e2-df48-4a34-8a9d-99ef572a395B", ""));
         OWLObjectProperty property = ObjectProperty(IRI("http://example.com/place/123", ""));
         axioms.add(ObjectPropertyAssertion(property, indA, indB));
         OWLOntology ont = getOWLOntology();
         ont.add(axioms);
-        ont.signature().filter(e -> !e.isBuiltIn() && !ont.isDeclared(e, INCLUDED)).forEach(e -> ont.add(Declaration(e)));
+        ont.signature().filter(e -> !e.isBuiltIn() && !ont.isDeclared(e, Imports.INCLUDED)).forEach(e -> ont.add(Declaration(e)));
         return ont;
     }
 

@@ -11,8 +11,10 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.apache.jena.shared.InvalidPropertyURIException;
 import org.apache.jena.shared.PropertyNotFoundException;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -26,6 +28,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by szuev on 03.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     public static Configurable<OntObjectFactory> objectFactory = m ->
@@ -231,18 +234,32 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return view == null ? super.toString() : String.format("%s(%s)", asNode(), toString(view));
     }
 
-    static Node checkNamed(Node res) {
+    public static Node checkNamed(Node res) {
         if (OntJenaException.notNull(res, "Null node").isURI()) {
             return res;
         }
         throw new OntJenaException("Not uri node " + res);
     }
 
-    static Resource checkNamed(Resource res) {
+    public static Resource checkNamed(Resource res) {
         if (OntJenaException.notNull(res, "Null resource").isURIResource()) {
             return res;
         }
         throw new OntJenaException("Not uri resource " + res);
+    }
+
+    /**
+     * To match behaviour of {@link PropertyImpl}
+     *
+     * @param res {@link Resource}, named property candidate
+     * @return {@link Property} the same resource as jena-property
+     * @see PropertyImpl#checkLocalName()
+     */
+    public static Property checkNamedProperty(Resource res) {
+        String localName = OntJenaException.notNull(res, "Null resource").getLocalName();
+        if (localName == null || localName.equals(""))
+            throw new InvalidPropertyURIException(res.getURI());
+        return res.as(Property.class);
     }
 
     @SafeVarargs

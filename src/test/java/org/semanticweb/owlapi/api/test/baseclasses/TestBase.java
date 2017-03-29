@@ -57,13 +57,14 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 @SuppressWarnings({"javadoc", "null"})
 public abstract class TestBase {
 
+    // specify VM option '-Ddebug.use.owl=true' to run "pure" OWL-tests:
     public static final boolean DEBUG_USE_OWL = Boolean.parseBoolean(System.getProperty("debug.use.owl", Boolean.FALSE.toString()));
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(TestBase.class);
     protected static final String uriBase = "http://www.semanticweb.org/owlapi/test";
     protected static OWLDataFactory df;
     protected static OWLOntologyManager masterManager;
-    public static final File RESOURCES = resources();
+    protected static final File RESOURCES = resources();
     protected final OWLOntologyBuilder builder = DEBUG_USE_OWL ? (OWLOntologyBuilder) OWLOntologyImpl::new :
             (m, id) -> new ru.avicomp.ontapi.OntologyModelImpl((ru.avicomp.ontapi.OntologyManager) m, id);
     @Nonnull

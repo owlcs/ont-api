@@ -21,7 +21,8 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 public class OntDPropertyImpl extends OntObjectImpl implements OntNDP {
 
     public OntDPropertyImpl(Node n, EnhGraph g) {
-        super(OntObjectImpl.checkNamed(n), g);
+        super(n, g);
+        checkNamedProperty(this);
     }
 
     @Override

@@ -30,7 +30,8 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     public static class NamedPropertyImpl extends OntOPEImpl implements OntNOP {
 
         public NamedPropertyImpl(Node n, EnhGraph g) {
-            super(OntObjectImpl.checkNamed(n), g);
+            super(n, g);
+            checkNamedProperty(this);
         }
 
         @Override

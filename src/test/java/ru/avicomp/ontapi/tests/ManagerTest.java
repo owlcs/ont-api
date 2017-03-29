@@ -290,7 +290,7 @@ public class ManagerTest {
 
         OntologyModel o1 = m.createOntology();
         OWLClass cl = df.getOWLClass(IRI.create("C"));
-        OWLAnnotationProperty ap = df.getOWLAnnotationProperty(IRI.create("A"));
+        OWLAnnotationProperty ap = df.getOWLAnnotationProperty(IRI.create("http://a"));
         OWLAnnotation a1 = df.getOWLAnnotation(ap, df.getOWLLiteral("assertion1"));
         OWLAnnotation a2 = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("assertion2"));
 
