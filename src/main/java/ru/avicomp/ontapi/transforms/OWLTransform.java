@@ -17,10 +17,9 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * To convert OWL 1 DL => OWL 2 DL
- *
+ * <p>
  * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_RDF_Graphs_to_the_Structural_Specification'>Chapter 3</a>
  * also <a href='https://www.w3.org/TR/owl2-quick-reference/'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
- *
  */
 @SuppressWarnings("WeakerAccess")
 public class OWLTransform extends Transform {
@@ -63,6 +62,7 @@ public class OWLTransform extends Transform {
         // replace owl:DataRange(as deprecated) with rdfs:Datatype (see quick-reference guide)
         changeType(OWL.DataRange, RDFS.Datatype);
 
+        fixInvalidURIs();
         fixOntology();
         fixAxioms();
         if (processIndividuals) {
@@ -93,6 +93,57 @@ public class OWLTransform extends Transform {
         m.remove(rest);
     }
 
+    protected void fixAxioms() {
+        fixClassExpressions();
+        fixPropertyChains();
+    }
+
+    /**
+     * to replace
+     * {@link WRONG_OWL#propertyChain} -> {@link OWL#propertyChainAxiom}
+     * {@link WRONG_OWL#DataProperty} -> {@link OWL#DatatypeProperty}
+     *
+     * @see WRONG_OWL
+     */
+    public void fixInvalidURIs() {
+        Set<Statement> propertyChains = statements(null, OWLTransform.WRONG_OWL.propertyChain, null).collect(Collectors.toSet());
+        propertyChains.forEach(s -> {
+            getBaseModel().remove(s);
+            getBaseModel().add(s.getSubject(), OWL.propertyChainAxiom, s.getObject());
+        });
+        Set<Statement> dataProperties = statements(null, org.apache.jena.vocabulary.RDF.type, OWLTransform.WRONG_OWL.DataProperty).collect(Collectors.toSet());
+        dataProperties.forEach(s -> {
+            getBaseModel().remove(s);
+            getBaseModel().add(s.getSubject(), org.apache.jena.vocabulary.RDF.type, OWL.DatatypeProperty);
+        });
+    }
+
+    /**
+     * As shown by OWL-API-contract SubPropertyChainOfAxiom could be expressed in the following form:
+     * <pre>
+     * [    rdfs:subPropertyOf  :r ;
+     *      owl:propertyChain   ( :p :q )
+     * ] .
+     * </pre>
+     * Unfortunately I could not find specification for this case,
+     * but I believe that this is an example of some rudimental OWL dialect, so it must be fixed here.
+     */
+    public void fixPropertyChains() {
+        Set<Resource> anons = statements(null, OWL.propertyChainAxiom, null)
+                .map(Statement::getSubject)
+                .filter(RDFNode::isAnon)
+                .filter(s -> s.hasProperty(RDFS.subPropertyOf) && s.getPropertyResourceValue(RDFS.subPropertyOf).isURIResource())
+                .filter(s -> s.getPropertyResourceValue(OWL.propertyChainAxiom).canAs(RDFList.class))
+                .collect(Collectors.toSet());
+        anons.forEach(a -> {
+            Resource subj = a.getRequiredProperty(RDFS.subPropertyOf).getObject().asResource();
+            Resource obj = a.getRequiredProperty(OWL.propertyChainAxiom).getObject().asResource();
+            getBaseModel().add(subj, OWL.propertyChainAxiom, obj);
+            getBaseModel().removeAll(a, RDFS.subPropertyOf, null);
+            getBaseModel().removeAll(a, OWL.propertyChainAxiom, null);
+        });
+    }
+
     /**
      * see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Parsing_of_Axioms'>Chapter 3.2.5, Table 18</a>
      * Warning: there is also an interpretation of empty rdf:List as owl:Nothing or owl:Thing in table.
@@ -100,7 +151,7 @@ public class OWLTransform extends Transform {
      * So we skip also fixing for this case.
      * Plus - it works currently only for named owl:Class resources.
      */
-    protected void fixAxioms() {
+    protected void fixClassExpressions() {
         Stream.of(OWL.complementOf, OWL.unionOf, OWL.intersectionOf, OWL.oneOf)
                 .forEach(property -> {
                     Set<Resource> classes = statements(null, property, null)
@@ -129,9 +180,31 @@ public class OWLTransform extends Transform {
         statements.forEach(s -> declare(s.getSubject(), OWL.NamedIndividual));
     }
 
-/*    @Override
-    public boolean test() {
-        return !containsType(OWL.Ontology) || containsType(RDFS.Class) || containsType(RDF.Property) || containsType(OWL.OntologyProperty);
-    }*/
+    /**
+     * Vocabulary with wrong OWL URIs.
+     * As shown by OWL-API-contract-tests the OWL-API ontology could contain inappropriate URIs (properties and resources).
+     * Usually they are in RDF/XML format.
+     * Currently I see only two such cases:
+     * - owl:propertyChain
+     * - owl:DataProperty
+     * There are no such URIs in the OWL2 specification. Instead there are following things:
+     * - owl:propertyChainAxiom
+     * - owl:DatatypeProperty
+     * Unfortunately I could not find documentation about these things.
+     *
+     * @see OWL the correct vocabulary
+     */
+    public static class WRONG_OWL {
+        public final static String NS = OWL.NS;
+        public static final Property propertyChain = property("propertyChain");
+        public static final Resource DataProperty = resource("DataProperty");
 
+        protected static Resource resource(String local) {
+            return ResourceFactory.createResource(NS + local);
+        }
+
+        protected static Property property(String local) {
+            return ResourceFactory.createProperty(NS + local);
+        }
+    }
 }

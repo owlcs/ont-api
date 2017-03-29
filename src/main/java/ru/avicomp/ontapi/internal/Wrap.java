@@ -143,7 +143,7 @@ public class Wrap<O extends OWLObject> {
          * @return {@link Collection} of {@link Wrap}
          */
         public static <O extends OWLObject> Collection<O> create(Stream<Wrap<O>> wrappers) {
-            return new Collection<>(wrappers.collect(Collectors.toSet()));
+            return new Collection<>(wrappers.distinct().collect(Collectors.toList()));
         }
     }
 }
