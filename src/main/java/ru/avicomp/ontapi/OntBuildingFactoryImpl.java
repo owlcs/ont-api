@@ -7,6 +7,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.input.ReaderInputStream;
@@ -21,14 +22,12 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.vocabulary.OWL;
-import org.semanticweb.owlapi.io.DocumentSources;
-import org.semanticweb.owlapi.io.IRIDocumentSource;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.OWLOntologyInputSourceException;
+import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ArrayListMultimap;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
@@ -222,8 +221,10 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 // first expand graphs map by creating primary model:
                 OntologyModel res = OntApiException.notNull(createModel(primary, manager, config), "Should never happen");
                 // then process all the rest dependent models (we have already all graphs compiled, now need populate them as models):
-                graphs.keySet().stream().filter(u -> !Objects.equals(u, primary.getURI())).map(k -> graphs.get(k))
-                        .forEach(c -> createModel(c, manager, config));
+                List<GraphInfo> graphs = this.graphs.keySet().stream().filter(u -> !Objects.equals(u, primary.getURI())).map(k -> this.graphs.get(k)).collect(Collectors.toList());
+                for (GraphInfo c : graphs) {
+                    createModel(c, manager, config);
+                }
                 return res;
             } finally { // the possibility to reuse.
                 graphs.clear();
@@ -237,8 +238,9 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          * @param manager {@link OntologyManager}
          * @param config  {@link OntConfig.LoaderConfiguration}
          * @return {@link OntologyModel}, it is ready to use.
+         * @throws OWLOntologyCreationException
          */
-        protected OntologyModel createModel(GraphInfo info, OntologyManager manager, OntConfig.LoaderConfiguration config) {
+        protected OntologyModel createModel(GraphInfo info, OntologyManager manager, OntConfig.LoaderConfiguration config) throws OWLOntologyCreationException {
             if (!info.isFresh()) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("The ontology <{}> is already configured.", info.name());
@@ -249,7 +251,8 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Set up ontology <{}>.", info.name());
                 }
-                Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config, graphs.size() == 1);
+                boolean doTransform = graphs.size() == 1;
+                Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config, doTransform);
                 OntFormat format = info.getFormat();
                 InternalModel base = new InternalModel(graph, config.getPersonality());
                 base.setLoaderConfig(config);
@@ -257,12 +260,21 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 base.setDataFactory(manager.getOWLDataFactory());
                 OntologyModelImpl ont = new OntologyModelImpl(manager, base);
                 OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.toConcurrentModel() : ont;
+                if (manager.contains(res)) {
+                    throw new OWLOntologyAlreadyExistsException(res.getOntologyID());
+                }
                 ((OntologyManagerImpl) manager).ontologyCreated(res);
                 OWLDocumentFormat owlFormat = format.createOwlFormat();
                 if (PrefixManager.class.isInstance(owlFormat)) {
                     PrefixManager pm = (PrefixManager) owlFormat;
                     graph.getPrefixMapping().getNsPrefixMap().forEach(pm::setPrefix);
                     OntologyManagerImpl.setDefaultPrefix(pm, ont);
+                }
+                if (doTransform) {
+                    // todo: should we pass stats from transforms? do we need it?
+                    OWLOntologyLoaderMetaData fake = new RDFParserMetaData(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, 0,
+                            Collections.emptySet(), ArrayListMultimap.create());
+                    owlFormat.setOntologyLoaderMetaData(fake);
                 }
                 manager.setOntologyFormat(res, owlFormat);
                 return res;

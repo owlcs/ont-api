@@ -54,13 +54,26 @@ public interface OntologyManager extends OWLOntologyManager {
     OntologyModel getOntology(@Nonnull OWLOntologyID id);
 
     /**
-     * see description for {@link #getOntology(IRI)}
+     * See description for {@link #getOntology(IRI)} and be warned!
      *
      * @param iri {@link IRI} the ontology iri or version iri
      * @return true if ontology exists
+     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(IRI)
      */
     @Override
     boolean contains(@Nonnull IRI iri);
+
+    /**
+     * Be warned: this method returns always false for any anonymous id.
+     * For non-anonymous id it performs searching by ontology iri ignoring version iri.
+     * It is to order to make the behaviour the same as OWL-API method.
+     *
+     * @param id {@link OWLOntologyID} the id
+     * @return true if {@code id} is not anonymous and there is an ontology with the same iri as in the specified {@code id}
+     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(OWLOntologyID)
+     */
+    @Override
+    boolean contains(@Nonnull OWLOntologyID id);
 
     @Nullable
     OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration);

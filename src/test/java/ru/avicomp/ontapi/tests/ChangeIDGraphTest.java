@@ -162,7 +162,8 @@ public class ChangeIDGraphTest extends GraphTestBase {
     private static void testIRIChanged(OntologyManager manager, OntologyModel owl, OntGraphModel jena, OWLOntologyID id, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
         debug(owl);
 
-        Assert.assertTrue("Can't find ontology " + id + " by ID", manager.contains(id));
+        if (!id.isAnonymous())
+            Assert.assertTrue("Can't find ontology " + id + " by ID", manager.contains(id));
         Assert.assertTrue("Can't find ontology " + id + " in manager", manager.contains(owl));
         if (id.getOntologyIRI().isPresent()) {
             Assert.assertTrue("Can't find " + id.getOntologyIRI().get() + " in manager", manager.contains(id.getOntologyIRI().get()));

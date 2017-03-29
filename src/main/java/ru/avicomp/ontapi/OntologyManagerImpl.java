@@ -714,7 +714,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * the difference: no skipping for anonymous ids.
      *
      * @param id {@link OWLOntologyID}
      * @return boolean
@@ -724,22 +723,26 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public boolean contains(@Nonnull OWLOntologyID id) {
         getLock().readLock().lock();
         try {
-            return content.contains(id) || content.keys().anyMatch(id::match);
+            return !id.isAnonymous() && (content.contains(id) || content.keys().anyMatch(o -> o.match(id)));
         } finally {
             getLock().readLock().unlock();
         }
     }
 
     /**
-     * the difference: the same as {@link #contains(OWLOntologyID)}
      *
      * @param ontology {@link OWLOntology}
      * @return boolean
-     * @see OWLOntologyManagerImpl#contains(OWLOntologyID)
+     * @see OWLOntologyManagerImpl#contains(OWLOntology)
      */
     @Override
     public boolean contains(@Nonnull OWLOntology ontology) {
-        return contains(ontology.getOntologyID());
+        getLock().readLock().lock();
+        try {
+            return content.values().map(OntInfo::get).anyMatch(o -> Objects.equals(o, ontology));
+        } finally {
+            getLock().readLock().unlock();
+        }
     }
 
     /**
