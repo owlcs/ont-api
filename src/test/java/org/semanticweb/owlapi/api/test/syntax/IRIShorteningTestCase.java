@@ -1,22 +1,25 @@
 package org.semanticweb.owlapi.api.test.syntax;
 
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
+import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.Namespaces;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
-
 /**
  * Created by ses on 6/23/14.
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class IRIShorteningTestCase extends TestBase {
 
@@ -24,33 +27,35 @@ public class IRIShorteningTestCase extends TestBase {
     public void testIriEqualToPrefixNotShortenedInFSS() throws Exception {
         OWLOntology o = createTestOntology();
         String output = saveOntology(o, new FunctionalSyntaxDocumentFormat()).toString();
-        matchExact(output, "NamedIndividual(rdf:)", false);
-        matchExact(output, "NamedIndividual(rdf:type)", true);
+        testMatchExact(output, "NamedIndividual(rdf:)", false);
+        testMatchExact(output, "NamedIndividual(rdf:type)", true);
     }
 
-    public void matchExact(String output, String text, boolean expected) {
+    private void testMatchExact(String output, String text, boolean expected) {
         String message = "should " + (expected ? "" : "not ") + "contain" + text + " - " + output;
-        assertTrue(message, expected == output.contains(text));
+        Assert.assertTrue(message, expected == output.contains(text));
     }
 
     @Test
     public void testIriEqualToPrefixShortenedInTurtle() throws Exception {
         OWLOntology o = createTestOntology();
         String output = saveOntology(o, new TurtleDocumentFormat()).toString();
-        matchRegex(output, "rdf:\\s+rdf:type\\s+owl:NamedIndividual");
-        matchRegex(output, "rdf:type\\s+rdf:type\\s+owl:NamedIndividual");
+        LOGGER.debug(output);
+        Set<String> patterns = Stream.of("%s\\s+rdf:type\\s+%s", "%s\\s+a\\s+%s").collect(Collectors.toSet());
+        Stream.of("rdf:", "rdf:type").forEach(test ->
+                Assert.assertTrue("Can't find <" + test + "> named individual",
+                        patterns.stream().anyMatch(p -> matchRegex(output, String.format(p, test, "owl:NamedIndividual")))));
     }
 
-    public void matchRegex(String output, String regex) {
+    public boolean matchRegex(String output, String regex) {
         Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
         Matcher matcher = pattern.matcher(output);
-        boolean found = matcher.find();
-        assertTrue("should  contain " + regex + " - " + output, found);
+        return matcher.find();
     }
 
     private OWLOntology createTestOntology() {
         OWLOntology o = getOWLOntology();
-        OWLNamedIndividual i = df.getOWLNamedIndividual(IRI(Namespaces.RDF.getPrefixIRI(), ""));
+        OWLNamedIndividual i = df.getOWLNamedIndividual(OWLFunctionalSyntaxFactory.IRI(Namespaces.RDF.getPrefixIRI(), ""));
         o.add(df.getOWLDeclarationAxiom(i));
         i = df.getOWLNamedIndividual(OWLRDFVocabulary.RDF_TYPE);
         o.add(df.getOWLDeclarationAxiom(i));
@@ -60,8 +65,9 @@ public class IRIShorteningTestCase extends TestBase {
     @Test
     public void shouldOutputURNsCorrectly() throws OWLOntologyCreationException, OWLOntologyStorageException {
         OWLOntology o = m.createOntology(IRI.create("urn:ontology:", "test"));
-        o.add(df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty("urn:test#", "p"), df.getOWLNamedIndividual(
-                "urn:test#", "test"), df.getOWLNamedIndividual("urn:other:", "test")));
+        o.add(df.getOWLObjectPropertyAssertionAxiom(
+                df.getOWLObjectProperty("urn:test#", "p"),
+                df.getOWLNamedIndividual("urn:test#", "test"), df.getOWLNamedIndividual("urn:other:", "test")));
         equal(o, roundTrip(o));
     }
 }

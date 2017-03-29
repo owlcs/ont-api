@@ -14,7 +14,10 @@ package org.semanticweb.owlapi.api.test.annotations;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
@@ -23,65 +26,71 @@ import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health
  *         Informatics Group
  * @since 3.1.0
  */
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class LoadAnnotationAxiomsTestCase extends TestBase {
 
-    @Test
-    public void testIgnoreAnnotations() throws Exception {
-        OWLOntology ont = getOWLOntology();
+    private OWLOntology createOntology() {
+        OWLOntology res = getOWLOntology();
         OWLClass clsA = Class(IRI("http://ont.com#", "A"));
         OWLClass clsB = Class(IRI("http://ont.com#", "B"));
         OWLSubClassOfAxiom sca = SubClassOf(clsA, clsB);
-        ont.add(sca);
+        res.add(sca);
         OWLAnnotationProperty rdfsComment = RDFSComment();
         OWLLiteral lit = Literal("Hello world");
         OWLAnnotationAssertionAxiom annoAx1 = AnnotationAssertion(rdfsComment, clsA.getIRI(), lit);
-        ont.add(annoAx1);
+        res.add(annoAx1);
         OWLAnnotationPropertyDomainAxiom annoAx2 = df.getOWLAnnotationPropertyDomainAxiom(rdfsComment, clsA.getIRI());
-        ont.add(annoAx2);
+        res.add(annoAx2);
         OWLAnnotationPropertyRangeAxiom annoAx3 = df.getOWLAnnotationPropertyRangeAxiom(rdfsComment, clsB.getIRI());
-        ont.add(annoAx3);
+        res.add(annoAx3);
         OWLAnnotationProperty myComment = AnnotationProperty(IRI("http://ont.com#", "myComment"));
         OWLSubAnnotationPropertyOfAxiom annoAx4 = df.getOWLSubAnnotationPropertyOfAxiom(myComment, rdfsComment);
-        ont.add(annoAx4);
+        res.add(annoAx4);
+        return res;
+    }
+
+    @Test
+    public void testIgnoreAnnotations() throws Exception {
+        OWLOntology ont = createOntology();
         reload(ont, new RDFXMLDocumentFormat());
         reload(ont, new OWLXMLDocumentFormat());
         reload(ont, new TurtleDocumentFormat());
         reload(ont, new FunctionalSyntaxDocumentFormat());
     }
 
-    private void reload(OWLOntology ontology, OWLDocumentFormat format) throws OWLOntologyStorageException,
-            OWLOntologyCreationException {
-        Set<OWLAxiom> axioms = asUnorderedSet(ontology.axioms());
-        Set<OWLAxiom> annotationAxioms = asUnorderedSet(axioms.stream().filter(OWLAxiom::isAnnotationAxiom));
-        OWLOntologyLoaderConfiguration withAnnosConfig = new OWLOntologyLoaderConfiguration();
-        OWLOntology reloadedWithAnnoAxioms = reload(ontology, format, withAnnosConfig);
-        Set<OWLAxiom> axioms2 = asUnorderedSet(reloadedWithAnnoAxioms.axioms());
-        assertEquals(axioms, axioms2);
-        OWLOntologyLoaderConfiguration withoutAnnosConfig = new OWLOntologyLoaderConfiguration()
-                .setLoadAnnotationAxioms(false);
-        OWLOntology reloadedWithoutAnnoAxioms = reload(ontology, format, withoutAnnosConfig);
-        assertFalse(axioms.equals(asUnorderedSet(reloadedWithoutAnnoAxioms.axioms())));
+    private void reload(OWLOntology ontology, OWLDocumentFormat format) throws Exception {
+        LOGGER.info("The format is [" + format.getClass().getSimpleName() + "]");
+        OWLOntologyLoaderConfiguration withAnnotationsConfig = new OWLOntologyLoaderConfiguration();
+        OWLOntologyLoaderConfiguration withoutAnnotationsConfig = withAnnotationsConfig.setLoadAnnotationAxioms(false);
+
+        Set<OWLAxiom> axioms = ontology.axioms().filter(notDeclaration()).collect(Collectors.toSet());
+        Set<OWLAxiom> annotationAxioms = axioms.stream().filter(OWLAxiom::isAnnotationAxiom).collect(Collectors.toSet());
+
+        OWLOntology o1 = reload(ontology, format, withAnnotationsConfig);
+        Set<OWLAxiom> axioms2 = o1.axioms().filter(notDeclaration()).collect(Collectors.toSet());
+        Assert.assertEquals("Incorrect axioms for config with loaded annotations", axioms, axioms2);
+        OWLOntology o2 = reload(ontology, format, withoutAnnotationsConfig);
+        Assert.assertFalse("The same axioms after reloading", axioms.equals(o2.axioms().filter(notDeclaration()).collect(Collectors.toSet())));
         Set<OWLAxiom> axiomsMinusAnnotationAxioms = new HashSet<>(axioms);
         axiomsMinusAnnotationAxioms.removeAll(annotationAxioms);
-        assertEquals(axiomsMinusAnnotationAxioms, asUnorderedSet(reloadedWithoutAnnoAxioms.axioms()));
+        Assert.assertEquals("Incorrect axioms for config without loaded annotations", axiomsMinusAnnotationAxioms,
+                o2.axioms().filter(notDeclaration()).collect(Collectors.toSet()));
     }
 
-    private OWLOntology reload(OWLOntology ontology, OWLDocumentFormat format,
-                               OWLOntologyLoaderConfiguration configuration) throws OWLOntologyStorageException, OWLOntologyCreationException {
-        OWLOntology reloaded = loadOntologyWithConfig(saveOntology(ontology, format), configuration);
-        reloaded.remove(reloaded.axioms(AxiomType.DECLARATION));
-        return reloaded;
+    private static Predicate<OWLAxiom> notDeclaration() {
+        return a -> !AxiomType.DECLARATION.equals(a.getAxiomType());
+    }
+
+    private OWLOntology reload(OWLOntology ontology, OWLDocumentFormat format, OWLOntologyLoaderConfiguration conf) throws Exception {
+        return loadOntologyWithConfig(saveOntology(ontology, format), conf);
     }
 }
