@@ -17,7 +17,6 @@ import org.semanticweb.owlapi.reasoner.BufferingMode;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasoner;
 import org.semanticweb.owlapi.search.Searcher;
-import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
 import com.google.common.collect.Sets;
@@ -31,14 +30,14 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Integ
 @SuppressWarnings("javadoc")
 public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
 
-    protected OWLDataProperty dp = OWLFunctionalSyntaxFactory.DataProperty(iri("p"));
-    protected OWLClass clA = Class(iri("A"));
-    protected OWLObjectProperty or = OWLFunctionalSyntaxFactory.ObjectProperty(iri("r"));
-    protected OWLObjectProperty oq = OWLFunctionalSyntaxFactory.ObjectProperty(iri("q"));
-    protected OWLObjectProperty op = OWLFunctionalSyntaxFactory.ObjectProperty(iri("p"));
-    protected OWLDatatype dt = OWLFunctionalSyntaxFactory.Datatype(iri("B"));
-    protected OWLClass clB = OWLFunctionalSyntaxFactory.Class(iri("B"));
-    protected OWLClass classC = OWLFunctionalSyntaxFactory.Class(iri("C"));
+    private OWLDataProperty dp = OWLFunctionalSyntaxFactory.DataProperty(iri("p"));
+    private OWLClass clA = Class(iri("A"));
+    private OWLObjectProperty or = OWLFunctionalSyntaxFactory.ObjectProperty(iri("r"));
+    private OWLObjectProperty oq = OWLFunctionalSyntaxFactory.ObjectProperty(iri("q"));
+    private OWLObjectProperty op = OWLFunctionalSyntaxFactory.ObjectProperty(iri("p"));
+    private OWLDatatype dt = OWLFunctionalSyntaxFactory.Datatype(iri("B"));
+    private OWLClass clB = OWLFunctionalSyntaxFactory.Class(iri("B"));
+    private OWLClass classC = OWLFunctionalSyntaxFactory.Class(iri("C"));
 
     protected void assertEqualsSet(String ontology, OWLAxiom... axioms) {
         Set<OWLAxiom> expected = Sets.newHashSet(axioms);
@@ -67,7 +66,7 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         OWLNamedIndividual object = OWLFunctionalSyntaxFactory.NamedIndividual(IRI("http://Example.com#", "myLocation"));
         OWLAxiom ax = ObjectPropertyAssertion(predicate, subject, object);
         Assert.assertTrue(ontology.containsAxiom(ax, Imports.EXCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS));
-        Set<OWLAxiom> axioms = OWLAPIStreamUtils.asUnorderedSet(ontology.axiomsIgnoreAnnotations(ax, Imports.EXCLUDED));
+        Set<OWLAxiom> axioms = ontology.axiomsIgnoreAnnotations(ax, Imports.EXCLUDED).collect(Collectors.toSet());
         Assert.assertEquals(1, axioms.size());
         OWLAxiom theAxiom = axioms.iterator().next();
         Assert.assertTrue(theAxiom.isAnnotated());
@@ -307,7 +306,7 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
     @Test
     public void testParsedAxiomsSubClassOfUntypedOWLClass() {
         OWLOntology ontology = ontologyFromClasspathFile("SubClassOfUntypedOWLClass.rdf");
-        List<OWLSubClassOfAxiom> axioms = OWLAPIStreamUtils.asList(ontology.axioms(AxiomType.SUBCLASS_OF));
+        List<OWLSubClassOfAxiom> axioms = ontology.axioms(AxiomType.SUBCLASS_OF).collect(Collectors.toList());
         Assert.assertEquals(1, axioms.size());
         OWLSubClassOfAxiom ax = axioms.iterator().next();
         OWLClass subCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "A"));
@@ -316,11 +315,34 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         Assert.assertEquals(supCls, ax.getSuperClass());
     }
 
+    /**
+     * There is the following RDF snippet:
+     * <pre>
+     * <http://www.semanticweb.org/owlapi/test#A>
+     *      a               owl:Class ;
+     *      rdfs:subClassOf [ a                     owl:Restriction ;
+     *                        owl:onProperty        <http://www.semanticweb.org/owlapi/test#P> ;
+     *                        owl:someValuesFrom    <http://www.semanticweb.org/owlapi/test#C>
+     *                      ] .
+     * </pre>
+     * OWL-API treats it as object property restriction (existential).
+     * But really there is nothing in the graph to make such a conclusion, it could be data property restriction as well.
+     * ONT-API leaves untouched such implicit constructions.
+     * In order to make test passed there is a hack: we add explicit declaration to one of the entities before loading.
+     */
     @Test
-    public void testParsedAxiomsSubClassOfUntypedSomeValuesFrom() {
+    public void testParsedAxiomsSubClassOfUntypedSomeValuesFrom() throws Exception {
         OWLOntology ontology = ontologyFromClasspathFile("SubClassOfUntypedSomeValuesFrom.rdf");
+        OWLOntologyManager m = ontology.getOWLOntologyManager();
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
-        List<OWLSubClassOfAxiom> axioms = OWLAPIStreamUtils.asList(ontology.axioms(AxiomType.SUBCLASS_OF));
+        if (!DEBUG_USE_OWL) {
+            ((ru.avicomp.ontapi.OntologyModel) ontology).asGraphModel()
+                    .createResource("http://www.semanticweb.org/owlapi/test#P")
+                    .addProperty(org.apache.jena.vocabulary.RDF.type, ru.avicomp.ontapi.jena.vocabulary.OWL.ObjectProperty);
+            ontology = m.loadOntologyFromOntologyDocument(ru.avicomp.ontapi.utils.ReadWriteUtils.toInputStream(ontology, ru.avicomp.ontapi.OntFormat.TURTLE));
+            Assert.assertEquals("Expected two ontologies", 2, m.ontologies().count());
+        }
+        List<OWLSubClassOfAxiom> axioms = ontology.axioms(AxiomType.SUBCLASS_OF).collect(Collectors.toList());
         Assert.assertEquals(1, axioms.size());
         OWLSubClassOfAxiom ax = axioms.iterator().next();
         OWLClass subCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "A"));

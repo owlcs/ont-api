@@ -723,7 +723,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public boolean contains(@Nonnull OWLOntologyID id) {
         getLock().readLock().lock();
         try {
-            return !id.isAnonymous() && (content.contains(id) || content.keys().anyMatch(o -> o.match(id)));
+            return !id.isAnonymous() && (content.contains(id) || content.keys().anyMatch(id::match));
         } finally {
             getLock().readLock().unlock();
         }

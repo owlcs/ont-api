@@ -15,6 +15,7 @@ package org.semanticweb.owlapi.api.test.literals;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.OWLDatatype;
@@ -22,8 +23,7 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
-import static org.junit.Assert.*;
-
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class TestCornerCasesTestCase extends TestBase {
 
@@ -33,7 +33,7 @@ public class TestCornerCasesTestCase extends TestBase {
         OWLDatatype type = df.getFloatOWLDatatype();
         OWLLiteral lit1 = df.getOWLLiteral("0.0", type);
         OWLLiteral lit2 = df.getOWLLiteral("-0.0", type);
-        assertFalse(lit1.equals(lit2));
+        Assert.assertFalse(lit1.equals(lit2));
     }
 
     @Test
@@ -41,7 +41,7 @@ public class TestCornerCasesTestCase extends TestBase {
         String expected = "2147483648";
         OWLDatatype type = df.getIntegerOWLDatatype();
         OWLLiteral lit = df.getOWLLiteral(expected, type);
-        assertEquals(expected, lit.getLiteral());
+        Assert.assertEquals(expected, lit.getLiteral());
     }
 
     @Test
@@ -55,9 +55,15 @@ public class TestCornerCasesTestCase extends TestBase {
         OWLDatatype type = df.getIntegerOWLDatatype();
         OWLLiteral lit1 = df.getOWLLiteral("01", type);
         OWLLiteral lit2 = df.getOWLLiteral("1", type);
-        assertFalse(lit1.equals(lit2));
+        Assert.assertFalse(lit1.equals(lit2));
     }
 
+    /**
+     * ONT-API loads all axioms which could be read from the graph.
+     * The Declaration of NamedIndividuals is not an exceptional case.
+     *
+     * @throws OWLOntologyCreationException
+     */
     @Test
     public void testWebOnt() throws OWLOntologyCreationException {
         String s = "<!DOCTYPE rdf:RDF [\n   <!ENTITY xsd \"http://www.w3.org/2001/XMLSchema#\">\n   <!ENTITY rdf \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n]>\n"
@@ -68,15 +74,17 @@ public class TestCornerCasesTestCase extends TestBase {
                 + " <owl:Thing rdf:ID=\"i\"><rdf:type><owl:Restriction><owl:onProperty rdf:resource=\"#p\"/><owl:minCardinality rdf:datatype=\"&xsd;int\">1</owl:minCardinality></owl:Restriction></rdf:type></owl:Thing>\n"
                 + "</rdf:RDF>";
         Set<String> expected = new TreeSet<>();
-        expected.add(
-                "DataPropertyRange(<http://www.w3.org/2002/03owlt/oneOf/premises004#p> DataOneOf(\"1\"^^xsd:integer \"2\"^^xsd:integer \"3\"^^xsd:integer \"4\"^^xsd:integer ))");
+        expected.add("DataPropertyRange(<http://www.w3.org/2002/03owlt/oneOf/premises004#p> DataOneOf(\"1\"^^xsd:integer \"2\"^^xsd:integer \"3\"^^xsd:integer \"4\"^^xsd:integer ))");
         expected.add("Declaration(DataProperty(<http://www.w3.org/2002/03owlt/oneOf/premises004#p>))");
         expected.add("ClassAssertion(owl:Thing <http://www.w3.org/2002/03owlt/oneOf/premises004#i>)");
-        expected.add(
-                "DataPropertyRange(<http://www.w3.org/2002/03owlt/oneOf/premises004#p> DataOneOf(\"4\"^^xsd:integer \"5\"^^xsd:integer \"6\"^^xsd:integer ))");
-        expected.add(
-                "ClassAssertion(DataMinCardinality(1 <http://www.w3.org/2002/03owlt/oneOf/premises004#p> rdfs:Literal) <http://www.w3.org/2002/03owlt/oneOf/premises004#i>)");
+        expected.add("DataPropertyRange(<http://www.w3.org/2002/03owlt/oneOf/premises004#p> DataOneOf(\"4\"^^xsd:integer \"5\"^^xsd:integer \"6\"^^xsd:integer ))");
+        expected.add("ClassAssertion(DataMinCardinality(1 <http://www.w3.org/2002/03owlt/oneOf/premises004#p> rdfs:Literal) <http://www.w3.org/2002/03owlt/oneOf/premises004#i>)");
+        if (!DEBUG_USE_OWL) {
+            expected.add("Declaration(NamedIndividual(<http://www.w3.org/2002/03owlt/oneOf/premises004#i>))");
+        }
         OWLOntology o = loadOntologyFromString(s);
+        LOGGER.debug("Axioms:");
+        o.axioms().forEach(a -> LOGGER.debug("{}", a));
         Set<String> result = new TreeSet<>();
         o.axioms().forEach(ax -> result.add(ax.toString()));
         if (!result.equals(expected)) {
@@ -87,7 +95,7 @@ public class TestCornerCasesTestCase extends TestBase {
             Set<String> s2 = new TreeSet<>(expected);
             s2.removeAll(intersection);
         }
-        assertEquals("Sets were supposed to be equal", result, expected);
+        Assert.assertEquals("Sets were supposed to be equal", result, expected);
     }
 
     @Test
@@ -99,7 +107,7 @@ public class TestCornerCasesTestCase extends TestBase {
                 + "DataSomeValuesFrom(:dp DataOneOf(\"-INF\"^^xsd:float \"-0\"^^xsd:integer))"
                 + "\n)\nClassAssertion(:A :a))";
         OWLOntology o = loadOntologyFromString(input);
-        assertTrue(saveOntology(o).toString().contains("-INF"));
+        Assert.assertTrue(saveOntology(o).toString().contains("-INF"));
         OWLOntology o1 = roundTrip(o);
         equal(o, o1);
     }
@@ -113,7 +121,7 @@ public class TestCornerCasesTestCase extends TestBase {
                 + "DataSomeValuesFrom(:dp DataOneOf(\"-INF\"^^xsd:float \"-0\"^^xsd:integer))" + "\n)" + '\n'
                 + "ClassAssertion(:A :a)" + "\n)";
         OWLOntology o = loadOntologyFromString(input);
-        assertTrue(saveOntology(o).toString().contains("-INF"));
+        Assert.assertTrue(saveOntology(o).toString().contains("-INF"));
         OWLOntology o1 = roundTrip(o);
         equal(o, o1);
     }
