@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.internal;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
@@ -64,8 +65,9 @@ public class WriteHelper {
         return ResourceFactory.createProperty(OntApiException.notNull(iri, "Null iri").getIRIString());
     }
 
-    public static Literal toLiteral(OWLLiteral literal) {
-        return new LiteralImpl(toLiteralNode(literal), null);
+    public static Literal toLiteral(OWLLiteral owlLiteral) {
+        Node node = toLiteralNode(owlLiteral.getLiteral(), owlLiteral.getLang(), owlLiteral.getDatatype().getIRI().getIRIString());
+        return new LiteralImpl(node, null);
     }
 
     public static Resource getType(OWLEntity entity) {
@@ -190,7 +192,7 @@ public class WriteHelper {
     }
 
     public static OntFR addFacetRestriction(OntGraphModel model, OWLFacetRestriction fr) {
-        return model.createFacetRestriction(getFRView(fr.getFacet()), toLiteral(fr.getFacetValue()));
+        return model.createFacetRestriction(getFRView(fr.getFacet()), addLiteral(model, fr.getFacetValue()));
     }
 
     public static OntCE addClassExpression(OntGraphModel model, OWLClassExpression ce) {
@@ -236,6 +238,9 @@ public class WriteHelper {
     public static RDFNode addRDFNode(OntGraphModel model, OWLObject o) {
         if (OWLEntity.class.isInstance(o)) {
             return addOntEntity(model, (OWLEntity) o);
+        }
+        if (OWLLiteral.class.isInstance(o)) {
+            return addLiteral(model, (OWLLiteral) o);
         }
         if (OWLObjectInverseOf.class.isInstance(o)) {
             return addInverseOf(model, (OWLObjectInverseOf) o);
@@ -337,17 +342,18 @@ public class WriteHelper {
         throw new OntApiException("Unsupported property-expression: " + expression);
     }
 
-    public static Node toLiteralNode(OWLLiteral owlLiteral) {
-        return toLiteralNode(owlLiteral.getLiteral(), owlLiteral.getLang(), owlLiteral.getDatatype().getIRI());
-    }
-
-    public static Node toLiteralNode(String value, String lang, String datatypeURI) {
-        RDFDatatype type = TypeMapper.getInstance().getTypeByName(datatypeURI);
+    private static Node toLiteralNode(String value, String lang, String dtURI) {
+        RDFDatatype type = TypeMapper.getInstance().getTypeByName(dtURI);
+        if (type == null) {
+            type = new BaseDatatype(dtURI);
+        }
         return NodeFactory.createLiteral(value, lang, type);
     }
 
-    public static Node toLiteralNode(String value, String lang, IRI dataTypeIRI) {
-        return toLiteralNode(value, lang, dataTypeIRI.getIRIString());
+    public static Literal addLiteral(OntGraphModel model, OWLLiteral literal) {
+        OWLDatatype owl = literal.getDatatype();
+        OntDT dt = addDataRange(model, owl).as(OntDT.class);
+        return model.asRDFNode(toLiteralNode(literal.getLiteral(), literal.getLang(), dt.getURI())).asLiteral();
     }
 
     /**
@@ -437,7 +443,7 @@ public class WriteHelper {
         ONE_OF(DataRangeType.DATA_ONE_OF, new Translator<OWLDataOneOf, OntDR.OneOf>() {
             @Override
             OntDR.OneOf translate(OntGraphModel model, OWLDataOneOf expression) {
-                return model.createOneOfDataRange(expression.values().map(WriteHelper::toLiteral).collect(Collectors.toList()));
+                return model.createOneOfDataRange(expression.values().map(l -> addLiteral(model, l)).collect(Collectors.toList()));
             }
         }),
         RESTRICTION(DataRangeType.DATATYPE_RESTRICTION, new Translator<OWLDatatypeRestriction, OntDR.Restriction>() {
@@ -586,7 +592,7 @@ public class WriteHelper {
             @Override
             OntCE.DataHasValue translate(OntGraphModel model, OWLDataHasValue expression) {
                 OntNDP p = addDataProperty(model, expression.getProperty());
-                Literal l = toLiteral(expression.getFiller());
+                Literal l = addLiteral(model, expression.getFiller());
                 return model.createDataHasValue(p, l);
             }
         }),

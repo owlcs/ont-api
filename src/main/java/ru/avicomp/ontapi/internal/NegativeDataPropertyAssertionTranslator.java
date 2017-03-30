@@ -15,7 +15,7 @@ class NegativeDataPropertyAssertionTranslator extends AbstractNegativePropertyAs
     @Override
     OntNPA.DataAssertion createNPA(OWLNegativeDataPropertyAssertionAxiom axiom, OntGraphModel model) {
         return WriteHelper.addDataProperty(model, axiom.getProperty())
-                .addNegativeAssertion(WriteHelper.addIndividual(model, axiom.getSubject()), WriteHelper.toLiteral(axiom.getObject()));
+                .addNegativeAssertion(WriteHelper.addIndividual(model, axiom.getSubject()), WriteHelper.addLiteral(model, axiom.getObject()));
     }
 
     @Override

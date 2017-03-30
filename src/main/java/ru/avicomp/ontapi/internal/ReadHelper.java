@@ -124,15 +124,22 @@ public class ReadHelper {
      * @param df      {@link OWLDataFactory}
      * @return {@link Wrap}
      */
+    @SuppressWarnings("unchecked")
     public static Wrap<OWLLiteral> getLiteral(Literal literal, OWLDataFactory df) {
         String txt = OntApiException.notNull(literal, "Null literal").getLexicalForm();
         String lang = literal.getLanguage();
-        OWLDatatype dt = df.getOWLDatatype(IRI.create(literal.getDatatypeURI()));
         if (lang != null && !lang.isEmpty()) {
             txt = txt + "@" + lang;
         }
-        OWLLiteral res = df.getOWLLiteral(txt, dt);
-        return Wrap.create(res, Stream.empty());
+        OntDT dt = literal.getModel().getResource(literal.getDatatypeURI()).as(OntDT.class);
+        Wrap<OWLDatatype> owl;
+        if (dt.isBuiltIn()) {
+            owl = Wrap.create(df.getOWLDatatype(IRI.create(dt.getURI())), Stream.empty());
+        } else {
+            owl = (Wrap<OWLDatatype>) getDataRange(dt, df);
+        }
+        OWLLiteral res = df.getOWLLiteral(txt, owl.getObject());
+        return Wrap.create(res, Stream.empty()).append(owl);
     }
 
     public static Wrap<IRI> wrapIRI(OntObject object) {
