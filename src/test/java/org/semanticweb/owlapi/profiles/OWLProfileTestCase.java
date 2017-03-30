@@ -57,13 +57,15 @@ public class OWLProfileTestCase extends TestBase {
     public void setupManagersClean() {
         super.setupManagersClean();
         if (!DEBUG_USE_OWL) {
-            ru.avicomp.ontapi.OntConfig.LoaderConfiguration conf = ((ru.avicomp.ontapi.OntologyManager) m).getOntologyLoaderConfiguration();
-            m.setOntologyLoaderConfiguration(conf.setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX));
+            // allow illegal punnings
+            ru.avicomp.ontapi.OntConfig.LoaderConfiguration conf = ((ru.avicomp.ontapi.OntologyManager) m).getOntologyLoaderConfiguration()
+                    .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX);
+            m.setOntologyLoaderConfiguration(conf);
         }
         try {
             o = getOWLOntology(onto);
         } catch (OWLOntologyCreationException e) {
-            throw new OWLRuntimeException(e);
+            throw new AssertionError("Exception", e);
         }
     }
 
@@ -85,7 +87,9 @@ public class OWLProfileTestCase extends TestBase {
     }
 
     private void runAssert(OWLOntology ontology, OWLProfile profile, int expected, Class[] expectedViolations) {
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
         List<OWLProfileViolation> violations = profile.checkOntology(ontology).getViolations();
+        violations.forEach(v -> LOGGER.debug("Violation: [{}]", v));
         Assert.assertEquals(violations.toString(), expected, violations.size());
         checkInCollection(violations, expectedViolations);
         for (OWLProfileViolation violation : violations) {
@@ -286,9 +290,12 @@ public class OWLProfileTestCase extends TestBase {
     public void shouldCreateViolationForOWLEquivalentClassesAxiomInOWL2DLProfile() {
         declare(o, OP);
         o.add(EquivalentClasses());
-        int expected = 1;
-        Class[] expectedViolations = {InsufficientOperands.class};
-        runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        if (DEBUG_USE_OWL) {
+            runAssert(o, Profiles.OWL2_DL, 1, Stream.of(InsufficientOperands.class).toArray(Class[]::new));
+        } else {
+            // ONT-API: no possibility to add axiom which has no any triples.
+            Assert.assertTrue("Ontology is not valid...", Profiles.OWL2_DL.checkOntology(o).isInProfile());
+        }
     }
 
     @Test
@@ -296,9 +303,16 @@ public class OWLProfileTestCase extends TestBase {
     public void shouldCreateViolationForOWLDisjointClassesAxiomInOWL2DLProfile() {
         declare(o, OP);
         o.add(DisjointClasses());
-        int expected = 1;
-        Class[] expectedViolations = {InsufficientOperands.class};
-        runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        if (DEBUG_USE_OWL) {
+            int expected = 1;
+            Class[] expectedViolations = {InsufficientOperands.class};
+            runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        } else {
+            // In ONT-API there is no possibility to add or read empty owl:disjointWith axiom.
+            // Although it is possible to create section "_:x rdf:type owl:AllDisjointClasses. _:x owl:members rdf:nil.",
+            // but it doesn't make sense and disabled in API. So nothing to check
+            Assert.assertTrue("Ontology is not valid...", Profiles.OWL2_DL.checkOntology(o).isInProfile());
+        }
     }
 
     @Test
@@ -318,27 +332,42 @@ public class OWLProfileTestCase extends TestBase {
     @Tests(method = "public Object visit(OWLEquivalentObjectPropertiesAxiom node)")
     public void shouldCreateViolationForOWLEquivalentObjectPropertiesAxiomInOWL2DLProfile() {
         o.add(EquivalentObjectProperties());
-        int expected = 1;
-        Class[] expectedViolations = {InsufficientPropertyExpressions.class};
-        runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        if (DEBUG_USE_OWL) {
+            int expected = 1;
+            Class[] expectedViolations = {InsufficientPropertyExpressions.class};
+            runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        } else {
+            // in ONT-API there is no possibility to add or read empty owl:equivalentProperty axiom
+            Assert.assertTrue("Ontology is not valid...", Profiles.OWL2_DL.checkOntology(o).isInProfile());
+        }
     }
 
     @Test
     @Tests(method = "public Object visit(OWLDisjointDataPropertiesAxiom node)")
     public void shouldCreateViolationForOWLDisjointDataPropertiesAxiomInOWL2DLProfile() {
         o.add(DisjointDataProperties());
-        int expected = 1;
-        Class[] expectedViolations = {InsufficientPropertyExpressions.class};
-        runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        if (DEBUG_USE_OWL) {
+            int expected = 1;
+            Class[] expectedViolations = {InsufficientPropertyExpressions.class};
+            runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        } else {
+            // In ONT-API there is no possibility to add or read empty owl:propertyDisjointWith axiom.
+            // Although it is possible to create section "_:x rdf:type owl:AllDisjointProperties. _:x owl:members rdf:nil.",
+            // but it doesn't make sense and disabled in API. So nothing to check
+            Assert.assertTrue("Ontology is not valid...", Profiles.OWL2_DL.checkOntology(o).isInProfile());
+        }
     }
 
     @Test
     @Tests(method = "public Object visit(OWLEquivalentDataPropertiesAxiom node)")
     public void shouldCreateViolationForOWLEquivalentDataPropertiesAxiomInOWL2DLProfile() {
         o.add(EquivalentDataProperties());
-        int expected = 1;
-        Class[] expectedViolations = {InsufficientPropertyExpressions.class};
-        runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        if (DEBUG_USE_OWL) {
+            runAssert(o, Profiles.OWL2_DL, 1, Stream.of(InsufficientPropertyExpressions.class).toArray(Class[]::new));
+        } else {
+            // in ONT-API there is no possibility to add or read empty owl:equivalentProperty axiom
+            Assert.assertTrue("Ontology is not valid...", Profiles.OWL2_DL.checkOntology(o).isInProfile());
+        }
     }
 
     @Test
@@ -355,18 +384,30 @@ public class OWLProfileTestCase extends TestBase {
     @Tests(method = "public Object visit(OWLSameIndividualAxiom node)")
     public void shouldCreateViolationForOWLSameIndividualAxiomInOWL2DLProfile() {
         o.add(SameIndividual());
-        int expected = 1;
-        Class[] expectedViolations = {InsufficientIndividuals.class};
-        runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        if (DEBUG_USE_OWL) {
+            int expected = 1;
+            Class[] expectedViolations = {InsufficientIndividuals.class};
+            runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        } else {
+            // In ONT-API there is no possibility to add(or read) empty owl:sameAs axiom.
+            Assert.assertTrue("Ontology is not valid...", Profiles.OWL2_DL.checkOntology(o).isInProfile());
+        }
     }
 
     @Test
     @Tests(method = "public Object visit(OWLDifferentIndividualsAxiom node)")
     public void shouldCreateViolationForOWLDifferentIndividualsAxiomInOWL2DLProfile() {
         o.add(DifferentIndividuals());
-        int expected = 1;
-        Class[] expectedViolations = {InsufficientIndividuals.class};
-        runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        if (DEBUG_USE_OWL) {
+            int expected = 1;
+            Class[] expectedViolations = {InsufficientIndividuals.class};
+            runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
+        } else {
+            // In ONT-API there is no possibility to add or read empty owl:differentFrom axiom.
+            // Although it is possible to create section "_:x rdf:type owl:AllDifferent. _:x owl:members rdf:nil.",
+            // it doesn't make sense and disabled in API. So nothing to check
+            Assert.assertTrue("Ontology is not valid...", Profiles.OWL2_DL.checkOntology(o).isInProfile());
+        }
     }
 
     @Test
