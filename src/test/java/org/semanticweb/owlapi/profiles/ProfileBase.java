@@ -2,9 +2,10 @@ package org.semanticweb.owlapi.profiles;
 
 import org.junit.Assert;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
+import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLRuntimeException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 
 @ru.avicomp.ontapi.utils.ModifiedForONTApi
@@ -12,13 +13,17 @@ import org.semanticweb.owlapi.model.OWLRuntimeException;
 public class ProfileBase extends TestBase {
 
     protected void test(String in, boolean el, boolean ql, boolean rl, boolean dl) {
+        test(setupManager(), in, el, ql, rl, dl);
+    }
+
+    protected void test(OWLOntologyManager m, String in, boolean el, boolean ql, boolean rl, boolean dl) {
         try {
             LOGGER.trace("Input: " + in);
             LOGGER.debug(String.format("Expected parameters: EL=%s, QL=%s, RL=%s, DL=%s", el, ql, rl, dl));
-            OWLOntology o = loadOntologyFromString(in);
+            OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(in));
             ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
             o.axioms().forEach(a -> LOGGER.debug(String.valueOf(a)));
-            Assert.assertTrue("Empty ontology", o.axioms().count() > 0);
+            Assert.assertTrue("Empty axioms list", o.axioms().count() > 0);
             OWLProfileReport OWL2_EL = Profiles.OWL2_EL.checkOntology(o);
             OWLProfileReport OWL2_QL = Profiles.OWL2_QL.checkOntology(o);
             OWLProfileReport OWL2_RL = Profiles.OWL2_RL.checkOntology(o);
@@ -32,7 +37,7 @@ public class ProfileBase extends TestBase {
             Assert.assertEquals(rl, OWL2_RL.isInProfile());
             Assert.assertEquals(dl, OWL2_DL.isInProfile());
         } catch (OWLOntologyCreationException e) {
-            throw new OWLRuntimeException(e);
+            throw new AssertionError("Exception!", e);
         }
     }
 }

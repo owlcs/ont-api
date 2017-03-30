@@ -30,6 +30,7 @@ class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
+        if (!getLoaderConfig(model).isAllowReadDeclarations()) return Stream.empty();
         return model.ontEntities().map(OntObject::getRoot).filter(Objects::nonNull).filter(OntStatement::isLocal);
     }
 

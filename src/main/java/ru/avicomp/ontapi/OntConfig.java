@@ -57,6 +57,7 @@ public class OntConfig extends OntologyConfigurator {
         protected boolean performTransformation = true;
         protected HashSet<Scheme> supportedSchemes;
         protected boolean allowBulkAnnotationAssertions = true;
+        protected boolean allowReadDeclarations = true;
 
         public LoaderConfiguration(OWLOntologyLoaderConfiguration owl) {
             this.inner = owl == null ? new OWLOntologyLoaderConfiguration() :
@@ -76,6 +77,7 @@ public class OntConfig extends OntologyConfigurator {
             res.performTransformation = this.performTransformation;
             res.supportedSchemes = this.supportedSchemes;
             res.allowBulkAnnotationAssertions = this.allowBulkAnnotationAssertions;
+            res.allowReadDeclarations = this.allowReadDeclarations;
             return res;
         }
 
@@ -231,6 +233,60 @@ public class OntConfig extends OntologyConfigurator {
             return res;
         }
 
+        /**
+         * ONT-API config method.
+         * By default it is {@code true}.
+         * See description of {@link #setAllowReadDeclarations(boolean)}.
+         *
+         * @return true if declarations are allowed in the structural view
+         */
+        public boolean isAllowReadDeclarations() {
+            return allowReadDeclarations;
+        }
+
+        /**
+         * ONT-API config setter.
+         * This method is invited to match OWL-API behaviour.
+         * Some of the true-OWL-API parsers skips declarations on loading.
+         * It seems to me incorrect.
+         * You never can know whether there are declarations in the structural form or not
+         * if you have the same ontology but different formats.
+         * Using this method you can change global behaviour.
+         *
+         * @param b true to skip declarations while reading graph
+         * @return new or the same instance of config.
+         */
+        public LoaderConfiguration setAllowReadDeclarations(boolean b) {
+            if (b == allowReadDeclarations) return this;
+            LoaderConfiguration res = copy(inner);
+            res.allowReadDeclarations = b;
+            return res;
+        }
+
+        /**
+         * Determines whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded.
+         * By default the loading of annotation axioms is enabled.
+         *
+         * @return if {@code false} all annotation axioms (assertion, range and domain) will be discarded on loading.
+         * @see OWLOntologyLoaderConfiguration#isLoadAnnotationAxioms()
+         */
+        @Override
+        public boolean isLoadAnnotationAxioms() {
+            return inner.isLoadAnnotationAxioms();
+        }
+
+        /**
+         * see description for {@link #isLoadAnnotationAxioms()}
+         *
+         * @param b true to enable reading and writing annotation axioms
+         * @return instance of new config.
+         * @see OWLOntologyLoaderConfiguration#setLoadAnnotationAxioms(boolean)
+         */
+        @Override
+        public LoaderConfiguration setLoadAnnotationAxioms(boolean b) {
+            return copy(inner.setLoadAnnotationAxioms(b));
+        }
+
         @Override
         public LoaderConfiguration addIgnoredImport(IRI iri) {
             return copy(inner.addIgnoredImport(iri));
@@ -320,23 +376,6 @@ public class OntConfig extends OntologyConfigurator {
         @Override
         public LoaderConfiguration setFollowRedirects(boolean value) {
             return copy(inner.setFollowRedirects(value));
-        }
-
-        /**
-         * Determines whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded.
-         * By default the loading of annotation axioms is enabled.
-         *
-         * @return if {@code false} all annotation axioms (assertion, range and domain) will be discarded on loading.
-         * @see OWLOntologyLoaderConfiguration#isLoadAnnotationAxioms()
-         */
-        @Override
-        public boolean isLoadAnnotationAxioms() {
-            return inner.isLoadAnnotationAxioms();
-        }
-
-        @Override
-        public LoaderConfiguration setLoadAnnotationAxioms(boolean b) {
-            return copy(inner.setLoadAnnotationAxioms(b));
         }
 
         @Override

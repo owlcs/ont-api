@@ -7,7 +7,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class ProfileFullTestCase extends ProfileBase {
@@ -18,9 +22,31 @@ public class ProfileFullTestCase extends ProfileBase {
         this.premise = premise;
     }
 
+    /**
+     * ONT-API comment:
+     * The most of the listed below test-ontologies are presented inside OWL-API (and ONT-API) in the fully correct form,
+     * which corresponds DL profile.
+     * The problem is OWL/RDF original parser ignores Declarations (while Turtle or some else would not).
+     * So even in the printed ontology there is a correct graph inside, in the structural (OWL-)view there are "problems",
+     * in most cases related to the missed declarations.
+     * I.e. method {@link Profiles#checkOntology(OWLOntology)} returns {@code false} if there is {@link OWL2DLProfile} specified.
+     * It strongly seems to me as incorrect behaviour:
+     * If you choose another format for ontology u could see that it suddenly appears as correct DL ontology.
+     * If you just print ontology to file you can't find any problems with declarations.
+     * But whatever.
+     * I added config option to skip reading declarations just to match OWL-API behaviour.
+     * And one more thing: it seems that tested mechanism does not work always correct,
+     * sometimes you can see strange errors about things that are not true in the graph.
+     */
     @Test
     public void testFull() {
-        test(premise, false, false, false, false);
+        OWLOntologyManager manager = setupManager();
+        if (!DEBUG_USE_OWL) {
+            OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.OntConfig.LoaderConfiguration) manager
+                    .getOntologyLoaderConfiguration()).setAllowReadDeclarations(false);
+            manager.setOntologyLoaderConfiguration(conf);
+        }
+        test(manager, premise, false, false, false, false);
     }
 
     @Parameters
