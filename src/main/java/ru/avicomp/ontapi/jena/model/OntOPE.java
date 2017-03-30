@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.model;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 import org.apache.jena.vocabulary.RDFS;
@@ -15,11 +16,18 @@ public interface OntOPE extends OntPE {
 
     OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
 
-    OntStatement addSuperPropertyOf(Stream<OntOPE> chain);
+    /**
+     * Returns all members the right part of statement 'P owl:propertyChainAxiom (P1 ... Pn)'
+     * Note: in the result there could be repetitions.
+     * Example: SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )
+     *
+     * @return Stream of {@link OntOPE}s.
+     */
+    Stream<OntOPE> superPropertyOf();
+
+    OntStatement addSuperPropertyOf(Collection<OntOPE> chain);
 
     void removeSuperPropertyOf();
-
-    Stream<OntOPE> superPropertyOf();
 
     /**
      * anonymous triple "_:x owl:inverseOf PN"

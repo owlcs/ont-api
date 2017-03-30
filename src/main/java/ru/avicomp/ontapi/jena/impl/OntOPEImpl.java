@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -101,7 +102,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public OntStatement addSuperPropertyOf(Stream<OntOPE> chain) {
+    public OntStatement addSuperPropertyOf(Collection<OntOPE> chain) {
         OntJenaException.notNull(chain, "Null properties chain");
         return addStatement(OWL.propertyChainAxiom, getModel().createList(chain.iterator()));
     }
@@ -113,7 +114,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     @Override
     public Stream<OntOPE> superPropertyOf() {
-        return rdfListMembers(OWL.propertyChainAxiom, OntOPE.class);
+        return getRequiredProperty(OWL.propertyChainAxiom).getObject().as(RDFList.class).asJavaList().stream().map(r -> r.as(OntOPE.class));
     }
 
     @Override
