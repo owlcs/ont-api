@@ -23,7 +23,7 @@ public class ProfileFullTestCase extends ProfileBase {
     }
 
     /**
-     * ONT-API comment:
+     * ONT-API comment(1):
      * The most of the listed below test-ontologies are presented inside OWL-API (and ONT-API) in the fully correct form,
      * which corresponds DL profile.
      * The problem is OWL/RDF original parser ignores Declarations (while Turtle or some else would not).
@@ -37,13 +37,19 @@ public class ProfileFullTestCase extends ProfileBase {
      * I added config option to skip reading declarations just to match OWL-API behaviour.
      * And one more thing: it seems that tested mechanism does not work always correct,
      * sometimes you can see strange errors about things that are not true in the graph.
+     * ONT-API comment(2):
+     * Also there is a {@link ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig#ONT_PERSONALITY_LAX}
+     * to allow illegal punnings. One of the test-ontologies contains such things.
+     * It is also a 'hack' to match OWL-API behaviour.
      */
     @Test
     public void testFull() {
         OWLOntologyManager manager = setupManager();
         if (!DEBUG_USE_OWL) {
             OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.OntConfig.LoaderConfiguration) manager
-                    .getOntologyLoaderConfiguration()).setAllowReadDeclarations(false);
+                    .getOntologyLoaderConfiguration())
+                    .setAllowReadDeclarations(false)
+                    .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX);
             manager.setOntologyLoaderConfiguration(conf);
         }
         test(manager, premise, false, false, false, false);
