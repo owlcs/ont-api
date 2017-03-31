@@ -26,10 +26,11 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
  * <p>
  * Created by szuev on 22.02.2017.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSource {
     protected static final Logger LOGGER = LoggerFactory.getLogger(OntGraphDocumentSource.class);
 
-    private List<Exception> exceptions = new ArrayList<>();
+    protected List<Exception> exceptions = new ArrayList<>();
 
     public abstract Graph getGraph();
 
@@ -43,7 +44,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
         return format().map(OntFormat::getLang).map(this::toInputStream).filter(Objects::nonNull);
     }
 
-    private InputStream toInputStream(Lang lang) {
+    protected InputStream toInputStream(Lang lang) {
         try {
             return toInputStream(getGraph(), lang);
         } catch (Exception e) {
@@ -109,6 +110,6 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
 
     @Override
     public void setIRIResolutionFailed(boolean value) {
-        throw new OntApiException.Unsupported(getClass(), "Unsupported");
+        throw new OntApiException.Unsupported(getClass(), "setIRIResolutionFailed");
     }
 }

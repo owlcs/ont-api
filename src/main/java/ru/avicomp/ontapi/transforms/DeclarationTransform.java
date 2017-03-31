@@ -116,6 +116,7 @@ public class DeclarationTransform extends Transform {
      */
     @SuppressWarnings("WeakerAccess")
     public static class ManifestDeclarator extends BaseDeclarator {
+        protected Set<Resource> forbiddenClassCandidates;
 
         protected ManifestDeclarator(Graph graph) {
             super(graph);
@@ -174,7 +175,7 @@ public class DeclarationTransform extends Transform {
                         declareClass(c);
                         members(c, OWL.disjointUnionOf).forEach(this::declareClass);
                     });
-            // "C owl:hasKey (P1 ... Pm R1 ... Rn)"
+            // "C owl:hasKey ( P1 ... Pm R1 ... Rn )"
             statements(null, OWL.hasKey, null).map(Statement::getSubject).forEach(this::declareClass);
             // "_:x a owl:Restriction; _:x owl:onClass C"
             statements(null, OWL.onClass, null)
@@ -193,7 +194,7 @@ public class DeclarationTransform extends Transform {
                         declareDatatype(s.getSubject());
                         declareDatatype(s.getObject().asResource());
                     });
-            // "_:x owl:onDatatype DN; owl:withRestrictions (_:x1 ... _:xn)"
+            // "_:x owl:onDatatype DN; owl:withRestrictions ( _:x1 ... _:xn )"
             statements(null, OWL.onDatatype, null)
                     .filter(s -> s.getObject().isURIResource())
                     .filter(s -> s.getSubject().hasProperty(OWL.withRestrictions))
@@ -328,12 +329,19 @@ public class DeclarationTransform extends Transform {
                     .flatMap(Function.identity()).distinct().forEach(this::declareIndividual);
         }
 
+        protected Set<Resource> forbiddenClassCandidates() {
+            if (forbiddenClassCandidates != null) return forbiddenClassCandidates;
+            forbiddenClassCandidates = new HashSet<>(BuiltIn.ALL);
+            forbiddenClassCandidates.add(AVC.AnonymousIndividual);
+            forbiddenClassCandidates.removeAll(BuiltIn.CLASSES);
+            return forbiddenClassCandidates;
+        }
+
         public void parseClassAssertions() {
             // "a rdf:type C"
             Set<Statement> statements = statements(null, RDF.type, null)
                     .filter(s -> s.getObject().isResource())
-                    .filter(s -> !BuiltIn.ALL.contains(s.getObject().asResource()))
-                    .filter(s -> !AVC.AnonymousIndividual.equals(s.getObject()))
+                    .filter(s -> !forbiddenClassCandidates().contains(s.getObject().asResource()))
                     .collect(Collectors.toSet());
             statements.forEach(s -> {
                 declareIndividual(s.getSubject());
@@ -356,7 +364,7 @@ public class DeclarationTransform extends Transform {
      * - "A rdfs:range U"
      * - "R rdfs:range D"
      * - "P rdfs:range C"
-     * 4) property assertions (during reasoning the "C owl:hasKey (P1 ... Pm R1 ... Rn)"
+     * 4) property assertions (during reasoning the "C owl:hasKey ( P1 ... Pm R1 ... Rn )"
      * and "U rdf:type owl:FunctionalProperty" are used):
      * - "s A t"
      * - "a R v"
@@ -379,8 +387,14 @@ public class DeclarationTransform extends Transform {
         protected static final boolean PREFER_ANNOTATIONS_IN_UNCLEAR_CASES_DEFAULT = true;
         public Map<Statement, Function<Statement, Res>> rerun = new HashMap<>();
 
-        private boolean annotationsOpt;
+        protected boolean annotationsOpt;
 
+        /**
+         * base constructor.
+         *
+         * @param graph          {@link Graph}
+         * @param annotationsOpt if true then unclear cases choose annotation property.
+         */
         protected ReasonerDeclarator(Graph graph, boolean annotationsOpt) {
             super(graph);
             this.annotationsOpt = annotationsOpt;
@@ -397,7 +411,13 @@ public class DeclarationTransform extends Transform {
                 parsePropertyDomains();
                 parsePropertyRanges();
                 parsePropertyAssertions();
-                parseGroupsWithTheSameType();
+
+                parseEquivalentClasses();
+                parseUnionAndIntersectionClassExpressions();
+                parseEquivalentAndDisjointProperties();
+                parseAllDisjointProperties();
+                parseSubProperties();
+
                 parseTail();
             } finally { // possibility to rerun
                 rerun = new HashMap<>();
@@ -579,83 +599,145 @@ public class DeclarationTransform extends Transform {
             return candidate.isResource() && !candidate.canAs(RDFList.class);
         }
 
-        public void parseGroupsWithTheSameType() {
+        public void parseEquivalentClasses() {
             // "C1 owl:equivalentClass C2" and "DN owl:equivalentClass D"
             statements(null, OWL.equivalentClass, null)
                     .filter(s -> s.getObject().isResource())
                     .forEach(s -> {
-                        Resource a = s.getSubject();
-                        Resource b = s.getObject().asResource();
-                        if (Stream.of(a, b).anyMatch(this::isClassExpression)) {
-                            declareClass(a);
-                            declareClass(b);
-                        }
-                        if (a.isURIResource() && Stream.of(a, b).anyMatch(this::isDataRange)) {
-                            declareDatatype(a);
-                            declareDatatype(b);
+                        if (Res.UNKNOWN.equals(equivalentClasses(s))) {
+                            rerun.put(s, this::equivalentClasses);
                         }
                     });
-            // "P1 owl:equivalentProperty P2" and "R1 owl:propertyDisjointWith R2"
-            Stream.of(OWL.equivalentProperty, OWL.propertyDisjointWith)
-                    .map(p -> statements(null, p, null))
-                    .flatMap(Function.identity())
-                    .filter(s -> s.getObject().isResource())
-                    .forEach(s -> {
-                        Resource a = s.getSubject();
-                        Resource b = s.getObject().asResource();
-                        if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
-                            declareObjectProperty(a, BuiltIn.OWL_PROPERTIES);
-                            declareObjectProperty(b, BuiltIn.OWL_PROPERTIES);
-                        }
-                        if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
-                            declareDataProperty(a, BuiltIn.OWL_PROPERTIES);
-                            declareDataProperty(b, BuiltIn.OWL_PROPERTIES);
-                        }
-                    });
-            // "A1 rdfs:subPropertyOf A2", "P1 rdfs:subPropertyOf P2", "R1 rdfs:subPropertyOf R2"
-            statements(null, RDFS.subPropertyOf, null).filter(s -> s.getObject().isResource())
-                    .forEach(s -> {
-                        Resource a = s.getSubject();
-                        Resource b = s.getObject().asResource();
-                        if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
-                            declareObjectProperty(a, BuiltIn.OWL_PROPERTIES);
-                            declareObjectProperty(b, BuiltIn.OWL_PROPERTIES);
-                        }
-                        if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
-                            declareDataProperty(a, BuiltIn.OWL_PROPERTIES);
-                            declareDataProperty(b, BuiltIn.OWL_PROPERTIES);
-                        }
-                        if (Stream.of(a, b).anyMatch(this::isAnnotationProperty)) {
-                            declareAnnotationProperty(a, BuiltIn.OWL_PROPERTIES);
-                            declareAnnotationProperty(b, BuiltIn.OWL_PROPERTIES);
-                        }
-                    });
+        }
+
+        public Res equivalentClasses(Statement statement) {
+            Resource a = statement.getSubject();
+            Resource b = statement.getObject().asResource();
+            if (Stream.of(a, b).anyMatch(this::isClassExpression)) {
+                declareClass(a);
+                declareClass(b);
+                return Res.TRUE;
+            }
+            if (a.isURIResource() && Stream.of(a, b).anyMatch(this::isDataRange)) {
+                declareDatatype(a);
+                declareDatatype(b);
+                return Res.TRUE;
+            }
+            return Res.UNKNOWN;
+        }
+
+        public void parseUnionAndIntersectionClassExpressions() {
             // "_:x owl:unionOf ( D1 ... Dn )", "_:x owl:intersectionOf ( C1 ... Cn )"
             Stream.of(OWL.unionOf, OWL.intersectionOf).map(p -> statements(null, p, null))
                     .flatMap(Function.identity())
                     .filter(s -> s.getSubject().isAnon())
                     .filter(s -> s.getObject().canAs(RDFList.class))
-                    .map(this::subjectAndObjectsAsSet).forEach(set -> {
-                if (set.stream().anyMatch(this::isClassExpression)) {
-                    set.forEach(this::declareClass);
-                }
-                if (set.stream().anyMatch(this::isDataRange)) {
-                    set.forEach(this::declareDatatype);
-                }
-            });
+                    .forEach(s -> {
+                        if (Res.UNKNOWN.equals(unionAndIntersectionClassExpressions(s))) {
+                            rerun.put(s, this::unionAndIntersectionClassExpressions);
+                        }
+                    });
+        }
+
+        public Res unionAndIntersectionClassExpressions(Statement statement) {
+            Set<Resource> set = subjectAndObjectsAsSet(statement);
+            if (set.stream().anyMatch(this::isClassExpression)) {
+                set.forEach(this::declareClass);
+                return Res.TRUE;
+            }
+            if (set.stream().anyMatch(this::isDataRange)) {
+                set.forEach(this::declareDatatype);
+                return Res.TRUE;
+            }
+            return Res.UNKNOWN;
+        }
+
+        public void parseEquivalentAndDisjointProperties() {
+            Stream.of(OWL.equivalentProperty, OWL.propertyDisjointWith)
+                    .map(p -> statements(null, p, null))
+                    .flatMap(Function.identity())
+                    .filter(s -> s.getObject().isResource())
+                    .forEach(s -> {
+                        if (Res.UNKNOWN.equals(equivalentAndDisjointProperties(s))) {
+                            rerun.put(s, this::equivalentAndDisjointProperties);
+                        }
+                    });
+        }
+
+        public Res equivalentAndDisjointProperties(Statement statement) {
+            Resource a = statement.getSubject();
+            Resource b = statement.getObject().asResource();
+            if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
+                declareObjectProperty(a, BuiltIn.OWL_PROPERTIES);
+                declareObjectProperty(b, BuiltIn.OWL_PROPERTIES);
+                return Res.TRUE;
+            }
+            if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
+                declareDataProperty(a, BuiltIn.OWL_PROPERTIES);
+                declareDataProperty(b, BuiltIn.OWL_PROPERTIES);
+                return Res.TRUE;
+            }
+            return Res.UNKNOWN;
+        }
+
+        public void parseAllDisjointProperties() {
             // "_:x rdf:type owl:AllDisjointProperties; owl:members ( P1 ... Pn )"
-            statements(null, RDF.type, OWL.AllDisjointClasses)
-                    .map(Statement::getSubject)
-                    .filter(RDFNode::isAnon)
-                    .map(r -> members(r, OWL.members))
-                    .map(s -> s.collect(Collectors.toSet())).forEach(set -> {
-                if (set.stream().anyMatch(this::isObjectPropertyExpression)) {
-                    set.forEach(this::declareObjectProperty);
-                }
-                if (set.stream().anyMatch(this::isDataProperty)) {
-                    set.forEach(this::declareDataProperty);
-                }
-            });
+            statements(null, RDF.type, OWL.AllDisjointProperties)
+                    .filter(s -> s.getSubject().isAnon())
+                    .filter(s -> s.getSubject().hasProperty(OWL.members))
+                    .forEach(s -> {
+                        if (Res.UNKNOWN.equals(allDisjointProperties(s))) {
+                            rerun.put(s, this::allDisjointProperties);
+                        }
+                    });
+        }
+
+        public Res allDisjointProperties(Statement statement) {
+            Set<Resource> set = members(statement.getSubject(), OWL.members).collect(Collectors.toSet());
+            if (set.isEmpty()) {
+                return Res.FALSE;
+            }
+            if (set.stream().anyMatch(this::isObjectPropertyExpression)) {
+                set.forEach(this::declareObjectProperty);
+                return Res.TRUE;
+            }
+            if (set.stream().anyMatch(this::isDataProperty)) {
+                set.forEach(this::declareDataProperty);
+                return Res.TRUE;
+            }
+            return Res.UNKNOWN;
+        }
+
+        public void parseSubProperties() {
+            statements(null, RDFS.subPropertyOf, null).filter(s -> s.getObject().isResource())
+                    .forEach(s -> {
+                        if (Res.UNKNOWN.equals(subProperties(s, false))) {
+                            rerun.put(s, statement -> subProperties(statement, annotationsOpt));
+                        }
+                    });
+        }
+
+        public Res subProperties(Statement statement, boolean preferAnnotationsInUnknownCases) {
+            Resource a = statement.getSubject();
+            Resource b = statement.getObject().asResource();
+            Res res = Res.UNKNOWN;
+            if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
+                declareObjectProperty(a, BuiltIn.OWL_PROPERTIES);
+                declareObjectProperty(b, BuiltIn.OWL_PROPERTIES);
+                res = Res.TRUE;
+            }
+            if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
+                declareDataProperty(a, BuiltIn.OWL_PROPERTIES);
+                declareDataProperty(b, BuiltIn.OWL_PROPERTIES);
+                res = Res.TRUE;
+            }
+            if (Stream.of(a, b).anyMatch(this::isAnnotationProperty) ||
+                    (Res.UNKNOWN.equals(res) && preferAnnotationsInUnknownCases)) {
+                declareAnnotationProperty(a, BuiltIn.OWL_PROPERTIES);
+                declareAnnotationProperty(b, BuiltIn.OWL_PROPERTIES);
+                return Res.TRUE;
+            }
+            return res;
         }
 
         public void parseTail() {
