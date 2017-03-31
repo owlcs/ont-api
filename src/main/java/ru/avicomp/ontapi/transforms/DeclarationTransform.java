@@ -393,7 +393,7 @@ public class DeclarationTransform extends Transform {
          * base constructor.
          *
          * @param graph          {@link Graph}
-         * @param annotationsOpt if true then unclear cases choose annotation property.
+         * @param annotationsOpt if true then it chooses annotation property in unclear cases.
          */
         protected ReasonerDeclarator(Graph graph, boolean annotationsOpt) {
             super(graph);
@@ -735,7 +735,7 @@ public class DeclarationTransform extends Transform {
                     (Res.UNKNOWN.equals(res) && preferAnnotationsInUnknownCases)) {
                 declareAnnotationProperty(a, BuiltIn.OWL_PROPERTIES);
                 declareAnnotationProperty(b, BuiltIn.OWL_PROPERTIES);
-                return Res.TRUE;
+                res = Res.TRUE;
             }
             return res;
         }
@@ -818,7 +818,9 @@ public class DeclarationTransform extends Transform {
 
         @SuppressWarnings("SuspiciousMethodCalls")
         public boolean isObjectPropertyExpression(Resource candidate) {
-            return BuiltIn.OBJECT_PROPERTIES.contains(candidate) || hasType(candidate, OWL.ObjectProperty) || candidate.hasProperty(OWL.inverseOf);
+            return BuiltIn.OBJECT_PROPERTIES.contains(candidate)
+                    || hasType(candidate, OWL.ObjectProperty)
+                    || candidate.hasProperty(OWL.inverseOf);
         }
 
         @SuppressWarnings("SuspiciousMethodCalls")
