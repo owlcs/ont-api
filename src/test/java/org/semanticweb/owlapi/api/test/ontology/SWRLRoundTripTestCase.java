@@ -12,10 +12,10 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 package org.semanticweb.owlapi.api.test.ontology;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
@@ -24,18 +24,14 @@ import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.IRI;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
 
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class SWRLRoundTripTestCase extends TestBase {
 
-    private static final
-    @Nonnull
-    String NS = "urn:test";
+    private static final String NS = "urn:test";
 
     @Test
     public void shouldDoCompleteRoundtrip() throws Exception {
@@ -81,8 +77,8 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLXMLDocumentFormat f = new OWLXMLDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
     }
 
     @Test
@@ -91,8 +87,8 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLDocumentFormat f = new TurtleDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
     }
 
     @Test
@@ -101,8 +97,8 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLDocumentFormat f = new FunctionalSyntaxDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
     }
 
     @Test
@@ -111,8 +107,8 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLDocumentFormat f = new RDFXMLDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
     }
 
     @Test
@@ -121,10 +117,10 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLDocumentFormat f = new RDFXMLDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
     }
 
-    protected boolean noLabel(OWLAxiom r) {
+    private boolean noLabel(OWLAxiom r) {
         return r.annotations(df.getRDFSLabel()).count() == 0;
     }
 
@@ -136,15 +132,15 @@ public class SWRLRoundTripTestCase extends TestBase {
         StringDocumentTarget save = saveOntology(ontology, f);
         OWLOntology ontology2 = loadOntologyFromString(save);
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
     }
 
     /**
      * @return
      * @throws OWLOntologyCreationException
      */
-    OWLOntology prepareOntology() {
+    private OWLOntology prepareOntology() {
         OWLClass a = Class(IRI(NS + "#", "A"));
         OWLDataProperty p = df.getOWLDataProperty(NS + "#", "P");
         SWRLVariable x = df.getSWRLVariable(NS + "#", "X");
@@ -163,7 +159,7 @@ public class SWRLRoundTripTestCase extends TestBase {
         return ontology;
     }
 
-    OWLOntology prepareOntology1() {
+    private OWLOntology prepareOntology1() {
         OWLOntology ontology = getOWLOntology();
         OWLDatatypeDefinitionAxiom def = df.getOWLDatatypeDefinitionAxiom(df.getOWLDatatype("urn:my#", "datatype"), df
                 .getOWLDatatypeMaxExclusiveRestriction(200D), singleton(df.getRDFSLabel("datatype definition")));
@@ -173,7 +169,9 @@ public class SWRLRoundTripTestCase extends TestBase {
 
     @Test
     public void shouldParse() throws OWLOntologyCreationException {
-        String s = "<?xml version=\"1.0\"?>\n" + "<rdf:RDF xmlns=\"urn:test#\"\n" + "     xml:base=\"urn:test#test\"\n"
+        String s = "<?xml version=\"1.0\"?>\n"
+                + "<rdf:RDF xmlns=\"urn:test#\"\n"
+                + "     xml:base=\"urn:test#test\"\n"
                 + "     xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n"
                 + "     xmlns:swrl=\"http://www.w3.org/2003/11/swrl#\"\n"
                 + "     xmlns:swrlb=\"http://www.w3.org/2003/11/swrlb#\"\n"
@@ -181,38 +179,54 @@ public class SWRLRoundTripTestCase extends TestBase {
                 + "     xmlns:owl=\"http://www.w3.org/2002/07/owl#\"\n"
                 + "     xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n"
                 + "    <owl:Ontology rdf:about=\"urn:test#test\"/>\n"
-                + "    <rdfs:Datatype rdf:about=\"urn:my#datatype\">\n" + "        <owl:equivalentClass>\n"
+                + "    <rdfs:Datatype rdf:about=\"urn:my#datatype\">\n"
+                + "        <owl:equivalentClass>\n"
                 + "            <rdfs:Datatype rdf:about=\"http://www.w3.org/2001/XMLSchema#double\"/>\n"
                 + "        </owl:equivalentClass></rdfs:Datatype><owl:Axiom>\n"
                 + "        <rdfs:label >datatype definition</rdfs:label>\n"
                 + "        <owl:annotatedProperty rdf:resource=\"http://www.w3.org/2002/07/owl#equivalentClass\"/>\n"
-                + "        <owl:annotatedSource rdf:resource=\"urn:my#datatype\"/>\n" + "        <owl:annotatedTarget>\n"
+                + "        <owl:annotatedSource rdf:resource=\"urn:my#datatype\"/>\n"
+                + "        <owl:annotatedTarget>\n"
                 + "            <rdfs:Datatype rdf:about=\"http://www.w3.org/2001/XMLSchema#double\"/>\n"
-                + "        </owl:annotatedTarget>\n" + "    </owl:Axiom></rdf:RDF>";
+                + "        </owl:annotatedTarget>\n"
+                + "    </owl:Axiom></rdf:RDF>";
         OWLOntology o = loadOntologyFromString(s);
         OWLDatatypeDefinitionAxiom def = df.getOWLDatatypeDefinitionAxiom(df.getOWLDatatype("urn:my#", "datatype"), df
                 .getDoubleOWLDatatype(), singleton(df.getRDFSLabel("datatype definition")));
-        assertTrue(contains(o.axioms(), def));
+        Assert.assertTrue(o.axioms().anyMatch(def::equals));
     }
+
 
     @Test
     public void shouldParse2() throws OWLOntologyCreationException {
-        String s = "<?xml version=\"1.0\"?>\n" + "<rdf:RDF xmlns=\"http://www.w3.org/2002/07/owl#\"\n"
+        // ONT-API comment: a typo in the class declaration 'urn:urn:test#myClass'.
+        // I replaced it with 'urn:test#myClass'.
+        // I don't thing there is something to fix in the API: the Jena loader reads graph as is,
+        // so it would be strange do not expect the same IRI as in RDF, whereas OWL-API  is trying to interpret everything,
+        // omitting obvious errors. It is not the way.
+        // We should not be tolerant to broken or inconsistent ontologies.
+        String s = "<?xml version=\"1.0\"?>\n"
+                + "<rdf:RDF xmlns=\"http://www.w3.org/2002/07/owl#\"\n"
                 + "     xml:base=\"http://www.w3.org/2002/07/owl\"\n"
                 + "     xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n"
                 + "     xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\"\n"
                 + "     xmlns:owl=\"http://www.w3.org/2002/07/owl#\"\n"
                 + "     xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n"
-                + "    <Class rdf:about=\"urn:urn:test#myClass\">\n"
-                + "        <rdfs:subClassOf rdf:resource=\"urn:test#test\"/>\n" + "    </Class>\n" + "    <Axiom>\n"
+                + "    <Class rdf:about=\"urn:test#myClass\">\n"
+                + "        <rdfs:subClassOf rdf:resource=\"urn:test#test\"/>\n"
+                + "    </Class>\n"
+                + "    <Axiom>\n"
                 + "        <rdfs:label>datatype definition</rdfs:label>\n"
                 + "        <annotatedProperty rdf:resource=\"http://www.w3.org/2000/01/rdf-schema#subClassOf\"/>\n"
                 + "        <annotatedSource rdf:resource=\"urn:test#myClass\"/>\n"
-                + "        <annotatedTarget rdf:resource=\"urn:test#test\"/>\n" + "    </Axiom>\n"
-                + "    <Class rdf:about=\"urn:test\"/>\n" + "</rdf:RDF>\n" + "";
+                + "        <annotatedTarget rdf:resource=\"urn:test#test\"/>\n"
+                + "    </Axiom>\n"
+                + "    <Class rdf:about=\"urn:test\"/>\n"
+                + "</rdf:RDF>\n";
         OWLOntology o = loadOntologyFromString(s);
-        OWLSubClassOfAxiom def = df.getOWLSubClassOfAxiom(df.getOWLClass("urn:test#", "myClass"), df.getOWLClass(
-                "urn:test#", "test"), singleton(df.getRDFSLabel("datatype definition")));
-        assertTrue(contains(o.axioms(), def));
+        OWLSubClassOfAxiom def = df.getOWLSubClassOfAxiom(df.getOWLClass("urn:test#", "myClass"),
+                df.getOWLClass("urn:test#", "test"), singleton(df.getRDFSLabel("datatype definition")));
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
+        Assert.assertTrue(o.axioms().anyMatch(def::equals));
     }
 }

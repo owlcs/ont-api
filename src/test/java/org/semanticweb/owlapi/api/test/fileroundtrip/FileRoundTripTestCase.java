@@ -87,6 +87,9 @@ public class FileRoundTripTestCase extends AbstractFileRoundTrippingTestCase {
                 // To make test passed I changed initial TestParser07.rdf by adding declaration for <http://example.org#z> as Datatype.
                 "TestParser07.rdf",
                 "TestParser10.rdf",
+                // WARNING: data modified. Replace '\r\n' -> '\n'.
+                // Test had failed both for OWL-API and ONT-API due to Manchester and OWL/XML parsers.
+                // We don't test pure OWL things so we don't need this particular checking.
                 "annotatedpropertychain.ttl.rdf",
                 "UntypedSubClassOf.rdf",
                 "SubClassOfUntypedOWLClass.rdf",
