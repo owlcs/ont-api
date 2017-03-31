@@ -246,6 +246,14 @@ public class ReadHelper {
         return (Wrap<OWLDatatype>) fetchDataRange(dt, df);
     }
 
+    public static boolean isObjectOrDataProperty(OntObject subject) {
+        return subject.canAs(OntOPE.class) || subject.canAs(OntNDP.class);
+    }
+
+    public static boolean testAnnotationAxiom(OntStatement statement, OntConfig.LoaderConfiguration conf) {
+        return conf == null || !conf.isIgnoreAnnotationAxiomOverlaps() || !isObjectOrDataProperty(statement.getSubject());
+    }
+
     public static boolean isDeclarationStatement(OntStatement statement) {
         return statement.isRoot() && statement.isDeclaration() && isEntityOrAnonymousIndividual(statement.getSubject());
     }

@@ -23,15 +23,16 @@ class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<
     }
 
     /**
-     * todo: invite config option to skip annotation range in favor of another range if there is a punning
+     * Returns {@link OntStatement}s defining the {@link OWLAnnotationPropertyRangeAxiom} axiom.
      *
      * @param model {@link OntGraphModel}
      * @return {@link OntStatement}
      */
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        if (!getLoaderConfig(model).isLoadAnnotationAxioms()) return Stream.empty();
-        return super.statements(model).filter(s -> s.getObject().isURIResource());
+        OntConfig.LoaderConfiguration conf = getLoaderConfig(model);
+        if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
+        return super.statements(model).filter(s -> s.getObject().isURIResource()).filter(s -> ReadHelper.testAnnotationAxiom(s, conf));
     }
 
     @Override

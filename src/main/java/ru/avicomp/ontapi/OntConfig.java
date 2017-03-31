@@ -58,6 +58,7 @@ public class OntConfig extends OntologyConfigurator {
         protected HashSet<Scheme> supportedSchemes;
         protected boolean allowBulkAnnotationAssertions = true;
         protected boolean allowReadDeclarations = true;
+        protected boolean ignoreAnnotationAxiomOverlaps = true;
 
         public LoaderConfiguration(OWLOntologyLoaderConfiguration owl) {
             this.inner = owl == null ? new OWLOntologyLoaderConfiguration() :
@@ -78,6 +79,7 @@ public class OntConfig extends OntologyConfigurator {
             res.supportedSchemes = this.supportedSchemes;
             res.allowBulkAnnotationAssertions = this.allowBulkAnnotationAssertions;
             res.allowReadDeclarations = this.allowReadDeclarations;
+            res.ignoreAnnotationAxiomOverlaps = this.ignoreAnnotationAxiomOverlaps;
             return res;
         }
 
@@ -260,6 +262,38 @@ public class OntConfig extends OntologyConfigurator {
             if (b == allowReadDeclarations) return this;
             LoaderConfiguration res = copy(inner);
             res.allowReadDeclarations = b;
+            return res;
+        }
+
+        /**
+         * ONT-API config method.
+         * By default it is {@code true}.
+         * See description of {@link #setIgnoreAnnotationAxiomOverlaps(boolean)}.
+         *
+         * @return true if possible ambiguities with annotation axioms should be ignored.
+         */
+        public boolean isIgnoreAnnotationAxiomOverlaps() {
+            return ignoreAnnotationAxiomOverlaps;
+        }
+
+        /**
+         * ONT-API config setter.
+         * Determines the behavior while reading annotation axioms
+         * if there is a 'punning' entity as subject in the root statement.
+         * There are three types of annotation axioms with following defining statements:
+         * - 'A rdfs:subPropertyOf Aj'
+         * - 'A rdfs:domain U'
+         * - 'A rdfs:range U'
+         * and in case 'A' is also object property ('P') or data property ('R')
+         * then these statements define also corresponded object or data property axioms.
+         *
+         * @param b if true all such axioms will be skipped in favour of data or/and object property axioms
+         * @return this or new config.
+         */
+        public LoaderConfiguration setIgnoreAnnotationAxiomOverlaps(boolean b) {
+            if (b == ignoreAnnotationAxiomOverlaps) return this;
+            LoaderConfiguration res = copy(inner);
+            res.ignoreAnnotationAxiomOverlaps = b;
             return res;
         }
 
