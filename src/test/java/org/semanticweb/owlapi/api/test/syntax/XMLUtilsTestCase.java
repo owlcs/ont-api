@@ -14,14 +14,13 @@ package org.semanticweb.owlapi.api.test.syntax;
 
 import javax.annotation.Nonnull;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.XMLUtils;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health
@@ -45,71 +44,75 @@ public class XMLUtilsTestCase extends TestBase {
 
     @Test
     public void testIsNCName() {
-        assertTrue(XMLUtils.isNCName(CODE_POINT_STRING + "abc" + CODE_POINT_STRING));
-        assertTrue(XMLUtils.isNCName(CODE_POINT_STRING + "abc123" + CODE_POINT_STRING));
-        assertFalse(XMLUtils.isNCName("123" + CODE_POINT_STRING));
-        assertFalse(XMLUtils.isNCName(CODE_POINT_STRING + ":a"));
-        assertFalse(XMLUtils.isNCName(""));
-        assertFalse(XMLUtils.isNCName(null));
+        Assert.assertTrue(XMLUtils.isNCName(CODE_POINT_STRING + "abc" + CODE_POINT_STRING));
+        Assert.assertTrue(XMLUtils.isNCName(CODE_POINT_STRING + "abc123" + CODE_POINT_STRING));
+        Assert.assertFalse(XMLUtils.isNCName("123" + CODE_POINT_STRING));
+        Assert.assertFalse(XMLUtils.isNCName(CODE_POINT_STRING + ":a"));
+        Assert.assertFalse(XMLUtils.isNCName(""));
+        Assert.assertFalse(XMLUtils.isNCName(null));
     }
 
     @Test
     public void testIsQName() {
-        assertTrue(XMLUtils.isQName(CODE_POINT_STRING + "p1:abc" + CODE_POINT_STRING));
-        assertFalse(XMLUtils.isQName(CODE_POINT_STRING + "p1:2abc" + CODE_POINT_STRING));
-        assertFalse(XMLUtils.isQName("11" + CODE_POINT_STRING + ":abc" + CODE_POINT_STRING));
-        assertFalse(XMLUtils.isQName("ab:c%20d"));
+        Assert.assertTrue(XMLUtils.isQName(CODE_POINT_STRING + "p1:abc" + CODE_POINT_STRING));
+        Assert.assertFalse(XMLUtils.isQName(CODE_POINT_STRING + "p1:2abc" + CODE_POINT_STRING));
+        Assert.assertFalse(XMLUtils.isQName("11" + CODE_POINT_STRING + ":abc" + CODE_POINT_STRING));
+        Assert.assertFalse(XMLUtils.isQName("ab:c%20d"));
     }
 
     @Test
     public void testEndsWithNCName() {
-        assertEquals("abc" + CODE_POINT_STRING, XMLUtils.getNCNameSuffix("1abc" + CODE_POINT_STRING));
-        assertTrue(XMLUtils.hasNCNameSuffix("1abc" + CODE_POINT_STRING));
-        assertNull(XMLUtils.getNCNameSuffix(CODE_POINT_STRING + "p1:123"));
-        assertFalse(XMLUtils.hasNCNameSuffix(CODE_POINT_STRING + "p1:123"));
-        assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology/ABC"));
-        assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology#ABC"));
-        assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology:ABC"));
+        Assert.assertEquals("abc" + CODE_POINT_STRING, XMLUtils.getNCNameSuffix("1abc" + CODE_POINT_STRING));
+        Assert.assertTrue(XMLUtils.hasNCNameSuffix("1abc" + CODE_POINT_STRING));
+        Assert.assertNull(XMLUtils.getNCNameSuffix(CODE_POINT_STRING + "p1:123"));
+        Assert.assertFalse(XMLUtils.hasNCNameSuffix(CODE_POINT_STRING + "p1:123"));
+        Assert.assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology/ABC"));
+        Assert.assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology#ABC"));
+        Assert.assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology:ABC"));
     }
 
     @Test
     public void testParsesBNode() {
-        assertEquals("_:test", XMLUtils.getNCNamePrefix("_:test"));
-        assertNull(XMLUtils.getNCNameSuffix("_:test"));
+        Assert.assertEquals("_:test", XMLUtils.getNCNamePrefix("_:test"));
+        Assert.assertNull(XMLUtils.getNCNameSuffix("_:test"));
     }
 
     @Test
     public void testmissingTypes() {
         // given
-        String input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + "<rdf:RDF\n"
+        String input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                + "<rdf:RDF\n"
                 + "xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
                 + "xmlns:skos=\"http://www.w3.org/2004/02/skos/core#\"\n"
-                + "xmlns:dc=\"http://purl.org/dc/elements/1.1#\"\n" + ">\n"
+                + "xmlns:dc=\"http://purl.org/dc/elements/1.1#\"\n>\n"
                 + "<skos:ConceptScheme rdf:about=\"http://www.thesaurus.gc.ca/#CoreSubjectThesaurus\">\n"
                 + "<dc:title xml:lang=\"en\">Government of Canada Core Subject Thesaurus</dc:title>\n"
-                + "<dc:creator xml:lang=\"en\">Government of Canada</dc:creator>\n" + "</skos:ConceptScheme>\n" + "\n"
+                + "<dc:creator xml:lang=\"en\">Government of Canada</dc:creator>\n"
+                + "</skos:ConceptScheme>\n\n"
                 + "<skos:Concept rdf:about=\"http://www.thesaurus.gc.ca/concept/#Abbreviations\">\n"
                 + "<skos:prefLabel>Abbreviations</skos:prefLabel>\n"
                 + "<skos:related rdf:resource=\"http://www.thesaurus.gc.ca/#Terminology\"/>\n"
                 + "<skos:inScheme rdf:resource=\"http://www.thesaurus.gc.ca/#CoreSubjectThesaurus\"/>\n"
-                + "<skos:prefLabel xml:lang=\"fr\">Abr&#233;viation</skos:prefLabel>\n" + "</skos:Concept>\n"
+                + "<skos:prefLabel xml:lang=\"fr\">Abr&#233;viation</skos:prefLabel>\n"
+                + "</skos:Concept>\n"
                 + "<skos:Concept rdf:about=\"http://www.thesaurus.gc.ca/concept/#Aboriginal%20affairs\">\n"
                 + "<skos:prefLabel>Aboriginal affairs</skos:prefLabel>\n"
                 + "<skos:altLabel>Aboriginal issues</skos:altLabel>\n"
                 + "<skos:related rdf:resource=\"http://www.thesaurus.gc.ca/#Aboriginal%20rights\"/>\n"
                 + "<skos:related rdf:resource=\"http://www.thesaurus.gc.ca/#Land claims\"/>\n"
                 + "<skos:inScheme rdf:resource=\"http://www.thesaurus.gc.ca/#CoreSubjectThesaurus\"/>\n"
-                + "<skos:prefLabel xml:lang=\"fr\">Affaires autochtones</skos:prefLabel>\n" + "</skos:Concept>\n" + "\n"
+                + "<skos:prefLabel xml:lang=\"fr\">Affaires autochtones</skos:prefLabel>\n"
+                + "</skos:Concept>\n\n"
                 + "</rdf:RDF>";
         // when
-        OWLOntology o = loadOntologyFromString(input,
-                IRI.getNextDocumentIRI("testuriwithblankspace"),
-                new RDFXMLDocumentFormat());
+        OWLOntology o = loadOntologyFromString(input, IRI.getNextDocumentIRI("testuriwithblankspace"), new RDFXMLDocumentFormat());
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
         o.axioms().forEach(a -> LOGGER.debug(a.toString()));
+        // TODO: do something with SKOS and DC built-ins and fix the test
         // then
         // ONT-API - 12 AnnotationAssertion, 11 Declaration (2 owl:class, 3 owl:NamedIndividual, 6 owl:AnnotationProperty), 3 ClassAssertion
         // OWL-API - 12 AnnotationAssertion, 0 Declaration, 3 ClassAssertion
         int num = DEBUG_USE_OWL ? 15 : 26;
-        assertEquals("Incorrect number of axioms", num, o.getAxiomCount());
+        Assert.assertEquals("Incorrect number of axioms", num, o.getAxiomCount());
     }
 }

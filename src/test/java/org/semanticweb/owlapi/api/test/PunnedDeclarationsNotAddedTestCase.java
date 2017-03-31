@@ -1,9 +1,9 @@
 package org.semanticweb.owlapi.api.test;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -15,58 +15,42 @@ import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class PunnedDeclarationsNotAddedTestCase extends TestBase {
 
     @Parameters(name = "{0}")
     public static Collection<OWLDocumentFormat> data() {
-        return Arrays.asList(new FunctionalSyntaxDocumentFormat(), new OWLXMLDocumentFormat(),
-                new RDFXMLDocumentFormat(), new TurtleDocumentFormat());
+        return Arrays.asList(new FunctionalSyntaxDocumentFormat(), new OWLXMLDocumentFormat(), new RDFXMLDocumentFormat(), new TurtleDocumentFormat());
     }
 
-    private final
-    @Nonnull
-    OWLDocumentFormat format;
+    private final OWLDocumentFormat format;
 
     public PunnedDeclarationsNotAddedTestCase(OWLDocumentFormat format) {
         this.format = format;
     }
 
-    protected OWLOntology getOntologyWithPunnedInvalidDeclarations() {
+    private OWLOntology getOntologyWithPunnedInvalidDeclarations() {
         OWLOntology o = getOWLOntology();
         OWLObjectProperty op = df.getOWLObjectProperty(iri("testProperty"));
         OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testProperty"));
         o.add(df.getOWLDeclarationAxiom(op));
         o.add(df.getOWLTransitiveObjectPropertyAxiom(op));
-        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"),
-                df.getOWLAnnotation(ap, iri("otherTest")));
+        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"), df.getOWLAnnotation(ap, iri("otherTest")));
         o.add(assertion);
         return o;
     }
 
-    protected OWLOntology getOntologyWithMissingDeclarations() {
+    private OWLOntology getOntologyWithMissingDeclarations() {
         OWLOntology o = getOWLOntology();
         OWLObjectProperty op = df.getOWLObjectProperty(iri("testObjectProperty"));
         OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testAnnotationProperty"));
         o.add(df.getOWLTransitiveObjectPropertyAxiom(op));
-        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"),
-                df.getOWLAnnotation(ap, iri("otherTest")));
+        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"), df.getOWLAnnotation(ap, iri("otherTest")));
         o.add(assertion);
         return o;
-    }
-
-    @Test
-    public void shouldNotAddDeclarationsForIllegalPunnings()
-            throws OWLOntologyCreationException, OWLOntologyStorageException {
-        OWLOntology o = getOntologyWithPunnedInvalidDeclarations();
-        OWLOntology reloaded = roundTrip(o, format);
-        OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testProperty"));
-        OWLDeclarationAxiom ax = df.getOWLDeclarationAxiom(ap);
-        assertFalse("ap testProperty should not have been declared", reloaded.containsAxiom(ax));
     }
 
     @Test
@@ -75,7 +59,57 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
         OWLOntology reloaded = roundTrip(o, format);
         OWLObjectProperty op = df.getOWLObjectProperty(iri("testObjectProperty"));
         OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testAnnotationProperty"));
-        assertTrue(reloaded.containsAxiom(df.getOWLDeclarationAxiom(ap)));
-        assertTrue(reloaded.containsAxiom(df.getOWLDeclarationAxiom(op)));
+        Assert.assertTrue(reloaded.containsAxiom(df.getOWLDeclarationAxiom(ap)));
+        Assert.assertTrue(reloaded.containsAxiom(df.getOWLDeclarationAxiom(op)));
     }
+
+    @Test
+    public void shouldNotAddDeclarationsForIllegalPunnings() throws Exception {
+        if (DEBUG_USE_OWL) {
+            testOWLAPI();
+        } else {
+            testONTAPI();
+        }
+    }
+
+    private void testOWLAPI() throws Exception {
+        OWLOntology o = getOntologyWithPunnedInvalidDeclarations();
+        OWLOntology reloaded = roundTrip(o, format);
+        OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testProperty"));
+        OWLDeclarationAxiom ax = df.getOWLDeclarationAxiom(ap);
+        Assert.assertFalse("ap testProperty should not have been declared", reloaded.containsAxiom(ax));
+    }
+
+    private void testONTAPI() throws Exception {
+        OWLOntologyManager m = setupManager();
+        OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.OntConfig.LoaderConfiguration) m
+                .getOntologyLoaderConfiguration())
+                .setAllowReadDeclarations(false)
+                .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_STRICT);
+        m.setOntologyLoaderConfiguration(conf);
+
+        OWLOntology o = m.createOntology(IRI.getNextDocumentIRI(uriBase));
+
+        OWLObjectProperty op = df.getOWLObjectProperty(iri("testProperty"));
+        OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testProperty"));
+        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"), df.getOWLAnnotation(ap, iri("otherTest")));
+
+        o.add(df.getOWLDeclarationAxiom(op));
+        o.add(df.getOWLTransitiveObjectPropertyAxiom(op));
+
+        // ONT-API HACK: not even able to add illegal axioms:
+        try {
+            o.add(assertion);
+            Assert.fail("The assetrtion succesfully added: " + assertion);
+        } catch (ru.avicomp.ontapi.OntApiException e) {
+            LOGGER.info("Exception: {}", e);
+            Throwable cause = e.getCause();
+            if (cause instanceof ru.avicomp.ontapi.jena.OntJenaException) {
+                LOGGER.info("Cause: {}", cause);
+                return;
+            }
+            throw e;
+        }
+    }
+
 }

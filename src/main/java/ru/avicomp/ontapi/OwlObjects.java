@@ -27,7 +27,7 @@ public class OwlObjects {
 
     public static <A extends HasAnnotations & HasComponents> Stream<IRI> iris(A container) {
         return Stream.concat(objects(IRI.class, container),
-                objects(OWLObject.class, container).filter(HasIRI.class::isInstance).map(h -> ((HasIRI) h).getIRI()));
+                objects(OWLObject.class, container).filter(HasIRI.class::isInstance).map(HasIRI.class::cast).map(HasIRI::getIRI));
     }
 
     private static <O extends OWLObject> Stream<O> toStream(Class<O> view, Object o) {

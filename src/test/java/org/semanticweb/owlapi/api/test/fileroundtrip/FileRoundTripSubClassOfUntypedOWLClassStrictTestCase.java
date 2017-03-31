@@ -40,6 +40,7 @@ public class FileRoundTripSubClassOfUntypedOWLClassStrictTestCase extends Abstra
     public void testAxioms() {
         config = config.setStrict(true);
         OWLOntology ont = createOntology();
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);
         assertEquals(0, ont.axioms(AxiomType.SUBCLASS_OF).count());
         OWLDocumentFormat format = ont.getFormat();
         assertTrue(format instanceof RDFXMLDocumentFormat);

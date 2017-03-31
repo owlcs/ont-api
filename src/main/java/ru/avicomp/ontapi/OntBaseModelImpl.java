@@ -495,6 +495,9 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         if (primitive instanceof IRI) {
             return axioms().filter(a -> OwlObjects.iris(a).anyMatch(primitive::equals));
         }
+        if (primitive instanceof OWLDatatype) { // as well as iri the datatype could be hidden inside other object (literals):
+            return axioms().filter(a -> OwlObjects.objects(OWLDatatype.class, a).anyMatch(primitive::equals));
+        }
         return axioms().filter(a -> OwlObjects.objects(OWLPrimitive.class, a).anyMatch(primitive::equals));
     }
 
