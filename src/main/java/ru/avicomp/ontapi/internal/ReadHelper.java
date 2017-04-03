@@ -30,6 +30,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplInteger;
  * <p>
  * Created by @szuev on 25.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class ReadHelper {
 
     /**
@@ -246,12 +247,29 @@ public class ReadHelper {
         return (Wrap<OWLDatatype>) fetchDataRange(dt, df);
     }
 
-    public static boolean isObjectOrDataProperty(OntObject subject) {
-        return subject.canAs(OntOPE.class) || subject.canAs(OntNDP.class);
-    }
-
-    public static boolean testAnnotationAxiom(OntStatement statement, OntConfig.LoaderConfiguration conf) {
-        return conf == null || !conf.isIgnoreAnnotationAxiomOverlaps() || !isObjectOrDataProperty(statement.getSubject());
+    /**
+     * Auxiliary method for simplification code.
+     * Used in Annotation Translators.
+     * If the specified statement also belongs to the another type of axiom and it is prohibited in the config then returns false.
+     * This is for three kinds of statements:
+     * - "A1 rdfs:subPropertyOf A2"
+     * - "A rdfs:domain U"
+     * - "A rdfs:range U"
+     * Each of them is wider than the analogous statement for object or data property,
+     * e.g. "P rdfs:range C" could be treated as "A rdfs:range U", but not vice versa.
+     *
+     * @param statement {@link OntStatement} to test
+     * @param conf      {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
+     * @param o         {@link AxiomType#SUB_OBJECT_PROPERTY} or {@link AxiomType#OBJECT_PROPERTY_DOMAIN} or {@link AxiomType#OBJECT_PROPERTY_RANGE}
+     * @param d         {@link AxiomType#SUB_DATA_PROPERTY} or {@link AxiomType#DATA_PROPERTY_DOMAIN} or {@link AxiomType#DATA_PROPERTY_RANGE}
+     * @return true if the statement is good to be represented in the form of annotation axiom.
+     */
+    protected static boolean testAnnotationAxiomOverlaps(OntStatement statement,
+                                                         OntConfig.LoaderConfiguration conf,
+                                                         AxiomType<? extends OWLObjectPropertyAxiom> o,
+                                                         AxiomType<? extends OWLDataPropertyAxiom> d) {
+        return conf == null || !(conf.isIgnoreAnnotationAxiomOverlaps() &&
+                Stream.of(d, o).map(AxiomParserProvider::get).anyMatch(a -> a.testStatement(statement)));
     }
 
     public static boolean isDeclarationStatement(OntStatement statement) {

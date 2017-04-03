@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.model;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
@@ -9,7 +10,7 @@ import java.util.stream.Stream;
  */
 public interface OntClass extends OntEntity, OntCE {
 
-    OntStatement addDisjointUnionOf(Stream<OntCE> classes);
+    OntStatement addDisjointUnionOf(Collection<OntCE> classes);
 
     void removeDisjointUnionOf();
 

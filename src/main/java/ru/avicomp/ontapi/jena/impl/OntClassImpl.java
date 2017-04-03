@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
@@ -43,7 +44,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public OntStatement addHasKey(Stream<OntOPE> objectProperties, Stream<OntNDP> dataProperties) {
+    public OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
         return OntCEImpl.addHasKey(this, objectProperties, dataProperties);
     }
 
@@ -58,8 +59,8 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public OntStatement addDisjointUnionOf(Stream<OntCE> classes) {
-        return addStatement(OWL.disjointUnionOf, getModel().createList(OntJenaException.notNull(classes, "Null classes stream.").iterator()));
+    public OntStatement addDisjointUnionOf(Collection<OntCE> classes) {
+        return addStatement(OWL.disjointUnionOf, getModel().createList(OntJenaException.notNull(classes, "Null classes collection.").iterator()));
     }
 
     @Override

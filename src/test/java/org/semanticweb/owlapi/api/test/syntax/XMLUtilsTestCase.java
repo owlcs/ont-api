@@ -84,7 +84,8 @@ public class XMLUtilsTestCase extends TestBase {
                 + "<rdf:RDF\n"
                 + "xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
                 + "xmlns:skos=\"http://www.w3.org/2004/02/skos/core#\"\n"
-                + "xmlns:dc=\"http://purl.org/dc/elements/1.1#\"\n>\n"
+                // ONT-API comment: the correct DC NS is 'http://purl.org/dc/elements/1.1/', not 'http://purl.org/dc/elements/1.1#'
+                + "xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n>\n"
                 + "<skos:ConceptScheme rdf:about=\"http://www.thesaurus.gc.ca/#CoreSubjectThesaurus\">\n"
                 + "<dc:title xml:lang=\"en\">Government of Canada Core Subject Thesaurus</dc:title>\n"
                 + "<dc:creator xml:lang=\"en\">Government of Canada</dc:creator>\n"

@@ -1,5 +1,8 @@
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -116,7 +119,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public OntStatement addHasKey(Stream<OntOPE> objectProperties, Stream<OntNDP> dataProperties) {
+    public OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
         return addHasKey(this, objectProperties, dataProperties);
     }
 
@@ -392,7 +395,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public void setComponents(Stream<O> components) {
+        public void setComponents(Collection<O> components) {
             clearAll(predicate);
             addProperty(predicate, getModel().createList(components.iterator()));
         }
@@ -571,7 +574,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public void setOnProperties(Stream<P> properties) {
+        public void setOnProperties(Collection<P> properties) {
             throw new OntJenaException("TODO");
         }
 
@@ -766,10 +769,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return model.getNodeAs(res.asNode(), OntIndividual.Named.class);
     }
 
-    public static OntStatement addHasKey(OntCE clazz, Stream<OntOPE> objectProperties, Stream<OntNDP> dataProperties) {
-        if (objectProperties == null) objectProperties = Stream.empty();
-        if (dataProperties == null) dataProperties = Stream.empty();
-        Stream<OntPE> properties = Stream.concat(objectProperties, dataProperties);
+    public static OntStatement addHasKey(OntCE clazz, Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
+        List<OntPE> properties = new ArrayList<>();
+        if (objectProperties != null) properties.addAll(objectProperties);
+        if (dataProperties != null) properties.addAll(dataProperties);
         return clazz.addStatement(OWL.hasKey, clazz.getModel().createList(properties.iterator()));
     }
 }

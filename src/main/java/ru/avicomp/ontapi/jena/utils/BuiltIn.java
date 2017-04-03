@@ -13,7 +13,9 @@ import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.DC;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.SKOS;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -23,6 +25,7 @@ import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 /**
  * Helper to work with constants from {@link ru.avicomp.ontapi.jena.vocabulary} package.
+ * TODO: make it configurable.
  * <p>
  * Created by @szuev on 21.12.2016.
  */
@@ -41,16 +44,34 @@ public class BuiltIn {
             ).collect(Collectors.toSet());
     public static final Set<RDFDatatype> RDF_DATATYPE_SET = createBuiltInTypes();
 
+    public static final Set<Property> DC_ANNOTATION_PROPERTIES = getConstants(Property.class, DC.class);
+    public static final Set<Property> SKOS_ANNOTATION_PROPERTIES =
+            Stream.of(SKOS.altLabel, SKOS.changeNote, SKOS.definition,
+                    SKOS.editorialNote, SKOS.example, SKOS.hiddenLabel, SKOS.historyNote,
+                    SKOS.note, SKOS.prefLabel, SKOS.scopeNote).collect(Collectors.toSet());
+    public static final Set<Property> SKOS_OBJECT_PROPERTIES =
+            Stream.of(SKOS.broadMatch, SKOS.broader, SKOS.broaderTransitive,
+                    SKOS.closeMatch, SKOS.exactMatch, SKOS.hasTopConcept, SKOS.inScheme,
+                    SKOS.mappingRelation, SKOS.member, SKOS.memberList, SKOS.narrowMatch,
+                    SKOS.narrower, SKOS.narrowerTransitive, SKOS.related,
+                    SKOS.relatedMatch, SKOS.semanticRelation, SKOS.topConceptOf).collect(Collectors.toSet());
+    // no skos:TopConcept
+    public static final Set<Resource> SKOS_CLASSES =
+            Stream.of(SKOS.Collection, SKOS.Concept, SKOS.ConceptScheme, SKOS.OrderedCollection).collect(Collectors.toSet());
     // full list of datatypes:
     public static final Set<Resource> DATATYPES = RDF_DATATYPE_SET.stream().map(RDFDatatype::getURI).
             map(ResourceFactory::createResource).collect(Collectors.toSet());
-    public static final Set<Resource> CLASSES = Stream.of(OWL.Nothing, OWL.Thing).collect(Collectors.toSet());
-    public static final Set<Property> ANNOTATION_PROPERTIES = Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy,
+    public static final Set<Resource> OWL_CLASSES = Stream.of(OWL.Nothing, OWL.Thing).collect(Collectors.toSet());
+    public static final Set<Resource> CLASSES = Stream.of(OWL_CLASSES, SKOS_CLASSES).flatMap(Collection::stream).collect(Collectors.toSet());
+    public static final Set<Property> OWL_ANNOTATION_PROPERTIES = Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy,
             OWL.versionInfo, OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated).collect(Collectors.toSet());
+    public static final Set<Property> ANNOTATION_PROPERTIES =
+            Stream.of(OWL_ANNOTATION_PROPERTIES, DC_ANNOTATION_PROPERTIES, SKOS_ANNOTATION_PROPERTIES).flatMap(Collection::stream).collect(Collectors.toSet());
     public static final Set<Property> DATA_PROPERTIES = Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Collectors.toSet());
-    public static final Set<Property> OBJECT_PROPERTIES = Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Collectors.toSet());
-    public static final Set<Property> OWL_PROPERTIES = Stream.of(ANNOTATION_PROPERTIES, DATA_PROPERTIES, OBJECT_PROPERTIES)
-            .flatMap(Collection::stream).collect(Collectors.toSet());
+    public static final Set<Property> OWL_OBJECT_PROPERTIES = Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Collectors.toSet());
+    public static final Set<Property> OBJECT_PROPERTIES = Stream.of(OWL_OBJECT_PROPERTIES, SKOS_OBJECT_PROPERTIES).flatMap(Collection::stream).collect(Collectors.toSet());
+    public static final Set<Property> OWL_PROPERTIES =
+            Stream.of(ANNOTATION_PROPERTIES, DATA_PROPERTIES, OBJECT_PROPERTIES).flatMap(Collection::stream).collect(Collectors.toSet());
     public static final Set<Resource> ENTITIES = Stream.of(CLASSES, DATATYPES, OWL_PROPERTIES)
             .flatMap(Collection::stream).collect(Collectors.toSet());
 

@@ -32,7 +32,10 @@ class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<
     public Stream<OntStatement> statements(OntGraphModel model) {
         OntConfig.LoaderConfiguration conf = getLoaderConfig(model);
         if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
-        return super.statements(model).filter(s -> s.getObject().isURIResource()).filter(s -> ReadHelper.testAnnotationAxiom(s, conf));
+        return super.statements(model)
+                .filter(s -> s.getObject().isURIResource())
+                .filter(s -> ReadHelper.testAnnotationAxiomOverlaps(s, conf,
+                        AxiomType.OBJECT_PROPERTY_RANGE, AxiomType.DATA_PROPERTY_RANGE));
     }
 
     @Override

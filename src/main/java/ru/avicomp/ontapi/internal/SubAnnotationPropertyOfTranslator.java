@@ -40,7 +40,9 @@ class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OW
     public Stream<OntStatement> statements(OntGraphModel model) {
         OntConfig.LoaderConfiguration conf = getLoaderConfig(model);
         if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
-        return super.statements(model).filter(s -> ReadHelper.testAnnotationAxiom(s, conf));
+        return super.statements(model)
+                .filter(s -> ReadHelper.testAnnotationAxiomOverlaps(s, conf,
+                        AxiomType.SUB_OBJECT_PROPERTY, AxiomType.SUB_DATA_PROPERTY));
     }
 
     @Override

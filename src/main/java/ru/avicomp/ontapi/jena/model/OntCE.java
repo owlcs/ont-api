@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi.jena.model;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Literal;
@@ -22,7 +23,7 @@ public interface OntCE extends OntObject {
 
     Stream<OntPE> hasKey();
 
-    OntStatement addHasKey(Stream<OntOPE> objectProperties, Stream<OntNDP> dataProperties);
+    OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties);
 
     void removeHasKey();
 
@@ -104,15 +105,14 @@ public interface OntCE extends OntObject {
     interface ONProperties<P extends OntPE> {
         Stream<P> onProperties();
 
-        void setOnProperties(Stream<P> properties);
+        void setOnProperties(Collection<P> properties);
     }
 
     interface Components<O extends OntObject> {
         Stream<O> components();
 
-        void setComponents(Stream<O> components);
+        void setComponents(Collection<O> components);
     }
-
 
     interface Value<O extends RDFNode> {
         O getValue();
