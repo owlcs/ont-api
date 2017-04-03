@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.io.StringDocumentSource;
@@ -48,7 +47,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
  *         Management Group
  * @since 3.0.0
  */
-@Ignore
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class ProfileValidationTestCase extends TestBase {
     private static final String ALL_NS = "http://www.w3.org/2007/OWL/testOntology#";
