@@ -9,6 +9,7 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
 
 /**
@@ -50,6 +51,15 @@ public interface OntologyManager extends OWLOntologyManager {
     @Override
     OntologyModel getOntology(@Nonnull IRI iri);
 
+    /**
+     * Finds ontology by the specified {@code id} (could be anonymous).
+     * If there is no such ontology it tries to find the first with the same ontology IRI as in the specified {@code id}.
+     *
+     * @param id {@link OWLOntologyID} ID
+     * @return {@link OntologyModel} or {@code null}
+     * @see OWLOntologyManagerImpl#getOntology(OWLOntologyID)
+     * @see #contains(OWLOntologyID)
+     */
     @Override
     OntologyModel getOntology(@Nonnull OWLOntologyID id);
 
@@ -66,7 +76,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Be warned: this method returns always false for any anonymous id.
      * For non-anonymous id it performs searching by ontology iri ignoring version iri.
-     * It is to order to make the behaviour the same as OWL-API method.
+     * This is in order to make the behaviour the same as OWL-API method.
      *
      * @param id {@link OWLOntologyID} the id
      * @return true if {@code id} is not anonymous and there is an ontology with the same iri as in the specified {@code id}

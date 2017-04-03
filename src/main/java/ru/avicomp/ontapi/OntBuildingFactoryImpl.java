@@ -1,14 +1,10 @@
 package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.Serializable;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.jena.atlas.iterator.Iter;
@@ -19,7 +15,6 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.io.*;
@@ -34,9 +29,10 @@ import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.transforms.Transform;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
+import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 /**
- * Ontology building factory. The point to create and load ontologies.
+ * Ontology building&loading factory. The 'core', the point to create and load ontologies.
  * See also base interface {@link OWLOntologyFactory} and its single implementation {@link OWLOntologyFactoryImpl}.
  * <p>
  * Created by szuev on 24.10.2016.
@@ -143,7 +139,8 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
 
         protected final OWLOntologyFactoryImpl factory;
 
-        // to avoid recursion loop:
+        // to avoid recursion loop,
+        // which may happen since OWL-API parsers may use the manager again, which uses factory with the same parsers
         protected Set<IRI> sources = new HashSet<>();
 
         public OWLLoaderImpl(OntBuilderImpl builder) {
@@ -161,7 +158,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 OntologyModel res = (OntologyModel) factory.loadOWLOntology(manager, source, (OWLOntologyCreationHandler) manager, conf);
                 if (LOGGER.isDebugEnabled()) {
                     OntFormat format = OntFormat.get(manager.getOntologyFormat(res));
-                    LOGGER.debug("Ontology {} is loaded. Format: [{}]{}", res.getOntologyID(), source.getClass().getSimpleName(), format);
+                    LOGGER.debug("The ontology <{}> is loaded. Format: {}[{}]", res.getOntologyID(), format, source.getClass().getSimpleName());
                 }
                 // clear cache to be sure that list of axioms is always the same and corresponds to the graph.
                 res.clearCache();
@@ -221,7 +218,9 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 // first expand graphs map by creating primary model:
                 OntologyModel res = OntApiException.notNull(createModel(primary, manager, config), "Should never happen");
                 // then process all the rest dependent models (we have already all graphs compiled, now need populate them as models):
-                List<GraphInfo> graphs = this.graphs.keySet().stream().filter(u -> !Objects.equals(u, primary.getURI())).map(k -> this.graphs.get(k)).collect(Collectors.toList());
+                List<GraphInfo> graphs = this.graphs.keySet().stream()
+                        .filter(u -> !Objects.equals(u, primary.getURI()))
+                        .map(k -> this.graphs.get(k)).collect(Collectors.toList());
                 for (GraphInfo c : graphs) {
                     createModel(c, manager, config);
                 }
@@ -232,13 +231,13 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
         }
 
         /**
-         * Populates {@link Graph} as {@link OntologyModel} inside manager
+         * Populates {@link Graph} as {@link OntologyModel} inside manager.
          *
          * @param info    {@link GraphInfo} container with info about graph.
          * @param manager {@link OntologyManager}
          * @param config  {@link OntConfig.LoaderConfiguration}
          * @return {@link OntologyModel}, it is ready to use.
-         * @throws OWLOntologyCreationException
+         * @throws OWLOntologyCreationException if can't assemble model from ready graph.
          */
         protected OntologyModel createModel(GraphInfo info, OntologyManager manager, OntConfig.LoaderConfiguration config) throws OWLOntologyCreationException {
             if (!info.isFresh()) {
@@ -251,8 +250,8 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Set up ontology <{}>.", info.name());
                 }
-                boolean doTransform = graphs.size() == 1;
-                Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config, doTransform);
+                boolean isPrimary = graphs.size() == 1;
+                Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config, isPrimary);
                 OntFormat format = info.getFormat();
                 InternalModel base = new InternalModel(graph, config.getPersonality());
                 base.setLoaderConfig(config);
@@ -270,7 +269,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                     graph.getPrefixMapping().getNsPrefixMap().forEach(pm::setPrefix);
                     OntologyManagerImpl.setDefaultPrefix(pm, ont);
                 }
-                if (doTransform) {
+                if (isPrimary) {
                     // todo: should we pass stats from transforms? do we need it?
                     OWLOntologyLoaderMetaData fake = new RDFParserMetaData(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, 0,
                             Collections.emptySet(), ArrayListMultimap.create());
@@ -315,8 +314,8 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                     if (info == null)
                         info = fetchGraph(uri, manager, config);
                     graphs.put(uri, info);
-                    // Anonymous ontology or ontology without header(i.e. no "_:x rdf:type owl:Ontology") could be loaded if
-                    // there is some resource-mapping in the manager on the import declaration.
+                    // Anonymous ontology or ontology without header (i.e. if no "_:x rdf:type owl:Ontology") could be loaded
+                    // if there is some resource-mapping in the manager on the import declaration.
                     // In this case we may load it as separated model or include to the parent graph:
                     if (info.isAnonymous() && MissingOntologyHeaderStrategy.INCLUDE_GRAPH.equals(config.getMissingOntologyHeaderStrategy())) {
                         if (LOGGER.isDebugEnabled()) {
@@ -337,7 +336,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                         throw new UnloadableImportException(e, declaration);
                     }
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Can't process sub graph with " + declaration + ". Exception: " + e);
+                        LOGGER.debug("Can't read sub graph with " + declaration + ". Exception: " + e);
                     }
                 }
             }
@@ -381,18 +380,17 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          */
         protected GraphInfo fetchGraph(String uri, OntologyManager manager, OntConfig.LoaderConfiguration config) throws OWLOntologyCreationException {
             IRI ontologyIRI = IRI.create(uri);
-            OWLOntologyID id;
-            if (manager.contains(id = new OWLOntologyID(Optional.of(ontologyIRI), Optional.empty()))) {
-                OntologyModel model = OntApiException.notNull(manager.getOntology(id), "Can't find ontology " + id);
-                return toGraphInfo(model);
+            OntologyModel res = findModel(manager, ontologyIRI);
+            if (res != null) {
+                return toGraphInfo(res, false);
             }
             IRI documentIRI = Iter.asStream(manager.getIRIMappers().iterator())
                     .map(m -> m.getDocumentIRI(ontologyIRI)).filter(Objects::nonNull)
                     .findFirst().orElse(ontologyIRI);
             // handle also the strange situation when there is no resource-mapping but a mapping on some existing ontology
-            if (manager.contains(id = new OWLOntologyID(Optional.of(documentIRI), Optional.empty()))) {
-                OntologyModel model = OntApiException.notNull(manager.getOntology(id), "Can't find ontology " + id);
-                return toGraphInfo(model);
+            res = findModel(manager, documentIRI);
+            if (res != null) {
+                return toGraphInfo(res, false);
             }
             IRIDocumentSource source = new IRIDocumentSource(documentIRI);
             try {
@@ -405,13 +403,59 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                     LOGGER.debug("Can't load graph using jena ({}), try alternative method.", e.getMessage());
                 }
                 try {
-                    return toGraphInfo(alternative.load(source, manager, config));
+                    // we need only the base graph
+                    OntologyManagerImpl m = new OntologyManagerImpl(manager.getOWLDataFactory(), new NoOpReadWriteLock());
+                    OntConfig.LoaderConfiguration conf = m.getOntologyLoaderConfiguration()
+                            .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
+                    return toGraphInfo(alternative.load(source, m, conf), true);
                 } catch (OWLOntologyCreationException ex) {
                     if (ex.getCause() == null)
                         ex.initCause(e);
                     throw ex;
                 }
             }
+        }
+
+        /**
+         * Finds ontology by the IRI.
+         * <p>
+         * WARNING: the jena iri-resolver ({@link org.apache.jena.riot.system.IRIResolver})
+         * makes all graphs iri's in one common form according to some inner rule, which I can't change,
+         * but which, I believe, corresponds to the <a href='https://tools.ietf.org/html/rfc3986'>URI standard</a>,
+         * ... and also to the <a href='http://ietf.org/rfc/rfc3987'>IRI standard</a>.
+         * It happens while writing(saving) ontology as Turtle (at least).
+         * And it looks like Jena(3.0.1) bug.
+         * As a result if we have OWL-API IRI like this 'file:/C:/Users/admin/AppData/Local/Temp/tmp.file'
+         * (which may come from expression {@code IRI.create({@link File})})
+         * after reloading ontology it would looks like 'file:///C:/Users/admin/AppData/Local/Temp/tmp.file' inside graph.
+         * This method is a quick workaround to handle correctly such situations.
+         *
+         * @param m   {@link OntologyManager}
+         * @param iri {@link IRI}
+         * @return {@link OntologyModel} or null.
+         * @see org.apache.jena.riot.system.IRIResolver
+         */
+        protected OntologyModel findModel(OntologyManager m, IRI iri) {
+            OntologyModel res = m.getOntology(new OWLOntologyID(Optional.of(iri), Optional.empty()));
+            if (res != null) return res;
+            if (iri.toString().startsWith("file://")) { // hack:
+                iri = IRI.create(iri.toString().replaceAll("/+", "/"));
+                return m.getOntology(new OWLOntologyID(Optional.of(iri), Optional.empty()));
+            }
+            return null;
+        }
+
+        /**
+         * Wraps model as inner container {@link GraphInfo}.
+         *
+         * @param model {@link OntologyModel}
+         * @param fresh if true result should be considered as fresh.
+         * @return {@link GraphInfo}
+         */
+        protected GraphInfo toGraphInfo(OntologyModel model, boolean fresh) { // npe in case no format?
+            OntFormat format = OntFormat.get(model.getOWLOntologyManager().getOntologyFormat(model));
+            Graph graph = model.asGraphModel().getBaseGraph();
+            return new GraphInfo(graph, format, fresh);
         }
 
         /**
@@ -443,10 +487,136 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
             return new GraphInfo(graph, format, true);
         }
 
-        protected GraphInfo toGraphInfo(OntologyModel model) { // npe in case no format:
-            OntFormat format = OntFormat.get(model.getOWLOntologyManager().getOntologyFormat(model));
-            Graph graph = model.asGraphModel().getBaseGraph();
-            return new GraphInfo(graph, format, false);
+        /**
+         * The main method to read the source document to the graph.
+         * For generality it is public.
+         *
+         * @param graph  {@link Graph} the graph(empty) to put in.
+         * @param source {@link OWLOntologyDocumentSource} the source (encapsulates IO-stream, IO-Reader or IRI of document)
+         * @param conf   {@link OntConfig.LoaderConfiguration} config
+         * @return {@link OntFormat} corresponding to the specified source.
+         * @throws UnsupportedFormatException   if source can't be read into graph using jena.
+         * @throws ConfigMismatchException      if there is some conflict with config settings, anyway we can't continue.
+         * @throws OWLOntologyCreationException if there is some serious IO problem
+         * @throws OntApiException              if some other problem.
+         */
+        public static OntFormat readGraph(Graph graph, OWLOntologyDocumentSource source, OntConfig.LoaderConfiguration conf) throws OWLOntologyCreationException {
+            IRI iri = OntApiException.notNull(source, "Null document source.").getDocumentIRI();
+            if (LOGGER.isDebugEnabled())
+                LOGGER.debug("Read graph from <{}>.", iri);
+            if (source.getInputStream().isPresent()) {
+                return read(graph, source, s -> s.getInputStream().get());
+            }
+            if (source.getReader().isPresent()) {
+                return read(graph, source, s -> buffer(asInputStream(s.getReader().get())));
+            }
+            if (conf.getSupportedSchemes().stream().noneMatch(s -> s.same(iri))) {
+                throw new ConfigMismatchException("Not allowed scheme: " + iri);
+            }
+            return read(graph, source, s -> DocumentSources.getInputStream(iri, conf)
+                    .orElseThrow(() -> new OWLOntologyInputSourceException("Can't get input stream from " + iri)));
+        }
+
+        /**
+         * Tries to compute the {@link OntFormat} from {@link OWLOntologyDocumentSource} by using content type or uri or whatever else,
+         * but not encapsulated OWL-format (which may absent).
+         * public, for more generality.
+         *
+         * @param source {@link OWLOntologyDocumentSource}
+         * @return {@link OntFormat} or null if it could not guess format from source.
+         */
+        public static OntFormat guessFormat(OWLOntologyDocumentSource source) {
+            Lang lang;
+            if (OntApiException.notNull(source, "Null document source.").getMIMEType().isPresent()) {
+                lang = RDFLanguages.contentTypeToLang(source.getMIMEType().get());
+            } else {
+                lang = RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
+            }
+            return lang == null ? null : OntFormat.get(lang);
+        }
+
+        /**
+         * Returns supported formats related to the source.
+         * The result (ordered set) can only contain a single format in case the source has {@link OWLDocumentFormat},
+         * otherwise it will contain all supported formats.
+         *
+         * @param source {@link OWLOntologyDocumentSource}
+         * @return Set of {@link OntFormat}s
+         */
+        public static Set<OntFormat> getSupportedFormats(OWLOntologyDocumentSource source) {
+            Set<OntFormat> res = new LinkedHashSet<>();
+            if (source.getFormat().isPresent()) {
+                OntFormat f = OntFormat.get(source.getFormat().get());
+                if (f.isSupported()) {
+                    res.add(f);
+                    return res;
+                }
+            }
+            OntFormat first = guessFormat(source);
+            if (first != null) {
+                res.add(first);
+            }
+            OntFormat.supported().forEach(res::add);
+            return res;
+        }
+
+        /**
+         * Performs reading to the graph from the source using ont-supplier which produces input stream each time
+         *
+         * @param graph    {@link Graph}
+         * @param source   {@link OWLOntologyDocumentSource}
+         * @param supplier {@link OntInputSupplier}
+         * @return {@link OntFormat}
+         * @throws OWLOntologyCreationException if smth wrong.
+         */
+        protected static OntFormat read(Graph graph, OWLOntologyDocumentSource source, OntInputSupplier supplier) throws OWLOntologyCreationException {
+            IRI iri = source.getDocumentIRI();
+            OWLOntologyCreationException cause = null;
+            for (OntFormat format : getSupportedFormats(source)) {
+                if (format.isOWLOnly()) {
+                    if (cause == null) {
+                        cause = new UnsupportedFormatException("Format " + format + " is not supported by jena.");
+                    }
+                    continue;
+                }
+                Lang lang = format.getLang();
+                try (InputStream is = supplier.open(source)) {
+                    if (LOGGER.isDebugEnabled())
+                        LOGGER.debug("try <{}>", lang);
+                    RDFDataMgr.read(graph, is, lang);
+                    return format;
+                } catch (OWLOntologyInputSourceException | IOException e) {
+                    throw new OWLOntologyCreationException("Can't open or close input stream from " + iri, e);
+                } catch (RuntimeException e) {
+                    // could be org.apache.jena.shared.JenaException || org.apache.jena.atlas.AtlasException || org.apache.jena.atlas.json.JsonParseException || ...
+                    if (LOGGER.isDebugEnabled())
+                        LOGGER.debug("<{}> failed: '{}'", lang, e.getMessage());
+                    cause = new UnsupportedFormatException(String.format("Can't read %s from iri <%s>: %s", format, iri, e.getMessage()), e);
+                }
+            }
+            if (cause == null)
+                cause = new UnsupportedFormatException(String.format("Can't read from source %s[%s].", iri, source));
+            throw cause;
+        }
+
+        protected static InputStream asInputStream(Reader reader) {
+            return new ReaderInputStream(reader, StandardCharsets.UTF_8);
+        }
+
+        protected static InputStream buffer(InputStream is) {
+            return new BufferedInputStream(is);
+        }
+
+        protected interface OntInputSupplier {
+
+            /**
+             * NOTE: the caller is responsible for ensuring that the returned stream is closed.
+             *
+             * @param source {@link OWLOntologyDocumentSource}
+             * @return {@link InputStream}
+             * @throws OWLOntologyInputSourceException in case something wrong.
+             */
+            InputStream open(OWLOntologyDocumentSource source) throws OWLOntologyInputSourceException;
         }
 
         /**
@@ -497,150 +667,6 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
             protected Graph getGraph() {
                 return graph;
             }
-        }
-
-        /**
-         * The main method to read the source to the graph.
-         * For generality it is public.
-         *
-         * @param g      {@link Graph} the graph(empty) to put in.
-         * @param source {@link OWLOntologyDocumentSource} the source (encapsulates IO-stream, IO-Reader or IRI of document)
-         * @param conf   {@link OntConfig.LoaderConfiguration} config
-         * @return {@link OntFormat} corresponding to the specified source.
-         * @throws UnsupportedFormatException   if source can't be read into graph using jena.
-         * @throws ConfigMismatchException      if there is some conflict with config settings, anyway we can't continue.
-         * @throws OWLOntologyCreationException if there is some serious IO problem
-         * @throws OntApiException              if some other problem.
-         */
-        public static OntFormat readGraph(Graph g, OWLOntologyDocumentSource source, OntConfig.LoaderConfiguration conf) throws OWLOntologyCreationException {
-            IRI iri = OntApiException.notNull(source, "Null document source.").getDocumentIRI();
-            if (LOGGER.isDebugEnabled())
-                LOGGER.debug("Read graph from <" + iri + ">.");
-            if (source.getInputStream().isPresent()) {
-                return readFromInputStream(g, source);
-            }
-            if (source.getReader().isPresent()) {
-                return readFromReader(g, source);
-            }
-            return readFromDocumentIRI(g, source, conf);
-        }
-
-        /**
-         * Tries to compute the {@link OntFormat} from {@link OWLOntologyDocumentSource} by using content type or uri or whatever else.
-         * public, for more generality.
-         *
-         * @param source {@link OWLOntologyDocumentSource}
-         * @return {@link OntFormat} or null if it could not guess format from source.
-         */
-        public static OntFormat guessFormat(OWLOntologyDocumentSource source) {
-            Lang lang;
-            if (OntApiException.notNull(source, "Null document source.").getMIMEType().isPresent()) {
-                lang = RDFLanguages.contentTypeToLang(source.getMIMEType().get());
-            } else {
-                lang = RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
-            }
-            return lang == null ? null : OntFormat.get(lang);
-        }
-
-        /**
-         * Reads the graph from source using only document iri (see {@link OWLOntologyDocumentSource#getDocumentIRI()})
-         *
-         * @param g      {@link Graph}
-         * @param source {@link OWLOntologyDocumentSource}
-         * @param conf   {@link OntConfig.LoaderConfiguration}
-         * @return {@link OntFormat} in case of success (otherwise throws an exception)
-         * @throws UnsupportedFormatException   if format is definitely not supported by jena.
-         * @throws ConfigMismatchException      if document IRI is not allowed in config.
-         * @throws OWLOntologyCreationException if there are some critical problems while preparing stream.
-         */
-        protected static OntFormat readFromDocumentIRI(Graph g, OWLOntologyDocumentSource source, OntConfig.LoaderConfiguration conf) throws OWLOntologyCreationException {
-            OntFormat format = source.getFormat().map(OntFormat::get).orElse(guessFormat(source));
-            if (format != null && format.isOWLOnly()) // not even try
-                throw new UnsupportedFormatException("Format " + format + " is not supported by jena.");
-            IRI iri = source.getDocumentIRI();
-            if (conf.getSupportedSchemes().stream().noneMatch(s -> s.same(iri))) {
-                throw new ConfigMismatchException("Not allowed scheme: " + iri);
-            }
-            try {
-                InputStream is = DocumentSources.getInputStream(iri, conf).orElseThrow(OntApiException.supplier("Can't get input stream from " + iri));
-                RDFDataMgr.read(g, is, format == null ? null : format.getLang());
-                return format;
-            } catch (RiotException e) {
-                throw new UnsupportedFormatException(String.format("Can't read %s from iri <%s>: %s", format, iri, e.getMessage()), e);
-            } catch (OWLOntologyInputSourceException e) {
-                throw new OWLOntologyCreationException("Can't get input stream for " + iri, e);
-            }
-        }
-
-        /**
-         * Reads the graph from source using only encapsulated access to the input stream (see {@link OWLOntologyDocumentSource#getInputStream()})
-         * Since we don't know the data format we iterate through all available.
-         *
-         * @param g      {@link Graph}
-         * @param source {@link OWLOntologyDocumentSource}
-         * @return {@link OntFormat} if success, otherwise throws an exception
-         * @throws UnsupportedFormatException in case there are no jena formats which suite data inside io-stream.
-         */
-        protected static OntFormat readFromInputStream(Graph g, OWLOntologyDocumentSource source) throws UnsupportedFormatException {
-            if (!source.getInputStream().isPresent()) {
-                throw new OntApiException("No input stream inside " + source);
-            }
-            return formats(source)
-                    .filter(OntFormat::isJena)
-                    .filter(format -> read(buffer(source.getInputStream().get()), g, format.getLang()))
-                    .findFirst().orElseThrow(() -> new UnsupportedFormatException("Can't read from stream " + source));
-        }
-
-        /**
-         * Reads the graph from source using only encapsulated access to the reader (see {@link OWLOntologyDocumentSource#getReader()})
-         * Since we don't know the data-format we iterate through all available.
-         *
-         * @param g      {@link Graph}
-         * @param source {@link OWLOntologyDocumentSource}
-         * @return {@link OntFormat} if success, otherwise throws an exception
-         * @throws UnsupportedFormatException in case there are no jena formats which suite data inside reader.
-         */
-        protected static OntFormat readFromReader(Graph g, OWLOntologyDocumentSource source) throws UnsupportedFormatException {
-            if (!source.getReader().isPresent()) {
-                throw new OntApiException("No reader inside " + source);
-            }
-            return formats(source)
-                    .filter(OntFormat::isJena)
-                    .filter(format -> read(buffer(asInputStream(source.getReader().get())), g, format.getLang()))
-                    .findFirst().orElseThrow(() -> new UnsupportedFormatException("Can't read from reader " + source));
-        }
-
-        protected static InputStream asInputStream(Reader reader) {
-            return new ReaderInputStream(reader, StandardCharsets.UTF_8);
-        }
-
-        protected static InputStream buffer(InputStream is) {
-            return new BufferedInputStream(is);
-        }
-
-        /**
-         * reads graph from i/o stream without throwing any exception.
-         *
-         * @param is    {@link InputStream}
-         * @param graph {@link Graph}
-         * @param lang  {@link Lang}
-         * @return true if graph has been read successfully, false if there was an exception.
-         */
-        protected static boolean read(InputStream is, Graph graph, Lang lang) {
-            try {
-                if (LOGGER.isDebugEnabled())
-                    LOGGER.debug("try <<" + lang + ">>");
-                RDFDataMgr.read(graph, is, lang);
-                return true;
-            } catch (Exception e) {
-                if (LOGGER.isDebugEnabled())
-                    LOGGER.debug("(" + lang + ") failed: " + e.getMessage());
-                return false;
-            }
-        }
-
-        protected static Stream<OntFormat> formats(OWLOntologyDocumentSource source) {
-            return source.getFormat().map(OntFormat::get).map(Stream::of).orElse(OntFormat.supported());
         }
     }
 
