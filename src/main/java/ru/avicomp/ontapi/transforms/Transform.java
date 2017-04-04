@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -23,11 +24,17 @@ public abstract class Transform {
     protected static final Logger LOGGER = LoggerFactory.getLogger(Transform.class);
 
     protected final Graph graph;
+    protected final BuiltIn.Vocabulary builtIn;
     private Model model;
     private Model base;
 
-    protected Transform(Graph graph) {
+    protected Transform(Graph graph, BuiltIn.Vocabulary vocabulary) {
         this.graph = graph;
+        this.builtIn = vocabulary;
+    }
+
+    protected Transform(Graph graph) {
+        this(graph, BuiltIn.get());
     }
 
     /**

@@ -6,11 +6,10 @@ import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * rdfs:Datatype
+ * Named entity with rdf:type = rdfs:Datatype
  *
  * Created by szuev on 03.11.2016.
  */
@@ -27,7 +26,7 @@ public class OntDatatypeImpl extends OntObjectImpl implements OntDT {
 
     @Override
     public boolean isBuiltIn() {
-        return BuiltIn.DATATYPES.contains(this);
+        return Entities.DATATYPE.builtInURIs().contains(this);
     }
 
     @Override

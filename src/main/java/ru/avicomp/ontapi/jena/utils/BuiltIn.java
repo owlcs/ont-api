@@ -24,73 +24,29 @@ import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 /**
- * Helper to work with constants from {@link ru.avicomp.ontapi.jena.vocabulary} package.
- * TODO: make it configurable.
+ * Helper to work with constants from {@link ru.avicomp.ontapi.jena.vocabulary} and {@link org.apache.jena.vocabulary} packages.
+ * The access provided through {@link Vocabulary} interface.
  * <p>
  * Created by @szuev on 21.12.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class BuiltIn {
-    // list of datatypes from owl-2 specification (35 types):
-    public static final Set<Resource> OWL2_DATATYPES =
-            Stream.of(RDF.xmlLiteral, RDF.PlainLiteral, RDF.langString,
-                    RDFS.Literal, OWL.real, OWL.rational, XSD.xstring, XSD.normalizedString,
-                    XSD.token, XSD.language, XSD.Name, XSD.NCName, XSD.NMTOKEN, XSD.decimal, XSD.integer,
-                    XSD.xdouble, XSD.xfloat, XSD.xboolean,
-                    XSD.nonNegativeInteger, XSD.nonPositiveInteger, XSD.positiveInteger, XSD.negativeInteger,
-                    XSD.xlong, XSD.xint, XSD.xshort, XSD.xbyte,
-                    XSD.unsignedLong, XSD.unsignedInt, XSD.unsignedShort, XSD.unsignedByte,
-                    XSD.hexBinary, XSD.base64Binary,
-                    XSD.anyURI, XSD.dateTime, XSD.dateTimeStamp
-            ).collect(Collectors.toSet());
-    public static final Set<RDFDatatype> RDF_DATATYPE_SET = createBuiltInTypes();
 
-    public static final Set<Property> DC_ANNOTATION_PROPERTIES = getConstants(Property.class, DC.class);
-    public static final Set<Property> SKOS_ANNOTATION_PROPERTIES =
-            Stream.of(SKOS.altLabel, SKOS.changeNote, SKOS.definition,
-                    SKOS.editorialNote, SKOS.example, SKOS.hiddenLabel, SKOS.historyNote,
-                    SKOS.note, SKOS.prefLabel, SKOS.scopeNote).collect(Collectors.toSet());
-    public static final Set<Property> SKOS_OBJECT_PROPERTIES =
-            Stream.of(SKOS.broadMatch, SKOS.broader, SKOS.broaderTransitive,
-                    SKOS.closeMatch, SKOS.exactMatch, SKOS.hasTopConcept, SKOS.inScheme,
-                    SKOS.mappingRelation, SKOS.member, SKOS.memberList, SKOS.narrowMatch,
-                    SKOS.narrower, SKOS.narrowerTransitive, SKOS.related,
-                    SKOS.relatedMatch, SKOS.semanticRelation, SKOS.topConceptOf).collect(Collectors.toSet());
-    // no skos:TopConcept
-    public static final Set<Resource> SKOS_CLASSES =
-            Stream.of(SKOS.Collection, SKOS.Concept, SKOS.ConceptScheme, SKOS.OrderedCollection).collect(Collectors.toSet());
-    // full list of datatypes:
-    public static final Set<Resource> DATATYPES = RDF_DATATYPE_SET.stream().map(RDFDatatype::getURI).
-            map(ResourceFactory::createResource).collect(Collectors.toSet());
-    public static final Set<Resource> OWL_CLASSES = Stream.of(OWL.Nothing, OWL.Thing).collect(Collectors.toSet());
-    public static final Set<Resource> CLASSES = Stream.of(OWL_CLASSES, SKOS_CLASSES).flatMap(Collection::stream).collect(Collectors.toSet());
-    public static final Set<Property> OWL_ANNOTATION_PROPERTIES = Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy,
-            OWL.versionInfo, OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated).collect(Collectors.toSet());
-    public static final Set<Property> ANNOTATION_PROPERTIES =
-            Stream.of(OWL_ANNOTATION_PROPERTIES, DC_ANNOTATION_PROPERTIES, SKOS_ANNOTATION_PROPERTIES).flatMap(Collection::stream).collect(Collectors.toSet());
-    public static final Set<Property> DATA_PROPERTIES = Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Collectors.toSet());
-    public static final Set<Property> OWL_OBJECT_PROPERTIES = Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Collectors.toSet());
-    public static final Set<Property> OBJECT_PROPERTIES = Stream.of(OWL_OBJECT_PROPERTIES, SKOS_OBJECT_PROPERTIES).flatMap(Collection::stream).collect(Collectors.toSet());
-    public static final Set<Property> OWL_PROPERTIES =
-            Stream.of(ANNOTATION_PROPERTIES, DATA_PROPERTIES, OBJECT_PROPERTIES).flatMap(Collection::stream).collect(Collectors.toSet());
-    public static final Set<Resource> ENTITIES = Stream.of(CLASSES, DATATYPES, OWL_PROPERTIES)
-            .flatMap(Collection::stream).collect(Collectors.toSet());
+    public static final Vocabulary OWL_VOCABULARY = new OWLVocabulary();
+    public static final Vocabulary DC_VOCABULARY = new DCVocabulary();
+    public static final Vocabulary SKOS_VOCABULARY = new SKOSVocabulary();
+    public static final Vocabulary OWL_SKOS_DC_VOCABULARY = MultiVocabulary.create(OWL_VOCABULARY, DC_VOCABULARY, SKOS_VOCABULARY);
 
-    public static final Set<Property> PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);
-    public static final Set<Resource> RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);
-    public static final Set<Resource> ALL = Stream.of(PROPERTIES, RESOURCES).flatMap(Collection::stream).collect(Collectors.toSet());
+    protected static Vocabulary defaultVocabulary = OWL_SKOS_DC_VOCABULARY;
 
-    private static Set<RDFDatatype> createBuiltInTypes() {
-        TypeMapper mapper = TypeMapper.getInstance();
-        Stream.of(OWL.real, OWL.rational).forEach(d -> mapper.registerDatatype(new BaseDatatype(d.getURI()) {
-            @Override
-            public Class<?> getJavaClass() {
-                return Double.class;
-            }
-        }));
-        OWL2_DATATYPES.forEach(iri -> mapper.getSafeTypeByName(iri.getURI()));
-        Set<RDFDatatype> res = new HashSet<>();
-        mapper.listTypes().forEachRemaining(res::add);
-        return res;
+    public static Vocabulary get() {
+        return defaultVocabulary;
+    }
+
+    public static Vocabulary set(Vocabulary vocabulary) {
+        Vocabulary prev = get();
+        defaultVocabulary = OntJenaException.notNull(vocabulary, "Null vocabulary specified.");
+        return prev;
     }
 
     private static Stream<Field> directFields(Class vocabulary, Class<?> type) {
@@ -117,7 +73,295 @@ public class BuiltIn {
         }
     }
 
-    private static <T> Set<T> getConstants(Class<T> type, Class... vocabularies) {
+    protected static <T> Set<T> getConstants(Class<T> type, Class... vocabularies) {
         return Arrays.stream(vocabularies).map(voc -> constants(voc, type)).flatMap(Function.identity()).collect(Collectors.toSet());
+    }
+
+    /**
+     * The point to access to the built-in resources and properties.
+     * <p>
+     * Created by @szuev on 04.04.2017.
+     */
+    public interface Vocabulary {
+
+        Set<Property> annotationProperties();
+
+        Set<Property> datatypeProperties();
+
+        Set<Property> objectProperties();
+
+        Set<Resource> datatypes();
+
+        Set<Resource> classes();
+
+        Set<Resource> reservedResources();
+
+        Set<Property> reservedProperties();
+
+        default Set<Resource> reserved() {
+            return Stream.of(reservedProperties(), reservedResources())
+                    .flatMap(Collection::stream).collect(Collectors.toSet());
+        }
+
+        default Set<Property> properties() {
+            return Stream.of(annotationProperties(), datatypeProperties(), objectProperties())
+                    .flatMap(Collection::stream).collect(Collectors.toSet());
+        }
+
+        default Set<Resource> entities() {
+            return Stream.of(classes(), datatypes(), properties())
+                    .flatMap(Collection::stream).collect(Collectors.toSet());
+        }
+    }
+
+    /**
+     * Access to {@link OWL} vocabulary.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static class OWLVocabulary implements Vocabulary {
+        public static final Set<Property> ALL_PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);
+        public static final Set<Resource> ALL_RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);
+        /**
+         * The list of datatypes from owl-2 specification (35 types)
+         * (see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick References, 3.1 Built-in Datatypes</a>).
+         * It seems it is not full:
+         */
+        public static final Set<Resource> OWL2_DATATYPES =
+                Stream.of(RDF.xmlLiteral, RDF.PlainLiteral, RDF.langString,
+                        RDFS.Literal, OWL.real, OWL.rational, XSD.xstring, XSD.normalizedString,
+                        XSD.token, XSD.language, XSD.Name, XSD.NCName, XSD.NMTOKEN, XSD.decimal, XSD.integer,
+                        XSD.xdouble, XSD.xfloat, XSD.xboolean,
+                        XSD.nonNegativeInteger, XSD.nonPositiveInteger, XSD.positiveInteger, XSD.negativeInteger,
+                        XSD.xlong, XSD.xint, XSD.xshort, XSD.xbyte,
+                        XSD.unsignedLong, XSD.unsignedInt, XSD.unsignedShort, XSD.unsignedByte,
+                        XSD.hexBinary, XSD.base64Binary,
+                        XSD.anyURI, XSD.dateTime, XSD.dateTimeStamp
+                ).collect(Collectors.toSet());
+        public static final Set<RDFDatatype> JENA_RDF_DATATYPE_SET = initBuiltInRDFDatatypes(OWL2_DATATYPES);
+
+        public static final Set<Resource> DATATYPES = JENA_RDF_DATATYPE_SET.stream().map(RDFDatatype::getURI).
+                map(ResourceFactory::createResource).collect(Collectors.toSet());
+        public static final Set<Resource> CLASSES = Stream.of(OWL.Nothing, OWL.Thing).collect(Collectors.toSet());
+
+        public static final Set<Property> ANNOTATION_PROPERTIES =
+                Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy, OWL.versionInfo,
+                        OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated).collect(Collectors.toSet());
+        public static final Set<Property> DATA_PROPERTIES =
+                Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Collectors.toSet());
+        public static final Set<Property> OBJECT_PROPERTIES =
+                Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Collectors.toSet());
+
+        private static Set<RDFDatatype> initBuiltInRDFDatatypes(Set<Resource> datatypes) {
+            TypeMapper mapper = TypeMapper.getInstance();
+            Stream.of(OWL.real, OWL.rational).forEach(d -> mapper.registerDatatype(new BaseDatatype(d.getURI()) {
+                @Override
+                public Class<?> getJavaClass() {
+                    return Double.class;
+                }
+            }));
+            datatypes.forEach(iri -> mapper.getSafeTypeByName(iri.getURI()));
+            Set<RDFDatatype> res = new HashSet<>();
+            mapper.listTypes().forEachRemaining(res::add);
+            return res;
+        }
+
+        @Override
+        public Set<Property> annotationProperties() {
+            return ANNOTATION_PROPERTIES;
+        }
+
+        @Override
+        public Set<Property> datatypeProperties() {
+            return DATA_PROPERTIES;
+        }
+
+        @Override
+        public Set<Property> objectProperties() {
+            return OBJECT_PROPERTIES;
+        }
+
+        @Override
+        public Set<Resource> datatypes() {
+            return DATATYPES;
+        }
+
+        @Override
+        public Set<Resource> classes() {
+            return CLASSES;
+        }
+
+        @Override
+        public Set<Resource> reservedResources() {
+            return ALL_RESOURCES;
+        }
+
+        @Override
+        public Set<Property> reservedProperties() {
+            return ALL_PROPERTIES;
+        }
+    }
+
+    /**
+     * Access to {@link DC} vocabulary.
+     */
+    public static class DCVocabulary implements Vocabulary {
+
+        @Override
+        public Set<Property> annotationProperties() {
+            return reservedProperties();
+        }
+
+        @Override
+        public Set<Property> datatypeProperties() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Property> objectProperties() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Resource> datatypes() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Resource> classes() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Resource> reservedResources() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Property> reservedProperties() {
+            return getConstants(Property.class, DC.class);
+        }
+    }
+
+    /**
+     * Access to {@link SKOS} vocabulary.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static class SKOSVocabulary implements Vocabulary {
+        public static final Set<Property> ANNOTATION_PROPERTIES =
+                Stream.of(SKOS.altLabel, SKOS.changeNote, SKOS.definition,
+                        SKOS.editorialNote, SKOS.example, SKOS.hiddenLabel, SKOS.historyNote,
+                        SKOS.note, SKOS.prefLabel, SKOS.scopeNote).collect(Collectors.toSet());
+        public static final Set<Property> OBJECT_PROPERTIES =
+                Stream.of(SKOS.broadMatch, SKOS.broader, SKOS.broaderTransitive,
+                        SKOS.closeMatch, SKOS.exactMatch, SKOS.hasTopConcept, SKOS.inScheme,
+                        SKOS.mappingRelation, SKOS.member, SKOS.memberList, SKOS.narrowMatch,
+                        SKOS.narrower, SKOS.narrowerTransitive, SKOS.related,
+                        SKOS.relatedMatch, SKOS.semanticRelation, SKOS.topConceptOf).collect(Collectors.toSet());
+        /**
+         * NOTE: In the {@link org.semanticweb.owlapi.vocab.SKOSVocabulary} there is also skos:TopConcept
+         * But in fact there is no such resource in the <a href='https://www.w3.org/2009/08/skos-reference/skos.htm'>specification</a>.
+         */
+        public static final Set<Resource> CLASSES =
+                Stream.of(SKOS.Collection, SKOS.Concept, SKOS.ConceptScheme, SKOS.OrderedCollection).collect(Collectors.toSet());
+
+        @Override
+        public Set<Property> annotationProperties() {
+            return ANNOTATION_PROPERTIES;
+        }
+
+        @Override
+        public Set<Property> datatypeProperties() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Property> objectProperties() {
+            return OBJECT_PROPERTIES;
+        }
+
+        @Override
+        public Set<Resource> datatypes() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Resource> classes() {
+            return CLASSES;
+        }
+
+        @Override
+        public Set<Resource> reservedResources() {
+            return getConstants(Resource.class, SKOS.class);
+        }
+
+        @Override
+        public Set<Property> reservedProperties() {
+            return getConstants(Property.class, SKOS.class);
+        }
+    }
+
+    /**
+     * The union vocabulary which consists from several other vocabularies.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static class MultiVocabulary implements Vocabulary {
+        protected final List<Vocabulary> vocabularies;
+        private Set<Property> annotationProperties;
+        private Set<Property> datatypeProperties;
+        private Set<Property> objectProperties;
+        private Set<Resource> datatypes;
+        private Set<Resource> classes;
+
+        private Set<Resource> reservedResources;
+        private Set<Property> reservedProperties;
+
+        protected MultiVocabulary(List<Vocabulary> vocabularies) {
+            this.vocabularies = vocabularies;
+        }
+
+        public static MultiVocabulary create(Vocabulary... vocabularies) {
+            List<Vocabulary> res = Stream.of(vocabularies).distinct().collect(Collectors.toList());
+            if (res.isEmpty()) throw new OntJenaException("Empty list specified");
+            return new MultiVocabulary(res);
+        }
+
+        protected <R extends Resource> Set<R> merge(Function<Vocabulary, Set<R>> map) {
+            return vocabularies.stream().map(map).flatMap(Collection::stream).collect(Collectors.toSet());
+        }
+
+        @Override
+        public Set<Property> annotationProperties() {
+            return annotationProperties == null ? annotationProperties = merge(Vocabulary::annotationProperties) : annotationProperties;
+        }
+
+        @Override
+        public Set<Property> datatypeProperties() {
+            return datatypeProperties == null ? datatypeProperties = merge(Vocabulary::datatypeProperties) : datatypeProperties;
+        }
+
+        @Override
+        public Set<Property> objectProperties() {
+            return objectProperties == null ? objectProperties = merge(Vocabulary::objectProperties) : objectProperties;
+        }
+
+        @Override
+        public Set<Resource> datatypes() {
+            return datatypes == null ? datatypes = merge(Vocabulary::datatypes) : datatypes;
+        }
+
+        @Override
+        public Set<Resource> classes() {
+            return classes == null ? classes = merge(Vocabulary::classes) : classes;
+        }
+
+        @Override
+        public Set<Resource> reservedResources() {
+            return reservedResources == null ? reservedResources = merge(Vocabulary::reservedResources) : reservedResources;
+        }
+
+        @Override
+        public Set<Property> reservedProperties() {
+            return reservedProperties == null ? reservedProperties = merge(Vocabulary::reservedProperties) : reservedProperties;
+        }
     }
 }

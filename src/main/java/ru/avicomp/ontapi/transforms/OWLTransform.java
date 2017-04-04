@@ -10,7 +10,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -176,7 +175,7 @@ public class OWLTransform extends Transform {
         Set<Statement> statements = statements(null, RDF.type, null)
                 .filter(s -> s.getSubject().isURIResource())
                 .filter(s -> s.getObject().isResource())
-                .filter(s -> !BuiltIn.ALL.contains(s.getObject().asResource())).collect(Collectors.toSet());
+                .filter(s -> !builtIn.reservedResources().contains(s.getObject().asResource())).collect(Collectors.toSet());
         statements.forEach(s -> declare(s.getSubject(), OWL.NamedIndividual));
     }
 

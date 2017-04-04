@@ -10,7 +10,6 @@ import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -42,7 +41,7 @@ public class OntDPropertyImpl extends OntObjectImpl implements OntNDP {
 
     @Override
     public boolean isBuiltIn() {
-        return BuiltIn.DATA_PROPERTIES.contains(this);
+        return Entities.DATA_PROPERTY.builtInURIs().contains(this);
     }
 
     @Override

@@ -11,7 +11,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -99,23 +98,23 @@ public class RDFSTransform extends Transform {
     }
 
     public boolean isObjectProperty(Resource candidate) {
-        return BuiltIn.OBJECT_PROPERTIES.contains(candidate.as(Property.class)) || hasType(candidate, OWL.ObjectProperty);
+        return builtIn.objectProperties().contains(candidate.as(Property.class)) || hasType(candidate, OWL.ObjectProperty);
     }
 
     public boolean isDataProperty(Resource candidate) {
-        return BuiltIn.DATA_PROPERTIES.contains(candidate.as(Property.class)) || hasType(candidate, OWL.DatatypeProperty);
+        return builtIn.datatypeProperties().contains(candidate.as(Property.class)) || hasType(candidate, OWL.DatatypeProperty);
     }
 
     public boolean isAnnotationProperty(Resource candidate) {
-        return BuiltIn.ANNOTATION_PROPERTIES.contains(candidate.as(Property.class)) || hasType(candidate, OWL.AnnotationProperty);
+        return builtIn.annotationProperties().contains(candidate.as(Property.class)) || hasType(candidate, OWL.AnnotationProperty);
     }
 
     protected boolean isDataRange(Resource candidate) {
-        return BuiltIn.DATATYPES.contains(candidate) || hasType(candidate, RDFS.Datatype);
+        return builtIn.datatypes().contains(candidate) || hasType(candidate, RDFS.Datatype);
     }
 
     protected boolean isClass(Resource candidate) {
-        return BuiltIn.CLASSES.contains(candidate) || hasType(candidate, OWL.Class);
+        return builtIn.classes().contains(candidate) || hasType(candidate, OWL.Class);
     }
 
     protected void processRDFSClass(Resource resource) {

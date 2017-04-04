@@ -10,7 +10,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -331,9 +330,9 @@ public class DeclarationTransform extends Transform {
 
         protected Set<Resource> forbiddenClassCandidates() {
             if (forbiddenClassCandidates != null) return forbiddenClassCandidates;
-            forbiddenClassCandidates = new HashSet<>(BuiltIn.ALL);
+            forbiddenClassCandidates = new HashSet<>(builtIn.reservedResources());
             forbiddenClassCandidates.add(AVC.AnonymousIndividual);
-            forbiddenClassCandidates.removeAll(BuiltIn.CLASSES);
+            forbiddenClassCandidates.removeAll(builtIn.classes());
             return forbiddenClassCandidates;
         }
 
@@ -523,7 +522,7 @@ public class DeclarationTransform extends Transform {
         public void parsePropertyAssertions() {
             // "a1 PN a2", "a R v", "s A t"
             Set<Statement> statements = statements(null, null, null)
-                    .filter(s -> !BuiltIn.ALL.contains(s.getPredicate())).collect(Collectors.toSet());
+                    .filter(s -> !builtIn.reservedProperties().contains(s.getPredicate())).collect(Collectors.toSet());
             statements.forEach(s -> {
                 if (Res.UNKNOWN.equals(propertyAssertions(s, false))) {
                     rerun.put(s, statement -> propertyAssertions(statement, annotationsOpt));
@@ -668,13 +667,13 @@ public class DeclarationTransform extends Transform {
             Resource a = statement.getSubject();
             Resource b = statement.getObject().asResource();
             if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
-                declareObjectProperty(a, BuiltIn.OWL_PROPERTIES);
-                declareObjectProperty(b, BuiltIn.OWL_PROPERTIES);
+                declareObjectProperty(a, builtIn.properties());
+                declareObjectProperty(b, builtIn.properties());
                 return Res.TRUE;
             }
             if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
-                declareDataProperty(a, BuiltIn.OWL_PROPERTIES);
-                declareDataProperty(b, BuiltIn.OWL_PROPERTIES);
+                declareDataProperty(a, builtIn.properties());
+                declareDataProperty(b, builtIn.properties());
                 return Res.TRUE;
             }
             return Res.UNKNOWN;
@@ -722,19 +721,19 @@ public class DeclarationTransform extends Transform {
             Resource b = statement.getObject().asResource();
             Res res = Res.UNKNOWN;
             if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
-                declareObjectProperty(a, BuiltIn.OWL_PROPERTIES);
-                declareObjectProperty(b, BuiltIn.OWL_PROPERTIES);
+                declareObjectProperty(a, builtIn.properties());
+                declareObjectProperty(b, builtIn.properties());
                 res = Res.TRUE;
             }
             if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
-                declareDataProperty(a, BuiltIn.OWL_PROPERTIES);
-                declareDataProperty(b, BuiltIn.OWL_PROPERTIES);
+                declareDataProperty(a, builtIn.properties());
+                declareDataProperty(b, builtIn.properties());
                 res = Res.TRUE;
             }
             if (Stream.of(a, b).anyMatch(this::isAnnotationProperty) ||
                     (Res.UNKNOWN.equals(res) && preferAnnotationsInUnknownCases)) {
-                declareAnnotationProperty(a, BuiltIn.OWL_PROPERTIES);
-                declareAnnotationProperty(b, BuiltIn.OWL_PROPERTIES);
+                declareAnnotationProperty(a, builtIn.properties());
+                declareAnnotationProperty(b, builtIn.properties());
                 res = Res.TRUE;
             }
             return res;
@@ -809,28 +808,28 @@ public class DeclarationTransform extends Transform {
         }
 
         public boolean isClassExpression(Resource candidate) {
-            return BuiltIn.CLASSES.contains(candidate) || hasType(candidate, OWL.Class) || hasType(candidate, OWL.Restriction);
+            return builtIn.classes().contains(candidate) || hasType(candidate, OWL.Class) || hasType(candidate, OWL.Restriction);
         }
 
         public boolean isDataRange(Resource candidate) {
-            return BuiltIn.DATATYPES.contains(candidate) || hasType(candidate, RDFS.Datatype);
+            return builtIn.datatypes().contains(candidate) || hasType(candidate, RDFS.Datatype);
         }
 
         @SuppressWarnings("SuspiciousMethodCalls")
         public boolean isObjectPropertyExpression(Resource candidate) {
-            return BuiltIn.OBJECT_PROPERTIES.contains(candidate)
+            return builtIn.objectProperties().contains(candidate)
                     || hasType(candidate, OWL.ObjectProperty)
                     || candidate.hasProperty(OWL.inverseOf);
         }
 
         @SuppressWarnings("SuspiciousMethodCalls")
         public boolean isDataProperty(Resource candidate) {
-            return BuiltIn.DATA_PROPERTIES.contains(candidate) || hasType(candidate, OWL.DatatypeProperty);
+            return builtIn.datatypeProperties().contains(candidate) || hasType(candidate, OWL.DatatypeProperty);
         }
 
         @SuppressWarnings("SuspiciousMethodCalls")
         public boolean isAnnotationProperty(Resource candidate) {
-            return BuiltIn.ANNOTATION_PROPERTIES.contains(candidate) || hasType(candidate, OWL.AnnotationProperty);
+            return builtIn.annotationProperties().contains(candidate) || hasType(candidate, OWL.AnnotationProperty);
         }
 
         public boolean isIndividual(Resource candidate) {
@@ -838,15 +837,15 @@ public class DeclarationTransform extends Transform {
         }
 
         public void declareObjectProperty(Resource resource) {
-            declareObjectProperty(resource, BuiltIn.OBJECT_PROPERTIES);
+            declareObjectProperty(resource, builtIn.objectProperties());
         }
 
         public void declareDataProperty(Resource resource) {
-            declareDataProperty(resource, BuiltIn.DATA_PROPERTIES);
+            declareDataProperty(resource, builtIn.datatypeProperties());
         }
 
         public void declareAnnotationProperty(Resource resource) {
-            declareAnnotationProperty(resource, BuiltIn.ANNOTATION_PROPERTIES);
+            declareAnnotationProperty(resource, builtIn.annotationProperties());
         }
 
         public void declareObjectProperty(Resource resource, Set<? extends Resource> builtIn) {
@@ -877,11 +876,11 @@ public class DeclarationTransform extends Transform {
         }
 
         public void declareDatatype(Resource resource) {
-            declare(resource, RDFS.Datatype, BuiltIn.DATATYPES);
+            declare(resource, RDFS.Datatype, builtIn.datatypes());
         }
 
         public void declareClass(Resource resource) {
-            if (BuiltIn.CLASSES.contains(resource)) {
+            if (builtIn.classes().contains(resource)) {
                 return;
             }
             Resource type = resource.isURIResource() ? OWL.Class :

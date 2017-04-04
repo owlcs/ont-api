@@ -22,7 +22,6 @@ import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -105,19 +104,19 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         public static final Set<Node> ALLOWED_IN_SUBJECT_PREDICATES =
-                Stream.concat(BuiltIn.OWL_PROPERTIES.stream(),
+                Stream.concat(Entities.BUILTIN.properties().stream(),
                         Stream.of(OWL.sameAs, OWL.differentFrom))
                         .map(FrontsNode::asNode).collect(Collectors.toSet());
         public static final Set<Node> ALLOWED_IN_OBJECT_PREDICATES =
-                Stream.concat(BuiltIn.OWL_PROPERTIES.stream(),
+                Stream.concat(Entities.BUILTIN.properties().stream(),
                         Stream.of(OWL.sameAs, OWL.differentFrom, OWL.sourceIndividual, OWL.hasValue, RDF.first))
                         .map(FrontsNode::asNode).collect(Collectors.toSet());
 
-        public static final Set<Node> BUILT_IN_SUBJECT_PREDICATE_SET = BuiltIn.PROPERTIES.stream()
+        public static final Set<Node> BUILT_IN_SUBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
                 .map(FrontsNode::asNode)
                 .filter(n -> !ALLOWED_IN_SUBJECT_PREDICATES.contains(n))
                 .collect(Collectors.toSet());
-        public static final Set<Node> BUILT_IN_OBJECT_PREDICATE_SET = BuiltIn.PROPERTIES.stream()
+        public static final Set<Node> BUILT_IN_OBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
                 .map(FrontsNode::asNode)
                 .filter(n -> !ALLOWED_IN_OBJECT_PREDICATES.contains(n))
                 .collect(Collectors.toSet());

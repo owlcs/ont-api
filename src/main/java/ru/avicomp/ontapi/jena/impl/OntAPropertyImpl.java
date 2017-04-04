@@ -12,7 +12,6 @@ import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -55,7 +54,7 @@ public class OntAPropertyImpl extends OntObjectImpl implements OntNAP {
 
     @Override
     public boolean isBuiltIn() {
-        return BuiltIn.ANNOTATION_PROPERTIES.contains(this);
+        return Entities.ANNOTATION_PROPERTY.builtInURIs().contains(this);
     }
 
     @Override

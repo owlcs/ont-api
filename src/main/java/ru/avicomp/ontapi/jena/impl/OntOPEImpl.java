@@ -13,7 +13,6 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -44,7 +43,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public boolean isBuiltIn() {
-            return BuiltIn.OBJECT_PROPERTIES.contains(this);
+            return Entities.OBJECT_PROPERTY.builtInURIs().contains(this);
         }
 
         @Override

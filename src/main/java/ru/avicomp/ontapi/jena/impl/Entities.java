@@ -32,7 +32,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
         @Override
         Set<Resource> builtInURIs() {
-            return BuiltIn.CLASSES;
+            return BUILTIN.classes();
         }
     },
     DATATYPE(OntDatatypeImpl.class, RDFS.Datatype) {
@@ -49,7 +49,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
         @Override
         Set<Resource> builtInURIs() {
-            return BuiltIn.DATATYPES;
+            return BUILTIN.datatypes();
         }
     },
     ANNOTATION_PROPERTY(OntAPropertyImpl.class, OWL.AnnotationProperty) {
@@ -65,7 +65,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
         @Override
         Set<Property> builtInURIs() {
-            return BuiltIn.ANNOTATION_PROPERTIES;
+            return BUILTIN.annotationProperties();
         }
     },
     DATA_PROPERTY(OntDPropertyImpl.class, OWL.DatatypeProperty) {
@@ -83,7 +83,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
         @Override
         Set<Property> builtInURIs() {
-            return BuiltIn.DATA_PROPERTIES;
+            return BUILTIN.datatypeProperties();
         }
     },
     OBJECT_PROPERTY(OntOPEImpl.NamedPropertyImpl.class, OWL.ObjectProperty) {
@@ -101,10 +101,12 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
         @Override
         Set<Property> builtInURIs() {
-            return BuiltIn.OBJECT_PROPERTIES;
+            return BUILTIN.objectProperties();
         }
     },
     INDIVIDUAL(OntIndividualImpl.NamedImpl.class, OWL.NamedIndividual);
+
+    public static final BuiltIn.Vocabulary BUILTIN = BuiltIn.get();
 
     public static final Configurable<MultiOntObjectFactory> ALL = m -> new MultiOntObjectFactory(OntFinder.TYPED,
             Stream.of(values()).map(c -> c.get(m)).toArray(OntObjectFactory[]::new));

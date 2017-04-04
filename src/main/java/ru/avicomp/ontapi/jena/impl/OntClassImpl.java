@@ -8,7 +8,6 @@ import org.apache.jena.graph.Node;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -25,7 +24,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
 
     @Override
     public boolean isBuiltIn() {
-        return BuiltIn.CLASSES.contains(this);
+        return Entities.CLASS.builtInURIs().contains(this);
     }
 
     @Override
