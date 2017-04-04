@@ -12,14 +12,17 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 package org.semanticweb.owlapi.api.test.syntax;
 
-import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.XMLUtils;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
@@ -32,9 +35,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 public class XMLUtilsTestCase extends TestBase {
 
     private static final int CODE_POINT = 0xEFFFF;
-    private static final
-    @Nonnull
-    String CODE_POINT_STRING = init();
+    private static final String CODE_POINT_STRING = init();
 
     private static String init() {
         StringBuilder sb = new StringBuilder();
@@ -77,6 +78,16 @@ public class XMLUtilsTestCase extends TestBase {
         Assert.assertNull(XMLUtils.getNCNameSuffix("_:test"));
     }
 
+    /**
+     * ONT-API comment:
+     * It seems that OWL-API has incorrect behaviour in this testcase:
+     * the {@link org.semanticweb.owlapi.vocab.SKOSVocabulary#INSCHEME} is an Object Property
+     * (see also <a href='https://www.w3.org/TR/skos-reference/#schemes'>4.3. Class & Property Definitions</a>)
+     * Moreover in the test RDF graph snippet below it enters as property in the object property assertion ("a1 PN a2"),
+     * so it is incorrect to treat is as an annotation property.
+     * The second difference with ONT-API behaviour is in fact that SKOS and DC are built-in vocabularies,
+     * so there is no need in explicit declarations.
+     */
     @Test
     public void testmissingTypes() {
         // given
@@ -109,11 +120,18 @@ public class XMLUtilsTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(input, IRI.getNextDocumentIRI("testuriwithblankspace"), new RDFXMLDocumentFormat());
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
         o.axioms().forEach(a -> LOGGER.debug(a.toString()));
-        // TODO: do something with SKOS and DC built-ins and fix the test
         // then
-        // ONT-API - 12 AnnotationAssertion, 11 Declaration (2 owl:class, 3 owl:NamedIndividual, 6 owl:AnnotationProperty), 3 ClassAssertion
-        // OWL-API - 12 AnnotationAssertion, 0 Declaration, 3 ClassAssertion
-        int num = DEBUG_USE_OWL ? 15 : 26;
-        Assert.assertEquals("Incorrect number of axioms", num, o.getAxiomCount());
+        // ONT-API(15) - 7 AnnotationAssertion, 2 ObjectPropertyAssertion, 3 Declaration (owl:NamedIndividual), 3 ClassAssertion
+        // OWL-API(15) - 12 AnnotationAssertion, 0 Declaration, 3 ClassAssertion
+
+        if (!DEBUG_USE_OWL) {
+            Map<AxiomType<? extends OWLAxiom>, Integer> expected = new HashMap<>();
+            expected.put(AxiomType.OBJECT_PROPERTY_ASSERTION, 2);
+            expected.put(AxiomType.ANNOTATION_ASSERTION, 7);
+            expected.put(AxiomType.CLASS_ASSERTION, 3);
+            expected.put(AxiomType.DECLARATION, 3);
+            expected.forEach((t, i) -> Assert.assertEquals(String.format("Should be %d %s.", i, t), i.longValue(), o.axioms(t).count()));
+        }
+        Assert.assertEquals("Incorrect number of axioms", 15, o.getAxiomCount());
     }
 }
