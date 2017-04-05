@@ -583,7 +583,8 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 try (InputStream is = supplier.open(source)) {
                     if (LOGGER.isDebugEnabled())
                         LOGGER.debug("try <{}>", lang);
-                    RDFDataMgr.read(graph, is, lang);
+                    // with @base:
+                    RDFDataMgr.read(graph, is, iri.toString(), lang);
                     return format;
                 } catch (OWLOntologyInputSourceException | IOException e) {
                     throw new OWLOntologyCreationException("Can't open or close input stream from " + iri, e);
