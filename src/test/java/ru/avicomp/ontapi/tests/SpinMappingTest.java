@@ -13,7 +13,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.topbraid.spin.inference.SPINInferences;
 import org.topbraid.spin.system.SPINModuleRegistry;
 import org.topbraid.spin.vocabulary.SP;
@@ -25,6 +24,7 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
+import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
@@ -260,7 +260,7 @@ public class SpinMappingTest {
 
         public static void addMappings(OntologyManager m) {
             for (SpinModels spin : values()) {
-                m.getIRIMappers().add(new SimpleIRIMapper(spin.getIRI(), spin.getFile()));
+                m.getIRIMappers().add(FileMap.create(spin.getIRI(), spin.getFile()));
             }
         }
 

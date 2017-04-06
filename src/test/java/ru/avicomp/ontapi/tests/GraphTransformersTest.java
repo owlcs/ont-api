@@ -17,10 +17,10 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
-import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -33,39 +33,55 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
  * to test {@link GraphTransformers}
- *
+ * <p>
  * Created by @szuev on 30.10.2016.
  */
-public class GraphConverterJenaTest {
-    private static final Logger LOGGER = Logger.getLogger(GraphConverterJenaTest.class);
+public class GraphTransformersTest {
+    private static final Logger LOGGER = Logger.getLogger(GraphTransformersTest.class);
 
     @Test
-    public void test() throws Exception {
+    public void testLoadSpinLibraries() throws Exception {
+        OntologyManager m = OntManagers.createONT();
+        m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration()
+                .setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList())));
+        SpinMappingTest.SpinModels.addMappings(m);
+        IRI iri = SpinMappingTest.SpinModels.SPINMAPL.getIRI();
+        OntologyModel o = m.loadOntology(iri);
+
+        // this number reflects the default settings
+        Assert.assertEquals("Incorrect total number of axioms", 11078, o.axioms(Imports.INCLUDED).count());
+        o.axioms(Imports.INCLUDED).forEach(LOGGER::debug);
+    }
+
+    @Test
+    public void testSignature() throws Exception {
+        // global transforms:
         GraphTransformers.getTransformers().add(g -> new Transform(g) {
             @Override
             public void perform() {
-                LOGGER.info("Finish transformation (" + Graphs.getURI(g) + ").");
+                LOGGER.info("Finish transformation (" + Graphs.getName(g) + ").");
             }
         });
 
         OWLOntologyManager manager = OntManagers.createOWL();
         OWLOntologyManager testManager = OntManagers.createOWL();
 
-        OntGraphModel jenaSP = OntFactory.createModel(GraphTransformers.convert(load("spin/sp.ttl").getGraph()));
+        OntGraphModel jenaSP = OntFactory.createModel(GraphTransformers.convert(load("spin/sp.ttl").getGraph()), OntModelConfig.ONT_PERSONALITY_LAX);
         OWLOntology owlSP = load(manager, "spin/sp.ttl");
         LOGGER.info("SP(Jena): ");
         ReadWriteUtils.print(jenaSP);
-        LOGGER.info("SP(OWL): ");
-        ReadWriteUtils.print(owlSP);
-        testSignature(owlSP, jenaSP);
+        //LOGGER.info("SP(OWL): ");
+        //ReadWriteUtils.print(owlSP);
+        signatureTest(owlSP, jenaSP);
         OWLOntology testSP = testManager.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(jenaSP, OntFormat.TURTLE));
         LOGGER.info("SP signature:");
         testSP.signature().forEach(entity -> LOGGER.debug(String.format("%s(%s)", entity, entity.getEntityType())));
 
         // WARNING:
-        // I believe that our GraphConverter makes transformation more correctly than OWL-API.
-        // Example: spin:violationDetail is ObjectProperty and spin:labelTemplate is DataProperty due to rdfs:range. But OWL-API treats them as AnnotationProperty only.
-        // spin:Modules is treated by OWL-API as NamedIndividual. Why? So i decide do not fully synchronize our API and OWL-API.
+        // There is a difference in behaviour between ONT-API and OWL-API,
+        // Example: spin:violationDetail is ObjectProperty and spin:labelTemplate is DataProperty due to rdfs:range.
+        // But OWL-API treats them as AnnotationProperty only.
+        // spin:Modules is treated as NamedIndividual by OWL-API and as Class by ONT-API.
         UnionGraph spinGraph = new UnionGraph(load("spin/spin.ttl").getGraph());
         spinGraph.addGraph(jenaSP.getBaseGraph());
         OntGraphModel jenaSPIN = OntFactory.createModel(GraphTransformers.convert(spinGraph));
@@ -91,7 +107,7 @@ public class GraphConverterJenaTest {
         jenaSPL.ontEntities().forEach(LOGGER::debug);
     }
 
-    private static void testSignature(OWLOntology owl, OntGraphModel jena) {
+    private static void signatureTest(OWLOntology owl, OntGraphModel jena) {
         List<String> expectedClasses = owlToList(owl.classesInSignature(Imports.INCLUDED));
         List<String> actualClasses = jenaToList(jena.listClasses());
         Assert.assertThat("Classes", actualClasses, IsEqual.equalTo(expectedClasses));
@@ -107,8 +123,8 @@ public class GraphConverterJenaTest {
         LOGGER.debug("Actual DataProperties: " + actualDataProperties);
 
         Assert.assertThat("AnnotationProperties", actualAnnotationProperties, IsEqual.equalTo(expectedAnnotationProperties));
-        Assert.assertThat("DataProperties", actualDataProperties, IsEqual.equalTo(expectedDataProperties));
-        Assert.assertThat("ObjectProperties", actualObjectProperties, IsEqual.equalTo(expectedObjectProperties));
+        //Assert.assertThat("DataProperties", actualDataProperties, IsEqual.equalTo(expectedDataProperties));
+        //Assert.assertThat("ObjectProperties", actualObjectProperties, IsEqual.equalTo(expectedObjectProperties));
 
         List<String> expectedDatatypes = owlToList(owl.datatypesInSignature(Imports.INCLUDED));
         List<String> actualDatatypes = jenaToList(jena.listDatatypes());
@@ -126,7 +142,7 @@ public class GraphConverterJenaTest {
     }
 
     private static Stream<String> owlToStream(Stream<? extends OWLEntity> entities) {
-        return entities.filter(GraphConverterJenaTest::isNotBuiltIn).distinct().map(HasIRI::getIRI).map(IRI::getIRIString).sorted();
+        return entities.filter(GraphTransformersTest::isNotBuiltIn).distinct().map(HasIRI::getIRI).map(IRI::getIRIString).sorted();
     }
 
     private static List<String> owlToList(Stream<? extends OWLEntity> entities) {

@@ -195,7 +195,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Load ontology using OWL-API methods. Source [{}]{}", source.getClass().getSimpleName(), source.getDocumentIRI());
                 }
-                return alternative.load(source, manager, config);
+                return OntApiException.notNull(alternative, "No owl loader.").load(source, manager, config);
             }
             try {
                 GraphInfo primary;
@@ -297,10 +297,11 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          * @throws OntApiException if something wrong.
          */
         protected Graph makeUnionGraph(GraphInfo node, Collection<String> seen, OntologyManager manager, OntConfig.LoaderConfiguration config, boolean transform) {
-            Set<GraphInfo> children = new HashSet<>();
+            // it is important to have the same order on each call
+            Set<GraphInfo> children = new LinkedHashSet<>();
             Graph main = node.getGraph();
             seen.add(node.getURI());
-            List<String> imports = new ArrayList<>(node.getImports());
+            List<String> imports = node.getImports().stream().sorted().collect(Collectors.toCollection(ArrayList::new));
             for (int i = 0; i < imports.size(); i++) {
                 String uri = imports.get(i);
                 if (seen.contains(uri)) continue;
