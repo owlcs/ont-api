@@ -12,38 +12,54 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 package org.semanticweb.owlapi.api.test.ontology;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
+import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.io.StringDocumentSource;
+import org.semanticweb.owlapi.io.StringDocumentTarget;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
 
-import static org.junit.Assert.*;
-import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
-import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
-
+@ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
 public class MissingDeclarationRoundTripTestCase extends TestBase {
 
+    /**
+     * ONT-API comment:
+     * There is no possibility to ignore some axioms if they are present in the graph.
+     * And I can't imagine why such functionality is invited by the OWL-API developers.
+     * But in ONT-API we can use pure OWL-API mechanisms for loading and saving ontology to reproduce such strange behaviour.
+     *
+     * @throws Exception
+     */
     @Test
     public void shouldFindOneAxiom() throws Exception {
-        OWLAnnotationProperty p = AnnotationProperty(IRI("http://test.org/MissingDeclaration.owl#", "p"));
-        OWLOntology ontology = createOntology(p);
-        assertTrue(ontology.containsAnnotationPropertyInSignature(p.getIRI()));
-        assertEquals(1, ontology.getAxiomCount());
+        OWLAnnotationProperty p = OWLFunctionalSyntaxFactory.AnnotationProperty(IRI.create("http://test.org/MissingDeclaration.owl#", "p"));
+        OWLOntology o1 = createOntology(p);
+        Assert.assertTrue(o1.containsAnnotationPropertyInSignature(p.getIRI()));
+        Assert.assertEquals(1, o1.getAxiomCount());
         RDFXMLDocumentFormat format = new RDFXMLDocumentFormat();
         format.setAddMissingTypes(false);
-        ontology = loadOntologyStrict(saveOntology(ontology, format));
-        assertFalse(ontology.containsAnnotationPropertyInSignature(p.getIRI()));
-        assertEquals(0, ontology.getAxiomCount());
+        StringDocumentTarget target = new StringDocumentTarget();
+        new RDFXMLStorerFactory().createStorer().storeOntology(o1, target, format);
+        LOGGER.debug("Target:\n{}", target);
+        OWLOntologyLoaderConfiguration conf = new OWLOntologyLoaderConfiguration().setStrict(true);
+        if (!DEBUG_USE_OWL) {
+            conf = ru.avicomp.ontapi.OntBuildingFactoryImpl.asONT(conf).setUseOWLParsersToLoad(true);
+        }
+        OWLOntology o2 = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(target), conf);
+        o2.axioms().forEach(a -> LOGGER.debug("{}", a));
+        ru.avicomp.ontapi.utils.ReadWriteUtils.print(o2);
+        Assert.assertFalse(o2.containsAnnotationPropertyInSignature(p.getIRI()));
+        Assert.assertEquals(0, o2.getAxiomCount());
     }
 
     private OWLOntology createOntology(OWLAnnotationProperty p) {
-        OWLClass a = Class(IRI("http://test.org/MissingDeclaration.owl#", "A"));
+        OWLClass a = OWLFunctionalSyntaxFactory.Class(IRI.create("http://test.org/MissingDeclaration.owl#", "A"));
         OWLOntology ontology = getOWLOntology();
-        OWLAxiom axiom = AnnotationAssertion(p, a.getIRI(), Literal("Hello"));
+        OWLAxiom axiom = OWLFunctionalSyntaxFactory.AnnotationAssertion(p, a.getIRI(), OWLFunctionalSyntaxFactory.Literal("Hello"));
         ontology.add(axiom);
         return ontology;
     }
