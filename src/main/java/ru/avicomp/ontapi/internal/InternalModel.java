@@ -16,7 +16,6 @@ import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
-import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 
 /**
@@ -31,7 +30,7 @@ import ru.avicomp.ontapi.jena.model.*;
  * Created by @szuev on 26.10.2016.
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
+public class InternalModel extends OntGraphModelImpl implements OntGraphModel, ConfigProvider {
 
     /**
      * the experimental flag which specifies the behaviour on axioms loading.
@@ -54,43 +53,35 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     protected Map<OntNDP, Wrap<OWLDataProperty>> owlNDPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
     protected Map<OntOPE, Wrap<? extends OWLObjectPropertyExpression>> owlOPEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
 
-    private OWLDataFactory dataFactory;
-    private OntConfig.LoaderConfiguration loaderConf;
-    private OWLOntologyWriterConfiguration writerConf;
+    private ConfigProvider.Config config;
 
     /**
-     * For internal use only.
+     * For internal usage only.
      *
-     * @param base        {@link Graph}
-     * @param personality {@link OntPersonality}
+     * @param base {@link Graph}
+     * @param config {@link ru.avicomp.ontapi.internal.ConfigProvider.Config}
      */
-    public InternalModel(Graph base, OntPersonality personality) {
-        super(base, personality);
+    public InternalModel(Graph base, ConfigProvider.Config config) {
+        super(base, config.loaderConfig().getPersonality());
+        this.config = config;
         getGraph().getEventManager().register(new DirectListener());
     }
 
+    @Override
+    public ConfigProvider.Config getConfig() {
+        return config;
+    }
+
     public OWLDataFactory dataFactory() {
-        return dataFactory == null ? AxiomParserProvider.DATA_FACTORY : dataFactory;
+        return getConfig().dataFactory();
     }
 
     public OntConfig.LoaderConfiguration loaderConfig() {
-        return loaderConf == null ? AxiomParserProvider.LOADER_CONFIGURATION : loaderConf;
+        return getConfig().loaderConfig();
     }
 
     public OWLOntologyWriterConfiguration writerConfig() {
-        return writerConf == null ? AxiomParserProvider.WRITER_CONFIGURATION : writerConf;
-    }
-
-    public void setDataFactory(OWLDataFactory factory) {
-        this.dataFactory = factory;
-    }
-
-    public void setLoaderConfig(OntConfig.LoaderConfiguration conf) {
-        this.loaderConf = conf;
-    }
-
-    public void setWriterConfig(OWLOntologyWriterConfiguration conf) {
-        this.writerConf = conf;
+        return getConfig().writerConfig();
     }
 
     public Stream<OWLImportsDeclaration> importDeclarations() {

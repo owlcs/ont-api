@@ -4,9 +4,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -41,14 +43,13 @@ class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPr
 
     @Override
     public Wrap<OWLSubPropertyChainOfAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
+        ConfigProvider.Config conf = getConfig(statement);
         OntOPE ope = statement.getSubject().as(OntOPE.class);
-        Wrap<? extends OWLObjectPropertyExpression> subject = ReadHelper.fetchObjectPropertyExpression(ope, df);
-        Wrap.Collection<? extends OWLObjectPropertyExpression> members = Wrap.Collection.create(ope.superPropertyOf().map(s -> ReadHelper.fetchObjectPropertyExpression(s, df)));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
+        Wrap<? extends OWLObjectPropertyExpression> subject = ReadHelper.fetchObjectPropertyExpression(ope, conf.dataFactory());
+        Wrap.Collection<? extends OWLObjectPropertyExpression> members = Wrap.Collection.create(ope.superPropertyOf().map(s -> ReadHelper.fetchObjectPropertyExpression(s, conf.dataFactory())));
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         // note: the input is a list. does it mean that the order is important?
-        OWLSubPropertyChainOfAxiom res = df.getOWLSubPropertyChainOfAxiom(members.objects().collect(Collectors.toList()), subject.getObject(), annotations.getObjects());
+        OWLSubPropertyChainOfAxiom res = conf.dataFactory().getOWLSubPropertyChainOfAxiom(members.objects().collect(Collectors.toList()), subject.getObject(), annotations.getObjects());
         return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }
 }

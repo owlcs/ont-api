@@ -65,8 +65,9 @@ public abstract class TestBase {
     protected static OWLDataFactory df;
     protected static OWLOntologyManager masterManager;
     protected static final File RESOURCES = resources();
-    protected final OWLOntologyBuilder builder = DEBUG_USE_OWL ? (OWLOntologyBuilder) OWLOntologyImpl::new :
-            (m, id) -> new ru.avicomp.ontapi.OntologyModelImpl((ru.avicomp.ontapi.OntologyManager) m, id);
+    protected final OWLOntologyBuilder builder = DEBUG_USE_OWL ?
+            (OWLOntologyBuilder) OWLOntologyImpl::new :
+            new ru.avicomp.ontapi.OntBuildingFactoryImpl.OntBuilderImpl();
     @Nonnull
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();

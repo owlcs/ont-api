@@ -24,9 +24,9 @@ import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 
+import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.OntFactory;
-import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntID;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
 
@@ -36,33 +36,33 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
  * <p>
  * Created by @szuev on 03.12.2016.
  */
-public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
+@SuppressWarnings("WeakerAccess")
+public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, ConfigProvider {
     // binary format to provide serialization:
     private static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
 
     protected transient InternalModel base;
-    protected OntologyManager manager;
-    protected transient OntologyManager managerBackCopy;
+    protected transient OntologyManagerImpl managerBackCopy;
 
     protected OWLOntologyID ontologyID;
 
-    public OntBaseModelImpl(OntologyManager manager, OWLOntologyID ontologyID) {
+    public OntBaseModelImpl(OntologyManagerImpl manager, OWLOntologyID ontologyID) {
         OntApiException.notNull(ontologyID, "Null OWL ID.");
-        setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
-        setBase(new InternalModel(OntFactory.createDefaultGraph(), manager.getOntologyLoaderConfiguration().getPersonality()));
-        getBase().setDataFactory(manager.getOWLDataFactory());
-        getBase().setLoaderConfig(manager.getOntologyLoaderConfiguration());
-        getBase().setWriterConfig(manager.getOntologyWriterConfiguration());
+        this.base = new InternalModel(OntFactory.createDefaultGraph(), OntApiException.notNull(manager, "Null manager.").createModelConfig());
         setOntologyID(ontologyID);
     }
 
-    public OntBaseModelImpl(OntologyManager manager, InternalModel base) {
-        setOWLOntologyManager(OntApiException.notNull(manager, "Null manager."));
-        setBase(OntApiException.notNull(base, "Null internal model."));
+    public OntBaseModelImpl(Graph graph, OntologyManagerImpl.ModelConfig conf) {
+        this.base = new InternalModel(OntApiException.notNull(graph, "Null graph."), OntApiException.notNull(conf, "Null conf."));
     }
 
     public InternalModel getBase() {
         return base;
+    }
+
+    @Override
+    public OntologyManagerImpl.ModelConfig getConfig() {
+        return (OntologyManagerImpl.ModelConfig) base.getConfig();
     }
 
     protected void setBase(InternalModel m) {
@@ -71,7 +71,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public OntologyManager getOWLOntologyManager() {
-        return manager;
+        return getConfig().manager();
     }
 
     /**
@@ -85,21 +85,20 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
      */
     @Override
     public void setOWLOntologyManager(OWLOntologyManager manager) {
-        if (Objects.equals(this.manager, manager)) return;
-        OntologyManager m;
+        if (Objects.equals(getOWLOntologyManager(), manager)) return;
+        OntologyManagerImpl m;
         try {
-            m = (OntologyManager) manager;
+            m = (OntologyManagerImpl) manager;
         } catch (ClassCastException ce) {
             if (this.managerBackCopy != null) {
                 // rollback changes made while coping (inside OWL-API 5.0.5)
-                ((OntologyManagerImpl) this.managerBackCopy).rollBackMoving(this, manager);
-                this.manager = this.managerBackCopy;
+                this.managerBackCopy.rollBackMoving(this, manager);
+                getConfig().setManager(this.managerBackCopy);
                 this.managerBackCopy = null;
             }
             throw new OntApiException("Trying to move? Don't do it!", ce);
         }
-        this.managerBackCopy = this.manager;
-        this.manager = m;
+        this.managerBackCopy = getConfig().setManager(m);
     }
 
     /**
@@ -178,7 +177,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
 
     @Override
     public Stream<OWLOntology> directImports() {
-        return manager.directImports(this);
+        return getOWLOntologyManager().directImports(this);
     }
 
     @Override
@@ -589,7 +588,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology {
         Graph base = OntFactory.createDefaultGraph();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
-        setBase(new InternalModel(base, OntModelConfig.getPersonality()));
+        setBase(new InternalModel(base, ConfigProvider.DEFAULT));
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {

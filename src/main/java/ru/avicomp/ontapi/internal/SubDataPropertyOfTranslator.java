@@ -1,8 +1,10 @@
 package ru.avicomp.ontapi.internal;
 
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.model.OWLSubDataPropertyOfAxiom;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -29,12 +31,11 @@ class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubDa
 
     @Override
     public Wrap<OWLSubDataPropertyOfAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<OWLDataProperty> sub = ReadHelper.fetchDataProperty(statement.getSubject().as(OntNDP.class), df);
-        Wrap<OWLDataProperty> sup = ReadHelper.fetchDataProperty(statement.getObject().as(OntNDP.class), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLSubDataPropertyOfAxiom res = df.getOWLSubDataPropertyOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<OWLDataProperty> sub = ReadHelper.fetchDataProperty(statement.getSubject().as(OntNDP.class), conf.dataFactory());
+        Wrap<OWLDataProperty> sup = ReadHelper.fetchDataProperty(statement.getObject().as(OntNDP.class), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLSubDataPropertyOfAxiom res = conf.dataFactory().getOWLSubDataPropertyOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(sub).append(sup);
     }
 }

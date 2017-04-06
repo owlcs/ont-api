@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
-import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -253,11 +252,9 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 boolean isPrimary = graphs.size() == 1;
                 Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config, isPrimary);
                 OntFormat format = info.getFormat();
-                InternalModel base = new InternalModel(graph, config.getPersonality());
-                base.setLoaderConfig(config);
-                base.setWriterConfig(manager.getOntologyWriterConfiguration());
-                base.setDataFactory(manager.getOWLDataFactory());
-                OntologyModelImpl ont = new OntologyModelImpl(manager, base);
+                OntologyManagerImpl.ModelConfig modelConfig = ((OntologyManagerImpl) manager).createModelConfig();
+                modelConfig.setLoaderConf(config);
+                OntologyModelImpl ont = new OntologyModelImpl(graph, modelConfig);
                 OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.toConcurrentModel() : ont;
                 if (manager.contains(res)) {
                     throw new OWLOntologyAlreadyExistsException(res.getOntologyID());

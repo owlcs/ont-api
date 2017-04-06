@@ -38,7 +38,7 @@ class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OW
      */
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(model);
+        OntConfig.LoaderConfiguration conf = getConfig(model).loaderConfig();
         if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
         return super.statements(model)
                 .filter(s -> ReadHelper.testAnnotationAxiomOverlaps(s, conf,
@@ -47,12 +47,11 @@ class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OW
 
     @Override
     public Wrap<OWLSubAnnotationPropertyOfAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<OWLAnnotationProperty> sub = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(OntNAP.class), df);
-        Wrap<OWLAnnotationProperty> sup = ReadHelper.fetchAnnotationProperty(statement.getObject().as(OntNAP.class), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLSubAnnotationPropertyOfAxiom res = df.getOWLSubAnnotationPropertyOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<OWLAnnotationProperty> sub = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(OntNAP.class), conf.dataFactory());
+        Wrap<OWLAnnotationProperty> sup = ReadHelper.fetchAnnotationProperty(statement.getObject().as(OntNAP.class), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLSubAnnotationPropertyOfAxiom res = conf.dataFactory().getOWLSubAnnotationPropertyOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(sub).append(sup);
     }
 }

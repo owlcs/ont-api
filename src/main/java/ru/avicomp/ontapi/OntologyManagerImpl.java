@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Multimap;
+import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
@@ -125,9 +126,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Sets {@link OntConfig.LoaderConfiguration} config to the manager and also passes it inside interior models.
-     * Custom configs ({@link OntInfo#loaderConf}) are not touched.
-     * Currently they could be seted only once while loading.
+     * Sets {@link OntConfig.LoaderConfiguration} config to the manager.
      *
      * @param conf {@link OWLOntologyLoaderConfiguration}
      * @see OWLOntologyManagerImpl#setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)
@@ -136,14 +135,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
-            if (Objects.equals(loaderConfig, conf)) return;
-            loaderConfig = conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
-            content.values()
-                    .filter(i -> Objects.isNull(i.loaderConf))
-                    .forEach(i -> {
-                        ((OntBaseModelImpl) i.ont).getBase().setLoaderConfig(loaderConfig);
-                        i.ont.clearCache();
-                    });
+            OntConfig.LoaderConfiguration config = OntBuildingFactoryImpl.asONT(conf);
+            if (Objects.equals(loaderConfig, config)) return;
+            loaderConfig = config;
+            content.values() // todo: need reset cache only if there is changes in the settings related to the axioms.
+                    .filter(i -> Objects.equals(loaderConfig, i.getModelConfig().loaderConfig()))
+                    .map(OntInfo::get).forEach(OntologyModel::clearCache);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -176,11 +173,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         try {
             if (Objects.equals(writerConfig, conf)) return;
             writerConfig = conf;
-            content.values()
-                    .filter(i -> Objects.isNull(i.writerConf))
-                    .forEach(i -> {
-                        ((OntBaseModelImpl) i.ont).getBase().setWriterConfig(writerConfig);
-                    });
         } finally {
             getLock().writeLock().unlock();
         }
@@ -547,7 +539,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             }
             for (OWLOntologyFactory factory : ontologyFactories) {
                 // we are working only with the one factory which returns OntologyModel, not OWLOntology,
-                // todo: reninder: other factories should be wrapped and turn into OntologyManager.Factory.
+                // todo: reminder: other factories should be wrapped and turn into OntologyManager.Factory.
                 if (factory.canCreateFromDocumentIRI(doc)) {
                     OntologyModel res = (OntologyModel) factory.createOWLOntology(this, id, doc, this);
                     content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addDocumentIRI(doc);
@@ -714,7 +706,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     *
      * @param id {@link OWLOntologyID}
      * @return boolean
      * @see OWLOntologyManagerImpl#contains(OWLOntologyID)
@@ -730,7 +721,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     *
      * @param ontology {@link OWLOntology}
      * @return boolean
      * @see OWLOntologyManagerImpl#contains(OWLOntology)
@@ -1221,7 +1211,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     protected boolean isChangeApplicable(OWLOntologyChange change) {
         OWLOntologyID id = change.getOntology().getOntologyID();
-        Optional<OWLOntologyLoaderConfiguration> conf = content.get(id).map(OntInfo::getLoaderConf);
+        Optional<OWLOntologyLoaderConfiguration> conf = content.get(id).map(OntInfo::getModelConfig).map(ConfigProvider.Config::loaderConfig);
         return !(conf.isPresent() && !conf.get().isLoadAnnotationAxioms() && change.isAddAxiom() && change.getAxiom() instanceof OWLAnnotationAxiom);
     }
 
@@ -1456,9 +1446,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 OntologyModel res = (OntologyModel) factory.loadOWLOntology(this, source, this, conf);
                 OWLOntologyID id = res.getOntologyID();
                 fixIllegalPunnings(res);
-                OntConfig.LoaderConfiguration ontLoadConf = Objects.equals(config, loaderConfig) ? null : config;
                 return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
-                        .addDocumentIRI(source.getDocumentIRI()).addLoaderConf(ontLoadConf).get();
+                        .addDocumentIRI(source.getDocumentIRI()).get();
             } catch (OWLOntologyRenameException e) {
                 // We loaded an ontology from a document and the
                 // ontology turned out to have an IRI the same
@@ -1691,9 +1680,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         writerConfig = (OWLOntologyWriterConfiguration) in.readObject();
         content.values().forEach(info -> {
             OntBaseModelImpl m = (OntBaseModelImpl) info.get();
-            OntConfig.LoaderConfiguration loaderConf = info.getLoaderConf();
-            OWLOntologyWriterConfiguration writerConf = info.getWriterConf();
-            OntPersonality p1 = loaderConfig.getPersonality();
+            ConfigProvider.Config conf = info.getModelConfig();
             UnionGraph baseGraph = m.getBase().getGraph();
             Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
                     .map(s -> content.values().map(OntInfo::get).map(OntBaseModelImpl.class::cast)
@@ -1701,10 +1688,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                             .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);
             imports.forEach(baseGraph::addGraph);
-            InternalModel baseModel = new InternalModel(baseGraph, p1);
-            baseModel.setDataFactory(getOWLDataFactory());
-            baseModel.setLoaderConfig(loaderConf);
-            baseModel.setWriterConfig(writerConf);
+            InternalModel baseModel = new InternalModel(baseGraph, conf);
             m.setBase(baseModel);
         });
     }
@@ -1718,6 +1702,17 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         out.defaultWriteObject();
         out.writeObject(getOntologyLoaderConfiguration());
         out.writeObject(getOntologyWriterConfiguration());
+    }
+
+    /**
+     * Creates {@link ru.avicomp.ontapi.internal.ConfigProvider.Config} with reference to manager inside.
+     *
+     * @return {@link ModelConfig}
+     * @see ConfigProvider
+     * @see ru.avicomp.ontapi.internal.ConfigProvider.Config
+     */
+    public ModelConfig createModelConfig() {
+        return new ModelConfig(this);
     }
 
     /**
@@ -2046,24 +2041,26 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * Container for {@link OntologyModel}.
      * For internal usage only.
-     * It has been introduced to provide better synchronization different parts of ontology and also for serialization.
+     * It has been introduced to provide better synchronization of ontology different parts and also for serialization.
      * The {@link InternalModel} are not Serializable since it is an extended Jena-model and could be considered separately.
      * Also it has no reference to manager by the same architectural reasons.
      * So it is important to be sure that this container and internal model are in consistent state...
-     * This applies mainly to the load and write configs.
+     * This applies mainly to the load and write configs which contain in the {@link ConfigProvider.Config} instance.
+     *
      * @see OntologyManagerImpl#setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)
      * @see OntologyManagerImpl#setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)
+     * @see ModelConfig
      */
     public class OntInfo implements Serializable {
         private final OntologyModel ont;
+        private final ConfigProvider.Config conf;
         private IRI documentIRI;
         private OWLImportsDeclaration declaration;
-        private OntConfig.LoaderConfiguration loaderConf;
-        private OWLOntologyWriterConfiguration writerConf;
         private OWLDocumentFormat format;
 
         public OntInfo(@Nonnull OntologyModel ont) {
             this.ont = ont;
+            this.conf = ((ConfigProvider) ont).getConfig();
         }
 
         @Nonnull
@@ -2085,16 +2082,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return this;
         }
 
-        public OntInfo addLoaderConf(OntConfig.LoaderConfiguration loaderConf) {
-            this.loaderConf = loaderConf;
-            return this;
-        }
-
-        public OntInfo addWriterConf(OWLOntologyWriterConfiguration writerConf) {
-            this.writerConf = writerConf;
-            return this;
-        }
-
         public OntInfo addImportDeclaration(OWLImportsDeclaration declaration) {
             this.declaration = declaration;
             return this;
@@ -2111,18 +2098,64 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         @Nonnull
-        public OntConfig.LoaderConfiguration getLoaderConf() {
-            return loaderConf == null ? getOntologyLoaderConfiguration() : loaderConf;
-        }
-
-        @Nonnull
-        public OWLOntologyWriterConfiguration getWriterConf() {
-            return writerConf == null ? getOntologyWriterConfiguration() : writerConf;
+        public ConfigProvider.Config getModelConfig() {
+            return conf;
         }
 
         @Nullable
         public OWLImportsDeclaration getImportDeclaration() {
             return declaration != null ? declaration : id().getOntologyIRI().map(dataFactory::getOWLImportsDeclaration).orElse(null);
+        }
+    }
+
+    /**
+     * This implementation of {@link ConfigProvider.Config} has a reference to manager inside.
+     * This is in order to provide access to the manager's settings also.
+     */
+    public static class ModelConfig implements ConfigProvider.Config, Serializable {
+        private OntConfig.LoaderConfiguration modelLoaderConf;
+        private OWLOntologyWriterConfiguration modelWriterConf;
+        private OntologyManagerImpl manager;
+
+        public ModelConfig(OntologyManagerImpl m) {
+            this.manager = m;
+        }
+
+        public OntologyManagerImpl manager() {
+            return manager;
+        }
+
+        public OntologyManagerImpl setManager(OntologyManagerImpl other) {
+            OntologyManagerImpl res = this.manager;
+            this.manager = other;
+            return res;
+        }
+
+        public boolean setLoaderConf(OntConfig.LoaderConfiguration conf) {
+            if (Objects.equals(loaderConfig(), conf)) return false;
+            this.modelLoaderConf = conf;
+            return true;
+        }
+
+        public boolean setWriterConf(OWLOntologyWriterConfiguration conf) {
+            if (Objects.equals(writerConfig(), conf)) return false;
+            this.modelWriterConf = conf;
+            return true;
+        }
+
+        @Override
+        public OWLDataFactory dataFactory() {
+            return manager.getOWLDataFactory();
+        }
+
+        @Override
+        public OntConfig.LoaderConfiguration loaderConfig() {
+            return this.modelLoaderConf == null ? manager.getOntologyLoaderConfiguration() : this.modelLoaderConf;
+        }
+
+        @Override
+        public OWLOntologyWriterConfiguration writerConfig() {
+            return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
         }
     }
 }

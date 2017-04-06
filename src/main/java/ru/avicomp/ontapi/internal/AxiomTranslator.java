@@ -6,11 +6,8 @@ import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -20,6 +17,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     /**
@@ -73,29 +71,22 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     public abstract Wrap<Axiom> asAxiom(OntStatement statement);
 
     /**
-     * Gets {@link OWLDataFactory} from {@link InternalModel} or {@link AxiomParserProvider#DATA_FACTORY} in case any other {@link OntGraphModel}.
+     * Gets the config from model's settings or dummy if it is naked Jena model.
      *
-     * @param m {@link OntGraphModel}
-     * @return {@link OWLDataFactory}
+     * @param model {@link OntGraphModel}
+     * @return {@link ConfigProvider.Config}
      */
-    OWLDataFactory getDataFactory(OntGraphModel m) {
-        return m instanceof InternalModel ? ((InternalModel) m).dataFactory() : AxiomParserProvider.DATA_FACTORY;
+    public ConfigProvider.Config getConfig(OntGraphModel model) {
+        return model instanceof ConfigProvider ? ((ConfigProvider) model).getConfig() : ConfigProvider.DEFAULT;
     }
 
     /**
-     * @param m {@link OntGraphModel}
-     * @return {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
+     * Gets the config from statement.
+     *
+     * @param statement {@link OntStatement}
+     * @return {@link ConfigProvider.Config}
      */
-    OntConfig.LoaderConfiguration getLoaderConfig(OntGraphModel m) {
-        return m instanceof InternalModel ? ((InternalModel) m).loaderConfig() : AxiomParserProvider.LOADER_CONFIGURATION;
+    protected ConfigProvider.Config getConfig(OntStatement statement) {
+        return getConfig(statement.getModel());
     }
-
-    /**
-     * @param m {@link OntGraphModel}
-     * @return {@link OWLOntologyWriterConfiguration}
-     */
-    OWLOntologyWriterConfiguration getWriterConfig(OntGraphModel m) {
-        return m instanceof InternalModel ? ((InternalModel) m).writerConfig() : AxiomParserProvider.WRITER_CONFIGURATION;
-    }
-
 }

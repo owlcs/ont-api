@@ -5,10 +5,8 @@ import java.util.stream.Stream;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -43,12 +41,11 @@ class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
     public Wrap<OWLSubClassOfAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<? extends OWLClassExpression> sub = ReadHelper.fetchClassExpression(statement.getSubject().as(OntCE.class), df);
-        Wrap<? extends OWLClassExpression> sup = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLSubClassOfAxiom res = df.getOWLSubClassOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<? extends OWLClassExpression> sub = ReadHelper.fetchClassExpression(statement.getSubject().as(OntCE.class), conf.dataFactory());
+        Wrap<? extends OWLClassExpression> sup = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLSubClassOfAxiom res = conf.dataFactory().getOWLSubClassOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(sub).append(sup);
     }
 }

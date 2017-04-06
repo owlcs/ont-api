@@ -4,11 +4,9 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.impl.Entities;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -30,7 +28,7 @@ class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        if (!getLoaderConfig(model).isAllowReadDeclarations()) return Stream.empty();
+        if (!getConfig(model).loaderConfig().isAllowReadDeclarations()) return Stream.empty();
         return model.ontEntities().map(OntObject::getRoot).filter(Objects::nonNull).filter(OntStatement::isLocal);
     }
 
@@ -43,11 +41,10 @@ class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
 
     @Override
     public Wrap<OWLDeclarationAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<? extends OWLEntity> entity = ReadHelper.wrapEntity(statement.getSubject().as(OntEntity.class), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLDeclarationAxiom res = df.getOWLDeclarationAxiom(entity.getObject(), annotations.getObjects());
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<? extends OWLEntity> entity = ReadHelper.wrapEntity(statement.getSubject().as(OntEntity.class), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLDeclarationAxiom res = conf.dataFactory().getOWLDeclarationAxiom(entity.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples());
     }
 }

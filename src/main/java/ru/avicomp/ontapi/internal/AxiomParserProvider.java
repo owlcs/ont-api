@@ -13,15 +13,11 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.reflect.ClassPath;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OntConfig;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 /**
  * Axiom Graph Translator loader.
@@ -29,10 +25,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AxiomParserProvider {
-    static final OWLDataFactory DATA_FACTORY = new OWLDataFactoryImpl();
-    private static final OntConfig CONFIG_HOLDER = new OntConfig();
-    static final OntConfig.LoaderConfiguration LOADER_CONFIGURATION = CONFIG_HOLDER.buildLoaderConfiguration();
-    static final OWLOntologyWriterConfiguration WRITER_CONFIGURATION = CONFIG_HOLDER.buildWriterConfiguration();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AxiomParserProvider.class);
 
@@ -112,5 +104,6 @@ public abstract class AxiomParserProvider {
             }
         }
     }
+
 
 }

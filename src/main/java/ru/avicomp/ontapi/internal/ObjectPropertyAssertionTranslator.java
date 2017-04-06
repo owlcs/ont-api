@@ -2,9 +2,11 @@ package ru.avicomp.ontapi.internal;
 
 import java.util.stream.Stream;
 
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -56,13 +58,12 @@ class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropert
 
     @Override
     public Wrap<OWLObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<? extends OWLIndividual> subject = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), df);
-        Wrap<? extends OWLObjectPropertyExpression> property = ReadHelper.fetchObjectPropertyExpression(statement.getPredicate().as(OntOPE.class), df);
-        Wrap<? extends OWLIndividual> object = ReadHelper.fetchIndividual(statement.getObject().as(OntIndividual.class), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLObjectPropertyAssertionAxiom res = df.getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<? extends OWLIndividual> subject = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), conf.dataFactory());
+        Wrap<? extends OWLObjectPropertyExpression> property = ReadHelper.fetchObjectPropertyExpression(statement.getPredicate().as(OntOPE.class), conf.dataFactory());
+        Wrap<? extends OWLIndividual> object = ReadHelper.fetchIndividual(statement.getObject().as(OntIndividual.class), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLObjectPropertyAssertionAxiom res = conf.dataFactory().getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
                 annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(subject).append(property).append(object);
     }

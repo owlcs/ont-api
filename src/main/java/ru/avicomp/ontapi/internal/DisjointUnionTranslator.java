@@ -3,9 +3,11 @@ package ru.avicomp.ontapi.internal;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDisjointUnionAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -40,13 +42,12 @@ class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUn
 
     @Override
     public Wrap<OWLDisjointUnionAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
+        ConfigProvider.Config conf = getConfig(statement);
         OntClass clazz = statement.getSubject().as(OntClass.class);
-        Wrap<? extends OWLClassExpression> subject = ReadHelper.fetchClassExpression(clazz, df);
-        Wrap.Collection<? extends OWLClassExpression> members = Wrap.Collection.create(clazz.disjointUnionOf().map(s -> ReadHelper.fetchClassExpression(s, df)));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLDisjointUnionAxiom res = df.getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(), members.getObjects(), annotations.getObjects());
+        Wrap<? extends OWLClassExpression> subject = ReadHelper.fetchClassExpression(clazz, conf.dataFactory());
+        Wrap.Collection<? extends OWLClassExpression> members = Wrap.Collection.create(clazz.disjointUnionOf().map(s -> ReadHelper.fetchClassExpression(s, conf.dataFactory())));
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLDisjointUnionAxiom res = conf.dataFactory().getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(), members.getObjects(), annotations.getObjects());
         return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }
 }

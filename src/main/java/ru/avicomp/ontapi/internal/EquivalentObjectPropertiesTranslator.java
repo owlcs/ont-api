@@ -6,11 +6,9 @@ import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -40,12 +38,11 @@ class EquivalentObjectPropertiesTranslator extends AbstractNaryTranslator<OWLEqu
 
     @Override
     public Wrap<OWLEquivalentObjectPropertiesAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<? extends OWLObjectPropertyExpression> a = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(getView()), df);
-        Wrap<? extends OWLObjectPropertyExpression> b = ReadHelper.fetchObjectPropertyExpression(statement.getObject().as(getView()), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLEquivalentObjectPropertiesAxiom res = df.getOWLEquivalentObjectPropertiesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<? extends OWLObjectPropertyExpression> a = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(getView()), conf.dataFactory());
+        Wrap<? extends OWLObjectPropertyExpression> b = ReadHelper.fetchObjectPropertyExpression(statement.getObject().as(getView()), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLEquivalentObjectPropertiesAxiom res = conf.dataFactory().getOWLEquivalentObjectPropertiesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }
 }

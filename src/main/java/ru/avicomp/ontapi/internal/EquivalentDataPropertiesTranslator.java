@@ -5,9 +5,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
+import org.semanticweb.owlapi.model.OWLEquivalentDataPropertiesAxiom;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -37,12 +39,11 @@ class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<OWLEquiv
 
     @Override
     public Wrap<OWLEquivalentDataPropertiesAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<OWLDataProperty> a = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), df);
-        Wrap<OWLDataProperty> b = ReadHelper.fetchDataProperty(statement.getObject().as(getView()), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLEquivalentDataPropertiesAxiom res = df.getOWLEquivalentDataPropertiesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<OWLDataProperty> a = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), conf.dataFactory());
+        Wrap<OWLDataProperty> b = ReadHelper.fetchDataProperty(statement.getObject().as(getView()), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLEquivalentDataPropertiesAxiom res = conf.dataFactory().getOWLEquivalentDataPropertiesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }
 }

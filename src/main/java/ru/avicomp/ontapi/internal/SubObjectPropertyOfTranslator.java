@@ -1,8 +1,10 @@
 package ru.avicomp.ontapi.internal;
 
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -29,12 +31,11 @@ class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSub
 
     @Override
     public Wrap<OWLSubObjectPropertyOfAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<? extends OWLObjectPropertyExpression> sub = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(OntOPE.class), df);
-        Wrap<? extends OWLObjectPropertyExpression> sup = ReadHelper.fetchObjectPropertyExpression(statement.getObject().as(OntOPE.class), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLSubObjectPropertyOfAxiom res = df.getOWLSubObjectPropertyOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<? extends OWLObjectPropertyExpression> sub = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(OntOPE.class), conf.dataFactory());
+        Wrap<? extends OWLObjectPropertyExpression> sup = ReadHelper.fetchObjectPropertyExpression(statement.getObject().as(OntOPE.class), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLSubObjectPropertyOfAxiom res = conf.dataFactory().getOWLSubObjectPropertyOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(sub).append(sup);
     }
 }

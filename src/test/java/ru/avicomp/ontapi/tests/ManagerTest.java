@@ -80,7 +80,7 @@ public class ManagerTest {
         conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
         OntConfig.LoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
         conf2.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
-        Assert.assertNotEquals("The same loader configs", conf1, conf2);
+        Assert.assertEquals("Not the same loader configs", conf1, conf2);
         Assert.assertEquals("Not the same personalities", conf1.getPersonality(), conf2.getPersonality());
         m1.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX));
         m2.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT));

@@ -48,10 +48,9 @@ public class EntitiesTestCase extends TestBase {
         OWLDocumentFormat format = o.getFormat();
         Assert.assertNotNull("No format", format);
 
-        //m.getOntologyConfigurator().withUseNamespaceEntities(true);
-        //Assert.assertTrue(m.getOntologyWriterConfiguration().isUseNamespaceEntities());
-        // TODO: don't modify global config as ONT-API temporary solution:
-        m.setOntologyWriterConfiguration(m.getOntologyWriterConfiguration().withUseNamespaceEntities(true));
+        m.getOntologyConfigurator().withUseNamespaceEntities(true);
+        Assert.assertTrue(m.getOntologyWriterConfiguration().isUseNamespaceEntities());
+        //m.setOntologyWriterConfiguration(m.getOntologyWriterConfiguration().withUseNamespaceEntities(true));
 
         StringDocumentTarget target = new StringDocumentTarget();
 

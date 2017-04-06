@@ -8,10 +8,8 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -60,21 +58,20 @@ class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjoint
 
     @Override
     public Wrap<OWLDisjointClassesAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
+        ConfigProvider.Config conf = getConfig(statement);
         Wrap.Collection<? extends OWLClassExpression> members;
         Stream<OntStatement> content;
         if (statement.getSubject().canAs(getDisjointView())) {
             OntDisjoint.Classes disjoint = statement.getSubject().as(getDisjointView());
             content = disjoint.content();
-            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.fetchClassExpression(m, df)));
+            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.fetchClassExpression(m, conf.dataFactory())));
         } else {
             content = Stream.of(statement);
             members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
-                    .map(r -> r.as(getView())).map(m -> ReadHelper.fetchClassExpression(m, df)));
+                    .map(r -> r.as(getView())).map(m -> ReadHelper.fetchClassExpression(m, conf.dataFactory())));
         }
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLDisjointClassesAxiom res = df.getOWLDisjointClassesAxiom(members.getObjects(), annotations.getObjects());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLDisjointClassesAxiom res = conf.dataFactory().getOWLDisjointClassesAxiom(members.getObjects(), annotations.getObjects());
         return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }
 }

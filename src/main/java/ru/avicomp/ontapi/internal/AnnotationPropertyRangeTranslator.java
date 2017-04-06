@@ -30,7 +30,7 @@ class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<
      */
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(model);
+        OntConfig.LoaderConfiguration conf = getConfig(model).loaderConfig();
         if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
         return super.statements(model)
                 .filter(s -> s.getObject().isURIResource())
@@ -45,12 +45,11 @@ class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<
 
     @Override
     public Wrap<OWLAnnotationPropertyRangeAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(getView()), df);
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(getView()), conf.dataFactory());
         Wrap<IRI> d = ReadHelper.wrapIRI(statement.getObject().as(OntObject.class));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLAnnotationPropertyRangeAxiom res = df.getOWLAnnotationPropertyRangeAxiom(p.getObject(), d.getObject(), annotations.getObjects());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLAnnotationPropertyRangeAxiom res = conf.dataFactory().getOWLAnnotationPropertyRangeAxiom(p.getObject(), d.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(d);
     }
 }

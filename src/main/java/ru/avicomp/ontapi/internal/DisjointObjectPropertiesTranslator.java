@@ -7,11 +7,9 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDisjointObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -59,21 +57,20 @@ class DisjointObjectPropertiesTranslator extends AbstractTwoWayNaryTranslator<OW
 
     @Override
     public Wrap<OWLDisjointObjectPropertiesAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
+        ConfigProvider.Config conf = getConfig(statement);
         Wrap.Collection<? extends OWLObjectPropertyExpression> members;
         Stream<OntStatement> content;
         if (statement.getSubject().canAs(getDisjointView())) {
             OntDisjoint.ObjectProperties disjoint = statement.getSubject().as(getDisjointView());
             content = disjoint.content();
-            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.fetchObjectPropertyExpression(m, df)));
+            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.fetchObjectPropertyExpression(m, conf.dataFactory())));
         } else {
             content = Stream.of(statement);
             members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
-                    .map(r -> r.as(getView())).map(m -> ReadHelper.fetchObjectPropertyExpression(m, df)));
+                    .map(r -> r.as(getView())).map(m -> ReadHelper.fetchObjectPropertyExpression(m, conf.dataFactory())));
         }
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLDisjointObjectPropertiesAxiom res = df.getOWLDisjointObjectPropertiesAxiom(members.getObjects(), annotations.getObjects());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLDisjointObjectPropertiesAxiom res = conf.dataFactory().getOWLDisjointObjectPropertiesAxiom(members.getObjects(), annotations.getObjects());
         return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }
 }

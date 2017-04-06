@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.internal.AxiomParserProvider;
+import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.Wrap;
 import ru.avicomp.ontapi.jena.OntFactory;
@@ -79,7 +80,7 @@ public class InternalModelTest {
     public void testOntologyAnnotations() {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
-        InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), OntModelConfig.getPersonality());
+        InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), ConfigProvider.DEFAULT);
 
         Set<OWLAnnotation> annotations = model.annotations().collect(Collectors.toSet());
         annotations.forEach(LOGGER::debug);
@@ -227,7 +228,7 @@ public class InternalModelTest {
         LOGGER.info("Load jena model from " + fileURI);
         Model init = ReadWriteUtils.load(fileURI, format);
         Graph graph = GraphTransformers.convert(init.getGraph());
-        return new InternalModel(graph, OntModelConfig.getPersonality());
+        return new InternalModel(graph, ConfigProvider.DEFAULT);
     }
 
 }

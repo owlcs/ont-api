@@ -8,9 +8,11 @@ import java.util.stream.Stream;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.HasAnnotations;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -76,12 +78,11 @@ class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualA
 
     @Override
     public Wrap<OWLSameIndividualAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<? extends OWLIndividual> a = ReadHelper.fetchIndividual(statement.getSubject().as(getView()), df);
-        Wrap<? extends OWLIndividual> b = ReadHelper.fetchIndividual(statement.getObject().as(getView()), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLSameIndividualAxiom res = df.getOWLSameIndividualAxiom(a.getObject(), b.getObject(), annotations.getObjects());
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<? extends OWLIndividual> a = ReadHelper.fetchIndividual(statement.getSubject().as(getView()), conf.dataFactory());
+        Wrap<? extends OWLIndividual> b = ReadHelper.fetchIndividual(statement.getObject().as(getView()), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLSameIndividualAxiom res = conf.dataFactory().getOWLSameIndividualAxiom(a.getObject(), b.getObject(), annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }
 }

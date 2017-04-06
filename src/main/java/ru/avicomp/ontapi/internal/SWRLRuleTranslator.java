@@ -4,11 +4,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLRule;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
@@ -40,15 +38,14 @@ class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
     @Override
     public Wrap<SWRLRule> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
+        ConfigProvider.Config conf = getConfig(statement);
         OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
 
-        Wrap.Collection<? extends SWRLAtom> head = Wrap.Collection.create(imp.head().map(a -> ReadHelper.getSWRLAtom(a, df)));
-        Wrap.Collection<? extends SWRLAtom> body = Wrap.Collection.create(imp.body().map(a -> ReadHelper.getSWRLAtom(a, df)));
+        Wrap.Collection<? extends SWRLAtom> head = Wrap.Collection.create(imp.head().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())));
+        Wrap.Collection<? extends SWRLAtom> body = Wrap.Collection.create(imp.body().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())));
 
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        SWRLRule res = df.getSWRLRule(body.objects().collect(Collectors.toList()), head.objects().collect(Collectors.toList()), annotations.getObjects());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        SWRLRule res = conf.dataFactory().getSWRLRule(body.objects().collect(Collectors.toList()), head.objects().collect(Collectors.toList()), annotations.getObjects());
         return Wrap.create(res, imp.content()).add(annotations.getTriples()).add(body.getTriples()).add(head.getTriples());
     }
 }

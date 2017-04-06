@@ -2,14 +2,12 @@ package ru.avicomp.ontapi;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
 
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
@@ -59,6 +57,8 @@ public class OntConfig extends OntologyConfigurator {
         protected boolean allowBulkAnnotationAssertions = true;
         protected boolean allowReadDeclarations = true;
         protected boolean ignoreAnnotationAxiomOverlaps = true;
+        protected Set<IRI> ignoredImports;
+        protected EnumMap<ConfigurationOptions, Object> overrides;
 
         public LoaderConfiguration(OWLOntologyLoaderConfiguration owl) {
             this.inner = owl == null ? new OWLOntologyLoaderConfiguration() :
@@ -81,6 +81,30 @@ public class OntConfig extends OntologyConfigurator {
             res.allowReadDeclarations = this.allowReadDeclarations;
             res.ignoreAnnotationAxiomOverlaps = this.ignoreAnnotationAxiomOverlaps;
             return res;
+        }
+
+        @SuppressWarnings("unchecked")
+        protected Set<IRI> ignoredImports() {
+            try {
+                if (ignoredImports != null) return ignoredImports;
+                Field field = inner.getClass().getDeclaredField("ignoredImports");
+                field.setAccessible(true);
+                return ignoredImports = (Set<IRI>) field.get(inner);
+            } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
+                throw new OntApiException("Can't get ignoredImports.", e);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        protected EnumMap<ConfigurationOptions, Object> overrides() {
+            try {
+                if (overrides != null) return overrides;
+                Field field = inner.getClass().getDeclaredField("overrides");
+                field.setAccessible(true);
+                return overrides = (EnumMap<ConfigurationOptions, Object>) field.get(inner);
+            } catch (IllegalAccessException | NoSuchFieldException | ClassCastException e) {
+                throw new OntApiException("Can't get ignoredImports.", e);
+            }
         }
 
         /**
@@ -462,6 +486,29 @@ public class OntConfig extends OntologyConfigurator {
             return copy(inner.setReportStackTraces(b));
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof LoaderConfiguration)) return false;
+            LoaderConfiguration that = (LoaderConfiguration) o;
+            return isPerformTransformation() == that.isPerformTransformation() &&
+                    isAllowBulkAnnotationAssertions() == that.isAllowBulkAnnotationAssertions() &&
+                    isAllowReadDeclarations() == that.isAllowReadDeclarations() &&
+                    isIgnoreAnnotationAxiomOverlaps() == that.isIgnoreAnnotationAxiomOverlaps() &&
+                    Objects.equals(ignoredImports(), that.ignoredImports()) &&
+                    Objects.equals(overrides(), that.overrides()) &&
+                    Objects.equals(getPersonality(), that.getPersonality()) &&
+                    Objects.equals(getGraphTransformers(), that.getGraphTransformers()) &&
+                    Objects.equals(getSupportedSchemes(), that.getSupportedSchemes());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(ignoredImports(), overrides(),
+                    getPersonality(), getGraphTransformers(),
+                    isPerformTransformation(), getSupportedSchemes(),
+                    isAllowBulkAnnotationAssertions(), isAllowReadDeclarations(), isIgnoreAnnotationAxiomOverlaps());
+        }
     }
 
     public enum DefaultScheme implements Scheme {

@@ -3,12 +3,12 @@ package ru.avicomp.ontapi;
 import javax.annotation.Nonnull;
 import java.util.stream.Stream;
 
+import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
-import com.google.inject.assistedinject.Assisted;
-import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
 
@@ -28,12 +28,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      * @param manager ontology manager
      * @param id      the id
      */
-    public OntologyModelImpl(@Assisted OntologyManager manager, @Assisted OWLOntologyID id) {
+    public OntologyModelImpl(OntologyManagerImpl manager, OWLOntologyID id) {
         super(manager, id);
     }
 
-    public OntologyModelImpl(OntologyManager manager, InternalModel base) {
-        super(manager, base);
+    public OntologyModelImpl(Graph graph, OntologyManagerImpl.ModelConfig config) {
+        super(graph, config);
     }
 
 
@@ -182,7 +182,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      * <p>
      * Created by szuev on 22.12.2016.
      */
-    public class Concurrent extends ConcurrentOWLOntologyImpl implements OntologyModel {
+    public class Concurrent extends ConcurrentOWLOntologyImpl implements OntologyModel, ConfigProvider {
         private Concurrent() {
             super(OntologyModelImpl.this, OntologyModelImpl.this.getOWLOntologyManager().getLock());
         }
@@ -206,6 +206,11 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         @Override
         public OntologyManager getOWLOntologyManager() {
             return (OntologyManager) super.getOWLOntologyManager();
+        }
+
+        @Override
+        public ConfigProvider.Config getConfig() {
+            return OntologyModelImpl.this.getConfig();
         }
     }
 }

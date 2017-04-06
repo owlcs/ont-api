@@ -4,7 +4,6 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -36,7 +35,7 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
      */
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        if (!getLoaderConfig(model).isLoadAnnotationAxioms()) return Stream.empty();
+        if (!getConfig(model).loaderConfig().isLoadAnnotationAxioms()) return Stream.empty();
         return model.statements()
                 .filter(OntStatement::isLocal)
                 .filter(this::testStatement);
@@ -44,19 +43,18 @@ class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAsserti
 
     @Override
     public boolean testStatement(OntStatement statement) {
-        return ReadHelper.isAnnotationAssertionStatement(statement, getLoaderConfig(statement.getModel())) &&
+        return ReadHelper.isAnnotationAssertionStatement(statement, getConfig(statement).loaderConfig()) &&
                 ReadHelper.isEntityOrAnonymousIndividual(statement.getSubject());
     }
 
     @Override
     public Wrap<OWLAnnotationAssertionAxiom> asAxiom(OntStatement statement) {
-        OWLDataFactory df = getDataFactory(statement.getModel());
-        OntConfig.LoaderConfiguration conf = getLoaderConfig(statement.getModel());
-        Wrap<? extends OWLAnnotationSubject> s = ReadHelper.getAnnotationSubject(statement.getSubject(), df);
-        Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getPredicate().as(OntNAP.class), df);
-        Wrap<? extends OWLAnnotationValue> v = ReadHelper.getAnnotationValue(statement.getObject(), df);
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, df, conf);
-        OWLAnnotationAssertionAxiom res = df.getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
+        ConfigProvider.Config conf = getConfig(statement);
+        Wrap<? extends OWLAnnotationSubject> s = ReadHelper.getAnnotationSubject(statement.getSubject(), conf.dataFactory());
+        Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getPredicate().as(OntNAP.class), conf.dataFactory());
+        Wrap<? extends OWLAnnotationValue> v = ReadHelper.getAnnotationValue(statement.getObject(), conf.dataFactory());
+        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        OWLAnnotationAssertionAxiom res = conf.dataFactory().getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
                 annotations.getObjects());
         return Wrap.create(res, statement).add(annotations.getTriples()).append(s).append(p).append(v);
     }
