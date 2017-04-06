@@ -57,6 +57,8 @@ public class OntConfig extends OntologyConfigurator {
         protected boolean allowBulkAnnotationAssertions = true;
         protected boolean allowReadDeclarations = true;
         protected boolean ignoreAnnotationAxiomOverlaps = true;
+        protected boolean useOWLParsersToLoad = false;
+        // from super class:
         protected Set<IRI> ignoredImports;
         protected EnumMap<ConfigurationOptions, Object> overrides;
 
@@ -80,6 +82,7 @@ public class OntConfig extends OntologyConfigurator {
             res.allowBulkAnnotationAssertions = this.allowBulkAnnotationAssertions;
             res.allowReadDeclarations = this.allowReadDeclarations;
             res.ignoreAnnotationAxiomOverlaps = this.ignoreAnnotationAxiomOverlaps;
+            res.useOWLParsersToLoad = this.useOWLParsersToLoad;
             return res;
         }
 
@@ -345,6 +348,36 @@ public class OntConfig extends OntologyConfigurator {
             return copy(inner.setLoadAnnotationAxioms(b));
         }
 
+        /**
+         * ONT-API config method.
+         * By default it is {@code false}.
+         *
+         * @return true if loading through Jena is disabled (the loading is done through the OWL-API mechanisms by one axiom at a time).
+         */
+        public boolean isUseOWLParsersToLoad() {
+            return useOWLParsersToLoad;
+        }
+
+        /**
+         * ONT-API config setter.
+         * To choose the preferable way to load (Jena vs pure OWL-API).
+         * It is mainly for test purposes.
+         * NOTE: It is strongly recommended to use default settings ({@code {@link #isUseOWLParsersToLoad()} = false}):
+         * - There is no confidence in OWL-API mechanisms: all of them work different way, there is no any guaranty.
+         * - They definitely contain bugs
+         * - You never can not be sure that graph would be the same, moreover - in some cases you can be sure that you get broken graph.
+         * - Worse performance.
+         *
+         * @param b true to use pure OWL-API parsers to load.
+         * @return this or new config.
+         */
+        public LoaderConfiguration setUseOWLParsersToLoad(boolean b) {
+            if (b == useOWLParsersToLoad) return this;
+            LoaderConfiguration res = copy(inner);
+            res.useOWLParsersToLoad = b;
+            return res;
+        }
+
         @Override
         public LoaderConfiguration addIgnoredImport(IRI iri) {
             return copy(inner.addIgnoredImport(iri));
@@ -495,6 +528,7 @@ public class OntConfig extends OntologyConfigurator {
                     isAllowBulkAnnotationAssertions() == that.isAllowBulkAnnotationAssertions() &&
                     isAllowReadDeclarations() == that.isAllowReadDeclarations() &&
                     isIgnoreAnnotationAxiomOverlaps() == that.isIgnoreAnnotationAxiomOverlaps() &&
+                    isUseOWLParsersToLoad() == that.isUseOWLParsersToLoad() &&
                     Objects.equals(ignoredImports(), that.ignoredImports()) &&
                     Objects.equals(overrides(), that.overrides()) &&
                     Objects.equals(getPersonality(), that.getPersonality()) &&
@@ -507,7 +541,8 @@ public class OntConfig extends OntologyConfigurator {
             return Objects.hash(ignoredImports(), overrides(),
                     getPersonality(), getGraphTransformers(),
                     isPerformTransformation(), getSupportedSchemes(),
-                    isAllowBulkAnnotationAssertions(), isAllowReadDeclarations(), isIgnoreAnnotationAxiomOverlaps());
+                    isAllowBulkAnnotationAssertions(), isAllowReadDeclarations(),
+                    isUseOWLParsersToLoad(), isIgnoreAnnotationAxiomOverlaps());
         }
     }
 

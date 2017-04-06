@@ -191,6 +191,12 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
 
         @Override
         public OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntConfig.LoaderConfiguration config) throws OWLOntologyCreationException {
+            if (config.isUseOWLParsersToLoad()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Load ontology using OWL-API methods. Source [{}]{}", source.getClass().getSimpleName(), source.getDocumentIRI());
+                }
+                return alternative.load(source, manager, config);
+            }
             try {
                 GraphInfo primary;
                 try {
