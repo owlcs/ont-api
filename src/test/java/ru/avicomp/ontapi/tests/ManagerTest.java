@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +24,7 @@ import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.internal.ReadHelper;
 import ru.avicomp.ontapi.internal.Wrap;
+import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntEntity;
@@ -101,30 +103,44 @@ public class ManagerTest {
     }
 
     @Test
+    public void testConcurrentManager() throws Exception {
+        OWLOntologyManager m = OntManagers.createConcurrentONT();
+        OWLOntology o1 = m.createOntology();
+        OWLOntology o2 = m.loadOntology(IRI.create(ReadWriteUtils.getResourceFile("test1.ttl")));
+        Assert.assertEquals("Expected 2 ontologies.", 2, m.ontologies().count());
+        Assert.assertTrue("(1)Not concurrent model!", o1 instanceof OntologyModelImpl.Concurrent);
+        Assert.assertTrue("(2)Not concurrent model!", o2 instanceof OntologyModelImpl.Concurrent);
+        ReadWriteLock managerLock = ((OntologyManagerImpl) m).getLock();
+        Assert.assertNotNull(managerLock);
+        Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o1).getLock());
+        Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o2).getLock());
+        Assert.assertTrue("(1)Not concurrent graph!", ((OntologyModel) o1).asGraphModel().getBaseGraph() instanceof ConcurrentGraph);
+        Assert.assertTrue("(2)Not concurrent graph!", ((OntologyModel) o2).asGraphModel().getBaseGraph() instanceof ConcurrentGraph);
+        Assert.assertEquals(managerLock, ((ConcurrentGraph) ((OntologyModel) o1).asGraphModel().getBaseGraph()).lock());
+        Assert.assertEquals(managerLock, ((ConcurrentGraph) ((OntologyModel) o2).asGraphModel().getBaseGraph()).lock());
+
+        o1.axioms().forEach(LOGGER::debug);
+        ((OntologyModel) o1).asGraphModel().createOntEntity(OntClass.class, "urn:c1").createIndividual("urn:i");
+        OWLDataFactory df = m.getOWLDataFactory();
+        o1.add(df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(IRI.create("urn:ap")), IRI.create("urn:c1"), df.getOWLLiteral("test", "e")));
+        Assert.assertEquals(4, o1.getAxiomCount());
+        ((OntologyModel) o1).clearCache();
+        Assert.assertEquals("+ 1 declaration", 5, o1.getAxiomCount());
+
+        o2.axioms().forEach(LOGGER::debug);
+        Assert.assertEquals(12, o2.getAxiomCount());
+        ((OntologyModel) o2).clearCache();
+        Assert.assertEquals(12, o2.getAxiomCount());
+    }
+
+    @Test
     public void testSerialization() throws Exception {
-        OWLOntologyManager origin =
-                OntManagers.createONT();
-        //OntManagers.createOWL();
-        ManagerTest.setUpManager(origin);
-        ManagerTest.debug(origin);
+        serializationTest(OntManagers.createONT());
+    }
 
-        LOGGER.info("|====================|");
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ObjectOutputStream stream = new ObjectOutputStream(out);
-        stream.writeObject(origin);
-        stream.flush();
-
-        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        ObjectInputStream inStream = new ObjectInputStream(in);
-        OWLOntologyManager copy = (OWLOntologyManager) inStream.readObject();
-        ManagerTest.fixAfterSerialization(origin, copy);
-        ManagerTest.debug(copy);
-        ManagerTest.compareManagersTest(origin, copy);
-
-        if (OntologyManager.class.isInstance(origin)) {
-            ManagerTest.editTest((OntologyManager) origin, (OntologyManager) copy);
-        }
+    @Test
+    public void testSerializationWithConcurrency() throws Exception {
+        serializationTest(OntManagers.createConcurrentONT());
     }
 
     @Test
@@ -446,6 +462,33 @@ public class ManagerTest {
         Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
     }
 
+    private static void serializationTest(OWLOntologyManager origin) throws Exception {
+        setUpManager(origin);
+        debugManager(origin);
+
+        LOGGER.info("|====================|");
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream stream = new ObjectOutputStream(out);
+        stream.writeObject(origin);
+        stream.flush();
+
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        ObjectInputStream inStream = new ObjectInputStream(in);
+        OWLOntologyManager copy = (OWLOntologyManager) inStream.readObject();
+        if (OntologyManager.class.isInstance(origin)) {
+            Assert.assertEquals("Incorrect concurrency", ((OntologyManagerImpl) origin).isConcurrent(), ((OntologyManagerImpl) copy).isConcurrent());
+        }
+
+        fixAfterSerialization(origin, copy);
+        debugManager(copy);
+        compareManagersTest(origin, copy);
+
+        if (OntologyManager.class.isInstance(origin)) {
+            editManagerTest((OntologyManager) origin, (OntologyManager) copy);
+        }
+    }
+
     private static void fixAfterSerialization(OWLOntologyManager origin, OWLOntologyManager copy) {
         if (OntologyManager.class.isInstance(copy)) {
             return;
@@ -454,7 +497,7 @@ public class ManagerTest {
         copy.setOntologyWriterConfiguration(origin.getOntologyWriterConfiguration());
     }
 
-    static void debug(OWLOntologyManager m) {
+    private static void debugManager(OWLOntologyManager m) {
         m.ontologies().forEach(o -> {
             LOGGER.debug("<" + o.getOntologyID() + ">:");
             ReadWriteUtils.print(o);
@@ -486,7 +529,7 @@ public class ManagerTest {
         return m;
     }
 
-    private static void editTest(OntologyManager origin, OntologyManager copy) {
+    private static void editManagerTest(OntologyManager origin, OntologyManager copy) {
         String uri = "urn:iri.com#1";
         OntGraphModel o1 = origin.getGraphModel(uri);
         OntGraphModel o2 = copy.getGraphModel(uri);

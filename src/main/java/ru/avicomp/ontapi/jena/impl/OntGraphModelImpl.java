@@ -16,6 +16,7 @@ import org.apache.jena.mem.GraphMem;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
+import org.apache.jena.shared.Lock;
 import org.apache.jena.shared.PrefixMapping;
 
 import ru.avicomp.ontapi.OntApiException;
@@ -34,6 +35,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by @szuev on 27.10.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     /**
@@ -132,6 +134,21 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     public PrefixMapping setNsPrefix(String prefix, String uri) {
         getBaseGraph().getPrefixMapping().setNsPrefix(prefix, uri);
         return this;
+    }
+
+    @Override
+    public Lock getLock() {
+        throw new OntJenaException.Unsupported();
+    }
+
+    @Override
+    public void enterCriticalSection(boolean requestReadLock) {
+        throw new OntJenaException.Unsupported();
+    }
+
+    @Override
+    public void leaveCriticalSection() {
+        throw new OntJenaException.Unsupported();
     }
 
     @Override

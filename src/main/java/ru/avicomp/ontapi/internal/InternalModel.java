@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
@@ -21,10 +22,10 @@ import ru.avicomp.ontapi.jena.model.*;
 /**
  * Buffer RDF-OWL model.
  * The analogy of {@link uk.ac.manchester.cs.owl.owlapi.Internals}
- * This is a nonserializable(!) {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities.
+ * This is a non-serializable(!) {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities.
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
  * it is used by {@link ru.avicomp.ontapi.OntologyModel} to read and write structural representation of ontology.
- *
+ * <p>
  * todo: should return {@link Wrap}s, not just naked {@link OWLObject}s
  * <p>
  * Created by @szuev on 26.10.2016.
@@ -37,34 +38,45 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * if true then {@link AxiomTranslator}s works in parallel mode (see {@link #axioms(Set)}).
      * As shown by pizza-performance-test it really helps to speed up the initial loading.
      */
-    protected static boolean optimizeCollecting = true;
+    protected boolean optimizeCollecting = false;
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
-    protected Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsStore = optimizeCollecting ? new ConcurrentHashMap<>(29, 0.75f, 39) : new HashMap<>();
+    protected Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsStore;
     // OWL objects store to improve performance (working through OWL-API interface with 'signature')
     // any change in the graph resets these caches.
-    protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsStore = new HashMap<>();
+    protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsStore;
     // Temporary stores for collecting axioms, should be reset after axioms getting.
-    // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests, the reasons for this are not clear to me (todo: investigate!)
-    protected Map<OntCE, Wrap<? extends OWLClassExpression>> owlCLEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-    protected Map<OntDR, Wrap<? extends OWLDataRange>> owlDRGStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-    protected Map<OntIndividual, Wrap<? extends OWLIndividual>> owlINDStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-    protected Map<OntNAP, Wrap<OWLAnnotationProperty>> owlNAPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-    protected Map<OntNDP, Wrap<OWLDataProperty>> owlNDPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-    protected Map<OntOPE, Wrap<? extends OWLObjectPropertyExpression>> owlOPEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+    protected Map<OntCE, Wrap<? extends OWLClassExpression>> owlCLEStore;
+    protected Map<OntDR, Wrap<? extends OWLDataRange>> owlDRGStore;
+    protected Map<OntIndividual, Wrap<? extends OWLIndividual>> owlINDStore;
+    protected Map<OntNAP, Wrap<OWLAnnotationProperty>> owlNAPStore;
+    protected Map<OntNDP, Wrap<OWLDataProperty>> owlNDPStore;
+    protected Map<OntOPE, Wrap<? extends OWLObjectPropertyExpression>> owlOPEStore;
 
     private ConfigProvider.Config config;
 
     /**
      * For internal usage only.
      *
-     * @param base {@link Graph}
+     * @param base   {@link Graph}
      * @param config {@link ru.avicomp.ontapi.internal.ConfigProvider.Config}
      */
     public InternalModel(Graph base, ConfigProvider.Config config) {
         super(base, config.loaderConfig().getPersonality());
         this.config = config;
         getGraph().getEventManager().register(new DirectListener());
+        // TODO (07/04/2017): by some unclear reasons there could be lock when we work in concurrency mode.
+        optimizeCollecting = getBaseGraph() instanceof GraphMem;
+        axiomsStore = optimizeCollecting ? new ConcurrentHashMap<>(29, 0.75f, 39) : new HashMap<>();
+        owlObjectsStore = new HashMap<>();
+        // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests,
+        // the reasons for this are not clear to me (TODO: investigate!)
+        owlCLEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+        owlDRGStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+        owlINDStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+        owlNAPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+        owlNDPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+        owlOPEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
     }
 
     @Override
@@ -478,7 +490,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * direct listener to synchronize caches while working through OWL-API and jena.
-     * {@code jenaObjectsCache} will be reset in any change.
      */
     public class DirectListener extends GraphListenerBase {
         private boolean hasObjectListener() {

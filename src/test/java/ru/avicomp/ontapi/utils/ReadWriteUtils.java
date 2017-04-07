@@ -135,18 +135,16 @@ public class ReadWriteUtils {
         try {
             return getResourceFile("", fileName);
         } catch (URISyntaxException | FileNotFoundException e) {
-            LOGGER.fatal(e);
+            throw new AssertionError(e);
         }
-        return null;
     }
 
     public static URI getResourceURI(String dir, String file) {
         try {
             return getResourceFile(dir, file).toURI();
         } catch (URISyntaxException | FileNotFoundException e) {
-            LOGGER.fatal(e);
+            throw new AssertionError(e);
         }
-        return null;
     }
 
     public static URI getResourceURI(String file) {

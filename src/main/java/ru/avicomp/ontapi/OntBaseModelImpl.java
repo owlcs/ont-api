@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.model.OntID;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
@@ -37,9 +38,9 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
  * Created by @szuev on 03.12.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, ConfigProvider {
+public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, ConfigProvider, InternalModelHolder {
     // binary format to provide serialization:
-    private static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
+    protected static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
 
     protected transient InternalModel base;
     protected transient OntologyManagerImpl managerBackCopy;
@@ -56,17 +57,19 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
         this.base = new InternalModel(OntApiException.notNull(graph, "Null graph."), OntApiException.notNull(conf, "Null conf."));
     }
 
+    @Override
     public InternalModel getBase() {
         return base;
     }
 
     @Override
-    public OntologyManagerImpl.ModelConfig getConfig() {
-        return (OntologyManagerImpl.ModelConfig) base.getConfig();
+    public void setBase(InternalModel m) {
+        base = m;
     }
 
-    protected void setBase(InternalModel m) {
-        base = m;
+    @Override
+    public OntologyManagerImpl.ModelConfig getConfig() {
+        return (OntologyManagerImpl.ModelConfig) base.getConfig();
     }
 
     @Override
@@ -154,7 +157,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
         return base.annotations();
     }
 
-    /**
+    /*
      * =============================
      * Methods to work with imports:
      * =============================
@@ -185,7 +188,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
         return getOWLOntologyManager().importsClosure(this);
     }
 
-    /**
+    /*
      * ==========================
      * To work with OWL-entities:
      * ==========================
@@ -318,7 +321,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
         return imports.stream(this).anyMatch(o -> o.containsIndividualInSignature(iri));
     }
 
-    /**
+    /*
      * =======================
      * To work with OWL-Axioms
      * =======================
@@ -381,7 +384,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
      * @param type     {@link Class<OWLAxiom>}, not null, type of axioms.
      * @param view     {@link Class<OWLObject>}. anything. ignored.
      * @param object   {@link OWLObject} to find occurrences.
-     * @param position {@link Navigation} used in conjunction with {@code object} for some several kind of axioms.
+     * @param position {@link Navigation} used in conjunction with {@code object} for some several kinds of axioms.
      * @return Stream of {@link OWLAxiom}s
      * @see uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl#axioms(Class, Class, OWLObject, Navigation)
      * @see uk.ac.manchester.cs.owl.owlapi.Internals#get(Class, Class, Navigation)
@@ -494,7 +497,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
         if (primitive instanceof IRI) {
             return axioms().filter(a -> OwlObjects.iris(a).anyMatch(primitive::equals));
         }
-        if (primitive instanceof OWLDatatype) { // as well as iri the datatype could be hidden inside other object (literals):
+        if (primitive instanceof OWLDatatype) { // as well as iri the datatype could be hidden inside other objects (literals):
             return axioms().filter(a -> OwlObjects.objects(OWLDatatype.class, a).anyMatch(primitive::equals));
         }
         return axioms().filter(a -> OwlObjects.objects(OWLPrimitive.class, a).anyMatch(primitive::equals));
@@ -577,12 +580,20 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
         return imports.stream(this).anyMatch(o -> o.contains(filter, key));
     }
 
-    /**
+    /*
      * ======================
      * Serialization methods:
      * ======================
      */
 
+    /**
+     * Reads the object while serialization.
+     * Note: only base graph!
+     *
+     * @param in {@link ObjectInputStream}
+     * @see OntologyManagerImpl#readObject(ObjectInputStream)
+     * @see OntologyModelImpl.Concurrent#readObject(ObjectInputStream)
+     */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         Graph base = OntFactory.createDefaultGraph();
@@ -591,13 +602,21 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
         setBase(new InternalModel(base, ConfigProvider.DEFAULT));
     }
 
+    /**
+     * Writes the object while serialization.
+     * Note: only base graph!
+     *
+     * @param out {@link ObjectOutputStream}
+     */
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject(); // serialize only base graph (it will be wrapped as UnionGraph):
         RDFDataMgr.write(out, base.getBaseGraph(), DEFAULT_SERIALIZATION_FORMAT.getLang());
     }
 
     /**
-     * Overridden {@link super#toString()} to not force axiom loading.
+     * Overridden {@link super#toString()} in order not to force the axioms loading.
+     * I believe that for brief information there should be a separate method
+     * and the original implementation of toString is not very good idea.
      *
      * @return String
      */

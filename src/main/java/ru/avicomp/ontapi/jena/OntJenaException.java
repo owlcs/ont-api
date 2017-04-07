@@ -60,4 +60,6 @@ public class OntJenaException extends JenaException {
         }
     }
 
+    public static class Unsupported extends OntJenaException {
+    }
 }

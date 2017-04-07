@@ -261,7 +261,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 OntologyManagerImpl.ModelConfig modelConfig = ((OntologyManagerImpl) manager).createModelConfig();
                 modelConfig.setLoaderConf(config);
                 OntologyModelImpl ont = new OntologyModelImpl(graph, modelConfig);
-                OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.toConcurrentModel() : ont;
+                OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.asConcurrent() : ont;
                 if (manager.contains(res)) {
                     throw new OWLOntologyAlreadyExistsException(res.getOntologyID());
                 }
@@ -681,7 +681,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
         public OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager, @Nonnull OWLOntologyID id) {
             OntologyManagerImpl m = (OntologyManagerImpl) manager;
             OntologyModelImpl ont = new OntologyModelImpl(m, id);
-            return m.isConcurrent() ? ont.toConcurrentModel() : ont;
+            return m.isConcurrent() ? ont.asConcurrent() : ont;
         }
 
         /**

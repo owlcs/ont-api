@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Multimap;
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
@@ -88,7 +89,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     @Nonnull
-    protected ReadWriteLock getLock() {
+    public ReadWriteLock getLock() {
         return lock;
     }
 
@@ -1673,18 +1674,20 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @throws IOException            exception
      * @throws ClassNotFoundException exception
      * @see OWLOntologyManagerImpl#readObject(ObjectInputStream)
+     * @see OntBaseModelImpl#readObject(ObjectInputStream)
+     * @see OntologyModelImpl.Concurrent#readObject(ObjectInputStream)
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loaderConfig = (OntConfig.LoaderConfiguration) in.readObject();
         writerConfig = (OWLOntologyWriterConfiguration) in.readObject();
         content.values().forEach(info -> {
-            OntBaseModelImpl m = (OntBaseModelImpl) info.get();
             ConfigProvider.Config conf = info.getModelConfig();
+            InternalModelHolder m = (InternalModelHolder) info.get();
             UnionGraph baseGraph = m.getBase().getGraph();
             Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
-                    .map(s -> content.values().map(OntInfo::get).map(OntBaseModelImpl.class::cast)
-                            .map(OntBaseModelImpl::getBase).map(OntGraphModelImpl::getGraph)
+                    .map(s -> content.values().map(OntInfo::get).map(InternalModelHolder.class::cast)
+                            .map(InternalModelHolder::getBase).map(OntGraphModelImpl::getGraph)
                             .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);
             imports.forEach(baseGraph::addGraph);

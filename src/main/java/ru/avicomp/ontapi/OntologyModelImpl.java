@@ -1,6 +1,9 @@
 package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
@@ -9,6 +12,10 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
 import ru.avicomp.ontapi.internal.ConfigProvider;
+import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.InternalModelHolder;
+import ru.avicomp.ontapi.jena.ConcurrentGraph;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
 
@@ -20,6 +27,7 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
  * <p>
  * Created by @szuev on 27.09.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel {
 
     private transient RDFChangeProcessor changer;
@@ -35,7 +43,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     public OntologyModelImpl(Graph graph, OntologyManagerImpl.ModelConfig config) {
         super(graph, config);
     }
-
 
     @Override
     public ChangeApplied applyDirectChange(OWLOntologyChange change) {
@@ -57,7 +64,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     }
 
     /**
-     * returns jena model shadow.
+     * Returns the jena model shadow.
      *
      * @return {@link OntGraphModel}
      */
@@ -66,10 +73,26 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         return getBase();
     }
 
-    public OntologyModel toConcurrentModel() {
+    /**
+     * Returns concurrent representation of model if it is allowed by manager.
+     * For internal usage only
+     *
+     * @return {@link OntologyModel}
+     */
+    public OntologyModel asConcurrent() {
         OntologyManagerImpl manager = getOWLOntologyManager();
-        if (!manager.isConcurrent()) throw new OntApiException.Unsupported("Concurrency is not allowed");
-        return new Concurrent();
+        if (!manager.isConcurrent()) {
+            throw new OntApiException.Unsupported("Concurrency is not allowed.");
+        }
+
+        ReadWriteLock lock = manager.getLock();
+        UnionGraph thisGraph = getBase().getGraph();
+        UnionGraph newGraph = new UnionGraph(new ConcurrentGraph(thisGraph.getBaseGraph(), lock));
+        thisGraph.getUnderlying().graphs().forEach(newGraph::addGraph);
+        OntologyModelImpl inner = new OntologyModelImpl(newGraph, getConfig());
+        // this is necessary if anonymous ontology:
+        inner.setOntologyID(getOntologyID());
+        return new Concurrent(inner, lock);
     }
 
     private class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
@@ -81,9 +104,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
                 getBase().getID().addImport(declaration.getIRI().getIRIString());
                 return;
             }
-            // todo: move this logic to internal model or manager, make this configurable (writer conf)
+            // todo: move this logic to the manager, make this configurable (writer conf)
             Stream<OWLDeclarationAxiom> duplicates = ont.axioms(AxiomType.DECLARATION, Imports.INCLUDED).filter(OntologyModelImpl.this::containsAxiom);
-            getBase().addImport(((OntologyModelImpl) ont).getBase());
+            getBase().addImport(((InternalModelHolder) ont).getBase());
             // remove duplicated Declaration Axioms if they are present in the imported ontology
             duplicates.forEach(a -> getBase().remove(a));
         }
@@ -97,7 +120,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             }
             // todo: move somewhere (manager)
             Stream<OWLEntity> back = ont.signature(Imports.INCLUDED).filter(OntologyModelImpl.this::containsReference);
-            getBase().removeImport(((OntologyModelImpl) ont).getBase());
+            getBase().removeImport(((InternalModelHolder) ont).getBase());
             // return back Declaration Axioms which is in use:
             back.map(e -> getOWLOntologyManager().getOWLDataFactory().getOWLDeclarationAxiom(e)).forEach(a -> getBase().add(a));
         }
@@ -182,25 +205,52 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      * <p>
      * Created by szuev on 22.12.2016.
      */
-    public class Concurrent extends ConcurrentOWLOntologyImpl implements OntologyModel, ConfigProvider {
-        private Concurrent() {
-            super(OntologyModelImpl.this, OntologyModelImpl.this.getOWLOntologyManager().getLock());
+    @SuppressWarnings("WeakerAccess")
+    public static class Concurrent extends ConcurrentOWLOntologyImpl implements OntologyModel, ConfigProvider, InternalModelHolder {
+        protected OntologyModelImpl delegate;
+        protected ReadWriteLock lock;
+
+        protected Concurrent(OntologyModelImpl delegate, ReadWriteLock lock) {
+            super(delegate, lock);
+            this.delegate = delegate;
+            this.lock = lock;
+        }
+
+        public ReadWriteLock getLock() {
+            return lock;
         }
 
         /**
-         * todo: jena model is not synchronized. prepare some concurrent graph with owl-style synchronization.
-         *
          * @return {@link OntGraphModel}
          */
         @Override
-        public OntGraphModel asGraphModel() { // todo: not concurrent
-            return OntologyModelImpl.this.asGraphModel();
+        public OntGraphModel asGraphModel() {
+            try {
+                lock.readLock().lock();
+                return delegate.getBase();
+            } finally {
+                lock.readLock().unlock();
+            }
         }
 
         @Override
         public void clearCache() {
-            // todo: write lock
-            OntologyModelImpl.this.clearCache();
+            try {
+                lock.writeLock().lock();
+                delegate.clearCache();
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        @Override
+        public ConfigProvider.Config getConfig() {
+            try {
+                lock.readLock().lock();
+                return delegate.getConfig();
+            } finally {
+                lock.readLock().unlock();
+            }
         }
 
         @Override
@@ -209,8 +259,26 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         }
 
         @Override
-        public ConfigProvider.Config getConfig() {
-            return OntologyModelImpl.this.getConfig();
+        public InternalModel getBase() {
+            return delegate.getBase();
         }
+
+        @Override
+        public void setBase(InternalModel m) {
+            delegate.setBase(m);
+        }
+
+        /**
+         * reads the object while serialization
+         *
+         * @param in {@link ObjectInputStream}
+         * @see OntBaseModelImpl#readObject(ObjectInputStream)
+         * @see OntologyManagerImpl#readObject(ObjectInputStream)
+         */
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+            setBase(new InternalModel(new ConcurrentGraph(getBase().getBaseGraph(), lock), ConfigProvider.DEFAULT));
+        }
+
     }
 }
