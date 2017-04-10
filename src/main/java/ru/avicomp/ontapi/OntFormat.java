@@ -12,7 +12,9 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 
 /**
  * The map between jena languages ({@link Lang}) and OWL-API formats ({@link OWLDocumentFormat}).
- * There are 21 ONT formats (22 OWL formats + 14 jena languages)
+ * There are 21 ONT formats (22 OWL document formats + 14 jena languages),
+ * but only 12 of them can be used without any hesitation (see {@link #isSupported()}).
+ * For working with the OWL-API interfaces the {@link #createOwlFormat()} method could be used.
  * <p>
  * Created by @szuev on 27.09.2016.
  */
@@ -126,13 +128,34 @@ public enum OntFormat {
     }
 
     /**
-     * Checks if format is good for using.
-     * todo: need to retest this list.
+     * Returns {@code true} if format is good for using by ONT-API(Jena) mechanisms.
+     * Note: even if it is not good, usually it is still possible to use it by the native OWL-API mechanisms (directly
+     * or as last attempt to load or save)... but maybe to read only or to write only,
+     * or maybe with expectancy of some 'controlled' uri-transformations after reloading.
+     *
+     * - CSV ({@link Lang#CSV}) is not a valid Jena RDF serialization format (it is only for SPARQL results).
+     * - {@link BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.openrdf.rio.binary.BinaryRDFWriterFactory}).
+     * for the following formats there are no {@link org.semanticweb.owlapi.model.OWLStorerFactory}s in OWL-API 5.0.5:
+     * - {@link RDFaDocumentFormat}
+     * - {@link KRSSDocumentFormat}
+     * for the following formats there are no {@link org.semanticweb.owlapi.io.OWLParserFactory}s in OWL-API 5.0.5:
+     * - {@link LatexDocumentFormat}
+     * - {@link DLSyntaxHTMLDocumentFormat}
+     * incorrect behaviour on reloading (the reloaded test-ontology does not match to the initial):
+     * - {@link KRSS2DocumentFormat}
+     * - {@link DLSyntaxDocumentFormat}
+     * - {@link OBODocumentFormat}
+     * The test ontology:
+     * <pre> {@code
+     * <http://ex> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+     * <http://ex#C> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+     * <http://ex#I> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NamedIndividual> , <http://ex#C> .
+     * } </pre>
      *
      * @return false if format is broken by some reasons.
      */
     public boolean isSupported() {
-        return isNoneOf(CSV, BINARY, RDFA, KRSS2, DL);
+        return isNoneOf(CSV, BINARY, RDFA, KRSS, LATEXT, DL_HTML, KRSS2, DL, OBO);
     }
 
     public boolean isJena() {

@@ -9,7 +9,8 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
 /**
- * Wrapper with {@link ReadWriteLock} (OWL-API synchronization style).
+ * Wrapper with {@link ReadWriteLock} inside (OWL-API synchronization style).
+ * Note: the related objects (such as {@link PrefixMapping}) are not synchronized!
  * <p>
  * Created by @szuev on 07.04.2017.
  */
@@ -35,56 +36,6 @@ public class ConcurrentGraph implements Graph {
         try {
             lock().readLock().lock();
             return get().dependsOn(other);
-        } finally {
-            lock().readLock().unlock();
-        }
-    }
-
-    @Override
-    public TransactionHandler getTransactionHandler() {
-        try {
-            lock().readLock().lock();
-            return get().getTransactionHandler();
-        } finally {
-            lock().readLock().unlock();
-        }
-    }
-
-    @Override
-    public Capabilities getCapabilities() {
-        try {
-            lock().readLock().lock();
-            return get().getCapabilities();
-        } finally {
-            lock().readLock().unlock();
-        }
-    }
-
-    @Override
-    public GraphEventManager getEventManager() {
-        try {
-            lock().readLock().lock();
-            return get().getEventManager();
-        } finally {
-            lock().readLock().unlock();
-        }
-    }
-
-    @Override
-    public GraphStatisticsHandler getStatisticsHandler() {
-        try {
-            lock().readLock().lock();
-            return get().getStatisticsHandler();
-        } finally {
-            lock().readLock().unlock();
-        }
-    }
-
-    @Override
-    public PrefixMapping getPrefixMapping() {
-        try {
-            lock().readLock().lock();
-            return get().getPrefixMapping();
         } finally {
             lock().readLock().unlock();
         }
@@ -215,6 +166,56 @@ public class ConcurrentGraph implements Graph {
         try {
             lock().readLock().lock();
             return get().isClosed();
+        } finally {
+            lock().readLock().unlock();
+        }
+    }
+
+    @Override
+    public TransactionHandler getTransactionHandler() {
+        try {
+            lock().readLock().lock();
+            return get().getTransactionHandler();
+        } finally {
+            lock().readLock().unlock();
+        }
+    }
+
+    @Override
+    public Capabilities getCapabilities() {
+        try {
+            lock().readLock().lock();
+            return get().getCapabilities();
+        } finally {
+            lock().readLock().unlock();
+        }
+    }
+
+    @Override
+    public GraphEventManager getEventManager() {
+        try {
+            lock().readLock().lock();
+            return get().getEventManager();
+        } finally {
+            lock().readLock().unlock();
+        }
+    }
+
+    @Override
+    public GraphStatisticsHandler getStatisticsHandler() {
+        try {
+            lock().readLock().lock();
+            return get().getStatisticsHandler();
+        } finally {
+            lock().readLock().unlock();
+        }
+    }
+
+    @Override
+    public PrefixMapping getPrefixMapping() {
+        try {
+            lock().readLock().lock();
+            return get().getPrefixMapping();
         } finally {
             lock().readLock().unlock();
         }

@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.input.ReaderInputStream;
@@ -508,17 +509,17 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
             IRI iri = OntApiException.notNull(source, "Null document source.").getDocumentIRI();
             if (LOGGER.isDebugEnabled())
                 LOGGER.debug("Read graph from <{}>.", iri);
+            Supplier<OWLOntologyInputSourceException> orElse = () -> new OWLOntologyInputSourceException("Can't get input-stream/reader from " + iri);
             if (source.getInputStream().isPresent()) {
-                return read(graph, source, s -> s.getInputStream().get());
+                return read(graph, source, s -> s.getInputStream().orElseThrow(orElse));
             }
             if (source.getReader().isPresent()) {
-                return read(graph, source, s -> buffer(asInputStream(s.getReader().get())));
+                return read(graph, source, s -> buffer(asInputStream(s.getReader().orElseThrow(orElse))));
             }
             if (conf.getSupportedSchemes().stream().noneMatch(s -> s.same(iri))) {
                 throw new ConfigMismatchException("Not allowed scheme: " + iri);
             }
-            return read(graph, source, s -> DocumentSources.getInputStream(iri, conf)
-                    .orElseThrow(() -> new OWLOntologyInputSourceException("Can't get input stream from " + iri)));
+            return read(graph, source, s -> DocumentSources.getInputStream(iri, conf).orElseThrow(orElse));
         }
 
         /**
@@ -532,7 +533,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
         public static OntFormat guessFormat(OWLOntologyDocumentSource source) {
             Lang lang;
             if (OntApiException.notNull(source, "Null document source.").getMIMEType().isPresent()) {
-                lang = RDFLanguages.contentTypeToLang(source.getMIMEType().get());
+                lang = RDFLanguages.contentTypeToLang(source.getMIMEType().orElseThrow(OntApiException.supplier("Can't get mime type")));
             } else {
                 lang = RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
             }
@@ -546,15 +547,17 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          *
          * @param source {@link OWLOntologyDocumentSource}
          * @return Set of {@link OntFormat}s
+         * @throws UnsupportedFormatException if the format is present in the source but not valid
          */
-        public static Set<OntFormat> getSupportedFormats(OWLOntologyDocumentSource source) {
+        public static Set<OntFormat> getSupportedFormats(OWLOntologyDocumentSource source) throws UnsupportedFormatException {
             Set<OntFormat> res = new LinkedHashSet<>();
             if (source.getFormat().isPresent()) {
                 OntFormat f = OntFormat.get(source.getFormat().get());
-                if (f.isSupported()) {
-                    res.add(f);
-                    return res;
+                if (f == null || !f.isSupported()) {
+                    throw new UnsupportedFormatException("Format " + source.getFormat().get() + " is not supported.");
                 }
+                res.add(f);
+                return res;
             }
             OntFormat first = guessFormat(source);
             if (first != null) {
