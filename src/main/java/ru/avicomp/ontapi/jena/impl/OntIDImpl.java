@@ -2,7 +2,6 @@ package ru.avicomp.ontapi.jena.impl;
 
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
@@ -12,6 +11,7 @@ import org.apache.jena.rdf.model.Statement;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntID;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**

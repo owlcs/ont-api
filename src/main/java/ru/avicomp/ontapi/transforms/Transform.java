@@ -4,7 +4,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.slf4j.Logger;
@@ -13,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Graphs;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**

@@ -3,7 +3,6 @@ package ru.avicomp.ontapi.jena.impl;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
@@ -14,6 +13,7 @@ import org.apache.jena.rdf.model.impl.StatementImpl;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 

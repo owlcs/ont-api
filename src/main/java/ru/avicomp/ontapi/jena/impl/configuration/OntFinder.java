@@ -3,7 +3,6 @@ package ru.avicomp.ontapi.jena.impl.configuration;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -11,6 +10,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**

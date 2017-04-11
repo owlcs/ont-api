@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
@@ -21,6 +20,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
