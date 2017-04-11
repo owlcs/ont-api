@@ -1,8 +1,6 @@
 package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Stream;
 
@@ -15,6 +13,7 @@ import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.ConcurrentGraph;
+import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
@@ -85,14 +84,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             throw new OntApiException.Unsupported("Concurrency is not allowed.");
         }
 
-        ReadWriteLock lock = manager.getLock();
-        UnionGraph thisGraph = getBase().getGraph();
-        UnionGraph newGraph = new UnionGraph(new ConcurrentGraph(thisGraph.getBaseGraph(), lock));
-        thisGraph.getUnderlying().graphs().forEach(newGraph::addGraph);
-        OntologyModelImpl inner = new OntologyModelImpl(newGraph, getConfig());
-        // this is necessary if anonymous ontology:
-        inner.setOntologyID(getOntologyID());
-        return new Concurrent(inner, lock);
+        return new Concurrent(this, manager.getLock());
     }
 
     private class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
@@ -227,10 +219,17 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         public OntGraphModel asGraphModel() {
             try {
                 lock.readLock().lock();
-                return delegate.getBase();
+                return makeGraphModel();
             } finally {
                 lock.readLock().unlock();
             }
+        }
+
+        protected OntGraphModel makeGraphModel() {
+            UnionGraph thisGraph = getBase().getGraph();
+            UnionGraph newGraph = new UnionGraph(new ConcurrentGraph(thisGraph.getBaseGraph(), lock), thisGraph.getEventManager());
+            thisGraph.getUnderlying().graphs().forEach(newGraph::addGraph);
+            return OntFactory.createModel(newGraph, getConfig().loaderConfig().getPersonality());
         }
 
         @Override
@@ -266,18 +265,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         @Override
         public void setBase(InternalModel m) {
             delegate.setBase(m);
-        }
-
-        /**
-         * reads the object while serialization
-         *
-         * @param in {@link ObjectInputStream}
-         * @see OntBaseModelImpl#readObject(ObjectInputStream)
-         * @see OntologyManagerImpl#readObject(ObjectInputStream)
-         */
-        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-            in.defaultReadObject();
-            setBase(new InternalModel(new ConcurrentGraph(getBase().getBaseGraph(), lock), ConfigProvider.DEFAULT));
         }
 
     }

@@ -8,7 +8,6 @@ import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
@@ -37,8 +36,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * the experimental flag which specifies the behaviour on axioms loading.
      * if true then {@link AxiomTranslator}s works in parallel mode (see {@link #axioms(Set)}).
      * As shown by pizza-performance-test it really helps to speed up the initial loading.
+     * TODO: by some unclear reasons (perhaps due to violation of contract with read/write locks)
+     * there could be live-lock when we work in concurrent mode. from this point this flag is always false.
      */
-    protected boolean optimizeCollecting = false;
+    protected static boolean optimizeCollecting = false;
     // axioms store.
     // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
     protected Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsStore;
@@ -65,8 +66,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         super(base, config.loaderConfig().getPersonality());
         this.config = config;
         getGraph().getEventManager().register(new DirectListener());
-        // TODO (07/04/2017): by some unclear reasons there could be lock when we work in concurrency mode.
-        optimizeCollecting = getBaseGraph() instanceof GraphMem;
         axiomsStore = optimizeCollecting ? new ConcurrentHashMap<>(29, 0.75f, 39) : new HashMap<>();
         owlObjectsStore = new HashMap<>();
         // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests,

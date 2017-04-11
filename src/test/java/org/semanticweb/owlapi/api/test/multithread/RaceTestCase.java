@@ -46,14 +46,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
 
-import static org.junit.Assert.fail;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
 
 @ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings("javadoc")
@@ -71,7 +70,7 @@ public class RaceTestCase {
         } while (!r.callback.failed() && repetitions < totalRepetitions);
         if (r.callback.failed()) {
             r.callback.diagnose();
-            fail("Failed after " + repetitions + " repetition(s).");
+            Assert.fail("Failed after " + repetitions + " repetition(s).");
         }
     }
 
@@ -131,6 +130,7 @@ public class RaceTestCase {
             @Override
             public void add() {
                 OWLClass middle = createMiddleClass(counter.getAndIncrement());
+                System.out.println("add " + middle);
                 Set<OWLAxiom> axioms = computeChanges(middle);
                 ontology.add(axioms);
             }
@@ -156,14 +156,12 @@ public class RaceTestCase {
 
             @Override
             public void diagnose() {
-                List<OWLSubClassOfAxiom> axiomsFound = asList(ontology.subClassAxiomsForSubClass(x));
-                System.out.println("Expected getSubClassAxiomsForSubClass to return " + counter
-                        + " axioms but it only found " + axiomsFound.size());
+                List<OWLSubClassOfAxiom> axiomsFound = ontology.subClassAxiomsForSubClass(x).collect(Collectors.toList());
+                System.out.println("Expected getSubClassAxiomsForSubClass to return " + counter + " axioms but it only found " + axiomsFound.size());
                 for (int i = 0; i < counter.get(); i++) {
                     OWLAxiom checkMe = factory.getOWLSubClassOfAxiom(x, createMiddleClass(i));
-                    if (!contains(ontology.subClassAxiomsForSubClass(x), checkMe) && ontology.containsAxiom(checkMe)) {
-                        System.out.println(checkMe.toString()
-                                + " is an axiom in the ontology that is not found by getSubClassAxiomsForSubClass");
+                    if (ontology.subClassAxiomsForSubClass(x).noneMatch(checkMe::equals) && ontology.containsAxiom(checkMe)) {
+                        System.out.println(checkMe + " is an axiom in the ontology that is not found by getSubClassAxiomsForSubClass");
                         return;
                     }
                 }
@@ -171,8 +169,17 @@ public class RaceTestCase {
 
             @Override
             public void race() {
-                asList(ontology.subClassAxiomsForSubClass(factory.getOWLClass(IRI.create("http://www.race.org#",
-                        "testclass"))));
+                List<OWLSubClassOfAxiom> list1 = ontology
+                        .subClassAxiomsForSubClass(factory.getOWLClass(IRI.create(NS, "testclass")))
+                        .collect(Collectors.toList());
+                List<OWLSubClassOfAxiom> list2 = ontology
+                        .subClassAxiomsForSubClass(x)
+                        .collect(Collectors.toList());
+                List<OWLSubClassOfAxiom> list3 = ontology
+                        .subClassAxiomsForSubClass(y)
+                        .collect(Collectors.toList());
+
+                System.out.println("race:" + list1 + ", " + list2 + ", " + list3);
             }
 
             public OWLClass createMiddleClass(int i) {

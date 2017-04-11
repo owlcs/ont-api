@@ -24,7 +24,16 @@ public class UnionGraph extends Union {
      * @param base Graph
      */
     public UnionGraph(Graph base) {
+        this(base, new OntEventManager());
+    }
+
+    /**
+     * @param base Graph
+     * @param gem  {@link OntEventManager}
+     */
+    public UnionGraph(Graph base, OntEventManager gem) {
         super(base, new OntMultiUnion());
+        this.gem = OntJenaException.notNull(gem, "Null event manager.");
     }
 
     public Graph getBaseGraph() {
@@ -48,7 +57,6 @@ public class UnionGraph extends Union {
 
     @Override
     public OntEventManager getEventManager() {
-        if (gem == null) gem = new OntEventManager();
         return (OntEventManager) gem;
     }
 
@@ -66,6 +74,7 @@ public class UnionGraph extends Union {
     }
 
     public static class OntMultiUnion extends MultiUnion {
+
         public OntMultiUnion() {
             super();
         }
