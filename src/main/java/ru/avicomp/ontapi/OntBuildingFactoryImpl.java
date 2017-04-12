@@ -94,10 +94,20 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
      * Wraps {@link OWLOntologyLoaderConfiguration} as {@link OntConfig.LoaderConfiguration}
      *
      * @param conf {@link OWLOntologyLoaderConfiguration}
-     * @return {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
+     * @return {@link OntConfig.LoaderConfiguration}
      */
     public static OntConfig.LoaderConfiguration asONT(OWLOntologyLoaderConfiguration conf) {
         return conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
+    }
+
+    /**
+     * Wraps {@link OWLOntologyWriterConfiguration} as {@link OntConfig.WriterConfiguration}
+     *
+     * @param conf {@link OWLOntologyWriterConfiguration}
+     * @return {@link OntConfig.WriterConfiguration}
+     */
+    public static OntConfig.WriterConfiguration asONT(OWLOntologyWriterConfiguration conf) {
+        return conf instanceof OntConfig.WriterConfiguration ? (OntConfig.WriterConfiguration) conf : new OntConfig.WriterConfiguration(conf);
     }
 
     /**

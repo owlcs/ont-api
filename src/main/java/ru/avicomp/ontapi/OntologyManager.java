@@ -33,6 +33,15 @@ public interface OntologyManager extends OWLOntologyManager {
     OntConfig.LoaderConfiguration getOntologyLoaderConfiguration();
 
     /**
+     * Returns the writer config.
+     * see note for {@link this#getOntologyLoaderConfiguration()} method.
+     *
+     * @return {@link OntConfig.WriterConfiguration}
+     */
+    @Override
+    OntConfig.WriterConfiguration getOntologyWriterConfiguration();
+
+    /**
      * Returns the copy of global config (extended {@link OntologyConfigurator}) and
      * also access point to the {@link OWLOntologyLoaderConfiguration} and {@link OWLOntologyWriterConfiguration}
      *

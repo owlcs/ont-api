@@ -33,7 +33,7 @@ public interface ConfigProvider {
 
         OntConfig.LoaderConfiguration loaderConfig();
 
-        OWLOntologyWriterConfiguration writerConfig();
+        OntConfig.WriterConfiguration writerConfig();
 
     }
 
@@ -41,7 +41,7 @@ public interface ConfigProvider {
         private static final OWLDataFactory DATA_FACTORY = new OWLDataFactoryImpl();
         private static final OntConfig GLOBAL_CONFIG = new OntConfig();
         private static final OntConfig.LoaderConfiguration LOADER_CONFIGURATION = GLOBAL_CONFIG.buildLoaderConfiguration();
-        private static final OWLOntologyWriterConfiguration WRITER_CONFIGURATION = GLOBAL_CONFIG.buildWriterConfiguration();
+        private static final OntConfig.WriterConfiguration WRITER_CONFIGURATION = GLOBAL_CONFIG.buildWriterConfiguration();
 
         @Override
         public OWLDataFactory dataFactory() {
@@ -54,7 +54,7 @@ public interface ConfigProvider {
         }
 
         @Override
-        public OWLOntologyWriterConfiguration writerConfig() {
+        public OntConfig.WriterConfiguration writerConfig() {
             return WRITER_CONFIGURATION;
         }
 

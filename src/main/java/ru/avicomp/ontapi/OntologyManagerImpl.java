@@ -54,7 +54,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     // configs:
     protected OntConfig configProvider;
     protected transient OntConfig.LoaderConfiguration loaderConfig;
-    protected transient OWLOntologyWriterConfiguration writerConfig;
+    protected transient OntConfig.WriterConfiguration writerConfig;
     // should contain only OntologyModel.Factory implementations:
     protected final PriorityCollection<OWLOntologyFactory> ontologyFactories;
     protected final PriorityCollection<OWLOntologyIRIMapper> documentMappers;
@@ -173,19 +173,19 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().writeLock().lock();
         try {
             if (Objects.equals(writerConfig, conf)) return;
-            writerConfig = conf;
+            writerConfig = OntBuildingFactoryImpl.asONT(conf);
         } finally {
             getLock().writeLock().unlock();
         }
     }
 
     /**
-     * @return {@link OWLOntologyWriterConfiguration}
+     * @return {@link OntConfig.WriterConfiguration}
      * @see OWLOntologyManagerImpl#getOntologyWriterConfiguration()
      */
     @Override
     @Nonnull
-    public OWLOntologyWriterConfiguration getOntologyWriterConfiguration() {
+    public OntConfig.WriterConfiguration getOntologyWriterConfiguration() {
         getLock().readLock().lock();
         try {
             return writerConfig == null ? writerConfig = configProvider.buildWriterConfiguration() : writerConfig;
@@ -1438,7 +1438,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @Nullable
     protected OntologyModel load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
-        OntConfig.LoaderConfiguration config = conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
         for (OWLOntologyFactory factory : ontologyFactories) {
             if (!factory.canAttemptLoading(source))
                 continue;
@@ -1680,7 +1679,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loaderConfig = (OntConfig.LoaderConfiguration) in.readObject();
-        writerConfig = (OWLOntologyWriterConfiguration) in.readObject();
+        writerConfig = (OntConfig.WriterConfiguration) in.readObject();
         content.values().forEach(info -> {
             ConfigProvider.Config conf = info.getModelConfig();
             InternalModelHolder m = (InternalModelHolder) info.get();
@@ -2117,7 +2116,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     public static class ModelConfig implements ConfigProvider.Config, Serializable {
         private OntConfig.LoaderConfiguration modelLoaderConf;
-        private OWLOntologyWriterConfiguration modelWriterConf;
+        private OntConfig.WriterConfiguration modelWriterConf;
         private OntologyManagerImpl manager;
 
         public ModelConfig(OntologyManagerImpl m) {
@@ -2140,7 +2139,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return true;
         }
 
-        public boolean setWriterConf(OWLOntologyWriterConfiguration conf) {
+        public boolean setWriterConf(OntConfig.WriterConfiguration conf) {
             if (Objects.equals(writerConfig(), conf)) return false;
             this.modelWriterConf = conf;
             return true;
@@ -2157,7 +2156,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         @Override
-        public OWLOntologyWriterConfiguration writerConfig() {
+        public OntConfig.WriterConfiguration writerConfig() {
             return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
         }
     }

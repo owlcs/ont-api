@@ -1,5 +1,6 @@
 package ru.avicomp.ontapi;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -25,6 +26,11 @@ public class OntConfig extends OntologyConfigurator {
         return new LoaderConfiguration(super.buildLoaderConfiguration());
     }
 
+    @Override
+    public WriterConfiguration buildWriterConfiguration() {
+        return new WriterConfiguration(super.buildWriterConfiguration());
+    }
+
     public static OntConfig copy(OntologyConfigurator from) {
         OntConfig res = new OntConfig();
         if (from == null) return res;
@@ -42,11 +48,192 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
+     * Extended {@link OWLOntologyWriterConfiguration}.
+     * Currently there is no new options and it is mostly copy-paste of OWL-API class.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static class WriterConfiguration extends OWLOntologyWriterConfiguration {
+        public enum Settings {
+            SAVE_IDS(false),
+            REMAP_IDS(true),
+            USE_NAMESPACE_ENTITIES(false),
+            INDENTING(true),
+            LABEL_AS_BANNER(false),
+            BANNERS_ENABLED(true),
+            INDENT_SIZE(4),;
+            private final Serializable value;
+
+            Settings(Serializable value) {
+                this.value = value;
+            }
+
+            public Serializable value() {
+                return value;
+            }
+        }
+
+        protected EnumMap<Settings, Object> map = new EnumMap<>(Settings.class);
+
+        public WriterConfiguration(OWLOntologyWriterConfiguration owl) {
+            if (owl == null) return;
+            this.map.put(Settings.SAVE_IDS, owl.shouldSaveIdsForAllAnonymousIndividuals());
+            this.map.put(Settings.REMAP_IDS, owl.shouldRemapAllAnonymousIndividualsIds());
+            this.map.put(Settings.USE_NAMESPACE_ENTITIES, owl.isUseNamespaceEntities());
+            this.map.put(Settings.INDENTING, owl.isIndenting());
+            this.map.put(Settings.LABEL_AS_BANNER, owl.isLabelsAsBanner());
+            this.map.put(Settings.BANNERS_ENABLED, owl.shouldUseBanners());
+            this.map.put(Settings.INDENT_SIZE, owl.getIndentSize());
+        }
+
+        protected WriterConfiguration copy(OWLOntologyWriterConfiguration owl) {
+            return new WriterConfiguration(owl);
+        }
+
+        protected Object get(Settings key) {
+            return map.getOrDefault(key, key.value());
+        }
+
+        protected WriterConfiguration set(Settings key, Object o) {
+            if (Objects.equals(get(key), o)) return this;
+            WriterConfiguration copy = copy(this);
+            copy.map.put(key, o);
+            return copy;
+        }
+
+
+        /**
+         * @see super#shouldUseBanners()
+         */
+        @Override
+        public boolean shouldUseBanners() {
+            return (boolean) get(Settings.BANNERS_ENABLED);
+        }
+
+        /**
+         * NOTE: a OWL-API BUG in the original implementation.
+         *
+         * @see super#withBannersEnabled(boolean)
+         */
+        public WriterConfiguration withBannersEnabled(boolean b) {
+            return set(Settings.BANNERS_ENABLED, b);
+        }
+
+        /**
+         * @see super#isLabelsAsBanner()
+         */
+        @Override
+        public boolean isLabelsAsBanner() {
+            return (boolean) get(Settings.LABEL_AS_BANNER);
+        }
+
+        /**
+         * @see super#withLabelsAsBanner(boolean)
+         */
+        @Override
+        public WriterConfiguration withLabelsAsBanner(boolean b) {
+            return set(Settings.LABEL_AS_BANNER, b);
+        }
+
+        /**
+         * @see super#shouldSaveIdsForAllAnonymousIndividuals()
+         */
+        @Override
+        public boolean shouldSaveIdsForAllAnonymousIndividuals() {
+            return (boolean) get(Settings.SAVE_IDS);
+        }
+
+        /**
+         * @see super#withSaveIdsForAllAnonymousIndividuals(boolean)
+         */
+        @Override
+        public WriterConfiguration withSaveIdsForAllAnonymousIndividuals(boolean b) {
+            return set(Settings.SAVE_IDS, b);
+        }
+
+        /**
+         * @see super#shouldRemapAllAnonymousIndividualsIds()
+         */
+        @Override
+        public boolean shouldRemapAllAnonymousIndividualsIds() {
+            return (boolean) get(Settings.REMAP_IDS);
+        }
+
+        /**
+         * @see super@withRemapAllAnonymousIndividualsIds
+         */
+        @Override
+        public WriterConfiguration withRemapAllAnonymousIndividualsIds(boolean b) {
+            return set(Settings.REMAP_IDS, b);
+        }
+
+        /**
+         * @see super#isUseNamespaceEntities()
+         */
+        @Override
+        public boolean isUseNamespaceEntities() {
+            return (boolean) get(Settings.USE_NAMESPACE_ENTITIES);
+        }
+
+        /**
+         * @see super#withUseNamespaceEntities(boolean)
+         */
+        @Override
+        public WriterConfiguration withUseNamespaceEntities(boolean b) {
+            return set(Settings.USE_NAMESPACE_ENTITIES, b);
+        }
+
+        /**
+         * @see super#isIndenting()
+         */
+        @Override
+        public boolean isIndenting() {
+            return (boolean) get(Settings.INDENTING);
+        }
+
+        /**
+         * @see super#withIndenting(boolean)
+         */
+        @Override
+        public WriterConfiguration withIndenting(boolean b) {
+            return set(Settings.INDENTING, b);
+        }
+
+        /**
+         * @see super#getIndentSize()
+         */
+        @Override
+        public int getIndentSize() {
+            return (int) get(Settings.INDENT_SIZE);
+        }
+
+        /**
+         * @see super#withIndentSize(int)
+         */
+        @Override
+        public WriterConfiguration withIndentSize(int indent) {
+            return set(Settings.INDENT_SIZE, indent);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof WriterConfiguration)) return false;
+            WriterConfiguration that = (WriterConfiguration) o;
+            return Objects.equals(map, that.map);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(map);
+        }
+    }
+
+    /**
      * Extended {@link OWLOntologyLoaderConfiguration} with ONT-API specific settings.
      * It is a wrapper since all members of original base class are private.
      * TODO: new (ONT-API) options should be configured in global ({@link OntConfig}) config also.
      */
-    @SuppressWarnings({"NullableProblems", "WeakerAccess"})
+    @SuppressWarnings({"WeakerAccess", "SameParameterValue", "unused"})
     public static class LoaderConfiguration extends OWLOntologyLoaderConfiguration {
         protected final OWLOntologyLoaderConfiguration inner;
         // WARNING: OntPersonality is not serializable:
@@ -379,7 +566,7 @@ public class OntConfig extends OntologyConfigurator {
         }
 
         @Override
-        public LoaderConfiguration addIgnoredImport(IRI iri) {
+        public LoaderConfiguration addIgnoredImport(@Nonnull IRI iri) {
             return copy(inner.addIgnoredImport(iri));
         }
 
@@ -389,12 +576,12 @@ public class OntConfig extends OntologyConfigurator {
         }
 
         @Override
-        public boolean isIgnoredImport(IRI iri) {
+        public boolean isIgnoredImport(@Nonnull IRI iri) {
             return inner.isIgnoredImport(iri);
         }
 
         @Override
-        public LoaderConfiguration removeIgnoredImport(IRI ontologyDocumentIRI) {
+        public LoaderConfiguration removeIgnoredImport(@Nonnull IRI ontologyDocumentIRI) {
             return copy(inner.removeIgnoredImport(ontologyDocumentIRI));
         }
 
@@ -424,7 +611,7 @@ public class OntConfig extends OntologyConfigurator {
         }
 
         @Override
-        public LoaderConfiguration setMissingImportHandlingStrategy(MissingImportHandlingStrategy missingImportHandlingStrategy) {
+        public LoaderConfiguration setMissingImportHandlingStrategy(@Nonnull MissingImportHandlingStrategy missingImportHandlingStrategy) {
             return copy(inner.setMissingImportHandlingStrategy(missingImportHandlingStrategy));
         }
 
@@ -434,7 +621,7 @@ public class OntConfig extends OntologyConfigurator {
         }
 
         @Override
-        public LoaderConfiguration setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy missingOntologyHeaderStrategy) {
+        public LoaderConfiguration setMissingOntologyHeaderStrategy(@Nonnull MissingOntologyHeaderStrategy missingOntologyHeaderStrategy) {
             return copy(inner.setMissingOntologyHeaderStrategy(missingOntologyHeaderStrategy));
         }
 
@@ -455,8 +642,7 @@ public class OntConfig extends OntologyConfigurator {
 
         @Override
         public LoaderConfiguration setAcceptingHTTPCompression(boolean b) {
-            OWLOntologyLoaderConfiguration copy = inner.setAcceptingHTTPCompression(b);
-            return new LoaderConfiguration(copy);
+            return copy(inner.setAcceptingHTTPCompression(b));
         }
 
         @Override
@@ -500,7 +686,7 @@ public class OntConfig extends OntologyConfigurator {
         }
 
         @Override
-        public LoaderConfiguration setBannedParsers(String ban) {
+        public LoaderConfiguration setBannedParsers(@Nonnull String ban) {
             return copy(inner.setBannedParsers(ban));
         }
 
@@ -510,7 +696,7 @@ public class OntConfig extends OntologyConfigurator {
         }
 
         @Override
-        public LoaderConfiguration setEntityExpansionLimit(String limit) {
+        public LoaderConfiguration setEntityExpansionLimit(@Nonnull String limit) {
             return copy(inner.setEntityExpansionLimit(limit));
         }
 
@@ -545,6 +731,7 @@ public class OntConfig extends OntologyConfigurator {
                     isUseOWLParsersToLoad(), isIgnoreAnnotationAxiomOverlaps());
         }
     }
+
 
     public enum DefaultScheme implements Scheme {
         HTTP,
