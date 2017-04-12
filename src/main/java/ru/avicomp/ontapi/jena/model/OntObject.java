@@ -12,7 +12,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Base Ont Resource.
@@ -88,12 +87,27 @@ public interface OntObject extends Resource {
     /**
      * gets stream of all objects attached on property to this ont-object
      *
-     * @param predicate Property predicate
-     * @param view      Interface to cast
-     * @return Stream of objects
+     * @param predicate {@link Property} predicate
+     * @param view      Interface to find and cast
+     * @return Stream of objects ({@link RDFNode}s)
      */
     <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view);
 
+
+    /**
+     * returns all declarations (statements with rdf:type predicate)
+     *
+     * @return Stream of {@link Resource}s
+     */
+    Stream<Resource> types();
+
+    /**
+     * Answers if this object has specified rdf:type
+     *
+     * @param type {@link Resource} to test
+     * @return true if it has.
+     */
+    boolean hasType(Resource type);
 
     /**
      * Returns the stream of all annotations attached to this object (not only to main-triple).
@@ -107,14 +121,6 @@ public interface OntObject extends Resource {
      */
     default Stream<OntStatement> annotations() {
         return statements().map(OntStatement::annotations).flatMap(Function.identity());
-    }
-
-    default Stream<Resource> types() {
-        return objects(RDF.type, Resource.class);
-    }
-
-    default boolean hasType(Resource type) {
-        return types().anyMatch(type::equals);
     }
 
     /**

@@ -22,7 +22,12 @@ import com.google.common.base.Charsets;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 
 /**
- * Base class for {@link OWLOntologyDocumentSource} to have direct access to any encapsulated graph.
+ * This is an extended {@link OWLOntologyDocumentSource} to provide possibility of passing any graph as is.
+ * There are also default implementations of {@link #getInputStream()} and {@link #getReader()},
+ * so you can use this document source in pure OWL-API also.
+ * These methods are not used in ONT-API, instead it there is access to direct link ({@link #getGraph()}).
+ * Note: you may want to disable transformations (see {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration#setPerformTransformation(boolean)})
+ * while loading, otherwise the encapsulated graph may still have some changes due to tuning by transformations.
  * <p>
  * Created by szuev on 22.02.2017.
  */
@@ -32,6 +37,11 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
 
     protected List<Exception> exceptions = new ArrayList<>();
 
+    /**
+     * Gets Graph as is.
+     *
+     * @return {@link Graph}
+     */
     public abstract Graph getGraph();
 
     @Override

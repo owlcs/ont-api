@@ -33,8 +33,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public boolean dependsOn(Graph other) {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().dependsOn(other);
         } finally {
             lock().readLock().unlock();
@@ -43,8 +43,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public void add(Triple t) throws AddDeniedException {
+        lock().writeLock().lock();
         try {
-            lock().writeLock().lock();
             get().add(t);
         } finally {
             lock().writeLock().unlock();
@@ -53,8 +53,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public void delete(Triple t) throws DeleteDeniedException {
+        lock().writeLock().lock();
         try {
-            lock().writeLock().lock();
             get().delete(t);
         } finally {
             lock().writeLock().unlock();
@@ -63,8 +63,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public ExtendedIterator<Triple> find(Triple m) {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().find(m);
         } finally {
             lock().readLock().unlock();
@@ -73,8 +73,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public ExtendedIterator<Triple> find(Node s, Node p, Node o) {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().find(s, p, o);
         } finally {
             lock().readLock().unlock();
@@ -83,8 +83,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public boolean isIsomorphicWith(Graph g) {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().isIsomorphicWith(g);
         } finally {
             lock().readLock().unlock();
@@ -93,8 +93,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public boolean contains(Node s, Node p, Node o) {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().contains(s, p, o);
         } finally {
             lock().readLock().unlock();
@@ -103,8 +103,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public boolean contains(Triple t) {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().contains(t);
         } finally {
             lock().readLock().unlock();
@@ -113,8 +113,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public void clear() {
+        lock().writeLock().lock();
         try {
-            lock().writeLock().lock();
             get().clear();
         } finally {
             lock().writeLock().unlock();
@@ -123,8 +123,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public void remove(Node s, Node p, Node o) {
+        lock().writeLock().lock();
         try {
-            lock().writeLock().lock();
             get().remove(s, p, o);
         } finally {
             lock().writeLock().unlock();
@@ -133,8 +133,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public void close() {
+        lock().writeLock().lock();
         try {
-            lock().writeLock().lock();
             get().close();
         } finally {
             lock().writeLock().unlock();
@@ -143,8 +143,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public boolean isEmpty() {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().isEmpty();
         } finally {
             lock().readLock().unlock();
@@ -153,8 +153,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public int size() {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().size();
         } finally {
             lock().readLock().unlock();
@@ -163,8 +163,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public boolean isClosed() {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().isClosed();
         } finally {
             lock().readLock().unlock();
@@ -173,8 +173,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public TransactionHandler getTransactionHandler() {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().getTransactionHandler();
         } finally {
             lock().readLock().unlock();
@@ -183,8 +183,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public Capabilities getCapabilities() {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().getCapabilities();
         } finally {
             lock().readLock().unlock();
@@ -193,8 +193,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public GraphEventManager getEventManager() {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().getEventManager();
         } finally {
             lock().readLock().unlock();
@@ -203,8 +203,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public GraphStatisticsHandler getStatisticsHandler() {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().getStatisticsHandler();
         } finally {
             lock().readLock().unlock();
@@ -213,8 +213,8 @@ public class ConcurrentGraph implements Graph {
 
     @Override
     public PrefixMapping getPrefixMapping() {
+        lock().readLock().lock();
         try {
-            lock().readLock().lock();
             return get().getPrefixMapping();
         } finally {
             lock().readLock().unlock();

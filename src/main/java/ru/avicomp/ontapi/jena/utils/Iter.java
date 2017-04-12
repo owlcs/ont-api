@@ -20,7 +20,7 @@ public class Iter {
      * Wraps CloseableIterator as Stream.
      * Don't forget to call explicit {@link Stream#close()} if the inner iterator are not exhausted
      * ({@link Iterator#hasNext()} is still true).
-     * It seems it should be called for such operations as {@link Stream#findFirst()}, {@link Stream#anyMatch(Predicate)} etc.
+     * It seems it should be called for such operations as {@link Stream#findFirst()}, {@link Stream#findAny()}, {@link Stream#anyMatch(Predicate)} etc.
      *
      * @param iterator {@link ClosableIterator}
      * @return Stream

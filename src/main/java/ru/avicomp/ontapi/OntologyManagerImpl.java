@@ -828,8 +828,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @Nullable
     protected OntologyModel getOntologyByDocumentIRI(IRI iri) {
+        getLock().readLock().lock();
         try {
-            getLock().readLock().lock();
             return content.values().filter(o -> Objects.equals(iri, o.getDocumentIRI()))
                     .map(OntInfo::get).findFirst().orElse(null);
         } finally {
@@ -1571,8 +1571,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @Override
     public void saveOntology(@Nonnull OWLOntology ontology, @Nonnull OWLDocumentFormat ontologyFormat, @Nonnull OWLOntologyDocumentTarget documentTarget) throws OWLOntologyStorageException {
+        getLock().readLock().lock();
         try {
-            getLock().readLock().lock();
             write(ontology, ontologyFormat, documentTarget);
         } finally {
             getLock().readLock().unlock();

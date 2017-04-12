@@ -116,14 +116,14 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return {@link OntAnnotation} the anonymous resource with specified type.
      */
     protected static OntAnnotation findAnnotationObject(OntStatementImpl base, Resource type) {
-        return Iter.asStream(base.getModel().listResourcesWithProperty(RDF.type, type))
-                .filter(r -> r.hasProperty(OWL.annotatedSource, base.getSubject()))
-                .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
-                .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
-                //.map(r -> r.as(OntAnnotation.class))
-                .map(FrontsNode::asNode)
-                .map(r -> base.getModel().getNodeAs(r, OntAnnotation.class))
-                .findFirst().orElse(null);
+        try (Stream<Resource> resources = Iter.asStream(base.getModel().listResourcesWithProperty(RDF.type, type))) {
+            return resources.filter(r -> r.hasProperty(OWL.annotatedSource, base.getSubject()))
+                    .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
+                    .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
+                    //.map(r -> r.as(OntAnnotation.class))
+                    .map(FrontsNode::asNode)
+                    .map(r -> base.getModel().getNodeAs(r, OntAnnotation.class)).findFirst().orElse(null);
+        }
     }
 
     /**
@@ -157,6 +157,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * The class-implementation of the root statement.
      * The new annotations comes in the form of plain annotation-assertions
      * while in the base {@link OntStatement} the would be {@link OntAnnotation} resource.
+     *
      * @see OntObject#getRoot
      */
     public static class RootImpl extends OntStatementImpl {
@@ -188,7 +189,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
         @Override
         public boolean hasAnnotations() {
-            return Iter.asStream(getSubject().listProperties()).map(Statement::getPredicate).anyMatch(p -> p.canAs(OntNAP.class)) || super.hasAnnotations();
+            try (Stream<Statement> statements = Iter.asStream(getSubject().listProperties())) {
+                return statements.map(Statement::getPredicate).anyMatch(p -> p.canAs(OntNAP.class)) || super.hasAnnotations();
+            }
         }
 
         @Override

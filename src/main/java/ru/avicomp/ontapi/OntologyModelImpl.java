@@ -217,8 +217,8 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
          */
         @Override
         public OntGraphModel asGraphModel() {
+            lock.readLock().lock();
             try {
-                lock.readLock().lock();
                 return makeGraphModel();
             } finally {
                 lock.readLock().unlock();
@@ -234,8 +234,8 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         @Override
         public void clearCache() {
+            lock.writeLock().lock();
             try {
-                lock.writeLock().lock();
                 delegate.clearCache();
             } finally {
                 lock.writeLock().unlock();
@@ -244,8 +244,8 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         @Override
         public ConfigProvider.Config getConfig() {
+            lock.readLock().lock();
             try {
-                lock.readLock().lock();
                 return delegate.getConfig();
             } finally {
                 lock.readLock().unlock();

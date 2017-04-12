@@ -91,7 +91,11 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     private static OntFilter getHasMembersOfFilter(OntObjectFactory memberFactory, boolean allowEmptyList, Property... predicates) {
-        return (node, eg) -> listRoots(node, eg.asGraph(), predicates).anyMatch(n -> testList(n, eg, memberFactory, allowEmptyList));
+        return (node, eg) -> {
+            try (Stream<Node> nodes = listRoots(node, eg.asGraph(), predicates)) {
+                return nodes.anyMatch(n -> testList(n, eg, memberFactory, allowEmptyList));
+            }
+        };
     }
 
     private static Stream<Node> listRoots(Node node, Graph graph, Property... predicates) {

@@ -97,11 +97,12 @@ public class Graphs {
      * @return {@link Optional} around the {@link Node} which could be uri or blank.
      */
     public static Optional<Node> getOntology(Graph g) {
-        return Iter.asStream(g.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()))
+        try (Stream<Node> nodes = Iter.asStream(g.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()))
                 .map(Triple::getSubject)
                 .filter(node -> node.isBlank() || node.isURI())
-                .sorted(rootNodeComparator(g))
-                .findFirst();
+                .sorted(rootNodeComparator(g))) {
+            return nodes.findFirst();
+        }
     }
 
     /**

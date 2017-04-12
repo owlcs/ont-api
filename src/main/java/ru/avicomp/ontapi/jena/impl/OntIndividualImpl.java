@@ -133,12 +133,16 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
                 return false;
             }
             // _:x @built-in-predicate @any
-            if (Iter.asStream(eg.asGraph().find(node, Node.ANY, Node.ANY)).map(Triple::getPredicate).anyMatch(BUILT_IN_SUBJECT_PREDICATE_SET::contains)) {
-                return false;
+            try (Stream<Triple> triples = Iter.asStream(eg.asGraph().find(node, Node.ANY, Node.ANY))) {
+                if (triples.map(Triple::getPredicate).anyMatch(BUILT_IN_SUBJECT_PREDICATE_SET::contains)) {
+                    return false;
+                }
             }
             // @any @built-in-predicate _:x
-            if (Iter.asStream(eg.asGraph().find(Node.ANY, Node.ANY, node)).map(Triple::getPredicate).anyMatch(BUILT_IN_OBJECT_PREDICATE_SET::contains)) {
-                return false;
+            try (Stream<Triple> triples = Iter.asStream(eg.asGraph().find(Node.ANY, Node.ANY, node))) {
+                if (triples.map(Triple::getPredicate).anyMatch(BUILT_IN_OBJECT_PREDICATE_SET::contains)) {
+                    return false;
+                }
             }
             // any other blank node could be treated as anonymous individual.
             return true;

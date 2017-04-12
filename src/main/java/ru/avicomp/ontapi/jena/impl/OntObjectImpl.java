@@ -56,7 +56,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntStatement getRoot() {
-        return types().map(t -> new OntStatementImpl.RootImpl(this, RDF.type, t, getModel())).findFirst().orElse(null);
+        try (Stream<OntStatement> types = types().map(t -> new OntStatementImpl.RootImpl(this, RDF.type, t, getModel()))) {
+            return types.findFirst().orElse(null);
+        }
     }
 
     protected OntStatement getRoot(Property property, Resource type) {
@@ -77,12 +79,28 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public Optional<OntStatement> statement(Property property) {
-        return statements(property).findFirst();
+        try (Stream<OntStatement> statements = statements(property)) {
+            return statements.findFirst();
+        }
     }
 
     @Override
     public Optional<OntStatement> statement(Property property, RDFNode object) {
-        return statements(property).filter(s -> s.getObject().equals(object)).findFirst();
+        try (Stream<OntStatement> statements = statements(property).filter(s -> s.getObject().equals(object))) {
+            return statements.findFirst();
+        }
+    }
+
+    @Override
+    public Stream<Resource> types() {
+        return objects(RDF.type, Resource.class);
+    }
+
+    @Override
+    public boolean hasType(Resource type) {
+        try (Stream<Resource> types = types()) {
+            return types.anyMatch(type::equals);
+        }
     }
 
     @Override
@@ -206,7 +224,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     public <T extends RDFNode> Optional<T> object(Property predicate, Class<T> view) {
-        return objects(predicate, view).findFirst();
+        try (Stream<T> objects = objects(predicate, view)) {
+            return objects.findFirst();
+        }
     }
 
     @Override
@@ -256,8 +276,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @see PropertyImpl#checkLocalName()
      */
     public static Property checkNamedProperty(Resource res) {
-        String localName = OntJenaException.notNull(res, "Null resource").getLocalName();
-        if (localName == null || localName.equals(""))
+        String localName = OntJenaException.notNull(res, "Null resource.").getLocalName();
+        if (localName == null || localName.isEmpty())
             throw new InvalidPropertyURIException(res.getURI());
         return res.as(Property.class);
     }

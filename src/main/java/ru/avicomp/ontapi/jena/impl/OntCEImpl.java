@@ -619,10 +619,13 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         public Configurable<OntFilter> getFilter() {
-            return mode -> (OntFilter) (n, g) -> Iter.asStream(g.asGraph().find(n, OWL.onProperty.asNode(), Node.ANY))
-                    .map(Triple::getObject)
-                    .map(_n -> factory.get(mode).canWrap(_n, g))
-                    .findAny().orElse(false);
+            return mode -> (OntFilter) (n, g) -> {
+                try (Stream<Triple> triples = Iter.asStream(g.asGraph().find(n, OWL.onProperty.asNode(), Node.ANY))) {
+                    return triples.map(Triple::getObject)
+                            .map(_n -> factory.get(mode).canWrap(_n, g))
+                            .findAny().orElse(false);
+                }
+            };
         }
     }
 
