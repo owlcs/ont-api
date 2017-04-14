@@ -880,7 +880,7 @@ public class DeclarationTransform extends Transform {
         }
 
         public void declareClass(Resource resource) {
-            if (builtIn.reservedResources().contains(resource) || builtIn.classes().contains(resource)) {
+            if (builtIn.classes().contains(resource)) {
                 return;
             }
             Resource type = resource.isURIResource() ? OWL.Class :
