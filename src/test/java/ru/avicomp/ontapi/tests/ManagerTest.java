@@ -22,6 +22,8 @@ import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
 import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.config.OntConfig;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.internal.ReadHelper;
 import ru.avicomp.ontapi.internal.Wrap;
 import ru.avicomp.ontapi.jena.ConcurrentGraph;
@@ -78,9 +80,9 @@ public class ManagerTest {
     public void testConfigs() {
         OntologyManager m1 = OntManagers.createONT();
         OntologyManager m2 = OntManagers.createONT();
-        OntConfig.LoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
+        OntLoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
         conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
-        OntConfig.LoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
+        OntLoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
         conf2.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
         Assert.assertEquals("Not the same loader configs", conf1, conf2);
         Assert.assertEquals("Not the same personalities", conf1.getPersonality(), conf2.getPersonality());
@@ -96,7 +98,7 @@ public class ManagerTest {
         Assert.assertEquals("The same 'perform transformation' flag", doTransformation, m1.getOntologyLoaderConfiguration().isPerformTransformation());
 
         GraphTransformers.Store store = new GraphTransformers.Store().add((GraphTransformers.Maker) graph -> null);
-        OntConfig.LoaderConfiguration conf3 = m1.getOntologyLoaderConfiguration().setGraphTransformers(store);
+        OntLoaderConfiguration conf3 = m1.getOntologyLoaderConfiguration().setGraphTransformers(store);
         Assert.assertNotEquals("Graph transform action store is changed", store, m1.getOntologyLoaderConfiguration().getGraphTransformers());
         m1.setOntologyLoaderConfiguration(conf3);
         Assert.assertEquals("Can't set transform action store.", store, m1.getOntologyLoaderConfiguration().getGraphTransformers());
@@ -222,12 +224,12 @@ public class ManagerTest {
 
         LOGGER.info("1) Test load some web ontology for a case when only file scheme is allowed.");
         OntologyManager m1 = OntManagers.createONT();
-        OntConfig.LoaderConfiguration conf = m1.getOntologyLoaderConfiguration().setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toSet()));
+        OntLoaderConfiguration conf = m1.getOntologyLoaderConfiguration().setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toSet()));
         m1.setOntologyLoaderConfiguration(conf);
         try {
             Assert.fail("No exception while loading " + m1.loadOntology(sp));
         } catch (OWLOntologyCreationException e) {
-            if (e instanceof OntBuildingFactoryImpl.ConfigMismatchException) {
+            if (e instanceof OntFactoryImpl.ConfigMismatchException) {
                 LOGGER.info(e);
             } else {
                 throw new AssertionError("Incorrect exception", e);
@@ -243,7 +245,7 @@ public class ManagerTest {
         try {
             Assert.fail("No exception while loading " + m1.loadOntology(spin));
         } catch (OWLOntologyCreationException e) {
-            if (e instanceof OntBuildingFactoryImpl.ConfigMismatchException) {
+            if (e instanceof OntFactoryImpl.ConfigMismatchException) {
                 LOGGER.info(e);
             } else {
                 throw new AssertionError("Incorrect exception", e);

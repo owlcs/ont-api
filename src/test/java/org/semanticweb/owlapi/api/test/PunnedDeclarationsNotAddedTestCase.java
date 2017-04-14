@@ -82,7 +82,7 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
 
     private void testONTAPI() throws Exception {
         OWLOntologyManager m = setupManager();
-        OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.OntConfig.LoaderConfiguration) m
+        OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.config.OntLoaderConfiguration) m
                 .getOntologyLoaderConfiguration())
                 .setAllowReadDeclarations(false)
                 .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_STRICT);

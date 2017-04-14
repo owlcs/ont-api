@@ -17,7 +17,11 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
-import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.OntFormat;
+import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.OntologyManager;
+import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;

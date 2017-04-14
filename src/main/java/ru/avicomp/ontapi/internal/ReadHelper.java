@@ -18,7 +18,7 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OntConfig;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
@@ -259,13 +259,13 @@ public class ReadHelper {
      * e.g. "P rdfs:range C" could be treated as "A rdfs:range U", but not vice versa.
      *
      * @param statement {@link OntStatement} to test
-     * @param conf      {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
+     * @param conf      {@link OntLoaderConfiguration}
      * @param o         {@link AxiomType#SUB_OBJECT_PROPERTY} or {@link AxiomType#OBJECT_PROPERTY_DOMAIN} or {@link AxiomType#OBJECT_PROPERTY_RANGE}
      * @param d         {@link AxiomType#SUB_DATA_PROPERTY} or {@link AxiomType#DATA_PROPERTY_DOMAIN} or {@link AxiomType#DATA_PROPERTY_RANGE}
      * @return true if the statement is good to be represented in the form of annotation axiom.
      */
     protected static boolean testAnnotationAxiomOverlaps(OntStatement statement,
-                                                         OntConfig.LoaderConfiguration conf,
+                                                         OntLoaderConfiguration conf,
                                                          AxiomType<? extends OWLObjectPropertyAxiom> o,
                                                          AxiomType<? extends OWLDataPropertyAxiom> d) {
         return conf == null || !(conf.isIgnoreAnnotationAxiomOverlaps() &&
@@ -280,12 +280,12 @@ public class ReadHelper {
         return (subject.isURIResource() && !subject.canAs(OntID.class)) || subject.canAs(OntIndividual.Anonymous.class);
     }
 
-    public static boolean isAnnotationAssertionStatement(OntStatement statement, OntConfig.LoaderConfiguration conf) {
+    public static boolean isAnnotationAssertionStatement(OntStatement statement, OntLoaderConfiguration conf) {
         return statement.isAnnotation() && !statement.getSubject().canAs(OntAnnotation.class) &&
                 (isAllowBulkAnnotationAssertions(conf) || !statement.hasAnnotations());
     }
 
-    private static Set<Wrap<OWLAnnotation>> getAnnotations(OntStatement statement, OWLDataFactory df, OntConfig.LoaderConfiguration conf) {
+    private static Set<Wrap<OWLAnnotation>> getAnnotations(OntStatement statement, OWLDataFactory df, OntLoaderConfiguration conf) {
         Set<Wrap<OWLAnnotation>> res = getAllAnnotations(statement, df);
         if (isAnnotationAssertionsAllowed(conf) && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
@@ -299,20 +299,20 @@ public class ReadHelper {
     /**
      * by default annotation axioms are allowed.
      *
-     * @param conf {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
+     * @param conf {@link OntLoaderConfiguration}
      * @return true if annotation axioms are allowed
      */
-    private static boolean isAnnotationAssertionsAllowed(OntConfig.LoaderConfiguration conf) {
+    private static boolean isAnnotationAssertionsAllowed(OntLoaderConfiguration conf) {
         return conf == null || conf.isLoadAnnotationAxioms();
     }
 
     /**
      * by default we prefer bulk annotation assertions rather then annotated declarations.
      *
-     * @param conf {@link ru.avicomp.ontapi.OntConfig.LoaderConfiguration}
+     * @param conf {@link OntLoaderConfiguration}
      * @return true if bulk assertions are preferable.
      */
-    private static boolean isAllowBulkAnnotationAssertions(OntConfig.LoaderConfiguration conf) {
+    private static boolean isAllowBulkAnnotationAssertions(OntLoaderConfiguration conf) {
         return conf == null || conf.isAllowBulkAnnotationAssertions();
     }
 
@@ -322,7 +322,7 @@ public class ReadHelper {
      * @param statement {@link OntStatement}
      * @return {@link ru.avicomp.ontapi.internal.Wrap.Collection} of {@link OWLAnnotation}
      */
-    public static Wrap.Collection<OWLAnnotation> getStatementAnnotations(OntStatement statement, OWLDataFactory df, OntConfig.LoaderConfiguration conf) {
+    public static Wrap.Collection<OWLAnnotation> getStatementAnnotations(OntStatement statement, OWLDataFactory df, OntLoaderConfiguration conf) {
         return new Wrap.Collection<>(getAnnotations(statement, df, conf));
     }
 

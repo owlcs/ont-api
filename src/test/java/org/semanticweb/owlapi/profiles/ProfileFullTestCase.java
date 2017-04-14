@@ -46,7 +46,7 @@ public class ProfileFullTestCase extends ProfileBase {
     public void testFull() {
         OWLOntologyManager manager = setupManager();
         if (!DEBUG_USE_OWL) {
-            OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.OntConfig.LoaderConfiguration) manager
+            OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.config.OntLoaderConfiguration) manager
                     .getOntologyLoaderConfiguration())
                     .setAllowReadDeclarations(false)
                     .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX);

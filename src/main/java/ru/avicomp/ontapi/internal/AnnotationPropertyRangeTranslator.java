@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntConfig;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -30,7 +30,7 @@ class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<
      */
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        OntConfig.LoaderConfiguration conf = getConfig(model).loaderConfig();
+        OntLoaderConfiguration conf = getConfig(model).loaderConfig();
         if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
         return super.statements(model)
                 .filter(s -> s.getObject().isURIResource())

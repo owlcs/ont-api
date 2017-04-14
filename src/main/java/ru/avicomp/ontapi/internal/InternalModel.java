@@ -13,8 +13,8 @@ import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.OwlObjects;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -87,7 +87,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return getConfig().dataFactory();
     }
 
-    public OntConfig.LoaderConfiguration loaderConfig() {
+    public OntLoaderConfiguration loaderConfig() {
         return getConfig().loaderConfig();
     }
 

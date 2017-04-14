@@ -369,7 +369,7 @@ public class ForbiddenVocabularyTestCase extends TestBase {
             // In fact there is no problem with declarations and
             // I don't understand why they invited this category of violation.
             // But anyway we can achieve the same behavior for ONT-API too.
-            ru.avicomp.ontapi.OntConfig.LoaderConfiguration conf = (ru.avicomp.ontapi.OntConfig.LoaderConfiguration) m.getOntologyLoaderConfiguration();
+            ru.avicomp.ontapi.config.OntLoaderConfiguration conf = (ru.avicomp.ontapi.config.OntLoaderConfiguration) m.getOntologyLoaderConfiguration();
             m.setOntologyLoaderConfiguration(conf.setAllowReadDeclarations(false));
         }
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(input));

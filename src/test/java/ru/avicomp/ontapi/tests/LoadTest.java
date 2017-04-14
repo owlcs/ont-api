@@ -13,10 +13,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
-import ru.avicomp.ontapi.OntConfig;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntEntity;
@@ -41,7 +41,7 @@ public class LoadTest {
     public void testFoaf() throws Exception {
         String fileName = "foaf.rdf";
         OntologyManager manager = OntManagers.createONT();
-        OntConfig.LoaderConfiguration conf = manager.getOntologyLoaderConfiguration().setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
+        OntLoaderConfiguration conf = manager.getOntologyLoaderConfiguration().setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
         manager.setOntologyLoaderConfiguration(conf);
 
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));

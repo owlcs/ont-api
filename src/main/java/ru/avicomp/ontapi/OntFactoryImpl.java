@@ -24,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
+import ru.avicomp.ontapi.config.OntConfig;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -32,13 +35,13 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 /**
- * Ontology building&loading factory. The 'core', the point to create and load ontologies.
+ * Ontology building&loading factory. The 'core' of the system, the point to create and load ontologies.
  * See also base interface {@link OWLOntologyFactory} and its single implementation {@link OWLOntologyFactoryImpl}.
  * <p>
  * Created by szuev on 24.10.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntBuildingFactoryImpl implements OntologyManager.Factory {
+public class OntFactoryImpl implements OntologyManager.Factory {
 
     static {
         ErrorHandlerFactory.setDefaultErrorHandler(ErrorHandlerFactory.errorHandlerNoLogging);
@@ -47,7 +50,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
     protected final OntBuilderImpl ontologyBuilder;
     protected final OntLoader ontologyLoader;
 
-    public OntBuildingFactoryImpl() {
+    public OntFactoryImpl() {
         ontologyBuilder = new OntBuilderImpl();
         ontologyLoader = new OntModelLoaderImpl(ontologyBuilder);
     }
@@ -91,23 +94,23 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
     }
 
     /**
-     * Wraps {@link OWLOntologyLoaderConfiguration} as {@link OntConfig.LoaderConfiguration}
+     * Wraps {@link OWLOntologyLoaderConfiguration} as {@link OntLoaderConfiguration}
      *
      * @param conf {@link OWLOntologyLoaderConfiguration}
-     * @return {@link OntConfig.LoaderConfiguration}
+     * @return {@link OntLoaderConfiguration}
      */
-    public static OntConfig.LoaderConfiguration asONT(OWLOntologyLoaderConfiguration conf) {
-        return conf instanceof OntConfig.LoaderConfiguration ? (OntConfig.LoaderConfiguration) conf : new OntConfig.LoaderConfiguration(conf);
+    public static OntLoaderConfiguration asONT(OWLOntologyLoaderConfiguration conf) {
+        return conf instanceof OntLoaderConfiguration ? (OntLoaderConfiguration) conf : new OntLoaderConfiguration(conf);
     }
 
     /**
-     * Wraps {@link OWLOntologyWriterConfiguration} as {@link OntConfig.WriterConfiguration}
+     * Wraps {@link OWLOntologyWriterConfiguration} as {@link OntWriterConfiguration}
      *
      * @param conf {@link OWLOntologyWriterConfiguration}
-     * @return {@link OntConfig.WriterConfiguration}
+     * @return {@link OntWriterConfiguration}
      */
-    public static OntConfig.WriterConfiguration asONT(OWLOntologyWriterConfiguration conf) {
-        return conf instanceof OntConfig.WriterConfiguration ? (OntConfig.WriterConfiguration) conf : new OntConfig.WriterConfiguration(conf);
+    public static OntWriterConfiguration asONT(OWLOntologyWriterConfiguration conf) {
+        return conf instanceof OntWriterConfiguration ? (OntWriterConfiguration) conf : new OntWriterConfiguration(conf);
     }
 
     /**
@@ -131,11 +134,11 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          *
          * @param source  {@link OWLOntologyDocumentSource} the source (iri, file iri, stream or who knows what)
          * @param manager {@link OntologyManager}
-         * @param conf    {@link OntConfig.LoaderConfiguration}
+         * @param conf    {@link OntLoaderConfiguration}
          * @return {@link OntologyModel} the result model in the manager.
          * @throws OWLOntologyCreationException if something wrong.
          */
-        OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntConfig.LoaderConfiguration conf) throws OWLOntologyCreationException;
+        OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration conf) throws OWLOntologyCreationException;
 
     }
 
@@ -158,7 +161,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
         }
 
         @Override
-        public OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntConfig.LoaderConfiguration conf) throws OWLOntologyCreationException {
+        public OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration conf) throws OWLOntologyCreationException {
             try {
                 IRI doc = source.getDocumentIRI();
                 if (sources.contains(doc)) {
@@ -201,7 +204,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
         }
 
         @Override
-        public OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntConfig.LoaderConfiguration config) throws OWLOntologyCreationException {
+        public OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration config) throws OWLOntologyCreationException {
             if (config.isUseOWLParsersToLoad()) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Load ontology using OWL-API methods. Source [{}]{}", source.getClass().getSimpleName(), source.getDocumentIRI());
@@ -251,11 +254,11 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          *
          * @param info    {@link GraphInfo} container with info about graph.
          * @param manager {@link OntologyManager}
-         * @param config  {@link OntConfig.LoaderConfiguration}
+         * @param config  {@link OntLoaderConfiguration}
          * @return {@link OntologyModel}, it is ready to use.
          * @throws OWLOntologyCreationException if can't assemble model from ready graph.
          */
-        protected OntologyModel createModel(GraphInfo info, OntologyManager manager, OntConfig.LoaderConfiguration config) throws OWLOntologyCreationException {
+        protected OntologyModel createModel(GraphInfo info, OntologyManager manager, OntLoaderConfiguration config) throws OWLOntologyCreationException {
             if (!info.isFresh()) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("The ontology <{}> is already configured.", info.name());
@@ -302,12 +305,12 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          * @param node      {@link GraphInfo}
          * @param seen      Collection of URIs to avoid cycles in imports.
          * @param manager   {@link OntologyManager}
-         * @param config    {@link OntConfig.LoaderConfiguration}
+         * @param config    {@link OntLoaderConfiguration}
          * @param transform performs graph-transformation on the specified graph if true.
          * @return {@link Graph}
          * @throws OntApiException if something wrong.
          */
-        protected Graph makeUnionGraph(GraphInfo node, Collection<String> seen, OntologyManager manager, OntConfig.LoaderConfiguration config, boolean transform) {
+        protected Graph makeUnionGraph(GraphInfo node, Collection<String> seen, OntologyManager manager, OntLoaderConfiguration config, boolean transform) {
             // it is important to have the same order on each call
             Set<GraphInfo> children = new LinkedHashSet<>();
             Graph main = node.getGraph();
@@ -365,11 +368,11 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          * All sub-graphs should be already transformed.
          *
          * @param graph         {@link Graph}
-         * @param configuration {@link OntConfig.LoaderConfiguration}
+         * @param configuration {@link OntLoaderConfiguration}
          * @return {@link Graph}
          * @see Transform
          */
-        protected Graph transform(Graph graph, OntConfig.LoaderConfiguration configuration) {
+        protected Graph transform(Graph graph, OntLoaderConfiguration configuration) {
             if (configuration.isPerformTransformation()) {
                 if (LOGGER.isDebugEnabled())
                     LOGGER.debug("Perform graph transformations.");
@@ -387,13 +390,13 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          *
          * @param uri     String the ontology uri.
          * @param manager {@link OntologyManager}
-         * @param config  {@link OntConfig.LoaderConfiguration}
+         * @param config  {@link OntLoaderConfiguration}
          * @return {@link GraphInfo} container with {@link Graph} encapsulated.
          * @throws ConfigMismatchException      a conflict with some settings from <code>config</code>
          * @throws OWLOntologyCreationException some serious I/O problem while loading
          * @throws OntApiException              some other unexpected problem occurred.
          */
-        protected GraphInfo fetchGraph(String uri, OntologyManager manager, OntConfig.LoaderConfiguration config) throws OWLOntologyCreationException {
+        protected GraphInfo fetchGraph(String uri, OntologyManager manager, OntLoaderConfiguration config) throws OWLOntologyCreationException {
             IRI ontologyIRI = IRI.create(uri);
             OntologyModel res = findModel(manager, ontologyIRI);
             if (res != null) {
@@ -420,7 +423,7 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
                 try {
                     // we need only the base graph
                     OntologyManagerImpl m = new OntologyManagerImpl(manager.getOWLDataFactory(), new NoOpReadWriteLock());
-                    OntConfig.LoaderConfiguration conf = m.getOntologyLoaderConfiguration()
+                    OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration()
                             .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
                     return toGraphInfo(alternative.load(source, m, conf), true);
                 } catch (OWLOntologyCreationException ex) {
@@ -477,14 +480,14 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          * Loads graph from the source.
          *
          * @param source {@link OWLOntologyDocumentSource} with instructions how to reach the graph.
-         * @param config {@link OntConfig.LoaderConfiguration}
+         * @param config {@link OntLoaderConfiguration}
          * @return {@link GraphInfo} wrapper around the {@link Graph}.
          * @throws UnsupportedFormatException   if source can't be read into graph using jena way.
          * @throws ConfigMismatchException      if conflict with some config settings.
          * @throws OWLOntologyCreationException if there is some serious I/O problem.
          * @throws OntApiException              if some other problem occurred.
          */
-        protected GraphInfo loadGraph(OWLOntologyDocumentSource source, OntConfig.LoaderConfiguration config) throws OWLOntologyCreationException {
+        protected GraphInfo loadGraph(OWLOntologyDocumentSource source, OntLoaderConfiguration config) throws OWLOntologyCreationException {
             Graph graph;
             OntFormat format;
             if (OntGraphDocumentSource.class.isInstance(source)) {
@@ -508,14 +511,14 @@ public class OntBuildingFactoryImpl implements OntologyManager.Factory {
          *
          * @param graph  {@link Graph} the graph(empty) to put in.
          * @param source {@link OWLOntologyDocumentSource} the source (encapsulates IO-stream, IO-Reader or IRI of document)
-         * @param conf   {@link OntConfig.LoaderConfiguration} config
+         * @param conf   {@link OntLoaderConfiguration} config
          * @return {@link OntFormat} corresponding to the specified source.
          * @throws UnsupportedFormatException   if source can't be read into graph using jena.
          * @throws ConfigMismatchException      if there is some conflict with config settings, anyway we can't continue.
          * @throws OWLOntologyCreationException if there is some serious IO problem
          * @throws OntApiException              if some other problem.
          */
-        public static OntFormat readGraph(Graph graph, OWLOntologyDocumentSource source, OntConfig.LoaderConfiguration conf) throws OWLOntologyCreationException {
+        public static OntFormat readGraph(Graph graph, OWLOntologyDocumentSource source, OntLoaderConfiguration conf) throws OWLOntologyCreationException {
             IRI iri = OntApiException.notNull(source, "Null document source.").getDocumentIRI();
             if (LOGGER.isDebugEnabled())
                 LOGGER.debug("Read graph from <{}>.", iri);

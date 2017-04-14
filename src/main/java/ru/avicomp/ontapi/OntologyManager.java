@@ -8,6 +8,9 @@ import java.util.stream.Stream;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
+import ru.avicomp.ontapi.config.OntConfig;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
@@ -27,19 +30,19 @@ public interface OntologyManager extends OWLOntologyManager {
      * Be warned: this is a read only accessor, to change configuration create a new config (using any its setter)
      * and pass it to the {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} method.
      *
-     * @return {@link OntConfig.LoaderConfiguration}
+     * @return {@link OntLoaderConfiguration}
      */
     @Override
-    OntConfig.LoaderConfiguration getOntologyLoaderConfiguration();
+    OntLoaderConfiguration getOntologyLoaderConfiguration();
 
     /**
      * Returns the writer config.
      * see note for {@link this#getOntologyLoaderConfiguration()} method.
      *
-     * @return {@link OntConfig.WriterConfiguration}
+     * @return {@link OntWriterConfiguration}
      */
     @Override
-    OntConfig.WriterConfiguration getOntologyWriterConfiguration();
+    OntWriterConfiguration getOntologyWriterConfiguration();
 
     /**
      * Returns the copy of global config (extended {@link OntologyConfigurator}) and

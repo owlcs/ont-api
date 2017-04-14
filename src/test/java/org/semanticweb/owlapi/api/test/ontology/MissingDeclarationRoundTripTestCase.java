@@ -47,7 +47,7 @@ public class MissingDeclarationRoundTripTestCase extends TestBase {
         LOGGER.debug("Target:\n{}", target);
         OWLOntologyLoaderConfiguration conf = new OWLOntologyLoaderConfiguration().setStrict(true);
         if (!DEBUG_USE_OWL) {
-            conf = ru.avicomp.ontapi.OntBuildingFactoryImpl.asONT(conf).setUseOWLParsersToLoad(true);
+            conf = ru.avicomp.ontapi.OntFactoryImpl.asONT(conf).setUseOWLParsersToLoad(true);
         }
         OWLOntology o2 = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(target), conf);
         o2.axioms().forEach(a -> LOGGER.debug("{}", a));

@@ -16,6 +16,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import com.google.common.base.Stopwatch;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -127,7 +128,7 @@ public class PerformancePizzaTester {
     public static OntologyModel loadONT(OWLOntologyDocumentSource file) {
         LOGGER.info("[ONT]Load " + file.getDocumentIRI());
         OntologyManager m = OntManagers.createONT();
-        OntConfig.LoaderConfiguration conf = m.getOntologyLoaderConfiguration()
+        OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration()
                 .setPersonality(OntModelConfig.ONT_PERSONALITY_LAX)
                 .setPerformTransformation(false);
         m.setOntologyLoaderConfiguration(conf);

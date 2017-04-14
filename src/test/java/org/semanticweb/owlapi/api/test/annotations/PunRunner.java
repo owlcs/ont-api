@@ -121,7 +121,7 @@ public class PunRunner extends org.junit.runner.Runner {
                                                                 OWLOntologyManager m,
                                                                 OWLEntity... entities) throws Exception {
         if (!TestBase.DEBUG_USE_OWL) {
-            m.setOntologyLoaderConfiguration(((ru.avicomp.ontapi.OntConfig.LoaderConfiguration) m.getOntologyLoaderConfiguration())
+            m.setOntologyLoaderConfiguration(((ru.avicomp.ontapi.config.OntLoaderConfiguration) m.getOntologyLoaderConfiguration())
                     .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX));
         }
         OWLOntologyManager ontologyManager;

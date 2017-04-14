@@ -160,7 +160,7 @@ public class SharedBlankNodeTestCase extends TestBase {
             OWLOntologyManager m1 = setupManager();
             OWLOntologyLoaderConfiguration conf = m1.getOntologyLoaderConfiguration();
             if (!DEBUG_USE_OWL) {
-                conf = ((ru.avicomp.ontapi.OntConfig.LoaderConfiguration) conf).setUseOWLParsersToLoad(true);
+                conf = ((ru.avicomp.ontapi.config.OntLoaderConfiguration) conf).setUseOWLParsersToLoad(true);
             }
             OWLOntology o1 = m1.loadOntologyFromOntologyDocument(new StringDocumentSource(input), conf);
             OWLAPIStreamUtils.add(values, o1.axioms(AxiomType.ANNOTATION_ASSERTION)

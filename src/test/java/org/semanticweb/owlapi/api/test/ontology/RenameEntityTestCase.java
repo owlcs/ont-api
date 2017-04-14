@@ -43,8 +43,8 @@ public class RenameEntityTestCase extends TestBase {
         super.setupManagersClean();
         if (DEBUG_USE_OWL) return;
         // to allow DataProperty <-> ObjectProperty intersections
-        ru.avicomp.ontapi.OntConfig.LoaderConfiguration conf =
-                ((ru.avicomp.ontapi.OntConfig.LoaderConfiguration) m.getOntologyLoaderConfiguration())
+        ru.avicomp.ontapi.config.OntLoaderConfiguration conf =
+                ((ru.avicomp.ontapi.config.OntLoaderConfiguration) m.getOntologyLoaderConfiguration())
                         .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX);
         m.setOntologyLoaderConfiguration(conf);
     }

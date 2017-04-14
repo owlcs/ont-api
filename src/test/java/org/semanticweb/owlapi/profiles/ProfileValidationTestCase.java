@@ -146,11 +146,11 @@ public class ProfileValidationTestCase extends TestBase {
     private static OWLOntologyManager manager() {
         OWLOntologyManager m = setupManager();
         if (DEBUG_USE_OWL) return m;
-        OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.OntConfig.LoaderConfiguration) m
+        OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.config.OntLoaderConfiguration) m
                 .getOntologyLoaderConfiguration())
                 //.setAllowReadDeclarations(false)
                 //.setPerformTransformation(false)
-                .setSupportedSchemes(Stream.of(ru.avicomp.ontapi.OntConfig.DefaultScheme.FILE).collect(Collectors.toList()))
+                .setSupportedSchemes(Stream.of(ru.avicomp.ontapi.config.OntConfig.DefaultScheme.FILE).collect(Collectors.toList()))
                 .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX);
         m.setOntologyLoaderConfiguration(conf);
         return m;
