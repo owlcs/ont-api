@@ -442,17 +442,18 @@ public class DeclarationTransform extends Transform {
                 return Res.FALSE;
             }
             declare(statement.getSubject(), OWL.Restriction);
+            Res res = Res.UNKNOWN;
             if (isClassExpression(c) || isObjectPropertyExpression(p)) {
                 declareObjectProperty(p);
                 declareClass(c);
-                return Res.TRUE;
+                res = Res.TRUE;
             }
             if (isDataRange(c) || isDataProperty(p)) {
                 declareDataProperty(p);
                 declareDatatype(c);
-                return Res.TRUE;
+                res = Res.TRUE;
             }
-            return Res.UNKNOWN;
+            return res;
         }
 
         public void parsePropertyDomains() {
