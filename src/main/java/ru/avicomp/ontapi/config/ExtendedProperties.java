@@ -71,8 +71,7 @@ public class ExtendedProperties extends Properties {
             @Override
             public String toString(Object value) throws Exception {
                 Enum val = (Enum) value;
-                Class<?> enumType = val.getDeclaringClass();
-                return enumType.getName() + "#" + val.name();
+                return val.getDeclaringClass().getName() + "#" + val.name();
             }
 
             @Override
@@ -216,6 +215,10 @@ public class ExtendedProperties extends Properties {
 
     public List<String> getStringListProperty(String key) {
         return getListProperty(key, String.class);
+    }
+
+    public Class getClassProperty(String key) {
+        return getTypedProperty(key, Class.class);
     }
 
     public Enum getEnumProperty(String key) {

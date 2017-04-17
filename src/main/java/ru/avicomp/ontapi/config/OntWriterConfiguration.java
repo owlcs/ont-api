@@ -1,18 +1,21 @@
 package ru.avicomp.ontapi.config;
 
-import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 
 /**
  * Extended {@link OWLOntologyWriterConfiguration}.
- * Currently there is no new options and it is mostly copy-paste of OWL-API class.
+ * Currently there is no new options and it is mostly modified copy-paste from the original OWL-API class.
+ * Note: this config is immutable.
+ * @see OntConfig
  */
 @SuppressWarnings("WeakerAccess")
 public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
 
-    protected EnumMap<OntSettings, Object> map = new EnumMap<>(OntSettings.class);
+    protected final Map<OntConfig.OptionSetting, Object> map = new HashMap<>();
 
     public OntWriterConfiguration(OWLOntologyWriterConfiguration owl) {
         if (owl == null) return;
@@ -41,7 +44,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#shouldUseBanners()
+     * @see OWLOntologyWriterConfiguration#shouldUseBanners()
      */
     @Override
     public boolean shouldUseBanners() {
@@ -49,16 +52,17 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * NOTE: a OWL-API BUG in the original implementation.
+     * NOTE: a OWL-API (ver. 5.0.5) BUG in the original implementation:
+     * copy-paste from {@link OWLOntologyWriterConfiguration#withLabelsAsBanner(boolean)}
      *
-     * @see super#withBannersEnabled(boolean)
+     * @see OWLOntologyWriterConfiguration#withBannersEnabled(boolean)
      */
     public OntWriterConfiguration withBannersEnabled(boolean b) {
         return set(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED, b);
     }
 
     /**
-     * @see super#isLabelsAsBanner()
+     * @see OWLOntologyWriterConfiguration#isLabelsAsBanner()
      */
     @Override
     public boolean isLabelsAsBanner() {
@@ -66,7 +70,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#withLabelsAsBanner(boolean)
+     * @see OWLOntologyWriterConfiguration#withLabelsAsBanner(boolean)
      */
     @Override
     public OntWriterConfiguration withLabelsAsBanner(boolean b) {
@@ -74,7 +78,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#shouldSaveIdsForAllAnonymousIndividuals()
+     * @see OWLOntologyWriterConfiguration#shouldSaveIdsForAllAnonymousIndividuals()
      */
     @Override
     public boolean shouldSaveIdsForAllAnonymousIndividuals() {
@@ -82,7 +86,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#withSaveIdsForAllAnonymousIndividuals(boolean)
+     * @see OWLOntologyWriterConfiguration#withSaveIdsForAllAnonymousIndividuals(boolean)
      */
     @Override
     public OntWriterConfiguration withSaveIdsForAllAnonymousIndividuals(boolean b) {
@@ -90,7 +94,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#shouldRemapAllAnonymousIndividualsIds()
+     * @see OWLOntologyWriterConfiguration#shouldRemapAllAnonymousIndividualsIds()
      */
     @Override
     public boolean shouldRemapAllAnonymousIndividualsIds() {
@@ -106,7 +110,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#isUseNamespaceEntities()
+     * @see OWLOntologyWriterConfiguration#isUseNamespaceEntities()
      */
     @Override
     public boolean isUseNamespaceEntities() {
@@ -114,7 +118,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#withUseNamespaceEntities(boolean)
+     * @see OWLOntologyWriterConfiguration#withUseNamespaceEntities(boolean)
      */
     @Override
     public OntWriterConfiguration withUseNamespaceEntities(boolean b) {
@@ -122,7 +126,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#isIndenting()
+     * @see OWLOntologyWriterConfiguration#isIndenting()
      */
     @Override
     public boolean isIndenting() {
@@ -130,7 +134,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#withIndenting(boolean)
+     * @see OWLOntologyWriterConfiguration#withIndenting(boolean)
      */
     @Override
     public OntWriterConfiguration withIndenting(boolean b) {
@@ -138,7 +142,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#getIndentSize()
+     * @see OWLOntologyWriterConfiguration#getIndentSize()
      */
     @Override
     public int getIndentSize() {
@@ -146,7 +150,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super#withIndentSize(int)
+     * @see OWLOntologyWriterConfiguration#withIndentSize(int)
      */
     @Override
     public OntWriterConfiguration withIndentSize(int indent) {

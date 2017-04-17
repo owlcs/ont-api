@@ -94,6 +94,16 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     }
 
     /**
+     * Wraps {@link OntologyConfigurator} as {@link OntConfig}
+     *
+     * @param conf {@link OntologyConfigurator}
+     * @return {@link OntConfig}
+     */
+    public static OntConfig asONT(OntologyConfigurator conf) {
+        return conf instanceof OntConfig ? (OntConfig) conf : OntConfig.copy(conf);
+    }
+
+    /**
      * Wraps {@link OWLOntologyLoaderConfiguration} as {@link OntLoaderConfiguration}
      *
      * @param conf {@link OWLOntologyLoaderConfiguration}
@@ -119,7 +129,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      * - pure OWL loader which calls super method of {@link OWLOntologyFactoryImpl}
      * - the {@link OntModelLoaderImpl}.
      * <p>
-     * Note: only two input parameters in the constructor: {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}.
+     * Note: there are only two input parameters in the constructor: {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}.
      * The single instance of {@link OntologyManager} is an {@link OWLOntologyManager} as well as {@link OWLOntologyCreationHandler}.
      * And this is also true for {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl).
      * The {@link OWLOntologyCreationHandler} could be considered as part of inner (OWL-API) implementation,

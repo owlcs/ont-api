@@ -18,17 +18,19 @@ import ru.avicomp.ontapi.jena.OntJenaException;
  * <p>
  * Created by szuev on 28.10.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class GraphTransformers {
-    private static Store converters = new Store()
+
+    protected static Store converters = new Store()
             .add(RDFSTransform::new)
             .add(OWLTransform::new)
             .add(DeclarationTransform::new);
 
     public static Store setTransformers(Store store) {
         OntJenaException.notNull(store, "Null converter store specified.");
-        Store res = converters;
+        Store prev = converters;
         converters = store;
-        return res;
+        return prev;
     }
 
     public static Store getTransformers() {
@@ -52,29 +54,71 @@ public abstract class GraphTransformers {
         GC create(Graph graph);
     }
 
+    /**
+     * immutable store of graph transform makers/
+     *
+     * @see Maker
+     */
     public static class Store implements Serializable {
-        private Set<Maker> set = new LinkedHashSet<>();
+        protected Set<Maker> set = new LinkedHashSet<>();
+
+        public Store copy() {
+            Store res = new Store();
+            res.set = new LinkedHashSet<>(this.set);
+            return res;
+        }
 
         public Store add(Maker f) {
-            set.add(f);
-            return this;
+            Store res = copy();
+            res.set.add(f);
+            return res;
         }
 
         public Store remove(Maker f) {
-            set.remove(f);
-            return this;
+            Store res = copy();
+            res.set.remove(f);
+            return res;
         }
 
         public Stream<Transform> actions(Graph graph) {
             return set.stream().map(factory -> factory.create(graph));
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return this == o || o instanceof Store && set.equals(((Store) o).set);
+        }
+
+        @Override
+        public int hashCode() {
+            return set.hashCode();
+        }
     }
 
-    public static <GC extends Transform> GC createTransformAction(Class<GC> impl, Graph graph) {
-        try {
-            return impl.getDeclaredConstructor(Graph.class).newInstance(graph);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new OntJenaException("Must have public constructor with " + Graph.class.getName() + " as parameter.", e);
+    public static class DefaultMaker implements Maker {
+        protected final Class<? extends Transform> impl;
+
+        public DefaultMaker(Class<? extends Transform> impl) {
+            this.impl = impl;
+        }
+
+        @Override
+        public Transform create(Graph graph) {
+            try {
+                return impl.getDeclaredConstructor(Graph.class).newInstance(graph);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                throw new OntJenaException("Must have public constructor with " + Graph.class.getName() + " as the only parameter.", e);
+            }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return this == o || o instanceof DefaultMaker && impl.equals(((DefaultMaker) o).impl);
+        }
+
+        @Override
+        public int hashCode() {
+            return impl.hashCode();
         }
     }
 

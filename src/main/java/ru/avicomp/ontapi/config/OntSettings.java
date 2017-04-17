@@ -21,9 +21,11 @@ import ru.avicomp.ontapi.transforms.RDFSTransform;
 
 /**
  * Enum of all ONT-API settings (20 origin OWL-API options + 9 new ONT-API options + ignored imports)
- * Created by @szuev on 14.04.2017.
+ * Note: System properties are not taken into account (this is a difference from OWL-API).
+ * We use the properties file as the primary settings store and this enum goes as secondary attempt to load.
  *
  * @see ConfigurationOptions
+ * Created by @szuev on 14.04.2017.
  */
 public enum OntSettings implements OntConfig.OptionSetting {
     OWL_API_LOAD_CONF_IGNORED_IMPORTS(new ArrayList<String>()),
@@ -61,8 +63,9 @@ public enum OntSettings implements OntConfig.OptionSetting {
     OWL_API_WRITE_CONF_BANNERS_ENABLED(true),
     OWL_API_WRITE_CONF_INDENT_SIZE(4),;
 
-    protected final Serializable secondary;
     protected static final ExtendedProperties PROPERTIES = loadProperties();
+
+    protected final Serializable secondary;
 
     OntSettings(Serializable value) {
         this.secondary = value;
@@ -70,10 +73,12 @@ public enum OntSettings implements OntConfig.OptionSetting {
 
     @Override
     public Serializable getDefaultValue() {
-        Serializable primary;
         String k = key();
+        Serializable primary;
         if (secondary instanceof Enum) {
             primary = PROPERTIES.getEnumProperty(k);
+        } else if (secondary instanceof Class) {
+            primary = PROPERTIES.getClassProperty(k);
         } else if (secondary instanceof List) {
             List<?> list = PROPERTIES.getListProperty(k);
             primary = list == null ? new ArrayList<>() : list instanceof Serializable ? (Serializable) list : new ArrayList<>(list);
@@ -91,6 +96,18 @@ public enum OntSettings implements OntConfig.OptionSetting {
             throw new OntApiException("Unsupported value " + secondary.getClass());
         }
         return primary == null ? secondary : primary;
+    }
+
+    public boolean isLoad() {
+        return name().contains("_LOAD_CONF_");
+    }
+
+    public boolean isWrite() {
+        return name().contains("_WRITE_CONF_");
+    }
+
+    public boolean isONT() {
+        return name().startsWith("ONT_API");
     }
 
     public String key() {

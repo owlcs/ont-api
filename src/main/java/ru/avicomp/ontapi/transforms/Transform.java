@@ -9,6 +9,7 @@ import org.apache.jena.rdf.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -29,8 +30,8 @@ public abstract class Transform {
     private Model base;
 
     protected Transform(Graph graph, BuiltIn.Vocabulary vocabulary) {
-        this.graph = graph;
-        this.builtIn = vocabulary;
+        this.graph = OntJenaException.notNull(graph, "Null graph.");
+        this.builtIn = OntJenaException.notNull(vocabulary, "Null built-in vocabulary.");
     }
 
     protected Transform(Graph graph) {

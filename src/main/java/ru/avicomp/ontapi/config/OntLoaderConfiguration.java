@@ -1,45 +1,40 @@
 package ru.avicomp.ontapi.config;
 
 import javax.annotation.Nonnull;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
+import org.semanticweb.owlapi.vocab.Namespaces;
 
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 /**
- * Extended {@link OWLOntologyLoaderConfiguration} with ONT-API specific settings.
- * It is a wrapper since all members of original base class are private.
- * TODO: new (ONT-API) options should be configured in global ({@link OntConfig}) config also.
+ * This is an extended {@link OWLOntologyLoaderConfiguration} with ONT-API specific settings.
+ * Note: this config is immutable.
+ * @see OntConfig
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue", "unused"})
 public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
-    protected EnumMap<OntSettings, Object> map = new EnumMap<>(OntSettings.class);
 
-    protected final OWLOntologyLoaderConfiguration inner;
-    // WARNING: OntPersonality is not serializable:
+    protected final Map<OntConfig.OptionSetting, Object> map = new HashMap<>();
+
+    // WARNING: OntPersonality is not serializable!
     protected transient OntPersonality personality;
     protected GraphTransformers.Store transformers;
-    protected boolean performTransformation = true;
-    protected HashSet<OntConfig.Scheme> supportedSchemes;
-    protected boolean allowBulkAnnotationAssertions = true;
-    protected boolean allowReadDeclarations = true;
-    protected boolean ignoreAnnotationAxiomOverlaps = true;
-    protected boolean useOWLParsersToLoad = false;
-    // from super class:
-    protected Set<IRI> ignoredImports;
-    protected EnumMap<ConfigurationOptions, Object> overrides;
 
     public OntLoaderConfiguration(OWLOntologyLoaderConfiguration owl) {
-        this.inner = owl == null ? new OWLOntologyLoaderConfiguration() :
-                owl instanceof OntLoaderConfiguration ? ((OntLoaderConfiguration) owl).inner : owl;
+        if (owl == null) return;
+        if (owl instanceof OntLoaderConfiguration) {
+            copyONTSettings((OntLoaderConfiguration) owl);
+        } else {
+            copyOWLSettings(owl);
+        }
     }
 
     /**
@@ -49,50 +44,51 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @return new instance of {@link OntLoaderConfiguration}
      */
     protected OntLoaderConfiguration copy(OWLOntologyLoaderConfiguration owl) {
-        OntLoaderConfiguration res = new OntLoaderConfiguration(owl);
-        res.personality = this.personality;
-        res.transformers = this.transformers;
-        res.performTransformation = this.performTransformation;
-        res.supportedSchemes = this.supportedSchemes;
-        res.allowBulkAnnotationAssertions = this.allowBulkAnnotationAssertions;
-        res.allowReadDeclarations = this.allowReadDeclarations;
-        res.ignoreAnnotationAxiomOverlaps = this.ignoreAnnotationAxiomOverlaps;
-        res.useOWLParsersToLoad = this.useOWLParsersToLoad;
-        return res;
+        return new OntLoaderConfiguration(owl);
     }
 
-    protected Object get(OntSettings key) {
+    protected Object get(OntConfig.OptionSetting key) {
         return map.getOrDefault(key, key.getDefaultValue());
     }
 
-    protected OntLoaderConfiguration set(OntSettings key, Object o) {
+    protected OntLoaderConfiguration set(OntConfig.OptionSetting key, Object o) {
         if (Objects.equals(get(key), o)) return this;
         OntLoaderConfiguration copy = copy(this);
         copy.map.put(key, o);
         return copy;
     }
 
-    @SuppressWarnings("unchecked")
-    protected Set<IRI> ignoredImports() {
-        try {
-            if (ignoredImports != null) return ignoredImports;
-            Field field = inner.getClass().getDeclaredField("ignoredImports");
-            field.setAccessible(true);
-            return ignoredImports = (Set<IRI>) field.get(inner);
-        } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-            throw new OntApiException("Can't get ignoredImports.", e);
-        }
+    protected void copyOWLSettings(OWLOntologyLoaderConfiguration conf) {
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, ignoredImports(conf).stream().collect(Collectors.toCollection(ArrayList::new)));
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION, conf.isAcceptingHTTPCompression());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, conf.getConnectionTimeout());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS, conf.isFollowRedirects());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS, conf.isLoadAnnotationAxioms());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY, conf.getMissingImportHandlingStrategy());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY, conf.getMissingOntologyHeaderStrategy());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES, conf.isReportStackTrace());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, conf.getRetriesToAttempt());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION, conf.isStrict());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN, conf.isTreatDublinCoreAsBuiltIn());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, conf.getPriorityCollectionSorting());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS, conf.getBannedParsers());
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT, conf.getEntityExpansionLimit());
+    }
+
+    protected void copyONTSettings(OntLoaderConfiguration conf) {
+        this.personality = conf.getPersonality();
+        this.transformers = conf.getGraphTransformers();
+        this.map.putAll(conf.map);
     }
 
     @SuppressWarnings("unchecked")
-    protected EnumMap<ConfigurationOptions, Object> overrides() {
+    protected static Set<IRI> ignoredImports(OWLOntologyLoaderConfiguration owl) {
         try {
-            if (overrides != null) return overrides;
-            Field field = inner.getClass().getDeclaredField("overrides");
+            Field field = owl.getClass().getDeclaredField("ignoredImports");
             field.setAccessible(true);
-            return overrides = (EnumMap<ConfigurationOptions, Object>) field.get(inner);
-        } catch (IllegalAccessException | NoSuchFieldException | ClassCastException e) {
-            throw new OntApiException("Can't get ignoredImports.", e);
+            return (Set<IRI>) field.get(owl);
+        } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
+            throw new OntApiException("Can't get OWLOntologyLoaderConfiguration#ignoredImports.", e);
         }
     }
 
@@ -104,7 +100,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @see #setGraphTransformers(GraphTransformers.Store)
      */
     public boolean isPerformTransformation() {
-        return performTransformation;
+        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS);
     }
 
     /**
@@ -116,33 +112,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @see #setGraphTransformers(GraphTransformers.Store)
      */
     public OntLoaderConfiguration setPerformTransformation(boolean b) {
-        if (b == performTransformation) return this;
-        OntLoaderConfiguration res = copy(inner);
-        res.performTransformation = b;
-        return res;
-    }
-
-    /**
-     * ONT-API config method.
-     * Note: after deserialization it is always default.
-     *
-     * @return the {@link org.apache.jena.enhanced.Personality}, if null then default ({@link OntModelConfig#getPersonality()})
-     */
-    public OntPersonality getPersonality() {
-        return personality == null ? personality = OntModelConfig.getPersonality() : personality;
-    }
-
-    /**
-     * ONT-API config setter.
-     *
-     * @param p {@link OntPersonality} new personality. Null means default ({@link OntModelConfig#getPersonality()})
-     * @return {@link OntLoaderConfiguration}
-     */
-    public OntLoaderConfiguration setPersonality(OntPersonality p) {
-        if (Objects.equals(personality, p)) return this;
-        OntLoaderConfiguration res = copy(inner);
-        res.personality = p;
-        return res;
+        return set(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS, b);
     }
 
     /**
@@ -153,7 +123,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @see #setPerformTransformation(boolean)
      */
     public GraphTransformers.Store getGraphTransformers() {
-        return transformers == null ? transformers = GraphTransformers.getTransformers() : transformers;
+        return transformers == null ? transformers = OntConfig.getDefaultTransformers() : transformers;
     }
 
     /**
@@ -166,8 +136,31 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     public OntLoaderConfiguration setGraphTransformers(GraphTransformers.Store t) {
         if (Objects.equals(transformers, t)) return this;
-        OntLoaderConfiguration res = copy(inner);
+        OntLoaderConfiguration res = copy(this);
         res.transformers = t;
+        return res;
+    }
+
+    /**
+     * ONT-API config method.
+     * Note: after deserialization it is always default.
+     *
+     * @return the {@link org.apache.jena.enhanced.Personality}, if null then default ({@link OntConfig#getDefaultPersonality()})
+     */
+    public OntPersonality getPersonality() {
+        return personality == null ? personality = OntConfig.getDefaultPersonality() : personality;
+    }
+
+    /**
+     * ONT-API config setter.
+     *
+     * @param p {@link OntPersonality} new personality. Null means default ({@link OntConfig#getDefaultPersonality()})
+     * @return {@link OntLoaderConfiguration}
+     */
+    public OntLoaderConfiguration setPersonality(OntPersonality p) {
+        if (Objects.equals(personality, p)) return this;
+        OntLoaderConfiguration res = copy(this);
+        res.personality = p;
         return res;
     }
 
@@ -176,8 +169,9 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      *
      * @return Set of {@link OntConfig.Scheme}
      */
-    public Set<OntConfig.Scheme> getSupportedSchemes() {
-        return supportedSchemes == null ? supportedSchemes = OntConfig.DefaultScheme.all().collect(Collectors.toCollection(HashSet::new)) : supportedSchemes;
+    @SuppressWarnings("unchecked")
+    public List<OntConfig.Scheme> getSupportedSchemes() {
+        return (List<OntConfig.Scheme>) get(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES);
     }
 
     /**
@@ -186,11 +180,9 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @param schemes the collection of {@link OntConfig.Scheme}
      * @return {@link OntLoaderConfiguration}
      */
-    public OntLoaderConfiguration setSupportedSchemes(Collection<OntConfig.Scheme> schemes) {
-        if (Objects.equals(supportedSchemes, schemes)) return this;
-        OntLoaderConfiguration res = copy(inner);
-        res.supportedSchemes = new HashSet<>(schemes);
-        return res;
+    public OntLoaderConfiguration setSupportedSchemes(List<OntConfig.Scheme> schemes) {
+        List<OntConfig.Scheme> res = schemes instanceof Serializable ? schemes : new ArrayList<>(schemes);
+        return set(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, res);
     }
 
     /**
@@ -205,7 +197,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @see #isLoadAnnotationAxioms()
      */
     public boolean isAllowBulkAnnotationAssertions() {
-        return allowBulkAnnotationAssertions;
+        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS);
     }
 
     /**
@@ -242,10 +234,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @see OntFormat#MANCHESTER_SYNTAX
      */
     public OntLoaderConfiguration setAllowBulkAnnotationAssertions(boolean b) {
-        if (b == allowBulkAnnotationAssertions) return this;
-        OntLoaderConfiguration res = copy(inner);
-        res.allowBulkAnnotationAssertions = b;
-        return res;
+        return set(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS, b);
     }
 
     /**
@@ -256,7 +245,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @return true if declarations are allowed in the structural view
      */
     public boolean isAllowReadDeclarations() {
-        return allowReadDeclarations;
+        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS);
     }
 
     /**
@@ -272,10 +261,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @return new or the same instance of config.
      */
     public OntLoaderConfiguration setAllowReadDeclarations(boolean b) {
-        if (b == allowReadDeclarations) return this;
-        OntLoaderConfiguration res = copy(inner);
-        res.allowReadDeclarations = b;
-        return res;
+        return set(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS, b);
     }
 
     /**
@@ -286,7 +272,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @return true if possible ambiguities with annotation axioms should be ignored.
      */
     public boolean isIgnoreAnnotationAxiomOverlaps() {
-        return ignoreAnnotationAxiomOverlaps;
+        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS);
     }
 
     /**
@@ -304,34 +290,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @return this or new config.
      */
     public OntLoaderConfiguration setIgnoreAnnotationAxiomOverlaps(boolean b) {
-        if (b == ignoreAnnotationAxiomOverlaps) return this;
-        OntLoaderConfiguration res = copy(inner);
-        res.ignoreAnnotationAxiomOverlaps = b;
-        return res;
-    }
-
-    /**
-     * Determines whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded.
-     * By default the loading of annotation axioms is enabled.
-     *
-     * @return if {@code false} all annotation axioms (assertion, range and domain) will be discarded on loading.
-     * @see OWLOntologyLoaderConfiguration#isLoadAnnotationAxioms()
-     */
-    @Override
-    public boolean isLoadAnnotationAxioms() {
-        return inner.isLoadAnnotationAxioms();
-    }
-
-    /**
-     * see description for {@link #isLoadAnnotationAxioms()}
-     *
-     * @param b true to enable reading and writing annotation axioms
-     * @return instance of new config.
-     * @see OWLOntologyLoaderConfiguration#setLoadAnnotationAxioms(boolean)
-     */
-    @Override
-    public OntLoaderConfiguration setLoadAnnotationAxioms(boolean b) {
-        return copy(inner.setLoadAnnotationAxioms(b));
+        return set(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS, b);
     }
 
     /**
@@ -341,7 +300,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @return true if loading through Jena is disabled (the loading is done through the OWL-API mechanisms by one axiom at a time).
      */
     public boolean isUseOWLParsersToLoad() {
-        return useOWLParsersToLoad;
+        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD);
     }
 
     /**
@@ -358,150 +317,278 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @return this or new config.
      */
     public OntLoaderConfiguration setUseOWLParsersToLoad(boolean b) {
-        if (b == useOWLParsersToLoad) return this;
-        OntLoaderConfiguration res = copy(inner);
-        res.useOWLParsersToLoad = b;
+        return set(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD, b);
+    }
+
+    /**
+     * Determines whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded.
+     * By default the loading of annotation axioms is enabled.
+     *
+     * @return if {@code false} all annotation axioms (assertion, range and domain) will be discarded on loading.
+     * @see OWLOntologyLoaderConfiguration#isLoadAnnotationAxioms()
+     */
+    @Override
+    public boolean isLoadAnnotationAxioms() {
+        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS);
+    }
+
+    /**
+     * see description for {@link #isLoadAnnotationAxioms()}
+     *
+     * @param b true to enable reading and writing annotation axioms
+     * @return instance of new config.
+     * @see OWLOntologyLoaderConfiguration#setLoadAnnotationAxioms(boolean)
+     */
+    @Override
+    public OntLoaderConfiguration setLoadAnnotationAxioms(boolean b) {
+        return set(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS, b);
+    }
+
+    /**
+     * @return List of IRIs (Strings)
+     */
+    @SuppressWarnings("unchecked")
+    protected List<String> getIgnoredImports() {
+        return (List<String>) map.computeIfAbsent(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, OntConfig.OptionSetting::getDefaultValue);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#addIgnoredImport(IRI)
+     */
+    @Override
+    public OntLoaderConfiguration addIgnoredImport(@Nonnull IRI iri) {
+        if (getIgnoredImports().contains(iri.getIRIString())) {
+            return this;
+        }
+        OntLoaderConfiguration res = copy(this);
+        res.getIgnoredImports().add(iri.getIRIString());
         return res;
     }
 
-    @Override
-    public OntLoaderConfiguration addIgnoredImport(@Nonnull IRI iri) {
-        return copy(inner.addIgnoredImport(iri));
-    }
-
+    /**
+     * @see OWLOntologyLoaderConfiguration#clearIgnoredImports()
+     */
     @Override
     public OntLoaderConfiguration clearIgnoredImports() {
-        return copy(inner.clearIgnoredImports());
+        if (getIgnoredImports().isEmpty()) {
+            return this;
+        }
+        OntLoaderConfiguration res = copy(this);
+        res.getIgnoredImports().clear();
+        return res;
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#isIgnoredImport(IRI)
+     */
     @Override
     public boolean isIgnoredImport(@Nonnull IRI iri) {
-        return inner.isIgnoredImport(iri);
+        return Namespaces.isDefaultIgnoredImport(iri) || getIgnoredImports().contains(iri.getIRIString());
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#removeIgnoredImport(IRI)
+     */
     @Override
-    public OntLoaderConfiguration removeIgnoredImport(@Nonnull IRI ontologyDocumentIRI) {
-        return copy(inner.removeIgnoredImport(ontologyDocumentIRI));
+    public OntLoaderConfiguration removeIgnoredImport(@Nonnull IRI iri) {
+        if (!getIgnoredImports().contains(iri.getIRIString())) {
+            return this;
+        }
+        OntLoaderConfiguration res = copy(this);
+        res.getIgnoredImports().remove(iri.getIRIString());
+        return res;
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#getPriorityCollectionSorting()
+     */
     @Override
     public PriorityCollectionSorting getPriorityCollectionSorting() {
-        return inner.getPriorityCollectionSorting();
+        return (PriorityCollectionSorting) get(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#setPriorityCollectionSorting(PriorityCollectionSorting)
+     */
     @Override
     public OntLoaderConfiguration setPriorityCollectionSorting(PriorityCollectionSorting sorting) {
-        return copy(inner.setPriorityCollectionSorting(sorting));
+        return set(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, sorting);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#getConnectionTimeout()
+     */
     @Override
     public int getConnectionTimeout() {
-        return inner.getConnectionTimeout();
+        return (int) get(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#setConnectionTimeout(int)
+     */
     @Override
-    public OntLoaderConfiguration setConnectionTimeout(int l) {
-        return copy(inner.setConnectionTimeout(l));
+    public OntLoaderConfiguration setConnectionTimeout(int time) {
+        return set(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, time);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#getMissingImportHandlingStrategy()
+     */
     @Override
     public MissingImportHandlingStrategy getMissingImportHandlingStrategy() {
-        return inner.getMissingImportHandlingStrategy();
+        return (MissingImportHandlingStrategy) get(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#setMissingImportHandlingStrategy(MissingImportHandlingStrategy)
+     */
     @Override
-    public OntLoaderConfiguration setMissingImportHandlingStrategy(@Nonnull MissingImportHandlingStrategy missingImportHandlingStrategy) {
-        return copy(inner.setMissingImportHandlingStrategy(missingImportHandlingStrategy));
+    public OntLoaderConfiguration setMissingImportHandlingStrategy(@Nonnull MissingImportHandlingStrategy strategy) {
+        return set(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY, strategy);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#getMissingOntologyHeaderStrategy()
+     */
     @Override
     public MissingOntologyHeaderStrategy getMissingOntologyHeaderStrategy() {
-        return inner.getMissingOntologyHeaderStrategy();
+        return (MissingOntologyHeaderStrategy) get(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy)
+     */
     @Override
-    public OntLoaderConfiguration setMissingOntologyHeaderStrategy(@Nonnull MissingOntologyHeaderStrategy missingOntologyHeaderStrategy) {
-        return copy(inner.setMissingOntologyHeaderStrategy(missingOntologyHeaderStrategy));
+    public OntLoaderConfiguration setMissingOntologyHeaderStrategy(@Nonnull MissingOntologyHeaderStrategy strategy) {
+        return set(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY, strategy);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#getRetriesToAttempt()
+     */
     @Override
     public int getRetriesToAttempt() {
-        return inner.getRetriesToAttempt();
+        return (int) get(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#setRetriesToAttempt(int)
+     */
     @Override
     public OntLoaderConfiguration setRetriesToAttempt(int retries) {
-        return copy(inner.setRetriesToAttempt(retries));
+        return set(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, retries);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#isAcceptingHTTPCompression()
+     */
     @Override
     public boolean isAcceptingHTTPCompression() {
-        return inner.isAcceptingHTTPCompression();
+        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#setAcceptingHTTPCompression(boolean)
+     */
     @Override
     public OntLoaderConfiguration setAcceptingHTTPCompression(boolean b) {
-        return copy(inner.setAcceptingHTTPCompression(b));
+        return set(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION, b);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#isFollowRedirects()
+     */
     @Override
     public boolean isFollowRedirects() {
-        return inner.isFollowRedirects();
+        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#setFollowRedirects(boolean)
+     */
     @Override
-    public OntLoaderConfiguration setFollowRedirects(boolean value) {
-        return copy(inner.setFollowRedirects(value));
+    public OntLoaderConfiguration setFollowRedirects(boolean b) {
+        return set(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS, b);
     }
 
+    /**
+     * @see OWLOntologyLoaderConfiguration#isReportStackTrace()
+     */
     @Override
     public boolean isReportStackTrace() {
-        return inner.isReportStackTrace();
+        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES);
     }
 
-    @Override
-    public boolean isStrict() {
-        return inner.isStrict();
-    }
-
-    @Override
-    public OntLoaderConfiguration setStrict(boolean strict) {
-        return copy(inner.setStrict(strict));
-    }
-
-    @Override
-    public boolean isTreatDublinCoreAsBuiltIn() {
-        return inner.isTreatDublinCoreAsBuiltIn();
-    }
-
-    @Override
-    public OntLoaderConfiguration setTreatDublinCoreAsBuiltIn(boolean value) {
-        return copy(inner.setTreatDublinCoreAsBuiltIn(value));
-    }
-
-    @Override
-    public String getBannedParsers() {
-        return inner.getBannedParsers();
-    }
-
-    @Override
-    public OntLoaderConfiguration setBannedParsers(@Nonnull String ban) {
-        return copy(inner.setBannedParsers(ban));
-    }
-
-    @Override
-    public String getEntityExpansionLimit() {
-        return inner.getEntityExpansionLimit();
-    }
-
-    @Override
-    public OntLoaderConfiguration setEntityExpansionLimit(@Nonnull String limit) {
-        return copy(inner.setEntityExpansionLimit(limit));
-    }
-
+    /**
+     * @see OWLOntologyLoaderConfiguration#setReportStackTraces(boolean)
+     */
     @Override
     public OntLoaderConfiguration setReportStackTraces(boolean b) {
-        return copy(inner.setReportStackTraces(b));
+        return set(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES, b);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#isStrict()
+     */
+    @Override
+    public boolean isStrict() {
+        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#setStrict(boolean)
+     */
+    @Override
+    public OntLoaderConfiguration setStrict(boolean b) {
+        return set(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION, b);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#isTreatDublinCoreAsBuiltIn()
+     */
+    @Override
+    public boolean isTreatDublinCoreAsBuiltIn() {
+        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#setTreatDublinCoreAsBuiltIn(boolean)
+     */
+    @Override
+    public OntLoaderConfiguration setTreatDublinCoreAsBuiltIn(boolean b) {
+        return set(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN, b);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#getBannedParsers()
+     */
+    @Override
+    public String getBannedParsers() {
+        return (String) get(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#setBannedParsers(String)
+     */
+    @Override
+    public OntLoaderConfiguration setBannedParsers(@Nonnull String s) {
+        return set(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS, s);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#getEntityExpansionLimit()
+     */
+    @Override
+    public String getEntityExpansionLimit() {
+        return (String) get(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#setEntityExpansionLimit(String)
+     */
+    @Override
+    public OntLoaderConfiguration setEntityExpansionLimit(@Nonnull String s) {
+        return set(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT, s);
     }
 
     @Override
@@ -509,24 +596,13 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
         if (this == o) return true;
         if (!(o instanceof OntLoaderConfiguration)) return false;
         OntLoaderConfiguration that = (OntLoaderConfiguration) o;
-        return isPerformTransformation() == that.isPerformTransformation() &&
-                isAllowBulkAnnotationAssertions() == that.isAllowBulkAnnotationAssertions() &&
-                isAllowReadDeclarations() == that.isAllowReadDeclarations() &&
-                isIgnoreAnnotationAxiomOverlaps() == that.isIgnoreAnnotationAxiomOverlaps() &&
-                isUseOWLParsersToLoad() == that.isUseOWLParsersToLoad() &&
-                Objects.equals(ignoredImports(), that.ignoredImports()) &&
-                Objects.equals(overrides(), that.overrides()) &&
-                Objects.equals(getPersonality(), that.getPersonality()) &&
-                Objects.equals(getGraphTransformers(), that.getGraphTransformers()) &&
-                Objects.equals(getSupportedSchemes(), that.getSupportedSchemes());
+        return Objects.equals(this.getPersonality(), that.getPersonality()) &&
+                Objects.equals(this.getGraphTransformers(), that.getGraphTransformers()) &&
+                Objects.equals(this.map, that.map);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ignoredImports(), overrides(),
-                getPersonality(), getGraphTransformers(),
-                isPerformTransformation(), getSupportedSchemes(),
-                isAllowBulkAnnotationAssertions(), isAllowReadDeclarations(),
-                isUseOWLParsersToLoad(), isIgnoreAnnotationAxiomOverlaps());
+        return Objects.hash(this.getPersonality(), this.getGraphTransformers(), this.map);
     }
 }

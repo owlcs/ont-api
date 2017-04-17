@@ -224,7 +224,7 @@ public class ManagerTest {
 
         LOGGER.info("1) Test load some web ontology for a case when only file scheme is allowed.");
         OntologyManager m1 = OntManagers.createONT();
-        OntLoaderConfiguration conf = m1.getOntologyLoaderConfiguration().setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toSet()));
+        OntLoaderConfiguration conf = m1.getOntologyLoaderConfiguration().setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList()));
         m1.setOntologyLoaderConfiguration(conf);
         try {
             Assert.fail("No exception while loading " + m1.loadOntology(sp));

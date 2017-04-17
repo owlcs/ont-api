@@ -123,7 +123,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyConfigurator(@Nonnull OntologyConfigurator conf) {
         getLock().writeLock().lock();
         try {
-            configProvider = conf instanceof OntConfig ? (OntConfig) conf : OntConfig.copy(conf);
+            configProvider = OntFactoryImpl.asONT(conf);
         } finally {
             getLock().writeLock().unlock();
         }
