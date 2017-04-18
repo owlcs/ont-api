@@ -283,8 +283,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @SafeVarargs
-    static Configurable<MultiOntObjectFactory> createMultiFactory(OntFinder finder, Configurable<? extends OntObjectFactory>... factories) {
-        return mode -> new MultiOntObjectFactory(finder, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
+    protected static Configurable<MultiOntObjectFactory> createMultiFactory(OntFinder finder, Configurable<? extends OntObjectFactory>... factories) {
+        return createMultiFactory(finder, null, factories);
+    }
+
+    @SafeVarargs
+    protected static Configurable<MultiOntObjectFactory> createMultiFactory(OntFinder finder, OntFilter filter, Configurable<? extends OntObjectFactory>... factories) {
+        return mode -> new MultiOntObjectFactory(finder, filter, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
     }
 
 }

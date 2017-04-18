@@ -108,7 +108,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
     public static final BuiltIn.Vocabulary BUILTIN = BuiltIn.get();
 
-    public static final Configurable<MultiOntObjectFactory> ALL = m -> new MultiOntObjectFactory(OntFinder.TYPED,
+    public static final Configurable<MultiOntObjectFactory> ALL = m -> new MultiOntObjectFactory(OntFinder.TYPED, null,
             Stream.of(values()).map(c -> c.get(m)).toArray(OntObjectFactory[]::new));
 
     private final Class<? extends OntObjectImpl> impl;

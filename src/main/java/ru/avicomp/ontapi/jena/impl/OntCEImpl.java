@@ -34,6 +34,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     public static final OntFinder CLASS_FINDER = new OntFinder.ByType(OWL.Class);
     public static final OntFinder RESTRICTION_FINDER = new OntFinder.ByType(OWL.Restriction);
     public static final OntFilter RESTRICTION_FILTER = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Restriction));
+    public static final OntFilter CE_FITTING_FILTER = new OntFilter.OneOf(Entities.CLASS.builtInURIs())
+            .or(new OntFilter.HasType(OWL.Class).or(new OntFilter.HasType(OWL.Restriction)));
 
     public static Configurable<OntObjectFactory> unionOfCEFactory = createCEFactory(UnionOfImpl.class, OWL.unionOf);
     public static Configurable<OntObjectFactory> intersectionOfCEFactory = createCEFactory(IntersectionOfImpl.class, OWL.intersectionOf);
@@ -77,7 +79,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     public static Configurable<OntObjectFactory> naryDataAllValuesFromCEFactory = createNaryFactory(NaryDataAllValuesFromImpl.class, OWL.allValuesFrom);
     public static Configurable<OntObjectFactory> naryDataSomeValuesFromCEFactory = createNaryFactory(NaryDataSomeValuesFromImpl.class, OWL.someValuesFrom);
 
-    public static Configurable<MultiOntObjectFactory> abstractNaryRestrictionCEFactory = createMultiFactory(RESTRICTION_FINDER, naryDataAllValuesFromCEFactory, naryDataSomeValuesFromCEFactory);
+    public static Configurable<MultiOntObjectFactory> abstractNaryRestrictionCEFactory = createMultiFactory(RESTRICTION_FINDER,
+            naryDataAllValuesFromCEFactory, naryDataSomeValuesFromCEFactory);
 
     //Boolean Connectives and Enumeration of Individuals
     public static Configurable<MultiOntObjectFactory> abstractComponentsCEFactory = createMultiFactory(CLASS_FINDER,
@@ -105,7 +108,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             createMultiFactory(OntFinder.TYPED, abstractNoneRestrictionCEFactory, abstractRestrictionCEFactory);
 
     public static Configurable<MultiOntObjectFactory> abstractCEFactory =
-            createMultiFactory(OntFinder.TYPED, Entities.CLASS, abstractAnonymousCEFactory);
+            createMultiFactory(OntFinder.TYPED, CE_FITTING_FILTER, Entities.CLASS, abstractAnonymousCEFactory);
 
     public OntCEImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -555,9 +558,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
     /**
      * TODO: currently it is read-only
-     *
-     * @param <O>
-     * @param <P>
      */
     protected static abstract class NaryRestrictionCEImpl<O extends OntObject, P extends OntPE> extends OntCEImpl implements NaryRestrictionCE<O, P> {
         protected final Property predicate;
@@ -746,7 +746,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return mode -> new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
     }
 
-    static boolean isQualified(OntObject c) {
+    public static boolean isQualified(OntObject c) {
         return c != null && !OWL.Thing.equals(c) && !RDFS.Literal.equals(c);
     }
 

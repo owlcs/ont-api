@@ -35,10 +35,20 @@ for example, you can copy an ontology from the ONT-API manager to the OWL-API ma
 The project contains tests from the OWL-API-contract, which show the working capacity of ONT-API.
 
 ## Structure (briefly)
-* The root of project (package __ru.avicomp.ontapi__) contains the core classes. Two main of them are:  
-    * OntologyManager is an extended __org.semanticweb.owlapi.model.OWLOntologyManager__ with access to overridden OWLOntology. 
-    * OntologyModel is an extended __org.semanticweb.owlapi.model.OWLOntology__ with methods to get Jena (Graph) Model shadow and method to manage axioms cache.
-* Package __ru.avicomp.ontapi.internal__ contains Axiom Translators (for reading and writing axioms to/from graph), technical interfaces and some helpers.
-* Package __ru.avicomp.ontapi.config__ contains classes to work with project settings.
-* Package __ru.avicomp.ontapi.jena__ is a separated subsystem with OntGraphModel which is analogue of org.apache.jena.ontology.OntModel but for OWL-2.
-* Package __ru.avicomp.ontapi.transforms__ is a separated subsystem also. It puts in order any graph (RDFS, OWL1) before using the main API.
+* The root of project (package __ru.avicomp.ontapi__) contains the core classes. Some of them are:  
+    * _OntManagers_ access point to the ONT-API and OWL-API
+    * _OntologyManager_ is an extended __org.semanticweb.owlapi.model.OWLOntologyManager__ with access to overridden _OWLOntology_. 
+    * _OntologyModel_ is an extended __org.semanticweb.owlapi.model.OWLOntology__ with methods to get Jena (Graph) Model shadow and method to manage axioms cache.
+    * _OntFactoryImpl_ is an extended __org.semanticweb.owlapi.model.OWLOntologyFactory__, the point to create and load ontologies.
+    * _OntFormat_ - the bridge between __org.apache.jena.riot.Lang__ and __org.semanticweb.owlapi.model.OWLDocumentFormat__.
+* Package __ru.avicomp.ontapi.internal__ contains Axiom Translators (for reading and writing axioms to/from graph), technical interfaces and some helpers. Some important classes:
+    * _AxiomTranslator_ - it is the base for any axiom translator. There are 39 axiom translators, each of them corresponds to the particular axiom-type.
+    * _InternalModel_  - it is the buffer between triple and structural representation.
+* Package __ru.avicomp.ontapi.config__ contains classes to work with project settings. Main classes:
+    * _OntConfig_ it is overridden  __org.semanticweb.owlapi.model.OntologyConfigurator__, global manager config.
+    * _OntLoaderConfiguration_ - overridden __org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration__.
+    * _OntWriterConfiguration_ - overridden __org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration__.  
+* Package __ru.avicomp.ontapi.jena__ is a separated subsystem with _ru.avicomp.ontapi.jena.model.OntGraphModel_ which 
+is analogue of __org.apache.jena.ontology.OntModel__ but for OWL-2. This subsystem can be used autonomously.
+* Package __ru.avicomp.ontapi.transforms__ is a separated subsystem also. It puts in order any graph (RDFS, OWL1) before using the main API. 
+This little subsystem can be used autonomously.

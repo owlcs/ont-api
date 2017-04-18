@@ -19,20 +19,31 @@ import org.apache.jena.ontology.ConversionException;
  */
 public class MultiOntObjectFactory extends OntObjectFactory {
     private final List<OntObjectFactory> factories;
-    private final OntFinder finder;
+    private OntFinder finder;
+    private OntFilter fittingFilter;
 
     protected MultiOntObjectFactory(OntObjectFactory... factories) {
-        this(null, factories);
-    }
-
-    public MultiOntObjectFactory(OntFinder finder, OntObjectFactory... factories) {
-        this.finder = finder;
-        this.factories = unbend(factories);
+        this(null, null, factories);
     }
 
     private MultiOntObjectFactory(OntFinder finder, Stream<OntObjectFactory> factories) {
-        this(finder, factories.toArray(OntObjectFactory[]::new));
+        this(finder, null, factories.toArray(OntObjectFactory[]::new));
     }
+
+    /**
+     * The main constructor
+     *
+     * @param finder        {@link OntFinder}, optional. if null then uses only array of sub-factories to search
+     * @param fittingFilter {@link OntFilter}, optional. to trim searching
+     * @param factories     the Array of factories, not null, not empty.
+     */
+    public MultiOntObjectFactory(OntFinder finder, OntFilter fittingFilter, OntObjectFactory... factories) {
+        this.finder = finder;
+        this.fittingFilter = fittingFilter;
+        this.factories = unbend(factories);
+    }
+
+
 
     private static List<OntObjectFactory> unbend(OntObjectFactory... factories) {
         return Arrays.stream(factories)
@@ -49,18 +60,13 @@ public class MultiOntObjectFactory extends OntObjectFactory {
 
     @Override
     public boolean canWrap(Node node, EnhGraph eg) {
-        for (OntObjectFactory f : factories) {
-            if (f.canWrap(node, eg)) return true;
-        }
-        return false;
+        return !(fittingFilter != null && !fittingFilter.test(node, eg)) && factories().anyMatch(f -> f.canWrap(node, eg));
     }
 
     @Override
     protected EnhNode doWrap(Node node, EnhGraph eg) {
-        for (OntObjectFactory f : factories) {
-            if (f.canWrap(node, eg)) return f.doWrap(node, eg);
-        }
-        return null;
+        if (fittingFilter != null && !fittingFilter.test(node, eg)) return null;
+        return factories().filter(f -> f.canWrap(node, eg)).map(f -> f.doWrap(node, eg)).findFirst().orElse(null);
     }
 
     @Override
@@ -75,11 +81,15 @@ public class MultiOntObjectFactory extends OntObjectFactory {
         return finder;
     }
 
+    public OntFilter getFilter() {
+        return fittingFilter;
+    }
+
     public Stream<? extends OntObjectFactory> factories() {
         return factories.stream();
     }
 
     public MultiOntObjectFactory concat(OntObjectFactory... factories) {
-        return new MultiOntObjectFactory(getFinder(), Stream.concat(factories(), unbend(factories).stream()));
+        return new MultiOntObjectFactory(finder, Stream.concat(factories(), unbend(factories).stream()));
     }
 }
