@@ -21,6 +21,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 @SuppressWarnings("WeakerAccess")
 public abstract class GraphTransformers {
 
+    // NOTE: the order are important
     protected static Store converters = new Store()
             .add(RDFSTransform::new)
             .add(OWLTransform::new)

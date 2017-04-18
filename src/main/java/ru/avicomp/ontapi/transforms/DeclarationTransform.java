@@ -50,8 +50,23 @@ public class DeclarationTransform extends Transform {
             new ManifestDeclarator(graph).perform();
             new ReasonerDeclarator(graph).perform();
         } finally {
-            getBaseModel().removeAll(null, RDF.type, AVC.AnonymousIndividual);
+            finalActions();
         }
+    }
+
+    protected void finalActions() {
+        getBaseModel().removeAll(null, RDF.type, AVC.AnonymousIndividual);
+        // at times the ontology could contain some rdfs garbage, even if other transformers (OWLTransformer, RDFSTransformer) have been used.
+        Set<Resource> properties = statements(null, RDF.type, RDF.Property)
+                .map(Statement::getSubject)
+                .filter(s -> statements(s, RDF.type, null).count() > 1)
+                .collect(Collectors.toSet());
+        Set<Resource> classes = statements(null, RDF.type, RDFS.Class)
+                .map(Statement::getSubject)
+                .filter(s -> statements(s, RDF.type, null).count() > 1)
+                .collect(Collectors.toSet());
+        properties.forEach(p -> undeclare(p, RDF.Property));
+        classes.forEach(c -> undeclare(c, RDFS.Class));
     }
 
     /**
@@ -379,6 +394,8 @@ public class DeclarationTransform extends Transform {
      * - "_:x owl:unionOf ( D1 ... Dn )"
      * - "_:x owl:intersectionOf ( C1 ... Cn )"
      * - "_:x rdf:type owl:AllDisjointProperties; owl:members ( P1 ... Pn )"
+     *
+     * Note: ObjectProperty & ClassExpression have more priority then DataProperty & DataRange
      */
     @SuppressWarnings("WeakerAccess")
     public static class ReasonerDeclarator extends BaseDeclarator {
@@ -427,8 +444,8 @@ public class DeclarationTransform extends Transform {
             // "_:x rdf:type owl:Restriction; owl:onProperty P; owl:allValuesFrom C" and
             // "_:x rdf:type owl:Restriction; owl:onProperty R; owl:someValuesFrom D"
             Stream.of(OWL.allValuesFrom, OWL.someValuesFrom)
-                    .map(p -> statements(null, p, null))
-                    .flatMap(Function.identity()).forEach(s -> {
+                    .map(p -> statements(null, p, null)) // add sorting to process punnings in restrictions
+                    .flatMap(Function.identity()).sorted(Models.STATEMENT_COMPARATOR_IGNORE_BLANK).forEach(s -> {
                 if (Res.UNKNOWN.equals(dataAndObjectRestrictions(s))) {
                     rerun.put(s, this::dataAndObjectRestrictions);
                 }
@@ -442,18 +459,17 @@ public class DeclarationTransform extends Transform {
                 return Res.FALSE;
             }
             declare(statement.getSubject(), OWL.Restriction);
-            Res res = Res.UNKNOWN;
             if (isClassExpression(c) || isObjectPropertyExpression(p)) {
                 declareObjectProperty(p);
                 declareClass(c);
-                res = Res.TRUE;
+                return Res.TRUE;
             }
             if (isDataRange(c) || isDataProperty(p)) {
                 declareDataProperty(p);
                 declareDatatype(c);
-                res = Res.TRUE;
+                return Res.TRUE;
             }
-            return res;
+            return Res.UNKNOWN;
         }
 
         public void parsePropertyDomains() {

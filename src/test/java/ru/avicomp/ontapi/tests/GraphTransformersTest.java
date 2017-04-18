@@ -25,11 +25,11 @@ import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
-import ru.avicomp.ontapi.jena.model.OntEntity;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.Transform;
 import ru.avicomp.ontapi.utils.OntIRI;
@@ -45,6 +45,7 @@ public class GraphTransformersTest {
 
     @Test
     public void testLoadSpinLibraries() throws Exception {
+        // this number reflects the default settings
         final int expectedAxiomsNum = 11098;
         OntologyManager m = OntManagers.createONT();
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration()
@@ -53,13 +54,12 @@ public class GraphTransformersTest {
         IRI iri = SpinMappingTest.SpinModels.SPINMAPL.getIRI();
         OntologyModel o = m.loadOntology(iri);
 
-        // this number reflects the default settings
         Assert.assertEquals("Incorrect total number of axioms", expectedAxiomsNum, o.axioms(Imports.INCLUDED).count());
         o.axioms(Imports.INCLUDED).forEach(LOGGER::debug);
     }
 
     @Test
-    public void testSignature() throws Exception {
+    public void testSPSignature() throws Exception {
         // global transforms:
         GraphTransformers.getTransformers().add(g -> new Transform(g) {
             @Override
@@ -110,6 +110,24 @@ public class GraphTransformersTest {
         ReadWriteUtils.print(jenaSPL);
         LOGGER.info("SPL-SPIN(Jena) All entities: ");
         jenaSPL.ontEntities().forEach(LOGGER::debug);
+    }
+
+    @Test
+    public void testSWRLVocabulary() throws Exception {
+        IRI iri = IRI.create("http://www.w3.org/2003/11/swrl");
+        IRI file = IRI.create(ReadWriteUtils.getResourceURI("swrl.owl.rdf"));
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
+        OntologyModel o = m.loadOntology(file);
+        Assert.assertTrue("No ontology", m.contains(iri));
+
+        ReadWriteUtils.print(o);
+        o.axioms().forEach(LOGGER::info);
+
+        Assert.assertNull("rdfs:Literal should not be class", o.asGraphModel().getOntEntity(OntClass.class, RDFS.Literal));
+        Assert.assertEquals("Should be DataAllValuesFrom", 1, o.asGraphModel().ontObjects(OntCE.DataAllValuesFrom.class).count());
+        Assert.assertNotNull(SWRL.argument2 + " should be data property", o.asGraphModel().getOntEntity(OntNDP.class, SWRL.argument2));
+        Assert.assertNotNull(SWRL.argument2 + " should be object property", o.asGraphModel().getOntEntity(OntNOP.class, SWRL.argument2));
     }
 
     private static void signatureTest(OWLOntology owl, OntGraphModel jena) {
