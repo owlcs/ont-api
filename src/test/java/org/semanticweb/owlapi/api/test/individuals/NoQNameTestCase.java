@@ -17,13 +17,14 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.api.test.baseclasses.AxiomsRoundTrippingBase;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException;
 
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
+
+import java.lang.Class;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information
@@ -34,41 +35,9 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 @SuppressWarnings("javadoc")
 public class NoQNameTestCase extends TestBase {
 
-    /**
-     * OWL-API throws a checked exception {@link org.semanticweb.owlapi.model.OWLOntologyStorageException}
-     * (caused by {@link org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException})
-     * while store ontology (during {@link org.semanticweb.owlapi.model.OWLOntologyManager#saveOntology}.
-     * <p>
-     * ONT-API throws an unchecked exception {@link ru.avicomp.ontapi.OntApiException} (caused by {@link org.apache.jena.shared.InvalidPropertyURIException})
-     * while adding axioms (during {@link org.semanticweb.owlapi.model.OWLOntology#addAxioms}).
-     * So we can't make behaviour the same for ONT-API. And i'm not sure we really need it.
-     * <p>
-     * Therefore this class is not inherited {@link AxiomsRoundTrippingBase} anymore and has only a single testcase.
-     */
     @Test
     public void testCreate() throws Exception {
-        if (DEBUG_USE_OWL) {
-            testOWLAPI();
-        } else {
-            testONTAPI();
-        }
-    }
-
-    private void testONTAPI() {
-        try {
-            LOGGER.warn("Ontology::{}" + createOntology());
-            Assert.fail("Expected an exception specifying that a QName could not be generated");
-        } catch (ru.avicomp.ontapi.OntApiException e) {
-            LOGGER.info("Exception:::" + e);
-            Throwable cause = e.getCause();
-            LOGGER.info("Cause:::" + cause);
-            if (!(cause instanceof org.apache.jena.shared.InvalidPropertyURIException)) {
-                throw e;
-            }
-        }
-    }
-
-    private void testOWLAPI() throws Exception {
+        Class<? extends Throwable> expectedCause = DEBUG_USE_OWL ? IllegalElementNameException.class : org.apache.jena.shared.InvalidPropertyURIException.class;
         try {
             roundTripOntology(createOntology());
             Assert.fail("Expected an exception specifying that a QName could not be generated");
@@ -76,7 +45,7 @@ public class NoQNameTestCase extends TestBase {
             LOGGER.info("Exception:::" + e);
             Throwable cause = e.getCause();
             LOGGER.info("Cause:::" + cause);
-            if (!(cause instanceof IllegalElementNameException)) {
+            if (!expectedCause.isInstance(cause)) {
                 throw e;
             }
         }

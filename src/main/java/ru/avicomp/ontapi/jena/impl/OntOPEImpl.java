@@ -31,7 +31,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         public NamedPropertyImpl(Node n, EnhGraph g) {
             super(n, g);
-            checkNamedProperty(this);
         }
 
         @Override

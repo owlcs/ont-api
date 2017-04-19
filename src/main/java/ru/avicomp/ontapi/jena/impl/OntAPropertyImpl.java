@@ -24,7 +24,6 @@ public class OntAPropertyImpl extends OntObjectImpl implements OntNAP {
 
     public OntAPropertyImpl(Node n, EnhGraph g) {
         super(n, g);
-        checkNamedProperty(this);
     }
 
     @Override

@@ -21,7 +21,6 @@ public class OntDPropertyImpl extends OntObjectImpl implements OntNDP {
 
     public OntDPropertyImpl(Node n, EnhGraph g) {
         super(n, g);
-        checkNamedProperty(this);
     }
 
     @Override

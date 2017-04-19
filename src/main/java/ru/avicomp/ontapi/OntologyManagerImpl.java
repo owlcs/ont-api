@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.shared.JenaException;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
@@ -1629,6 +1630,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         try {
             Models.setNsPrefixes(model, newPrefixes);
             RDFDataMgr.write(os, model, format.getLang());
+        } catch (JenaException e) {
+            throw new OWLOntologyStorageException("Can't save " + ontology.getOntologyID() + ". Format=" + format, e);
         } finally {
             Models.setNsPrefixes(model, initPrefixes);
         }

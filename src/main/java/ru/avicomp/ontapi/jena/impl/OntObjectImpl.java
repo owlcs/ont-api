@@ -10,10 +10,8 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.shared.InvalidPropertyURIException;
 import org.apache.jena.shared.PropertyNotFoundException;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -266,20 +264,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
             return res;
         }
         throw new OntJenaException("Not uri resource " + res);
-    }
-
-    /**
-     * To match behaviour of {@link PropertyImpl}
-     *
-     * @param res {@link Resource}, named property candidate
-     * @return {@link Property} the same resource as jena-property
-     * @see PropertyImpl#checkLocalName()
-     */
-    public static Property checkNamedProperty(Resource res) {
-        String localName = OntJenaException.notNull(res, "Null resource.").getLocalName();
-        if (localName == null || localName.isEmpty())
-            throw new InvalidPropertyURIException(res.getURI());
-        return res.as(Property.class);
     }
 
     @SafeVarargs
