@@ -232,13 +232,16 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             return OntFactory.createModel(newGraph, getConfig().loaderConfig().getPersonality());
         }
 
+        /**
+         * it does not change object state so read lock here
+         */
         @Override
         public void clearCache() {
-            lock.writeLock().lock();
+            lock.readLock().lock();
             try {
                 delegate.clearCache();
             } finally {
-                lock.writeLock().unlock();
+                lock.readLock().unlock();
             }
         }
 
