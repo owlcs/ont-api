@@ -215,7 +215,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         if (!res.isPresent()) {
             return;
         }
-        res.get().triples().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
+        res.get().triples().filter(this::canDelete).forEach(this::delete);
         // todo: clear only those objects which belong to annotation
         clearObjectsCache();
     }
@@ -363,7 +363,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         OwlObjectTriplesMap<OWLAxiom> store = getAxiomTripleStore(axiom.getAxiomType());
         Set<Triple> triples = store.get(axiom);
         store.clear(axiom);
-        triples.stream().filter(this::canDelete).forEach(triple -> getGraph().delete(triple));
+        triples.stream().filter(this::canDelete).forEach(this::delete);
         // todo: clear only those objects which belong to axiom
         clearObjectsCache();
     }
@@ -379,16 +379,26 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     /**
      * checks if it is possible to delete triple from the graph.
      *
-     * @param triple Triple
+     * @param triple {@link Triple}
      * @return true if there are no axiom which includes this triple, otherwise false.
      */
-    private boolean canDelete(Triple triple) {
+    protected boolean canDelete(Triple triple) {
         int count = 0;
         for (OwlObjectTriplesMap<? extends OWLAxiom> store : axiomsStore.values()) {
             count += store.get(triple).size();
             if (count > 1) return false;
         }
         return count == 0;
+    }
+
+    /**
+     * Deletes triple from base graph and clear gena cache for it.
+     *
+     * @param triple {@link Triple}
+     */
+    protected void delete(Triple triple) {
+        enhNodes.remove(triple.getSubject());
+        getBaseGraph().delete(triple);
     }
 
     @Override
