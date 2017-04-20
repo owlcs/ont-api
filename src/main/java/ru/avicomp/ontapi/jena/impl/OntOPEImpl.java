@@ -118,6 +118,11 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
+    public Stream<RDFList> propertyChains() {
+        return statements(OWL.propertyChainAxiom).map(Statement::getObject).map(r -> r.as(RDFList.class));
+    }
+
+    @Override
     public void setFunctional(boolean functional) {
         changeType(OWL.FunctionalProperty, functional);
     }

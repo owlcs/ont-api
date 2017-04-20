@@ -3,6 +3,7 @@ package ru.avicomp.ontapi.jena.model;
 import java.util.Collection;
 import java.util.stream.Stream;
 
+import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -14,19 +15,44 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  */
 public interface OntOPE extends OntPE {
 
+    /**
+     * Adds negative property assertion object.
+     *
+     * @param source {@link OntIndividual}
+     * @param target {@link OntIndividual}
+     * @return {@link OntNPA.ObjectAssertion}
+     */
     OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
 
     /**
      * Returns all members the right part of statement 'P owl:propertyChainAxiom (P1 ... Pn)'
-     * Note: in the result there could be repetitions.
+     * Note(1): in the result there could be repetitions.
      * Example: SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )
+     * Note(2): there could be several chains, it gets first,
+     * there is also {@link #propertyChains()} method for such cases.
      *
      * @return Stream of {@link OntOPE}s.
      */
     Stream<OntOPE> superPropertyOf();
 
+    /**
+     * Returns all sub-property-of chains.
+     *
+     * @return Stream of {@link RDFList}s
+     */
+    Stream<RDFList> propertyChains();
+
+    /**
+     * Adds new sub-property-of chain.
+     *
+     * @param chain Collection of {@link OntOPE}s
+     * @return the {@link OntStatement} ('_:this owl:propertyChainAxiom ( ... )')
+     */
     OntStatement addSuperPropertyOf(Collection<OntOPE> chain);
 
+    /**
+     * Removes all statements with predicate owl:propertyChainAxiom ('_:this owl:propertyChainAxiom ( ... )')
+     */
     void removeSuperPropertyOf();
 
     /**

@@ -1,24 +1,29 @@
 package ru.avicomp.ontapi.tests;
 
 import org.apache.log4j.Logger;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.OntologyManager;
+import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.model.OntNOP;
+import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
- * The ontology and test scenario (in some general terms) was taken from
+ * The ontologies or/and test scenarios (but in some general terms only) were taken from
  * <a href='https://github.com/Galigator/openllet'>openllet</a> (it is an alive fork of Pellet).
  * <p>
  * Created by @szuev on 19.04.2017.
  */
-public class AddRemoveAxiomsTest {
-    private static final Logger LOGGER = Logger.getLogger(AddRemoveAxiomsTest.class);
+public class FromPelletTest {
+    private static final Logger LOGGER = Logger.getLogger(FromPelletTest.class);
 
     @Test
-    public void main() throws Exception {
+    public void testAddRemoveAxioms() throws Exception {
         OWLOntologyManager m = OntManagers.createConcurrentONT();
 
         OWLDataFactory df = m.getOWLDataFactory();
@@ -124,6 +129,19 @@ public class AddRemoveAxiomsTest {
 
         ReadWriteUtils.print(o);
         o.axioms().forEach(LOGGER::info);
+    }
+
+    @Test
+    public void testPropertyChain() throws Exception {
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("propertyChain.owl"));
+        LOGGER.info(iri);
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.loadOntology(iri);
+        ReadWriteUtils.print(o);
+        o.axioms().forEach(LOGGER::info);
+        Assert.assertEquals("Incorrect count of property chains axioms", 4, o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF).count());
+        OntOPE p = o.asGraphModel().getOntEntity(OntNOP.class, "http://www.example.org/test#s");
+        Assert.assertEquals("Incorrect count of property chains", 3, p.propertyChains().count());
     }
 
 }
