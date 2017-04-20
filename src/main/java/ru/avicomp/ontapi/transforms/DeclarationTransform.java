@@ -1,7 +1,9 @@
 package ru.avicomp.ontapi.transforms;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -13,6 +15,7 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
 /**
  * Class to perform the final tuning of the ontology:
@@ -146,6 +149,7 @@ public class DeclarationTransform extends Transform {
             parseObjectOrDataProperties();
             parseIndividuals();
             parseClassAssertions();
+            parseSWRL();
         }
 
         public void parseAnnotations() {
@@ -362,6 +366,52 @@ public class DeclarationTransform extends Transform {
                 declareClass(s.getObject().asResource());
             });
         }
+
+        public void parseSWRL() {
+            // first IArg
+            processSWRL(SWRL.argument1,
+                    s -> s.getSubject().isAnon() &&
+                            Stream.of(SWRL.ClassAtom, SWRL.DatavaluedPropertyAtom, SWRL.IndividualPropertyAtom,
+                                    SWRL.DifferentIndividualsAtom, SWRL.SameIndividualAtom).anyMatch(t -> hasType(s.getSubject(), t)),
+                    r -> !hasType(r, SWRL.Variable),
+                    this::declareIndividual);
+            // second IArg
+            processSWRL(SWRL.argument2,
+                    s -> s.getSubject().isAnon() &&
+                            Stream.of(SWRL.IndividualPropertyAtom,
+                                    SWRL.DifferentIndividualsAtom, SWRL.SameIndividualAtom).anyMatch(t -> hasType(s.getSubject(), t)),
+                    r -> !hasType(r, SWRL.Variable),
+                    this::declareIndividual);
+            // class
+            processSWRL(SWRL.classPredicate,
+                    s -> s.getSubject().isAnon() && hasType(s.getSubject(), SWRL.ClassAtom),
+                    null, this::declareClass);
+            // data-range
+            processSWRL(SWRL.dataRange,
+                    s -> s.getSubject().isAnon() && hasType(s.getSubject(), SWRL.DataRangeAtom),
+                    null, this::declareDatatype);
+            // object property
+            processSWRL(SWRL.propertyPredicate,
+                    s -> s.getSubject().isAnon() && hasType(s.getSubject(), SWRL.IndividualPropertyAtom),
+                    null, this::declareObjectProperty);
+            // data property
+            processSWRL(SWRL.propertyPredicate,
+                    s -> s.getSubject().isAnon() && hasType(s.getSubject(), SWRL.DatavaluedPropertyAtom),
+                    null, this::declareDataProperty);
+        }
+
+        protected void processSWRL(Property predicateToFind,
+                                   Predicate<Statement> functionToFilter,
+                                   Predicate<Resource> functionToCheck,
+                                   Consumer<Resource> functionToDeclare) {
+            statements(null, predicateToFind, null)
+                    .filter(functionToFilter)
+                    .map(Statement::getObject)
+                    .filter(RDFNode::isResource)
+                    .map(RDFNode::asResource)
+                    .filter(r -> functionToCheck == null || functionToCheck.test(r))
+                    .forEach(functionToDeclare);
+        }
     }
 
     /**
@@ -394,7 +444,7 @@ public class DeclarationTransform extends Transform {
      * - "_:x owl:unionOf ( D1 ... Dn )"
      * - "_:x owl:intersectionOf ( C1 ... Cn )"
      * - "_:x rdf:type owl:AllDisjointProperties; owl:members ( P1 ... Pn )"
-     *
+     * <p>
      * Note: ObjectProperty & ClassExpression have more priority then DataProperty & DataRange
      */
     @SuppressWarnings("WeakerAccess")

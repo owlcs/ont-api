@@ -4,7 +4,6 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.Namespaces;
@@ -59,7 +58,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     }
 
     protected void copyOWLSettings(OWLOntologyLoaderConfiguration conf) {
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, ignoredImports(conf).stream().collect(Collectors.toCollection(ArrayList::new)));
+        this.map.put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, new ArrayList<>(ignoredImports(conf)));
         this.map.put(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION, conf.isAcceptingHTTPCompression());
         this.map.put(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, conf.getConnectionTimeout());
         this.map.put(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS, conf.isFollowRedirects());

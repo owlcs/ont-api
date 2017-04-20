@@ -130,6 +130,20 @@ public class GraphTransformersTest {
         Assert.assertNotNull(SWRL.argument2 + " should be object property", o.asGraphModel().getOntEntity(OntNOP.class, SWRL.argument2));
     }
 
+    /**
+     * The ontology was taken from <a href='https://github.com/Galigator/openllet'>Open Pellet Project</a>
+     */
+    @Test
+    public void testSWRLOntology() throws Exception {
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("anyURI-premise.rdf"));
+        LOGGER.info(iri);
+        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntology o = m.loadOntology(iri);
+        ReadWriteUtils.print(o);
+        o.axioms().forEach(LOGGER::info);
+        Assert.assertEquals("Incorrect data properties count", 7, o.dataPropertiesInSignature().count());
+    }
+
     private static void signatureTest(OWLOntology owl, OntGraphModel jena) {
         List<String> expectedClasses = owlToList(owl.classesInSignature(Imports.INCLUDED));
         List<String> actualClasses = jenaToList(jena.listClasses());
