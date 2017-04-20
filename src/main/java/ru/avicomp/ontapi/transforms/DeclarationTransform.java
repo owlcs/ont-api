@@ -16,6 +16,7 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 /**
  * Class to perform the final tuning of the ontology:
@@ -130,6 +131,7 @@ public class DeclarationTransform extends Transform {
      * - "_:x rdf:type owl:AllDifferent; owl:members ( a1 ... an )"
      * 8) Class assertions (individuals declarations):
      * - "a rdf:type C"
+     * 9) SWRL rules. see {@link SWRL}
      */
     @SuppressWarnings("WeakerAccess")
     public static class ManifestDeclarator extends BaseDeclarator {
@@ -609,7 +611,7 @@ public class DeclarationTransform extends Transform {
                     declareIndividual(subject);
                     return Res.TRUE;
                 }
-                if (isIndividual(subject)) {
+                if (isIndividual(subject) && couldBeDataProperty(property)) {
                     declareDataProperty(property);
                     return Res.TRUE;
                 }
@@ -646,7 +648,7 @@ public class DeclarationTransform extends Transform {
             return Res.UNKNOWN;
         }
 
-        public boolean mustBeDataOrObjectProperty(Resource candidate) {
+        protected boolean mustBeDataOrObjectProperty(Resource candidate) {
             // "P rdf:type owl:FunctionalProperty", "R rdf:type owl:FunctionalProperty"
             if (candidate.hasProperty(RDF.type, OWL.FunctionalProperty)) return true;
             // "C owl:hasKey (P1 ... Pm R1 ... Rn)"
@@ -661,8 +663,17 @@ public class DeclarationTransform extends Transform {
                     .map(RDFNode::asResource).anyMatch(candidate::equals);
         }
 
-        public boolean couldBeIndividual(RDFNode candidate) {
+        protected boolean couldBeIndividual(RDFNode candidate) {
             return candidate.isResource() && !candidate.canAs(RDFList.class);
+        }
+
+        protected boolean couldBeDataProperty(Property candidate) {
+            Set<RDFNode> objects = statements(null, candidate, null).map(Statement::getObject).collect(Collectors.toSet());
+            if (objects.stream().anyMatch(RDFNode::isResource)) {
+                return true;
+            }
+            List<String> datatypes = objects.stream().map(RDFNode::asLiteral).map(Literal::getDatatypeURI).distinct().collect(Collectors.toList());
+            return datatypes.size() > 1 || !XSD.xstring.getURI().equals(datatypes.get(0));
         }
 
         public void parseEquivalentClasses() {

@@ -27,21 +27,19 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 
 /**
- *
  * ONT-API WARNING:
- * This testcase never worked and does not work under OWL-API.
- * BUT it was so designed that it always passed.
- * NOW it always fails for OWL-API (if -Ddebug.use.owl=true), since it can not find any inner ontology.
- * I don't know why but it is definitely a bug of OWL-API.
- * TODO: for ONT-API there are also problems:
- * 1) in the 'all.rdf' there are some broken ontologies (wrong rdf:List, invalid IRI)
+ * This testcase has never worked before this fixing, BUT it was so designed that it always passed.
+ * There are still some problems with this test:
+ * 1) in the 'all.rdf' there are some broken ontologies (wrong rdf:List, invalid IRI),
+ * and it is OK for OWL-API, but not for ONT-API (TODO: add configuration option to not throw exception on broken axioms)
  * 2) there are also ontologies with web-resources in imports
  * 3) In ONT-API the transforms mechanism makes all graphs to be ontological consistent,
- * so there could not be axiom rdfs:subClassOf with missed class declaration (for example).
+ * so there could not be axiom rdfs:subClassOf with missed class declaration (just for example).
  * On the other hand these ontologies still could be not DL (but always FULL).
  * Example of such violation 'Not enough operands; at least two needed' for owl:intersectionOf.
  * The all.rdf is very huge and I don't want to edit it special for ONT-API.
- * By this reason I temporarily disable checking for DL.
+ * 4) OWL-API also does not always pass checking for DL.
+ * By these reasons the DL checking is temporary disabled.
  *
  * @author Matthew Horridge, The University of Manchester, Information
  *         Management Group
@@ -72,20 +70,20 @@ public class ProfileValidationTestCase extends TestBase {
         OWLClass profileIdentificationTestClass = df.getOWLClass(IRI.create(ALL_NS, "ProfileIdentificationTest"));
 
         OWLObjectProperty speciesProperty = df.getOWLObjectProperty(IRI.create(ALL_NS, "species"));
-        OWLDataProperty rdfXMLPremiseOntologyProperty = df.getOWLDataProperty(IRI.create(ALL_NS, "rdfXmlPremiseOntology"));
+        OWLAnnotationProperty rdfXMLPremiseOntologyProperty = df.getOWLAnnotationProperty(IRI.create(ALL_NS, "rdfXmlPremiseOntology"));
         // new: they forgot about fs ontology:
-        OWLDataProperty fsPremiseOntologyProperty = df.getOWLDataProperty(IRI.create(ALL_NS, "fsPremiseOntology"));
+        OWLAnnotationProperty fsPremiseOntologyProperty = df.getOWLAnnotationProperty(IRI.create(ALL_NS, "fsPremiseOntology"));
 
         int count = 0;
         List<OWLClassAssertionAxiom> axioms = testCasesOntology.classAssertionAxioms(profileIdentificationTestClass).collect(Collectors.toList());
         for (OWLClassAssertionAxiom ax : axioms) {
             LOGGER.debug(String.valueOf(ax));
             OWLNamedIndividual ind = ax.getIndividual().asOWLNamedIndividual();
-            List<OWLLiteral> values = Stream.concat(
-                    Searcher.values(testCasesOntology.dataPropertyAssertionAxioms(ind), rdfXMLPremiseOntologyProperty),
-                    Searcher.values(testCasesOntology.dataPropertyAssertionAxioms(ind), fsPremiseOntologyProperty)
-            ).collect(Collectors.toList());
-            // WARNING: OWL-API (NOT ONT-API) always fails here:
+            List<OWLLiteral> values = testCasesOntology.annotationAssertionAxioms(ind.getIRI())
+                    .filter(a -> Stream.of(rdfXMLPremiseOntologyProperty, fsPremiseOntologyProperty).anyMatch(p -> p.equals(a.getProperty())))
+                    .filter(a -> a.getValue().asLiteral().isPresent())
+                    .map(a -> a.getValue().asLiteral().get()).collect(Collectors.toList());
+
             Assert.assertFalse("No values found", values.isEmpty());
             IRI iri = ind.asOWLNamedIndividual().getIRI();
             LOGGER.debug("{}:::IRI:::{}", ++count, iri);
@@ -112,13 +110,15 @@ public class ProfileValidationTestCase extends TestBase {
         //ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
         // Always FULL:
         checkProfile(ontology, new OWL2Profile(), true);
-        // DL?
-        /*if (finder.contains(dl)) {
+        // DL? // todo: temporary disabled both for ONT-API and OWL-API:
+        /*
+        if (finder.contains(dl)) {
             checkProfile(ontology, new OWL2DLProfile(), true);
         }
         if (negativeFinder.contains(dl)) {
             checkProfile(ontology, new OWL2DLProfile(), false);
-        }*/
+        }
+        */
         // EL?
         if (finder.contains(el)) {
             checkProfile(ontology, new OWL2ELProfile(), true);

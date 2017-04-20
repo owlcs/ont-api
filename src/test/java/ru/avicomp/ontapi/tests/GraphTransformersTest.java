@@ -45,8 +45,10 @@ public class GraphTransformersTest {
 
     @Test
     public void testLoadSpinLibraries() throws Exception {
+        // todo: add custom graph-transformer to present spin sparql-queries as string literals and change test
         // this number reflects the default settings
-        final int expectedAxiomsNum = 11098;
+        final int expectedAxiomsNum = 11094;
+
         OntologyManager m = OntManagers.createONT();
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration()
                 .setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList())));
