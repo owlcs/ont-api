@@ -337,24 +337,119 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
         return base.axioms(axiomType);
     }
 
+    /**
+     * Returns all axioms that inherit the interface {@link OWLClassAxiom}
+     *
+     * @return Steam of {@link OWLAxiom}
+     */
+    public Stream<OWLClassAxiom> classAxioms() {
+        return Stream.of(OWLDisjointClassesAxiom.class,
+                OWLDisjointUnionAxiom.class,
+                OWLEquivalentClassesAxiom.class,
+                OWLSubClassOfAxiom.class)
+                .map(c -> base.axioms(c)).flatMap(Function.identity());
+    }
+
+    /**
+     * Returns all axioms that inherit the interface {@link OWLObjectPropertyAxiom}
+     *
+     * @return Steam of {@link OWLAxiom}
+     */
+    public Stream<OWLObjectPropertyAxiom> objectPropertyAxioms() {
+        return Stream.of(
+                OWLSubObjectPropertyOfAxiom.class,
+                OWLObjectPropertyDomainAxiom.class,
+                OWLObjectPropertyRangeAxiom.class,
+
+                OWLDisjointObjectPropertiesAxiom.class,
+                OWLSubPropertyChainOfAxiom.class,
+                OWLEquivalentObjectPropertiesAxiom.class,
+                OWLInverseObjectPropertiesAxiom.class,
+
+                OWLTransitiveObjectPropertyAxiom.class,
+                OWLIrreflexiveObjectPropertyAxiom.class,
+                OWLReflexiveObjectPropertyAxiom.class,
+                OWLSymmetricObjectPropertyAxiom.class,
+                OWLFunctionalObjectPropertyAxiom.class,
+                OWLInverseFunctionalObjectPropertyAxiom.class,
+                OWLAsymmetricObjectPropertyAxiom.class
+        ).map(c -> base.axioms(c)).flatMap(Function.identity());
+    }
+
+    /**
+     * Returns all axioms that inherit the interface {@link OWLDataPropertyAxiom}
+     *
+     * @return Steam of {@link OWLAxiom}
+     */
+    public Stream<OWLDataPropertyAxiom> dataPropertyAxioms() {
+        return Stream.of(
+                OWLDataPropertyDomainAxiom.class,
+                OWLDataPropertyRangeAxiom.class,
+
+                OWLDisjointDataPropertiesAxiom.class,
+                OWLSubDataPropertyOfAxiom.class,
+                OWLEquivalentDataPropertiesAxiom.class,
+
+                OWLFunctionalDataPropertyAxiom.class
+        ).map(c -> base.axioms(c)).flatMap(Function.identity());
+    }
+
+    /**
+     * Returns all axioms that inherit the interface {@link OWLIndividualAxiom}
+     *
+     * @return Steam of {@link OWLAxiom}
+     */
+    public Stream<OWLIndividualAxiom> individualAxioms() {
+        return Stream.of(
+                OWLClassAssertionAxiom.class,
+                OWLObjectPropertyAssertionAxiom.class,
+                OWLDataPropertyAssertionAxiom.class,
+
+                OWLNegativeObjectPropertyAssertionAxiom.class,
+                OWLNegativeDataPropertyAssertionAxiom.class,
+
+                OWLSameIndividualAxiom.class,
+                OWLDifferentIndividualsAxiom.class
+        ).map(c -> base.axioms(c)).flatMap(Function.identity());
+    }
+
+    /**
+     * Returns all axioms that inherit the interface {@link OWLNaryAxiom}
+     *
+     * @return Steam of {@link OWLAxiom}
+     */
+    public Stream<OWLNaryAxiom> naryAxioms() {
+        return Stream.of(
+                OWLEquivalentClassesAxiom.class,
+                OWLEquivalentDataPropertiesAxiom.class,
+                OWLEquivalentObjectPropertiesAxiom.class,
+                OWLSameIndividualAxiom.class,
+
+                OWLDisjointClassesAxiom.class,
+                OWLDisjointDataPropertiesAxiom.class,
+                OWLDisjointObjectPropertiesAxiom.class,
+                OWLDifferentIndividualsAxiom.class
+        ).map(c -> base.axioms(c)).flatMap(Function.identity());
+    }
+
     @Override
     public Stream<OWLClassAxiom> axioms(@Nonnull OWLClass clazz) {
-        return base.classAxioms().filter(a -> OwlObjects.objects(OWLClass.class, a).anyMatch(clazz::equals));
+        return classAxioms().filter(a -> OwlObjects.objects(OWLClass.class, a).anyMatch(clazz::equals));
     }
 
     @Override
     public Stream<OWLObjectPropertyAxiom> axioms(@Nonnull OWLObjectPropertyExpression property) {
-        return base.objectPropertyAxioms().filter(a -> OwlObjects.objects(OWLObjectPropertyExpression.class, a).anyMatch(property::equals));
+        return objectPropertyAxioms().filter(a -> OwlObjects.objects(OWLObjectPropertyExpression.class, a).anyMatch(property::equals));
     }
 
     @Override
     public Stream<OWLDataPropertyAxiom> axioms(@Nonnull OWLDataProperty property) {
-        return base.dataPropertyAxioms().filter(a -> OwlObjects.objects(OWLDataProperty.class, a).anyMatch(property::equals));
+        return dataPropertyAxioms().filter(a -> OwlObjects.objects(OWLDataProperty.class, a).anyMatch(property::equals));
     }
 
     @Override
     public Stream<OWLIndividualAxiom> axioms(@Nonnull OWLIndividual individual) {
-        return base.individualAxioms().filter(a -> OwlObjects.objects(OWLIndividual.class, a).anyMatch(individual::equals));
+        return individualAxioms().filter(a -> OwlObjects.objects(OWLIndividual.class, a).anyMatch(individual::equals));
     }
 
     @Override
@@ -469,7 +564,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
 
     @Override
     public Stream<OWLLogicalAxiom> logicalAxioms() {
-        return base.logicalAxioms();
+        return base.axioms(AxiomType.AXIOM_TYPES.stream().filter(AxiomType::isLogical).collect(Collectors.toSet())).map(OWLLogicalAxiom.class::cast);
     }
 
     @Override
