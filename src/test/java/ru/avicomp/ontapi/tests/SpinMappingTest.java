@@ -24,8 +24,9 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
-import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.SPINMAPL;
+import ru.avicomp.ontapi.utils.SpinModels;
 import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
@@ -216,67 +217,6 @@ public class SpinMappingTest {
         SPINModuleRegistry.get().init();
         SPINModuleRegistry.get().registerAll(source, null);
         SPINInferences.run(source, target, null, null, false, null);
-    }
-
-    public static class SPINMAPL {
-        public final static String URI = "http://topbraid.org/spin/spinmapl";
-        public final static String NS = URI + "#";
-
-        public static final Resource self = resource("self");
-        public static final Resource concatWithSeparator = resource("concatWithSeparator");
-        public static final Resource changeNamespace = resource("changeNamespace");
-        public static final Resource composeURI = resource("composeURI");
-        public static final Property separator = property("separator");
-        public static final Property template = property("template");
-        public static final Property targetNamespace = property("targetNamespace");
-
-        protected static Resource resource(String local) {
-            return ResourceFactory.createResource(NS + local);
-        }
-
-        protected static Property property(String local) {
-            return ResourceFactory.createProperty(NS + local);
-        }
-    }
-
-    public enum SpinModels {
-        SP("/spin/sp.ttl", "http://spinrdf.org/sp"),
-        SPIN("/spin/spin.ttl", "http://spinrdf.org/spin"),
-        SPL("/spin/spl.spin.ttl", "http://spinrdf.org/spl"),
-        SPIF("/spin/spif.ttl", "http://spinrdf.org/spif"),
-        SPINMAP("/spin/spinmap.spin.ttl", "http://spinrdf.org/spinmap"),
-        SMF("/spin/functions-smf.ttl", "http://topbraid.org/functions-smf"),
-        FN("/spin/functions-fn.ttl", "http://topbraid.org/functions-fn"),
-        AFN("/spin/functions-afn.ttl", "http://topbraid.org/functions-afn"),
-        SMF_BASE("/spin/sparqlmotionfunctions.ttl", "http://topbraid.org/sparqlmotionfunctions"),
-        SPINMAPL("/spin/spinmapl.spin.ttl", "http://topbraid.org/spin/spinmapl");
-
-        private final String file, uri;
-
-        SpinModels(String file, String uri) {
-            this.file = file;
-            this.uri = uri;
-        }
-
-        public static void addMappings(OntologyManager m) {
-            for (SpinModels spin : values()) {
-                m.getIRIMappers().add(FileMap.create(spin.getIRI(), spin.getFile()));
-            }
-        }
-
-        public static void addMappings(FileManager fileManager) {
-            for (SpinModels spin : values()) {
-                fileManager.getLocationMapper().addAltEntry(spin.getIRI().getIRIString(), spin.getFile().toURI().toString());
-            }
-        }
-
-        public IRI getIRI() {
-            return IRI.create(uri);
-        }
-
-        public IRI getFile() {
-            return IRI.create(ReadWriteUtils.getResourceURI(file));
-        }
     }
 
 }

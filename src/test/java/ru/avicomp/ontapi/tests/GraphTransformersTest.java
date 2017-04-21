@@ -34,6 +34,7 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.Transform;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.SpinModels;
 
 /**
  * to test {@link GraphTransformers}
@@ -52,8 +53,8 @@ public class GraphTransformersTest {
         OntologyManager m = OntManagers.createONT();
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration()
                 .setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList())));
-        SpinMappingTest.SpinModels.addMappings(m);
-        IRI iri = SpinMappingTest.SpinModels.SPINMAPL.getIRI();
+        SpinModels.addMappings(m);
+        IRI iri = SpinModels.SPINMAPL.getIRI();
         OntologyModel o = m.loadOntology(iri);
 
         Assert.assertEquals("Incorrect total number of axioms", expectedAxiomsNum, o.axioms(Imports.INCLUDED).count());
