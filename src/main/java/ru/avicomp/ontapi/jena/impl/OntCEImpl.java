@@ -778,8 +778,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     public static <CE extends CardinalityRestrictionCE> CE createCardinalityRestrictionCE(OntGraphModelImpl model, Class<CE> view, OntPE onProperty, int cardinality, OntObject object) {
         Resource res = createOnPropertyRestriction(model, onProperty);
         Literal value = ResourceFactory.createTypedLiteral(String.valueOf(cardinality), XSDDatatype.XSDnonNegativeInteger);
-        model.add(res, getCardinalityType(view).getPredicate(isQualified(object)), value);
-        if (object != null) {
+        boolean qualified = isQualified(object);
+        model.add(res, getCardinalityType(view).getPredicate(qualified), value);
+        if (qualified) {
             model.add(res, OntOPE.class.isInstance(onProperty) ? OWL.onClass : OWL.onDataRange, object);
         }
         return model.getNodeAs(res.asNode(), view);
