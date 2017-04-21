@@ -75,6 +75,13 @@ public abstract class GraphTransformers {
             return res;
         }
 
+        public Store addFirst(Maker f) {
+            Store res = new Store();
+            res.set.add(f);
+            res.set.addAll(this.set);
+            return res;
+        }
+
         public Store remove(Maker f) {
             Store res = copy();
             res.set.remove(f);

@@ -1,9 +1,22 @@
 package ru.avicomp.ontapi.utils;
 
+import org.apache.jena.enhanced.Personality;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.util.FileManager;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.IRI;
+import org.topbraid.spin.model.*;
+import org.topbraid.spin.model.impl.*;
+import org.topbraid.spin.model.update.*;
+import org.topbraid.spin.model.update.impl.*;
+import org.topbraid.spin.util.SimpleImplementation;
+import org.topbraid.spin.util.SimpleImplementation2;
 
 import ru.avicomp.ontapi.OntologyManager;
+import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
+import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 
 /**
  * Collection of all spin models (located in resources)
@@ -21,6 +34,52 @@ public enum SpinModels {
     AFN("/spin/functions-afn.ttl", "http://topbraid.org/functions-afn"),
     SMF_BASE("/spin/sparqlmotionfunctions.ttl", "http://topbraid.org/sparqlmotionfunctions"),
     SPINMAPL("/spin/spinmapl.spin.ttl", "http://topbraid.org/spin/spinmapl");
+
+    /**
+     * see {@link org.topbraid.spin.vocabulary.SP#init(Personality)}
+     */
+    public static final Personality<RDFNode> SPIN_PERSONALITY = new Personality<>(OntModelConfig.STANDARD_PERSONALITY)
+            .add(Aggregation.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SPL.Argument.asNode(), AggregationImpl.class))
+            .add(Argument.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SPL.Argument.asNode(), ArgumentImpl.class))
+            .add(Attribute.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SPL.Attribute.asNode(), AttributeImpl.class))
+            .add(Ask.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Ask.asNode(), AskImpl.class))
+            .add(Bind.class, new SimpleImplementation2(org.topbraid.spin.vocabulary.SP.Bind.asNode(), org.topbraid.spin.vocabulary.SP.Let.asNode(), BindImpl.class))
+            .add(Clear.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Clear.asNode(), ClearImpl.class))
+            .add(Construct.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Construct.asNode(), ConstructImpl.class))
+            .add(Create.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Create.asNode(), CreateImpl.class))
+            .add(org.topbraid.spin.model.update.Delete.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Delete.asNode(), org.topbraid.spin.model.update.impl.DeleteImpl.class))
+            .add(DeleteData.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.DeleteData.asNode(), DeleteDataImpl.class))
+            .add(DeleteWhere.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.DeleteWhere.asNode(), DeleteWhereImpl.class))
+            .add(Describe.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Describe.asNode(), DescribeImpl.class))
+            .add(Drop.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Drop.asNode(), DropImpl.class))
+            .add(ElementList.class, new SimpleImplementation(RDF.List.asNode(), ElementListImpl.class))
+            .add(Exists.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Exists.asNode(), ExistsImpl.class))
+            .add(Function.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SPIN.Function.asNode(), FunctionImpl.class))
+            .add(FunctionCall.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SPIN.Function.asNode(), FunctionCallImpl.class))
+            .add(Filter.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Filter.asNode(), FilterImpl.class))
+            .add(org.topbraid.spin.model.update.Insert.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Insert.asNode(), org.topbraid.spin.model.update.impl.InsertImpl.class))
+            .add(InsertData.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.InsertData.asNode(), InsertDataImpl.class))
+            .add(Load.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Load.asNode(), LoadImpl.class))
+            .add(Minus.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Minus.asNode(), MinusImpl.class))
+            .add(Modify.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Modify.asNode(), ModifyImpl.class))
+            .add(Module.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SPIN.Module.asNode(), ModuleImpl.class))
+            .add(NamedGraph.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.NamedGraph.asNode(), NamedGraphImpl.class))
+            .add(NotExists.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.NotExists.asNode(), NotExistsImpl.class))
+            .add(Optional.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Optional.asNode(), OptionalImpl.class))
+            .add(Service.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Service.asNode(), ServiceImpl.class))
+            .add(Select.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Select.asNode(), SelectImpl.class))
+            .add(SubQuery.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.SubQuery.asNode(), SubQueryImpl.class))
+            .add(SPINInstance.class, new SimpleImplementation(RDFS.Resource.asNode(), SPINInstanceImpl.class))
+            .add(Template.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SPIN.Template.asNode(), TemplateImpl.class))
+            .add(TemplateCall.class, new SimpleImplementation(RDFS.Resource.asNode(), TemplateCallImpl.class))
+            .add(TriplePath.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.TriplePath.asNode(), TriplePathImpl.class))
+            .add(TriplePattern.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.TriplePattern.asNode(), TriplePatternImpl.class))
+            .add(TripleTemplate.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.TripleTemplate.asNode(), TripleTemplateImpl.class))
+            .add(Union.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Union.asNode(), UnionImpl.class))
+            .add(Values.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Values.asNode(), ValuesImpl.class))
+            .add(Variable.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Variable.asNode(), VariableImpl.class));
+
+    public static final OntPersonality ONT_SPIN_PERSONALITY = OntModelConfig.ONT_PERSONALITY_BUILDER.build(SPIN_PERSONALITY, Configurable.Mode.LAX);
 
     private final String file, uri;
 

@@ -2,6 +2,8 @@ package ru.avicomp.ontapi.tests;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -9,6 +11,7 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
@@ -16,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
+import org.topbraid.spin.vocabulary.SP;
 
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
@@ -35,6 +39,7 @@ import ru.avicomp.ontapi.transforms.Transform;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.SpinModels;
+import ru.avicomp.ontapi.utils.SpinTransform;
 
 /**
  * to test {@link GraphTransformers}
@@ -46,19 +51,40 @@ public class GraphTransformersTest {
 
     @Test
     public void testLoadSpinLibraries() throws Exception {
-        // todo: add custom graph-transformer to present spin sparql-queries as string literals and change test
-        // this number reflects the default settings
-        final int expectedAxiomsNum = 11094;
+        int axiomsCountSPINMAPL = 993;
+        int axiomsCountTotal = 8915; // TODO: sometimes 8914, why?
+        OntologyManager m = setUpSpinManager(OntManagers.createONT());
 
-        OntologyManager m = OntManagers.createONT();
-        m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration()
-                .setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList())));
-        SpinModels.addMappings(m);
         IRI iri = SpinModels.SPINMAPL.getIRI();
-        OntologyModel o = m.loadOntology(iri);
+        OntologyModel spinmapl = m.loadOntology(iri);
+        OntologyModel spl = m.getOntology(SpinModels.SPL.getIRI());
+        Assert.assertNotNull("Can't find SPL", spl);
 
-        Assert.assertEquals("Incorrect total number of axioms", expectedAxiomsNum, o.axioms(Imports.INCLUDED).count());
-        o.axioms(Imports.INCLUDED).forEach(LOGGER::debug);
+        String splAsString = ReadWriteUtils.toString(spl.asGraphModel(), OntFormat.TURTLE);
+        LOGGER.debug(splAsString);
+
+        Assert.assertEquals("Incorrect spinmapl axioms count", axiomsCountSPINMAPL, spinmapl.getAxiomCount());
+        Assert.assertEquals("Incorrect total axioms count", axiomsCountTotal, spinmapl.axioms(Imports.INCLUDED).count());
+
+        OWLAnnotationProperty spText = m.getOWLDataFactory().getOWLAnnotationProperty(IRI.create(SP.text.getURI()));
+        OWLAnnotationAssertionAxiom axiom = spl.axioms(AxiomType.ANNOTATION_ASSERTION).filter(a -> Objects.equals(a.getProperty(), spText))
+                .findAny().orElseThrow(() -> new AssertionError("Can't find any sp:text annotation assertion"));
+        Optional<OWLLiteral> literal = axiom.getValue().asLiteral();
+        Optional<OWLAnonymousIndividual> individual = axiom.getSubject().asAnonymousIndividual();
+        Assert.assertTrue("No literal", literal.isPresent());
+        Assert.assertTrue("No individual", individual.isPresent());
+        LOGGER.info("Axioms related to query <" + literal.get().getLiteral().replace("\n", " ") + ">");
+        spl.referencingAxioms(individual.get()).forEach(LOGGER::debug);
+    }
+
+    public static OntologyManager setUpSpinManager(OntologyManager m) {
+        m.getOntologyConfigurator()
+                .setGraphTransformers(GraphTransformers.getTransformers().addFirst(SpinTransform::new))
+                .setPersonality(SpinModels.ONT_SPIN_PERSONALITY)
+                .setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList()));
+        SpinModels.addMappings(m);
+        SpinModels.addMappings(FileManager.get());
+        return m;
     }
 
     @Test

@@ -31,7 +31,7 @@ public class OntModelConfig {
             .add(RDFList.class, RDFListImpl.factory)
             .add(RDFNode.class, ResourceImpl.rdfNodeFactory);
 
-    private static final PersonalityBuilder ONT_PERSONALITY_BUILDER = new PersonalityBuilder()
+    public static final PersonalityBuilder ONT_PERSONALITY_BUILDER = new PersonalityBuilder()
             // ont-id:
             .add(OntID.class, OntIDImpl.idFactory)
 

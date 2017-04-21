@@ -1,7 +1,7 @@
 package ru.avicomp.ontapi.transforms;
 
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.jena.graph.Graph;
@@ -52,15 +52,15 @@ public class RDFSTransform extends Transform {
 
     public void parseProperties() {
         // only uri-resources:
-        Set<Resource> rest1 = statements(null, RDF.type, RDF.Property)
+        List<Resource> rest1 = statements(null, RDF.type, RDF.Property)
                 .map(Statement::getSubject)
                 .filter(RDFNode::isURIResource)
                 .map(this::processRDFProperty)
-                .filter(Objects::nonNull).collect(Collectors.toSet());
+                .filter(Objects::nonNull).collect(Collectors.toList());
         // parse the rest resources again:
-        Set<Resource> rest2 = rest1.stream()
+        List<Resource> rest2 = rest1.stream()
                 .map(this::processRDFProperty)
-                .filter(Objects::nonNull).collect(Collectors.toSet());
+                .filter(Objects::nonNull).collect(Collectors.toList());
         // declare all remaining resources as annotation properties:
         rest2.forEach(r -> declare(r, OWL.AnnotationProperty));
     }
