@@ -144,4 +144,14 @@ public class FromPelletTest {
         Assert.assertEquals("Incorrect count of property chains", 3, p.propertyChains().count());
     }
 
+    @Test
+    public void testSWRLOntology() throws Exception {
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("anyURI-premise.rdf"));
+        LOGGER.info(iri);
+        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntology o = m.loadOntology(iri);
+        ReadWriteUtils.print(o);
+        o.axioms().forEach(LOGGER::info);
+        Assert.assertEquals("Incorrect data properties count", 7, o.dataPropertiesInSignature().count());
+    }
 }

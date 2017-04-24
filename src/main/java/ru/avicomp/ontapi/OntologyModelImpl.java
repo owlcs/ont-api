@@ -2,12 +2,10 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
-import org.semanticweb.owlapi.model.parameters.Imports;
 
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
@@ -29,7 +27,7 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
 @SuppressWarnings("WeakerAccess")
 public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel {
 
-    private transient RDFChangeProcessor changer;
+    protected transient RDFChangeProcessor changer;
 
     /**
      * @param manager ontology manager
@@ -53,7 +51,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         return (OntologyManagerImpl) super.getOWLOntologyManager();
     }
 
-    private RDFChangeProcessor getRDFChangeProcessor() {
+    protected RDFChangeProcessor getRDFChangeProcessor() {
         return changer == null ? changer = new RDFChangeProcessor() : changer;
     }
 
@@ -83,44 +81,11 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         if (!manager.isConcurrent()) {
             throw new OntApiException.Unsupported("Concurrency is not allowed.");
         }
-
         return new Concurrent(this, manager.getLock());
     }
 
-    private class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
+    protected class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
 
-        private void addImport(OWLImportsDeclaration declaration) {
-            // to match behaviour of OWL-API add to graph only single IRI - either ontology IRI or specified declaration IRI.
-            OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
-            if (ont == null) {
-                getBase().getID().addImport(declaration.getIRI().getIRIString());
-                return;
-            }
-            // todo: move this logic to the manager, make this configurable (writer conf)
-            Stream<OWLDeclarationAxiom> duplicates = ont.axioms(AxiomType.DECLARATION, Imports.INCLUDED).filter(OntologyModelImpl.this::containsAxiom);
-            getBase().addImport(((InternalModelHolder) ont).getBase());
-            // remove duplicated Declaration Axioms if they are present in the imported ontology
-            duplicates.forEach(a -> getBase().remove(a));
-        }
-
-        private void removeImport(OWLImportsDeclaration declaration) {
-            // to match behaviour of OWL-API removes both declaration IRI and ontology IRI (could be different in case of renaming)
-            OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
-            getBase().getID().removeImport(declaration.getIRI().getIRIString());
-            if (ont == null) {
-                return;
-            }
-            // todo: move somewhere (manager)
-            Stream<OWLEntity> back = ont.signature(Imports.INCLUDED).filter(OntologyModelImpl.this::containsReference);
-            getBase().removeImport(((InternalModelHolder) ont).getBase());
-            // return back Declaration Axioms which is in use:
-            back.map(e -> getOWLOntologyManager().getOWLDataFactory().getOWLDeclarationAxiom(e)).forEach(a -> getBase().add(a));
-        }
-
-        /**
-         * @param change AddAxiom object
-         * @return ChangeApplied enum
-         */
         @Override
         public ChangeApplied visit(@Nonnull AddAxiom change) {
             OWLAxiom axiom = change.getAxiom();
@@ -189,6 +154,26 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             }
             setOntologyID(id);
             return SUCCESSFULLY;
+        }
+
+        protected void addImport(OWLImportsDeclaration declaration) {
+            // to match behaviour of OWL-API add to graph only single IRI - either ontology IRI or specified declaration IRI.
+            OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
+            if (ont == null) {
+                getBase().getID().addImport(declaration.getIRI().getIRIString());
+                return;
+            }
+            getBase().addImport(((InternalModelHolder) ont).getBase());
+        }
+
+        protected void removeImport(OWLImportsDeclaration declaration) {
+            // to match behaviour of OWL-API removes both declaration IRI and ontology IRI (could be different in case of renaming)
+            OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
+            getBase().getID().removeImport(declaration.getIRI().getIRIString());
+            if (ont == null) {
+                return;
+            }
+            getBase().removeImport(((InternalModelHolder) ont).getBase());
         }
     }
 

@@ -69,9 +69,10 @@ public class ImportsGraphTest extends GraphTestBase {
     @Test
     public void testGraph() {
         OntIRI baseIRI = OntIRI.create("http://test.test/add-import/base");
-        OntologyModel base = TestUtils.createModel(baseIRI);
-        OntologyManager manager = base.getOWLOntologyManager();
+        OntologyManager manager = OntManagers.createConcurrentONT();
         OWLDataFactory factory = manager.getOWLDataFactory();
+
+        OntologyModel base = manager.createOntology(baseIRI);
 
         OntIRI classIRI1 = baseIRI.addFragment("Class-1");
         OntIRI classIRI2 = baseIRI.addFragment("Class-2");
@@ -94,13 +95,15 @@ public class ImportsGraphTest extends GraphTestBase {
         baseAxioms.add(factory.getOWLDeclarationAxiom(class1));
         baseAxioms.add(factory.getOWLDeclarationAxiom(class2));
         baseAxioms.add(factory.getOWLDeclarationAxiom(dataType));
+
+        LOGGER.info("Apply axioms to the base ontology " + baseIRI);
         baseAxioms.forEach(axiom -> base.applyChanges(new AddAxiom(base, axiom)));
 
         debug(base);
 
-        LOGGER.info("Apply axioms to the base ontology " + baseIRI);
+        LOGGER.info("Add import " + baseIRI);
         OntIRI childIRI = OntIRI.create("http://test.test/add-import/child");
-        OntologyModel child = TestUtils.createModel(manager, childIRI.toOwlOntologyID());
+        OntologyModel child = manager.createOntology(childIRI);
         child.applyChanges(new AddImport(child, factory.getOWLImportsDeclaration(baseIRI)));
 
         Assert.assertEquals("Incorrect imports count", 1, child.imports().count());

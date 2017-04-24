@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.util.PriorityCollection;
@@ -650,7 +651,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * the difference: in case there are many ontologies with the same IRI it chooses the first match on version or ontology iri, not any.
-     * note: this method
      *
      * @param iri {@link IRI}
      * @return {@link OntologyModel}
@@ -1236,22 +1236,40 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             LOGGER.error("OWLOntologyManagerImpl.checkForOntologyIDChange() new:{}", o);
             throw new OWLOntologyRenameException(setID.getChangeData(), setID.getNewOntologyID());
         }
-        //renameOntology(setID.getOriginalOntologyID(), setID.getNewOntologyID());
-        //resetImportsClosureCache();
     }
 
     /**
+     * This method has the same signature as the original but totally different meaning.
+     * In ONT-API it is for making some related changes with the ontology from {@link ImportChange},
+     * not for keeping correct state of manager.
      * @param change {@link OWLOntologyChange}
      * @see OWLOntologyManagerImpl#checkForImportsChange(OWLOntologyChange)
      */
     protected void checkForImportsChange(OWLOntologyChange change) {
-        if (!change.isImportChange()) return;
-        //noinspection StatementWithEmptyBody
-        if (change instanceof AddImport) {
-            // now nothing
-        } else {
-            // nothing.
+        if (!change.isImportChange()) {
+            return;
         }
+        OWLImportsDeclaration declaration = ((ImportChange) change).getImportDeclaration();
+        OntologyModel ontology = (OntologyModel) change.getOntology();
+        // todo: make this configurable (writer conf)
+        OntologyModel importedOntology = getImportedOntology(declaration);
+        if (importedOntology == null) {
+            return;
+        }
+        Stream<OWLOntologyChange> relatedChanges;
+        if (change instanceof AddImport) {
+            // remove duplicated declarations if they are present in the imported ontology
+            relatedChanges = importedOntology.axioms(AxiomType.DECLARATION, Imports.INCLUDED)
+                    .filter(ontology::containsAxiom)
+                    .map(a -> new RemoveAxiom(ontology, a));
+        } else {
+            // return back declarations which is still in use:
+            relatedChanges = importedOntology.signature(Imports.INCLUDED)
+                    .filter(ontology::containsReference)
+                    .map(e -> getOWLDataFactory().getOWLDeclarationAxiom(e))
+                    .map(a -> new AddAxiom(ontology, a));
+        }
+        relatedChanges.forEach(ontology::applyDirectChange);
     }
 
     /**

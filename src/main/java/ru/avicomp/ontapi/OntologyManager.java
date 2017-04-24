@@ -2,11 +2,17 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.InputStream;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.io.StreamDocumentSource;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
@@ -97,6 +103,9 @@ public interface OntologyManager extends OWLOntologyManager {
     @Override
     boolean contains(@Nonnull OWLOntologyID id);
 
+    /**
+     * @see OWLOntologyManager#getImportedOntology(OWLImportsDeclaration)
+     */
     @Nullable
     OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration);
 
@@ -119,42 +128,128 @@ public interface OntologyManager extends OWLOntologyManager {
     @Override
     OntologyModel createOntology(@Nonnull OWLOntologyID id);
 
+    /**
+     * @see OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)
+     */
+    @Override
+    OntologyModel copyOntology(@Nonnull OWLOntology toCopy, @Nonnull OntologyCopy settings) throws OWLOntologyCreationException;
+
+    /**
+     * @see OWLOntologyManager#loadOntology(IRI)
+     */
     @Override
     OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException;
 
+    /**
+     * @see OWLOntologyManager#loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)
+     */
+    @Override
+    OntologyModel loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source,
+                                                   @Nonnull OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
+
+    /**
+     * @see OWLOntologyManager#createOntology()
+     */
     default OntologyModel createOntology() {
         return createOntology(new OWLOntologyID());
     }
 
+    /**
+     * @see OWLOntologyManager#createOntology(IRI)
+     */
     default OntologyModel createOntology(@Nullable IRI iri) {
         return createOntology(new OWLOntologyID(Optional.ofNullable(iri), Optional.empty()));
     }
 
-    default OntGraphModel getGraphModel(@Nullable String uri, @Nullable String version) {
-        OWLOntologyID id = new OWLOntologyID(Optional.ofNullable(uri).map(IRI::create), Optional.ofNullable(version).map(IRI::create));
+    /**
+     * @see OWLOntologyManager#loadOntologyFromOntologyDocument(OWLOntologyDocumentSource)
+     */
+    @Override
+    default OntologyModel loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source)
+            throws OWLOntologyCreationException {
+        return loadOntologyFromOntologyDocument(source, getOntologyLoaderConfiguration());
+    }
+
+    /**
+     * @see OWLOntologyManager#loadOntologyFromOntologyDocument(IRI)
+     */
+    @Override
+    default OntologyModel loadOntologyFromOntologyDocument(@Nonnull IRI iri) throws OWLOntologyCreationException {
+        return loadOntologyFromOntologyDocument(new IRIDocumentSource(iri, null, null));
+    }
+
+    /**
+     * @see OWLOntologyManager#loadOntologyFromOntologyDocument(File)
+     */
+    @Override
+    default OntologyModel loadOntologyFromOntologyDocument(@Nonnull File file) throws OWLOntologyCreationException {
+        return loadOntologyFromOntologyDocument(new FileDocumentSource(file));
+    }
+
+    /**
+     * @see OWLOntologyManager#loadOntologyFromOntologyDocument(InputStream)
+     */
+    @Override
+    default OntologyModel loadOntologyFromOntologyDocument(@Nonnull InputStream input) throws OWLOntologyCreationException {
+        return loadOntologyFromOntologyDocument(new StreamDocumentSource(input));
+    }
+
+    /**
+     * Gets {@link OntGraphModel} by iri and version iri
+     *
+     * @param iri     String, nullable
+     * @param version String, nullable
+     * @return {@link OntGraphModel}
+     */
+    default OntGraphModel getGraphModel(@Nullable String iri, @Nullable String version) {
+        OWLOntologyID id = new OWLOntologyID(Optional.ofNullable(iri).map(IRI::create), Optional.ofNullable(version).map(IRI::create));
         OntologyModel res = getOntology(id);
         return res == null ? null : res.asGraphModel();
     }
 
-    default OntGraphModel getGraphModel(@Nullable String uri) {
-        return getGraphModel(uri, null);
+    /**
+     * Gets {@link OntGraphModel} by iri
+     *
+     * @param iri String, nullable
+     * @return {@link OntGraphModel}
+     */
+    default OntGraphModel getGraphModel(@Nullable String iri) {
+        return getGraphModel(iri, null);
     }
 
-    default OntGraphModel createGraphModel(@Nullable String uri, @Nullable String version) {
-        OWLOntologyID id = new OWLOntologyID(Optional.ofNullable(uri).map(IRI::create), Optional.ofNullable(version).map(IRI::create));
+    /**
+     * Creates {@link OntGraphModel} with specified iri and version iri
+     *
+     * @param iri     String, nullable
+     * @param version String, nullable
+     * @return {@link OntGraphModel}
+     */
+    default OntGraphModel createGraphModel(@Nullable String iri, @Nullable String version) {
+        OWLOntologyID id = new OWLOntologyID(Optional.ofNullable(iri).map(IRI::create), Optional.ofNullable(version).map(IRI::create));
         return createOntology(id).asGraphModel();
     }
 
-    default OntGraphModel createGraphModel(@Nullable String uri) {
-        return createGraphModel(uri, null);
+    /**
+     * Creates {@link OntGraphModel} with specified iri
+     *
+     * @param iri String, nullable
+     * @return {@link OntGraphModel}
+     */
+    default OntGraphModel createGraphModel(@Nullable String iri) {
+        return createGraphModel(iri, null);
     }
 
+    /**
+     * Returns all {@link OntGraphModel}s as stream.
+     *
+     * @return Stream of {@link OntGraphModel}
+     */
     default Stream<OntGraphModel> models() {
         return ontologies().map(OntologyModel.class::cast).map(OntologyModel::asGraphModel);
     }
 
     /**
-     * The core of manager.
+     * The core of the manager.
      * The factory to create and load ontologies.
      */
     interface Factory extends OWLOntologyFactory {
