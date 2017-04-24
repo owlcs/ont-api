@@ -18,10 +18,11 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.transforms.Transform;
 
 /**
- * To replace spin rdf:List with string.
- * For test purposes only.
+ * To replace spin queries with its string representations (it is alternative way to describe spin-sparql-query).
+ * By default a spin query is represented in the bulky form which consists of several rdf:List.
+ * The short (string, sp:text) form allows to present the query as an axiom also.
  * <p>
- * Example of such list:
+ * Example of a query:
  * <pre> {@code
  * spin:body [
  *    rdf:type sp:Select ;
@@ -47,14 +48,16 @@ import ru.avicomp.ontapi.transforms.Transform;
  *      ) ;
  *  ] ;
  * } </pre>
- * This will be replaced by
+ * And it will be replaced with:
  * <pre> {@code
  * spin:body [ a        sp:Select ;
  *             sp:text  "SELECT ((COUNT(?subject)) AS ?result)\nWHERE {\n    ?subject spin:_arg1 spin:_arg2 .\n}"
  *           ] ;
  * }</pre>
  * <p>
- * Note: before processing add links to {@link org.apache.jena.util.FileManager} to avoid recourse to the internet.
+ * Note(1): For test purposes only.
+ * Note(2): before processing add links to {@link org.apache.jena.util.FileManager} to avoid recourse to web.
+ * Note(3): Be warned: Spin-API (through {@link SP}) modifies standard personality {@link org.apache.jena.enhanced.BuiltinPersonalities#model}.
  * <p>
  * Created by szuev on 21.04.2017.
  */

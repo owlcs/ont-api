@@ -121,9 +121,7 @@ public class Models {
     }
 
     /**
-     * gets all statements which have the specified resource as subject,
-     * then and all statements which have as subject all objects from the top level statements collected in the previous step.
-     * then and all other related statements recursively.
+     * Recursively gets all statements related to the specified subject.
      * Note: rdf:List may content a large number of members (1000+).
      *
      * @param inModel Resource with associated model inside.
@@ -149,12 +147,13 @@ public class Models {
             return;
         }
         root.listProperties().forEachRemaining(statement -> {
-            RDFNode obj = statement.getObject();
-            if (res.stream().anyMatch(s -> obj.equals(s.getSubject()))) // to avoid cycles
-                return;
-            res.add(statement);
-            if (obj.isAnon()) {
-                calcAssociatedStatements(obj.asResource(), res);
+            try {
+                if (!statement.getObject().isAnon() ||
+                        res.stream().anyMatch(s -> statement.getObject().equals(s.getSubject()))) // to avoid cycles
+                    return;
+                calcAssociatedStatements(statement.getObject().asResource(), res);
+            } finally {
+                res.add(statement);
             }
         });
     }

@@ -453,7 +453,7 @@ public class DeclarationTransform extends Transform {
     public static class ReasonerDeclarator extends BaseDeclarator {
         protected static final int MAX_TAIL_COUNT = 10;
         protected static final boolean PREFER_ANNOTATIONS_IN_UNCLEAR_CASES_DEFAULT = true;
-        public Map<Statement, Function<Statement, Res>> rerun = new HashMap<>();
+        public Map<Statement, Function<Statement, Res>> rerun = new LinkedHashMap<>();
 
         protected boolean annotationsOpt;
 
@@ -473,6 +473,11 @@ public class DeclarationTransform extends Transform {
         }
 
         @Override
+        public Stream<Statement> statements(Resource s, Property p, RDFNode o) {
+            return super.statements(s, p, o).sorted(Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
+        }
+
+        @Override
         public void perform() {
             try {
                 parseDataAndObjectRestrictions();
@@ -488,7 +493,7 @@ public class DeclarationTransform extends Transform {
 
                 parseTail();
             } finally { // possibility to rerun
-                rerun = new HashMap<>();
+                rerun = new LinkedHashMap<>();
             }
         }
 
@@ -497,7 +502,7 @@ public class DeclarationTransform extends Transform {
             // "_:x rdf:type owl:Restriction; owl:onProperty R; owl:someValuesFrom D"
             Stream.of(OWL.allValuesFrom, OWL.someValuesFrom)
                     .map(p -> statements(null, p, null)) // add sorting to process punnings in restrictions
-                    .flatMap(Function.identity()).sorted(Models.STATEMENT_COMPARATOR_IGNORE_BLANK).forEach(s -> {
+                    .flatMap(Function.identity()).forEach(s -> {
                 if (Res.UNKNOWN.equals(dataAndObjectRestrictions(s))) {
                     rerun.put(s, this::dataAndObjectRestrictions);
                 }
@@ -818,8 +823,8 @@ public class DeclarationTransform extends Transform {
         }
 
         public void parseTail() {
-            Map<Statement, Function<Statement, Res>> prev = new HashMap<>(rerun);
-            Map<Statement, Function<Statement, Res>> next = new HashMap<>();
+            Map<Statement, Function<Statement, Res>> prev = new LinkedHashMap<>(rerun);
+            Map<Statement, Function<Statement, Res>> next = new LinkedHashMap<>();
             int count = 0;
             while (count++ < MAX_TAIL_COUNT) {
                 for (Statement s : prev.keySet()) {
@@ -834,7 +839,7 @@ public class DeclarationTransform extends Transform {
                     return;
                 }
                 prev = next;
-                next = new HashMap<>();
+                next = new LinkedHashMap<>();
             }
             LOGGER.warn("Can't parse statements " + next.keySet());
         }
