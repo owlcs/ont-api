@@ -30,6 +30,7 @@ import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Graphs;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.Transform;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
@@ -242,7 +243,8 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                         throw ex;
                     }
                 }
-                // null key in case of anonymous ontology. But: only one anonymous is allowed (as root of imports tree).
+                // null key in case of anonymous ontology.
+                // But: only one anonymous is allowed (as root of imports tree), if there is no mapping in manager.
                 graphs.put(primary.getURI(), primary);
                 // first expand graphs map by creating primary model:
                 OntologyModel res = OntApiException.notNull(createModel(primary, manager, config), "Should never happen");
@@ -280,7 +282,12 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                     LOGGER.debug("Set up ontology <{}>.", info.name());
                 }
                 boolean isPrimary = graphs.size() == 1;
-                Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config, isPrimary);
+                Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
+                if (isPrimary && config.isPerformTransformation()) {
+                    if (LOGGER.isDebugEnabled())
+                        LOGGER.debug("Perform graph transformations.");
+                    transform(graph, new HashSet<>(), config.getGraphTransformers());
+                }
                 OntFormat format = info.getFormat();
                 OntologyManagerImpl.ModelConfig modelConfig = ((OntologyManagerImpl) manager).createModelConfig();
                 modelConfig.setLoaderConf(config);
@@ -312,15 +319,14 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         /**
          * Assembles the {@link UnionGraph} from the inner collection ({@link #graphs}).
          *
-         * @param node      {@link GraphInfo}
-         * @param seen      Collection of URIs to avoid cycles in imports.
-         * @param manager   {@link OntologyManager}
-         * @param config    {@link OntLoaderConfiguration}
-         * @param transform performs graph-transformation on the specified graph if true.
+         * @param node    {@link GraphInfo}
+         * @param seen    Collection of URIs to avoid recursion infinite loops in imports (ontology A imports ontology B, which in turn imports A).
+         * @param manager {@link OntologyManager} the manager
+         * @param config  {@link OntLoaderConfiguration} the config
          * @return {@link Graph}
          * @throws OntApiException if something wrong.
          */
-        protected Graph makeUnionGraph(GraphInfo node, Collection<String> seen, OntologyManager manager, OntLoaderConfiguration config, boolean transform) {
+        protected Graph makeUnionGraph(GraphInfo node, Collection<String> seen, OntologyManager manager, OntLoaderConfiguration config) {
             // it is important to have the same order on each call
             Set<GraphInfo> children = new LinkedHashSet<>();
             Graph main = node.getGraph();
@@ -328,7 +334,9 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             List<String> imports = node.getImports().stream().sorted().collect(Collectors.toCollection(ArrayList::new));
             for (int i = 0; i < imports.size(); i++) {
                 String uri = imports.get(i);
-                if (seen.contains(uri)) continue;
+                if (seen.contains(uri)) {
+                    continue;
+                }
                 OWLImportsDeclaration declaration = manager.getOWLDataFactory().getOWLImportsDeclaration(IRI.create(uri));
                 if (config.isIgnoredImport(declaration.getIRI())) {
                     if (LOGGER.isDebugEnabled()) {
@@ -369,25 +377,27 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 }
             }
             UnionGraph res = new UnionGraph(main);
-            children.forEach(ch -> res.addGraph(makeUnionGraph(ch, seen, manager, config, transform)));
-            return transform ? transform(res, config) : res;
+            children.forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), manager, config)));
+            return res;
         }
 
         /**
-         * Makes graph transformation if it is allowed in the settings.
-         * All sub-graphs should be already transformed.
+         * Recursively makes graph transformation.
          *
-         * @param graph         {@link Graph}
-         * @param configuration {@link OntLoaderConfiguration}
+         * @param graph        {@link Graph}, in most cases it is {@link UnionGraph}.
+         * @param processed    Set of base {@link Graph}s to not make transformation multiple times.
+         * @param transformers {@link GraphTransformers.Store} the collection of transformers.
          * @return {@link Graph}
          * @see Transform
          */
-        protected Graph transform(Graph graph, OntLoaderConfiguration configuration) {
-            if (configuration.isPerformTransformation()) {
-                if (LOGGER.isDebugEnabled())
-                    LOGGER.debug("Perform graph transformations.");
-                configuration.getGraphTransformers().actions(graph).forEach(Transform::process);
+        protected Graph transform(Graph graph, Set<Graph> processed, GraphTransformers.Store transformers) {
+            if (graph instanceof UnionGraph) {
+                ((UnionGraph) graph).getUnderlying().graphs().forEach(g -> transform(g, processed, transformers));
             }
+            Graph base = Graphs.getBase(graph);
+            if (processed.contains(base)) return graph;
+            transformers.actions(graph).forEach(Transform::process);
+            processed.add(base);
             return graph;
         }
 

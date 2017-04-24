@@ -51,8 +51,8 @@ public class GraphTransformersTest {
 
     @Test
     public void testLoadSpinLibraries() throws Exception {
-        int axiomsCountSPINMAPL = 993;
-        int axiomsCountTotal = 8888;
+        int axiomsCountSPINMAPL = 897;
+        int axiomsCountTotal = 8221;
         OntologyManager m = setUpSpinManager(OntManagers.createONT());
 
         IRI iri = SpinModels.SPINMAPL.getIRI();

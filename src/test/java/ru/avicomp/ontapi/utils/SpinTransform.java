@@ -57,10 +57,12 @@ import ru.avicomp.ontapi.transforms.Transform;
  * <p>
  * Note(1): For test purposes only.
  * Note(2): before processing add links to {@link org.apache.jena.util.FileManager} to avoid recourse to web.
- * Note(3): Be warned: Spin-API (through {@link SP}) modifies standard personality {@link org.apache.jena.enhanced.BuiltinPersonalities#model}.
+ * Note(3): Be warned: Spin-API (through {@link SP}) modifies standard personality {@link org.apache.jena.enhanced.BuiltinPersonalities#model}
+ * (and that's why it is possible to find queries without specifying correct model personality).
  * <p>
  * Created by szuev on 21.04.2017.
  */
+@SuppressWarnings("WeakerAccess")
 public class SpinTransform extends Transform {
 
 
@@ -72,8 +74,8 @@ public class SpinTransform extends Transform {
     public void perform() {
         List<Query> queries = queries().collect(Collectors.toList());
         String name = Graphs.getName(getBaseGraph());
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("[{}]queries count: {}", name, queries.size());
+        if (!queries.isEmpty() && LOGGER.isDebugEnabled()) {
+            LOGGER.debug("[{}] queries count: {}", name, queries.size());
         }
         queries.forEach(query -> {
             Literal literal = ResourceFactory.createTypedLiteral(String.valueOf(query));
