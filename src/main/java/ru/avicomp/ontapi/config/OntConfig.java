@@ -18,6 +18,16 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
  * This is the global config and also the builder for the separated load and write configs.
  * It overrides OWL-API {@link OntologyConfigurator} and provides access to the new (ONT-API) settings.
  * Note: this configuration is mutable, while load and write configs are not.
+ * Additional (new) ONT-API options (getters):
+ * - {@link #getPersonality()}
+ * - {@link #getGraphTransformers()}
+ * - {@link #isPerformTransformation()}
+ * - {@link #getSupportedSchemes()}
+ * - {@link #isAllowReadDeclarations()}
+ * - {@link #isAllowBulkAnnotationAssertions()}
+ * - {@link #isIgnoreAnnotationAxiomOverlaps()}
+ * - {@link #isUseOWLParsersToLoad()}
+ * - {@link #isControlImports()}
  *
  * @see OntSettings
  * @see OntLoaderConfiguration
@@ -41,7 +51,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config setter.
+     * ONT-API(NEW) manager load config setter.
      *
      * @see OntLoaderConfiguration#setPersonality(OntPersonality)
      */
@@ -51,7 +61,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config getter.
+     * ONT-API(NEW) manager load config getter.
      *
      * @see OntLoaderConfiguration#getPersonality()
      */
@@ -60,7 +70,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config setter.
+     * ONT-API(NEW) manager load config setter.
      *
      * @see OntLoaderConfiguration#setGraphTransformers(GraphTransformers.Store)
      */
@@ -70,7 +80,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config getter.
+     * ONT-API(NEW) manager load config getter.
      *
      * @see OntLoaderConfiguration#getGraphTransformers()
      */
@@ -79,7 +89,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config getter.
+     * ONT-API(NEW) manager load config getter.
      *
      * @see OntLoaderConfiguration#getSupportedSchemes()
      */
@@ -89,7 +99,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config setter.
+     * ONT-API(NEW) manager load config setter.
      *
      * @see OntLoaderConfiguration#setSupportedSchemes(List)
      */
@@ -98,7 +108,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config getter.
+     * ONT-API(NEW) manager load config getter.
      *
      * @see OntLoaderConfiguration#isPerformTransformation()
      */
@@ -107,7 +117,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config setter.
+     * ONT-API(NEW) manager load config setter.
      *
      * @see OntLoaderConfiguration#setPerformTransformation(boolean)
      */
@@ -116,7 +126,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config getter.
+     * ONT-API(NEW) manager load config getter.
      *
      * @see OntLoaderConfiguration#isAllowBulkAnnotationAssertions()
      */
@@ -125,7 +135,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config setter.
+     * ONT-API(NEW) manager load config setter.
      *
      * @see OntLoaderConfiguration#setAllowBulkAnnotationAssertions(boolean)
      */
@@ -134,7 +144,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config getter.
+     * ONT-API(NEW) manager load config getter.
      *
      * @see OntLoaderConfiguration#isAllowReadDeclarations()
      */
@@ -143,7 +153,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config setter.
+     * ONT-API(NEW) manager load config setter.
      *
      * @see OntLoaderConfiguration#setAllowReadDeclarations(boolean)
      */
@@ -152,7 +162,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config getter.
+     * ONT-API(NEW) manager load config getter.
      *
      * @see OntLoaderConfiguration#isIgnoreAnnotationAxiomOverlaps()
      */
@@ -161,7 +171,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config setter.
+     * ONT-API(NEW) manager load config setter.
      *
      * @see OntLoaderConfiguration#setIgnoreAnnotationAxiomOverlaps(boolean)
      */
@@ -170,7 +180,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config getter.
+     * ONT-API(NEW) manager load config getter.
      *
      * @see OntLoaderConfiguration#isUseOWLParsersToLoad()
      */
@@ -179,12 +189,30 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager config setter.
+     * ONT-API(NEW) manager load config setter.
      *
      * @see OntLoaderConfiguration#setUseOWLParsersToLoad(boolean)
      */
     public OntConfig setUseOWLParsersToLoad(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD, b);
+    }
+
+    /**
+     * ONT-API(NEW) manager write config getter.
+     *
+     * @see OntWriterConfiguration#isControlImports()
+     */
+    public boolean isControlImports() {
+        return (boolean) get(OntSettings.ONT_API_WRITE_CONF_CONTROL_IMPORTS);
+    }
+
+    /**
+     * ONT-API(NEW) manager write config setter.
+     *
+     * @see OntWriterConfiguration#setControlImports(boolean)
+     */
+    public OntConfig setControlImports(boolean b) {
+        return put(OntSettings.ONT_API_WRITE_CONF_CONTROL_IMPORTS, b);
     }
 
     /**
@@ -204,7 +232,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * OWL-API(NEW) manager config setter.
+     * OWL-API(NEW) manager load config setter.
      * This is NOT override method.
      * The is NO such method in the original OWL-API ({@link OntologyConfigurator}) class.
      *
@@ -216,7 +244,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * OWL-API(NEW) manager config getter.
+     * OWL-API(NEW) manager load config getter.
      * This is NOT override method.
      * The is NO such method in the original OWL-API ({@link OntologyConfigurator}) class.
      *

@@ -8,7 +8,8 @@ import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 
 /**
  * Extended {@link OWLOntologyWriterConfiguration}.
- * Currently there is no new options and it is mostly modified copy-paste from the original OWL-API class.
+ * Currently there is only one ONT-API (new) options,
+ * all other content is mostly modified copy-paste from the original OWL-API class.
  * Note: this config is immutable.
  * @see OntConfig
  */
@@ -41,6 +42,34 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
         OntWriterConfiguration copy = copy(this);
         copy.map.put(key, o);
         return copy;
+    }
+
+    /**
+     * ONT-API getter.
+     * by default it is true.
+     *
+     * @return true if imports control is allowed.
+     * @see #setControlImports(boolean)
+     */
+    public boolean isControlImports() {
+        return (boolean) get(OntSettings.ONT_API_WRITE_CONF_CONTROL_IMPORTS);
+    }
+
+    /**
+     * ONT-API config setter to change imports control option setting.
+     * This option manages behaviour on adding and removing imports.
+     * If it is true then:
+     * - while adding import all duplicated declaration are removed from the source ontology,
+     * if the imported ontology contains the same declarations.
+     * - while removing import the missed declarations will be restored if they are used.
+     * If it is false the source ontology stays unchanged.
+     *
+     * @param b boolean, to enable or disable imports control.
+     * @return this or new {@link OntWriterConfiguration} instance.
+     * @see #isControlImports()
+     */
+    public OntWriterConfiguration setControlImports(boolean b) {
+        return set(OntSettings.ONT_API_WRITE_CONF_CONTROL_IMPORTS, b);
     }
 
     /**

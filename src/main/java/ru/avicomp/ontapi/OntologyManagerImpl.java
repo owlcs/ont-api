@@ -1242,6 +1242,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * This method has the same signature as the original but totally different meaning.
      * In ONT-API it is for making some related changes with the ontology from {@link ImportChange},
      * not for keeping correct state of manager.
+     *
      * @param change {@link OWLOntologyChange}
      * @see OWLOntologyManagerImpl#checkForImportsChange(OWLOntologyChange)
      */
@@ -1251,7 +1252,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
         OWLImportsDeclaration declaration = ((ImportChange) change).getImportDeclaration();
         OntologyModel ontology = (OntologyModel) change.getOntology();
-        // todo: make this configurable (writer conf)
+        OWLOntologyID id = ontology.getOntologyID();
+        Optional<OntWriterConfiguration> conf = content.get(id).map(OntInfo::getModelConfig)
+                .map(ConfigProvider.Config::writerConfig);
+        if (!conf.isPresent() || !conf.get().isControlImports()) {
+            return;
+        }
         OntologyModel importedOntology = getImportedOntology(declaration);
         if (importedOntology == null) {
             return;
@@ -1263,7 +1269,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                     .filter(ontology::containsAxiom)
                     .map(a -> new RemoveAxiom(ontology, a));
         } else {
-            // return back declarations which is still in use:
+            // return back declarations which are still in use:
             relatedChanges = importedOntology.signature(Imports.INCLUDED)
                     .filter(ontology::containsReference)
                     .map(e -> getOWLDataFactory().getOWLDeclarationAxiom(e))
