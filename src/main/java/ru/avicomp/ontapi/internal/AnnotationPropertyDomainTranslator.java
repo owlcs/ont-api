@@ -16,7 +16,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLAnnotationPropertyDomainAxiom, OntNAP> {
+public class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLAnnotationPropertyDomainAxiom, OntNAP> {
     @Override
     Class<OntNAP> getView() {
         return OntNAP.class;

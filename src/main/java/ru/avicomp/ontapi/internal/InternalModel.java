@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
 
@@ -93,6 +94,32 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     public OWLOntologyWriterConfiguration writerConfig() {
         return getConfig().writerConfig();
+    }
+
+    /**
+     * Since in ONT-API we use another kind of lock this method is disabled.
+     *
+     * @see ru.avicomp.ontapi.jena.ConcurrentGraph
+     */
+    @Override
+    public Lock getLock() {
+        throw new OntApiException.Unsupported();
+    }
+
+    /**
+     * @see this#getLock()
+     */
+    @Override
+    public void enterCriticalSection(boolean requestReadLock) {
+        throw new OntApiException.Unsupported();
+    }
+
+    /**
+     * @see this#getLock()
+     */
+    @Override
+    public void leaveCriticalSection() {
+        throw new OntApiException.Unsupported();
     }
 
     public Stream<OWLImportsDeclaration> importDeclarations() {
@@ -205,7 +232,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     public void add(OWLAnnotation annotation) {
         WriteHelper.addAnnotations(getID(), Stream.of(annotation));
-        // todo: clear only those objects which belong to annotation
+        // todo: clear only those objects which belong to the annotation
         clearObjectsCache();
     }
 
@@ -216,7 +243,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             return;
         }
         res.get().triples().filter(this::canDelete).forEach(this::delete);
-        // todo: clear only those objects which belong to annotation
+        // todo: clear only those objects which belong to the annotation
         clearObjectsCache();
     }
 
@@ -290,7 +317,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         Set<Triple> triples = store.get(axiom);
         store.clear(axiom);
         triples.stream().filter(this::canDelete).forEach(this::delete);
-        // todo: clear only those objects which belong to axiom
+        // todo: clear only those objects which belong to the axiom
         clearObjectsCache();
     }
 

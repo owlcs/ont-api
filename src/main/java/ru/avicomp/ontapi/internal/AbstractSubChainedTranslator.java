@@ -17,7 +17,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by @szuev on 18.10.2016.
  */
-abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, O extends OntObject> extends AxiomTranslator<Axiom> {
+public abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, O extends OntObject> extends AxiomTranslator<Axiom> {
 
     abstract OWLObject getSubject(Axiom axiom);
 

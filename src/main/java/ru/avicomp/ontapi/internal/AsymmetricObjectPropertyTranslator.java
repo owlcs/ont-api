@@ -14,7 +14,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  *
  * Created by @szuev on 18.10.2016.
  */
-class AsymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLAsymmetricObjectPropertyAxiom, OntOPE> {
+public class AsymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLAsymmetricObjectPropertyAxiom, OntOPE> {
 
     @Override
     Resource getType() {

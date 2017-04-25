@@ -15,7 +15,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * <p>
  * Created by @szuev on 29.09.2016.
  */
-class FunctionalObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLFunctionalObjectPropertyAxiom, OntOPE> {
+public class FunctionalObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLFunctionalObjectPropertyAxiom, OntOPE> {
     @Override
     Resource getType() {
         return OWL.FunctionalProperty;

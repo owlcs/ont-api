@@ -19,7 +19,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * <p>
  * Created by @szuev on 18.10.2016.
  */
-class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
+public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
     @Override
     public void write(OWLDatatypeDefinitionAxiom axiom, OntGraphModel model) {
         WriteHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom.annotations());

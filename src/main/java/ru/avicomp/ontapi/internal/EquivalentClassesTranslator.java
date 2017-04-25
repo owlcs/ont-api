@@ -21,7 +21,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
  * <p>
  * Created by @szuev on 29.09.2016.
  */
-class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntCE> {
+public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntCE> {
     @Override
     public Property getPredicate() {
         return OWL.equivalentClass;

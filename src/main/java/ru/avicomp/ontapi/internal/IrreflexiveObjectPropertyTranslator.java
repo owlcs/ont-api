@@ -16,7 +16,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * example: :ob-prop-2 rdf:type owl:ObjectProperty , owl:IrreflexiveProperty .
  * Created by @szuev on 18.10.2016.
  */
-class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLIrreflexiveObjectPropertyAxiom, OntOPE> {
+public class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLIrreflexiveObjectPropertyAxiom, OntOPE> {
     @Override
     Resource getType() {
         return OWL.IrreflexiveProperty;

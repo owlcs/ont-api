@@ -26,13 +26,14 @@ Similarly, the writing of axioms goes in triplet form.
 In ONT-API axioms are not stored in separately if not to take into account the cache.
 In the ONT-API reading and writing an ontology from a file or a stream happen through Jena,
 however, the original OWL-API mechanisms to read/write also remain working, 
-and even are used explicitly if the data format is not supported by Jena (for example Functional Syntax, Manchester Syntax, OWL/RDF, etc).
+and even are used explicitly if the data format is not supported by Jena (e.g. Functional Syntax, Manchester Syntax, OWL/RDF, etc).
 ONT-API supports all OWL-API features and options, but they are somewhat expanded. 
 Instead of the original OWL-API interfaces in ONT-API there are overridden with several additional methods.
 Also there are new configuration options and the policy with exceptions has been changed a little.
 Nevertheless, it is always possible to use the original OWL-API or its parts in conjunction with ONT-API, 
 for example, you can copy an ontology from the ONT-API manager to the OWL-API manager and vice versa.
-The project contains tests from the OWL-API-contract, which show the working capacity of ONT-API.
+The project contains tests from the OWL-API-contract, which show the working capacity of ONT-API. 
+Also there are ONT-API specific tests.
 
 ## Structure (briefly)
 * The root of project (package __ru.avicomp.ontapi__) contains the core classes. Some of them are:  
@@ -48,7 +49,23 @@ The project contains tests from the OWL-API-contract, which show the working cap
     * _OntConfig_ it is overridden  __org.semanticweb.owlapi.model.OntologyConfigurator__, global manager config.
     * _OntLoaderConfiguration_ - overridden __org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration__.
     * _OntWriterConfiguration_ - overridden __org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration__.  
-* Package __ru.avicomp.ontapi.jena__ is a separated subsystem with _ru.avicomp.ontapi.jena.model.OntGraphModel_ which 
-is analogue of __org.apache.jena.ontology.OntModel__ but for OWL-2. This subsystem can be used autonomously.
-* Package __ru.avicomp.ontapi.transforms__ is a separated subsystem also. It puts in order any graph (RDFS, OWL1) before using the main API. 
-This little subsystem can be used autonomously.
+* Package __ru.avicomp.ontapi.jena__ is a separated subsystem with _ru.avicomp.ontapi.jena.model.OntGraphModel_ inside which 
+is analogue of __org.apache.jena.ontology.OntModel__ but for OWL-2. This subsystem is a core of ONT-API and can be used autonomously. 
+Some of the basic components are:
+    * _ru.avicomp.ontapi.jena.model.OntGraphModel_ is an extended __org.apache.jena.rdf.model.Model__, the facade and wrapper to the Graph.
+    * _ru.avicomp.ontapi.jena.model.OntStatement_ is an extended __org.apache.jena.rdf.model.Statement__, which is linked to model. 
+    * _ru.avicomp.ontapi.jena.model.OntObject_. It is our analogue of __org.apache.jena.ontology.OntResource__, 
+    the basis of any OWL (jena) objects, which are also contained in _model_ package.
+    * _ru.avicomp.ontapi.jena.model.OntEntity_. It is an _OntObject_ for named resources (OWL-entities): class, datatype, 
+    annotation property, data property, object property and named individual.
+    * _ru.avicomp.ontapi.jena.impl.configuration.OntPersonality_ is an extended __org.apache.jena.enhanced.Personality__, 
+    the interface/implementation mapping, which provides a kind of polymorphism on Jena resources. Using this mechanism we solve the problem of 'illegal punnings'.
+    * _ru.avicomp.ontapi.jena.UnionGraph_ is our analogue of __org.apache.jena.graph.compose.MultiUnion__.
+* Package __ru.avicomp.ontapi.transforms__ is a small separated subsystem also. 
+It puts in order any graph (RDFS, OWL1) before using the main API. Two main classes are:
+    * _Transform_ - it is the superclass for any graph-converter. 
+    * _GraphTransformers.Store_ - it is the transforms storage and point to access to any of them.
+
+## What's next (todo)
+There are a lot of 'TODO's across the code, they must be fixed or removed.
+Also it seems obvious that in the some next version of ONT-API the binding to the original OWL-API must be eliminated.

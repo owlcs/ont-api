@@ -25,7 +25,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDisjointClassesAxiomImpl;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom, OWLClassExpression, OntCE> {
+public class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom, OWLClassExpression, OntCE> {
     @Override
     Property getPredicate() {
         return OWL.disjointWith;

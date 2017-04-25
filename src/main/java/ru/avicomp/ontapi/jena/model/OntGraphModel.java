@@ -221,9 +221,9 @@ public interface OntGraphModel extends Model {
     }
 
     /*
-     * ==================
-     * Built-in Entities:
-     * ==================
+     * =======================
+     * Some built-in entities:
+     * =======================
      */
 
     default OntNAP getRDFSComment() {

@@ -15,7 +15,6 @@ import org.apache.jena.mem.GraphMem;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
-import org.apache.jena.shared.Lock;
 import org.apache.jena.shared.PrefixMapping;
 
 import ru.avicomp.ontapi.OntApiException;
@@ -94,7 +93,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     @Override
     public void addImport(OntGraphModel m) {
         if (!OntJenaException.notNull(m, "Null model.").getID().isURIResource()) {
-            throw new OntJenaException("Anonymous sub models are not allowed");
+            throw new OntJenaException("Anonymous sub models are not allowed.");
         }
         getGraph().addGraph(m.getGraph());
         getID().addImport(m.getID().getURI());
@@ -134,21 +133,6 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     public PrefixMapping setNsPrefix(String prefix, String uri) {
         getBaseGraph().getPrefixMapping().setNsPrefix(prefix, uri);
         return this;
-    }
-
-    @Override
-    public Lock getLock() {
-        throw new OntJenaException.Unsupported();
-    }
-
-    @Override
-    public void enterCriticalSection(boolean requestReadLock) {
-        throw new OntJenaException.Unsupported();
-    }
-
-    @Override
-    public void leaveCriticalSection() {
-        throw new OntJenaException.Unsupported();
     }
 
     @Override
@@ -411,13 +395,13 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     @Override
     public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> onProperties, OntDR other) {
         //todo
-        throw new OntJenaException("Unsupported " + OntCE.NaryDataAllValuesFrom.class);
+        throw new OntJenaException.Unsupported("TODO: " + OntCE.NaryDataAllValuesFrom.class);
     }
 
     @Override
     public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> onProperties, OntDR other) {
         //todo
-        throw new OntJenaException("Unsupported " + OntCE.NaryDataSomeValuesFrom.class);
+        throw new OntJenaException.Unsupported("TODO: " + OntCE.NaryDataSomeValuesFrom.class);
     }
 
     @Override

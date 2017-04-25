@@ -15,7 +15,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * :ob-prop-1 rdf:type owl:ObjectProperty, owl:ReflexiveProperty .
  * Created by @szuev on 18.10.2016.
  */
-class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLReflexiveObjectPropertyAxiom, OntOPE> {
+public class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLReflexiveObjectPropertyAxiom, OntOPE> {
     @Override
     Resource getType() {
         return OWL.ReflexiveProperty;

@@ -20,7 +20,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
+public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
     @Override
     public void write(OWLDeclarationAxiom axiom, OntGraphModel model) {
         WriteHelper.writeDeclarationTriple(model, axiom.getEntity(), RDF.type, WriteHelper.getType(axiom.getEntity()), axiom.annotations());

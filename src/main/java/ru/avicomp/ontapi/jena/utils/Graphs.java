@@ -83,7 +83,7 @@ public class Graphs {
      * @return String
      */
     public static String getName(Graph graph) {
-        return getOntology(getBase(graph)).map(Node::toString).orElse("NullOntology");
+        return getOntology(getBase(graph)).map(n -> String.format("<%s>", n.toString())).orElse("NullOntology");
     }
 
     /**
@@ -109,7 +109,7 @@ public class Graphs {
      * Returns comparator for root nodes.
      * Tricky logic:
      * first compares roots as standalone nodes and the any uri-node is considered less then any blank-node,
-     * then compares roots as part of the graph using the rule 'the fewer children -> the greater the weight'.
+     * then compares roots as part of the graph using the rule 'the fewer children -> the greater weight'.
      *
      * @param graph {@link Graph}
      * @return {@link Comparator}
@@ -159,16 +159,24 @@ public class Graphs {
 
     private static StringBuilder makeImportsTree(Graph graph, String sep, Set<Graph> seen) {
         StringBuilder sb = new StringBuilder();
-        if (seen.contains(graph)) {
+        Graph base = getBase(graph);
+        if (seen.contains(base)) {
             throw new OntJenaException("Unexpected recursion cycle for graph " + graph);
         }
-        seen.add(graph);
+        seen.add(base);
         sb.append("<").append(getURI(graph)).append(">");
         sb.append("\n");
         subGraphs(graph).forEach(sub -> sb.append(sep).append(makeImportsTree(sub, sep + sep, seen)));
         return sb;
     }
 
+    /**
+     * Returns Graph as Turtle String.
+     * For debugging.
+     *
+     * @param g {@link Graph}
+     * @return String
+     */
     public static String toTurtleString(Graph g) {
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, g, OntFormat.TURTLE.getLang());

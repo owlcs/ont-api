@@ -21,7 +21,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * <p>
  * Created by @szuev on 18.10.2016.
  */
-class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPropertyChainOfAxiom, OntOPE> {
+public class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPropertyChainOfAxiom, OntOPE> {
     @Override
     OWLObject getSubject(OWLSubPropertyChainOfAxiom axiom) {
         return axiom.getSuperProperty();

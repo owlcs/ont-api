@@ -195,7 +195,7 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Gets {@link OntGraphModel} by iri and version iri
+     * Gets {@link OntGraphModel} by the ontology and version iris.
      *
      * @param iri     String, nullable
      * @param version String, nullable
@@ -208,7 +208,7 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Gets {@link OntGraphModel} by iri
+     * Gets {@link OntGraphModel} by the ontology iri
      *
      * @param iri String, nullable
      * @return {@link OntGraphModel}
@@ -218,7 +218,7 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Creates {@link OntGraphModel} with specified iri and version iri
+     * Creates {@link OntGraphModel} with specified ontology-iri and version-iri
      *
      * @param iri     String, nullable
      * @param version String, nullable

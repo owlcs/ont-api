@@ -17,7 +17,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P extends OntPE> extends AxiomTranslator<Axiom> {
+public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P extends OntPE> extends AxiomTranslator<Axiom> {
 
     abstract OWLPropertyExpression getSubProperty(Axiom axiom);
 

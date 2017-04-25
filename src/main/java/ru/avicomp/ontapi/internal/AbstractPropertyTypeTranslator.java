@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty, P extends OntPE> extends AxiomTranslator<Axiom> {
+public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty, P extends OntPE> extends AxiomTranslator<Axiom> {
 
     abstract Resource getType();
 

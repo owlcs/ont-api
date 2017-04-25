@@ -14,7 +14,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  *
  * Created by @szuev on 30.09.2016.
  */
-class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubAnnotationPropertyOfAxiom, OntNAP> {
+public class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubAnnotationPropertyOfAxiom, OntNAP> {
     @Override
     OWLPropertyExpression getSubProperty(OWLSubAnnotationPropertyOfAxiom axiom) {
         return axiom.getSubProperty();

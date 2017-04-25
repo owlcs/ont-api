@@ -25,7 +25,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
  * <p>
  * Created by szuev on 13.10.2016.
  */
-class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualAxiom, OWLIndividual, OntIndividual> {
+public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualAxiom, OWLIndividual, OntIndividual> {
     @Override
     public Property getPredicate() {
         return OWL.sameAs;

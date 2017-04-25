@@ -16,7 +16,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAssertionAxiom> {
+public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAssertionAxiom> {
     @Override
     public void write(OWLAnnotationAssertionAxiom axiom, OntGraphModel model) {
         WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom.annotations());

@@ -18,7 +18,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by szuev on 20.10.2016.
  */
-class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
+public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     @Override
     public void write(SWRLRule axiom, OntGraphModel model) {
         Stream<OntSWRL.Atom> head = axiom.head().map(atom -> WriteHelper.addSWRLAtom(model, atom));

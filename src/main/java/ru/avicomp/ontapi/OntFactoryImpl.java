@@ -273,13 +273,13 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         protected OntologyModel createModel(GraphInfo info, OntologyManager manager, OntLoaderConfiguration config) throws OWLOntologyCreationException {
             if (!info.isFresh()) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("The ontology <{}> is already configured.", info.name());
+                    LOGGER.debug("The ontology {} is already configured.", info.name());
                 }
                 return null;
             }
             try {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Set up ontology <{}>.", info.name());
+                    LOGGER.debug("Set up ontology {}.", info.name());
                 }
                 boolean isPrimary = graphs.size() == 1;
                 Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
@@ -330,6 +330,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             // it is important to have the same order on each call
             Set<GraphInfo> children = new LinkedHashSet<>();
             Graph main = node.getGraph();
+            String name = node.name();
             seen.add(node.getURI());
             List<String> imports = node.getImports().stream().sorted().collect(Collectors.toCollection(ArrayList::new));
             for (int i = 0; i < imports.size(); i++) {
@@ -340,7 +341,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 OWLImportsDeclaration declaration = manager.getOWLDataFactory().getOWLImportsDeclaration(IRI.create(uri));
                 if (config.isIgnoredImport(declaration.getIRI())) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("{} is ignored.", declaration);
+                        LOGGER.debug("{}: {} is ignored.", name, declaration);
                     }
                     continue;
                 }
@@ -355,11 +356,10 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                     // In this case we may load it as separated model or include to the parent graph:
                     if (info.isAnonymous() && MissingOntologyHeaderStrategy.INCLUDE_GRAPH.equals(config.getMissingOntologyHeaderStrategy())) {
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("<{}>: remove import declaration <{}>.", node.name(), uri);
+                            LOGGER.debug("{}: remove import declaration <{}>.", name, uri);
                         }
                         main.remove(Node.ANY, OWL.imports.asNode(), NodeFactory.createURI(uri));
                         GraphUtil.addInto(main, info.getGraph());
-                        graphs.put(uri, info);
                         // skip assembling new model for this graph:
                         info.setProcessed();
                         // recollect imports (in case of anonymous ontology):
@@ -372,7 +372,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                         throw new UnloadableImportException(e, declaration);
                     }
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Can't read sub graph with " + declaration + ". Exception: " + e);
+                        LOGGER.debug("{}: can't read sub graph with {}. Exception: {}", name, declaration, e);
                     }
                 }
             }

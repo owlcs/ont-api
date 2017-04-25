@@ -15,7 +15,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLSymmetricObjectPropertyAxiom, OntOPE> {
+public class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLSymmetricObjectPropertyAxiom, OntOPE> {
     @Override
     Resource getType() {
         return OWL.SymmetricProperty;

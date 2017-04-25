@@ -46,12 +46,16 @@ public class OntApiException extends OWLRuntimeException {
      * Created by @szuev on 29.09.2016.
      */
     public static class Unsupported extends OntApiException {
+        public Unsupported() {
+            super();
+        }
+
         public Unsupported(String message) {
             super(message);
         }
 
         public Unsupported(Class clazz, String method) {
-            this("Unsupported " + clazz.getName() + (method == null || method.isEmpty() ? "" : "#" + method));
+            this(String.format("Unsupported %s%s", clazz.getName(), method == null || method.isEmpty() ? "" : "#" + method));
         }
 
         public Unsupported(Class clazz) {

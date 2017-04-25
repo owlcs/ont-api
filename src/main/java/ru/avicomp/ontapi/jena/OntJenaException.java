@@ -61,5 +61,12 @@ public class OntJenaException extends JenaException {
     }
 
     public static class Unsupported extends OntJenaException {
+        public Unsupported() {
+            super();
+        }
+
+        public Unsupported(String message) {
+            super(message);
+        }
     }
 }

@@ -19,7 +19,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * <p>
  * Created by @szuev on 17.10.2016.
  */
-class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUnionAxiom, OntClass> {
+public class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUnionAxiom, OntClass> {
     @Override
     public OWLObject getSubject(OWLDisjointUnionAxiom axiom) {
         return axiom.getOWLClass();

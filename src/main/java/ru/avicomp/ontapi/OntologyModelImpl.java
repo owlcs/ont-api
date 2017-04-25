@@ -20,14 +20,17 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY;
 
 /**
- * The main ontology model. Editable. Provides access to {@link OntGraphModel}
- * <p>
+ * The main ontology model implementation. Not concurrent. Editable.
+ * Provides access to {@link OntGraphModel}.
+ * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl
+ * @see OntBaseModelImpl
+ * @see OntologyModel
  * Created by @szuev on 27.09.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel {
 
-    protected transient RDFChangeProcessor changer;
+    protected transient ChangeProcessor changer;
 
     /**
      * @param manager ontology manager
@@ -43,7 +46,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
     @Override
     public ChangeApplied applyDirectChange(OWLOntologyChange change) {
-        return change.accept(getRDFChangeProcessor());
+        return change.accept(getChangeProcessor());
     }
 
     @Override
@@ -51,8 +54,8 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         return (OntologyManagerImpl) super.getOWLOntologyManager();
     }
 
-    protected RDFChangeProcessor getRDFChangeProcessor() {
-        return changer == null ? changer = new RDFChangeProcessor() : changer;
+    protected ChangeProcessor getChangeProcessor() {
+        return changer == null ? changer = new ChangeProcessor() : changer;
     }
 
     @Override
@@ -84,7 +87,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         return new Concurrent(this, manager.getLock());
     }
 
-    protected class RDFChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
+    protected class ChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
 
         @Override
         public ChangeApplied visit(@Nonnull AddAxiom change) {

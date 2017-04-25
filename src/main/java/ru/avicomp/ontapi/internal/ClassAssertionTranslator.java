@@ -16,7 +16,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
+public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
     @Override
     public void write(OWLClassAssertionAxiom axiom, OntGraphModel model) {
         OntCE ce = WriteHelper.addClassExpression(model, axiom.getClassExpression());

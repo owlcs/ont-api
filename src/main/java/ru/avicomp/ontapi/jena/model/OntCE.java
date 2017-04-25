@@ -27,7 +27,7 @@ public interface OntCE extends OntObject {
 
     void removeHasKey();
 
-    /**
+    /*
      * ============================
      * all known Class Expressions:
      * ============================
@@ -90,7 +90,7 @@ public interface OntCE extends OntObject {
     interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
     }
 
-    /**
+    /*
      * ======================================
      * Technical interfaces for abstract CEs:
      * ======================================
@@ -138,7 +138,7 @@ public interface OntCE extends OntObject {
         boolean isQualified();
     }
 
-    /**
+    /*
      * ============================
      * Interfaces for Abstract CEs:
      * ============================
@@ -159,7 +159,7 @@ public interface OntCE extends OntObject {
     interface NaryRestrictionCE<O extends OntObject, P extends OntPE> extends RestrictionCE, ONProperties<P>, Value<O> {
     }
 
-    /**
+    /*
      * ===============
      * default methods
      * ===============

@@ -30,7 +30,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * <p>
  * Created by szuev on 13.10.2016.
  */
-abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>, OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AxiomTranslator<Axiom> {
+public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>, OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AxiomTranslator<Axiom> {
 
     private final Comparator<OWL> uriFirstComparator = (a, b) -> a.isAnonymous() == b.isAnonymous() ? 0 : a.isAnonymous() ? -1 : 1;
 

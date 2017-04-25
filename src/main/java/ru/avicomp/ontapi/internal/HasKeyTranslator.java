@@ -19,7 +19,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * <p>
  * Created by @szuev on 17.10.2016.
  */
-class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntCE> {
+public class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntCE> {
     @Override
     OWLObject getSubject(OWLHasKeyAxiom axiom) {
         return axiom.getClassExpression();

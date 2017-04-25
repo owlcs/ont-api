@@ -24,7 +24,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
  * <p>
  * Created by @szuev on 29.09.2016.
  */
-class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDifferentIndividualsAxiom, OWLIndividual, OntIndividual> {
+public class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDifferentIndividualsAxiom, OWLIndividual, OntIndividual> {
     @Override
     Property getPredicate() {
         return OWL.differentFrom;
