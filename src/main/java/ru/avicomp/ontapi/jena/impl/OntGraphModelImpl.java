@@ -11,16 +11,16 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.mem.GraphMem;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.rdf.model.impl.ModelCom;
+import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
 
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -38,18 +38,12 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     /**
-     * fresh ontology.
+     * The main constructor.
+     * @param graph {@link Graph}
+     * @param personality {@link OntPersonality}
      */
-    public OntGraphModelImpl() {
-        this(new GraphMem());
-    }
-
-    public OntGraphModelImpl(Graph graph) {
-        this(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntModelConfig.getPersonality());
-    }
-
     public OntGraphModelImpl(Graph graph, OntPersonality personality) {
-        super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), personality);
+        super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntJenaException.notNull(personality, "Null personality"));
     }
 
     public void syncImports() {
@@ -126,7 +120,12 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public Model getBaseModel() {
-        return ModelFactory.createModelForGraph(getBaseGraph());
+        return new ModelCom(getBaseGraph());
+    }
+
+    @Override
+    public InfModel asInferenceModel(Reasoner reasoner) {
+        return new InfModelImpl(OntJenaException.notNull(reasoner, "Null reasoner.").bind(getGraph()));
     }
 
     @Override
@@ -172,13 +171,6 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     protected boolean isInBaseModel(Resource s, Property p, RDFNode o) {
         return getBaseGraph().contains(s.asNode(), p.asNode(), o.asNode());
-    }
-
-    @Override
-    public OntGraphModelImpl remove(Resource s, Property p, RDFNode o) {
-        // be warned: removing is allowed only inside base graph
-        super.remove(s, p, o);
-        return this;
     }
 
     /**
@@ -453,4 +445,5 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     public OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body) {
         return OntSWRLImpl.createImp(this, head.stream(), body.stream());
     }
+
 }

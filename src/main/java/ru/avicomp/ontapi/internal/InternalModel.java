@@ -384,6 +384,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         clearObjectsCache();
     }
 
+    @Override
+    public String toString() {
+        return String.format("[%s]%s", getClass().getSimpleName(), getID());
+    }
+
     public class OwlObjectTriplesMap<O extends OWLObject> {
         protected Map<O, Set<Triple>> cache;
 

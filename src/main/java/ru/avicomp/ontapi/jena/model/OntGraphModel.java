@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.vocabulary.RDFS;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -14,15 +15,33 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * This is our analogue of {@link org.apache.jena.ontology.OntModel} to work with Ontology graph in accordance with OWL2 DL specification.
  * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf'>OWL2 RDF mapping</a>.
  * Encapsulates {@link org.apache.jena.graph.Graph} and extends {@link Model}.
- * Todo: implement {@link org.apache.jena.rdf.model.InfModel}
  * <p>
  * Created by @szuev on 11.11.2016.
  */
 public interface OntGraphModel extends Model {
 
+    /**
+     * Returns the base Graph, i.e. the primary Graph without any sub graphs.
+     * to get whole graph use {@link #getGraph()}.
+     *
+     * @return {@link Graph}
+     */
     Graph getBaseGraph();
 
+    /**
+     * Returns the model which corresponds the base graph {@link #getBaseGraph()}
+     *
+     * @return {@link Model}
+     */
     Model getBaseModel();
+
+    /**
+     * Returns the inference model shadow.
+     *
+     * @param reasoner {@link Reasoner}, not null
+     * @return {@link InfModel}
+     */
+    InfModel asInferenceModel(Reasoner reasoner);
 
     /**
      * Gets ontology ID {@link OntObject}.
