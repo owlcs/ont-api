@@ -96,7 +96,7 @@ public class OntIRI extends IRI {
 
     public static OntIRI create(OWLOntology o) {
         Optional<IRI> opt = OntIRIException.notNull(o, "Null owl-ontology specified.").getOntologyID().getOntologyIRI();
-        return opt.isPresent() ? create(opt.get()) : null;
+        return opt.map(OntIRI::create).orElse(null);
     }
 
     public static String toStringIRI(OWLOntologyID id) {

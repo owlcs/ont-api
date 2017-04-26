@@ -14,6 +14,7 @@ package org.semanticweb.owlapi.profiles;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,7 +32,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
  * This testcase has never worked before this fixing, BUT it was so designed that it always passed.
  * There are still some problems with this test:
  * 1) in the 'all.rdf' there are some broken ontologies (wrong rdf:List, invalid IRI),
- * and it is OK for OWL-API, but not for ONT-API (TODO: add configuration option to not throw exception on broken axioms)
+ * and it is OK for OWL-API, but not for ONT-API
  * 2) there are also ontologies with web-resources in imports
  * 3) In ONT-API the transforms mechanism makes all graphs to be ontological consistent,
  * so there could not be axiom rdfs:subClassOf with missed class declaration (just for example).
@@ -51,18 +52,6 @@ public class ProfileValidationTestCase extends TestBase {
     private static final String ALL_NS = "http://www.w3.org/2007/OWL/testOntology#";
     private static final String ALL_PATH = "/owlapi/all.rdf";
 
-    private static final List<IRI> SKIPPED = Stream.of(
-            // invalid uri ('http://example.com/b-and-c=2a'):
-            "http://km.aifb.uni-karlsruhe.de/projects/owltests/index.php/Special:URIResolver/One_equals_two"
-            // broken rdf:List
-            , "http://km.aifb.uni-karlsruhe.de/projects/owltests/index.php/Special:URIResolver/New-2DFeature-2DRational-2D003"
-            , "http://km.aifb.uni-karlsruhe.de/projects/owltests/index.php/Special:URIResolver/New-2DFeature-2DRational-2D002"
-            // web-access:
-            , "http://km.aifb.uni-karlsruhe.de/projects/owltests/index.php/Special:URIResolver/TestCase-3AWebOnt-2Dmiscellaneous-2D001"
-            , "http://km.aifb.uni-karlsruhe.de/projects/owltests/index.php/Special:URIResolver/TestCase-3AWebOnt-2Dmiscellaneous-2D002"
-            , "http://km.aifb.uni-karlsruhe.de/projects/owltests/index.php/Special:URIResolver/TestCase-3AWebOnt-2Dimports-2D011"
-    ).map(IRI::create).collect(Collectors.toList());
-
     @Test
     public void testProfiles() throws Exception {
         IRI allTestURI = IRI.create(ProfileValidationTestCase.class.getResource(ALL_PATH));
@@ -81,16 +70,13 @@ public class ProfileValidationTestCase extends TestBase {
             OWLNamedIndividual ind = ax.getIndividual().asOWLNamedIndividual();
             List<OWLLiteral> values = testCasesOntology.annotationAssertionAxioms(ind.getIRI())
                     .filter(a -> Stream.of(rdfXMLPremiseOntologyProperty, fsPremiseOntologyProperty).anyMatch(p -> p.equals(a.getProperty())))
-                    .filter(a -> a.getValue().asLiteral().isPresent())
-                    .map(a -> a.getValue().asLiteral().get()).collect(Collectors.toList());
+                    .map(a -> a.getValue().asLiteral())
+                    .filter(Optional::isPresent)
+                    .map(Optional::get).collect(Collectors.toList());
 
             Assert.assertFalse("No values found", values.isEmpty());
             IRI iri = ind.asOWLNamedIndividual().getIRI();
             LOGGER.debug("{}:::IRI:::{}", ++count, iri);
-            if (SKIPPED.contains(iri)) {
-                LOGGER.warn("SKIP:::{}", ax);
-                continue;
-            }
             Collection<OWLIndividual> finder = Searcher.values(testCasesOntology.objectPropertyAssertionAxioms(ind), speciesProperty).collect(Collectors.toSet());
             Collection<OWLIndividual> negativeFinder = Searcher.negValues(testCasesOntology.negativeObjectPropertyAssertionAxioms(ind), speciesProperty).collect(Collectors.toSet());
             for (OWLLiteral v : values) {
@@ -145,14 +131,16 @@ public class ProfileValidationTestCase extends TestBase {
 
     private static OWLOntologyManager manager() {
         OWLOntologyManager m = setupManager();
+        m.getOntologyConfigurator().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
         if (DEBUG_USE_OWL) return m;
-        OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.config.OntLoaderConfiguration) m
-                .getOntologyLoaderConfiguration())
+        ru.avicomp.ontapi.config.OntLoaderConfiguration conf = ru.avicomp.ontapi.OntFactoryImpl.asONT(m.getOntologyLoaderConfiguration());
+        m.setOntologyLoaderConfiguration(
+                conf
                 //.setAllowReadDeclarations(false)
                 //.setPerformTransformation(false)
+                        .setGraphTransformers(conf.getGraphTransformers().addFirst(ru.avicomp.ontapi.utils.WrongRDFListTransform::new))
                 .setSupportedSchemes(Stream.of(ru.avicomp.ontapi.config.OntConfig.DefaultScheme.FILE).collect(Collectors.toList()))
-                .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX);
-        m.setOntologyLoaderConfiguration(conf);
+                        .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX));
         return m;
     }
 
