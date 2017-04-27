@@ -29,7 +29,8 @@ public interface OntGraphModel extends Model {
     Graph getBaseGraph();
 
     /**
-     * Returns the model which corresponds the base graph {@link #getBaseGraph()}
+     * Returns the standard model which corresponds the base graph {@link #getBaseGraph()}
+     * Note: the {@link org.apache.jena.enhanced.Personality} inside model is jena-builtin ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}).
      *
      * @return {@link Model}
      */
@@ -37,8 +38,9 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the inference model shadow.
+     * Note: the {@link org.apache.jena.enhanced.Personality} is jena-builtin ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}).
      *
-     * @param reasoner {@link Reasoner}, not null
+     * @param reasoner {@link Reasoner}, not null.
      * @return {@link InfModel}
      */
     InfModel asInferenceModel(Reasoner reasoner);

@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.model.*;
  * <p>
  * Created by @szuev on 08.02.2017.
  */
+@SuppressWarnings("WeakerAccess")
 public class OwlObjects {
 
     public static <O extends OWLObject> Stream<O> parseComponents(Class<O> view, HasComponents structure) {

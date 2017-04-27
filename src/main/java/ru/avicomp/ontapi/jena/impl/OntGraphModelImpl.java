@@ -4,6 +4,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,7 +40,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     /**
      * The main constructor.
-     * @param graph {@link Graph}
+     *
+     * @param graph       {@link Graph}
      * @param personality {@link OntPersonality}
      */
     public OntGraphModelImpl(Graph graph, OntPersonality personality) {
@@ -184,9 +186,30 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return getPersonality().getOntImplementation(type).find(this).map(e -> getNodeAs(e.asNode(), type));
     }
 
+    /**
+     * Returns entity types as stream.
+     *
+     * @return Stream of entities types.
+     */
+    protected Stream<Class<? extends OntEntity>> entityTypes() {
+        return Stream.of(OntClass.class, OntDT.class, OntIndividual.Named.class, OntNOP.class, OntNAP.class, OntNDP.class);
+    }
+
     @Override
     public Stream<OntEntity> ontEntities() {
-        return Stream.of(OntClass.class, OntDT.class, OntIndividual.Named.class, OntNOP.class, OntNAP.class, OntNDP.class).map(this::ontEntities).flatMap(Function.identity());
+        return entityTypes().map(this::ontEntities).flatMap(Function.identity());
+    }
+
+    /**
+     * Gets 'punnings', i.e. the {@link OntEntity}s which have not only single type.
+     *
+     * @param withImports if false takes into account only base model
+     * @return Stream of {@link OntEntity}s.
+     */
+    public Stream<OntEntity> ambiguousEntities(boolean withImports) {
+        Set<Class<? extends OntEntity>> types = entityTypes().collect(Collectors.toSet());
+        return ontEntities().filter(e -> withImports || e.isLocal()).filter(e -> types.stream()
+                .filter(view -> e.canAs(view) && (withImports || e.as(view).isLocal())).count() > 1);
     }
 
     @Override

@@ -157,7 +157,7 @@ public class InternalObject<O extends OWLObject> {
 
         /**
          * Gets encapsulated set
-         * For internal reading only, the container must me unchanged.
+         * For internal reading only, the container must be unchanged.
          *
          * @return Set of {@link InternalObject}
          */

@@ -39,22 +39,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * if true then {@link AxiomTranslator}s works in parallel mode (see {@link #axioms(Set)}).
      * As shown by pizza-performance-test it really helps to speed up the initial loading.
      * TODO: by some unclear reasons (perhaps due to violation of contract with read/write locks)
-     * there could be live-lock when we work in concurrent mode. from this point this flag is always false.
+     * there could be live-lock when we work in concurrent mode.
+     * From this point this flag is always false.
      */
     protected static boolean optimizeCollecting = false;
     // axioms & header annotations store.
     // used to work through OWL-API. the use of jena model methods will clear this cache.
-    protected Map<Class<? extends OWLObject>, OwlObjectTriplesMap<? extends OWLObject>> componentsStore;
+    protected Map<Class<? extends OWLObject>, OwlObjectTriplesMap<? extends OWLObject>> componentsStore
+            = optimizeCollecting ? new ConcurrentHashMap<>(29, 0.75f, 39) : new HashMap<>();
     // OWL objects store to improve performance (working through OWL-API interface with 'signature')
     // any change in the graph resets these caches.
-    protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> objectsStore;
+    protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> objectsStore = new HashMap<>();
     // Temporary stores for collecting axioms, should be reset after axioms getting.
-    protected Map<OntCE, InternalObject<? extends OWLClassExpression>> owlCLEStore;
-    protected Map<OntDR, InternalObject<? extends OWLDataRange>> owlDRGStore;
-    protected Map<OntIndividual, InternalObject<? extends OWLIndividual>> owlINDStore;
-    protected Map<OntNAP, InternalObject<OWLAnnotationProperty>> owlNAPStore;
-    protected Map<OntNDP, InternalObject<OWLDataProperty>> owlNDPStore;
-    protected Map<OntOPE, InternalObject<? extends OWLObjectPropertyExpression>> owlOPEStore;
+    protected Map<MapType, Map> temporaryObjects = new EnumMap<>(MapType.class);
 
     private ConfigProvider.Config config;
 
@@ -68,16 +65,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         super(base, config.loaderConfig().getPersonality());
         this.config = config;
         getGraph().getEventManager().register(new DirectListener());
-        componentsStore = optimizeCollecting ? new ConcurrentHashMap<>(29, 0.75f, 39) : new HashMap<>();
-        objectsStore = new HashMap<>();
-        // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests,
-        // the reasons for this are not clear to me (TODO: investigate!)
-        owlCLEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-        owlDRGStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-        owlINDStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-        owlNAPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-        owlNDPStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-        owlOPEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
     }
 
     @Override
@@ -131,28 +118,40 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return axioms().count() == 0 && annotations().count() == 0;
     }
 
+    @SuppressWarnings("unchecked")
     protected InternalObject<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
-        return owlCLEStore.computeIfAbsent(ce, c -> ReadHelper.getClassExpression(c, dataFactory()));
+        return (InternalObject<? extends OWLClassExpression>) temporaryObjects.computeIfAbsent(MapType.CE, MapType::initMap)
+                .computeIfAbsent(ce, c -> ReadHelper.getClassExpression((OntCE) c, dataFactory()));
     }
 
+    @SuppressWarnings("unchecked")
     protected InternalObject<? extends OWLDataRange> fetchDataRange(OntDR dr) {
-        return owlDRGStore.computeIfAbsent(dr, d -> ReadHelper.getDataRange(d, dataFactory()));
+        return (InternalObject<? extends OWLDataRange>) temporaryObjects.computeIfAbsent(MapType.DR, MapType::initMap)
+                .computeIfAbsent(dr, d -> ReadHelper.getDataRange((OntDR) d, dataFactory()));
     }
 
+    @SuppressWarnings("unchecked")
     protected InternalObject<? extends OWLIndividual> fetchIndividual(OntIndividual indi) {
-        return owlINDStore.computeIfAbsent(indi, i -> ReadHelper.getIndividual(i, dataFactory()));
+        return (InternalObject<? extends OWLIndividual>) temporaryObjects.computeIfAbsent(MapType.I, MapType::initMap)
+                .computeIfAbsent(indi, i -> ReadHelper.getIndividual((OntIndividual) i, dataFactory()));
     }
 
+    @SuppressWarnings("unchecked")
     protected InternalObject<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap) {
-        return owlNAPStore.computeIfAbsent(nap, p -> ReadHelper.getAnnotationProperty(p, dataFactory()));
+        return (InternalObject<OWLAnnotationProperty>) temporaryObjects.computeIfAbsent(MapType.AP, MapType::initMap)
+                .computeIfAbsent(nap, p -> ReadHelper.getAnnotationProperty((OntNAP) p, dataFactory()));
     }
 
+    @SuppressWarnings("unchecked")
     protected InternalObject<OWLDataProperty> fetchDataProperty(OntNDP ndp) {
-        return owlNDPStore.computeIfAbsent(ndp, p -> ReadHelper.getDataProperty(p, dataFactory()));
+        return (InternalObject<OWLDataProperty>) temporaryObjects.computeIfAbsent(MapType.DP, MapType::initMap)
+                .computeIfAbsent(ndp, p -> ReadHelper.getDataProperty((OntNDP) p, dataFactory()));
     }
 
+    @SuppressWarnings("unchecked")
     protected InternalObject<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
-        return owlOPEStore.computeIfAbsent(ope, p -> ReadHelper.getObjectPropertyExpression(p, dataFactory()));
+        return (InternalObject<? extends OWLObjectPropertyExpression>) temporaryObjects.computeIfAbsent(MapType.OP, MapType::initMap)
+                .computeIfAbsent(ope, p -> ReadHelper.getObjectPropertyExpression((OntOPE) p, dataFactory()));
     }
 
     public Stream<OWLIndividual> individuals() {
@@ -214,12 +213,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             res.add(ReadHelper.fetchIndividual(e.as(OntIndividual.Named.class), dataFactory()).getObject().asOWLNamedIndividual());
         }
         return res;
-    }
-
-    public Stream<OntEntity> ambiguousEntities(boolean withImports) {
-        Set<Class<? extends OntEntity>> types = Stream.of(OntClass.class, OntDT.class, OntNAP.class, OntNDP.class, OntNOP.class, OntIndividual.Named.class).collect(Collectors.toSet());
-        return ontEntities().filter(e -> withImports || e.isLocal()).filter(e -> types.stream()
-                .filter(view -> e.canAs(view) && (withImports || e.as(view).isLocal())).count() > 1);
     }
 
     @SuppressWarnings("unchecked")
@@ -369,7 +362,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         Set<Triple> triples = store.get(object);
         store.clear(object);
         triples.stream().filter(this::canDelete).forEach(this::delete);
-        // todo: clear only those objects which belong to the axiom
+        // todo: clear only those sub-objects which belong to the component-owl-object
         clearObjectsCache();
     }
 
@@ -414,18 +407,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return super.removeAll();
     }
 
-    protected void clearTemporaryStores() {
-        owlCLEStore.clear();
-        owlINDStore.clear();
-        owlDRGStore.clear();
-        owlOPEStore.clear();
-        owlNAPStore.clear();
-        owlNDPStore.clear();
-    }
-
     protected void clearObjectsCache() {
         objectsStore.clear();
-        clearTemporaryStores();
+        temporaryObjects.clear();
     }
 
     public void clearCache() {
@@ -443,16 +427,31 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return String.format("[%s]%s", getClass().getSimpleName(), getID());
     }
 
+    protected enum MapType {
+        CE, DR, AP, DP, OP, I;
+
+        // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests,
+        // the reasons for this are not clear to me (TODO: investigate!)
+        public Map initMap() {
+            return optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
+        }
+    }
+
+    /**
+     * Auxiliary object to provide common way for working with {@link OWLObject}s and {@link Triple}s together.
+     *
+     * @param <O> {@link OWLAxiom} or {@link OWLAnnotation} (currently).
+     */
     public class OwlObjectTriplesMap<O extends OWLObject> {
-        protected Map<O, Set<Triple>> cache;
         protected final Class<O> type;
+        protected Map<O, Set<Triple>> cache;
 
         public OwlObjectTriplesMap(Class<O> type, Set<InternalObject<O>> set) {
             this.type = type;
             this.cache = set.stream().collect(Collectors.toMap(InternalObject::getObject, InternalObject::getTriples));
         }
 
-        protected Class<O> type() {
+        public Class<O> type() {
             return type;
         }
 
@@ -489,9 +488,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
     }
 
-
     /**
-     * Listener to monitor the addition and deletion of axioms.
+     * The listener to monitor the addition and deletion of axioms and ontology annotations.
      *
      * @param <O> {@link OWLAxiom} in our case.
      */
@@ -516,7 +514,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * direct listener to synchronize caches while working through OWL-API and jena.
+     * The direct listener to synchronize caches while working through OWL-API and jena at the same time.
      */
     public class DirectListener extends GraphListenerBase {
         private boolean hasObjectListener() {

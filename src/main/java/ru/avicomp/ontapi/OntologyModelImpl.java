@@ -33,6 +33,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     protected transient ChangeProcessor changer;
 
     /**
+     * To construct fresh (empty) ontology.
      * @param manager ontology manager
      * @param id      the id
      */
@@ -40,6 +41,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         super(manager, id);
     }
 
+    /**
+     * To construct an ontology based on graph.
+     *
+     * @param graph  {@link Graph}
+     * @param config {@link OntologyManagerImpl.ModelConfig}
+     */
     public OntologyModelImpl(Graph graph, OntologyManagerImpl.ModelConfig config) {
         super(graph, config);
     }
