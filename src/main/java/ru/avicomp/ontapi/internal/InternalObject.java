@@ -128,10 +128,11 @@ public class InternalObject<O extends OWLObject> {
     }
 
     /**
-     * The collection of {@link InternalObject}
+     * The 'collection' of {@link InternalObject}s.
      */
     public static class Collection<O extends OWLObject> {
         protected final java.util.Collection<InternalObject<O>> wraps;
+        private Set<Triple> triples;
 
         public Collection(java.util.Collection<InternalObject<O>> wrappers) {
             this.wraps = wrappers;
@@ -152,17 +153,17 @@ public class InternalObject<O extends OWLObject> {
          * @return Set of triples.
          */
         public Set<Triple> getTriples() {
-            return triples().collect(Collectors.toSet());
+            return triples == null ? triples = Collections.unmodifiableSet(wraps.stream()
+                    .map(InternalObject::triples)
+                    .flatMap(Function.identity())
+                    .collect(Collectors.toSet())) : triples;
         }
 
         /**
-         * Gets encapsulated set
-         * For internal reading only, the container must be unchanged.
-         *
          * @return Set of {@link InternalObject}
          */
-        protected Set<InternalObject<O>> getWraps() {
-            return wraps instanceof Set ? (Set<InternalObject<O>>) wraps : new HashSet<>(wraps);
+        public Set<InternalObject<O>> getWraps() {
+            return Collections.unmodifiableSet(wraps instanceof Set ? (Set<InternalObject<O>>) wraps : new HashSet<>(wraps));
         }
 
         public Stream<O> objects() {
@@ -170,7 +171,7 @@ public class InternalObject<O extends OWLObject> {
         }
 
         public Stream<Triple> triples() {
-            return wraps.stream().map(InternalObject::triples).flatMap(Function.identity());
+            return getTriples().stream();
         }
 
         public Optional<InternalObject<O>> find(O key) {

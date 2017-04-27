@@ -85,6 +85,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
+     `     * Jena model method.
      * Since in ONT-API we use another kind of lock this method is disabled.
      *
      * @see ru.avicomp.ontapi.jena.ConcurrentGraph
@@ -95,6 +96,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
+     * Jena model method.
+     *
      * @see this#getLock()
      */
     @Override
@@ -103,6 +106,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
+     * Jena model method.
+     *
      * @see this#getLock()
      */
     @Override
@@ -118,40 +123,61 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return axioms().count() == 0 && annotations().count() == 0;
     }
 
-    @SuppressWarnings("unchecked")
     protected InternalObject<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
-        return (InternalObject<? extends OWLClassExpression>) temporaryObjects.computeIfAbsent(MapType.CE, MapType::initMap)
-                .computeIfAbsent(ce, c -> ReadHelper.getClassExpression((OntCE) c, dataFactory()));
+        return fetch(ce, MapType.CE, c -> ReadHelper.getClassExpression(c, dataFactory()));
     }
 
-    @SuppressWarnings("unchecked")
     protected InternalObject<? extends OWLDataRange> fetchDataRange(OntDR dr) {
-        return (InternalObject<? extends OWLDataRange>) temporaryObjects.computeIfAbsent(MapType.DR, MapType::initMap)
-                .computeIfAbsent(dr, d -> ReadHelper.getDataRange((OntDR) d, dataFactory()));
+        return fetch(dr, MapType.DR, d -> ReadHelper.getDataRange(d, dataFactory()));
     }
 
-    @SuppressWarnings("unchecked")
     protected InternalObject<? extends OWLIndividual> fetchIndividual(OntIndividual indi) {
-        return (InternalObject<? extends OWLIndividual>) temporaryObjects.computeIfAbsent(MapType.I, MapType::initMap)
-                .computeIfAbsent(indi, i -> ReadHelper.getIndividual((OntIndividual) i, dataFactory()));
+        return fetch(indi, MapType.I, i -> ReadHelper.getIndividual(i, dataFactory()));
     }
 
-    @SuppressWarnings("unchecked")
     protected InternalObject<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap) {
-        return (InternalObject<OWLAnnotationProperty>) temporaryObjects.computeIfAbsent(MapType.AP, MapType::initMap)
-                .computeIfAbsent(nap, p -> ReadHelper.getAnnotationProperty((OntNAP) p, dataFactory()));
+        return fetch(nap, MapType.AP, p -> ReadHelper.getAnnotationProperty(p, dataFactory()));
     }
 
-    @SuppressWarnings("unchecked")
     protected InternalObject<OWLDataProperty> fetchDataProperty(OntNDP ndp) {
-        return (InternalObject<OWLDataProperty>) temporaryObjects.computeIfAbsent(MapType.DP, MapType::initMap)
-                .computeIfAbsent(ndp, p -> ReadHelper.getDataProperty((OntNDP) p, dataFactory()));
+        return fetch(ndp, MapType.DP, p -> ReadHelper.getDataProperty(p, dataFactory()));
+    }
+
+    protected InternalObject<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
+        return fetch(ope, MapType.OP, p -> ReadHelper.getObjectPropertyExpression(p, dataFactory()));
     }
 
     @SuppressWarnings("unchecked")
-    protected InternalObject<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
-        return (InternalObject<? extends OWLObjectPropertyExpression>) temporaryObjects.computeIfAbsent(MapType.OP, MapType::initMap)
-                .computeIfAbsent(ope, p -> ReadHelper.getObjectPropertyExpression((OntOPE) p, dataFactory()));
+    protected <A extends OWLObject, B extends OntObject> InternalObject<A> fetch(B b, MapType type, Function<B, InternalObject<A>> func) {
+        // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests,
+        // the reasons for this are not clear to me (TODO: investigate!)
+        return (InternalObject<A>) temporaryObjects.computeIfAbsent(type,
+                t -> optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>()).computeIfAbsent(b, func);
+    }
+
+    public List<OWLEntity> getEntities(IRI iri) {
+        if (iri == null) return Collections.emptyList();
+        OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
+        List<OWLEntity> res = new ArrayList<>();
+        if (e.canAs(OntClass.class)) {
+            res.add(fetchClassExpression(e.as(OntClass.class)).getObject().asOWLClass());
+        }
+        if (e.canAs(OntDT.class)) {
+            res.add(fetchDataRange(e.as(OntDT.class)).getObject().asOWLDatatype());
+        }
+        if (e.canAs(OntNAP.class)) {
+            res.add(fetchAnnotationProperty(e.as(OntNAP.class)).getObject());
+        }
+        if (e.canAs(OntNDP.class)) {
+            res.add(fetchDataProperty(e.as(OntNDP.class)).getObject());
+        }
+        if (e.canAs(OntNOP.class)) {
+            res.add(fetchObjectProperty(e.as(OntNOP.class)).getObject().asOWLObjectProperty());
+        }
+        if (e.canAs(OntIndividual.Named.class)) {
+            res.add(fetchIndividual(e.as(OntIndividual.Named.class)).getObject().asOWLNamedIndividual());
+        }
+        return res;
     }
 
     public Stream<OWLIndividual> individuals() {
@@ -190,34 +216,15 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return objects(OWLDatatype.class);
     }
 
-    public List<OWLEntity> getEntities(IRI iri) {
-        if (iri == null) return Collections.emptyList();
-        OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
-        List<OWLEntity> res = new ArrayList<>();
-        if (e.canAs(OntClass.class)) {
-            res.add(ReadHelper.fetchClass(e.as(OntClass.class), dataFactory()).getObject().asOWLClass());
-        }
-        if (e.canAs(OntDT.class)) {
-            res.add(ReadHelper.fetchDatatype(e.as(OntDT.class), dataFactory()).getObject());
-        }
-        if (e.canAs(OntNAP.class)) {
-            res.add(ReadHelper.fetchAnnotationProperty(e.as(OntNAP.class), dataFactory()).getObject());
-        }
-        if (e.canAs(OntNDP.class)) {
-            res.add(ReadHelper.fetchDataProperty(e.as(OntNDP.class), dataFactory()).getObject());
-        }
-        if (e.canAs(OntNOP.class)) {
-            res.add(ReadHelper.fetchObjectProperty(e.as(OntNOP.class), dataFactory()).getObject().asOWLObjectProperty());
-        }
-        if (e.canAs(OntIndividual.Named.class)) {
-            res.add(ReadHelper.fetchIndividual(e.as(OntIndividual.Named.class), dataFactory()).getObject().asOWLNamedIndividual());
-        }
-        return res;
-    }
-
+    /**
+     * Gets owl-objects from axioms and annotations.
+     *
+     * @param view Class type of owl-object.
+     * @return Stream of {@link OWLObject}s.
+     */
     @SuppressWarnings("unchecked")
-    protected <E extends OWLObject> Stream<E> objects(Class<E> view) {
-        return (Stream<E>) objectsStore.computeIfAbsent(view, c ->
+    protected <O extends OWLObject> Stream<O> objects(Class<O> view) {
+        return (Stream<O>) objectsStore.computeIfAbsent(view, c ->
                 Stream.concat(
                         annotations().map(annotation -> OwlObjects.objects(c, annotation)).flatMap(Function.identity()),
                         axioms().map(axiom -> OwlObjects.objects(c, axiom)).flatMap(Function.identity())
@@ -248,7 +255,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Gets all ontology header annotations.
      *
      * @return Stream of {@link OWLAnnotation}
-     * @see #getAxioms(AxiomType)
+     * @see #axioms(Set)
      */
     @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> annotations() {
@@ -266,7 +273,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
         if (optimizeCollecting && componentsStore.isEmpty() && types.size() > 1) {
-            types.parallelStream().forEach(this::getAxioms);
+            types.parallelStream().forEach(type -> getAxiomTripleStore(type.getActualClass()));
             return componentsStore.values().stream()
                     .filter(v -> !Objects.equals(v.type(), OWLAnnotation.class))
                     .map(OwlObjectTriplesMap::getObjects)
@@ -275,7 +282,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
                     .map(OWLAxiom.class::cast);
         }
         return types.stream()
-                .map(this::getAxioms)
+                .map(t -> getAxiomTripleStore(t.getActualClass()).getObjects())
                 .map(Collection::stream).flatMap(Function.identity());
     }
 
@@ -299,21 +306,34 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         remove(axiom, getAxiomTripleStore(axiom.getAxiomType()));
     }
 
+    /**
+     * Gets all axioms
+     *
+     * @return Stream of {@link OWLAxiom}s.
+     */
     public Stream<OWLAxiom> axioms() {
         return axioms(AxiomType.AXIOM_TYPES);
     }
 
+    /**
+     * Gets axioms by class-type.
+     *
+     * @param view Class
+     * @return Stream of {@link OWLAxiom}s.
+     */
     public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
         return axioms(AxiomType.getTypeForClass(OntApiException.notNull(view, "Null axiom class type.")));
     }
 
+    /**
+     * Gets axioms by axiom-type.
+     *
+     * @param type {@link AxiomType}
+     * @return Stream of {@link OWLAxiom}s.
+     */
     @SuppressWarnings("unchecked")
     public <A extends OWLAxiom> Stream<A> axioms(AxiomType<A> type) {
         return axioms(Collections.singleton(type)).map(x -> (A) x);
-    }
-
-    protected <A extends OWLAxiom> Set<A> getAxioms(AxiomType<A> type) {
-        return type == null ? Collections.emptySet() : getAxiomTripleStore(type.getActualClass()).getObjects();
     }
 
     @SuppressWarnings("unchecked")
@@ -428,13 +448,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     protected enum MapType {
-        CE, DR, AP, DP, OP, I;
-
-        // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests,
-        // the reasons for this are not clear to me (TODO: investigate!)
-        public Map initMap() {
-            return optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
-        }
+        CE, DR, AP, DP, OP, I
     }
 
     /**
@@ -464,7 +478,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         public Set<O> get(Triple triple) {
-            return cache.entrySet().parallelStream().filter(e -> e.getValue().contains(triple)).map(Map.Entry::getKey).collect(Collectors.toSet());
+            return cache.entrySet().stream().filter(e -> e.getValue().contains(triple)).map(Map.Entry::getKey).collect(Collectors.toSet());
         }
 
         public void delete(O object, Triple triple) {
