@@ -2,6 +2,7 @@ package ru.avicomp.ontapi.internal;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,12 +42,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * there could be live-lock when we work in concurrent mode. from this point this flag is always false.
      */
     protected static boolean optimizeCollecting = false;
-    // axioms store.
-    // used to work with axioms through OWL-API. the use of jena model methods will clear this cache.
-    protected Map<Class<? extends OWLAxiom>, OwlObjectTriplesMap<? extends OWLAxiom>> axiomsStore;
+    // axioms & header annotations store.
+    // used to work through OWL-API. the use of jena model methods will clear this cache.
+    protected Map<Class<? extends OWLObject>, OwlObjectTriplesMap<? extends OWLObject>> componentsStore;
     // OWL objects store to improve performance (working through OWL-API interface with 'signature')
     // any change in the graph resets these caches.
-    protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> owlObjectsStore;
+    protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> objectsStore;
     // Temporary stores for collecting axioms, should be reset after axioms getting.
     protected Map<OntCE, Wrap<? extends OWLClassExpression>> owlCLEStore;
     protected Map<OntDR, Wrap<? extends OWLDataRange>> owlDRGStore;
@@ -67,8 +68,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         super(base, config.loaderConfig().getPersonality());
         this.config = config;
         getGraph().getEventManager().register(new DirectListener());
-        axiomsStore = optimizeCollecting ? new ConcurrentHashMap<>(29, 0.75f, 39) : new HashMap<>();
-        owlObjectsStore = new HashMap<>();
+        componentsStore = optimizeCollecting ? new ConcurrentHashMap<>(29, 0.75f, 39) : new HashMap<>();
+        objectsStore = new HashMap<>();
         // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests,
         // the reasons for this are not clear to me (TODO: investigate!)
         owlCLEStore = optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>();
@@ -223,58 +224,99 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     @SuppressWarnings("unchecked")
     protected <E extends OWLObject> Stream<E> objects(Class<E> view) {
-        return (Stream<E>) owlObjectsStore.computeIfAbsent(view, c ->
+        return (Stream<E>) objectsStore.computeIfAbsent(view, c ->
                 Stream.concat(
                         annotations().map(annotation -> OwlObjects.objects(c, annotation)).flatMap(Function.identity()),
                         axioms().map(axiom -> OwlObjects.objects(c, axiom)).flatMap(Function.identity())
                 ).collect(Collectors.toSet())).stream();
     }
 
+    /**
+     * Adds ontology header annotation to the model.
+     *
+     * @param annotation {@link OWLAnnotation}
+     * @see #add(OWLAxiom)
+     */
     public void add(OWLAnnotation annotation) {
-        WriteHelper.addAnnotations(getID(), Stream.of(annotation));
-        // todo: clear only those objects which belong to the annotation
-        clearObjectsCache();
+        add(annotation, getAnnotationTripleStore(), a -> WriteHelper.addAnnotations(getID(), Stream.of(annotation)));
     }
 
+    /**
+     * Removes ontology header annotation from the model.
+     *
+     * @param annotation {@link OWLAnnotation}
+     * @see #remove(OWLAxiom)
+     */
     public void remove(OWLAnnotation annotation) {
-        Wrap.Collection<OWLAnnotation> all = ReadHelper.getObjectAnnotations(getID(), dataFactory());
-        Optional<Wrap<OWLAnnotation>> res = all.find(annotation);
-        if (!res.isPresent()) {
-            return;
-        }
-        res.get().triples().filter(this::canDelete).forEach(this::delete);
-        // todo: clear only those objects which belong to the annotation
-        clearObjectsCache();
+        remove(annotation, getAnnotationTripleStore());
     }
 
+    /**
+     * Gets all ontology header annotations.
+     *
+     * @return Stream of {@link OWLAnnotation}
+     * @see #getAxioms(AxiomType)
+     */
     @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> annotations() {
-        return (Stream<OWLAnnotation>) owlObjectsStore.computeIfAbsent(OWLAnnotation.class, c -> ReadHelper.getObjectAnnotations(getID(), dataFactory()).getObjects()).stream();
-        //return ReadHelper.getObjectAnnotations(getID(), dataFactory()).objects();
+        return getAnnotationTripleStore().getObjects().stream();
+    }
+
+    /**
+     * The main method for loading/getting axioms.
+     * NOTE: there is a parallel collecting in case {@link #optimizeCollecting} equals true,
+     * {@link #componentsStore} is empty and the set of {@link AxiomType}s contains more then one element.
+     *
+     * @param types Set of {@link AxiomType}s
+     * @return Stream of {@link OWLAxiom}
+     * @see #annotations()
+     */
+    public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
+        if (optimizeCollecting && componentsStore.isEmpty() && types.size() > 1) {
+            types.parallelStream().forEach(this::getAxioms);
+            return componentsStore.values().stream()
+                    .filter(v -> !Objects.equals(v.type(), OWLAnnotation.class))
+                    .map(OwlObjectTriplesMap::getObjects)
+                    .map(Collection::stream)
+                    .flatMap(Function.identity())
+                    .map(OWLAxiom.class::cast);
+        }
+        return types.stream()
+                .map(this::getAxioms)
+                .map(Collection::stream).flatMap(Function.identity());
+    }
+
+    /**
+     * Adds axiom to the model
+     *
+     * @param axiom {@link OWLAxiom}
+     * @see #add(OWLAnnotation)
+     */
+    public void add(OWLAxiom axiom) {
+        add(axiom, getAxiomTripleStore(axiom.getAxiomType()), a -> AxiomParserProvider.get(a.getAxiomType()).write(a, InternalModel.this));
+    }
+
+    /**
+     * Removes axiom from the model
+     *
+     * @param axiom {@link OWLAxiom}
+     * @see #remove(OWLAnnotation)
+     */
+    public void remove(OWLAxiom axiom) {
+        remove(axiom, getAxiomTripleStore(axiom.getAxiomType()));
     }
 
     public Stream<OWLAxiom> axioms() {
         return axioms(AxiomType.AXIOM_TYPES);
     }
 
-    /**
-     * The main method for loading/getting axioms.
-     * NOTE: there is a parallel collecting in case {@link #optimizeCollecting} equals true,
-     * {@link #axiomsStore} is empty and the set of {@link AxiomType}s contains more then one element.
-     *
-     * @param types Set of {@link AxiomType}s
-     * @return Stream of {@link OWLAxiom}
-     */
-    public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
-        if (optimizeCollecting && axiomsStore.isEmpty() && types.size() > 1) {
-            types.parallelStream().forEach(this::getAxioms);
-            return axiomsStore.values().stream()
-                    .map(OwlObjectTriplesMap::getObjects)
-                    .map(Collection::stream).flatMap(Function.identity());
-        }
-        return types.stream()
-                .map(this::getAxioms)
-                .map(Collection::stream).flatMap(Function.identity());
+    public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
+        return axioms(AxiomType.getTypeForClass(OntApiException.notNull(view, "Null axiom class type.")));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <A extends OWLAxiom> Stream<A> axioms(AxiomType<A> type) {
+        return axioms(Collections.singleton(type)).map(x -> (A) x);
     }
 
     protected <A extends OWLAxiom> Set<A> getAxioms(AxiomType<A> type) {
@@ -288,43 +330,55 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     @SuppressWarnings("unchecked")
     protected <A extends OWLAxiom> OwlObjectTriplesMap<A> getAxiomTripleStore(Class<A> type) {
-        return (OwlObjectTriplesMap<A>) axiomsStore.computeIfAbsent(type, c -> new OwlObjectTriplesMap<>(AxiomParserProvider.get(c).read(this)));
-    }
-
-    public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
-        return axioms(AxiomType.getTypeForClass(OntApiException.notNull(view, "Null axiom class type.")));
+        return (OwlObjectTriplesMap<A>) componentsStore.computeIfAbsent(type,
+                c -> new OwlObjectTriplesMap<>(type, AxiomParserProvider.get((Class<A>) c).read(InternalModel.this)));
     }
 
     @SuppressWarnings("unchecked")
-    public <A extends OWLAxiom> Stream<A> axioms(AxiomType<A> type) {
-        return axioms(Collections.singleton(type)).map(x -> (A) x);
+    protected OwlObjectTriplesMap<OWLAnnotation> getAnnotationTripleStore() {
+        return (OwlObjectTriplesMap<OWLAnnotation>) componentsStore.computeIfAbsent(OWLAnnotation.class,
+                c -> new OwlObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), dataFactory()).getWraps()));
     }
 
-    public void add(OWLAxiom axiom) {
-        OwlObjectListener<OWLAxiom> listener = getAxiomTripleStore(axiom.getAxiomType()).createListener(axiom);
+    /**
+     * Adds an object to the model.
+     *
+     * @param object either {@link OWLAxiom} or {@link OWLAnnotation}
+     * @param store  {@link OwlObjectTriplesMap}
+     * @param writer {@link Consumer} to process writing.
+     */
+    protected <O extends OWLObject> void add(O object, OwlObjectTriplesMap<O> store, Consumer<O> writer) {
+        OwlObjectListener<O> listener = store.createListener(object);
         try {
             getGraph().getEventManager().register(listener);
-            AxiomParserProvider.get(axiom.getAxiomType()).write(axiom, this);
+            writer.accept(object);
         } catch (Exception e) {
-            throw new OntApiException(String.format("Axiom: %s, message: %s", axiom, e.getMessage()), e);
+            throw new OntApiException(String.format("OWLObject: %s, message: %s", object, e.getMessage()), e);
         } finally {
             getGraph().getEventManager().unregister(listener);
         }
     }
 
-    public void remove(OWLAxiom axiom) {
-        OwlObjectTriplesMap<OWLAxiom> store = getAxiomTripleStore(axiom.getAxiomType());
-        Set<Triple> triples = store.get(axiom);
-        store.clear(axiom);
+    /**
+     * Removes an object from the model.
+     *
+     * @param object either {@link OWLAxiom} or {@link OWLAnnotation}
+     * @param store  {@link OwlObjectTriplesMap}
+     */
+    protected <O extends OWLObject> void remove(O object, OwlObjectTriplesMap<O> store) {
+        Set<Triple> triples = store.get(object);
+        store.clear(object);
         triples.stream().filter(this::canDelete).forEach(this::delete);
         // todo: clear only those objects which belong to the axiom
         clearObjectsCache();
     }
 
     protected Set<Class<? extends OWLAxiom>> getAxiomTypes(Triple triple) {
-        return axiomsStore.values().stream()
+        return componentsStore.values().stream()
+                .filter(v -> !Objects.equals(v.type(), OWLAnnotation.class))
                 .map(s -> s.get(triple).stream())
                 .flatMap(Function.identity())
+                .map(OWLAxiom.class::cast)
                 .map(a -> a.getAxiomType().getActualClass())
                 .collect(Collectors.toSet());
     }
@@ -337,7 +391,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     protected boolean canDelete(Triple triple) {
         int count = 0;
-        for (OwlObjectTriplesMap<? extends OWLAxiom> store : axiomsStore.values()) {
+        for (OwlObjectTriplesMap<? extends OWLObject> store : componentsStore.values()) {
             count += store.get(triple).size();
             if (count > 1) return false;
         }
@@ -370,17 +424,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     protected void clearObjectsCache() {
-        owlObjectsStore.clear();
+        objectsStore.clear();
         clearTemporaryStores();
     }
 
     public void clearCache() {
-        axiomsStore.clear();
+        componentsStore.clear();
         clearObjectsCache();
     }
 
     public void clearCache(Triple triple) {
-        getAxiomTypes(triple).forEach(axiomsStore::remove);
+        getAxiomTypes(triple).forEach(componentsStore::remove);
         clearObjectsCache();
     }
 
@@ -391,9 +445,15 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     public class OwlObjectTriplesMap<O extends OWLObject> {
         protected Map<O, Set<Triple>> cache;
+        protected final Class<O> type;
 
-        public OwlObjectTriplesMap(Set<Wrap<O>> set) {
+        public OwlObjectTriplesMap(Class<O> type, Set<Wrap<O>> set) {
+            this.type = type;
             this.cache = set.stream().collect(Collectors.toMap(Wrap::getObject, Wrap::getTriples));
+        }
+
+        protected Class<O> type() {
+            return type;
         }
 
         public void add(O object, Triple triple) {

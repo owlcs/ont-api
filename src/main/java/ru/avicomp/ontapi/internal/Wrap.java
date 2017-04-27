@@ -5,13 +5,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.*;
+import org.apache.jena.graph.FrontsTriple;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Statement;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.OntFactory;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
 /**
@@ -19,6 +23,7 @@ import ru.avicomp.ontapi.jena.model.OntObject;
  * <p>
  * Created by @szuev on 27.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class Wrap<O extends OWLObject> {
     private final O object;
     private final Set<Triple> triples;
@@ -33,10 +38,20 @@ public class Wrap<O extends OWLObject> {
         this(object, Collections.singleton(triple));
     }
 
+    /**
+     * Gets wrapped {@link OWLObject}.
+     *
+     * @return OWL object
+     */
     public O getObject() {
         return object;
     }
 
+    /**
+     * Gets {@link Triple}s associated with encapsulated {@link OWLObject}
+     *
+     * @return Set of triples
+     */
     public Set<Triple> getTriples() {
         return triples;
     }
@@ -45,8 +60,13 @@ public class Wrap<O extends OWLObject> {
         return triples.stream();
     }
 
+    /**
+     * Presents this container as {@link Graph}
+     *
+     * @return graph
+     */
     public Graph asGraph() {
-        Graph res = Factory.createGraphMem();
+        Graph res = OntFactory.createDefaultGraph();
         GraphUtil.add(res, triples.iterator());
         return res;
     }
@@ -116,8 +136,32 @@ public class Wrap<O extends OWLObject> {
             this.wraps = wrappers;
         }
 
+        /**
+         * Gets naked {@link OWLObject}s.
+         *
+         * @return Set of objects.
+         */
         public Set<O> getObjects() {
             return objects().collect(Collectors.toSet());
+        }
+
+        /**
+         * Gets {@link Triple}s.
+         *
+         * @return Set of triples.
+         */
+        public Set<Triple> getTriples() {
+            return triples().collect(Collectors.toSet());
+        }
+
+        /**
+         * Gets encapsulated set
+         * For internal reading only, the container must me unchanged.
+         *
+         * @return Set of {@link Wrap}
+         */
+        protected Set<Wrap<O>> getWraps() {
+            return wraps instanceof Set ? (Set<Wrap<O>>) wraps : new HashSet<>(wraps);
         }
 
         public Stream<O> objects() {
@@ -126,10 +170,6 @@ public class Wrap<O extends OWLObject> {
 
         public Stream<Triple> triples() {
             return wraps.stream().map(Wrap::triples).flatMap(Function.identity());
-        }
-
-        public Set<Triple> getTriples() {
-            return triples().collect(Collectors.toSet());
         }
 
         public Optional<Wrap<O>> find(O key) {
