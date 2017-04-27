@@ -34,12 +34,12 @@ public class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTransl
     }
 
     @Override
-    public Wrap<OWLObjectPropertyDomainAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLObjectPropertyDomainAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(getView()), conf.dataFactory());
-        Wrap<? extends OWLClassExpression> ce = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(getView()), conf.dataFactory());
+        InternalObject<? extends OWLClassExpression> ce = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLObjectPropertyDomainAxiom res = conf.dataFactory().getOWLObjectPropertyDomainAxiom(p.getObject(), ce.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(ce);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(p).append(ce);
     }
 }

@@ -45,14 +45,14 @@ public class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataProp
     }
 
     @Override
-    public Wrap<OWLDataPropertyAssertionAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLDataPropertyAssertionAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<? extends OWLIndividual> i = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), conf.dataFactory());
-        Wrap<OWLDataProperty> p = ReadHelper.fetchDataProperty(statement.getPredicate().as(OntNDP.class), conf.dataFactory());
-        Wrap<OWLLiteral> l = ReadHelper.getLiteral(statement.getObject().asLiteral(), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLIndividual> i = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), conf.dataFactory());
+        InternalObject<OWLDataProperty> p = ReadHelper.fetchDataProperty(statement.getPredicate().as(OntNDP.class), conf.dataFactory());
+        InternalObject<OWLLiteral> l = ReadHelper.getLiteral(statement.getObject().asLiteral(), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLDataPropertyAssertionAxiom res = conf.dataFactory().getOWLDataPropertyAssertionAxiom(p.getObject(), i.getObject(), l.getObject(),
                 annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(i).append(p).append(l);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(i).append(p).append(l);
     }
 }

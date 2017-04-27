@@ -23,15 +23,15 @@ public class NegativeDataPropertyAssertionTranslator extends AbstractNegativePro
     }
 
     @Override
-    public Wrap<OWLNegativeDataPropertyAssertionAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLNegativeDataPropertyAssertionAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
         OntNPA.DataAssertion npa = statement.getSubject().as(getView());
-        Wrap<? extends OWLIndividual> s = ReadHelper.fetchIndividual(npa.getSource(), conf.dataFactory());
-        Wrap<OWLDataProperty> p = ReadHelper.fetchDataProperty(npa.getProperty(), conf.dataFactory());
-        Wrap<OWLLiteral> o = ReadHelper.getLiteral(npa.getTarget(), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLIndividual> s = ReadHelper.fetchIndividual(npa.getSource(), conf.dataFactory());
+        InternalObject<OWLDataProperty> p = ReadHelper.fetchDataProperty(npa.getProperty(), conf.dataFactory());
+        InternalObject<OWLLiteral> o = ReadHelper.getLiteral(npa.getTarget(), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLNegativeDataPropertyAssertionAxiom res = conf.dataFactory().getOWLNegativeDataPropertyAssertionAxiom(p.getObject(),
                 s.getObject(), o.getObject(), annotations.getObjects());
-        return Wrap.create(res, npa.content()).add(annotations.getTriples()).append(s).append(p).append(o);
+        return InternalObject.create(res, npa.content()).add(annotations.getTriples()).append(s).append(p).append(o);
     }
 }

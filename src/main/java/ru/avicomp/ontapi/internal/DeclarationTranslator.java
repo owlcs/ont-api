@@ -40,11 +40,11 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     }
 
     @Override
-    public Wrap<OWLDeclarationAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLDeclarationAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<? extends OWLEntity> entity = ReadHelper.wrapEntity(statement.getSubject().as(OntEntity.class), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLEntity> entity = ReadHelper.wrapEntity(statement.getSubject().as(OntEntity.class), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLDeclarationAxiom res = conf.dataFactory().getOWLDeclarationAxiom(entity.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples());
+        return InternalObject.create(res, statement).add(annotations.getTriples());
     }
 }

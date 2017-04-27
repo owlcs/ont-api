@@ -48,15 +48,15 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
     }
 
     @Override
-    public Wrap<OWLAnnotationAssertionAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLAnnotationAssertionAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<? extends OWLAnnotationSubject> s = ReadHelper.getAnnotationSubject(statement.getSubject(), conf.dataFactory());
-        Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getPredicate().as(OntNAP.class), conf.dataFactory());
-        Wrap<? extends OWLAnnotationValue> v = ReadHelper.getAnnotationValue(statement.getObject(), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLAnnotationSubject> s = ReadHelper.getAnnotationSubject(statement.getSubject(), conf.dataFactory());
+        InternalObject<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getPredicate().as(OntNAP.class), conf.dataFactory());
+        InternalObject<? extends OWLAnnotationValue> v = ReadHelper.getAnnotationValue(statement.getObject(), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLAnnotationAssertionAxiom res = conf.dataFactory().getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
                 annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(s).append(p).append(v);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(s).append(p).append(v);
     }
 
 }

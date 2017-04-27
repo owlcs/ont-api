@@ -37,15 +37,15 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    public Wrap<SWRLRule> asAxiom(OntStatement statement) {
+    public InternalObject<SWRLRule> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
         OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
 
-        Wrap.Collection<? extends SWRLAtom> head = Wrap.Collection.create(imp.head().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())));
-        Wrap.Collection<? extends SWRLAtom> body = Wrap.Collection.create(imp.body().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())));
+        InternalObject.Collection<? extends SWRLAtom> head = InternalObject.Collection.create(imp.head().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())));
+        InternalObject.Collection<? extends SWRLAtom> body = InternalObject.Collection.create(imp.body().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())));
 
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         SWRLRule res = conf.dataFactory().getSWRLRule(body.objects().collect(Collectors.toList()), head.objects().collect(Collectors.toList()), annotations.getObjects());
-        return Wrap.create(res, imp.content()).add(annotations.getTriples()).add(body.getTriples()).add(head.getTriples());
+        return InternalObject.create(res, imp.content()).add(annotations.getTriples()).add(body.getTriples()).add(head.getTriples());
     }
 }

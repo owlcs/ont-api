@@ -44,12 +44,12 @@ public class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTran
     }
 
     @Override
-    public Wrap<OWLAnnotationPropertyRangeAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLAnnotationPropertyRangeAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(getView()), conf.dataFactory());
-        Wrap<IRI> d = ReadHelper.wrapIRI(statement.getObject().as(OntObject.class));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(getView()), conf.dataFactory());
+        InternalObject<IRI> d = ReadHelper.wrapIRI(statement.getObject().as(OntObject.class));
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLAnnotationPropertyRangeAxiom res = conf.dataFactory().getOWLAnnotationPropertyRangeAxiom(p.getObject(), d.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(d);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(p).append(d);
     }
 }

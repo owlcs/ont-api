@@ -41,7 +41,7 @@ public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndi
         return new OWLSameIndividualAxiomImpl(components.collect(Collectors.toSet()), annotations);
     }
 
-    private Set<Wrap<OWLSameIndividualAxiom>> extractStandaloneAxioms(Set<Wrap<OWLSameIndividualAxiom>> set) {
+    private Set<InternalObject<OWLSameIndividualAxiom>> extractStandaloneAxioms(Set<InternalObject<OWLSameIndividualAxiom>> set) {
         return set.stream().filter(a -> set.stream().filter(b -> !a.equals(b))
                 .noneMatch(b -> ReadHelper.isIntersect(a.getObject(), b.getObject()))).collect(Collectors.toSet());
     }
@@ -56,33 +56,33 @@ public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndi
      * @return shrunken map of axioms
      */
     @Override
-    Set<Wrap<OWLSameIndividualAxiom>> shrink(Set<Wrap<OWLSameIndividualAxiom>> init) {
+    Set<InternalObject<OWLSameIndividualAxiom>> shrink(Set<InternalObject<OWLSameIndividualAxiom>> init) {
         if (init.size() < 2) {
             return new HashSet<>(init);
         }
-        Set<Wrap<OWLSameIndividualAxiom>> unique = extractStandaloneAxioms(init);
-        Set<Wrap<OWLSameIndividualAxiom>> res = new HashSet<>();
+        Set<InternalObject<OWLSameIndividualAxiom>> unique = extractStandaloneAxioms(init);
+        Set<InternalObject<OWLSameIndividualAxiom>> res = new HashSet<>();
         res.addAll(unique);
         if (res.size() == init.size()) return res;
-        Set<Wrap<OWLSameIndividualAxiom>> tmp = new HashSet<>(init);
+        Set<InternalObject<OWLSameIndividualAxiom>> tmp = new HashSet<>(init);
         tmp.removeAll(unique);
         // assemble a single axiom of the remaining pairwise axioms
-        Stream<OWLAnnotation> annotations = tmp.stream().map(Wrap::getObject).map(HasAnnotations::annotations).findAny().orElse(Stream.empty());
+        Stream<OWLAnnotation> annotations = tmp.stream().map(InternalObject::getObject).map(HasAnnotations::annotations).findAny().orElse(Stream.empty());
         // do operands(stream)->set->stream to avoid BootstrapMethodError
-        Stream<OWLIndividual> components = tmp.stream().map(Wrap::getObject).map(axiom -> axiom.operands().collect(Collectors.toSet()).stream()).flatMap(Function.identity()).distinct();
-        Set<Triple> triples = tmp.stream().map(Wrap::triples).flatMap(Function.identity()).collect(Collectors.toSet());
+        Stream<OWLIndividual> components = tmp.stream().map(InternalObject::getObject).map(axiom -> axiom.operands().collect(Collectors.toSet()).stream()).flatMap(Function.identity()).distinct();
+        Set<Triple> triples = tmp.stream().map(InternalObject::triples).flatMap(Function.identity()).collect(Collectors.toSet());
         OWLSameIndividualAxiom multi = create(components, annotations.collect(Collectors.toSet()));
-        res.add(new Wrap<>(multi, triples));
+        res.add(new InternalObject<>(multi, triples));
         return res;
     }
 
     @Override
-    public Wrap<OWLSameIndividualAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLSameIndividualAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<? extends OWLIndividual> a = ReadHelper.fetchIndividual(statement.getSubject().as(getView()), conf.dataFactory());
-        Wrap<? extends OWLIndividual> b = ReadHelper.fetchIndividual(statement.getObject().as(getView()), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLIndividual> a = ReadHelper.fetchIndividual(statement.getSubject().as(getView()), conf.dataFactory());
+        InternalObject<? extends OWLIndividual> b = ReadHelper.fetchIndividual(statement.getObject().as(getView()), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLSameIndividualAxiom res = conf.dataFactory().getOWLSameIndividualAxiom(a.getObject(), b.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }
 }

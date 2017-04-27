@@ -41,15 +41,15 @@ public class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxio
     }
 
     @Override
-    public Wrap<OWLHasKeyAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLHasKeyAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
         OntCE ce = statement.getSubject().as(OntCE.class);
-        Wrap<? extends OWLClassExpression> subject = ReadHelper.fetchClassExpression(ce, conf.dataFactory());
-        Wrap.Collection<? extends OWLPropertyExpression> members = Wrap.Collection.create(ce.hasKey()
+        InternalObject<? extends OWLClassExpression> subject = ReadHelper.fetchClassExpression(ce, conf.dataFactory());
+        InternalObject.Collection<? extends OWLPropertyExpression> members = InternalObject.Collection.create(ce.hasKey()
                 .filter(p -> p.canAs(OntOPE.class) || p.canAs(OntNDP.class)) // only P or R (!)
                 .map(p -> ReadHelper.getProperty(p, conf.dataFactory())));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLHasKeyAxiom res = conf.dataFactory().getOWLHasKeyAxiom(subject.getObject(), members.getObjects(), annotations.getObjects());
-        return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
+        return InternalObject.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }
 }

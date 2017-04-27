@@ -56,21 +56,21 @@ public class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator
     }
 
     @Override
-    public Wrap<OWLDifferentIndividualsAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLDifferentIndividualsAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap.Collection<? extends OWLIndividual> members;
+        InternalObject.Collection<? extends OWLIndividual> members;
         Stream<OntStatement> content;
         if (statement.getSubject().canAs(getDisjointView())) {
             OntDisjoint.Individuals disjoint = statement.getSubject().as(getDisjointView());
             content = disjoint.content();
-            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.fetchIndividual(m, conf.dataFactory())));
+            members = InternalObject.Collection.create(disjoint.members().map(m -> ReadHelper.fetchIndividual(m, conf.dataFactory())));
         } else {
             content = Stream.of(statement);
-            members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
+            members = InternalObject.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
                     .map(r -> r.as(getView())).map(m -> ReadHelper.fetchIndividual(m, conf.dataFactory())));
         }
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLDifferentIndividualsAxiom res = conf.dataFactory().getOWLDifferentIndividualsAxiom(members.getObjects(), annotations.getObjects());
-        return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
+        return InternalObject.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }
 }

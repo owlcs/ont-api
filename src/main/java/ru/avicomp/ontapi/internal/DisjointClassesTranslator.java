@@ -57,21 +57,21 @@ public class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLD
     }
 
     @Override
-    public Wrap<OWLDisjointClassesAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLDisjointClassesAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap.Collection<? extends OWLClassExpression> members;
+        InternalObject.Collection<? extends OWLClassExpression> members;
         Stream<OntStatement> content;
         if (statement.getSubject().canAs(getDisjointView())) {
             OntDisjoint.Classes disjoint = statement.getSubject().as(getDisjointView());
             content = disjoint.content();
-            members = Wrap.Collection.create(disjoint.members().map(m -> ReadHelper.fetchClassExpression(m, conf.dataFactory())));
+            members = InternalObject.Collection.create(disjoint.members().map(m -> ReadHelper.fetchClassExpression(m, conf.dataFactory())));
         } else {
             content = Stream.of(statement);
-            members = Wrap.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
+            members = InternalObject.Collection.create(Stream.of(statement.getSubject(), statement.getObject())
                     .map(r -> r.as(getView())).map(m -> ReadHelper.fetchClassExpression(m, conf.dataFactory())));
         }
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLDisjointClassesAxiom res = conf.dataFactory().getOWLDisjointClassesAxiom(members.getObjects(), annotations.getObjects());
-        return Wrap.create(res, content).add(annotations.getTriples()).add(members.getTriples());
+        return InternalObject.create(res, content).add(annotations.getTriples()).add(members.getTriples());
     }
 }

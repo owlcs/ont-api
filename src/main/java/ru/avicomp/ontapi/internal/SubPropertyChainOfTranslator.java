@@ -43,17 +43,17 @@ public class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<O
     }
 
     @Override
-    public Wrap<OWLSubPropertyChainOfAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLSubPropertyChainOfAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
         OntOPE ope = statement.getSubject().as(OntOPE.class);
         RDFList list = statement.getObject().as(RDFList.class);
-        Wrap<? extends OWLObjectPropertyExpression> subject = ReadHelper.fetchObjectPropertyExpression(ope, conf.dataFactory());
-        Wrap.Collection<? extends OWLObjectPropertyExpression> members = Wrap.Collection.create(list.asJavaList().stream()
+        InternalObject<? extends OWLObjectPropertyExpression> subject = ReadHelper.fetchObjectPropertyExpression(ope, conf.dataFactory());
+        InternalObject.Collection<? extends OWLObjectPropertyExpression> members = InternalObject.Collection.create(list.asJavaList().stream()
                 .map(p -> p.as(OntOPE.class))
                 .map(p -> ReadHelper.fetchObjectPropertyExpression(p, conf.dataFactory())));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         // note: the input is a list. does it mean that the order is important?
         OWLSubPropertyChainOfAxiom res = conf.dataFactory().getOWLSubPropertyChainOfAxiom(members.objects().collect(Collectors.toList()), subject.getObject(), annotations.getObjects());
-        return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
+        return InternalObject.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }
 }

@@ -41,12 +41,12 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     }
 
     @Override
-    public Wrap<OWLDatatypeDefinitionAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLDatatypeDefinitionAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<OWLDatatype> dt = ReadHelper.fetchDatatype(statement.getSubject().as(OntDT.class), conf.dataFactory());
-        Wrap<? extends OWLDataRange> dr = ReadHelper.fetchDataRange(statement.getObject().as(OntDR.class), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<OWLDatatype> dt = ReadHelper.fetchDatatype(statement.getSubject().as(OntDT.class), conf.dataFactory());
+        InternalObject<? extends OWLDataRange> dr = ReadHelper.fetchDataRange(statement.getObject().as(OntDR.class), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLDatatypeDefinitionAxiom res = conf.dataFactory().getOWLDatatypeDefinitionAxiom(dt.getObject(), dr.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(dt).append(dr);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(dt).append(dr);
     }
 }

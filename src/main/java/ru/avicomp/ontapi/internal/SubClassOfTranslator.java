@@ -40,12 +40,12 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public Wrap<OWLSubClassOfAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLSubClassOfAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<? extends OWLClassExpression> sub = ReadHelper.fetchClassExpression(statement.getSubject().as(OntCE.class), conf.dataFactory());
-        Wrap<? extends OWLClassExpression> sup = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLClassExpression> sub = ReadHelper.fetchClassExpression(statement.getSubject().as(OntCE.class), conf.dataFactory());
+        InternalObject<? extends OWLClassExpression> sup = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLSubClassOfAxiom res = conf.dataFactory().getOWLSubClassOfAxiom(sub.getObject(), sup.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(sub).append(sup);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(sub).append(sup);
     }
 }

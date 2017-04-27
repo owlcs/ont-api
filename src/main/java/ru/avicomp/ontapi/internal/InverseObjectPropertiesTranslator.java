@@ -54,12 +54,12 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
     }
 
     @Override
-    public Wrap<OWLInverseObjectPropertiesAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLInverseObjectPropertiesAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<? extends OWLObjectPropertyExpression> f = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(OntOPE.class), conf.dataFactory());
-        Wrap<? extends OWLObjectPropertyExpression> s = ReadHelper.fetchObjectPropertyExpression(statement.getObject().as(OntOPE.class), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLObjectPropertyExpression> f = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(OntOPE.class), conf.dataFactory());
+        InternalObject<? extends OWLObjectPropertyExpression> s = ReadHelper.fetchObjectPropertyExpression(statement.getObject().as(OntOPE.class), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLInverseObjectPropertiesAxiom res = conf.dataFactory().getOWLInverseObjectPropertiesAxiom(f.getObject(), s.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(f).append(s);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(f).append(s);
     }
 }

@@ -32,9 +32,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * Reads axioms and triples from model.
      *
      * @param model {@link OntGraphModel}
-     * @return Set of {@link Wrap} with {@link OWLAxiom} as key and Set of {@link Triple} as value
+     * @return Set of {@link InternalObject} with {@link OWLAxiom} as key and Set of {@link Triple} as value
      */
-    public Set<Wrap<Axiom>> read(OntGraphModel model) {
+    public Set<InternalObject<Axiom>> read(OntGraphModel model) {
         try {
             return readAxioms(model);
         } catch (Exception e) {
@@ -42,7 +42,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         }
     }
 
-    public Set<Wrap<Axiom>> readAxioms(OntGraphModel model) {
+    public Set<InternalObject<Axiom>> readAxioms(OntGraphModel model) {
         return statements(model).map(this::asAxiom).collect(Collectors.toSet());
     }
 
@@ -66,9 +66,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * Wraps the statement as OWL Axiom.
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
-     * @return {@link Wrap} around the {@link OWLAxiom}
+     * @return {@link InternalObject} around the {@link OWLAxiom}
      */
-    public abstract Wrap<Axiom> asAxiom(OntStatement statement);
+    public abstract InternalObject<Axiom> asAxiom(OntStatement statement);
 
     /**
      * Gets the config from model's settings or dummy if it is naked Jena model.

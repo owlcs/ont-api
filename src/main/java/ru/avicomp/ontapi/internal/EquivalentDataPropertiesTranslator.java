@@ -38,12 +38,12 @@ public class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<O
     }
 
     @Override
-    public Wrap<OWLEquivalentDataPropertiesAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLEquivalentDataPropertiesAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<OWLDataProperty> a = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), conf.dataFactory());
-        Wrap<OWLDataProperty> b = ReadHelper.fetchDataProperty(statement.getObject().as(getView()), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<OWLDataProperty> a = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), conf.dataFactory());
+        InternalObject<OWLDataProperty> b = ReadHelper.fetchDataProperty(statement.getObject().as(getView()), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLEquivalentDataPropertiesAxiom res = conf.dataFactory().getOWLEquivalentDataPropertiesAxiom(a.getObject(), b.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(a).append(b);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(a).append(b);
     }
 }

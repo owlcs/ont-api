@@ -27,11 +27,11 @@ public class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTrans
     }
 
     @Override
-    public Wrap<OWLReflexiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLReflexiveObjectPropertyAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(getSubject(statement), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(getSubject(statement), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLReflexiveObjectPropertyAxiom res = conf.dataFactory().getOWLReflexiveObjectPropertyAxiom(p.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(p);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(p);
     }
 }

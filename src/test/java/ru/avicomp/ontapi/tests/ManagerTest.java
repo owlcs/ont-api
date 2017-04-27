@@ -24,8 +24,8 @@ import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.internal.InternalObject;
 import ru.avicomp.ontapi.internal.ReadHelper;
-import ru.avicomp.ontapi.internal.Wrap;
 import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntClass;
@@ -560,7 +560,7 @@ public class ManagerTest {
         Assert.assertNotNull(ont);
         List<OWLClass> newOWLClasses = newClasses.stream()
                 .map(ce -> ReadHelper.fetchClassExpression(ce, df))
-                .map(Wrap::getObject)
+                .map(InternalObject::getObject)
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: " + newOWLClasses);
         newOWLClasses.forEach(c ->

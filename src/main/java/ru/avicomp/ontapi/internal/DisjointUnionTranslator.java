@@ -41,13 +41,13 @@ public class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDis
     }
 
     @Override
-    public Wrap<OWLDisjointUnionAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLDisjointUnionAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
         OntClass clazz = statement.getSubject().as(OntClass.class);
-        Wrap<? extends OWLClassExpression> subject = ReadHelper.fetchClassExpression(clazz, conf.dataFactory());
-        Wrap.Collection<? extends OWLClassExpression> members = Wrap.Collection.create(clazz.disjointUnionOf().map(s -> ReadHelper.fetchClassExpression(s, conf.dataFactory())));
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLClassExpression> subject = ReadHelper.fetchClassExpression(clazz, conf.dataFactory());
+        InternalObject.Collection<? extends OWLClassExpression> members = InternalObject.Collection.create(clazz.disjointUnionOf().map(s -> ReadHelper.fetchClassExpression(s, conf.dataFactory())));
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLDisjointUnionAxiom res = conf.dataFactory().getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(), members.getObjects(), annotations.getObjects());
-        return Wrap.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
+        return InternalObject.create(res, content(statement)).add(annotations.getTriples()).add(members.getTriples());
     }
 }

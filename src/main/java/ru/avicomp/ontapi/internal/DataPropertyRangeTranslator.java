@@ -34,13 +34,13 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
     }
 
     @Override
-    public Wrap<OWLDataPropertyRangeAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLDataPropertyRangeAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<OWLDataProperty> p = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), conf.dataFactory());
-        Wrap<? extends OWLDataRange> d = ReadHelper.fetchDataRange(statement.getObject().as(OntDR.class), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<OWLDataProperty> p = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), conf.dataFactory());
+        InternalObject<? extends OWLDataRange> d = ReadHelper.fetchDataRange(statement.getObject().as(OntDR.class), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLDataPropertyRangeAxiom res = conf.dataFactory().getOWLDataPropertyRangeAxiom(p.getObject(), d.getObject(), annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(p).append(d);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(p).append(d);
     }
 
 }

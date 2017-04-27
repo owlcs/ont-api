@@ -57,14 +57,14 @@ public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObject
     }
 
     @Override
-    public Wrap<OWLObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
+    public InternalObject<OWLObjectPropertyAssertionAxiom> asAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
-        Wrap<? extends OWLIndividual> subject = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), conf.dataFactory());
-        Wrap<? extends OWLObjectPropertyExpression> property = ReadHelper.fetchObjectPropertyExpression(statement.getPredicate().as(OntOPE.class), conf.dataFactory());
-        Wrap<? extends OWLIndividual> object = ReadHelper.fetchIndividual(statement.getObject().as(OntIndividual.class), conf.dataFactory());
-        Wrap.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
+        InternalObject<? extends OWLIndividual> subject = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), conf.dataFactory());
+        InternalObject<? extends OWLObjectPropertyExpression> property = ReadHelper.fetchObjectPropertyExpression(statement.getPredicate().as(OntOPE.class), conf.dataFactory());
+        InternalObject<? extends OWLIndividual> object = ReadHelper.fetchIndividual(statement.getObject().as(OntIndividual.class), conf.dataFactory());
+        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
         OWLObjectPropertyAssertionAxiom res = conf.dataFactory().getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
                 annotations.getObjects());
-        return Wrap.create(res, statement).add(annotations.getTriples()).append(subject).append(property).append(object);
+        return InternalObject.create(res, statement).add(annotations.getTriples()).append(subject).append(property).append(object);
     }
 }

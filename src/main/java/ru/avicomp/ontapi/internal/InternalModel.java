@@ -27,7 +27,7 @@ import ru.avicomp.ontapi.jena.model.*;
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
  * it is used by {@link ru.avicomp.ontapi.OntologyModel} to read and write structural representation of ontology.
  * <p>
- * todo: should return {@link Wrap}s, not just naked {@link OWLObject}s
+ * todo: should return {@link InternalObject}s, not just naked {@link OWLObject}s
  * <p>
  * Created by @szuev on 26.10.2016.
  */
@@ -49,12 +49,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     // any change in the graph resets these caches.
     protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> objectsStore;
     // Temporary stores for collecting axioms, should be reset after axioms getting.
-    protected Map<OntCE, Wrap<? extends OWLClassExpression>> owlCLEStore;
-    protected Map<OntDR, Wrap<? extends OWLDataRange>> owlDRGStore;
-    protected Map<OntIndividual, Wrap<? extends OWLIndividual>> owlINDStore;
-    protected Map<OntNAP, Wrap<OWLAnnotationProperty>> owlNAPStore;
-    protected Map<OntNDP, Wrap<OWLDataProperty>> owlNDPStore;
-    protected Map<OntOPE, Wrap<? extends OWLObjectPropertyExpression>> owlOPEStore;
+    protected Map<OntCE, InternalObject<? extends OWLClassExpression>> owlCLEStore;
+    protected Map<OntDR, InternalObject<? extends OWLDataRange>> owlDRGStore;
+    protected Map<OntIndividual, InternalObject<? extends OWLIndividual>> owlINDStore;
+    protected Map<OntNAP, InternalObject<OWLAnnotationProperty>> owlNAPStore;
+    protected Map<OntNDP, InternalObject<OWLDataProperty>> owlNDPStore;
+    protected Map<OntOPE, InternalObject<? extends OWLObjectPropertyExpression>> owlOPEStore;
 
     private ConfigProvider.Config config;
 
@@ -131,27 +131,27 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return axioms().count() == 0 && annotations().count() == 0;
     }
 
-    protected Wrap<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
+    protected InternalObject<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
         return owlCLEStore.computeIfAbsent(ce, c -> ReadHelper.getClassExpression(c, dataFactory()));
     }
 
-    protected Wrap<? extends OWLDataRange> fetchDataRange(OntDR dr) {
+    protected InternalObject<? extends OWLDataRange> fetchDataRange(OntDR dr) {
         return owlDRGStore.computeIfAbsent(dr, d -> ReadHelper.getDataRange(d, dataFactory()));
     }
 
-    protected Wrap<? extends OWLIndividual> fetchIndividual(OntIndividual indi) {
+    protected InternalObject<? extends OWLIndividual> fetchIndividual(OntIndividual indi) {
         return owlINDStore.computeIfAbsent(indi, i -> ReadHelper.getIndividual(i, dataFactory()));
     }
 
-    protected Wrap<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap) {
+    protected InternalObject<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap) {
         return owlNAPStore.computeIfAbsent(nap, p -> ReadHelper.getAnnotationProperty(p, dataFactory()));
     }
 
-    protected Wrap<OWLDataProperty> fetchDataProperty(OntNDP ndp) {
+    protected InternalObject<OWLDataProperty> fetchDataProperty(OntNDP ndp) {
         return owlNDPStore.computeIfAbsent(ndp, p -> ReadHelper.getDataProperty(p, dataFactory()));
     }
 
-    protected Wrap<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
+    protected InternalObject<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
         return owlOPEStore.computeIfAbsent(ope, p -> ReadHelper.getObjectPropertyExpression(p, dataFactory()));
     }
 
@@ -447,9 +447,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         protected Map<O, Set<Triple>> cache;
         protected final Class<O> type;
 
-        public OwlObjectTriplesMap(Class<O> type, Set<Wrap<O>> set) {
+        public OwlObjectTriplesMap(Class<O> type, Set<InternalObject<O>> set) {
             this.type = type;
-            this.cache = set.stream().collect(Collectors.toMap(Wrap::getObject, Wrap::getTriples));
+            this.cache = set.stream().collect(Collectors.toMap(InternalObject::getObject, InternalObject::getTriples));
         }
 
         protected Class<O> type() {
