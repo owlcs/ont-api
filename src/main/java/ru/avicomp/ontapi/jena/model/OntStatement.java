@@ -13,7 +13,8 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 /**
  * Ont-statement
  * OWL2 Annotations could be attached to this statement recursively.
- * <p>
+ *
+ * @see OntAnnotation
  * Created by @szuev on 13.11.2016.
  */
 public interface OntStatement extends Statement {

@@ -9,8 +9,8 @@ import org.apache.jena.rdf.model.Resource;
 /**
  * For SWRL addition.
  * See <a href='https://www.w3.org/Submission/SWRL'>specification</a>.
+ *
  * @see ru.avicomp.ontapi.jena.vocabulary.SWRL
- * <p>
  * Created by @szuev on 02.11.2016.
  */
 public interface OntSWRL extends OntObject {

@@ -16,7 +16,6 @@ import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
-import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -27,11 +26,11 @@ import ru.avicomp.ontapi.jena.model.*;
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
  * it is used by {@link ru.avicomp.ontapi.OntologyModel} to read and write structural representation of ontology.
  * <p>
- * todo: should return {@link InternalObject}s, not just naked {@link OWLObject}s
+ * todo: should it return {@link InternalObject}s, not just naked {@link OWLObject}s? it would be very convenient.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess"})
 public class InternalModel extends OntGraphModelImpl implements OntGraphModel, ConfigProvider {
 
     /**
@@ -72,20 +71,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return config;
     }
 
-    public OWLDataFactory dataFactory() {
-        return getConfig().dataFactory();
-    }
-
-    public OntLoaderConfiguration loaderConfig() {
-        return getConfig().loaderConfig();
-    }
-
-    public OWLOntologyWriterConfiguration writerConfig() {
-        return getConfig().writerConfig();
-    }
-
     /**
-     `     * Jena model method.
+     * Jena model method.
      * Since in ONT-API we use another kind of lock this method is disabled.
      *
      * @see ru.avicomp.ontapi.jena.ConcurrentGraph
@@ -116,7 +103,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     public Stream<OWLImportsDeclaration> importDeclarations() {
-        return getID().imports().map(IRI::create).map(i -> dataFactory().getOWLImportsDeclaration(i));
+        return getID().imports().map(IRI::create).map(i -> getConfig().dataFactory().getOWLImportsDeclaration(i));
     }
 
     public boolean isOntologyEmpty() {
@@ -124,33 +111,32 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     protected InternalObject<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
-        return fetch(ce, MapType.CE, c -> ReadHelper.getClassExpression(c, dataFactory()));
+        return fetch(ce, MapType.CE, c -> ReadHelper.getClassExpression(c, getConfig().dataFactory()));
     }
 
     protected InternalObject<? extends OWLDataRange> fetchDataRange(OntDR dr) {
-        return fetch(dr, MapType.DR, d -> ReadHelper.getDataRange(d, dataFactory()));
+        return fetch(dr, MapType.DR, d -> ReadHelper.getDataRange(d, getConfig().dataFactory()));
     }
 
     protected InternalObject<? extends OWLIndividual> fetchIndividual(OntIndividual indi) {
-        return fetch(indi, MapType.I, i -> ReadHelper.getIndividual(i, dataFactory()));
+        return fetch(indi, MapType.I, i -> ReadHelper.getIndividual(i, getConfig().dataFactory()));
     }
 
     protected InternalObject<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap) {
-        return fetch(nap, MapType.AP, p -> ReadHelper.getAnnotationProperty(p, dataFactory()));
+        return fetch(nap, MapType.AP, p -> ReadHelper.getAnnotationProperty(p, getConfig().dataFactory()));
     }
 
     protected InternalObject<OWLDataProperty> fetchDataProperty(OntNDP ndp) {
-        return fetch(ndp, MapType.DP, p -> ReadHelper.getDataProperty(p, dataFactory()));
+        return fetch(ndp, MapType.DP, p -> ReadHelper.getDataProperty(p, getConfig().dataFactory()));
     }
 
     protected InternalObject<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
-        return fetch(ope, MapType.OP, p -> ReadHelper.getObjectPropertyExpression(p, dataFactory()));
+        return fetch(ope, MapType.OP, p -> ReadHelper.getObjectPropertyExpression(p, getConfig().dataFactory()));
     }
 
     @SuppressWarnings("unchecked")
     protected <A extends OWLObject, B extends OntObject> InternalObject<A> fetch(B b, MapType type, Function<B, InternalObject<A>> func) {
-        // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests,
-        // the reasons for this are not clear to me (TODO: investigate!)
+        // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests, the reasons are not clear.
         return (InternalObject<A>) temporaryObjects.computeIfAbsent(type,
                 t -> optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>()).computeIfAbsent(b, func);
     }
@@ -200,10 +186,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return objects(OWLDataProperty.class);
     }
 
-    public Stream<OWLObjectPropertyExpression> objectPropertyExpressions() {
-        return objects(OWLObjectPropertyExpression.class);
-    }
-
     public Stream<OWLObjectProperty> objectProperties() {
         return objects(OWLObjectProperty.class);
     }
@@ -249,6 +231,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     public void remove(OWLAnnotation annotation) {
         remove(annotation, getAnnotationTripleStore());
+        clearObjectsCache();
     }
 
     /**
@@ -304,6 +287,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     public void remove(OWLAxiom axiom) {
         remove(axiom, getAxiomTripleStore(axiom.getAxiomType()));
+        Stream.of(OWLClass.class,
+                OWLDatatype.class,
+                OWLAnnotationProperty.class,
+                OWLDataProperty.class,
+                OWLObjectProperty.class,
+                OWLNamedIndividual.class,
+                OWLAnonymousIndividual.class).filter(c -> OwlObjects.objects(c, axiom).anyMatch(p -> true))
+                .forEach(type -> objectsStore.remove(type));
     }
 
     /**
@@ -350,7 +341,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     @SuppressWarnings("unchecked")
     protected OwlObjectTriplesMap<OWLAnnotation> getAnnotationTripleStore() {
         return (OwlObjectTriplesMap<OWLAnnotation>) componentsStore.computeIfAbsent(OWLAnnotation.class,
-                c -> new OwlObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), dataFactory()).getWraps()));
+                c -> new OwlObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), getConfig().dataFactory()).getWraps()));
     }
 
     /**
@@ -374,16 +365,16 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * Removes an object from the model.
+     * Note: remove associated objects from {@link #objectsStore}!
      *
      * @param object either {@link OWLAxiom} or {@link OWLAnnotation}
      * @param store  {@link OwlObjectTriplesMap}
+     * @see #clearObjectsCache()
      */
     protected <O extends OWLObject> void remove(O object, OwlObjectTriplesMap<O> store) {
         Set<Triple> triples = store.get(object);
         store.clear(object);
         triples.stream().filter(this::canDelete).forEach(this::delete);
-        // todo: clear only those sub-objects which belong to the component-owl-object
-        clearObjectsCache();
     }
 
     protected Set<Class<? extends OWLAxiom>> getAxiomTypes(Triple triple) {
@@ -397,7 +388,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * checks if it is possible to delete triple from the graph.
+     * Checks if it is possible to delete triple from the graph.
      *
      * @param triple {@link Triple}
      * @return true if there are no axiom which includes this triple, otherwise false.

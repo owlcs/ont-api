@@ -13,7 +13,7 @@ import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ru.avicomp.ontapi.jena.OntFactory;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -34,7 +34,7 @@ public class GraphModelJenaTest {
     @Test
     public void testLoadCE() {
         LOGGER.info("load pizza");
-        OntGraphModel m = OntFactory.createModel(loadGraph("pizza.ttl"));
+        OntGraphModel m = OntModelFactory.createModel(loadGraph("pizza.ttl"));
         LOGGER.info("Ontology: " + m.getID());
 
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
@@ -76,7 +76,7 @@ public class GraphModelJenaTest {
     @Test
     public void testLoadProperties() {
         LOGGER.info("load pizza");
-        OntGraphModel m = OntFactory.createModel(loadGraph("pizza.ttl"));
+        OntGraphModel m = OntModelFactory.createModel(loadGraph("pizza.ttl"));
         List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
         actual.forEach(LOGGER::debug);
         Set<Resource> expected = new HashSet<>();
@@ -88,7 +88,7 @@ public class GraphModelJenaTest {
     @Test
     public void testLoadIndividuals() {
         LOGGER.info("load pizza");
-        OntGraphModel m = OntFactory.createModel(loadGraph("pizza.ttl"));
+        OntGraphModel m = OntModelFactory.createModel(loadGraph("pizza.ttl"));
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
         individuals.forEach(i -> LOGGER.debug(i + " classes: " + i.classes().collect(Collectors.toSet())));
 
@@ -116,7 +116,7 @@ public class GraphModelJenaTest {
         String uri = "http://test.com/graph/1";
         String ns = uri + "#";
 
-        OntGraphModel m = OntFactory.createModel();
+        OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefix("test", ns);
         TestUtils.setDefaultPrefixes(m);
 
@@ -194,7 +194,7 @@ public class GraphModelJenaTest {
         String uri = "http://test.com/graph/2";
         String ns = uri + "#";
 
-        OntGraphModel m = OntFactory.createModel();
+        OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefix("test", ns);
         TestUtils.setDefaultPrefixes(m);
         m.setID(uri);
@@ -233,7 +233,7 @@ public class GraphModelJenaTest {
         String uri = "http://test.com/graph/3";
         String ns = uri + "#";
 
-        OntGraphModel m = OntFactory.createModel();
+        OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefix("test", ns);
         TestUtils.setDefaultPrefixes(m);
         m.setID(uri);
@@ -277,7 +277,7 @@ public class GraphModelJenaTest {
         String uri = "http://test.com/graph/4";
         String ns = uri + "#";
 
-        OntGraphModel m = OntFactory.createModel();
+        OntGraphModel m = OntModelFactory.createModel();
         m.setID(uri);
         m.setNsPrefix("test", ns);
         m.setNsPrefix("SWRL", SWRL.NS);
@@ -319,7 +319,7 @@ public class GraphModelJenaTest {
     public void testCreateImports() {
         String baseURI = "http://test.com/graph/5";
         String baseNS = baseURI + "#";
-        OntGraphModel base = OntFactory.createModel();
+        OntGraphModel base = OntModelFactory.createModel();
         TestUtils.setDefaultPrefixes(base);
         base.setID(baseURI);
         OntClass cl1 = base.createOntEntity(OntClass.class, baseNS + "Class1");
@@ -327,7 +327,7 @@ public class GraphModelJenaTest {
 
         String childURI = "http://test.com/graph/6";
         String childNS = childURI + "#";
-        OntGraphModel child = OntFactory.createModel();
+        OntGraphModel child = OntModelFactory.createModel();
         TestUtils.setDefaultPrefixes(child);
         child.setID(childURI);
         child.addImport(base);

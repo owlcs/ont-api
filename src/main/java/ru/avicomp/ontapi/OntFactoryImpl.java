@@ -27,7 +27,7 @@ import com.google.common.collect.ArrayListMultimap;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
-import ru.avicomp.ontapi.jena.OntFactory;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
@@ -515,7 +515,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 graph = _source.getGraph();
                 format = _source.getOntFormat();
             } else {
-                graph = OntFactory.createDefaultGraph();
+                graph = OntModelFactory.createDefaultGraph();
                 format = readGraph(graph, source, config);
             }
             if (LOGGER.isDebugEnabled()) {

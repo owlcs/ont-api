@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Literal;
 
 /**
- * Common interface for Data Ranges.
+ * Common interface for Data Ranges (both named and anonymous).
  * See for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.4 Data Ranges</a>
  * <p>
  * Created by szuev on 01.11.2016.

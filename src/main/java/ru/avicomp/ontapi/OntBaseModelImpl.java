@@ -27,7 +27,7 @@ import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
-import ru.avicomp.ontapi.jena.OntFactory;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntID;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
 
@@ -49,7 +49,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
 
     public OntBaseModelImpl(OntologyManagerImpl manager, OWLOntologyID ontologyID) {
         OntApiException.notNull(ontologyID, "Null OWL ID.");
-        this.base = new InternalModel(OntFactory.createDefaultGraph(), OntApiException.notNull(manager, "Null manager.").createModelConfig());
+        this.base = new InternalModel(OntModelFactory.createDefaultGraph(), OntApiException.notNull(manager, "Null manager.").createModelConfig());
         setOntologyID(ontologyID);
     }
 
@@ -691,7 +691,7 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        Graph base = OntFactory.createDefaultGraph();
+        Graph base = OntModelFactory.createDefaultGraph();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
         setBase(new InternalModel(base, ConfigProvider.DEFAULT));

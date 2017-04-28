@@ -26,7 +26,7 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.config.OntConfig;
-import ru.avicomp.ontapi.jena.OntFactory;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.*;
@@ -100,7 +100,7 @@ public class GraphTransformersTest {
         OWLOntologyManager manager = OntManagers.createOWL();
         OWLOntologyManager testManager = OntManagers.createOWL();
 
-        OntGraphModel jenaSP = OntFactory.createModel(GraphTransformers.convert(load("spin/sp.ttl").getGraph()), OntModelConfig.ONT_PERSONALITY_LAX);
+        OntGraphModel jenaSP = OntModelFactory.createModel(GraphTransformers.convert(load("spin/sp.ttl").getGraph()), OntModelConfig.ONT_PERSONALITY_LAX);
         OWLOntology owlSP = load(manager, "spin/sp.ttl");
         LOGGER.info("SP(Jena): ");
         ReadWriteUtils.print(jenaSP);
@@ -118,7 +118,7 @@ public class GraphTransformersTest {
         // spin:Modules is treated as NamedIndividual by OWL-API and as Class by ONT-API.
         UnionGraph spinGraph = new UnionGraph(load("spin/spin.ttl").getGraph());
         spinGraph.addGraph(jenaSP.getBaseGraph());
-        OntGraphModel jenaSPIN = OntFactory.createModel(GraphTransformers.convert(spinGraph));
+        OntGraphModel jenaSPIN = OntModelFactory.createModel(GraphTransformers.convert(spinGraph));
         OWLOntology owlSPIN = load(manager, "spin/spin.ttl");
         LOGGER.info("SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPIN);
@@ -134,7 +134,7 @@ public class GraphTransformersTest {
 
         UnionGraph splGraph = new UnionGraph(load("spin/spl.spin.ttl").getGraph());
         splGraph.addGraph(jenaSPIN.getBaseGraph());
-        OntGraphModel jenaSPL = OntFactory.createModel(GraphTransformers.convert(splGraph));
+        OntGraphModel jenaSPL = OntModelFactory.createModel(GraphTransformers.convert(splGraph));
         LOGGER.info("SPL-SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPL);
         LOGGER.info("SPL-SPIN(Jena) All entities: ");

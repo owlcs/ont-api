@@ -18,7 +18,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
  * <p>
  * Created by szuev on 14.02.2017.
  */
-public class OntFactory {
+public class OntModelFactory {
 
     static {
         // force init before any ont-model initializations here due to bug(?) in jena-arq-3.2.0 (upgrade 3.1.0 -> 3.2.0)

@@ -19,15 +19,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
-import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 
 /**
  * This is an extended {@link OWLOntologyDocumentSource} to provide possibility of passing any graph as is.
  * There are also default implementations of {@link #getInputStream()} and {@link #getReader()},
- * so you can use this document source in pure OWL-API also.
+ * so you can use this document source in pure OWL-API too.
  * These methods are not used in ONT-API, instead it there is access to direct link ({@link #getGraph()}).
- * Note: you may want to disable transformations (see {@link OntLoaderConfiguration#setPerformTransformation(boolean)})
+ * Note: you may want to disable transformations (see {@link ru.avicomp.ontapi.config.OntConfig#setPerformTransformation(boolean)},
+ * {@link ru.avicomp.ontapi.config.OntLoaderConfiguration#setPerformTransformation(boolean)})
  * while loading, otherwise the encapsulated graph may still have some changes due to tuning by transformations.
  * <p>
  * Created by szuev on 22.02.2017.

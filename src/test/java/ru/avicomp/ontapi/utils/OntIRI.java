@@ -16,7 +16,7 @@ import com.google.common.base.Strings;
 import ru.avicomp.ontapi.OntApiException;
 
 /**
- * TODO
+ * An extended {@link IRI} with several new methods.
  * <p>
  * Created by @szuev on 27.09.2016.
  */

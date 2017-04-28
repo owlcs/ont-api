@@ -28,7 +28,7 @@ import ru.avicomp.ontapi.internal.AxiomParserProvider;
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalObject;
-import ru.avicomp.ontapi.jena.OntFactory;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
@@ -50,7 +50,7 @@ public class InternalModelTest {
     @Test
     public void testAxiomRead() {
         Model m = ReadWriteUtils.loadResourceTTLFile("pizza.ttl");
-        OntGraphModel model = OntFactory.createModel(m.getGraph());
+        OntGraphModel model = OntModelFactory.createModel(m.getGraph());
         // 39 axiom types:
         Set<Class<? extends OWLAxiom>> types = AxiomType.AXIOM_TYPES.stream().map(AxiomType::getActualClass).collect(Collectors.toSet());
 

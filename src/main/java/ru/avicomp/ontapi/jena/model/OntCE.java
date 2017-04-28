@@ -10,7 +10,7 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
- * Common interface for Class Expressions.
+ * Common interface for Class Expressions (both named and anonymous).
  * See for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
  * <p>
  * Created by szuev on 01.11.2016.

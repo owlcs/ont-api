@@ -15,7 +15,7 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.OntFactory;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
 /**
@@ -67,7 +67,7 @@ public class InternalObject<O extends OWLObject> {
      * @see ru.avicomp.ontapi.jena.utils.Graphs#toTurtleString(Graph)
      */
     public Graph asGraph() {
-        Graph res = OntFactory.createDefaultGraph();
+        Graph res = OntModelFactory.createDefaultGraph();
         GraphUtil.add(res, triples.iterator());
         return res;
     }

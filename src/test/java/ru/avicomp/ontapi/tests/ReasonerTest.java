@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.jena.OntFactory;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
@@ -45,7 +45,7 @@ public class ReasonerTest {
         String NS = "urn:example/";
 
         // Build a trivial example data set
-        OntGraphModel example = OntFactory.createModel();
+        OntGraphModel example = OntModelFactory.createModel();
         OntNDP p = example.createOntEntity(OntNDP.class, NS + "p");
         OntNDP q = example.createOntEntity(OntNDP.class, NS + "q");
         p.addSubPropertyOf(q);
@@ -54,7 +54,7 @@ public class ReasonerTest {
         TestUtils.setDefaultPrefixes(example);
         ReadWriteUtils.print(example);
 
-        Resource config = OntFactory.createDefaultModel()
+        Resource config = OntModelFactory.createDefaultModel()
                 .createResource()
                 .addProperty(ReasonerVocabulary.PROPsetRDFSLevel, "simple");
         Reasoner reasoner = RDFSRuleReasonerFactory.theInstance().create(config);
@@ -90,7 +90,7 @@ public class ReasonerTest {
     private void validationTest(String file, boolean result) {
         URI uri = ReadWriteUtils.getResourceURI(file);
         LOGGER.info("Testing " + uri);
-        OntGraphModel data = OntFactory.createModel(ReadWriteUtils.load(uri, OntFormat.NTRIPLES).getGraph());
+        OntGraphModel data = OntModelFactory.createModel(ReadWriteUtils.load(uri, OntFormat.NTRIPLES).getGraph());
         InfModel inf = data.asInferenceModel(ReasonerRegistry.getRDFSReasoner());
         ValidityReport validity = inf.validate();
         if (validity.isValid()) {
@@ -112,7 +112,7 @@ public class ReasonerTest {
     public void testDerivation() {
         // Test data
         String egNS = "urn:x-hp:eg/";
-        OntGraphModel rawData = OntFactory.createModel();
+        OntGraphModel rawData = OntModelFactory.createModel();
         Property p = rawData.createProperty(egNS, "p");
         Resource A = rawData.createResource(egNS + "A");
         Resource B = rawData.createResource(egNS + "B");
@@ -153,7 +153,7 @@ public class ReasonerTest {
     public void testGenericRules() {
         // Test data
         String egNS = "urn:x-hp:eg/";
-        OntGraphModel rawData = OntFactory.createModel();
+        OntGraphModel rawData = OntModelFactory.createModel();
         Property first = rawData.createProperty(egNS, "concatFirst");
         Property second = rawData.createProperty(egNS, "concatSecond");
         Property p = rawData.createProperty(egNS, "p");

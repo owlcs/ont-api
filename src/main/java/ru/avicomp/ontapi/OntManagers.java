@@ -31,7 +31,7 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 @SuppressWarnings("WeakerAccess")
 public class OntManagers implements OWLOntologyManagerFactory {
 
-    static { // init jena system. see description in ru.avicomp.ontapi.jena.OntFactory
+    static { // init jena system. see description in ru.avicomp.ontapi.jena.OntModelFactory
         JenaSystem.init();
     }
 

@@ -11,7 +11,7 @@ import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.ConcurrentGraph;
-import ru.avicomp.ontapi.jena.OntFactory;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl;
@@ -224,7 +224,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             UnionGraph thisGraph = getBase().getGraph();
             UnionGraph newGraph = new UnionGraph(new ConcurrentGraph(thisGraph.getBaseGraph(), lock), thisGraph.getEventManager());
             thisGraph.getUnderlying().graphs().forEach(newGraph::addGraph);
-            return OntFactory.createModel(newGraph, getConfig().loaderConfig().getPersonality());
+            return OntModelFactory.createModel(newGraph, getConfig().loaderConfig().getPersonality());
         }
 
         /**

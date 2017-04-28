@@ -135,7 +135,7 @@ public class OntModelConfig {
             .add(OntSWRL.class, OntSWRLImpl.abstractSWRLFactory);
 
     /**
-     * Personality which don't care about the owl-entities "punnings" (no restriction on the type declarations)
+     * Personalities which don't care about the owl-entities "punnings" (no restriction on the type declarations)
      */
     public static final OntPersonality ONT_PERSONALITY_LAX = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.LAX);
     /**
