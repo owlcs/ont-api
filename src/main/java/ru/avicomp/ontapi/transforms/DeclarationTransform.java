@@ -19,25 +19,28 @@ import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 /**
- * Class to perform the final tuning of the ontology:
- * mostly for fixing missed owl-declarations where it is possible.
+ * Class to perform the final tuning of the ontology: mostly for fixing missed owl-declarations where it is possible.
+ * It have to be running after {@link RDFSTransform} and {@link OWLTransform}.
+ * <p>
+ * This transformer is designed to put in order any external (mainly none-OWL2) ontologies.
+ * Also there are lots examples of incomplete or wrong ontologies provided by the tests from OWL-API contract pack,
+ * which are not necessarily RDFS or OWL1.
+ * And it seems such situations have to be relative rare in the real world, since
+ * any API which meets specification would not produce ontologies, when there is some true parts of OWL2,
+ * but no explicit declarations or some other components from which they consist.
+ * At least one can be sure that ONT-API does not provide anything that only partially complies with the specification;
+ * but for correct output the input should also be correct.
  * <p>
  * Consists of two inner transforms:
  * - The first, {@link ManifestDeclarator}, works with the obvious cases
  * when type of the left or the right statements part is defined by the predicate or from some other clear hints.
  * E.g. if we have triple "A rdfs:subClassOf B" then we know exactly - both "A" and "B" are owl-class expressions.
- * - The second, {@link ReasonerDeclarator}, performs analyzing of whole graph to choose the correct entities type.
+ * - The second, {@link ReasonerDeclarator}, performs iterative analyzing of whole graph to choose the correct entities type.
  * E.g. we can have owl-restriction (existential/universal quantification)
  * "_:x rdf:type owl:Restriction; owl:onProperty A; owl:allValuesFrom B",
  * where "A" and "B" could be either object property and class expressions or data property and data-range,
- * and therefore we need to find other entries of these two entities in the graph
- * (for this example the only one declaration of "A" or "B" is enough).
- * <p>
- * It seems the author of OWL-API is very fond of puzzles.
- * And here we have to solve such puzzles using the examples of incomplete or wrong ontologies
- * provided by tests in the OWL-API contract.
- * As for me, it's hard to imagine the situation of such kind of ontologies in the real word
- * when there is some true parts of OWL2-DL, but no explicit declarations from which they consist.
+ * and therefore we need to find other entries of these two entities in the graph;
+ * for this example the only one declaration either of "A" or "B" is enough.
  *
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Short Guide</a>
  */
@@ -616,7 +619,7 @@ public class DeclarationTransform extends Transform {
                     declareIndividual(subject);
                     return Res.TRUE;
                 }
-                if (isIndividual(subject) && couldBeDataProperty(property)) {
+                if (isIndividual(subject) && couldBeDataPropertyInAssertion(property)) {
                     declareDataProperty(property);
                     return Res.TRUE;
                 }
@@ -665,14 +668,16 @@ public class DeclarationTransform extends Transform {
                     .map(Collection::stream)
                     .flatMap(Function.identity())
                     .filter(RDFNode::isResource)
-                    .map(RDFNode::asResource).anyMatch(candidate::equals);
+                    .map(RDFNode::asResource)
+                    .anyMatch(candidate::equals);
         }
 
         protected boolean couldBeIndividual(RDFNode candidate) {
-            return candidate.isResource() && !candidate.canAs(RDFList.class);
+            return candidate.isResource() &&
+                    (candidate.isAnon() ? !candidate.canAs(RDFList.class) : !builtIn.reserved().contains(candidate.asResource()));
         }
 
-        protected boolean couldBeDataProperty(Property candidate) {
+        protected boolean couldBeDataPropertyInAssertion(Property candidate) {
             Set<RDFNode> objects = statements(null, candidate, null).map(Statement::getObject).collect(Collectors.toSet());
             if (objects.stream().anyMatch(RDFNode::isResource)) {
                 return true;

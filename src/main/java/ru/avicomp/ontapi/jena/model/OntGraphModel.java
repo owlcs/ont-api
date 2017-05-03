@@ -30,7 +30,7 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the standard model which corresponds the base graph {@link #getBaseGraph()}
-     * Note: the {@link org.apache.jena.enhanced.Personality} inside model is jena-builtin ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}).
+     * Note: there is a jena-builtin personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}) inside the result model.
      *
      * @return {@link Model}
      */
@@ -38,7 +38,8 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the inference model shadow.
-     * Note: the {@link org.apache.jena.enhanced.Personality} is jena-builtin ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}).
+     * Note(1): there is a jena-builtin personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}) inside the result model.
+     * Note(2): changes in {@link org.apache.jena.reasoner.InfGraph} inside result model do not affect on this graph ({@link #getGraph()}).
      *
      * @param reasoner {@link Reasoner}, not null.
      * @return {@link InfModel}
@@ -66,12 +67,38 @@ public interface OntGraphModel extends Model {
      */
     OntID setID(String uri);
 
+    /**
+     * Adds sub model to owl:import and to graph hierarchy.
+     *
+     * @param m {@link OntGraphModel}, not null.
+     * @throws OntJenaException if it is anonymous ontology
+     * @see OntID#addImport(String)
+     */
     void addImport(OntGraphModel m);
 
+    /**
+     * Removes sub-model from owl:import and from graph hierarchy.
+     *
+     * @param m {@link OntGraphModel}, not null.
+     * @see OntID#removeImport(String)
+     */
     void removeImport(OntGraphModel m);
 
+    /**
+     * Returns top-level imported models which have owl:import reference inside base graph.
+     *
+     * @return Stream of {@link OntGraphModel}s.
+     * @see OntID#imports()
+     */
     Stream<OntGraphModel> imports();
 
+    /**
+     * Lists all ont-objects for the specified type.
+     *
+     * @param type {@link Class}, the type of {@link OntObject}, not null.
+     * @return Stream of {@link OntObject}s.
+     * @see #ontEntities()
+     */
     <O extends OntObject> Stream<O> ontObjects(Class<O> type);
 
     /**
@@ -79,22 +106,73 @@ public interface OntGraphModel extends Model {
      * This means that resources may have the same uri ('punnings')
      *
      * @return Stream of {@link OntEntity}
+     * @see #ontObjects(Class)
+     * @see #ontEntities(Class)
      */
     Stream<OntEntity> ontEntities();
 
+    /**
+     * Returns the ont-entity for the specified type and uri.
+     *
+     * @param type {@link Class}, the type of {@link OntEntity}, not null.
+     * @param uri, String, not null.
+     * @return {@link OntEntity} or null
+     */
     <E extends OntEntity> E getOntEntity(Class<E> type, String uri);
 
+    /**
+     * Lists all statements.
+     *
+     * @return Stream of {@link OntStatement}
+     * @see Model#listStatements()
+     */
     Stream<OntStatement> statements();
 
+    /**
+     * Lists all statements for the specified subject, predicate and object.
+     *
+     * @param s {@link Resource}, the subject
+     * @param p {@link Property}, the predicate
+     * @param o {@link RDFNode}, the object
+     * @return Stream of {@link OntStatement}
+     * @see Model#listStatements(Resource, Property, RDFNode)
+     */
     Stream<OntStatement> statements(Resource s, Property p, RDFNode o);
 
+    /**
+     * Answers if the statement belongs to the base graph
+     *
+     * @param statement {@link Statement}
+     * @return true if statement is local.
+     */
     boolean isInBaseModel(Statement statement);
 
+    /**
+     * Removes ont-object from the graph-model.
+     *
+     * @param obj {@link OntObject}
+     */
     void removeOntObject(OntObject obj);
 
+    /**
+     * Creates an owl-entity by type and uri.
+     *
+     * @param type {@link Class}, the type of {@link OntEntity}, not null.
+     * @param uri, String, not null.
+     * @return {@link OntEntity}.
+     * @throws OntJenaException.Creation in case something is wrong.
+     * @see #getOntEntity(Class, String)
+     */
     <E extends OntEntity> E createOntEntity(Class<E> type, String uri);
 
-    <F extends OntFR> F createFacetRestriction(Class<F> view, Literal literal);
+    /**
+     * Creates a facet restriction by the type and literal.
+     *
+     * @param type    {@link Class}, the type of {@link OntFR}, not null.
+     * @param literal {@link Literal}, not null.
+     * @return {@link OntFR}.
+     */
+    <F extends OntFR> F createFacetRestriction(Class<F> type, Literal literal);
 
     /*
      * ===========================
@@ -256,7 +334,11 @@ public interface OntGraphModel extends Model {
     }
 
     default OntClass getOWLThing() {
-        return getOntEntity(OntClass.class, OWL.Thing.getURI());
+        return getOntEntity(OntClass.class, OWL.Thing);
+    }
+
+    default OntClass getOWLNothing() {
+        return getOntEntity(OntClass.class, OWL.Nothing);
     }
 
     default OntDT getRDFSLiteral() {
