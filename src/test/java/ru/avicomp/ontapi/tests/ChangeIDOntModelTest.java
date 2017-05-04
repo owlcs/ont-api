@@ -28,7 +28,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImplNotAnnotated;
  * <p>
  * Created by @szuev on 08.10.2016.
  */
-public class ChangeIDGraphTest extends GraphTestBase {
+public class ChangeIDOntModelTest extends OntModelTestBase {
 
     private static class ApplyChangesWrapper {
         private final SetOntologyIRI op;

@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -137,5 +138,18 @@ public interface OntStatement extends Statement {
      */
     default boolean hasAnnotations() {
         return annotations().count() != 0;
+    }
+
+    /**
+     * Adds lang annotation assertion.
+     *
+     * @param predicate {@link OntNAP}, not null
+     * @param message   String, the text message, not null.
+     * @param lang      String, language, optional
+     * @return {@link OntStatement}
+     * @see OntObject#addAnnotation(OntNAP, String, String)
+     */
+    default OntStatement addAnnotation(OntNAP predicate, String message, String lang) {
+        return addAnnotation(predicate, ResourceFactory.createLangLiteral(message, lang));
     }
 }

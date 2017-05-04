@@ -25,9 +25,12 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * The implementation of Annotation OntObject.
+ * Note: the search is carried out only for the root annotations,
+ * i.e the result of snippet {@code model.ontObjects(OntAnnotation.class)} would not contain nested annotations.
  * <p>
  * Created by @szuev on 26.03.2017.
  */
+@SuppressWarnings("ALL")
 public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static final Set<Property> SPEC =
             Stream.of(RDF.type, OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)

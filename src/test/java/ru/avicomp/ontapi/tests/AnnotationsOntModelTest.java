@@ -32,7 +32,7 @@ import ru.avicomp.ontapi.utils.TestUtils;
  * <p>
  * Created by szuev on 11.10.2016.
  */
-public class AnnotationsGraphTest extends GraphTestBase {
+public class AnnotationsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testSingleComplexAnnotation() throws Exception {

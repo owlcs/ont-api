@@ -28,7 +28,7 @@ import ru.avicomp.ontapi.utils.TestUtils;
  * <p>
  * Created by @szuev on 08.10.2016.
  */
-public class ImportsGraphTest extends GraphTestBase {
+public class ImportsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testAdd() {

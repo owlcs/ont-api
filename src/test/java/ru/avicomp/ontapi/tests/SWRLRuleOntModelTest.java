@@ -18,7 +18,7 @@ import ru.avicomp.ontapi.utils.OntIRI;
  * <p>
  * Created by szuev on 19.10.2016.
  */
-public class SWRLRuleGraphTest extends GraphTestBase {
+public class SWRLRuleOntModelTest extends OntModelTestBase {
 
     @Test
     public void test() throws OWLOntologyCreationException {

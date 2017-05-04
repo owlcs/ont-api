@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.RDFS;
@@ -34,7 +33,7 @@ public class GraphModelJenaTest {
     @Test
     public void testLoadCE() {
         LOGGER.info("load pizza");
-        OntGraphModel m = OntModelFactory.createModel(loadGraph("pizza.ttl"));
+        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         LOGGER.info("Ontology: " + m.getID());
 
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
@@ -76,7 +75,7 @@ public class GraphModelJenaTest {
     @Test
     public void testLoadProperties() {
         LOGGER.info("load pizza");
-        OntGraphModel m = OntModelFactory.createModel(loadGraph("pizza.ttl"));
+        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
         actual.forEach(LOGGER::debug);
         Set<Resource> expected = new HashSet<>();
@@ -88,7 +87,7 @@ public class GraphModelJenaTest {
     @Test
     public void testLoadIndividuals() {
         LOGGER.info("load pizza");
-        OntGraphModel m = OntModelFactory.createModel(loadGraph("pizza.ttl"));
+        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
         individuals.forEach(i -> LOGGER.debug(i + " classes: " + i.classes().collect(Collectors.toSet())));
 
@@ -107,10 +106,6 @@ public class GraphModelJenaTest {
         Assert.assertEquals("Incorrect count of " + type, m.listSubjectsWithProperty(predicate).toSet().size(), ces.size());
     }
 
-    private static Graph loadGraph(String file) {
-        return ReadWriteUtils.loadResourceTTLFile(file).getGraph();
-    }
-
     @Test
     public void testCreatePlainAnnotations() {
         String uri = "http://test.com/graph/1";
@@ -124,6 +119,7 @@ public class GraphModelJenaTest {
         m.setID(uri).setVersionIRI(ns + "1.0.1");
         m.getID().addComment("Some comment", "fr");
         m.getID().annotations().forEach(LOGGER::debug);
+        Assert.assertEquals("Should be one header annotation", 1, m.getID().annotations().count());
 
         LOGGER.info("2) Create class with two labels.");
         OntClass cl = m.createOntEntity(OntClass.class, ns + "ClassN1");
@@ -210,6 +206,8 @@ public class GraphModelJenaTest {
         disjointClasses.addLabel("label1", "en");
         disjointClasses.addLabel("comment", "kjpopo").addAnnotation(nap1, ResourceFactory.createTypedLiteral("some txt"));
         ReadWriteUtils.print(m);
+        Assert.assertEquals("Expected two assertions", 2, disjointClasses.as(OntAnnotation.class).assertions().count());
+        Assert.assertEquals("Expected three annotations", 3, disjointClasses.as(OntAnnotation.class).annotations().count());
 
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
         Assert.assertEquals("Should be single owl:Annotation", 1, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
@@ -226,6 +224,15 @@ public class GraphModelJenaTest {
         Assert.assertEquals("Should be 3 owl:Annotation", 3, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
 
         ReadWriteUtils.print(m);
+
+        Assert.assertEquals("Should only be two roots", 2, m.ontObjects(OntAnnotation.class).count());
+        OntStatement disjointWith = cl1.addDisjointWith(cl3);
+        Assert.assertFalse("No annotation resource is expected.", disjointWith.asAnnotationResource().isPresent());
+        disjointWith.addAnnotation(m.getAnnotationProperty(OWL.deprecated), "disjoint with comment N1", null)
+                .addAnnotation(m.getAnnotationProperty(OWL.incompatibleWith), "disjoint with comment N2", "rur");
+        ReadWriteUtils.print(m);
+        Assert.assertTrue("Should be annotation resource", disjointWith.asAnnotationResource().isPresent());
+        Assert.assertEquals("Should only be three roots", 3, m.ontObjects(OntAnnotation.class).count());
     }
 
     @Test

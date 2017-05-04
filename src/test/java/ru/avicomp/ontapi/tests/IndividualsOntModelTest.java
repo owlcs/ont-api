@@ -19,7 +19,7 @@ import ru.avicomp.ontapi.utils.OntIRI;
  * <p>
  * Created by @szuev on 08.10.2016.
  */
-public class IndividualsGraphTest extends GraphTestBase {
+public class IndividualsOntModelTest extends OntModelTestBase {
 
     @Test
     public void test() throws OWLOntologyCreationException {

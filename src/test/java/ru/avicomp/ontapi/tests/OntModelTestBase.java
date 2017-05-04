@@ -18,12 +18,12 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
 /**
- * base and utility class for graph-tests
+ * base and utility class for ontology-model-tests
  * <p>
  * Created by @szuev on 02.10.2016.
  */
-public abstract class GraphTestBase {
-    static final Logger LOGGER = Logger.getLogger(GraphTestBase.class);
+public abstract class OntModelTestBase {
+    static final Logger LOGGER = Logger.getLogger(OntModelTestBase.class);
 
     public static void debug(OWLOntology ontology) {
         LOGGER.info("DEBUG:");

@@ -28,7 +28,7 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
  * <p>
  * Created by @szuev on 08.10.2016.
  */
-public class DisjointClassesGraphTest extends GraphTestBase {
+public class DisjointClassesOntModelTest extends OntModelTestBase {
 
     @Test
     public void test() throws OWLOntologyCreationException {

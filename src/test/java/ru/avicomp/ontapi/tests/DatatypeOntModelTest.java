@@ -17,7 +17,7 @@ import ru.avicomp.ontapi.utils.TestUtils;
  * <p>
  * Created by @szuev on 18.10.2016.
  */
-public class DatatypeGraphTest extends GraphTestBase {
+public class DatatypeOntModelTest extends OntModelTestBase {
 
     @Test
     public void testDefinitionAxiom() {

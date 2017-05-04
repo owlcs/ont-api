@@ -60,7 +60,7 @@ for _OntLoaderConfiguration_ and _OntWriterConfiguration_.
 * Package __ru.avicomp.ontapi.jena__ is a separated subsystem with _ru.avicomp.ontapi.jena.model.OntGraphModel_ inside which 
 is analogue of __org.apache.jena.ontology.OntModel__, but for OWL-2. This subsystem is a core of ONT-API and can be used autonomously. 
 Some of the basic components are:
-    * _ru.avicomp.ontapi.jena.model.OntGraphModel_ is an extended __org.apache.jena.rdf.model.Model__, the facade and wrapper to the Graph.
+    * _ru.avicomp.ontapi.jena.model.OntGraphModel_ is a main class of this subsystem. It is an extended __org.apache.jena.rdf.model.Model__, the facade and wrapper to the Graph (see _UnionGraph_).
     * _ru.avicomp.ontapi.jena.model.OntStatement_ is an extended __org.apache.jena.rdf.model.Statement__, which is linked to the ont-graph-model. 
     * _ru.avicomp.ontapi.jena.model.OntObject_. It is our analogue of __org.apache.jena.ontology.OntResource__, 
     the basis of any OWL (jena) objects, which are also contained in _model_ package.
@@ -69,10 +69,10 @@ Some of the basic components are:
     * _ru.avicomp.ontapi.jena.impl.configuration.OntPersonality_ is an extended __org.apache.jena.enhanced.Personality__, 
     the interface/implementation mapping, which provides a kind of polymorphism on Jena resources. Using this mechanism we solve the problem of 'illegal punnings'.
     * _ru.avicomp.ontapi.jena.UnionGraph_ is our analogue of __org.apache.jena.graph.compose.MultiUnion__.
-* Package __ru.avicomp.ontapi.transforms__ is a small configurable and separated subsystem also. 
-It puts in order any graph (RDFS, OWL1) before using the main API. Currently there are three transform implementations inside API and several inside tests.
- And here are two main classes:
-    * _Transform_ - it is the abstract superclass for any graph-converter. 
+* Package __ru.avicomp.ontapi.transforms__ is a small separated (and configurable) subsystem too. 
+It puts in order any graph (RDFS, OWL1, etc) before using the main API. Currently there are three transform implementations inside API and several inside tests. 
+And here are two main classes:
+    * _Transform_ - it is an abstract superclass for any graph-converter. 
     * _GraphTransformers.Store_ - it is the transforms storage and point to access to any of them.
 
 ## What's next (todo)
