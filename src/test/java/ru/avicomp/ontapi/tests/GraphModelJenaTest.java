@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
@@ -233,6 +234,33 @@ public class GraphModelJenaTest {
         ReadWriteUtils.print(m);
         Assert.assertTrue("Should be annotation resource", disjointWith.asAnnotationResource().isPresent());
         Assert.assertEquals("Should only be three roots", 3, m.ontObjects(OntAnnotation.class).count());
+    }
+
+    @Test
+    public void testRemoveAnnotations() {
+        LOGGER.info("Create a model");
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(PrefixMapping.Standard);
+        m.getID().addAnnotation(m.getAnnotationProperty(org.apache.jena.vocabulary.OWL.versionInfo), "anonymous ontology", "en");
+
+        OntNDP p = m.createOntEntity(OntNDP.class, "x");
+        OntClass c = m.createOntEntity(OntClass.class, "c");
+        p.addRange(m.getRDFSLiteral()).addAnnotation(m.getRDFSComment(), "This is a range", null);
+        p.addDomain(c).addAnnotation(m.getRDFSLabel(), "This is a domain", null).addAnnotation(m.getRDFSLabel(), "label", "hg");
+
+        OntIndividual i = c.createIndividual("i");
+        p.addNegativeAssertion(i, ResourceFactory.createPlainLiteral("test"))
+                .addAnnotation(m.getRDFSComment(), "This is a negative data property assertion", null).addAnnotation(m.getRDFSLabel(), "Label", "lk");
+        ReadWriteUtils.print(m);
+
+        LOGGER.info("Remove annotated components");
+        OntNPA.DataAssertion assertion = p.negativeAssertions(i).findFirst().orElseThrow(AssertionError::new);
+        OntStatement domain = m.statements(null, RDFS.domain, null).findFirst().orElseThrow(AssertionError::new);
+        OntStatement range = m.statements(null, RDFS.range, null).findFirst().orElseThrow(AssertionError::new);
+
+        m.removeOntObject(assertion).removeOntStatement(domain).removeOntStatement(range);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals("Some unexpected garbage are found", 6, m.statements().count());
     }
 
     @Test

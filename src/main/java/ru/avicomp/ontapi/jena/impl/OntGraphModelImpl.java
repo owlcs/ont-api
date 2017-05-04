@@ -88,18 +88,20 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public void addImport(OntGraphModel m) {
+    public OntGraphModelImpl addImport(OntGraphModel m) {
         if (!OntJenaException.notNull(m, "Null model.").getID().isURIResource()) {
             throw new OntJenaException("Anonymous sub models are not allowed.");
         }
         getGraph().addGraph(m.getGraph());
         getID().addImport(m.getID().getURI());
+        return this;
     }
 
     @Override
-    public void removeImport(OntGraphModel m) {
+    public OntGraphModelImpl removeImport(OntGraphModel m) {
         getGraph().removeGraph(OntJenaException.notNull(m, "Null model.").getGraph());
         getID().removeImport(m.getID().getURI());
+        return this;
     }
 
     @Override
@@ -255,9 +257,17 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public void removeOntObject(OntObject obj) {
+    public OntGraphModelImpl removeOntObject(OntObject obj) {
         obj.clearAnnotations();
         obj.content().forEach(this::remove);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl removeOntStatement(OntStatement statement) {
+        statement.clearAnnotations();
+        remove(statement);
+        return this;
     }
 
     @Override

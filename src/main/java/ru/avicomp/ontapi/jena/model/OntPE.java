@@ -20,6 +20,9 @@ public interface OntPE extends OntObject {
      * Returns all domains
      *
      * @return Stream of {@link Resource}s
+     * @see OntNAP#domain()
+     * @see OntOPE#domain()
+     * @see OntNDP#domain()
      */
     Stream<? extends Resource> domain();
 
@@ -27,6 +30,9 @@ public interface OntPE extends OntObject {
      * Returns all ranges
      *
      * @return Stream of {@link Resource}s
+     * @see OntNAP#range()
+     * @see OntOPE#range()
+     * @see OntNDP#range()
      */
     Stream<? extends Resource> range();
 
@@ -34,6 +40,9 @@ public interface OntPE extends OntObject {
      * Returns all super properties.
      *
      * @return Stream of {@link Resource}s
+     * @see OntNAP#subPropertyOf()
+     * @see OntOPE#subPropertyOf()
+     * @see OntNDP#subPropertyOf()
      */
     Stream<? extends Resource> subPropertyOf();
 

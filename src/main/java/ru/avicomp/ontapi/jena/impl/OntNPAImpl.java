@@ -75,7 +75,7 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
     public Stream<OntStatement> content() {
         return Stream.of(statement(RDF.type, OWL.NegativePropertyAssertion),
                 statement(OWL.sourceIndividual),
-                statement(OWL.annotatedProperty),
+                statement(OWL.assertionProperty),
                 statement(targetPredicate())).filter(Optional::isPresent).map(Optional::get);
     }
 

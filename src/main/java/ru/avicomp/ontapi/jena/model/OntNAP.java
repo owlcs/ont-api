@@ -73,11 +73,17 @@ public interface OntNAP extends OntPE, OntEntity, Property {
         return addStatement(RDFS.subPropertyOf, superProperty);
     }
 
+    /**
+     * @see Property#isProperty()
+     */
     @Override
     default boolean isProperty() {
         return true;
     }
 
+    /**
+     * @see Property#getOrdinal()
+     */
     @Override
     default int getOrdinal() {
         return as(Property.class).getOrdinal();

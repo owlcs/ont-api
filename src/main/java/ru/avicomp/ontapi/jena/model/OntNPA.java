@@ -13,10 +13,26 @@ import org.apache.jena.rdf.model.RDFNode;
  * Created by @szuev on 15.11.2016.
  */
 public interface OntNPA<P extends OntPE, T extends RDFNode> extends OntObject {
+
+    /**
+     * Returns the source individual.
+     *
+     * @return {@link OntIndividual}
+     */
     OntIndividual getSource();
 
+    /**
+     * Returns the assertion property
+     *
+     * @return either {@link OntOPE} or {@link OntNDP}
+     */
     P getProperty();
 
+    /**
+     * Returns the target
+     *
+     * @return either {@link OntIndividual} or {@link Literal}
+     */
     T getTarget();
 
     interface ObjectAssertion extends OntNPA<OntOPE, OntIndividual> {

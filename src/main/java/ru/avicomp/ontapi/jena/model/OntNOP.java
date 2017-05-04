@@ -15,11 +15,17 @@ public interface OntNOP extends OntOPE, OntEntity, Property {
      */
     Inverse createInverse();
 
+    /**
+     * @see Property#isProperty()
+     */
     @Override
     default boolean isProperty() {
         return true;
     }
 
+    /**
+     * @see Property#getOrdinal()
+     */
     @Override
     default int getOrdinal() {
         return as(Property.class).getOrdinal();

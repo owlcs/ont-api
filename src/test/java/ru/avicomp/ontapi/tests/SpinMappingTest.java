@@ -120,9 +120,7 @@ public class SpinMappingTest {
         OntGraphModel mapping = manager.createGraphModel("http://spin.avicomp.ru");
         OntGraphModel spinmapl = manager.getGraphModel(SpinModels.SPINMAPL.getIRI().getIRIString());
 
-        mapping.addImport(spinmapl);
-        mapping.addImport(source);
-        mapping.addImport(target);
+        mapping.addImport(spinmapl).addImport(source).addImport(target);
 
         TestUtils.setDefaultPrefixes(mapping);
         Stream.of(SpinModels.SP, SpinModels.SPIN, SpinModels.SPINMAP, SpinModels.SPINMAPL)

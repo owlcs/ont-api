@@ -82,6 +82,11 @@ public interface OntOPE extends OntPE {
         return getModel().ontObjects(OntNPA.ObjectAssertion.class).filter(a -> OntOPE.this.equals(a.getProperty()));
     }
 
+    default Stream<OntNPA.ObjectAssertion> negativeAssertions(OntIndividual source) {
+        return negativeAssertions()
+                .filter(a -> a.getSource().equals(source));
+    }
+
     @Override
     default Stream<OntCE> domain() {
         return objects(RDFS.domain, OntCE.class);

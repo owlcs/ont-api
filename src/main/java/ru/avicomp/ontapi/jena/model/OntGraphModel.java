@@ -70,19 +70,21 @@ public interface OntGraphModel extends Model {
     /**
      * Adds sub model to owl:import and to graph hierarchy.
      *
-     * @param m {@link OntGraphModel}, not null.
+     * @param m {@link OntGraphModel}, other model, not null.
+     * @return this model
      * @throws OntJenaException if it is anonymous ontology
      * @see OntID#addImport(String)
      */
-    void addImport(OntGraphModel m);
+    OntGraphModel addImport(OntGraphModel m);
 
     /**
      * Removes sub-model from owl:import and from graph hierarchy.
      *
-     * @param m {@link OntGraphModel}, not null.
+     * @param m {@link OntGraphModel}, other model, not null.
+     * @return this model
      * @see OntID#removeImport(String)
      */
-    void removeImport(OntGraphModel m);
+    OntGraphModel removeImport(OntGraphModel m);
 
     /**
      * Returns top-level imported models which have owl:import reference inside base graph.
@@ -151,8 +153,17 @@ public interface OntGraphModel extends Model {
      * Removes ont-object from the graph-model.
      *
      * @param obj {@link OntObject}
+     * @return this model
      */
-    void removeOntObject(OntObject obj);
+    OntGraphModel removeOntObject(OntObject obj);
+
+    /**
+     * Removes ont-statement with its annotations.
+     *
+     * @param statement {@link OntStatement}
+     * @return this model
+     */
+    OntGraphModel removeOntStatement(OntStatement statement);
 
     /**
      * Creates an owl-entity by type and uri.
