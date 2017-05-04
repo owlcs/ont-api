@@ -22,6 +22,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
      * @param source {@link OntIndividual}, the source
      * @param target {@link Literal}, the target
      * @return {@link OntNPA.DataAssertion}
+     * @see OntOPE#addNegativeAssertion(OntIndividual, OntIndividual)
      */
     OntNPA.DataAssertion addNegativeAssertion(OntIndividual source, Literal target);
 
@@ -37,16 +38,18 @@ public interface OntNDP extends OntPE, OntEntity, Property {
      * Returns all associated negative data property assertions
      *
      * @return Stream of {@link OntNPA.DataAssertion}s.
+     * @see OntOPE#negativeAssertions()
      */
     default Stream<OntNPA.DataAssertion> negativeAssertions() {
         return getModel().ontObjects(OntNPA.DataAssertion.class).filter(a -> OntNDP.this.equals(a.getProperty()));
     }
 
     /**
-     * Returns all associated negative data property assertions for specified source individual.
+     * Returns all associated negative data property assertions for the specified source individual.
      *
      * @param source {@link OntIndividual}
      * @return Stream of {@link OntNPA.DataAssertion}s.
+     * @see OntOPE#negativeAssertions(OntIndividual)
      */
     default Stream<OntNPA.DataAssertion> negativeAssertions(OntIndividual source) {
         return negativeAssertions()
@@ -128,7 +131,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     /**
      * Returns disjoint properties (statement: "R1 owl:propertyDisjointWith R2").
      *
-     * @return Stream of {@link OntNDP}
+     * @return Stream of {@link OntNDP}s
      * @see OntOPE#disjointWith()
      * @see OntDisjoint.DataProperties
      */
@@ -137,7 +140,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     /**
-     * Adds disjoint data property
+     * Adds disjoint data property.
      *
      * @param other {@link OntNDP}
      * @return {@link OntStatement}
@@ -149,7 +152,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     /**
-     * Clears all "R1 owl:propertyDisjointWith R2" statements for the specified data property,
+     * Clears all "R1 owl:propertyDisjointWith R2" statements for the specified data property.
      *
      * @param other {@link OntNDP}
      * @see OntOPE#removeDisjointWith(OntOPE)
@@ -170,7 +173,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     /**
-     * Adds new owl:equivalentProperty statement
+     * Adds new owl:equivalentProperty statement.
      *
      * @param other {@link OntNDP}
      * @return {@link OntStatement}
@@ -181,7 +184,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     /**
-     * Removes all equivalent-property statements for the specified data property,
+     * Removes all equivalent-property statements for the specified data property.
      *
      * @param other {@link OntNDP}
      * @see OntOPE#removeEquivalentProperty(OntOPE)

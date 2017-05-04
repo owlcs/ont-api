@@ -3,15 +3,15 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.Property;
 
 /**
- * (Named) Object property
+ * (Named) Object property.
  * Created by szuev on 01.11.2016.
  */
 public interface OntNOP extends OntOPE, OntEntity, Property {
 
     /**
-     * inverse this property
+     * Makes inverse of this property.
      *
-     * @return new anonymous OntOPE resource
+     * @return {@link OntOPE.Inverse} new anonymous OntOPE resource
      */
     Inverse createInverse();
 

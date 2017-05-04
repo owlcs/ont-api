@@ -56,7 +56,7 @@ public interface OntPE extends OntObject {
     }
 
     /**
-     * Removes specified rdfs:range
+     * Removes specified rdfs:range.
      *
      * @param range {@link Resource}
      */
@@ -65,7 +65,7 @@ public interface OntPE extends OntObject {
     }
 
     /**
-     * Removes specified super property (predicate rdfs:subPropertyOf)
+     * Removes specified super property (predicate rdfs:subPropertyOf).
      *
      * @param superProperty {@link Resource}
      */

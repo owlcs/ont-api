@@ -13,7 +13,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * An Ont Statement. This is not {@link org.apache.jena.rdf.model.Resource}.
+ * An Ont Statement. This is not a {@link org.apache.jena.rdf.model.Resource}.
  * OWL2 Annotations could be attached to this statement recursively.
  *
  * @see OntAnnotation
