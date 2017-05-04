@@ -46,4 +46,17 @@ public class OntModelFactory {
     public static OntGraphModel createModel(Graph graph, OntPersonality personality) {
         return new OntGraphModelImpl(graph, personality);
     }
+
+    /**
+     * Returns ont-personality.
+     * It is here, since i'm not sure it is good to be placed in {@link OntGraphModel}: personality is an internal object originally.
+     *
+     * @param model {@link OntGraphModel}
+     * @return {@link OntPersonality}
+     * @throws OntJenaException   checking for null
+     * @throws ClassCastException in case it's not default implementation.
+     */
+    public static OntPersonality getPersonality(OntGraphModel model) {
+        return ((OntGraphModelImpl) OntJenaException.notNull(model, "Null model")).getPersonality();
+    }
 }

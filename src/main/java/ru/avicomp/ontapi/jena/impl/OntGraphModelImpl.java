@@ -31,9 +31,10 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Base model to work through jena only.
- * This is our analogue of {@link org.apache.jena.ontology.OntModel} to work in accordance with OWL2 DL specification.
+ * This is our analogue of {@link org.apache.jena.ontology.impl.OntModelImpl} to work in accordance with OWL2 DL specification.
  * <p>
  * Created by @szuev on 27.10.2016.
+ * @see UnionGraph
  */
 @SuppressWarnings("WeakerAccess")
 public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
@@ -59,7 +60,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    protected OntPersonality getPersonality() {
+    public OntPersonality getPersonality() {
         return (OntPersonality) super.getPersonality();
     }
 
@@ -126,7 +127,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public InfModel asInferenceModel(Reasoner reasoner) {
+    public InfModel getInferenceModel(Reasoner reasoner) {
         return new InfModelImpl(OntJenaException.notNull(reasoner, "Null reasoner.").bind(getGraph()));
     }
 

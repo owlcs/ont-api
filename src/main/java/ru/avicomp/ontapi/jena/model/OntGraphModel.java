@@ -13,7 +13,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * This is our analogue of {@link org.apache.jena.ontology.OntModel} to work with Ontology graph in accordance with OWL2 DL specification.
- * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf'>OWL2 RDF mapping</a>.
+ * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf'>OWL2 RDF mapping</a> and <a href='https://www.w3.org/TR/owl2-quick-reference/'>A Quick Guide</a>.
  * Encapsulates {@link org.apache.jena.graph.Graph} and extends {@link Model}.
  * <p>
  * Created by @szuev on 11.11.2016.
@@ -44,7 +44,7 @@ public interface OntGraphModel extends Model {
      * @param reasoner {@link Reasoner}, not null.
      * @return {@link InfModel}
      */
-    InfModel asInferenceModel(Reasoner reasoner);
+    InfModel getInferenceModel(Reasoner reasoner);
 
     /**
      * Gets ontology ID {@link OntObject}.

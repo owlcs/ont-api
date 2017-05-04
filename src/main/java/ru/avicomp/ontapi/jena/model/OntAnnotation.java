@@ -18,7 +18,8 @@ import java.util.stream.Stream;
  *   owl:annotatedTarget    owl:Class
  * ] .
  * </pre>
- * <p>
+ *
+ * @see OntStatement
  * Created by @szuev on 26.03.2017.
  */
 public interface OntAnnotation extends OntObject {
@@ -29,6 +30,7 @@ public interface OntAnnotation extends OntObject {
      * The example above contains two such statements: '_:x rdfs:comment "comment1";' and '_:x rdfs:comment "comment2"@fr'.
      *
      * @return Stream of annotation statements {@link OntStatement}s,
+     * @see OntObject#annotations()
      */
     Stream<OntStatement> assertions();
 

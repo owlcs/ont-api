@@ -3,9 +3,10 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.Literal;
 
 /**
- * Facet Restriction.
+ * The facet restriction.
  * <p>
  * Created by @szuev on 02.11.2016.
+ * @see ru.avicomp.ontapi.jena.vocabulary.XSD
  */
 public interface OntFR extends OntObject {
     Literal getValue();

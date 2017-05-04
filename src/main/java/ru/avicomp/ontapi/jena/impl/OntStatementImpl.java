@@ -26,6 +26,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by @szuev on 12.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     public OntStatementImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
@@ -66,19 +67,19 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public Stream<OntStatement> annotations() {
-        return resource().map(OntAnnotation::assertions).orElse(Stream.empty());
+        return asAnnotationResource().map(OntAnnotation::assertions).orElse(Stream.empty());
     }
 
     @Override
     public boolean hasAnnotations() {
-        Optional<OntAnnotation> root = resource();
+        Optional<OntAnnotation> root = asAnnotationResource();
         return root.isPresent() && root.get().assertions().count() > 0;
     }
 
     @Override
     public void deleteAnnotation(OntNAP property, RDFNode value) {
         checkAnnotationInput(property, value);
-        Optional<OntAnnotation> root = resource();
+        Optional<OntAnnotation> root = asAnnotationResource();
         if (!root.isPresent()) return;
         if (getModel().contains(root.get(), property, value)) {
             OntStatement res = new OntStatementImpl(root.get(), property, value, getModel());
@@ -104,7 +105,8 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         throw new OntJenaException("Should never happen.");
     }
 
-    public Optional<OntAnnotation> resource() {
+    @Override
+    public Optional<OntAnnotation> asAnnotationResource() {
         return Optional.ofNullable(findAnnotationObject(this, getAnnotationRootType(getSubject())));
     }
 

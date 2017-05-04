@@ -70,7 +70,7 @@ public class Graphs {
      * Gets Ontology URI from the base graph or null (if no owl:Ontology or it is anonymous ontology).
      *
      * @param graph {@link Graph}
-     * @return String
+     * @return String uri or null.
      */
     public static String getURI(Graph graph) {
         return getOntology(getBase(graph)).filter(Node::isURI).map(Node::getURI).orElse(null);

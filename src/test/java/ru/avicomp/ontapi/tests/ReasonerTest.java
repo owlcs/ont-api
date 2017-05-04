@@ -59,7 +59,7 @@ public class ReasonerTest {
                 .addProperty(ReasonerVocabulary.PROPsetRDFSLevel, "simple");
         Reasoner reasoner = RDFSRuleReasonerFactory.theInstance().create(config);
 
-        InfModel inf = example.asInferenceModel(reasoner);
+        InfModel inf = example.getInferenceModel(reasoner);
         LOGGER.info("Inf model:");
         ReadWriteUtils.print(inf);
 
@@ -91,7 +91,7 @@ public class ReasonerTest {
         URI uri = ReadWriteUtils.getResourceURI(file);
         LOGGER.info("Testing " + uri);
         OntGraphModel data = OntModelFactory.createModel(ReadWriteUtils.load(uri, OntFormat.NTRIPLES).getGraph());
-        InfModel inf = data.asInferenceModel(ReasonerRegistry.getRDFSReasoner());
+        InfModel inf = data.getInferenceModel(ReasonerRegistry.getRDFSReasoner());
         ValidityReport validity = inf.validate();
         if (validity.isValid()) {
             LOGGER.info("OK");
@@ -126,7 +126,7 @@ public class ReasonerTest {
         String rules = "[rule1: (?a eg:p ?b) (?b eg:p ?c) -> (?a eg:p ?c)]";
         Reasoner reasoner = new GenericRuleReasoner(Rule.parseRules(rules));
         reasoner.setDerivationLogging(true);
-        InfModel inf = rawData.asInferenceModel(reasoner);
+        InfModel inf = rawData.getInferenceModel(reasoner);
 
         List<Statement> statements = inf.listStatements(A, p, D).toList();
         LOGGER.debug(statements);
@@ -172,7 +172,7 @@ public class ReasonerTest {
         // Rule example for
         String rules = "[r1: (?c eg:concatFirst ?p), (?c eg:concatSecond ?q) -> [r1b: (?x ?c ?y) <- (?x ?p ?z) (?z ?q ?y)]]";
         Reasoner reasoner = new GenericRuleReasoner(Rule.parseRules(rules));
-        InfModel inf = rawData.asInferenceModel(reasoner);
+        InfModel inf = rawData.getInferenceModel(reasoner);
         Iterator<Statement> list = inf.listStatements(A, null, (RDFNode) null);
         LOGGER.info("A * * =>");
         while (list.hasNext()) {

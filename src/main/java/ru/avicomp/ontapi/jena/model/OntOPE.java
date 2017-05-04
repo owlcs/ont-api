@@ -56,7 +56,7 @@ public interface OntOPE extends OntPE {
     void removeSuperPropertyOf();
 
     /**
-     * anonymous triple "_:x owl:inverseOf PN"
+     * Anonymous triple "_:x owl:inverseOf PN" which is also object property expression,
      */
     interface Inverse extends OntOPE {
         OntOPE getDirect();

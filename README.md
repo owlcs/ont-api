@@ -15,7 +15,7 @@ it is possible also to work with the graph directly.
 This can be useful for Jena-users, since it allows to use API that meets the specification along with other products 
 written on Jena as well (such as topbraid-spin, d2rq, etc).
 In additional, although currently the performance when working through structural view are worse then of OWL-API, 
-and here of course could be specific bugs, the ONT-API may also be very useful for OWL-API users too, 
+and here of course could be API specific bugs, the ONT-API may also be very useful for OWL-API users too, 
 since the use of a single graph instead of disparate components allows solving a number of OWL-API(5.0.5) typical problems. 
 Here is the short list of such well-known things:
 - In case the ontological graph contains custom rdf:List (which does not belong to any axiom or part of axiom) the attempt to load and reload 
@@ -69,14 +69,16 @@ Some of the basic components are:
     * _ru.avicomp.ontapi.jena.impl.configuration.OntPersonality_ is an extended __org.apache.jena.enhanced.Personality__, 
     the interface/implementation mapping, which provides a kind of polymorphism on Jena resources. Using this mechanism we solve the problem of 'illegal punnings'.
     * _ru.avicomp.ontapi.jena.UnionGraph_ is our analogue of __org.apache.jena.graph.compose.MultiUnion__.
-* Package __ru.avicomp.ontapi.transforms__ is a small separated subsystem also. 
-It puts in order any graph (RDFS, OWL1) before using the main API. Here are two main classes:
+* Package __ru.avicomp.ontapi.transforms__ is a small configurable and separated subsystem also. 
+It puts in order any graph (RDFS, OWL1) before using the main API. Currently there are three transform implementations inside API and several inside tests.
+ And here are two main classes:
     * _Transform_ - it is the abstract superclass for any graph-converter. 
     * _GraphTransformers.Store_ - it is the transforms storage and point to access to any of them.
 
 ## What's next (todo)
-There are a lot of 'TODO's across the code, they must be fixed or removed.
-Also it seems obvious that in the some next version of ONT-API the binding to the original OWL-API should be eliminated, 
-perhaps the used code might be moved from dependencies as a submodule. Also the Jena version should be raised.
+* There are a lot of 'TODO's across the code, they must be fixed or removed.
+* Also it seems obvious that in the some next version of ONT-API the binding to the original OWL-API should be eliminated, 
+perhaps the used code might be moved from dependencies as a submodule. 
+* The Jena version should be raised.
 
 ## Contacts

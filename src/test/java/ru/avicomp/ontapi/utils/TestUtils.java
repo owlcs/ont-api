@@ -5,9 +5,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
@@ -53,11 +54,13 @@ public class TestUtils {
 
     public static OntGraphModel copyOntModel(OntGraphModel original, String newURI) {
         String oldURI = getURI(original);
-        if (newURI == null) newURI = oldURI + ".copy";
+        if (newURI == null) newURI = oldURI != null ? oldURI + ".copy" : null;
         UnionGraph copy = new UnionGraph(original.getBaseGraph());
         original.imports().forEach(model -> copy.addGraph(model.getGraph()));
-        OntGraphModel res = OntModelFactory.createModel(copy);
-        res.setNsPrefix("", newURI + "#");
+        OntGraphModel res = OntModelFactory.createModel(copy, OntModelFactory.getPersonality(original));
+        if (newURI != null) {
+            res.setNsPrefix("", newURI + "#");
+        }
         res.add(original.getBaseModel().listStatements());
         res.setID(newURI);
         return res;
@@ -72,21 +75,7 @@ public class TestUtils {
 
     public static String getURI(Model model) {
         if (model == null) return null;
-        Resource res = findOntologyResource(model);
-        return res != null ? res.getURI() : null;
-    }
-
-    private static Resource findOntologyResource(Model model) {
-        if (model == null) return null;
-        Model base = OntGraphModel.class.isInstance(model) ?
-                ((OntGraphModel) model).getBaseModel() : OntModel.class.isInstance(model) ?
-                ((OntModel) model).getBaseModel() : model;
-        List<Statement> statements = base.listStatements(null, RDF.type, OWL.Ontology).toList();
-        return statements.size() != 1 ? null : statements.get(0).getSubject();
-    }
-
-    public static Triple createTriple(Resource r, Property p, RDFNode o) {
-        return Triple.create(r.asNode(), p.asNode(), o.asNode());
+        return Graphs.getURI(Graphs.getBase(model.getGraph()));
     }
 
     public static void compareAxioms(Stream<? extends OWLAxiom> expected, Stream<? extends OWLAxiom> actual) {

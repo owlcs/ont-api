@@ -5,6 +5,12 @@ package ru.avicomp.ontapi.jena.model;
  * It is always uri-resource
  * <p>
  * Created by szuev on 01.11.2016.
+ * @see OntClass
+ * @see OntDT
+ * @see OntIndividual.Named
+ * @see OntNAP
+ * @see OntNOP
+ * @see OntNDP
  */
 public interface OntEntity extends OntObject {
 

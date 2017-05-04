@@ -11,6 +11,9 @@ import java.util.stream.Stream;
  */
 public interface OntDisjoint<O extends OntObject> extends OntObject {
 
+    /**
+     * @return Stream (not distinct) of all members ({@link OntObject}s).
+     */
     Stream<O> members();
 
     interface Classes extends OntDisjoint<OntCE> {

@@ -14,17 +14,47 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * See for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
  * <p>
  * Created by szuev on 01.11.2016.
+ *
+ * @see OntClass
  */
 public interface OntCE extends OntObject {
 
+    /**
+     * Creates an anonymous individual which is of this class type.
+     *
+     * @return {@link OntIndividual.Anonymous}
+     * @see OntIndividual#attachClass(OntCE)
+     */
     OntIndividual.Anonymous createIndividual();
 
+    /**
+     * Creates a named individual which is of this class type.
+     *
+     * @param uri, String not null
+     * @return {@link OntIndividual.Named}
+     * @see OntIndividual#attachClass(OntCE)
+     */
     OntIndividual.Named createIndividual(String uri);
 
+    /**
+     * Returns all object and data properties which belong to the "C owl:hasKey (P1 ... Pm R1 ... Rn)" statements.
+     *
+     * @return distinct Stream of {@link OntPE}s
+     */
     Stream<OntPE> hasKey();
 
+    /**
+     * Creates owl:hasKey statement.
+     *
+     * @param objectProperties the collection of {@link OntOPE}s/
+     * @param dataProperties   the collection of {@link OntNDP}s.
+     * @return {@link OntStatement}
+     */
     OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties);
 
+    /**
+     * Removes all statements with their content for predicate owl:hasKey
+     */
     void removeHasKey();
 
     /*
@@ -160,43 +190,97 @@ public interface OntCE extends OntObject {
     }
 
     /*
-     * ===============
-     * default methods
-     * ===============
+     * =======================
+     * Default common methods:
+     * =======================
      */
 
+    /**
+     * Returns all super classes.
+     *
+     * @return Stream of {@link OntCE}s.
+     */
     default Stream<OntCE> subClassOf() {
         return objects(RDFS.subClassOf, OntCE.class);
     }
 
+    /**
+     * Adds super class.
+     *
+     * @param superClass {@link OntCE}
+     * @return {@link OntStatement}
+     */
     default OntStatement addSubClassOf(OntCE superClass) {
         return addStatement(RDFS.subClassOf, superClass);
     }
 
+    /**
+     * Removes super class.
+     *
+     * @param superClass {@link OntCE}
+     */
     default void removeSubClassOf(OntCE superClass) {
         remove(RDFS.subClassOf, superClass);
     }
 
+    /**
+     * Returns all disjoint classes. The statement patter to search for is "C1 owl:disjointWith C2"
+     *
+     * @return Stream of {@link OntCE}s
+     * @see OntDisjoint.Classes
+     */
     default Stream<OntCE> disjointWith() {
         return objects(OWL.disjointWith, OntCE.class);
     }
 
+    /**
+     * Adds disjoint class.
+     *
+     * @param other {@link OntCE}
+     * @return {@link OntStatement}
+     * @see OntDisjoint.Classes
+     */
     default OntStatement addDisjointWith(OntCE other) {
         return addStatement(OWL.disjointWith, other);
     }
 
+    /**
+     * Removes disjoint class-expression reference.
+     *
+     * @param other {@link OntCE}
+     * @see OntDisjoint.Classes
+     */
     default void removeDisjointWith(OntCE other) {
         remove(OWL.disjointWith, other);
     }
 
+    /**
+     * Lists all equivalent classes.
+     *
+     * @return Stream of {@link OntCE}s
+     * @see OntDT#equivalentClass()
+     */
     default Stream<OntCE> equivalentClass() {
         return objects(OWL.equivalentClass, OntCE.class);
     }
 
+    /**
+     * Adds new equivalent class.
+     *
+     * @param other {@link OntCE}
+     * @return {@link OntStatement}
+     * @see OntDT#addEquivalentClass(OntDR)
+     */
     default OntStatement addEquivalentClass(OntCE other) {
         return addStatement(OWL.equivalentClass, other);
     }
 
+    /**
+     * Removes equivalent class.
+     *
+     * @param other {@link OntCE}
+     * @see OntDT#removeEquivalentClass(OntDR)
+     */
     default void removeEquivalentClass(OntCE other) {
         remove(OWL.equivalentClass, other);
     }

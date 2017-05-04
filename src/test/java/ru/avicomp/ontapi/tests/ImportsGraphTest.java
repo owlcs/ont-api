@@ -170,12 +170,16 @@ public class ImportsGraphTest extends GraphTestBase {
     }
 
     private static void checkTriplePresence(OntGraphModel model, Resource subject, Property predicate, RDFNode object) {
-        Triple t = TestUtils.createTriple(subject, predicate, object);
+        Triple t = createTriple(subject, predicate, object);
         Assert.assertTrue("Can't find the triple " + t, model.getBaseGraph().contains(t));
     }
 
     private static void checkTripleAbsence(OntGraphModel model, Resource subject, Property predicate, RDFNode object) {
-        Triple t = TestUtils.createTriple(subject, predicate, object);
+        Triple t = createTriple(subject, predicate, object);
         Assert.assertFalse("There is the triple " + t, model.getBaseGraph().contains(t));
+    }
+
+    private static Triple createTriple(Resource r, Property p, RDFNode o) {
+        return Triple.create(r.asNode(), p.asNode(), o.asNode());
     }
 }
