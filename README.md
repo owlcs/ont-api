@@ -1,4 +1,4 @@
-### ONT-API (ver. 17/04/2017)
+# ONT-API (ver. 17/04/2017)
 
 ## Summary
 ONT-API is OWL-API over Apache Jena.
@@ -39,7 +39,7 @@ Instead of the original OWL-API interfaces in ONT-API there are overridden with 
 Also there are new configuration options and the policy with exceptions has been changed a little.
 Nevertheless, it is always possible to use the original OWL-API or its parts in conjunction with ONT-API, 
 for example, you can copy an ontology from the ONT-API manager to the OWL-API manager and vice versa.
-The project contains tests from the OWL-API-contract, which show the working capacity of ONT-API. 
+The project contains tests from the OWL-API-contract (updated copy-paste), which show the working capacity of ONT-API. 
 Also there are ONT-API specific tests.
 
 ## Structure (briefly)
@@ -81,4 +81,10 @@ And here are two main classes:
 perhaps the used code might be moved from dependencies as a submodule. 
 * The Jena version should be raised.
 
+## License
+* Apache License Version 2.0
+* GNU LGPL Version 3.0
+
 ## Contacts
+* sergei.zuev@avicomp.ru
+* grigory.drobyazko@avicomp.ru
