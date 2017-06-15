@@ -152,12 +152,12 @@ public class ReasonerTest {
             id.next().printTrace(out, true);
         }
         LOGGER.info(res);
-        String expected = "Rule rule1 concluded (eg:A eg:p eg:D) <-\r\n" +
-                "    Rule rule1 concluded (eg:A eg:p eg:C) <-\r\n" +
-                "        Fact (eg:A eg:p eg:B)\r\n" +
-                "        Fact (eg:B eg:p eg:C)\r\n" +
-                "    Fact (eg:C eg:p eg:D)\r\n";
-        Assert.assertEquals(expected, res.toString());
+        String expected = "Rule rule1 concluded (eg:A eg:p eg:D) <-\n" +
+                "    Rule rule1 concluded (eg:A eg:p eg:C) <-\n" +
+                "        Fact (eg:A eg:p eg:B)\n" +
+                "        Fact (eg:B eg:p eg:C)\n" +
+                "    Fact (eg:C eg:p eg:D)\n";
+        Assert.assertEquals(expected, res.toString().replace("\r", ""));
     }
 
     /**

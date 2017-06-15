@@ -21,7 +21,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.jena.system.JenaSystem;
 import org.semanticweb.owlapi.OWLAPIParsersModule;
 import org.semanticweb.owlapi.OWLAPIServiceLoaderModule;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -38,7 +37,7 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 /**
  * The main (static) access point to {@link OWLOntologyManager} instances.
- * The analogue of {@link org.semanticweb.owlapi.apibinding.OWLManager}
+ * This is an analogue of org.semanticweb.owlapi.apibinding.OWLManager (see owlapi-apibinding)
  * <p>
  * Created by @szuev on 27.09.2016.
  */
@@ -56,7 +55,6 @@ public class OntManagers implements OWLOntologyManagerFactory {
 
     /**
      * @return {@link OWLDataFactory} impl
-     * @see OWLManager#getOWLDataFactory()
      */
     public static OWLDataFactory getDataFactory() {
         return OWL_DATA_FACTORY;
