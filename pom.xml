@@ -18,15 +18,21 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ru.avicomp.ontapi</groupId>
+    <groupId>ru.avicomp</groupId>
     <artifactId>ontapi</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>ONT-API is an open source java API which replicates OWL-API interfaces but based on Apache Jena.
+    </description>
+    <url>https://github.com/avicomp/ont-api</url>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.test.skip>true</maven.test.skip>
+        <skipTests>true</skipTests>
     </properties>
 
     <licenses>
@@ -45,28 +51,34 @@
         <url>http://avicomp.ru/</url>
     </organization>
 
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-            </testResource>
-        </testResources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <developers>
+        <developer>
+            <name>Sergei Zuev</name>
+            <email>sss.zuev@gmail.com</email>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/avicomp/ont-api/issues</url>
+    </issueManagement>
+
+    <scm>
+        <connection>scm:git:git://github.com/avicomp/ont-api.git</connection>
+        <developerConnection>scm:git:ssh://github.com/avicomp/ont-api.git</developerConnection>
+        <url>https://github.com/avicomp/ont-api</url>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
@@ -90,11 +102,6 @@
             <version>5.0.5</version>
         </dependency>
         <dependency>
-            <groupId>net.sourceforge.owlapi</groupId>
-            <artifactId>owlapi-apibinding</artifactId>
-            <version>5.0.5</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-arq</artifactId>
             <version>3.0.1</version>
@@ -109,133 +116,98 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.5</version>
         </dependency>
+
+        <!-- test scope: -->
+        <dependency>
+            <groupId>net.sourceforge.owlapi</groupId>
+            <artifactId>owlapi-apibinding</artifactId>
+            <version>5.0.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.topbraid</groupId>
+            <artifactId>spin</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
-    <profiles>
-        <!-- `mvn -Pcompile-test clean install` trigger compiling of test jar -->
-        <profile>
-            <id>compile-test</id>
-            <activation>
-                <property>
-                    <name>activate.compile.test</name>
-                </property>
-            </activation>
-            <properties>
-                <!-- in order to compile tests without running maven.test.skip=false and skipTests=true should be set -->
-                <!-- maven.test.skip=true disables both running the tests and compiling the tests  -->
-                <maven.test.skip>false</maven.test.skip>
-
-                <!-- skipTests=true skips running tests, but still compile them -->
-                <!-- false - tests will run, true - tests won't run -->
-                <skipTests>true</skipTests>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                    <version>4.12</version>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.mockito</groupId>
-                    <artifactId>mockito-all</artifactId>
-                    <version>1.9.5</version>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.topbraid</groupId>
-                    <artifactId>spin</artifactId>
-                    <version>2.0.0-SNAPSHOT</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <version>3.0.2</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>test-jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <!-- `mvn -Prun-test clean install` trigger compiling of test jar and run test-->
-        <profile>
-            <id>run-test</id>
-            <activation>
-                <property>
-                    <name>activate.run.test</name>
-                </property>
-            </activation>
-
-            <properties>
-                <!-- in order to compile test and run it maven.test.skip=false and skipTests=false should be set -->
-                <!-- maven.test.skip=true disables both running the tests and compiling the tests -->
-                <maven.test.skip>false</maven.test.skip>
-                <!-- skipTests=false compile and run test (false - test runs, true - tests doesn't run, just compiles) -->
-                <skipTests>false</skipTests>
-            </properties>
-
-            <dependencies>
-                <dependency>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                    <version>4.12</version>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.mockito</groupId>
-                    <artifactId>mockito-all</artifactId>
-                    <version>1.9.5</version>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.topbraid</groupId>
-                    <artifactId>spin</artifactId>
-                    <version>2.0.0-SNAPSHOT</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <version>3.0.2</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>test-jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.19.1</version>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <!--todo: need to fix javadocs and remove this conf:-->
                         <configuration>
-                            <parallel>methods</parallel>
-                            <threadCount>10</threadCount>
-                            <!-- at the moment all tests are excluded. TODO: selects tests which prevent run to pass -->
-                            <excludes>
-                                <exclude>**/*.java</exclude>
-                            </excludes>
+                            <additionalparam>-Xdoclint:none</additionalparam>
                         </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <executions>
+                    <execution>
+                        <id>attache-tests</id>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
