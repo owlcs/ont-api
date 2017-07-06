@@ -45,14 +45,39 @@ public interface ConfigProvider {
      */
     interface Config {
 
+        /**
+         * Returns data-factory reference.
+         *
+         * @return {@link OWLDataFactory}
+         */
         OWLDataFactory dataFactory();
 
+        /**
+         * Returns loader-configuration settings.
+         * @return {@link OntLoaderConfiguration}
+         */
         OntLoaderConfiguration loaderConfig();
 
+        /**
+         * Returns writer-configuration settings.
+         * @return {@link OntWriterConfiguration}
+         */
         OntWriterConfiguration writerConfig();
+
+        /**
+         * Answers whether the behaviour should be concurrent oriented.
+         *
+         * @return true if parallel mode is enabled.
+         */
+        default boolean parallel() {
+            return false;
+        }
 
     }
 
+    /**
+     * Default (dummy) implementation of {@link Config}.
+     */
     class Dummy implements Config {
         private static final OWLDataFactory DATA_FACTORY = new OWLDataFactoryImpl();
         private static final OntConfig GLOBAL_CONFIG = new OntConfig();

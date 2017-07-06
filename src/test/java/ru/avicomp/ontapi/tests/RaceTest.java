@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -37,22 +36,21 @@ import ru.avicomp.ontapi.OntologyModel;
 /**
  * Test for ontology edition racing:
  * one thread adds some axiom while another removes some axiom.
- * Currently it is ignored, i.e. for manual running only.
  * <p>
  * Created by @szuev on 04.07.2017.
  */
-@Ignore
 public class RaceTest {
     // constants for test tuning:
     private static final long TIMEOUT = 15_000;
     private static final PrintStream OUT = System.out;
-    private static final boolean ADD_WITH_ANNOTATIONS = false;
+    private static final boolean ADD_WITH_ANNOTATIONS = true;
     private static final int ADD_THREADS_NUM = 1;
-    private static final int REMOVE_THREADS_NUM = 2;
+    private static final int REMOVE_THREADS_NUM = 6;
 
     @Test
     public void test() throws InterruptedException, ExecutionException {
         OntologyManager m = OntManagers.createConcurrentONT();
+        m.getOntologyConfigurator().setAllowReadDeclarations(false);
         OntologyModel o = m.createOntology();
         AtomicBoolean flag = new AtomicBoolean(true);
         ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -70,19 +68,31 @@ public class RaceTest {
         }
     }
 
+    /**
+     * Adds sub-class-of axioms in loop
+     *
+     * @param o      {@link OntologyModel}
+     * @param random {@link ThreadLocalRandom}
+     * @param ready  {@link AtomicBoolean}
+     */
     private static void add(OntologyModel o, ThreadLocalRandom random, AtomicBoolean ready) {
         OWLDataFactory df = o.getOWLOntologyManager().getOWLDataFactory();
         List<OWLAnnotation> annotations = ADD_WITH_ANNOTATIONS ?
-                Stream.of(df.getRDFSComment("comm"), df.getRDFSLabel("lab")).collect(Collectors.toList()) :
+                Stream.of(df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("comm"), df.getRDFSLabel("lab"))).collect(Collectors.toList()) :
                 Collections.emptyList();
         while (ready.get()) {
-            OWLAxiom a = df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create("test", "clazz" + random.nextInt())), annotations);
+            OWLAxiom a = df.getOWLSubClassOfAxiom(df.getOWLClass(IRI.create("test", "clazz" + random.nextInt())), df.getOWLThing(), annotations);
             if (OUT != null)
                 OUT.println("+ " + a);
             o.add(a);
         }
     }
 
+    /**
+     * Removes axioms in loop
+     * @param o {@link OntologyModel}
+     * @param ready {@link AtomicBoolean}
+     */
     private static void remove(OntologyModel o, AtomicBoolean ready) {
         while (ready.get()) {
             o.axioms().findFirst().ifPresent(a -> {

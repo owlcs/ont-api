@@ -2203,5 +2203,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         public OntWriterConfiguration writerConfig() {
             return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
         }
+
+        @Override
+        public boolean parallel() {
+            return manager.isConcurrent();
+        }
     }
 }

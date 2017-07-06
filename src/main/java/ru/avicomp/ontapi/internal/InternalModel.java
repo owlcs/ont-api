@@ -35,12 +35,13 @@ import ru.avicomp.ontapi.jena.model.*;
 
 /**
  * Buffer RDF-OWL model.
- * The analogy of {@link uk.ac.manchester.cs.owl.owlapi.Internals}
- * This is a non-serializable(!) {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities.
- * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and
- * it is used by {@link ru.avicomp.ontapi.OntologyModel} to read and write structural representation of ontology.
+ * It's our analogy of {@link uk.ac.manchester.cs.owl.owlapi.Internals}.
+ * This is a non-serializable(!) {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities directly.
+ * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and it is used by the facade model
+ * ({@link ru.avicomp.ontapi.OntologyModel}) while reading and writing the structural representation of ontology.
  * <p>
- * todo: should it return {@link InternalObject}s, not just naked {@link OWLObject}s? it would be very convenient.
+ * TODO: Should it return {@link InternalObject}s, not just naked {@link OWLObject}s?
+ * It seems it would be very convenient and could make this class useful not only as part of inner implementation.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
@@ -48,24 +49,23 @@ import ru.avicomp.ontapi.jena.model.*;
 public class InternalModel extends OntGraphModelImpl implements OntGraphModel, ConfigProvider {
 
     /**
-     * the experimental flag which specifies the behaviour on axioms loading.
-     * if true then {@link AxiomTranslator}s works in parallel mode (see {@link #axioms(Set)}).
-     * As shown by pizza-performance-test it really helps to speed up the initial loading.
-     * TODO: by some unclear reasons (perhaps due to violation of contract with read/write locks)
-     * there could be live-lock when we work in concurrent mode.
+     * The experimental flag which specifies the behaviour on axioms loading.
+     * if true then reading of axioms through {@link AxiomTranslator}s occurs in parallel-stream mode (see {@link #axioms(Set)}).
+     * As shown by pizza-performance-test it might really help to speed up the initial loading.
+     * But it seems for small ontologies using this flag is dangerous and may degrade performance.
      * From this point this flag is always false.
      */
-    protected static boolean optimizeCollecting = false;
-    // axioms & header annotations store.
-    // used to work through OWL-API. the use of jena model methods will clear this cache.
+    public static boolean optimizeCollecting = false;
+    // Axioms & header annotations store.
+    // Used to work through OWL-API interfaces. The use of jena model methods must clear this cache.
     protected Map<Class<? extends OWLObject>, OwlObjectTriplesMap<? extends OWLObject>> componentsStore
             = optimizeCollecting ? new ConcurrentHashMap<>(29, 0.75f, 39) : new HashMap<>();
-    // OWL objects store to improve performance (working through OWL-API interface with 'signature')
-    // any change in the graph resets these caches.
+    // OWL objects store to improve performance (working with OWL-API 'signature' methods)
+    // Any change in the graph must reset these caches.
     protected Map<Class<? extends OWLObject>, Set<? extends OWLObject>> objectsStore = new HashMap<>();
     // Temporary stores for collecting axioms, should be reset after axioms getting.
     protected Map<MapType, Map> temporaryObjects = new EnumMap<>(MapType.class);
-
+    // Configuration settings
     private ConfigProvider.Config config;
 
     /**
@@ -80,6 +80,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         getGraph().getEventManager().register(new DirectListener());
     }
 
+    /**
+     * Returns model config instance.
+     *
+     * @return {@link ConfigProvider.Config}
+     */
     @Override
     public ConfigProvider.Config getConfig() {
         return config;
@@ -97,7 +102,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Jena model method.
+     * Jena model method to work with embedded lock-mechanism.
+     * Disabled since in OWL-API there is a different approach.
      *
      * @see this#getLock()
      */
@@ -107,7 +113,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Jena model method.
+     * Jena model method to work with embedded lock-mechanism.
+     * Disabled since in OWL-API there is a different approach.
      *
      * @see this#getLock()
      */
@@ -116,45 +123,111 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         throw new OntApiException.Unsupported();
     }
 
+    /**
+     * Returns import-declarations.
+     *
+     * @return Stream of {@link OWLImportsDeclaration}s
+     */
     public Stream<OWLImportsDeclaration> importDeclarations() {
         return getID().imports().map(IRI::create).map(i -> getConfig().dataFactory().getOWLImportsDeclaration(i));
     }
 
+    /**
+     * Returns true if ontology is empty from the semantic point of view.
+     *
+     * @return true if ontology does not contain any axioms and annotations
+     */
     public boolean isOntologyEmpty() {
         return axioms().count() == 0 && annotations().count() == 0;
     }
 
+    /**
+     * Auxiliary method, which is used while axioms collecting.
+     *
+     * @param ce {@link OntCE}
+     * @return {@link InternalObject} which wraps {@link OWLClassExpression}
+     */
     protected InternalObject<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
         return fetch(ce, MapType.CE, c -> ReadHelper.getClassExpression(c, getConfig().dataFactory()));
     }
 
+    /**
+     * Auxiliary method, which is used while axioms collecting.
+     *
+     * @param dr {@link OntDR}
+     * @return {@link InternalObject} which wraps {@link OWLDataRange}
+     */
     protected InternalObject<? extends OWLDataRange> fetchDataRange(OntDR dr) {
         return fetch(dr, MapType.DR, d -> ReadHelper.getDataRange(d, getConfig().dataFactory()));
     }
 
+    /**
+     * Auxiliary method, which is used while axioms collecting.
+     *
+     * @param indi {@link OntIndividual}
+     * @return {@link InternalObject} which wraps {@link OWLIndividual}
+     */
     protected InternalObject<? extends OWLIndividual> fetchIndividual(OntIndividual indi) {
         return fetch(indi, MapType.I, i -> ReadHelper.getIndividual(i, getConfig().dataFactory()));
     }
 
+    /**
+     * Auxiliary method, which is used while axioms collecting.
+     *
+     * @param nap {@link OntNAP}
+     * @return {@link InternalObject} which wraps {@link OWLAnnotationProperty}
+     */
     protected InternalObject<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap) {
         return fetch(nap, MapType.AP, p -> ReadHelper.getAnnotationProperty(p, getConfig().dataFactory()));
     }
 
+    /**
+     * Auxiliary method, which is used while axioms collecting.
+     *
+     * @param ndp {@link OntNDP}
+     * @return {@link InternalObject} which wraps {@link OWLDataProperty}
+     */
     protected InternalObject<OWLDataProperty> fetchDataProperty(OntNDP ndp) {
         return fetch(ndp, MapType.DP, p -> ReadHelper.getDataProperty(p, getConfig().dataFactory()));
     }
 
+    /**
+     * Auxiliary method, which is used while axioms collecting.
+     *
+     * @param ope {@link OntOPE}
+     * @return {@link InternalObject} which wraps {@link OWLObjectPropertyExpression}
+     */
     protected InternalObject<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
         return fetch(ope, MapType.OP, p -> ReadHelper.getObjectPropertyExpression(p, getConfig().dataFactory()));
     }
 
+    /**
+     * Auxiliary method, which is used while axioms collecting.
+     *
+     * @param b    {@link OntObject}
+     * @param type {@link MapType} enum with types
+     * @param func {@link Function} to read, see {@link ReadHelper}
+     * @param <A>  {@link OWLObject}
+     * @param <B>  {@link OntObject}
+     * @return {@link InternalObject} around the {@code &lt;A&gt;}
+     * @see #fetchClassExpression(OntCE)
+     * @see #fetchDataRange(OntDR)
+     * @see #fetchIndividual(OntIndividual)
+     * @see #fetchObjectProperty(OntOPE)
+     * @see #fetchDataProperty(OntNDP)
+     * @see #fetchAnnotationProperty(OntNAP)
+     */
     @SuppressWarnings("unchecked")
     protected <A extends OWLObject, B extends OntObject> InternalObject<A> fetch(B b, MapType type, Function<B, InternalObject<A>> func) {
-        // Use Collections#synchronizedMap instead of ConcurrentHashMap due to some live-lock during tests, the reasons are not clear.
-        return (InternalObject<A>) temporaryObjects.computeIfAbsent(type,
-                t -> optimizeCollecting ? Collections.synchronizedMap(new HashMap<>()) : new HashMap<>()).computeIfAbsent(b, func);
+        return (InternalObject<A>) temporaryObjects.computeIfAbsent(type, t -> new HashMap<>()).computeIfAbsent(b, func);
     }
 
+    /**
+     * Returns an owl-entity by iri specified.
+     *
+     * @param iri {@link IRI}
+     * @return List of {@link OWLEntity}s.
+     */
     public List<OWLEntity> getEntities(IRI iri) {
         if (iri == null) return Collections.emptyList();
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
@@ -180,34 +253,74 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return res;
     }
 
+    /**
+     * Returns named and anonymous individuals.
+     *
+     * @return Stream of {@link OWLIndividual}s
+     */
     public Stream<OWLIndividual> individuals() {
         return objects(OWLIndividual.class);
     }
 
+    /**
+     * Returns anonymous individuals.
+     *
+     * @return Stream of {@link OWLAnonymousIndividual}s
+     */
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
         return objects(OWLAnonymousIndividual.class);
     }
 
+    /**
+     * Returns named individuals.
+     *
+     * @return Stream of {@link OWLNamedIndividual}s
+     */
     public Stream<OWLNamedIndividual> namedIndividuals() {
         return objects(OWLNamedIndividual.class);
     }
 
+    /**
+     * Returns owl-classes
+     *
+     * @return Stream of {@link OWLClass}es.
+     */
     public Stream<OWLClass> classes() {
         return objects(OWLClass.class);
     }
 
+    /**
+     * Returns data properties.
+     *
+     * @return Stream of {@link OWLDataProperty}s
+     */
     public Stream<OWLDataProperty> dataProperties() {
         return objects(OWLDataProperty.class);
     }
 
+    /**
+     * Returns object properties.
+     *
+     * @return Stream of {@link OWLObjectProperty}s
+     */
     public Stream<OWLObjectProperty> objectProperties() {
         return objects(OWLObjectProperty.class);
     }
 
+    /**
+     * Returns annotation properties.
+     *
+     * @return Stream of {@link OWLAnnotationProperty}s
+     */
     public Stream<OWLAnnotationProperty> annotationProperties() {
         return objects(OWLAnnotationProperty.class);
     }
 
+    /**
+     * Returns named data ranges (datatypes)
+     *
+     * @return Stream of {@link OWLDatatype}s.
+     */
     public Stream<OWLDatatype> datatypes() {
         return objects(OWLDatatype.class);
     }
@@ -256,31 +369,45 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> annotations() {
-        return getAnnotationTripleStore().getObjects().stream();
+        Stream<OWLAnnotation> res = getAnnotationTripleStore().getObjects().stream();
+        return getConfig().parallel() ? res.collect(Collectors.toSet()).stream() : res;
     }
 
     /**
      * The main method for loading/getting axioms.
-     * NOTE: there is a parallel collecting in case {@link #optimizeCollecting} equals true,
-     * {@link #componentsStore} is empty and the set of {@link AxiomType}s contains more then one element.
+     * <p>
+     * If {@link Config#parallel()} is true then collecting must not go beyond this method, otherwise it is allowed to be lazy.
+     * This is due to the fact that OWL-API uses ReadWriteLock-mechanism everywhere and therefore there is a dangerous
+     * of ConcurrentModificationException (in case use of standard java collections api) or deadlocks (in case of concurrent collections),
+     * if we allow some processing outside the method.
+     * <p>
+     * Collecting performs through parallel-stream in the following cases:
+     * - {@link #optimizeCollecting} is true
+     * - {@link #componentsStore} is empty
+     * - the set of {@link AxiomType}s contains more then one element.
      *
      * @param types Set of {@link AxiomType}s
      * @return Stream of {@link OWLAxiom}
      * @see #annotations()
      */
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
+        Stream<OWLAxiom> res;
         if (optimizeCollecting && componentsStore.isEmpty() && types.size() > 1) {
             types.parallelStream().forEach(type -> getAxiomTripleStore(type.getActualClass()));
-            return componentsStore.values().stream()
+            res = componentsStore.values().stream()
                     .filter(v -> !Objects.equals(v.type(), OWLAnnotation.class))
                     .map(OwlObjectTriplesMap::getObjects)
                     .map(Collection::stream)
                     .flatMap(Function.identity())
                     .map(OWLAxiom.class::cast);
+        } else {
+            res = types.stream()
+                    .map(t -> getAxiomTripleStore(t.getActualClass()).getObjects())
+                    .map(Collection::stream)
+                    .flatMap(Function.identity())
+                    .map(OWLAxiom.class::cast);
         }
-        return types.stream()
-                .map(t -> getAxiomTripleStore(t.getActualClass()).getObjects())
-                .map(Collection::stream).flatMap(Function.identity());
+        return getConfig().parallel() ? res.collect(Collectors.toSet()).stream() : res;
     }
 
     /**
@@ -341,17 +468,39 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return axioms(Collections.singleton(type)).map(x -> (A) x);
     }
 
+    /**
+     * Auxiliary method.
+     * Returns map of axioms by specified OWLAxiom type.
+     *
+     * @param type {@link AxiomType}
+     * @param <A>  {@link OWLAxiom}
+     * @return {@link OwlObjectTriplesMap}
+     */
     @SuppressWarnings("unchecked")
     protected <A extends OWLAxiom> OwlObjectTriplesMap<A> getAxiomTripleStore(AxiomType<? extends OWLAxiom> type) {
         return getAxiomTripleStore((Class<A>) type.getActualClass());
     }
 
+    /**
+     * Auxiliary method.
+     * Returns map of axioms by specified OWLAxiom class.
+     *
+     * @param type {@link Class<A>}
+     * @param <A>  {@link OWLAxiom}
+     * @return {@link OwlObjectTriplesMap}
+     */
     @SuppressWarnings("unchecked")
     protected <A extends OWLAxiom> OwlObjectTriplesMap<A> getAxiomTripleStore(Class<A> type) {
         return (OwlObjectTriplesMap<A>) componentsStore.computeIfAbsent(type,
                 c -> new OwlObjectTriplesMap<>(type, AxiomParserProvider.get((Class<A>) c).read(InternalModel.this)));
     }
 
+    /**
+     * Auxiliary method.
+     * Returns triples-map of owl-annotations
+     *
+     * @return {@link OwlObjectTriplesMap} of {@link OWLAnnotation}.
+     */
     @SuppressWarnings("unchecked")
     protected OwlObjectTriplesMap<OWLAnnotation> getAnnotationTripleStore() {
         return (OwlObjectTriplesMap<OWLAnnotation>) componentsStore.computeIfAbsent(OWLAnnotation.class,
@@ -391,6 +540,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         triples.stream().filter(this::canDelete).forEach(this::delete);
     }
 
+    /**
+     * Auxiliary method.
+     * Returns Set of OWLAxiom types by specified triple. The set could be empty if the triple does not belong to any axioms.
+     *
+     * @param triple {@link Triple}
+     * @return Set of OWLAxioms types (classes)
+     */
     protected Set<Class<? extends OWLAxiom>> getAxiomTypes(Triple triple) {
         return componentsStore.values().stream()
                 .filter(v -> !Objects.equals(v.type(), OWLAnnotation.class))
@@ -426,22 +582,39 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         getBaseGraph().delete(triple);
     }
 
+    /**
+     * The overridden base method.
+     * Makes this ontology empty.
+     *
+     * @return {@link Model}
+     */
     @Override
     public Model removeAll() {
         clearCache();
         return super.removeAll();
     }
 
+    /**
+     * Auxiliary. Clears {@link #objectsStore} and {@link #temporaryObjects}
+     */
     protected void clearObjectsCache() {
         objectsStore.clear();
         temporaryObjects.clear();
     }
 
+    /**
+     * Clears a whole cache.
+     */
     public void clearCache() {
         componentsStore.clear();
         clearObjectsCache();
     }
 
+    /**
+     * Clears cache for the specified triple
+     *
+     * @param triple {@link Triple}
+     */
     public void clearCache(Triple triple) {
         getAxiomTypes(triple).forEach(componentsStore::remove);
         clearObjectsCache();
@@ -452,6 +625,16 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return String.format("[%s]%s", getClass().getSimpleName(), getID());
     }
 
+    /**
+     * The internal enum which is using while reading owl-objects.
+     *
+     * @see #fetchClassExpression(OntCE)
+     * @see #fetchDataRange(OntDR)
+     * @see #fetchIndividual(OntIndividual)
+     * @see #fetchObjectProperty(OntOPE)
+     * @see #fetchDataProperty(OntNDP)
+     * @see #fetchAnnotationProperty(OntNAP)
+     */
     protected enum MapType {
         CE, DR, AP, DP, OP, I
     }
