@@ -233,8 +233,8 @@ public class ManagerTest {
     public void testLoadDifferentStrategies() throws Exception {
         IRI sp = IRI.create("http://spinrdf.org/sp");
         IRI spin = IRI.create("http://spinrdf.org/spin");
-        OWLOntologyIRIMapper mapSp = new SimpleIRIMapper(sp, IRI.create(ReadWriteUtils.getResourceFile("spin", "sp.ttl")));
-        OWLOntologyIRIMapper mapSpin = new SimpleIRIMapper(spin, IRI.create(ReadWriteUtils.getResourceFile("spin", "spin.ttl")));
+        OWLOntologyIRIMapper mapSp = new SimpleIRIMapper(sp, IRI.create(ReadWriteUtils.getResourcePath("spin", "sp.ttl").toFile()));
+        OWLOntologyIRIMapper mapSpin = new SimpleIRIMapper(spin, IRI.create(ReadWriteUtils.getResourcePath("spin", "spin.ttl").toFile()));
 
         LOGGER.info("1) Test load some web ontology for a case when only file scheme is allowed.");
         OntologyManager m1 = OntManagers.createONT();

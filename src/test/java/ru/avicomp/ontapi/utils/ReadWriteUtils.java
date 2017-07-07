@@ -16,9 +16,13 @@ package ru.avicomp.ontapi.utils;
 
 import java.io.*;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Model;
@@ -34,7 +38,7 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 
 /**
- * Utils to work with io.
+ * Test utils to work with io.
  * <p>
  * Created by @szuev on 27.09.2016.
  */
@@ -135,28 +139,58 @@ public class ReadWriteUtils {
         return new File(dir, name + (type != null ? "." + type.getExt() : ""));
     }
 
-    public static File getResourceFile(String projectDirName, String fileName) throws URISyntaxException, FileNotFoundException {
-        URL url = ReadWriteUtils.class.getResource(projectDirName.startsWith("/") ? projectDirName : "/" + projectDirName);
-        if (url == null)
+    /**
+     * Utilitarian method to get the File from '/resources' directory.
+     * Can work with jar file as well.
+     *
+     * @param projectDirName String, project dir, nullable
+     * @param fileName       String resource file name
+     * @return {@link Path} to resource
+     * @throws Exception if something wrong
+     */
+    public static Path getResourcePath(String projectDirName, String fileName) throws Exception {
+        if (Objects.requireNonNull(fileName, "Null resource file name").isEmpty()) {
+            throw new IllegalArgumentException("Empty resource file name");
+        }
+        String dir = projectDirName == null ? "/" : projectDirName.startsWith("/") ? projectDirName : ("/" + projectDirName);
+        URL url = ReadWriteUtils.class.getResource(dir);
+        if (url == null) {
             throw new IllegalArgumentException("Can't find project " + projectDirName + ".");
-        File dir = new File(url.toURI());
-        File res = new File(dir, fileName);
-        if (!res.exists()) throw new FileNotFoundException(fileName);
+        } else if ("jar".equalsIgnoreCase(url.toURI().getScheme())) {
+            FileSystem jar;
+            try {
+                jar = FileSystems.getFileSystem(url.toURI());
+            } catch (FileSystemNotFoundException e) {
+                jar = FileSystems.newFileSystem(url.toURI(), new HashMap<>());
+            }
+            Path source = jar.getPath(dir).resolve(fileName);
+            Path res = TemporaryResourcesHolder.DIR.resolve(dir).resolve(fileName);
+            if (!Files.exists(res)) {
+                LOGGER.debug("Unpack " + source + " -> " + res);
+                Files.createDirectories(res.getParent());
+                Files.copy(source, res);
+            }
+            return res;
+        }
+        Path res = Paths.get(url.toURI()).resolve(fileName);
+        if (!Files.exists(res)) {
+            throw new NoSuchFileException(res.toString());
+        }
         return res;
     }
 
     public static File getResourceFile(String fileName) {
         try {
-            return getResourceFile("", fileName);
-        } catch (URISyntaxException | FileNotFoundException e) {
+            return getResourcePath("", fileName).toFile();
+        } catch (Exception e) {
             throw new AssertionError(e);
         }
     }
 
     public static URI getResourceURI(String dir, String file) {
         try {
-            return getResourceFile(dir, file).toURI();
-        } catch (URISyntaxException | FileNotFoundException e) {
+            return getResourcePath(dir, file).toUri();
+        } catch (Exception e) {
             throw new AssertionError(e);
         }
     }
@@ -244,5 +278,44 @@ public class ReadWriteUtils {
     public static OntologyModel convertJenaToONT(OntologyManager manager, Model model) {
         if (manager == null) manager = OntManagers.createONT();
         return (OntologyModel) convertJenaToOWL(manager, model, OntFormat.TURTLE);
+    }
+
+    private static class TemporaryResourcesHolder {
+        private static final String TEMP_RESOURCES_PREFIX = "ont-api-resources-";
+        static final Path DIR = create();
+
+        private static Path create() {
+            try {
+                Path res = Files.createTempDirectory(TEMP_RESOURCES_PREFIX);
+                Runtime.getRuntime().addShutdownHook(new Thread(
+                        () -> {
+                            try {
+                                Files.walkFileTree(res, new SimpleFileVisitor<Path>() {
+                                    @Override
+                                    public FileVisitResult visitFile(Path file, BasicFileAttributes a)
+                                            throws IOException {
+                                        Files.delete(file);
+                                        return FileVisitResult.CONTINUE;
+                                    }
+
+                                    @Override
+                                    public FileVisitResult postVisitDirectory(Path dir, IOException e)
+                                            throws IOException {
+                                        if (e == null) {
+                                            Files.delete(dir);
+                                            return FileVisitResult.CONTINUE;
+                                        }
+                                        throw e;
+                                    }
+                                });
+                            } catch (IOException e) {
+                                throw new UncheckedIOException("Failed to delete " + res, e);
+                            }
+                        }));
+                return res;
+            } catch (IOException e) {
+                throw new UncheckedIOException("Unable to create temporary dir", e);
+            }
+        }
     }
 }
