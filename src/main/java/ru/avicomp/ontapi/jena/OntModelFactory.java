@@ -35,9 +35,15 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 public class OntModelFactory {
 
     static {
-        // force init before any ont-model initializations here due to bug(?) in jena-arq-3.2.0 (upgrade 3.1.0 -> 3.2.0)
-        // otherwise java.lang.ExceptionInInitializerError may occur.
-        // to test (on 3.2.0) just run "new org.apache.jena.rdf.model.impl.ModelCom(null)" without (before) any JenaSystem.init();
+        init();
+    }
+
+    /**
+     * force init before any ont-model initializations here due to bug(?) in jena-arq-3.2.0 (upgrade 3.1.0 -> 3.2.0)
+     * otherwise java.lang.ExceptionInInitializerError may occur.
+     * to test (on 3.2.0) just run "new org.apache.jena.rdf.model.impl.ModelCom(null)" without (before) any JenaSystem.init();
+     */
+    public static void init() {
         JenaSystem.init();
     }
 

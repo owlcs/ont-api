@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.jena.system.JenaSystem;
 import org.semanticweb.owlapi.OWLAPIParsersModule;
 import org.semanticweb.owlapi.OWLAPIServiceLoaderModule;
 import org.semanticweb.owlapi.io.OWLParserFactory;
@@ -30,6 +29,7 @@ import org.semanticweb.owlapi.model.OWLStorerFactory;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import uk.ac.manchester.cs.owl.owlapi.OWLAPIImplModule;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.Concurrency;
@@ -44,8 +44,8 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 @SuppressWarnings("WeakerAccess")
 public class OntManagers implements OWLOntologyManagerFactory {
 
-    static { // init jena system. see description in ru.avicomp.ontapi.jena.OntModelFactory
-        JenaSystem.init();
+    static {
+        OntModelFactory.init();
     }
 
     public static final ONTManagerProfile DEFAULT_PROFILE = new ONTManagerProfile(Concurrency.NON_CONCURRENT);

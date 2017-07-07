@@ -87,7 +87,7 @@ public class Graphs {
      * @return String uri or null.
      */
     public static String getURI(Graph graph) {
-        return getOntology(getBase(graph)).filter(Node::isURI).map(Node::getURI).orElse(null);
+        return ontologyNode(getBase(graph)).filter(Node::isURI).map(Node::getURI).orElse(null);
     }
 
     /**
@@ -97,20 +97,20 @@ public class Graphs {
      * @return String
      */
     public static String getName(Graph graph) {
-        return getOntology(getBase(graph)).map(n -> String.format("<%s>", n.toString())).orElse("NullOntology");
+        return ontologyNode(getBase(graph)).map(n -> String.format("<%s>", n.toString())).orElse("NullOntology");
     }
 
     /**
-     * Gets the ontology root node (subject in "_:x rdf:type owl:Ontology") from graph or null if there are no ontology sections.
-     * If there are uri and blank node it prefers uri.
+     * Gets the first ontology root node (i.e. the subject from "_:x rdf:type owl:Ontology" statement) from the specified graph.
+     * If there are uri and blank nodes together in the graph then it prefers uri.
      * If there are several other ontological nodes it chooses the most bulky.
      * Note: works with any graph, not only the base.
-     * If it is composite then a lot of ontology nodes expected, otherwise only single one.
+     * If valid ontological graph is composite then a lot of ontology nodes expected, otherwise only single one.
      *
      * @param g {@link Graph}
      * @return {@link Optional} around the {@link Node} which could be uri or blank.
      */
-    public static Optional<Node> getOntology(Graph g) {
+    public static Optional<Node> ontologyNode(Graph g) {
         try (Stream<Node> nodes = Iter.asStream(g.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()))
                 .map(Triple::getSubject)
                 .filter(node -> node.isBlank() || node.isURI())

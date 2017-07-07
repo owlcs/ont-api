@@ -91,7 +91,7 @@ public class OWLTransform extends Transform {
     protected void fixOntology() {
         Model m = getBaseModel();
         // choose or create the new one:
-        Resource ontology = Graphs.getOntology(getBaseGraph())
+        Resource ontology = Graphs.ontologyNode(getBaseGraph())
                 .map(m::getRDFNode).map(RDFNode::asResource)
                 .orElseGet(() -> m.createResource().addProperty(RDF.type, OWL.Ontology));
         // move all content from other ontologies to the selected one

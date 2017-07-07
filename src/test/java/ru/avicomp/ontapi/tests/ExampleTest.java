@@ -14,7 +14,6 @@
 
 package ru.avicomp.ontapi.tests;
 
-import org.apache.jena.system.JenaSystem;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Assert;
@@ -26,10 +25,13 @@ import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
+ * Just simple example test.
+ *
  * Created by @szuev on 27.09.2016.
  */
 public class ExampleTest {
@@ -38,7 +40,7 @@ public class ExampleTest {
     @BeforeClass
     public static void before() {
         LOGGER.debug("Before -- START");
-        JenaSystem.init();
+        OntModelFactory.init();
         LOGGER.debug("Before -- END");
     }
 

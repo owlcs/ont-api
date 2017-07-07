@@ -67,7 +67,7 @@ public interface OntGraphModel extends Model {
      * in case there are more than one resource with owl:Ontology type it chooses the most bulky section.
      *
      * @return {@link OntID} an existing or new one {@link Resource} with root statement '_:x rdf:type owl:Ontology'
-     * @see ru.avicomp.ontapi.jena.utils.Graphs#getOntology
+     * @see ru.avicomp.ontapi.jena.utils.Graphs#ontologyNode
      */
     OntID getID();
 

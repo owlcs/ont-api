@@ -148,6 +148,7 @@ public enum OntFormat {
      * or maybe with expectancy of some 'controlled' uri-transformations after reloading.
      *
      * - CSV ({@link Lang#CSV}) is not a valid Jena RDF serialization format (it is only for SPARQL results).
+     * But it is possible to use it for reading csv files. For more details see <a href='http://jena.apache.org/documentation/csv/'>jena-csv</a>.
      * - {@link BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.openrdf.rio.binary.BinaryRDFWriterFactory}).
      * for the following formats there are no {@link org.semanticweb.owlapi.model.OWLStorerFactory}s in OWL-API 5.0.5:
      * - {@link RDFaDocumentFormat}

@@ -80,7 +80,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntID getID() {
-        return getNodeAs(Graphs.getOntology(getBaseGraph())
+        return getNodeAs(Graphs.ontologyNode(getBaseGraph())
                 .orElseGet(() -> createResource().addProperty(RDF.type, OWL.Ontology).asNode()), OntID.class);
     }
 

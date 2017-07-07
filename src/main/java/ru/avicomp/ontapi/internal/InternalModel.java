@@ -407,7 +407,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
                     .flatMap(Function.identity())
                     .map(OWLAxiom.class::cast);
         }
-        return getConfig().parallel() ? res.collect(Collectors.toSet()).stream() : res;
+        return getConfig().parallel() ? res.collect(Collectors.toList()).stream() : res;
     }
 
     /**
