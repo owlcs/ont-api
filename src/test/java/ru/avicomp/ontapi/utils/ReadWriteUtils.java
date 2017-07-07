@@ -164,7 +164,7 @@ public class ReadWriteUtils {
                 jar = FileSystems.newFileSystem(url.toURI(), new HashMap<>());
             }
             Path source = jar.getPath(dir).resolve(fileName);
-            Path res = TemporaryResourcesHolder.DIR.resolve(dir).resolve(fileName);
+            Path res = Paths.get(ReadWriteUtils.TemporaryResourcesHolder.DIR + dir + "/" + fileName);
             if (!Files.exists(res)) {
                 LOGGER.debug("Unpack " + source + " -> " + res);
                 Files.createDirectories(res.getParent());
