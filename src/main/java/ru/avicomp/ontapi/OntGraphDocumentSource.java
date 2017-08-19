@@ -14,10 +14,10 @@
 
 package ru.avicomp.ontapi;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.jena.atlas.web.ContentType;
@@ -26,14 +26,12 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
-import ru.avicomp.ontapi.jena.utils.Graphs;
 
 /**
  * This is an extended {@link OWLOntologyDocumentSource} to provide possibility of passing any graph as is.
@@ -66,9 +64,10 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
 
     @Override
     public Optional<InputStream> getInputStream() {
-        return format().map(OntFormat::getLang).map(this::toInputStream).filter(Objects::nonNull);
+        return format().map(OntFormat::getLang).map(this::toInputStream);
     }
 
+    @Nullable
     protected InputStream toInputStream(Lang lang) {
         try {
             return toInputStream(getGraph(), lang);
@@ -92,11 +91,6 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
             if (ex != null) throw new OntApiException("Exception while converting output->input", ex);
         }).start();
         return res;
-    }
-
-    protected IRI getGraphIRI() {
-        String uri = Graphs.getURI(getGraph());
-        return uri != null ? IRI.create(uri) : null;
     }
 
     @Override

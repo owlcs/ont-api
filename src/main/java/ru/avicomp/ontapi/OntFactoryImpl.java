@@ -303,10 +303,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                     transform(graph, new HashSet<>(), config.getGraphTransformers());
                 }
                 OntFormat format = info.getFormat();
-                OntologyManagerImpl.ModelConfig modelConfig = ((OntologyManagerImpl) manager).createModelConfig();
-                modelConfig.setLoaderConf(config);
-                OntologyModelImpl ont = new OntologyModelImpl(graph, modelConfig);
-                OntologyModel res = ((OntologyManagerImpl) manager).isConcurrent() ? ont.asConcurrent() : ont;
+                OntologyModel res = ((OntologyManagerImpl) manager).newOntologyModel(graph, config);
                 if (manager.contains(res)) {
                     throw new OWLOntologyAlreadyExistsException(res.getOntologyID());
                 }
@@ -315,7 +312,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 if (PrefixManager.class.isInstance(owlFormat)) {
                     PrefixManager pm = (PrefixManager) owlFormat;
                     graph.getPrefixMapping().getNsPrefixMap().forEach(pm::setPrefix);
-                    OntologyManagerImpl.setDefaultPrefix(pm, ont);
+                    OntologyManagerImpl.setDefaultPrefix(pm, res);
                 }
                 if (isPrimary) {
                     // todo: should we pass stats from transforms? do we need it?
@@ -444,7 +441,10 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             if (res != null) {
                 return toGraphInfo(res, false);
             }
-            IRIDocumentSource source = new IRIDocumentSource(documentIRI);
+            OWLOntologyID id = new OWLOntologyID(ontologyIRI);
+            OWLOntologyDocumentSource source = manager.documentSourceMappers()
+                    .map(f -> f.map(id)).findFirst()
+                    .orElse(new IRIDocumentSource(documentIRI));
             try {
                 return loadGraph(source, config);
             } catch (UnsupportedFormatException e) {

@@ -18,9 +18,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -39,6 +41,16 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
  * Ontology manager.
  * Base class: {@link OWLOntologyManager}
  * It is the main point for creating, loading and accessing {@link OntologyModel}s models.
+ * New (ONT-API) methods:
+ * - {@link #addOntology(Graph)}
+ * - {@link #createGraphModel(String)}
+ * - {@link #createGraphModel(String, String)}
+ * - {@link #models()}
+ * - {@link #getGraphModel(String)}
+ * - {@link #getGraphModel(String, String)}
+ * - {@link #addDocumentSourceMapper(DocumentSourceMapping)}
+ * - {@link #removeDocumentSourceMapper(DocumentSourceMapping)}
+ * - {@link #documentSourceMappers()}
  * <p>
  * Created by szuev on 24.10.2016.
  */
@@ -72,6 +84,32 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     OntConfig getOntologyConfigurator();
+
+    /**
+     * Adds document-source-mapping to the inner collection.
+     * New ONT-API method.
+     *
+     * @param mapper {@link DocumentSourceMapping}
+     * @since 1.0.1
+     */
+    void addDocumentSourceMapper(DocumentSourceMapping mapper);
+
+    /**
+     * Removes document-source-mapping from the inner collection.
+     * New ONT-API method.
+     *
+     * @param mapper {@link DocumentSourceMapping}
+     * @since 1.0.1
+     */
+    void removeDocumentSourceMapper(DocumentSourceMapping mapper);
+
+    /**
+     * Returns document-source-mappings as stream.
+     *
+     * @return Stream of {@link DocumentSourceMapping}
+     * @since 1.0.1
+     */
+    Stream<DocumentSourceMapping> documentSourceMappers();
 
     /**
      * Contrary to the original description this method works with version IRI also if it fails with ontology IRI.
@@ -141,6 +179,18 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     OntologyModel createOntology(@Nonnull OWLOntologyID id);
+
+    /**
+     * Puts a graph to this manager.
+     * This is a new (ONT-API) method.
+     * Note: graph transformation are not performed!
+     *
+     * @param graph {@link Graph}
+     * @return {@link OntologyModel}
+     * @see OntGraphDocumentSource
+     * @since 1.0.1
+     */
+    OntologyModel addOntology(@Nonnull Graph graph);
 
     /**
      * @see OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)
@@ -279,5 +329,17 @@ public interface OntologyManager extends OWLOntologyManager {
                                       @Nonnull OWLOntologyDocumentSource source,
                                       @Nonnull OWLOntologyCreationHandler handler,
                                       @Nonnull OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
+    }
+
+    /**
+     * The Document Source mapping.
+     * To customize ontology loading.
+     *
+     * @see OWLOntologyDocumentSource
+     * @since 1.0.1
+     */
+    @FunctionalInterface
+    interface DocumentSourceMapping extends Serializable {
+        OWLOntologyDocumentSource map(OWLOntologyID id);
     }
 }

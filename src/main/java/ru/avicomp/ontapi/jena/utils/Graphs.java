@@ -15,10 +15,7 @@
 package ru.avicomp.ontapi.jena.utils;
 
 import java.io.StringWriter;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
@@ -78,6 +75,34 @@ public class Graphs {
      */
     public static Stream<Graph> flat(Graph graph) {
         return Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).map(Graphs::flat).flatMap(Function.identity()));
+    }
+
+    /**
+     * Wraps the given graph as hierarchical Union Graph.
+     * Note: this is a recursive method.
+     *
+     * @param g {@link Graph}
+     * @return {@link UnionGraph}
+     * @since 1.0.1
+     */
+    public static UnionGraph toUnion(Graph g) {
+        return toUnion(getBase(g), flat(g).collect(Collectors.toSet()));
+    }
+
+    /**
+     * Builds union-graph using specified comonents
+     * Note: this is a recursive method.
+     *
+     * @param primary {@link Graph} the base graph (root)
+     * @param other   collection of depended {@link Graph graphs}
+     * @return {@link UnionGraph}
+     * @since 1.0.1
+     */
+    public static UnionGraph toUnion(Graph primary, Collection<Graph> other) {
+        UnionGraph res = primary instanceof UnionGraph ? (UnionGraph) primary : new UnionGraph(primary);
+        Set<String> imports = getImports(primary);
+        other.stream().filter(g -> imports.contains(getURI(g))).forEach(g -> res.addGraph(toUnion(g, other)));
+        return res;
     }
 
     /**
@@ -196,4 +221,5 @@ public class Graphs {
         RDFDataMgr.write(sw, g, OntFormat.TURTLE.getLang());
         return sw.toString();
     }
+
 }

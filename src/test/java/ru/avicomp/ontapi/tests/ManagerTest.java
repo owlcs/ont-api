@@ -26,6 +26,10 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.util.FileManager;
 import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
@@ -41,6 +45,7 @@ import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.internal.InternalObject;
 import ru.avicomp.ontapi.internal.ReadHelper;
 import ru.avicomp.ontapi.jena.ConcurrentGraph;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntEntity;
@@ -49,6 +54,7 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.SpinModels;
 
 /**
  * to test core ({@link OntManagers})
@@ -428,6 +434,37 @@ public class ManagerTest {
             }
         }
         Assert.assertEquals("There are some ontologies inside manager", 0, m.ontologies().count());
+    }
+
+    @Test
+    public void testPassingGraph() throws Exception {
+        LOGGER.info("Build MultiUnion graph using jena OntModel");
+        OntModelSpec spec = OntModelSpec.OWL_DL_MEM;
+        FileManager jenaFileManager = spec.getDocumentManager().getFileManager();
+        SpinModels.addMappings(jenaFileManager);
+        OntModel ontologyModel = ModelFactory.createOntologyModel(spec);
+        ontologyModel.read(SpinModels.SPINMAPL.getIRI().getIRIString(), "ttl");
+
+        LOGGER.info("Load spin-rdf ontology family using file-iri-mappings");
+        OntologyManager m1 = OntManagers.createONT();
+        SpinModels.addMappings(m1);
+        m1.loadOntologyFromOntologyDocument(SpinModels.SPINMAPL.getIRI());
+        long expected = m1.ontologies().count();
+
+        LOGGER.info("Pass ready composite graph to the manager as-is");
+        OntologyManager m2 = OntManagers.createONT();
+        m2.addOntology(ontologyModel.getGraph());
+        long actual = m2.ontologies().count();
+
+        Assert.assertEquals("Counts of ontologies does not match", expected, actual);
+
+        LOGGER.info("Add several additional ontologies");
+        m2.addOntology(OntModelFactory.createDefaultGraph());
+        OntGraphModel o2 = OntModelFactory.createModel();
+        o2.setID("http://example.org/test");
+        m2.addOntology(o2.getGraph());
+        Assert.assertEquals("Counts of ontologies does not match", expected + 2, m2.ontologies().count());
+
     }
 
     private static void loadLoopedOntologyFamily(OWLOntologyManager m) throws Exception {

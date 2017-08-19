@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.output.WriterOutputStream;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
@@ -77,6 +78,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     // should contain only OntologyModel.Factory implementations:
     protected final PriorityCollection<OWLOntologyFactory> ontologyFactories;
     protected final PriorityCollection<OWLOntologyIRIMapper> documentMappers;
+    // new (sine 1.0.1):
+    protected final Set<DocumentSourceMapping> documentSourceMappers;
     // alternative (to jena way) factories to load and save models:
     protected final PriorityCollection<OWLParserFactory> parserFactories;
     protected final PriorityCollection<OWLStorerFactory> ontologyStorers;
@@ -90,6 +93,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         this.dataFactory = OntApiException.notNull(dataFactory, "Null OWLDataFactory specified.");
         this.lock = readWriteLock == null ? new NoOpReadWriteLock() : readWriteLock;
         documentMappers = new ConcurrentPriorityCollection<>(lock, sorting);
+        documentSourceMappers = new HashSet<>();
         ontologyFactories = new ConcurrentPriorityCollection<>(lock, sorting);
         parserFactories = new ConcurrentPriorityCollection<>(lock, sorting);
         ontologyStorers = new ConcurrentPriorityCollection<>(lock, sorting);
@@ -311,6 +315,21 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     @Override
     public void setIRIMappers(@Nonnull Set<OWLOntologyIRIMapper> mappers) {
         documentMappers.set(mappers);
+    }
+
+    @Override
+    public void addDocumentSourceMapper(DocumentSourceMapping mapper) {
+        documentSourceMappers.add(mapper);
+    }
+
+    @Override
+    public void removeDocumentSourceMapper(DocumentSourceMapping mapper) {
+        documentSourceMappers.remove(mapper);
+    }
+
+    @Override
+    public Stream<DocumentSourceMapping> documentSourceMappers() {
+        return documentSourceMappers.stream();
     }
 
     /**
@@ -621,6 +640,61 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         } finally {
             getLock().writeLock().unlock();
         }
+    }
+
+    /**
+     * @param graph {@link Graph}
+     * @return {@link OntologyModel}
+     * @since 1.0.1
+     */
+    @Override
+    public OntologyModel addOntology(@Nonnull Graph graph) {
+        getLock().writeLock().lock();
+        try {
+            OWLOntologyID id = OntGraphUtils.owlOntologyID(graph).orElse(null);
+            Map<OWLOntologyID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
+            DocumentSourceMapping mapping = _id ->
+                    graphs.entrySet()
+                            .stream()
+                            .filter(e -> Objects.equals(_id, e.getKey()))
+                            .map(e -> new OntGraphDocumentSource() {
+                                @Override
+                                public Graph getGraph() {
+                                    return e.getValue();
+                                }
+
+                                @Override
+                                public IRI getDocumentIRI() {
+                                    return IRI.create("graph:", _id == null ? "anonymous" : _id.getOntologyIRI().map(IRI::getIRIString).orElse("null"));
+                                }
+                            }).findFirst().orElse(null);
+            try {
+                addDocumentSourceMapper(mapping);
+                return loadOntologyFromOntologyDocument(mapping.map(id), getOntologyLoaderConfiguration().setPerformTransformation(false));
+            } finally {
+                removeDocumentSourceMapper(mapping);
+            }
+        } catch (OWLOntologyCreationException e) {
+            throw new OntApiException("Unable put graph to manager", e);
+        } finally {
+            getLock().writeLock().unlock();
+        }
+    }
+
+    /**
+     * Makes new detached ontology model based on the specified graph.
+     *
+     * @param graph  {@link Graph} the graph
+     * @param config {@link OntLoaderConfiguration} the config
+     * @return {@link OntologyModel} the model
+     * @since 1.0.1
+     */
+    public OntologyModel newOntologyModel(@Nonnull Graph graph, @Nullable OntLoaderConfiguration config) {
+        ModelConfig modelConfig = createModelConfig();
+        if (config != null)
+            modelConfig.setLoaderConf(config);
+        OntologyModelImpl ont = new OntologyModelImpl(graph, modelConfig);
+        return isConcurrent() ? ont.asConcurrent() : ont;
     }
 
     /**
