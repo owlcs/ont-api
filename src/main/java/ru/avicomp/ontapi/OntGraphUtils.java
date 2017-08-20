@@ -23,13 +23,14 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
  */
 @SuppressWarnings("WeakerAccess")
 public class OntGraphUtils {
+
     /**
-     * Returns owl-ontology-id from graph
+     * Returns owl-ontology-id from ontology-graph
      *
      * @param graph {@link Graph graph}
      * @return Optional around {@link OWLOntologyID owl-ontology-id} or Optional.empty for anonymous ontology graph
      */
-    public static Optional<OWLOntologyID> owlOntologyID(@Nonnull Graph graph) {
+    public static Optional<OWLOntologyID> ontologyID(@Nonnull Graph graph) {
         Graph base = Graphs.getBase(graph);
         return Graphs.ontologyNode(base)
                 .map(n -> new OntIDImpl(n, new ModelCom(base)))
@@ -41,8 +42,8 @@ public class OntGraphUtils {
     }
 
     /**
-     * Makes map form the graph.
-     * If specified graph is not composite then only one key in map is expected.
+     * Builds map form the ontology graph.
+     * If the specified graph is not composite then only one key in the map is expected.
      * The specified graph should consist of named graphs, only the root is allowed to be anonymous.
      * Also the graph-tree should not contain different children but with the same name (owl:ontology uri).
      *
@@ -54,7 +55,7 @@ public class OntGraphUtils {
         Graph base = Graphs.getBase(graph);
         return Graphs.flat(graph)
                 .collect(Collectors.toMap(g -> {
-                    Optional<OWLOntologyID> id = owlOntologyID(g);
+                    Optional<OWLOntologyID> id = ontologyID(g);
                     if (!id.isPresent() && !base.isIsomorphicWith(g)) {
                         throw new OntApiException("Anonymous sub graph");
                     }

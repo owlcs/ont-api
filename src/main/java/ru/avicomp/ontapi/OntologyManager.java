@@ -87,7 +87,7 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Adds document-source-mapping to the inner collection.
-     * New ONT-API method.
+     * New (ONT-API) method.
      *
      * @param mapper {@link DocumentSourceMapping}
      * @since 1.0.1
@@ -96,7 +96,7 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Removes document-source-mapping from the inner collection.
-     * New ONT-API method.
+     * New (ONT-API) method.
      *
      * @param mapper {@link DocumentSourceMapping}
      * @since 1.0.1
@@ -105,6 +105,7 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Returns document-source-mappings as stream.
+     * New (ONT-API) method.
      *
      * @return Stream of {@link DocumentSourceMapping}
      * @since 1.0.1

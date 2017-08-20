@@ -79,7 +79,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected final PriorityCollection<OWLOntologyFactory> ontologyFactories;
     protected final PriorityCollection<OWLOntologyIRIMapper> documentMappers;
     // new (sine 1.0.1):
-    protected final Set<DocumentSourceMapping> documentSourceMappers;
+    protected final Deque<DocumentSourceMapping> documentSourceMappers;
     // alternative (to jena way) factories to load and save models:
     protected final PriorityCollection<OWLParserFactory> parserFactories;
     protected final PriorityCollection<OWLStorerFactory> ontologyStorers;
@@ -93,7 +93,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         this.dataFactory = OntApiException.notNull(dataFactory, "Null OWLDataFactory specified.");
         this.lock = readWriteLock == null ? new NoOpReadWriteLock() : readWriteLock;
         documentMappers = new ConcurrentPriorityCollection<>(lock, sorting);
-        documentSourceMappers = new HashSet<>();
+        documentSourceMappers = new LinkedList<>();
         ontologyFactories = new ConcurrentPriorityCollection<>(lock, sorting);
         parserFactories = new ConcurrentPriorityCollection<>(lock, sorting);
         ontologyStorers = new ConcurrentPriorityCollection<>(lock, sorting);
@@ -317,9 +317,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         documentMappers.set(mappers);
     }
 
+    /**
+     * @param mapper {@link DocumentSourceMapping}
+     */
     @Override
     public void addDocumentSourceMapper(DocumentSourceMapping mapper) {
-        documentSourceMappers.add(mapper);
+        documentSourceMappers.addFirst(mapper);
     }
 
     @Override
@@ -649,9 +652,19 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @Override
     public OntologyModel addOntology(@Nonnull Graph graph) {
+        return addOntology(graph, false);
+    }
+
+    /**
+     * @param graph             {@link Graph}
+     * @param doTransformation, boolean. to turn off/on graph transformation mechanism.
+     * @return {@link OntologyModel}
+     * @since 1.0.1
+     */
+    public OntologyModel addOntology(@Nonnull Graph graph, boolean doTransformation) {
         getLock().writeLock().lock();
         try {
-            OWLOntologyID id = OntGraphUtils.owlOntologyID(graph).orElse(null);
+            OWLOntologyID id = OntGraphUtils.ontologyID(graph).orElse(null);
             Map<OWLOntologyID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
             DocumentSourceMapping mapping = _id ->
                     graphs.entrySet()
@@ -670,7 +683,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                             }).findFirst().orElse(null);
             try {
                 addDocumentSourceMapper(mapping);
-                return loadOntologyFromOntologyDocument(mapping.map(id), getOntologyLoaderConfiguration().setPerformTransformation(false));
+                return loadOntologyFromOntologyDocument(mapping.map(id), getOntologyLoaderConfiguration().setPerformTransformation(doTransformation));
             } finally {
                 removeDocumentSourceMapper(mapping);
             }

@@ -293,7 +293,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             }
             try {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Set up ontology {}.", info.name());
+                    LOGGER.debug("Set up ontology model {}.", info.name());
                 }
                 boolean isPrimary = graphs.size() == 1;
                 Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
