@@ -1,4 +1,4 @@
-# ONT-API (ver. 1.0.0)
+# ONT-API (ver. 1.0.1)
 
 ## Summary
 ONT-API is OWL-API over Apache Jena.
