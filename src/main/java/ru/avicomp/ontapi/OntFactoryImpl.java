@@ -446,7 +446,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                     .map(f -> f.map(id)).findFirst()
                     .orElse(new IRIDocumentSource(documentIRI));
             try {
-                return loadGraph(source, manager, config);
+                return loadGraph(source, null, config);
             } catch (UnsupportedFormatException e) {
                 if (alternative == null) {
                     throw e;
@@ -513,9 +513,9 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         /**
          * Loads graph from the source.
          *
-         * @param source {@link OWLOntologyDocumentSource} with instructions how to reach the graph.
-         * @param manager {@link OntologyManager} the manager to obtain IRI mappings.
-         * @param config {@link OntLoaderConfiguration}
+         * @param source  {@link OWLOntologyDocumentSource} with instructions how to reach the graph.
+         * @param manager {@link OntologyManager} the manager to obtain IRI mappings, could be null
+         * @param config  {@link OntLoaderConfiguration}
          * @return {@link GraphInfo} wrapper around the {@link Graph}.
          * @throws UnsupportedFormatException   if source can't be read into graph using jena way.
          * @throws ConfigMismatchException      if conflict with some config settings.
@@ -530,7 +530,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 graph = _source.getGraph();
                 format = _source.getOntFormat();
             } else {
-                OWLOntologyDocumentSource _source = Iter.asStream(manager.getIRIMappers().iterator())
+                OWLOntologyDocumentSource _source = manager == null ? source : Iter.asStream(manager.getIRIMappers().iterator())
                         .map(m -> m.getDocumentIRI(source.getDocumentIRI()))
                         .filter(Objects::nonNull)
                         .map(IRIDocumentSource::new)
