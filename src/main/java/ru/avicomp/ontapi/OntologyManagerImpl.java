@@ -1213,45 +1213,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @param changes List of {@link OWLOntologyChange}
-     * @return {@link ChangeApplied}
-     * @see OWLOntologyManagerImpl#applyChanges(List)
-     */
-    @Override
-    public ChangeApplied applyChanges(@Nonnull List<? extends OWLOntologyChange> changes) {
-        getLock().writeLock().lock();
-        try {
-            listeners.broadcastImpendingChanges(changes);
-            AtomicBoolean rollbackRequested = new AtomicBoolean(false);
-            AtomicBoolean allNoOps = new AtomicBoolean(true);
-            // list of changes applied successfully. These are the changes that
-            // will be reverted in case of a rollback
-            List<OWLOntologyChange> appliedChanges = new ArrayList<>();
-            listeners.fireBeginChanges(changes.size());
-            actuallyApply(changes, rollbackRequested, allNoOps, appliedChanges);
-            if (rollbackRequested.get()) {
-                rollBack(appliedChanges);
-                appliedChanges.clear();
-            }
-            listeners.fireEndChanges();
-            listeners.broadcastChanges(appliedChanges);
-            if (rollbackRequested.get()) {
-                return ChangeApplied.UNSUCCESSFULLY;
-            }
-            if (allNoOps.get()) {
-                return ChangeApplied.NO_OPERATION;
-            }
-            return ChangeApplied.SUCCESSFULLY;
-        } catch (OWLOntologyChangeVetoException e) {
-            // Some listener blocked the changes.
-            listeners.broadcastOntologyChangesVetoed(changes, e);
-            return ChangeApplied.UNSUCCESSFULLY;
-        } finally {
-            getLock().writeLock().unlock();
-        }
-    }
-
-    /**
      * Copy-paste from {@link OWLOntologyManagerImpl#applyChangesAndGetDetails(List)}
      *
      * @param changes List of {@link OWLOntologyChange}s

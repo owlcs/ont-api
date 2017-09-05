@@ -239,7 +239,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             try {
                 GraphInfo primary;
                 try {
-                    primary = loadGraph(source, config);
+                    primary = loadGraph(source, manager, config);
                 } catch (UnsupportedFormatException e) {
                     if (alternative == null) {
                         throw new OWLOntologyCreationException("Unable to load graph from " + source, e);
@@ -446,7 +446,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                     .map(f -> f.map(id)).findFirst()
                     .orElse(new IRIDocumentSource(documentIRI));
             try {
-                return loadGraph(source, config);
+                return loadGraph(source, manager, config);
             } catch (UnsupportedFormatException e) {
                 if (alternative == null) {
                     throw e;
@@ -514,6 +514,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
          * Loads graph from the source.
          *
          * @param source {@link OWLOntologyDocumentSource} with instructions how to reach the graph.
+         * @param manager {@link OntologyManager} the manager to obtain IRI mappings.
          * @param config {@link OntLoaderConfiguration}
          * @return {@link GraphInfo} wrapper around the {@link Graph}.
          * @throws UnsupportedFormatException   if source can't be read into graph using jena way.
@@ -521,7 +522,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
          * @throws OWLOntologyCreationException if there is some serious I/O problem.
          * @throws OntApiException              if some other problem occurred.
          */
-        protected GraphInfo loadGraph(OWLOntologyDocumentSource source, OntLoaderConfiguration config) throws OWLOntologyCreationException {
+        protected GraphInfo loadGraph(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration config) throws OWLOntologyCreationException {
             Graph graph;
             OntFormat format;
             if (OntGraphDocumentSource.class.isInstance(source)) {
@@ -529,8 +530,15 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 graph = _source.getGraph();
                 format = _source.getOntFormat();
             } else {
+                OWLOntologyDocumentSource _source = Iter.asStream(manager.getIRIMappers().iterator())
+                        .map(m -> m.getDocumentIRI(source.getDocumentIRI()))
+                        .filter(Objects::nonNull)
+                        .map(IRIDocumentSource::new)
+                        .map(OWLOntologyDocumentSource.class::cast)
+                        .findFirst()
+                        .orElse(source);
                 graph = OntModelFactory.createDefaultGraph();
-                format = readGraph(graph, source, config);
+                format = readGraph(graph, _source, config);
             }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Graph <{}> is loaded. Source: {}[{}]. Format: {}",
