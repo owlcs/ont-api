@@ -88,6 +88,7 @@ public class XMLUtilsTestCase extends TestBase {
      * so it is incorrect to treat is as an annotation property.
      * The second difference with ONT-API behaviour is in fact that SKOS and DC are built-in vocabularies,
      * so there is no need in explicit declarations.
+     * @Since 1.1.0: fix data due to changes in jena-3.4.0: Spaces in IRI are illegal. see {@link org.apache.jena.riot.tokens.TokenizerText#AllowSpacesInIRI}
      */
     @Test
     public void testmissingTypes() {
@@ -112,7 +113,9 @@ public class XMLUtilsTestCase extends TestBase {
                 + "<skos:prefLabel>Aboriginal affairs</skos:prefLabel>\n"
                 + "<skos:altLabel>Aboriginal issues</skos:altLabel>\n"
                 + "<skos:related rdf:resource=\"http://www.thesaurus.gc.ca/#Aboriginal%20rights\"/>\n"
-                + "<skos:related rdf:resource=\"http://www.thesaurus.gc.ca/#Land claims\"/>\n"
+                // ONT-API (ver.1.1.0): see method comment above
+                //+ "<skos:related rdf:resource=\"http://www.thesaurus.gc.ca/#Land claims\"/>\n"
+                + "<skos:related rdf:resource=\"http://www.thesaurus.gc.ca/#Land%20claims\"/>\n"
                 + "<skos:inScheme rdf:resource=\"http://www.thesaurus.gc.ca/#CoreSubjectThesaurus\"/>\n"
                 + "<skos:prefLabel xml:lang=\"fr\">Affaires autochtones</skos:prefLabel>\n"
                 + "</skos:Concept>\n\n"

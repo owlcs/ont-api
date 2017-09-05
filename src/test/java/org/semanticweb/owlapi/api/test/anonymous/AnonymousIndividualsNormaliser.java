@@ -54,7 +54,7 @@ public class AnonymousIndividualsNormaliser extends OWLObjectDuplicator {
     }
 
     public Set<OWLAxiom> getNormalisedAxioms(Stream<OWLAxiom> axioms) {
-        return asSet(axioms.map(this::get));
+        return asSet(axioms.map(this::t));
     }
 
     @Override

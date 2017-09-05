@@ -1252,6 +1252,49 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * Copy-paste from {@link OWLOntologyManagerImpl#applyChangesAndGetDetails(List)}
+     *
+     * @param changes List of {@link OWLOntologyChange}s
+     * @return {@link ChangeDetails}
+     * @see OWLOntologyManagerImpl#applyChangesAndGetDetails(List)
+     * @since owl-api 5.1.1
+     * @since ont-api 1.1.0
+     */
+    @Override
+    public ChangeDetails applyChangesAndGetDetails(@Nonnull List<? extends OWLOntologyChange> changes) {
+        getLock().writeLock().lock();
+        try {
+            listeners.broadcastImpendingChanges(changes);
+            AtomicBoolean rollbackRequested = new AtomicBoolean(false);
+            AtomicBoolean allNoOps = new AtomicBoolean(true);
+            // list of changes applied successfully. These are the changes that
+            // will be reverted in case of a rollback
+            List<OWLOntologyChange> appliedChanges = new ArrayList<>();
+            listeners.fireBeginChanges(changes.size());
+            actuallyApply(changes, rollbackRequested, allNoOps, appliedChanges);
+            if (rollbackRequested.get()) {
+                rollBack(appliedChanges);
+                appliedChanges.clear();
+            }
+            listeners.fireEndChanges();
+            listeners.broadcastChanges(appliedChanges);
+            if (rollbackRequested.get()) {
+                return new ChangeDetails(ChangeApplied.UNSUCCESSFULLY, appliedChanges);
+            }
+            if (allNoOps.get()) {
+                return new ChangeDetails(ChangeApplied.NO_OPERATION, appliedChanges);
+            }
+            return new ChangeDetails(ChangeApplied.SUCCESSFULLY, appliedChanges);
+        } catch (OWLOntologyChangeVetoException e) {
+            // Some listener blocked the changes.
+            listeners.broadcastOntologyChangesVetoed(changes, e);
+            return new ChangeDetails(ChangeApplied.UNSUCCESSFULLY, Collections.emptyList());
+        } finally {
+            getLock().writeLock().unlock();
+        }
+    }
+
+    /**
      * @param changes           List of {@link OWLOntologyChange}
      * @param rollbackRequested boolean
      * @param allNoOps          boolean

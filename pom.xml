@@ -92,44 +92,44 @@
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
             <artifactId>owlapi-api</artifactId>
-            <version>5.0.5</version>
+            <version>5.1.1</version>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
             <artifactId>owlapi-impl</artifactId>
-            <version>5.0.5</version>
+            <version>5.1.1</version>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
             <artifactId>owlapi-parsers</artifactId>
-            <version>5.0.5</version>
+            <version>5.1.1</version>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
             <artifactId>owlapi-rio</artifactId>
-            <version>5.0.5</version>
+            <version>5.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-arq</artifactId>
-            <version>3.0.1</version>
+            <version>3.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.5</version>
+            <version>1.7.22</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
+            <version>1.7.22</version>
         </dependency>
 
         <!-- test scope: -->
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
             <artifactId>owlapi-apibinding</artifactId>
-            <version>5.0.5</version>
+            <version>5.1.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
