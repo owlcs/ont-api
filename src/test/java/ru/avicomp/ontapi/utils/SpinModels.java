@@ -38,16 +38,16 @@ import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
  * Created by szuev on 21.04.2017.
  */
 public enum SpinModels {
-    SP("/spin/sp.ttl", "http://spinrdf.org/sp"),
-    SPIN("/spin/spin.ttl", "http://spinrdf.org/spin"),
-    SPL("/spin/spl.spin.ttl", "http://spinrdf.org/spl"),
-    SPIF("/spin/spif.ttl", "http://spinrdf.org/spif"),
-    SPINMAP("/spin/spinmap.spin.ttl", "http://spinrdf.org/spinmap"),
-    SMF("/spin/functions-smf.ttl", "http://topbraid.org/functions-smf"),
-    FN("/spin/functions-fn.ttl", "http://topbraid.org/functions-fn"),
-    AFN("/spin/functions-afn.ttl", "http://topbraid.org/functions-afn"),
-    SMF_BASE("/spin/sparqlmotionfunctions.ttl", "http://topbraid.org/sparqlmotionfunctions"),
-    SPINMAPL("/spin/spinmapl.spin.ttl", "http://topbraid.org/spin/spinmapl");
+    SP("/etc/sp.ttl", "http://spinrdf.org/sp"),
+    SPIN("/etc/spin.ttl", "http://spinrdf.org/spin"),
+    SPL("/etc/spl.spin.ttl", "http://spinrdf.org/spl"),
+    SPIF("/etc/spif.ttl", "http://spinrdf.org/spif"),
+    SPINMAP("/etc/spinmap.spin.ttl", "http://spinrdf.org/spinmap"),
+    SMF("/etc/functions-smf.ttl", "http://topbraid.org/functions-smf"),
+    FN("/etc/functions-fn.ttl", "http://topbraid.org/functions-fn"),
+    AFN("/etc/functions-afn.ttl", "http://topbraid.org/functions-afn"),
+    SMF_BASE("/etc/sparqlmotionfunctions.ttl", "http://topbraid.org/sparqlmotionfunctions"),
+    SPINMAPL("/etc/spinmapl.spin.ttl", "http://topbraid.org/spin/spinmapl");
 
     /**
      * see {@link org.topbraid.spin.vocabulary.SP#init(Personality)}
