@@ -147,7 +147,7 @@
         <dependency>
             <groupId>com.github.TopQuadrant</groupId>
             <artifactId>shacl</artifactId>
-            <version>RELEASE</version>
+            <version>v1.0.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
