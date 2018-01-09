@@ -129,11 +129,11 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
     public OWLOntologyID getOntologyID() {
         OntID id = base.getID();
         if (id.isAnon()) {
-            return ontologyID == null || !ontologyID.isAnonymous() ? ontologyID = new OWLOntologyID() : ontologyID;
+            return ontologyID == null || !ontologyID.isAnonymous() ? assignID(new OWLOntologyID()) : ontologyID;
         }
         Optional<IRI> iri = Optional.of(id.getURI()).map(IRI::create);
         Optional<IRI> version = Optional.ofNullable(id.getVersionIRI()).map(IRI::create);
-        return ontologyID = new OWLOntologyID(iri, version);
+        return assignID(new OWLOntologyID(iri, version));
     }
 
     /**
@@ -152,8 +152,15 @@ public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, Conf
             IRI versionIRI = id.getVersionIRI().orElse(null);
             base.setID(iri == null ? null : iri.getIRIString()).setVersionIRI(versionIRI == null ? null : versionIRI.getIRIString());
         } finally {
-            ontologyID = id;
+            assignID(id);
         }
+    }
+
+    private OWLOntologyID assignID(OWLOntologyID id) {
+        this.ontologyID = id;
+        // reset hashcode (due to change owl 5.1.1 -> 5.1.4)
+        this.hashCode = 0;
+        return id;
     }
 
     @Override
