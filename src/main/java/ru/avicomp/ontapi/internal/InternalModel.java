@@ -328,16 +328,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     /**
      * Gets owl-objects from axioms and annotations.
      *
-     * @param view Class type of owl-object.
+     * @param type Class type of owl-object.
      * @return Stream of {@link OWLObject}s.
      */
     @SuppressWarnings("unchecked")
-    protected <O extends OWLObject> Stream<O> objects(Class<O> view) {
-        return (Stream<O>) objectsStore.computeIfAbsent(view, c ->
-                Stream.concat(
-                        annotations().map(annotation -> OwlObjects.objects(c, annotation)).flatMap(Function.identity()),
-                        axioms().map(axiom -> OwlObjects.objects(c, axiom)).flatMap(Function.identity())
-                ).collect(Collectors.toSet())).stream();
+    protected <O extends OWLObject> Stream<O> objects(Class<O> type) {
+        return (Stream<O>) objectsStore.computeIfAbsent(type, this::getObjects).stream();
+    }
+
+    protected <O extends OWLObject> Set<O> getObjects(Class<O> type) {
+        return Stream.concat(
+                annotations().map(annotation -> OwlObjects.objects(type, annotation)).flatMap(Function.identity()),
+                axioms().map(axiom -> OwlObjects.objects(type, axiom)).flatMap(Function.identity()))
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -369,8 +372,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> annotations() {
-        Stream<OWLAnnotation> res = getAnnotationTripleStore().getObjects().stream();
-        return getConfig().parallel() ? res.collect(Collectors.toSet()).stream() : res;
+        return getAnnotationTripleStore().getObjects().stream();
     }
 
     /**
@@ -485,14 +487,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Auxiliary method.
      * Returns map of axioms by specified OWLAxiom class.
      *
-     * @param type {@link Class<A>}
-     * @param <A>  {@link OWLAxiom}
+     * @param type Class type of {@link OWLAxiom OWLAxiom}.
+     * @param <A>  real type of OWLAxiom
      * @return {@link OwlObjectTriplesMap}
      */
     @SuppressWarnings("unchecked")
     protected <A extends OWLAxiom> OwlObjectTriplesMap<A> getAxiomTripleStore(Class<A> type) {
-        return (OwlObjectTriplesMap<A>) componentsStore.computeIfAbsent(type,
-                c -> new OwlObjectTriplesMap<>(type, AxiomParserProvider.get((Class<A>) c).read(InternalModel.this)));
+        return (OwlObjectTriplesMap<A>) componentsStore.computeIfAbsent(type, t -> readAxiomTriples((Class<A>) t));
+    }
+
+    protected <A extends OWLAxiom> OwlObjectTriplesMap<A> readAxiomTriples(Class<A> type) {
+        return new OwlObjectTriplesMap<>(type, AxiomParserProvider.get(type).read(InternalModel.this));
     }
 
     /**
@@ -503,8 +508,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     @SuppressWarnings("unchecked")
     protected OwlObjectTriplesMap<OWLAnnotation> getAnnotationTripleStore() {
-        return (OwlObjectTriplesMap<OWLAnnotation>) componentsStore.computeIfAbsent(OWLAnnotation.class,
-                c -> new OwlObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), getConfig().dataFactory()).getWraps()));
+        return (OwlObjectTriplesMap<OWLAnnotation>) componentsStore.computeIfAbsent(OWLAnnotation.class, t -> readAnnotationTriples());
+    }
+
+    protected OwlObjectTriplesMap<OWLAnnotation> readAnnotationTriples() {
+        return new OwlObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), getConfig().dataFactory()).getWraps());
     }
 
     /**
