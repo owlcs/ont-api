@@ -14,23 +14,15 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.io.IOException;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.*;
 
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.reflect.ClassPath;
 import ru.avicomp.ontapi.OntApiException;
 
 /**
@@ -60,6 +52,49 @@ public abstract class AxiomParserProvider {
     }
 
     private static class ParserHolder {
+
+        // 39 types.
+        private static final List<Class<? extends AxiomTranslator>> TRANSLATORS = Arrays.asList(
+                ru.avicomp.ontapi.internal.DataPropertyDomainTranslator.class,
+                ru.avicomp.ontapi.internal.SameIndividualTranslator.class,
+                ru.avicomp.ontapi.internal.SubObjectPropertyOfTranslator.class,
+                ru.avicomp.ontapi.internal.AsymmetricObjectPropertyTranslator.class,
+                ru.avicomp.ontapi.internal.FunctionalObjectPropertyTranslator.class,
+                ru.avicomp.ontapi.internal.AnnotationAssertionTranslator.class,
+                ru.avicomp.ontapi.internal.DisjointUnionTranslator.class,
+                ru.avicomp.ontapi.internal.SWRLRuleTranslator.class,
+                ru.avicomp.ontapi.internal.EquivalentClassesTranslator.class,
+                ru.avicomp.ontapi.internal.AnnotationPropertyRangeTranslator.class,
+                ru.avicomp.ontapi.internal.DatatypeDefinitionTranslator.class,
+                ru.avicomp.ontapi.internal.DisjointObjectPropertiesTranslator.class,
+                ru.avicomp.ontapi.internal.InverseFunctionalObjectPropertyTranslator.class,
+                ru.avicomp.ontapi.internal.DataPropertyAssertionTranslator.class,
+                ru.avicomp.ontapi.internal.InverseObjectPropertiesTranslator.class,
+                ru.avicomp.ontapi.internal.ReflexiveObjectPropertyTranslator.class,
+                ru.avicomp.ontapi.internal.DifferentIndividualsTranslator.class,
+                ru.avicomp.ontapi.internal.FunctionalDataPropertyTranslator.class,
+                ru.avicomp.ontapi.internal.DataPropertyRangeTranslator.class,
+                ru.avicomp.ontapi.internal.EquivalentObjectPropertiesTranslator.class,
+                ru.avicomp.ontapi.internal.ObjectPropertyRangeTranslator.class,
+                ru.avicomp.ontapi.internal.NegativeDataPropertyAssertionTranslator.class,
+                ru.avicomp.ontapi.internal.SubPropertyChainOfTranslator.class,
+                ru.avicomp.ontapi.internal.AnnotationPropertyDomainTranslator.class,
+                ru.avicomp.ontapi.internal.TransitiveObjectPropertyTranslator.class,
+                ru.avicomp.ontapi.internal.EquivalentDataPropertiesTranslator.class,
+                ru.avicomp.ontapi.internal.DisjointDataPropertiesTranslator.class,
+                ru.avicomp.ontapi.internal.ObjectPropertyDomainTranslator.class,
+                ru.avicomp.ontapi.internal.SubAnnotationPropertyOfTranslator.class,
+                ru.avicomp.ontapi.internal.SubClassOfTranslator.class,
+                ru.avicomp.ontapi.internal.DisjointClassesTranslator.class,
+                ru.avicomp.ontapi.internal.SymmetricObjectPropertyTranslator.class,
+                ru.avicomp.ontapi.internal.SubDataPropertyOfTranslator.class,
+                ru.avicomp.ontapi.internal.DeclarationTranslator.class,
+                ru.avicomp.ontapi.internal.ObjectPropertyAssertionTranslator.class,
+                ru.avicomp.ontapi.internal.ClassAssertionTranslator.class,
+                ru.avicomp.ontapi.internal.HasKeyTranslator.class,
+                ru.avicomp.ontapi.internal.IrreflexiveObjectPropertyTranslator.class,
+                ru.avicomp.ontapi.internal.NegativeObjectPropertyAssertionTranslator.class
+        );
         private static final Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> PARSERS = init();
 
         static {
@@ -69,11 +104,12 @@ public abstract class AxiomParserProvider {
             }
         }
 
+        @SuppressWarnings("unchecked")
         private static Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> init() {
             Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> res = new HashMap<>();
-            Set<Class<? extends AxiomTranslator>> parserClasses = collectParserClasses();
+            // to be sure that list of types are exactly the same in ont-api as in owl-api:
             AxiomType.AXIOM_TYPES.forEach(type -> {
-                Class<? extends AxiomTranslator> parserClass = findParserClass(parserClasses, type);
+                Class<? extends AxiomTranslator> parserClass = findParserClass(TRANSLATORS, type);
                 try {
                     res.put(type, parserClass.newInstance());
                 } catch (InstantiationException | IllegalAccessException e) {
@@ -83,11 +119,11 @@ public abstract class AxiomParserProvider {
             return res;
         }
 
-        private static Class<? extends AxiomTranslator> findParserClass(Set<Class<? extends AxiomTranslator>> classes, AxiomType<? extends OWLAxiom> type) {
+        private static Class<? extends AxiomTranslator> findParserClass(Collection<Class<? extends AxiomTranslator>> classes, AxiomType<? extends OWLAxiom> type) {
             return classes.stream()
                     .filter(p -> isRelatedToAxiom(p, type.getActualClass()))
                     .findFirst()
-                    .orElseThrow(() -> new OntApiException("Can't find parser class for type " + type));
+                    .orElseThrow(() -> new OntApiException("Can't find parser class for type '" + type + "'"));
         }
 
         private static boolean isRelatedToAxiom(Class<? extends AxiomTranslator> parserClass, Class<? extends OWLAxiom> actualClass) {
@@ -97,25 +133,6 @@ public abstract class AxiomParserProvider {
                 if (actualClass.getName().equals(t.getTypeName())) return true;
             }
             return false;
-        }
-
-        @SuppressWarnings("unchecked")
-        private static Set<Class<? extends AxiomTranslator>> collectParserClasses() {
-            try {
-                Set<ClassPath.ClassInfo> classes = ClassPath.from(Thread.currentThread().getContextClassLoader()).getTopLevelClasses(AxiomTranslator.class.getPackage().getName());
-                Stream<Class> res = classes.stream().map(ParserHolder::parserClass).filter(c -> !Modifier.isAbstract(c.getModifiers())).filter(AxiomTranslator.class::isAssignableFrom);
-                return res.map((Function<Class, Class<? extends AxiomTranslator>>) c -> c).collect(Collectors.toSet());
-            } catch (IOException e) {
-                throw new OntApiException("Can't collect parsers classes", e);
-            }
-        }
-
-        private static Class parserClass(ClassPath.ClassInfo info) {
-            try {
-                return Class.forName(info.getName());
-            } catch (ClassNotFoundException e) {
-                throw new OntApiException("Can't find class " + info, e);
-            }
         }
     }
 

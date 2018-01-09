@@ -13,6 +13,3 @@ For more info see [wiki](https://github.com/avicomp/ont-api/wiki) page.
 * Apache License Version 2.0
 * GNU LGPL Version 3.0
 
-## Contacts
-* sergei.zuev@avicomp.ru
-* grigory.drobyazko@avicomp.ru
