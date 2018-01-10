@@ -14,6 +14,18 @@
 
 package ru.avicomp.ontapi.utils;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.log4j.Logger;
+import org.junit.Assert;
+import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.OntFormat;
+import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.OntologyManager;
+import ru.avicomp.ontapi.OntologyModel;
+
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -23,19 +35,6 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Objects;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.log4j.Logger;
-import org.junit.Assert;
-import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
-import org.semanticweb.owlapi.model.*;
-
-import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.OntologyModel;
 
 /**
  * Test utils to work with io.
@@ -130,13 +129,20 @@ public class ReadWriteUtils {
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static File getFileToSave(String name, OntFormat type) {
-        File dir = new File(DESTINATION_DIR);
-        if (!dir.exists()) {
-            dir.mkdir();
+    public static Path getFileToSave(String name, OntFormat type) {
+        Path dir = Paths.get(DESTINATION_DIR);
+        if (!Files.exists(dir)) {
+            try {
+                Files.createDirectory(dir);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
-        return new File(dir, name + (type != null ? "." + type.getExt() : ""));
+        try {
+            return dir.toRealPath().resolve(name + (type != null ? "." + type.getExt() : ""));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**
@@ -209,28 +215,32 @@ public class ReadWriteUtils {
     }
 
     public static URI getOutURI(String file) {
-        return new File(DESTINATION_DIR, file).toURI();
+        return Paths.get(DESTINATION_DIR).resolve(file).toUri();
     }
 
-    public static void save(Model model, String name, OntFormat type) {
-        File dst = getFileToSave(name, type);
-        LOGGER.debug("Save model to " + dst.toURI() + " (" + type.getID() + ")");
-        try (FileWriter out = new FileWriter(dst)) {
+    public static Path save(Model model, String name, OntFormat type) {
+        Path dst = getFileToSave(name, type);
+        LOGGER.debug("Save model to " + dst.toUri() + " (" + type.getID() + ")");
+        try (Writer out = Files.newBufferedWriter(dst)) {
             model.write(out, type.getID());
         } catch (IOException e) {
-            LOGGER.fatal("Unable to save model " + name, e);
+            LOGGER.fatal("Unable to save model " + dst, e);
+            return null;
         }
+        return dst;
     }
 
-    public static void save(OWLOntology ontology, String name, OntFormat type) {
-        File dst = getFileToSave(name, type);
-        LOGGER.debug("Save owl-ontology to " + dst.toURI() + " (" + (type == null ? "TURTLE" : type.getID()) + ")");
+    public static Path save(OWLOntology ontology, String name, OntFormat type) {
+        Path dst = getFileToSave(name, type);
+        LOGGER.debug("Save owl-ontology to " + dst.toUri() + " (" + (type == null ? "TURTLE" : type.getID()) + ")");
         OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
-        try (FileOutputStream out = new FileOutputStream(dst)) {
+        try (OutputStream out = Files.newOutputStream(dst)) {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
-        } catch (OWLOntologyStorageException | IOException e) {
+        } catch (OWLOntologyStorageException | IOException | UnsupportedOperationException e) {
             LOGGER.fatal("Unable to print owl-ontology " + ontology, e);
+            return null;
         }
+        return dst;
     }
 
     public static OWLOntology loadOWLOntology(OWLOntologyManager manager, IRI fileIRI) {

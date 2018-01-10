@@ -14,13 +14,7 @@
 
 package ru.avicomp.ontapi;
 
-import javax.annotation.Nonnull;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ArrayListMultimap;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
@@ -36,8 +30,6 @@ import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ArrayListMultimap;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
@@ -48,6 +40,13 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.Transform;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
+
+import javax.annotation.Nonnull;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Ontology building&loading factory. The 'core' of the system, the point to create and load ontologies.
@@ -608,7 +607,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             Set<OntFormat> res = new LinkedHashSet<>();
             if (source.getFormat().isPresent()) {
                 OntFormat f = OntFormat.get(source.getFormat().get());
-                if (f == null || !f.isSupported()) {
+                if (f == null || !f.isReadSupported()) {
                     throw new UnsupportedFormatException("Format " + source.getFormat().get() + " is not supported.");
                 }
                 res.add(f);
@@ -618,7 +617,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             if (first != null) {
                 res.add(first);
             }
-            OntFormat.supported().forEach(res::add);
+            OntFormat.formats().filter(OntFormat::isReadSupported).forEach(res::add);
             return res;
         }
 

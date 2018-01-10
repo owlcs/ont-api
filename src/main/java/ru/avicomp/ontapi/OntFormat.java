@@ -14,6 +14,10 @@
 
 package ru.avicomp.ontapi;
 
+import org.apache.jena.riot.Lang;
+import org.semanticweb.owlapi.formats.*;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
+
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,13 +25,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.apache.jena.riot.Lang;
-import org.semanticweb.owlapi.formats.*;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-
 /**
  * The map between jena languages ({@link Lang}) and OWL-API formats ({@link OWLDocumentFormat}).
- * There are 21 ONT formats (22 OWL document formats + 14 jena languages),
+ * There are 22 ONT formats (22(19 actual, i.e. without intersection) OWL document formats + 15(11 actual) jena languages),
  * but only 12 of them can be used without any hesitation (see {@link #isSupported()}).
  * For working with the OWL-API interfaces the {@link #createOwlFormat()} method could be used.
  * <p>
@@ -38,28 +38,29 @@ public enum OntFormat {
             Arrays.asList(TurtleDocumentFormat.class, RioTurtleDocumentFormat.class, N3DocumentFormat.class)),
     RDF_XML("RDF/XML", "rdf", Collections.singletonList(Lang.RDFXML), Arrays.asList(RDFXMLDocumentFormat.class, RioRDFXMLDocumentFormat.class)),
     // json has more priority since json-ld can't be read as json, but json can be as json-ld
-    RDF_JSON("RDF/JSON", "rj", Collections.singletonList(Lang.RDFJSON), Collections.singletonList(RDFJsonDocumentFormat.class)),
-    JSON_LD("JSON-LD", "jsonld", Collections.singletonList(Lang.JSONLD), Collections.singletonList(RDFJsonLDDocumentFormat.class)),
+    RDF_JSON("RDF/JSON", "rj", Lang.RDFJSON, RDFJsonDocumentFormat.class),
+    JSON_LD("JSON-LD", "jsonld", Lang.JSONLD, RDFJsonLDDocumentFormat.class),
 
     NTRIPLES("N-Triples", "nt", Arrays.asList(Lang.NTRIPLES, Lang.NT), Collections.singletonList(NTriplesDocumentFormat.class)),
     NQUADS("N-Quads", "nq", Arrays.asList(Lang.NQUADS, Lang.NQ), Collections.singletonList(NQuadsDocumentFormat.class)),
-    TRIG("TriG", "trig", Collections.singletonList(Lang.TRIG), Collections.singletonList(TrigDocumentFormat.class)),
-    TRIX("TriX", "trix", Collections.singletonList(Lang.TRIX), Collections.singletonList(TrixDocumentFormat.class)),
+    TRIG("TriG", "trig", Lang.TRIG, TrigDocumentFormat.class),
+    TRIX("TriX", "trix", Lang.TRIX, TrixDocumentFormat.class),
     // jena only:
-    RDF_THRIFT("RDF-THRIFT", "trdf", Collections.singletonList(Lang.RDFTHRIFT), null),
-    CSV("CSV", "csv", Collections.singletonList(Lang.CSV), null),
+    RDF_THRIFT("RDF-THRIFT", "trdf", Lang.RDFTHRIFT, null),
+    CSV("CSV", "csv", Lang.CSV, null),
+    TSV("TSV", "tsv", Lang.TSV, null),
     // owl-api formats only:
-    OWL_XML("OWL/XML", "owl", null, Collections.singletonList(OWLXMLDocumentFormat.class)),
-    MANCHESTER_SYNTAX("ManchesterSyntax", "omn", null, Collections.singletonList(ManchesterSyntaxDocumentFormat.class)),
-    FUNCTIONAL_SYNTAX("FunctionalSyntax", "fss", null, Collections.singletonList(FunctionalSyntaxDocumentFormat.class)),
-    BINARY("BinaryRDF", "brf", null, Collections.singletonList(BinaryRDFDocumentFormat.class)),
-    RDFA("RDFA", "html", null, Collections.singletonList(RDFaDocumentFormat.class)),
-    OBO("OBO", "obo", null, Collections.singletonList(OBODocumentFormat.class)),
-    KRSS("KRSS", "krss", null, Collections.singletonList(KRSSDocumentFormat.class)),
-    KRSS2("KRSS2", "krss2", null, Collections.singletonList(KRSS2DocumentFormat.class)),
-    DL("DL", "dl", null, Collections.singletonList(DLSyntaxDocumentFormat.class)),
-    DL_HTML("DL/HTML", "html", null, Collections.singletonList(DLSyntaxHTMLDocumentFormat.class)),
-    LATEXT("LATEX", "tex", null, Collections.singletonList(LatexDocumentFormat.class)),;
+    OWL_XML("OWL/XML", "owl", null, OWLXMLDocumentFormat.class),
+    MANCHESTER_SYNTAX("ManchesterSyntax", "omn", null, ManchesterSyntaxDocumentFormat.class),
+    FUNCTIONAL_SYNTAX("FunctionalSyntax", "fss", null, FunctionalSyntaxDocumentFormat.class),
+    BINARY_RDF("BinaryRDF", "brf", null, BinaryRDFDocumentFormat.class),
+    RDFA("RDFA", "html", null, RDFaDocumentFormat.class),
+    OBO("OBO", "obo", null, OBODocumentFormat.class),
+    KRSS("KRSS", "krss", null, KRSSDocumentFormat.class),
+    KRSS2("KRSS2", "krss2", null, KRSS2DocumentFormat.class),
+    DL("DL", "dl", null, DLSyntaxDocumentFormat.class),
+    DL_HTML("DL/HTML", "html", null, DLSyntaxHTMLDocumentFormat.class),
+    LATEXT("LATEX", "tex", null, LatexDocumentFormat.class),;
 
     private final String id;
     private String ext;
@@ -75,8 +76,14 @@ public enum OntFormat {
     OntFormat(String id, String ext, List<Lang> jena, List<Class<? extends OWLDocumentFormat>> owl) {
         this.id = OntApiException.notNull(id, "Id is required.");
         this.ext = ext;
-        this.jenaLangs = jena == null ? Collections.emptyList() : Collections.unmodifiableList(jena);
-        this.owlTypes = owl == null ? Collections.emptyList() : Collections.unmodifiableList(owl);
+        this.jenaLangs = Collections.unmodifiableList(jena);
+        this.owlTypes = Collections.unmodifiableList(owl);
+    }
+
+    OntFormat(String id, String ext, Lang jena, Class<? extends OWLDocumentFormat> owl) {
+        this(id, ext,
+                jena == null ? Collections.emptyList() : Collections.singletonList(jena),
+                owl == null ? Collections.emptyList() : Collections.singletonList(owl));
     }
 
     public String getID() {
@@ -147,22 +154,25 @@ public enum OntFormat {
      * Returns {@code true} if format is good for using by ONT-API(Jena) mechanisms.
      * Note: even if it is not good, usually it is still possible to use it by the native OWL-API mechanisms (directly
      * or as last attempt to load or save)... but maybe to read only or to write only,
-     * or maybe with expectancy of some 'controlled' uri-transformations after reloading.
+     * or maybe with expectancy of some 'controlled' uri-transformations after reloading,
+     * or by additional configuring manager with external storers/parsers (although it is not supported by ONT-API right now)
      *
      * - CSV ({@link Lang#CSV}) is not a valid Jena RDF serialization format (it is only for SPARQL results).
-     * But it is possible to use it for reading csv files. For more details see <a href='http://jena.apache.org/documentation/csv/'>jena-csv</a>.
-     * - {@link BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.openrdf.rio.binary.BinaryRDFWriterFactory}).
-     * for the following formats there are no {@link org.semanticweb.owlapi.model.OWLStorerFactory}s in OWL-API 5.0.5:
+     * But it is possible to use it for reading csv files. Need to add jena-csv to dependencies.
+     * For more details see <a href='http://jena.apache.org/documentation/csv/'>jena-csv</a>.
+     * - TSV ({@link Lang#TSV}) Used by Jena for result sets, not RDF syntax.
+     * - {@link BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.eclipse.rdf4j.rio.binary.BinaryRDFWriterFactory}).
+     * for the following formats there are no {@link org.semanticweb.owlapi.model.OWLStorerFactory}s in the current OWL-API 5.1.4 dependencies:
      * - {@link RDFaDocumentFormat}
      * - {@link KRSSDocumentFormat}
-     * for the following formats there are no {@link org.semanticweb.owlapi.io.OWLParserFactory}s in OWL-API 5.0.5:
+     * for the following formats there are no {@link org.semanticweb.owlapi.io.OWLParserFactory}s in the current OWL-API 5.1.4 dependencies:
      * - {@link LatexDocumentFormat}
      * - {@link DLSyntaxHTMLDocumentFormat}
-     * incorrect behaviour on reloading (the reloaded test-ontology does not match to the initial):
+     * Incorrect behaviour on reloading (the reloaded test-ontology does not match to the initial):
      * - {@link KRSS2DocumentFormat}
      * - {@link DLSyntaxDocumentFormat}
      * - {@link OBODocumentFormat}
-     * The test ontology:
+     * The test ontology fot that case:
      * <pre> {@code
      * <http://ex> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
      * <http://ex#C> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
@@ -170,9 +180,27 @@ public enum OntFormat {
      * } </pre>
      *
      * @return false if format is broken by some reasons.
+     * @see #isReadSupported()
+     * @see #isWriteSupported()
      */
     public boolean isSupported() {
-        return isNoneOf(CSV, BINARY, RDFA, KRSS, LATEXT, DL_HTML, KRSS2, DL, OBO);
+        return isWriteSupported() && isReadSupported() && !OBO.equals(this);
+    }
+
+    /**
+     * @return true if reading is possible through OWL-API or Jena
+     * @see #isSupported()
+     */
+    public boolean isReadSupported() {
+        return isNoneOf(TSV, LATEXT, DL, DL_HTML, KRSS2);
+    }
+
+    /**
+     * @return true if writing is possible through OWL-API or Jena
+     * @see #isSupported()
+     */
+    public boolean isWriteSupported() {
+        return isNoneOf(CSV, TSV, RDFA, BINARY_RDF, KRSS);
     }
 
     public boolean isJena() {
@@ -219,18 +247,6 @@ public enum OntFormat {
 
     public static Stream<OntFormat> formats() {
         return Stream.of(values());
-    }
-
-    public static Stream<OntFormat> supported() {
-        return formats().filter(OntFormat::isSupported);
-    }
-
-    public static Stream<OntFormat> owlOnly() {
-        return supported().filter(OntFormat::isOWLOnly);
-    }
-
-    public static Stream<OntFormat> jenaOnly() {
-        return supported().filter(OntFormat::isJenaOnly);
     }
 
     public static OntFormat get(OWLDocumentFormat owlFormat) {

@@ -14,24 +14,23 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
-
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Buffer RDF-OWL model.
@@ -42,6 +41,7 @@ import ru.avicomp.ontapi.jena.model.*;
  * <p>
  * TODO: Should it return {@link InternalObject}s, not just naked {@link OWLObject}s?
  * It seems it would be very convenient and could make this class useful not only as part of inner implementation.
+ * TODO: to support not-in-memory graphs need to add disabling cache option somewhere to configuration and fix read/add/remove operations correspondingly.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
