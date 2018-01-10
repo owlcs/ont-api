@@ -14,18 +14,6 @@
 
 package ru.avicomp.ontapi.tests;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -38,7 +26,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
-
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
@@ -55,6 +42,15 @@ import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.SpinModels;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * to test core ({@link OntManagers})
@@ -236,6 +232,20 @@ public class ManagerTest {
     }
 
     @Test
+    public void testCopyWholeManager() throws Exception {
+        OntologyManager orig = OntManagers.createONT();
+        IRI iri = IRI.create("http://spinrdf.org/spin");
+        orig.getIRIMappers().add(FileMap.create(IRI.create("http://spinrdf.org/sp"), IRI.create(ReadWriteUtils.getResourcePath("etc", "sp.ttl").toFile())));
+        orig.getIRIMappers().add(FileMap.create(iri, IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toFile())));
+        orig.loadOntologyFromOntologyDocument(iri);
+        Assert.assertEquals(2, orig.ontologies().count());
+
+        LOGGER.info("Copy manager");
+        OntologyManager copy = copyManager(orig);
+        Assert.assertEquals(2, copy.ontologies().count());
+    }
+
+    @Test
     public void testLoadDifferentStrategies() throws Exception {
         IRI sp = IRI.create("http://spinrdf.org/sp");
         IRI spin = IRI.create("http://spinrdf.org/spin");
@@ -321,7 +331,7 @@ public class ManagerTest {
     }
 
     @Test
-    public void testLoadAnnotationsOption() throws Exception {
+    public void testLoadAnnotationsOption() {
         OntologyManager m = OntManagers.createONT();
         Assert.assertEquals("Incorrect default settings", true, m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
         OWLDataFactory df = m.getOWLDataFactory();
@@ -513,6 +523,24 @@ public class ManagerTest {
         Set<OWLClass> classes = o2.classesInSignature().collect(Collectors.toSet());
         Assert.assertEquals("Should be single class inside", 1, classes.size());
         Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
+    }
+
+    public static OntologyManager copyManager(OntologyManager from) {
+        OntologyManager res = OntManagers.createONT();
+        OntApiException ex = new OntApiException("Can't copy manager:");
+        from.ontologies()
+                .sorted(Comparator.comparingInt(o -> (int) o.importsDeclarations().count()))
+                .forEach(o -> {
+                    try {
+                        res.copyOntology(o, OntologyCopy.DEEP);
+                    } catch (OWLOntologyCreationException e) {
+                        ex.addSuppressed(e);
+                    }
+                });
+        if (ex.getSuppressed().length != 0) {
+            throw ex;
+        }
+        return res;
     }
 
     private static void serializationTest(OWLOntologyManager origin) throws Exception {

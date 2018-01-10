@@ -14,19 +14,7 @@
 
 package ru.avicomp.ontapi;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.collect.Multimap;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
@@ -42,8 +30,6 @@ import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Multimap;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
@@ -58,6 +44,19 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentPriorityCollection;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -943,19 +942,24 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @param ontology {@link OWLOntology}
-     * @return {@link IRI}
+     * Gets document IRI.
+     * @param ontology {@link OWLOntology}, not null
+     * @return {@link IRI}, not null
      * @throws UnknownOWLOntologyException ex
      * @see OWLOntologyManagerImpl#getOntologyDocumentIRI(OWLOntology)
      */
     @Nonnull
     @Override
     public IRI getOntologyDocumentIRI(@Nonnull OWLOntology ontology) {
+        return ontologyDocumentIRI(ontology).orElseThrow(() -> new OntApiException("Null document iri"));
+    }
+
+    protected Optional<IRI> ontologyDocumentIRI(OWLOntology ontology) {
         getLock().readLock().lock();
         try {
             OWLOntologyID id = ontology.getOntologyID();
             OntInfo res = content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id));
-            return OntApiException.notNull(res.getDocumentIRI(), "Null document iri");
+            return Optional.ofNullable(res.getDocumentIRI());
         } finally {
             getLock().readLock().unlock();
         }
@@ -972,7 +976,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().writeLock().lock();
         try {
             OWLOntologyID id = ontology.getOntologyID();
-            content.get(id).map(o -> o.addDocumentIRI(documentIRI)).orElseThrow(() -> new UnknownOWLOntologyException(id));
+            OntInfo info = content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id));
+            info.addDocumentIRI(documentIRI);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -1027,7 +1032,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         // set of loaded ontologies.
         getLock().writeLock().lock();
         try {
-            content.add((OntologyModel) ont);
+            // add document iri as hotfix:
+            content.add((OntologyModel) ont)
+                    .addDocumentIRI(computeDocumentIRI(ont.getOntologyID()));
         } finally {
             getLock().writeLock().unlock();
         }
