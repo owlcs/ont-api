@@ -14,16 +14,16 @@
 
 package ru.avicomp.ontapi;
 
-import org.apache.jena.riot.Lang;
-import org.semanticweb.owlapi.formats.*;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+
+import org.apache.jena.riot.Lang;
+import org.semanticweb.owlapi.formats.*;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 
 /**
  * The map between jena languages ({@link Lang}) and OWL-API formats ({@link OWLDocumentFormat}).
@@ -60,7 +60,7 @@ public enum OntFormat {
     KRSS2("KRSS2", "krss2", null, KRSS2DocumentFormat.class),
     DL("DL", "dl", null, DLSyntaxDocumentFormat.class),
     DL_HTML("DL/HTML", "html", null, DLSyntaxHTMLDocumentFormat.class),
-    LATEXT("LATEX", "tex", null, LatexDocumentFormat.class),;
+    LATEX("LATEX", "tex", null, LatexDocumentFormat.class),;
 
     private final String id;
     private String ext;
@@ -192,7 +192,7 @@ public enum OntFormat {
      * @see #isSupported()
      */
     public boolean isReadSupported() {
-        return isNoneOf(TSV, LATEXT, DL, DL_HTML, KRSS2);
+        return isNoneOf(TSV, LATEX, DL, DL_HTML, KRSS2);
     }
 
     /**
