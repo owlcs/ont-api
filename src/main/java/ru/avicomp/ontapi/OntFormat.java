@@ -14,16 +14,16 @@
 
 package ru.avicomp.ontapi;
 
+import org.apache.jena.riot.Lang;
+import org.semanticweb.owlapi.formats.*;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
+
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-
-import org.apache.jena.riot.Lang;
-import org.semanticweb.owlapi.formats.*;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
 
 /**
  * The map between jena languages ({@link Lang}) and OWL-API formats ({@link OWLDocumentFormat}).
@@ -49,12 +49,12 @@ public enum OntFormat {
     RDF_THRIFT("RDF-THRIFT", "trdf", Lang.RDFTHRIFT, null),
     CSV("CSV", "csv", Lang.CSV, null),
     TSV("TSV", "tsv", Lang.TSV, null),
-    // owl-api formats only:
+    // owl-api formats only (from owlapi-api, owlapi-rio, owlapi-obiformat, etc):
     OWL_XML("OWL/XML", "owl", null, OWLXMLDocumentFormat.class),
     MANCHESTER_SYNTAX("ManchesterSyntax", "omn", null, ManchesterSyntaxDocumentFormat.class),
     FUNCTIONAL_SYNTAX("FunctionalSyntax", "fss", null, FunctionalSyntaxDocumentFormat.class),
     BINARY_RDF("BinaryRDF", "brf", null, BinaryRDFDocumentFormat.class),
-    RDFA("RDFA", "html", null, RDFaDocumentFormat.class),
+    RDFA("RDFA", "xhtml", null, RDFaDocumentFormat.class),
     OBO("OBO", "obo", null, OBODocumentFormat.class),
     KRSS("KRSS", "krss", null, KRSSDocumentFormat.class),
     KRSS2("KRSS2", "krss2", null, KRSS2DocumentFormat.class),
