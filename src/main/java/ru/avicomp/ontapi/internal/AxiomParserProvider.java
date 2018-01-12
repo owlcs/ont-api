@@ -14,16 +14,15 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.*;
-
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.avicomp.ontapi.OntApiException;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
 
 /**
  * Axiom Graph Translator loader.
@@ -99,8 +98,8 @@ public abstract class AxiomParserProvider {
 
         static {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("There are following axiom-parsers (" + PARSERS.size() + "): ");
-                PARSERS.forEach((type, parser) -> LOGGER.debug(type + " ::: " + parser.getClass()));
+                LOGGER.trace("There are following axiom-parsers (" + PARSERS.size() + "): ");
+                PARSERS.forEach((type, parser) -> LOGGER.trace(type + " ::: " + parser.getClass()));
             }
         }
 

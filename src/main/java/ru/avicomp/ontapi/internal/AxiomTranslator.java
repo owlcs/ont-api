@@ -14,16 +14,15 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAxiom;
-
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The base class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
@@ -72,7 +71,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * Tests if the specified statement answers the axiom's definition.
      *
      * @param statement {@link OntStatement} any statement, not necessarily local.
-     * @return true if the statement corresponds the {@link Axiom}.
+     * @return true if the statement corresponds axiom type.
      */
     public abstract boolean testStatement(OntStatement statement);
 

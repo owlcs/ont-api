@@ -14,9 +14,6 @@
 
 package ru.avicomp.ontapi.tests;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
@@ -25,7 +22,6 @@ import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
@@ -36,6 +32,9 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * to test behaviour with owl:imports
@@ -53,6 +52,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         OntGraphModel jena = owl.asGraphModel();
         int importsCount = 4;
         OntID jenaOnt = jena.setID(iri.getIRIString());
+        Assert.assertNotNull(jenaOnt);
         LOGGER.info("Add imports.");
         OntIRI import1 = OntIRI.create("http://dummy-imports.com/first");
         OntIRI import2 = OntIRI.create("http://dummy-imports.com/second");

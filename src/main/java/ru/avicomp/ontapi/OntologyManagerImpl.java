@@ -786,7 +786,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         try {
             Optional<OntInfo> res = content.get(id);
             if (!res.isPresent() && !id.isAnonymous()) {
-                res = content.values().filter(e -> e.id().matchOntology(id.getOntologyIRI().get())).findFirst();
+                IRI iri = id.getOntologyIRI().orElseThrow(() -> new IllegalStateException("Should never happen."));
+                res = content.values().filter(e -> e.id().matchOntology(iri)).findFirst();
             }
             return res.map(OntInfo::get).orElse(null);
         } finally {
@@ -967,7 +968,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param ontology    {@link OWLOntology}
-     * @param documentIRI {@link IRI}
+     * @param documentIRI {@link IRI}, the source
      * @throws UnknownOWLOntologyException e
      * @see OWLOntologyManagerImpl#setOntologyDocumentIRI(OWLOntology, IRI)
      */
@@ -997,7 +998,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().writeLock().lock();
         try {
             OWLOntologyID id = ontology.getOntologyID();
-            content.get(id).map(o -> o.addFormat(ontologyFormat)).orElseThrow(() -> new UnknownOWLOntologyException(id));
+            content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addFormat(ontologyFormat);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -1032,9 +1033,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         // set of loaded ontologies.
         getLock().writeLock().lock();
         try {
-            // add document iri as hotfix:
-            content.add((OntologyModel) ont)
-                    .addDocumentIRI(computeDocumentIRI(ont.getOntologyID()));
+            content.add((OntologyModel) ont);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -1446,11 +1445,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * in case of coping from ONT to OWL there will be an exception.
-     * This method helps to fix origin manager.
+     * In case of coping from ONT to OWL there will be an exception.
+     * This method helps to fix the origin manager.
      *
      * @param o          {@link OWLOntology o}, must be our (ONT) object.
-     * @param owlManager {@link OWLOntologyManager} some OWL manager.
+     * @param owlManager {@link OWLOntologyManager} any OWL manager.
      * @see OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)
      */
     protected void rollBackMoving(OWLOntology o, OWLOntologyManager owlManager) {
@@ -1459,10 +1458,14 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         if (f != null) {
             setOntologyFormat(o, f);
         }
-        IRI s = owlManager.getOntologyDocumentIRI(o);
-        if (s != null) {
-            setOntologyDocumentIRI(o, s);
+        IRI doc;
+        try {
+            doc = owlManager.getOntologyDocumentIRI(o);
+        } catch (RuntimeException e) {
+            LOGGER.warn("Document IRI is not expected to be null!", e);
+            return;
         }
+        setOntologyDocumentIRI(o, doc);
     }
 
     /**
@@ -1624,6 +1627,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param o {@link OWLOntology}
      * @see OWLOntologyManagerImpl#fixIllegalPunnings(OWLOntology)
      */
+    @SuppressWarnings("unused")
     protected void fixIllegalPunnings(OWLOntology o) {
         // nothing here.
     }

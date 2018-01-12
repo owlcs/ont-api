@@ -216,6 +216,11 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     public static class OntModelLoaderImpl implements OntLoader {
         protected static final Logger LOGGER = LoggerFactory.getLogger(OntModelLoaderImpl.class);
 
+        // following constants are copy-pasted from org.semanticweb.owlapi.io.DocumentSource:
+        protected static final String TEXTPLAIN_REQUEST_TYPE = ", text/plain; q=0.1";
+        protected static final String LAST_REQUEST_TYPE = ", */*; q=0.09";
+        protected static final String DEFAULT_REQUEST = "application/rdf+xml, application/xml; q=0.7, text/xml; q=0.6" + TEXTPLAIN_REQUEST_TYPE + LAST_REQUEST_TYPE;
+
         protected Map<String, GraphInfo> graphs = new LinkedHashMap<>();
         protected OntLoader alternative;
 
@@ -320,6 +325,9 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                     owlFormat.setOntologyLoaderMetaData(fake);
                 }
                 manager.setOntologyFormat(res, owlFormat);
+                if (info.getSource() != null) {
+                    manager.setOntologyDocumentIRI(res, info.getSource());
+                }
                 return res;
             } finally { // just in case.
                 info.setProcessed();
@@ -524,6 +532,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         protected GraphInfo loadGraph(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration config) throws OWLOntologyCreationException {
             Graph graph;
             OntFormat format;
+            IRI src = source.getDocumentIRI();
             if (OntGraphDocumentSource.class.isInstance(source)) {
                 OntGraphDocumentSource _source = (OntGraphDocumentSource) source;
                 graph = _source.getGraph();
@@ -536,14 +545,15 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                         .map(OWLOntologyDocumentSource.class::cast)
                         .findFirst()
                         .orElse(source);
+                src = _source.getDocumentIRI();
                 graph = OntModelFactory.createDefaultGraph();
                 format = readGraph(graph, _source, config);
             }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Graph <{}> is loaded. Source: {}[{}]. Format: {}",
-                        Graphs.getName(graph), source.getClass().getSimpleName(), source.getDocumentIRI(), format);
+                        Graphs.getName(graph), source.getClass().getSimpleName(), src, format);
             }
-            return new GraphInfo(graph, format, true);
+            return new GraphInfo(graph, format, src);
         }
 
         /**
@@ -573,7 +583,8 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             if (conf.getSupportedSchemes().stream().noneMatch(s -> s.same(iri))) {
                 throw new ConfigMismatchException("Not allowed scheme: " + iri);
             }
-            return read(graph, source, s -> DocumentSources.getInputStream(iri, conf).orElseThrow(orElse));
+            String header = source.getAcceptHeaders().orElse(DEFAULT_REQUEST);
+            return read(graph, source, s -> DocumentSources.getInputStream(iri, conf, header).orElseThrow(orElse));
         }
 
         /**
@@ -691,11 +702,17 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             private boolean fresh;
             private String uri;
             private Set<String> imports;
+            private IRI source;
 
             protected GraphInfo(Graph graph, OntFormat format, boolean fresh) {
                 this.graph = graph;
                 this.format = format;
                 this.fresh = fresh;
+            }
+
+            protected GraphInfo(Graph graph, OntFormat format, IRI source) {
+                this(graph, format, true);
+                this.source = source;
             }
 
             protected String getURI() {
@@ -728,6 +745,10 @@ public class OntFactoryImpl implements OntologyManager.Factory {
 
             protected Graph getGraph() {
                 return graph;
+            }
+
+            protected IRI getSource() {
+                return source;
             }
         }
     }

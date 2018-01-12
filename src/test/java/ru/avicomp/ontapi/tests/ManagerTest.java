@@ -231,18 +231,28 @@ public class ManagerTest {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     public void testCopyWholeManager() throws Exception {
+        IRI iri1 = IRI.create("http://spinrdf.org/sp");
+        IRI doc1 = IRI.create(ReadWriteUtils.getResourcePath("etc", "sp.ttl").toUri());
+        IRI iri2 = IRI.create("http://spinrdf.org/spin");
+        IRI doc2 = IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toUri());
+
         OntologyManager orig = OntManagers.createONT();
-        IRI iri = IRI.create("http://spinrdf.org/spin");
-        orig.getIRIMappers().add(FileMap.create(IRI.create("http://spinrdf.org/sp"), IRI.create(ReadWriteUtils.getResourcePath("etc", "sp.ttl").toFile())));
-        orig.getIRIMappers().add(FileMap.create(iri, IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toFile())));
-        orig.loadOntologyFromOntologyDocument(iri);
+        orig.getIRIMappers().add(FileMap.create(iri1, doc1));
+        orig.getIRIMappers().add(FileMap.create(iri2, doc2));
+        orig.loadOntologyFromOntologyDocument(iri2);
         Assert.assertEquals(2, orig.ontologies().count());
 
         LOGGER.info("Copy manager");
         OntologyManager copy = copyManager(orig);
         Assert.assertEquals(2, copy.ontologies().count());
+
+        // validate doc iris:
+        Assert.assertEquals(doc1, copy.getOntologyDocumentIRI(copy.getOntology(iri1)));
+        // Note: the same behaviour as OWL-API (tested: 5.1.4): the primary ontology has ontology-iri as document-iri.
+        Assert.assertEquals(iri2, copy.getOntologyDocumentIRI(copy.getOntology(iri2)));
     }
 
     @Test
@@ -525,22 +535,40 @@ public class ManagerTest {
         Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
     }
 
+    /**
+     * Copies managers content to new instance
+     *
+     * @param from {@link OntologyManager}
+     * @return new instance of {@link OntologyManager}
+     */
     public static OntologyManager copyManager(OntologyManager from) {
         OntologyManager res = OntManagers.createONT();
+        copyManager(from, res, false);
+        return res;
+    }
+
+    /**
+     * Copies managers content.
+     *
+     * @param from     source
+     * @param to       destination
+     * @param silently if true ignore {@link OWLOntologyCreationException} while coping
+     * @throws OntApiException if there are some exceptions and {@code silently = true}
+     */
+    public static void copyManager(OntologyManager from, OntologyManager to, boolean silently) throws OntApiException {
         OntApiException ex = new OntApiException("Can't copy manager:");
         from.ontologies()
-                .sorted(Comparator.comparingInt(o -> (int) o.importsDeclarations().count()))
+                .sorted(Comparator.comparingInt(o -> (int) o.imports().count()))
                 .forEach(o -> {
                     try {
-                        res.copyOntology(o, OntologyCopy.DEEP);
+                        to.copyOntology(o, OntologyCopy.DEEP);
                     } catch (OWLOntologyCreationException e) {
                         ex.addSuppressed(e);
                     }
                 });
-        if (ex.getSuppressed().length != 0) {
+        if (!silently && ex.getSuppressed().length != 0) {
             throw ex;
         }
-        return res;
     }
 
     private static void serializationTest(OWLOntologyManager origin) throws Exception {
