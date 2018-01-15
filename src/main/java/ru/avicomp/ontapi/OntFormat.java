@@ -14,10 +14,6 @@
 
 package ru.avicomp.ontapi;
 
-import org.apache.jena.riot.Lang;
-import org.semanticweb.owlapi.formats.*;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,11 +21,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFParserRegistry;
+import org.apache.jena.riot.RDFWriterRegistry;
+import org.semanticweb.owlapi.formats.*;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
+
 /**
  * The map between jena languages ({@link Lang}) and OWL-API formats ({@link OWLDocumentFormat}).
  * There are 22 ONT formats (22(19 actual, i.e. without intersection) OWL document formats + 15(11 actual) jena languages),
  * but only 12 of them can be used without any hesitation (see {@link #isSupported()}).
  * For working with the OWL-API interfaces the {@link #createOwlFormat()} method could be used.
+ * OWLFormats are located inside owlapi-api, owlapi-rio, owlapi-parsers, owlapi-storers and owlapi-obiformat dependencies.
+ * Note: during parsing by {@link OntFactoryImpl} jena has more priority than owl-api, in other cases the enum order are used.
  * <p>
  * Created by @szuev on 27.09.2016.
  */
@@ -49,13 +53,22 @@ public enum OntFormat {
     RDF_THRIFT("RDF-THRIFT", "trdf", Lang.RDFTHRIFT, null),
     CSV("CSV", "csv", Lang.CSV, null),
     TSV("TSV", "tsv", Lang.TSV, null),
-    // owl-api formats only (from owlapi-api, owlapi-rio, owlapi-obiformat, etc):
+    // owl-api formats only
     OWL_XML("OWL/XML", "owl", null, OWLXMLDocumentFormat.class),
     MANCHESTER_SYNTAX("ManchesterSyntax", "omn", null, ManchesterSyntaxDocumentFormat.class),
     FUNCTIONAL_SYNTAX("FunctionalSyntax", "fss", null, FunctionalSyntaxDocumentFormat.class),
     BINARY_RDF("BinaryRDF", "brf", null, BinaryRDFDocumentFormat.class),
     RDFA("RDFA", "xhtml", null, RDFaDocumentFormat.class),
-    OBO("OBO", "obo", null, OBODocumentFormat.class),
+    OBO("OBO", "obo", null, OBODocumentFormat.class) {
+        /**
+         * Disabled, since a lot of errors during using this format.
+         * @return {@code false}
+         */
+        @Override
+        public boolean isSupported() {
+            return false;
+        }
+    },
     KRSS("KRSS", "krss", null, KRSSDocumentFormat.class),
     KRSS2("KRSS2", "krss2", null, KRSS2DocumentFormat.class),
     DL("DL", "dl", null, DLSyntaxDocumentFormat.class),
@@ -152,14 +165,16 @@ public enum OntFormat {
 
     /**
      * Returns {@code true} if format is good for using by ONT-API(Jena) mechanisms.
-     * Note: even if it is not good, usually it is still possible to use it by the native OWL-API mechanisms (directly
+     * Note: this method has an advisory character:
+     * even if the format is not good, usually it is still possible to use it by the native OWL-API mechanisms (directly
      * or as last attempt to load or save)... but maybe to read only or to write only,
      * or maybe with expectancy of some 'controlled' uri-transformations after reloading,
-     * or by additional configuring manager with external storers/parsers (although it is not supported by ONT-API right now)
-     *
+     * or maybe by additional configuring manager with external storers/parsers (although it is not supported by ONT-API right now)
+     * <p>
      * - CSV ({@link Lang#CSV}) is not a valid Jena RDF serialization format (it is only for SPARQL results).
      * But it is possible to use it for reading csv files. Need to add jena-csv to dependencies.
      * For more details see <a href='http://jena.apache.org/documentation/csv/'>jena-csv</a>.
+     * BE WARNED: it is very tolerant format: almost any text file could be treated as csv.
      * - TSV ({@link Lang#TSV}) Used by Jena for result sets, not RDF syntax.
      * - {@link BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.eclipse.rdf4j.rio.binary.BinaryRDFWriterFactory}).
      * for the following formats there are no {@link org.semanticweb.owlapi.model.OWLStorerFactory}s in the current OWL-API 5.1.4 dependencies:
@@ -184,7 +199,7 @@ public enum OntFormat {
      * @see #isWriteSupported()
      */
     public boolean isSupported() {
-        return isWriteSupported() && isReadSupported() && !OBO.equals(this);
+        return isWriteSupported() && isReadSupported();
     }
 
     /**
@@ -192,7 +207,10 @@ public enum OntFormat {
      * @see #isSupported()
      */
     public boolean isReadSupported() {
-        return isNoneOf(TSV, LATEX, DL, DL_HTML, KRSS2);
+        if (isJena()) {
+            return jenaLangs().anyMatch(RDFParserRegistry::isRegistered);
+        }
+        return isNoneOf(LATEX, DL, DL_HTML, KRSS2);
     }
 
     /**
@@ -200,7 +218,10 @@ public enum OntFormat {
      * @see #isSupported()
      */
     public boolean isWriteSupported() {
-        return isNoneOf(CSV, TSV, RDFA, BINARY_RDF, KRSS);
+        if (isJena()) {
+            return jenaLangs().anyMatch(RDFWriterRegistry::contains);
+        }
+        return isNoneOf(RDFA, BINARY_RDF, KRSS);
     }
 
     public boolean isJena() {
@@ -249,11 +270,21 @@ public enum OntFormat {
         return Stream.of(values());
     }
 
+    /**
+     * @param owlFormat {@link OWLDocumentFormat} instance
+     * @return OntFormat or null
+     * @throws NullPointerException in case of wrong argument
+     */
     public static OntFormat get(OWLDocumentFormat owlFormat) {
         Class<? extends OWLDocumentFormat> type = OntApiException.notNull(owlFormat, "Null owl-document-format specified.").getClass();
         return SimpleDocumentFormat.class.equals(type) ? get(owlFormat.getKey()) : get(type);
     }
 
+    /**
+     * @param type {@link OWLDocumentFormat} class type
+     * @return OntFormat or null
+     * @throws NullPointerException in case of wrong argument
+     */
     public static OntFormat get(Class<? extends OWLDocumentFormat> type) {
         OntApiException.notNull(type, "Null owl-document-format class specified.");
         for (OntFormat r : values()) {
@@ -262,6 +293,11 @@ public enum OntFormat {
         return null;
     }
 
+    /**
+     * @param lang {@link Lang}
+     * @return OntFormat or null
+     * @throws NullPointerException in case of wrong argument
+     */
     public static OntFormat get(Lang lang) {
         OntApiException.notNull(lang, "Null jena-language specified.");
         for (OntFormat r : values()) {
@@ -270,6 +306,11 @@ public enum OntFormat {
         return null;
     }
 
+    /**
+     * @param id String, the id of format
+     * @return OntFormat or null
+     * @throws NullPointerException in case of wrong argument
+     */
     public static OntFormat get(String id) {
         OntApiException.notNull(id, "Null ont-format id specified.");
         for (OntFormat r : values()) {

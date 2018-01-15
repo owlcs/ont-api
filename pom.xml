@@ -148,6 +148,7 @@
             <groupId>org.topbraid</groupId>
             <artifactId>shacl</artifactId>
             <version>1.0.1</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
