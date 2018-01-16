@@ -60,14 +60,14 @@ import java.util.stream.Stream;
 
 
 /**
- * ONT-API Ontology Manager implementation ({@link OntologyManager}).
- * Currently it is mostly copy-paste of {@link OWLOntologyManagerImpl}.
+ * ONT-API Ontology Manager default implementation ({@link OntologyManager}).
+ * @see OWLOntologyManagerImpl
  * <p>
  * Created by @szuev on 03.10.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.OWLOntologyCreationHandler, Serializable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OWLOntologyManagerImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntologyManagerImpl.class);
     // listeners:
     protected final ListenersHolder listeners = new ListenersHolder();
     // configs:
@@ -1343,8 +1343,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         Optional<OntologyModel> existingOntology = content.get(setID.getNewOntologyID()).map(OntInfo::get);
         OWLOntology o = setID.getOntology();
         if (existingOntology.isPresent() && !o.equals(existingOntology.get()) && !o.equalAxioms(existingOntology.get())) {
-            LOGGER.error("OWLOntologyManagerImpl.checkForOntologyIDChange() existing:{}", existingOntology);
-            LOGGER.error("OWLOntologyManagerImpl.checkForOntologyIDChange() new:{}", o);
+            LOGGER.warn("OWLOntologyManagerImpl#checkForOntologyIDChange:: existing:{}, new:{}", existingOntology, o);
             throw new OWLOntologyRenameException(setID.getChangeData(), setID.getNewOntologyID());
         }
     }

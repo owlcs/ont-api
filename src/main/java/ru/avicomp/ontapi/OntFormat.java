@@ -14,18 +14,18 @@
 
 package ru.avicomp.ontapi;
 
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFParserRegistry;
+import org.apache.jena.riot.RDFWriterRegistry;
+import org.semanticweb.owlapi.formats.*;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
+
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFParserRegistry;
-import org.apache.jena.riot.RDFWriterRegistry;
-import org.semanticweb.owlapi.formats.*;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
 
 /**
  * The map between jena languages ({@link Lang}) and OWL-API formats ({@link OWLDocumentFormat}).
@@ -207,10 +207,7 @@ public enum OntFormat {
      * @see #isSupported()
      */
     public boolean isReadSupported() {
-        if (isJena()) {
-            return jenaLangs().anyMatch(RDFParserRegistry::isRegistered);
-        }
-        return isNoneOf(LATEX, DL, DL_HTML, KRSS2);
+        return isJena() && jenaLangs().anyMatch(RDFParserRegistry::isRegistered) || isNoneOf(LATEX, DL, DL_HTML, KRSS2);
     }
 
     /**
@@ -218,10 +215,7 @@ public enum OntFormat {
      * @see #isSupported()
      */
     public boolean isWriteSupported() {
-        if (isJena()) {
-            return jenaLangs().anyMatch(RDFWriterRegistry::contains);
-        }
-        return isNoneOf(RDFA, BINARY_RDF, KRSS);
+        return isJena() && jenaLangs().anyMatch(RDFWriterRegistry::contains) || isNoneOf(RDFA, BINARY_RDF, KRSS);
     }
 
     public boolean isJena() {
