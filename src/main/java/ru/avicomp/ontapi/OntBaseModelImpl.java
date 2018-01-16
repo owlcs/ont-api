@@ -14,6 +14,23 @@
 
 package ru.avicomp.ontapi;
 
+import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.riot.RDFDataMgr;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
+import org.semanticweb.owlapi.model.parameters.Imports;
+import org.semanticweb.owlapi.model.parameters.Navigation;
+import org.semanticweb.owlapi.model.parameters.OntologyCopy;
+import org.semanticweb.owlapi.search.Filters;
+import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
+import ru.avicomp.ontapi.internal.ConfigProvider;
+import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.InternalModelHolder;
+import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.model.OntID;
+import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -27,32 +44,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.riot.RDFDataMgr;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
-import org.semanticweb.owlapi.model.parameters.Imports;
-import org.semanticweb.owlapi.model.parameters.Navigation;
-import org.semanticweb.owlapi.model.parameters.OntologyCopy;
-import org.semanticweb.owlapi.search.Filters;
-import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
-
-import ru.avicomp.ontapi.internal.ConfigProvider;
-import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
-import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.model.OntID;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
-
 /**
- * 'Immutable' ontology with methods to read information in the form of OWL-Objects from graph-model.
+ * 'Immutable' ontology only with methods to read information in the form of OWL-Objects from graph-model.
  * It's our analogy of {@link uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl}
  * <p>
  * Created by @szuev on 03.12.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, ConfigProvider, InternalModelHolder {
+public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, ConfigProvider, InternalModelHolder {
     // binary format to provide serialization:
     protected static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
 

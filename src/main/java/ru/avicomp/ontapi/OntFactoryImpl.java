@@ -250,14 +250,13 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                     }
                     if (LOGGER.isDebugEnabled()) {
                         String cause = e.getCause() != null ? e.getCause().getMessage() : null;
-                        LOGGER.debug("Can't load using jena ({}|{}), use original method.", e.getMessage(), cause);
+                        LOGGER.debug("Can't load using jena ({}|{}): use OWL-API mechanisms.", e.getMessage(), cause);
                     }
-                    // if we are not success with primary graph there is no reason to continue loading through this loader.
+                    // if we are not success with primary graph there is not so much reasons to continue loading through jena.
                     try {
                         return alternative.load(source, manager, config);
                     } catch (OWLOntologyCreationException ex) {
-                        if (ex.getCause() == null)
-                            ex.initCause(e);
+                        ex.addSuppressed(e);
                         throw ex;
                     }
                 }
@@ -464,7 +463,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 try {
                     // we need only the base graph
                     OntologyManagerImpl m = new OntologyManagerImpl(manager.getOWLDataFactory(), new NoOpReadWriteLock());
-                    OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration()
+                    OntLoaderConfiguration conf = config
                             .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
                     return toGraphInfo(alternative.load(source, m, conf), true);
                 } catch (OWLOntologyCreationException ex) {
@@ -643,12 +642,10 @@ public class OntFactoryImpl implements OntologyManager.Factory {
          */
         protected static OntFormat read(Graph graph, OWLOntologyDocumentSource source, OntInputSupplier supplier) throws OWLOntologyCreationException {
             IRI iri = source.getDocumentIRI();
-            OWLOntologyCreationException cause = null;
+            final OWLOntologyCreationException cause = new UnsupportedFormatException(String.format("Can't read source %s (%s).", iri, source.getClass().getSimpleName()));
             for (OntFormat format : getSupportedFormats(source)) {
                 if (format.isOWLOnly()) {
-                    if (cause == null) {
-                        cause = new UnsupportedFormatException("Format " + format + " is not supported by jena.");
-                    }
+                    cause.addSuppressed(new UnsupportedFormatException("Format " + format + " is not supported by jena."));
                     continue;
                 }
                 Lang lang = format.getLang();
@@ -664,11 +661,9 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                     // could be org.apache.jena.shared.JenaException || org.apache.jena.atlas.AtlasException || org.apache.jena.atlas.json.JsonParseException || ...
                     if (LOGGER.isDebugEnabled())
                         LOGGER.debug("<{}> failed: '{}'", lang, e.getMessage());
-                    cause = new UnsupportedFormatException(String.format("Can't read %s from iri <%s>: %s", format, iri, e.getMessage()), e);
+                    cause.addSuppressed(new UnsupportedFormatException(String.format("Format: %s. IRI: <%s>. Cause: '%s'", format, iri, e.getMessage()), e));
                 }
             }
-            if (cause == null)
-                cause = new UnsupportedFormatException(String.format("Can't read from source %s[%s].", iri, source));
             throw cause;
         }
 

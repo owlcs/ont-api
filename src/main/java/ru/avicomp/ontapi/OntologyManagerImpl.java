@@ -1401,6 +1401,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         try {
             OntApiException.notNull(toCopy, "Null ontology.");
             OntApiException.notNull(settings, "Null settings.");
+            OWLOntologyManager m = toCopy.getOWLOntologyManager();
             OntologyModel res;
             switch (settings) {
                 case MOVE:
@@ -1408,6 +1409,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                         throw new OWLOntologyCreationException(String.format("Can't move %s: not an %s. Use %s or %s parameter.",
                                 toCopy.getOntologyID(), OntologyModel.class.getSimpleName(), OntologyCopy.DEEP, OntologyCopy.SHALLOW));
                     }
+                    // todo: what about ontologies with impors? what about moving between managers with different lock ?
                     res = (OntologyModel) toCopy;
                     ontologyCreated(res);
                     break;
@@ -1422,8 +1424,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 default:
                     throw new OWLRuntimeException("settings value not understood: " + settings);
             }
-            // toReturn now initialized
-            OWLOntologyManager m = toCopy.getOWLOntologyManager();
             if (settings == OntologyCopy.MOVE || settings == OntologyCopy.DEEP) {
                 setOntologyDocumentIRI(res, m.getOntologyDocumentIRI(toCopy));
                 OWLDocumentFormat ontologyFormat = m.getOntologyFormat(toCopy);
@@ -1591,9 +1591,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
                         .addDocumentIRI(source.getDocumentIRI()).get();
             } catch (OWLOntologyRenameException e) {
-                // We loaded an ontology from a document and the
-                // ontology turned out to have an IRI the same
-                // as a previously loaded ontology
+                // original comment: we loaded an ontology from a document and the ontology turned out to have an IRI the same as a previously loaded ontology
                 throw new OWLOntologyAlreadyExistsException(e.getOntologyID(), e);
             }
         }
