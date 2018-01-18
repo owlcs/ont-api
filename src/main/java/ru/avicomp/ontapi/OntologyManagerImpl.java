@@ -16,6 +16,7 @@ package ru.avicomp.ontapi;
 
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.output.WriterOutputStream;
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
@@ -61,6 +62,7 @@ import java.util.stream.Stream;
 
 /**
  * ONT-API Ontology Manager default implementation ({@link OntologyManager}).
+ *
  * @see OWLOntologyManagerImpl
  * <p>
  * Created by @szuev on 03.10.2016.
@@ -88,7 +90,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     // the collection of ontologies:
     protected final OntologyCollection content;
 
-    public OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock, PriorityCollectionSorting sorting) {
+    protected OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock, PriorityCollectionSorting sorting) {
         this.dataFactory = OntApiException.notNull(dataFactory, "Null OWLDataFactory specified.");
         this.lock = readWriteLock == null ? new NoOpReadWriteLock() : readWriteLock;
         documentMappers = new ConcurrentPriorityCollection<>(lock, sorting);
@@ -100,10 +102,17 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         content = new OntologyCollection(isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet());
     }
 
-    public OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
+    protected OntologyManagerImpl(OWLDataFactory dataFactory, OntologyManager.Factory loadFactory, ReadWriteLock readWriteLock) {
         this(dataFactory, readWriteLock, PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
-        OntologyManager.Factory core = new OntFactoryImpl();
-        getOntologyFactories().add(core);
+        this.ontologyFactories.add(loadFactory);
+    }
+
+    public OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
+        this(dataFactory, new OntFactoryImpl(), readWriteLock);
+    }
+
+    protected OntologyManager.Factory getLoadFactory() {
+        return (Factory) ontologyFactories.iterator().next();
     }
 
     public boolean isConcurrent() {
@@ -174,7 +183,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @see OWLOntologyManagerImpl#getOntologyLoaderConfiguration()
      */
     @Override
-    @Nonnull
     public OntLoaderConfiguration getOntologyLoaderConfiguration() {
         getLock().readLock().lock();
         try {
@@ -740,13 +748,22 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         if (defaultIRI == null) {
             return null;
         }
-        for (OWLOntologyIRIMapper mapper : documentMappers) {
-            IRI documentIRI = mapper.getDocumentIRI(defaultIRI);
-            if (documentIRI != null) {
-                return documentIRI;
-            }
-        }
-        return defaultIRI;
+        return mapIRI(defaultIRI).orElse(defaultIRI);
+    }
+
+    /**
+     * Finds a document iri by the specified iri from mappers
+     *
+     * @param iri {@link IRI}
+     * @return Optional around document iri
+     * @see #getIRIMappers()
+     * @see OWLOntologyIRIMapper
+     */
+    protected Optional<IRI> mapIRI(IRI iri) {
+        return Iter.asStream(getIRIMappers().iterator())
+                .map(m -> m.getDocumentIRI(iri))
+                .filter(Objects::nonNull)
+                .findFirst();
     }
 
     /**
@@ -835,10 +852,14 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public boolean contains(@Nonnull OWLOntology ontology) {
         getLock().readLock().lock();
         try {
-            return content.values().map(OntInfo::get).anyMatch(o -> Objects.equals(o, ontology));
+            return has(ontology);
         } finally {
             getLock().readLock().unlock();
         }
+    }
+
+    protected boolean has(OWLOntology ontology) {
+        return content.values().map(OntInfo::get).anyMatch(o -> Objects.equals(o, ontology));
     }
 
     /**
@@ -900,6 +921,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * Original method's comment:
+     * No such ontology has been loaded through an import declaration, but it might have been loaded manually.
+     * Using the IRI to retrieve it will either find the ontology or return null.
+     * Last possibility is an import by document IRI; if the ontology is not found by IRI, check by document IRI.
+     *
      * @param declaration {@link OWLImportsDeclaration}
      * @return {@link OntologyModel}
      * @see OWLOntologyManagerImpl#getImportedOntology(OWLImportsDeclaration)
@@ -908,20 +934,24 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration) {
         getLock().readLock().lock();
         try {
-            Optional<OntInfo> res = content.values().filter(e -> Objects.equals(e.getImportDeclaration(), declaration)).findFirst();
-            if (!res.isPresent()) {
-                // No such ontology has been loaded through an import
-                // declaration, but it might have been loaded manually.
-                // Using the IRI to retrieve it will either find the ontology or
-                // return null.
-                // Last possibility is an import by document IRI; if the
-                // ontology is not found by IRI, check by document IRI.
-                res = content.values().filter(e -> Objects.equals(e.getDocumentIRI(), declaration.getIRI())).findFirst();
-            }
-            return res.map(OntInfo::get).orElse(null);
+            return importedOntology(declaration).orElse(null);
         } finally {
             getLock().readLock().unlock();
         }
+    }
+
+    /**
+     * Finds an ontology by import declaration.
+     *
+     * @param declaration {@link OWLImportsDeclaration}
+     * @return Optional around {@link OntologyModel}
+     */
+    protected Optional<OntologyModel> importedOntology(OWLImportsDeclaration declaration) {
+        Optional<OntInfo> res = content.values().filter(e -> Objects.equals(e.getImportDeclaration(), declaration)).findFirst();
+        if (!res.isPresent()) {
+            res = content.values().filter(e -> Objects.equals(e.getDocumentIRI(), declaration.getIRI())).findFirst();
+        }
+        return res.map(OntInfo::get);
     }
 
     /**
@@ -935,35 +965,53 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected OntologyModel getOntologyByDocumentIRI(IRI iri) {
         getLock().readLock().lock();
         try {
-            return content.values().filter(o -> Objects.equals(iri, o.getDocumentIRI()))
-                    .map(OntInfo::get).findFirst().orElse(null);
+            return ontologyByDocumentIRI(iri).orElse(null);
         } finally {
             getLock().readLock().unlock();
         }
     }
 
     /**
+     * Finds an ontology by specified document iri
+     *
+     * @param iri {@link IRI}
+     * @return Optional around {@link OntologyModel}
+     * @see #documentIRIByOntology(OWLOntology)
+     */
+    protected Optional<OntologyModel> ontologyByDocumentIRI(IRI iri) {
+        return content.values().filter(o -> Objects.equals(iri, o.getDocumentIRI())).map(OntInfo::get).findFirst();
+    }
+
+    /**
      * Gets document IRI.
+     *
      * @param ontology {@link OWLOntology}, not null
      * @return {@link IRI}, not null
-     * @throws UnknownOWLOntologyException ex
+     * @throws UnknownOWLOntologyException id ontology not found
+     * @throws OntApiException             if document not found
      * @see OWLOntologyManagerImpl#getOntologyDocumentIRI(OWLOntology)
      */
     @Nonnull
     @Override
     public IRI getOntologyDocumentIRI(@Nonnull OWLOntology ontology) {
-        return ontologyDocumentIRI(ontology).orElseThrow(() -> new OntApiException("Null document iri"));
-    }
-
-    protected Optional<IRI> ontologyDocumentIRI(OWLOntology ontology) {
         getLock().readLock().lock();
         try {
-            OWLOntologyID id = ontology.getOntologyID();
-            OntInfo res = content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id));
-            return Optional.ofNullable(res.getDocumentIRI());
+            if (!has(ontology)) throw new UnknownOWLOntologyException(ontology.getOntologyID());
+            return documentIRIByOntology(ontology).orElseThrow(() -> new OntApiException("Null document iri"));
         } finally {
             getLock().readLock().unlock();
         }
+    }
+
+    /**
+     * Finds a document iri by specified ontology
+     *
+     * @param ontology {@link OWLOntology}, not null
+     * @return Optional around document iri
+     * @see #ontologyByDocumentIRI(IRI)
+     */
+    protected Optional<IRI> documentIRIByOntology(OWLOntology ontology) {
+        return content.get(ontology.getOntologyID()).flatMap(i -> Optional.ofNullable(i.getDocumentIRI()));
     }
 
     /**
@@ -1521,7 +1569,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         if (documentIRI != null) {
             // The ontology might be being loaded, but its IRI might
             // not have been set (as is probably the case with RDF/XML!)
-            Optional<OntologyModel> op = content.values().filter(o -> Objects.equals(o.getDocumentIRI(), documentIRI)).map(OntInfo::get).findFirst();
+            Optional<OntologyModel> op = ontologyByDocumentIRI(documentIRI);
             if (op.isPresent() && !allowExists) {
                 throw new OWLOntologyDocumentAlreadyExistsException(documentIRI);
             }
