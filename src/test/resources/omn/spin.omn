@@ -1,0 +1,1372 @@
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+
+
+
+Ontology: <http://spinrdf.org/spin>
+
+Import: <http://spinrdf.org/sp>
+
+Annotations: 
+    rdfs:label "SPIN Modeling Vocabulary",
+    owl:versionInfo "1.3.3",
+    rdfs:comment "An RDF Schema that can be used to attach constraints and rules to RDFS classes, and to encapsulate reusable SPARQL queries into functions and templates."
+
+AnnotationProperty: <http://spinrdf.org/sp#varName>
+
+    
+AnnotationProperty: <http://spinrdf.org/spin#MagicProperties>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "An abstract superclass that can be used to group all spin:MagicProperty instances under a single parent class.",
+        rdfs:label "Magic properties"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#abstract>
+
+    Annotations: 
+        rdfs:comment "Can be set to true to indicate that this module shall not be instantiated. Abstract modules are only there to organize other modules into hierarchies.",
+        rdfs:label "abstract"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#Module>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#body>
+
+    Annotations: 
+        rdfs:comment "The body of a Function or Template. This points to a Query instance. For Functions, this is limited to either ASK or SELECT type queries. If the body is the ASK function then the return value is xsd:boolean. Otherwise, the SELECT query must have a single return variable. The first binding of this SELECT query will be returned as result of the function call.",
+        rdfs:label "body"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Range: 
+        <http://spinrdf.org/sp#Command>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#cachable>
+
+    Annotations: 
+        rdfs:comment "Can be set to true to instruct the SPIN engine that it may cache the results of all calls to the associated function. Functions should only be marked as cachable if the same combination of input arguments always returns the same result. Functions that query a graph or other background data that may change over time should not be cached. Caching can significantly improve performance of frequently needed functions.",
+        rdfs:label "cachable"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#Function>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#column>
+
+    Annotations: 
+        rdfs:comment "Can link a TableDataProvider (esp. SelectTemplate) with one or more columns that provide metadata for rendering purposes. Columns can be sorted by their spin:columnIndex (which must align with the ordering of variables in the SELECT query starting with 0). Not all result variables of the underlying query need to have a matching spin:Column.",
+        rdfs:label "column"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#TableDataProvider>
+    
+    Range: 
+        <http://spinrdf.org/spin#Column>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#columnIndex>
+
+    Annotations: 
+        rdfs:comment "The index of a column (from left to right) starting at 0.",
+        rdfs:label "column index"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#Column>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#integer>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#columnType>
+
+    Annotations: 
+        rdfs:comment "The datatype or resource type of a spin:Column. For example this is useful as metadata to inform a rendering engine that numeric columns (e.g. xsd:float) need to be right-aligned.",
+        rdfs:label "column type"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#Column>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Class>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#columnWidth>
+
+    Annotations: 
+        rdfs:comment "The preferred width of the associated Column, for display purposes. Values in pixels (rendering engines may multiply the values depending on resolution).",
+        rdfs:label "column width"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#Column>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#integer>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#command>
+
+    Annotations: 
+        rdfs:comment "Can be used to link a resource with a SPARQL query or update request (sp:Command).",
+        rdfs:label "command"
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#constraint>
+
+    Annotations: 
+        rdfs:comment "Links a class with constraints on its instances. The values of this property are \"axioms\" expressed as CONSTRUCT or ASK queries where the variable ?this refers to the instances of the surrounding class. ASK queries must evaluate to false for each member of this class - returning true means that the instance ?this violates the constraint. CONSTRUCT queries must create instances of spin:ConstraintViolation to provide details on the reason for the violation.",
+        rdfs:label "constraint"
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#constructor>
+
+    Annotations: 
+        rdfs:comment "Can be used to attach a \"constructor\" to a class. A constructor is a SPARQL CONSTRUCT query or INSERT/DELETE Update operation that can add initial values to the current instance. At execution time, the variable ?this is bound to the current instance. Tools can call constructors of a class and its superclasses when an instance of a class has been created. Constructors will also be used to initialize resources that have received a new rdf:type triple as a result of spin:rules firing.",
+        rdfs:label "constructor"
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#fix>
+
+    Annotations: 
+        rdfs:comment "Can be used to link a ConstraintViolation with one or more UPDATE Templates that would help fix the violation.",
+        rdfs:label "fix"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#ConstraintViolation>
+    
+    Range: 
+        <http://spinrdf.org/spin#UpdateTemplate>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#imports>
+
+    Annotations: 
+        rdfs:comment "Can be used to link an RDF graph (usually the instance of owl:Ontology) with a SPIN library to define constraints. SPIN-aware tools should include the definitions from those libraries for constraint checking. Using such libraries is a simpler alternative than explicitly importing them using owl:imports, because it does not force all the SPIN triples into the RDF model.",
+        rdfs:label "imports"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://www.w3.org/2002/07/owl#Ontology>
+    
+    Range: 
+        <http://www.w3.org/2002/07/owl#Ontology>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#labelTemplate>
+
+    Annotations: 
+        rdfs:comment "A template string for displaying instantiations of a module in human-readable form. The template may contain the argument variable names in curly braces to support substitution. For example, \"The number of values of the {?arg1} property.\"",
+        rdfs:label "label template"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#Template>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#string>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#nextRuleProperty>
+
+    Annotations: 
+        rdfs:comment "Can be used to link two sub-properties of spin:rule (or spin:rule itself) to instruct the SPIN engine to execute one set of rules before another one. The values of the subject property will be executed before those of the object property.",
+        rdfs:label "next rule property"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#RuleProperty>
+    
+    Range: 
+        <http://spinrdf.org/spin#RuleProperty>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#private>
+
+    Annotations: 
+        rdfs:comment "Can be set to true to indicate that a SPIN function or template is only meant to be used as a helper of other modules, but not directly. Among others, this allows user interfaces to filter out private modules. Furthermore, it tells potential users of this module that they should avoid using this module, as it may not be stable.",
+        rdfs:label "private"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#Module>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#query>
+
+    Annotations: 
+        rdfs:comment "Can be used to point from any resource to a Query.",
+        rdfs:label "query"
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#returnType>
+
+    Annotations: 
+        rdfs:comment "The return type of a Function, e.g. xsd:string.",
+        rdfs:label "return type"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#Function>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Class>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#rule>
+
+    Annotations: 
+        rdfs:comment "An inferencing rule attached to a class. Rules are expressed as CONSTRUCT queries or INSERT/DELETE operations where the variable ?this will be bound to the current instance of the class. These inferences can be used to derive new values from existing values at the instance.",
+        rdfs:label "rule"
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#rulePropertyMaxIterationCount>
+
+    Annotations: 
+        rdfs:comment "Can be attached to spin:rule (or subclasses thereof) to instruct a SPIN rules engine that it shall only execute the rules max times. If no value is specified, then the rules will be executed with no specific limit.",
+        rdfs:label "rule property max iteration count"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#RuleProperty>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#integer>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#symbol>
+
+    Annotations: 
+        rdfs:comment "The symbol of a function, e.g. \"=\" for the eq function.",
+        rdfs:label "symbol"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#Function>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#string>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#systemProperty>
+
+    Annotations: 
+        rdfs:comment "An \"abstract\" base property that groups together those system properties that the user will hardly ever need to see in property trees. This property may be dropped in future versions of this ontology - right now it's mainly here for convenience.",
+        rdfs:label "system property"
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#thisUnbound>
+
+    Annotations: 
+        rdfs:comment "Can be set to true for SPIN rules and constraints that do not require pre-binding the variable ?this with all members of the associated class. This flag should only be set to true if the WHERE clause is sufficiently strong to only bind instances of the associated class, or its subclasses. In those cases, the engine can greatly improve performance of query execution, because it does not need to add clauses to narrow down the WHERE clause.",
+        rdfs:label "this unbound"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Construct>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#update>
+
+    Annotations: 
+        rdfs:comment "Can be used to point from any resource to an Update.",
+        rdfs:label "update"
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#violationDetail>
+
+    Annotations: 
+        rdfs:comment "Links a (parent) spin:ConstraintViolation with one or more (child) spin:ConstraintViolations that provide details on the parent violation. This is commonly used in conjunction with spin:constructViolations to indicate that certain violations have triggered the parent violation.",
+        rdfs:label "violation detail"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#ConstraintViolation>
+    
+    Range: 
+        <http://spinrdf.org/spin#ConstraintViolation>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#violationLevel>
+
+    Annotations: 
+        rdfs:comment "An optional attribute of ConstraintViolations to point at a violation level (such as Error and Warning). Defaults to spin:Error.",
+        rdfs:label "violation level"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#ConstraintViolation>
+    
+    Range: 
+        <http://spinrdf.org/spin#ConstraintViolationLevel>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#violationPath>
+
+    Annotations: 
+        rdfs:comment "An optional attribute of ConstraintViolations to provide a path expression from the root resource to the value that is invalid. If this is a URI then the path represents the predicate of a subject/predicate combination. Otherwise it should be a blank node of type sp:Path.",
+        rdfs:label "violation path"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#ConstraintViolation>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#violationRoot>
+
+    Annotations: 
+        rdfs:comment "The root resource of the violation (often ?this in the constraint body).",
+        rdfs:label "violation root"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#ConstraintViolation>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#violationSource>
+
+    Annotations: 
+        rdfs:comment "Can be used to link a spin:ConstraintViolation with the query or template call that caused it. This property is typically filled in automatically by the constraint checking engine and does not need to be set manually. However, it can be useful to learn more about the origin of a violation.",
+        rdfs:label "violation source"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#ConstraintViolation>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spin#violationValue>
+
+    Annotations: 
+        rdfs:comment "An optional attribute of ConstraintViolations to point at a specific RDF node that caused the violation. Should be accessible from the root via the violationPath.",
+        rdfs:label "violation value"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/spin#ConstraintViolation>
+    
+    
+AnnotationProperty: <http://spinrdf.org/spl#valueType>
+
+    
+AnnotationProperty: owl:versionInfo
+
+    
+AnnotationProperty: rdfs:comment
+
+    
+AnnotationProperty: rdfs:label
+
+    
+Datatype: xsd:boolean
+
+    
+Datatype: xsd:integer
+
+    
+Datatype: xsd:string
+
+    
+ObjectProperty: <http://spinrdf.org/spin#command>
+
+    Annotations: 
+        rdfs:comment "Can be used to link a resource with a SPARQL query or update request (sp:Command).",
+        rdfs:label "command"
+    
+    Range: 
+        <http://spinrdf.org/sp#Command>
+    
+    
+ObjectProperty: <http://spinrdf.org/spin#constraint>
+
+    Annotations: 
+        rdfs:comment "Links a class with constraints on its instances. The values of this property are \"axioms\" expressed as CONSTRUCT or ASK queries where the variable ?this refers to the instances of the surrounding class. ASK queries must evaluate to false for each member of this class - returning true means that the instance ?this violates the constraint. CONSTRUCT queries must create instances of spin:ConstraintViolation to provide details on the reason for the violation.",
+        rdfs:label "constraint"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#query>
+    
+    Domain: 
+        rdfs:Class
+    
+    
+ObjectProperty: <http://spinrdf.org/spin#constructor>
+
+    Annotations: 
+        rdfs:comment "Can be used to attach a \"constructor\" to a class. A constructor is a SPARQL CONSTRUCT query or INSERT/DELETE Update operation that can add initial values to the current instance. At execution time, the variable ?this is bound to the current instance. Tools can call constructors of a class and its superclasses when an instance of a class has been created. Constructors will also be used to initialize resources that have received a new rdf:type triple as a result of spin:rules firing.",
+        rdfs:label "constructor"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#command>
+    
+    Domain: 
+        rdfs:Class
+    
+    Range: 
+        <http://spinrdf.org/spin#Rule>
+    
+    
+ObjectProperty: <http://spinrdf.org/spin#query>
+
+    Annotations: 
+        rdfs:comment "Can be used to point from any resource to a Query.",
+        rdfs:label "query"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#command>
+    
+    Range: 
+        <http://spinrdf.org/sp#Query>
+    
+    
+ObjectProperty: <http://spinrdf.org/spin#rule>
+
+    Annotations: 
+        rdfs:comment "An inferencing rule attached to a class. Rules are expressed as CONSTRUCT queries or INSERT/DELETE operations where the variable ?this will be bound to the current instance of the class. These inferences can be used to derive new values from existing values at the instance.",
+        rdfs:label "rule"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#command>
+    
+    Domain: 
+        rdfs:Class
+    
+    Range: 
+        <http://spinrdf.org/spin#Rule>
+    
+    
+ObjectProperty: <http://spinrdf.org/spin#update>
+
+    Annotations: 
+        rdfs:comment "Can be used to point from any resource to an Update.",
+        rdfs:label "update"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/spin#command>
+    
+    Range: 
+        <http://spinrdf.org/sp#Update>
+    
+    
+ObjectProperty: <http://spinrdf.org/spl#predicate>
+
+    
+ObjectProperty: <http://spinrdf.org/spl#valueType>
+
+    
+DataProperty: <http://spinrdf.org/spl#maxCount>
+
+    
+DataProperty: <http://spinrdf.org/spl#minCount>
+
+    
+Class: <http://spinrdf.org/sp#Command>
+
+    
+Class: <http://spinrdf.org/sp#Construct>
+
+    SubClassOf: 
+        <http://spinrdf.org/spin#Rule>
+    
+    
+Class: <http://spinrdf.org/sp#DeleteWhere>
+
+    SubClassOf: 
+        <http://spinrdf.org/spin#Rule>
+    
+    
+Class: <http://spinrdf.org/sp#Modify>
+
+    SubClassOf: 
+        <http://spinrdf.org/spin#Rule>
+    
+    
+Class: <http://spinrdf.org/sp#Query>
+
+    
+Class: <http://spinrdf.org/sp#Update>
+
+    
+Class: <http://spinrdf.org/sp#Variable>
+
+    
+Class: <http://spinrdf.org/spin#AskTemplate>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:e66c01bd80f708846dd8291909208ff1,
+        rdfs:comment "A SPIN template that wraps an ASK query.",
+        rdfs:label "Ask template"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Template>
+    
+    
+Class: <http://spinrdf.org/spin#AskTemplates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all AskTemplates.",
+        rdfs:label "Ask templates"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Templates>
+    
+    
+Class: <http://spinrdf.org/spin#Column>
+
+    Annotations: 
+        rdfs:comment "Provides metadata about a column in the result set of a (SPARQL) query, for example of the body queries of SPIN templates. Columns can define human-readable labels that serve as column titles, using rdfs:label.",
+        rdfs:label "Column"
+    
+    SubClassOf: 
+        rdfs:Resource
+    
+    
+Class: <http://spinrdf.org/spin#ConstraintViolation>
+
+    Annotations: 
+        rdfs:comment "An object that can be created by spin:constraints to provide information about a constraint violation.",
+        rdfs:label "Constraint violation"
+    
+    SubClassOf: 
+        rdfs:Resource
+    
+    
+Class: <http://spinrdf.org/spin#ConstraintViolationLevel>
+
+    Annotations: 
+        rdfs:comment "The type of the supported levels of constraint violations, including spin:Error and spin:Warning.",
+        rdfs:label "Constraint violation level"
+    
+    SubClassOf: 
+        rdfs:Resource
+    
+    
+Class: <http://spinrdf.org/spin#ConstructTemplate>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:b4efafcae4007584610e8cf24dbbb109,
+        rdfs:label "Construct template"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Template>
+    
+    
+Class: <http://spinrdf.org/spin#ConstructTemplates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all ConstructTemplates.",
+        rdfs:label "Construct templates"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Templates>
+    
+    
+Class: <http://spinrdf.org/spin#Function>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:1107bd23b0397530a07462b6a12f9e93,
+        rdfs:comment "Metaclass for functions that can be used in SPARQL expressions (e.g. FILTER or BIND). The function themselves are classes that are instances of this metaclass. Function calls are instances of the function classes, with property values for the arguments.",
+        rdfs:label "Function"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Module>
+    
+    
+Class: <http://spinrdf.org/spin#Functions>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "An abstract base class for all defined functions. This class mainly serves as a shared root so that the various instances of the Function metaclass are grouped together.",
+        rdfs:label "Functions"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Modules>
+    
+    
+Class: <http://spinrdf.org/spin#LibraryOntology>
+
+    Annotations: 
+        rdfs:comment "A marker class that can be attached to base URIs (ontologies) to instruct SPIN engines that this ontology only contains a library of SPIN declarations. Library Ontologies should be ignored by SPIN inference engines even if they have been imported by a domain model. For example, a SPIN version of OWL RL may contain all the OWL RL axioms, attached to owl:Thing, but nothing else. However, when executed, these axioms should not be executed over themselves, because we don't want the system to reason about the SPIN triples to speed up things.",
+        rdfs:label "Library ontology"
+    
+    SubClassOf: 
+        owl:Ontology
+    
+    
+Class: <http://spinrdf.org/spin#MagicProperties>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "An abstract superclass that can be used to group all spin:MagicProperty instances under a single parent class.",
+        rdfs:label "Magic properties"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Functions>
+    
+    
+Class: <http://spinrdf.org/spin#MagicProperty>
+
+    Annotations: 
+        rdfs:label "Magic property"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Function>,
+        rdf:Property
+    
+    
+Class: <http://spinrdf.org/spin#Module>
+
+    Annotations: 
+        rdfs:comment "An abstract building block of a SPARQL system. A Module can take Arguments as input and applies them on an input RDF Graph. The Arguments should be declared as spin:constraints.",
+        rdfs:label "Module"
+    
+    SubClassOf: 
+        rdfs:Class
+    
+    
+Class: <http://spinrdf.org/spin#Modules>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constructor> _:61a81628c413c335eaab65bd7bf69a32,
+        rdfs:comment "An \"artificial\" parent class for all Functions and Templates.",
+        rdfs:label "Modules"
+    
+    SubClassOf: 
+        rdfs:Resource
+    
+    
+Class: <http://spinrdf.org/spin#Rule>
+
+    Annotations: 
+        rdfs:comment "Groups together the kinds of SPARQL commands that can appear as SPIN rules and constructors: CONSTRUCT, DELETE WHERE and DELETE/INSERT. This class is never to be instantiated directly.",
+        rdfs:label "Rule"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Command>
+    
+    
+Class: <http://spinrdf.org/spin#RuleProperty>
+
+    Annotations: 
+        rdfs:comment "The metaclass of spin:rule and its subproperties. spin:RuleProperties can have additional metadata attached to them.",
+        rdfs:label "Rule property"
+    
+    SubClassOf: 
+        rdf:Property
+    
+    
+Class: <http://spinrdf.org/spin#SelectTemplate>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:4151515868b8df066bbe6224e54e0918,
+        rdfs:comment "A SPIN template that wraps a SELECT query.",
+        rdfs:label "Select template"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#TableDataProvider>,
+        <http://spinrdf.org/spin#Template>
+    
+    
+Class: <http://spinrdf.org/spin#SelectTemplates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all SelectTemplates.",
+        rdfs:label "Select templates"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Templates>
+    
+    
+Class: <http://spinrdf.org/spin#TableDataProvider>
+
+    Annotations: 
+        rdfs:comment "An abstraction of objects that can produce tabular data. This serves as a base class of spin:SelectTemplate, because SELECT queries can produce tables with columns for each result variable. However, other types of TableDataProviders are conceivable by other frameworks, and this class may prove as a useful shared foundation.
+
+TableDataProviders can link to definitions of columns via spin:column, and these definitions can inform rendering engines.",
+        rdfs:label "Table data provider"
+    
+    SubClassOf: 
+        rdfs:Class
+    
+    
+Class: <http://spinrdf.org/spin#Template>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:ad37fc3ae1ffe57b852268ba4854492d,
+        rdfs:comment "The metaclass of SPIN templates. Templates are classes that are instances of this class. A template represents a reusable SPARQL query or update request that can be parameterized with arguments. Templates can be instantiated in places where normally a SPARQL query or update request is used, in particular as spin:rules and spin:constraints.",
+        rdfs:label "Template"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Module>
+    
+    
+Class: <http://spinrdf.org/spin#Templates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all Templates.",
+        rdfs:label "Templates"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Modules>
+    
+    
+Class: <http://spinrdf.org/spin#UpdateTemplate>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:e38dc04c6444f2e08b22a2cd9e7a2718,
+        rdfs:comment "A SPIN template that has an UPDATE command as its body.",
+        rdfs:label "Update template"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Template>
+    
+    
+Class: <http://spinrdf.org/spin#UpdateTemplates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all UpdateTemplates.",
+        rdfs:label "Update templates"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Templates>
+    
+    
+Class: <http://spinrdf.org/spin#ask>
+
+    Annotations: 
+        rdfs:comment "Executes a given ASK query and returns its boolean result. The first argument must point to an sp:Ask or a SPIN template call that has an ASK query as its body. All subsequent argument can come in pairs, with the first one being a variable name and the second its binding.
+
+Example:
+
+    BIND (spin:ask(?query, \"this\", owl:Thing) AS ?result) .
+
+will execute the sp:Ask behind ?query with the variable ?this pre-bound to owl:Thing.",
+        rdfs:label "ask"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Functions>
+    
+    
+Class: <http://spinrdf.org/spin#construct>
+
+    Annotations: 
+        rdfs:comment "Evaluates a given sp:Construct or SPIN template call (first argument on the left hand side) and binds the resulting triples to the variables on the right hand side.
+
+Example:
+
+    (?query \"this\" owl:Thing) spin:construct (?s ?p ?o)
+
+will execute the sp:Construct ?query using the binding of owl:Thing to ?this. The resulting triples will be bound to ?s, ?p and ?o. If any of ?s ?p ?o are bound, it will only return the matching triples.",
+        rdfs:label "construct"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#MagicProperties>
+    
+    
+Class: <http://spinrdf.org/spin#constructViolations>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:17f9ccac44d389bd45b70418dff79f99,
+        <http://spinrdf.org/spin#constraint> _:e4af74e21b0c46aa6dbd0aa84767ce49,
+        rdfs:comment "Takes an instance (?arg1) and a class definition (?arg2) and returns all constraint violations for that instance as triples. This magic property basically runs its own constraint checker for defining meta-constraints, and can also be used to classify instances.
+
+Example:
+
+    CONSTRUCT {
+        ?s ?p ?o .
+    }
+    WHERE {
+        (my:Person my:OldPerson) spin:constructViolations (?s ?p ?o) .
+    }",
+        rdfs:label "construct violations"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#MagicProperties>
+    
+    
+Class: <http://spinrdf.org/spin#eval>
+
+    Annotations: 
+        rdfs:comment "Evaluates a given SPIN expression or SELECT or ASK query, and returns its result. The first argument must be the expression in SPIN RDF syntax. All other arguments must come in pairs: first a property name, and then a value. These name/value pairs will be pre-bound variables for the execution of the expression.",
+        rdfs:label "eval"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Functions>
+    
+    
+Class: <http://spinrdf.org/spin#select>
+
+    Annotations: 
+        rdfs:comment "Executes a given SELECT or ASK query (or a corresponding SPIN template call) and binds its result rows to the variables specified on the right hand side. May also pre-bind variables for the query execution, using name-value pairs on the left hand side.
+
+Example:
+
+    (?query \"this\" owl:Thing) spin:select (?a ?b)
+
+will execute the sp:Select or sp:Ask that ?query points to and pre-bind ?this with the value of owl:Thing for the execution of the query. The first result variable of the query's result set will be bound to ?a, the second to ?b etc. If the nodes on the right are bound (or constants) then it will match with the values from the result set.
+
+Note that the first argument on the left hand side can be an instance of a SPIN template (but not the template itself). If you need to execute a template, retrieve its spin:body first.",
+        rdfs:label "select"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#MagicProperties>
+    
+    
+Class: <http://spinrdf.org/spin#violatesConstraints>
+
+    Annotations: 
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given instance (?arg1) violates any of the constraints defined for a given class (?arg2).",
+        rdfs:label "violates constraints"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#Functions>
+    
+    
+Class: <http://spinrdf.org/spl#Argument>
+
+    Individuals: 
+        _:17f9ccac44d389bd45b70418dff79f99,
+        _:e4af74e21b0c46aa6dbd0aa84767ce49
+    
+    
+Class: <http://spinrdf.org/spl#Attribute>
+
+    Individuals: 
+        _:1107bd23b0397530a07462b6a12f9e93,
+        _:4151515868b8df066bbe6224e54e0918,
+        _:ad37fc3ae1ffe57b852268ba4854492d,
+        _:b4efafcae4007584610e8cf24dbbb109,
+        _:e38dc04c6444f2e08b22a2cd9e7a2718,
+        _:e66c01bd80f708846dd8291909208ff1
+    
+    
+Class: <http://spinrdf.org/spl#ConstructDefaultValues>
+
+    Individuals: 
+        _:61a81628c413c335eaab65bd7bf69a32
+    
+    
+Class: owl:Ontology
+
+    
+Class: rdf:Property
+
+    
+Class: rdfs:Class
+
+    
+Class: rdfs:Resource
+
+    
+Individual: <http://spinrdf.org/sp#Ask>
+
+    
+Individual: <http://spinrdf.org/sp#Construct>
+
+    
+Individual: <http://spinrdf.org/sp#Select>
+
+    
+Individual: <http://spinrdf.org/sp#Update>
+
+    
+Individual: <http://spinrdf.org/sp#arg1>
+
+    
+Individual: <http://spinrdf.org/sp#arg2>
+
+    
+Individual: <http://spinrdf.org/spin#AskTemplates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all AskTemplates.",
+        rdfs:label "Ask templates"
+    
+    Types: 
+        <http://spinrdf.org/spin#AskTemplate>
+    
+    
+Individual: <http://spinrdf.org/spin#ConstructTemplates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all ConstructTemplates.",
+        rdfs:label "Construct templates"
+    
+    Types: 
+        <http://spinrdf.org/spin#ConstructTemplate>
+    
+    
+Individual: <http://spinrdf.org/spin#Error>
+
+    Annotations: 
+        rdfs:comment "Indicates that the associated constraint violation is an error that should be fixed.",
+        rdfs:label "Error"
+    
+    Types: 
+        <http://spinrdf.org/spin#ConstraintViolationLevel>
+    
+    
+Individual: <http://spinrdf.org/spin#Fatal>
+
+    Annotations: 
+        rdfs:comment "Indicates that the associated constraint violation is a severe error that must be fixed. Constraint checking engines may decide to stop further evaluation once a fatal error has been detected.",
+        rdfs:label "Fatal"
+    
+    Types: 
+        <http://spinrdf.org/spin#ConstraintViolationLevel>
+    
+    
+Individual: <http://spinrdf.org/spin#Functions>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "An abstract base class for all defined functions. This class mainly serves as a shared root so that the various instances of the Function metaclass are grouped together.",
+        rdfs:label "Functions"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    
+Individual: <http://spinrdf.org/spin#Info>
+
+    Annotations: 
+        rdfs:comment "Indicates that the associated constraint violation is a not a problem. This level can be used for diagnostic and debugging purposes.",
+        rdfs:label "Info"
+    
+    Types: 
+        <http://spinrdf.org/spin#ConstraintViolationLevel>
+    
+    
+Individual: <http://spinrdf.org/spin#MagicProperties>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "An abstract superclass that can be used to group all spin:MagicProperty instances under a single parent class.",
+        rdfs:label "Magic properties"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    
+Individual: <http://spinrdf.org/spin#SelectTemplates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all SelectTemplates.",
+        rdfs:label "Select templates"
+    
+    Types: 
+        <http://spinrdf.org/spin#SelectTemplate>
+    
+    
+Individual: <http://spinrdf.org/spin#Templates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all Templates.",
+        rdfs:label "Templates"
+    
+    Types: 
+        <http://spinrdf.org/spin#Template>
+    
+    
+Individual: <http://spinrdf.org/spin#UpdateTemplates>
+
+    Annotations: 
+        <http://spinrdf.org/spin#abstract> true,
+        rdfs:comment "Suggested abstract base class for all UpdateTemplates.",
+        rdfs:label "Update templates"
+    
+    Types: 
+        <http://spinrdf.org/spin#UpdateTemplate>
+    
+    
+Individual: <http://spinrdf.org/spin#Warning>
+
+    Annotations: 
+        rdfs:comment "Indicates that the associated constraint violation is a problem that may not have to be fixed but may lead to issues in the future.",
+        rdfs:label "Warning"
+    
+    Types: 
+        <http://spinrdf.org/spin#ConstraintViolationLevel>
+    
+    
+Individual: <http://spinrdf.org/spin#_arg1>
+
+    Annotations: 
+        <http://spinrdf.org/sp#varName> "arg1"
+    
+    Types: 
+        <http://spinrdf.org/sp#Variable>
+    
+    
+Individual: <http://spinrdf.org/spin#_arg2>
+
+    Annotations: 
+        <http://spinrdf.org/sp#varName> "arg2"
+    
+    Types: 
+        <http://spinrdf.org/sp#Variable>
+    
+    
+Individual: <http://spinrdf.org/spin#_arg3>
+
+    Annotations: 
+        <http://spinrdf.org/sp#varName> "arg3"
+    
+    Types: 
+        <http://spinrdf.org/sp#Variable>
+    
+    
+Individual: <http://spinrdf.org/spin#_arg4>
+
+    Annotations: 
+        <http://spinrdf.org/sp#varName> "arg4"
+    
+    Types: 
+        <http://spinrdf.org/sp#Variable>
+    
+    
+Individual: <http://spinrdf.org/spin#_arg5>
+
+    Annotations: 
+        <http://spinrdf.org/sp#varName> "arg5"
+    
+    Types: 
+        <http://spinrdf.org/sp#Variable>
+    
+    
+Individual: <http://spinrdf.org/spin#_this>
+
+    Annotations: 
+        <http://spinrdf.org/sp#varName> "this",
+        rdfs:comment "A system variable representing the current context instance in a rule or constraint.",
+        rdfs:label "_this"
+    
+    Types: 
+        <http://spinrdf.org/sp#Variable>
+    
+    
+Individual: <http://spinrdf.org/spin#ask>
+
+    Annotations: 
+        rdfs:comment "Executes a given ASK query and returns its boolean result. The first argument must point to an sp:Ask or a SPIN template call that has an ASK query as its body. All subsequent argument can come in pairs, with the first one being a variable name and the second its binding.
+
+Example:
+
+    BIND (spin:ask(?query, \"this\", owl:Thing) AS ?result) .
+
+will execute the sp:Ask behind ?query with the variable ?this pre-bound to owl:Thing.",
+        rdfs:label "ask"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    
+Individual: <http://spinrdf.org/spin#body>
+
+    Annotations: 
+        rdfs:comment "The body of a Function or Template. This points to a Query instance. For Functions, this is limited to either ASK or SELECT type queries. If the body is the ASK function then the return value is xsd:boolean. Otherwise, the SELECT query must have a single return variable. The first binding of this SELECT query will be returned as result of the function call.",
+        rdfs:label "body"
+    
+    
+Individual: <http://spinrdf.org/spin#construct>
+
+    Annotations: 
+        rdfs:comment "Evaluates a given sp:Construct or SPIN template call (first argument on the left hand side) and binds the resulting triples to the variables on the right hand side.
+
+Example:
+
+    (?query \"this\" owl:Thing) spin:construct (?s ?p ?o)
+
+will execute the sp:Construct ?query using the binding of owl:Thing to ?this. The resulting triples will be bound to ?s, ?p and ?o. If any of ?s ?p ?o are bound, it will only return the matching triples.",
+        rdfs:label "construct"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    
+Individual: <http://spinrdf.org/spin#constructViolations>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:17f9ccac44d389bd45b70418dff79f99,
+        <http://spinrdf.org/spin#constraint> _:e4af74e21b0c46aa6dbd0aa84767ce49,
+        rdfs:comment "Takes an instance (?arg1) and a class definition (?arg2) and returns all constraint violations for that instance as triples. This magic property basically runs its own constraint checker for defining meta-constraints, and can also be used to classify instances.
+
+Example:
+
+    CONSTRUCT {
+        ?s ?p ?o .
+    }
+    WHERE {
+        (my:Person my:OldPerson) spin:constructViolations (?s ?p ?o) .
+    }",
+        rdfs:label "construct violations"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:17f9ccac44d389bd45b70418dff79f99,
+     <http://spinrdf.org/spin#constraint>  _:e4af74e21b0c46aa6dbd0aa84767ce49
+    
+    
+Individual: <http://spinrdf.org/spin#eval>
+
+    Annotations: 
+        rdfs:comment "Evaluates a given SPIN expression or SELECT or ASK query, and returns its result. The first argument must be the expression in SPIN RDF syntax. All other arguments must come in pairs: first a property name, and then a value. These name/value pairs will be pre-bound variables for the execution of the expression.",
+        rdfs:label "eval"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    
+Individual: <http://spinrdf.org/spin#rule>
+
+    Annotations: 
+        rdfs:comment "An inferencing rule attached to a class. Rules are expressed as CONSTRUCT queries or INSERT/DELETE operations where the variable ?this will be bound to the current instance of the class. These inferences can be used to derive new values from existing values at the instance.",
+        rdfs:label "rule"
+    
+    Types: 
+        <http://spinrdf.org/spin#RuleProperty>
+    
+    
+Individual: <http://spinrdf.org/spin#select>
+
+    Annotations: 
+        rdfs:comment "Executes a given SELECT or ASK query (or a corresponding SPIN template call) and binds its result rows to the variables specified on the right hand side. May also pre-bind variables for the query execution, using name-value pairs on the left hand side.
+
+Example:
+
+    (?query \"this\" owl:Thing) spin:select (?a ?b)
+
+will execute the sp:Select or sp:Ask that ?query points to and pre-bind ?this with the value of owl:Thing for the execution of the query. The first result variable of the query's result set will be bound to ?a, the second to ?b etc. If the nodes on the right are bound (or constants) then it will match with the values from the result set.
+
+Note that the first argument on the left hand side can be an instance of a SPIN template (but not the template itself). If you need to execute a template, retrieve its spin:body first.",
+        rdfs:label "select"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    
+Individual: <http://spinrdf.org/spin#violatesConstraints>
+
+    Annotations: 
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given instance (?arg1) violates any of the constraints defined for a given class (?arg2).",
+        rdfs:label "violates constraints"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    
+Individual: _:1107bd23b0397530a07462b6a12f9e93
+
+    Annotations: 
+        rdfs:comment "the body of the function"
+    
+    Types: 
+        <http://spinrdf.org/spl#Attribute>
+    
+    Facts:  
+     <http://spinrdf.org/spl#predicate>  <http://spinrdf.org/spin#body>,
+     <http://spinrdf.org/spl#maxCount>  1,
+     <http://spinrdf.org/spl#minCount>  0
+    
+    
+Individual: _:17f9ccac44d389bd45b70418dff79f99
+
+    Annotations: 
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Class>,
+        rdfs:comment "The class that this type is validated against."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    Facts:  
+     <http://spinrdf.org/spl#predicate>  <http://spinrdf.org/sp#arg2>
+    
+    
+Individual: _:4151515868b8df066bbe6224e54e0918
+
+    Annotations: 
+        <http://spinrdf.org/spl#valueType> <http://spinrdf.org/sp#Select>,
+        rdfs:comment "The SELECT query wrapped by this template."
+    
+    Types: 
+        <http://spinrdf.org/spl#Attribute>
+    
+    Facts:  
+     <http://spinrdf.org/spl#predicate>  <http://spinrdf.org/spin#body>,
+     <http://spinrdf.org/spl#valueType>  <http://spinrdf.org/sp#Select>,
+     <http://spinrdf.org/spl#maxCount>  1,
+     <http://spinrdf.org/spl#minCount>  0
+    
+    
+Individual: _:61a81628c413c335eaab65bd7bf69a32
+
+    Types: 
+        <http://spinrdf.org/spl#ConstructDefaultValues>
+    
+    
+Individual: _:ad37fc3ae1ffe57b852268ba4854492d
+
+    Annotations: 
+        rdfs:comment "the body of the Template"
+    
+    Types: 
+        <http://spinrdf.org/spl#Attribute>
+    
+    Facts:  
+     <http://spinrdf.org/spl#predicate>  <http://spinrdf.org/spin#body>,
+     <http://spinrdf.org/spl#maxCount>  1,
+     <http://spinrdf.org/spl#minCount>  0
+    
+    
+Individual: _:b4efafcae4007584610e8cf24dbbb109
+
+    Annotations: 
+        <http://spinrdf.org/spl#valueType> <http://spinrdf.org/sp#Construct>,
+        rdfs:comment "The CONSTRUCT query wrapped by this template."
+    
+    Types: 
+        <http://spinrdf.org/spl#Attribute>
+    
+    Facts:  
+     <http://spinrdf.org/spl#predicate>  <http://spinrdf.org/spin#body>,
+     <http://spinrdf.org/spl#valueType>  <http://spinrdf.org/sp#Construct>,
+     <http://spinrdf.org/spl#maxCount>  1,
+     <http://spinrdf.org/spl#minCount>  0
+    
+    
+Individual: _:e38dc04c6444f2e08b22a2cd9e7a2718
+
+    Annotations: 
+        <http://spinrdf.org/spl#valueType> <http://spinrdf.org/sp#Update>,
+        rdfs:comment "The UPDATE command wrapped by this template."
+    
+    Types: 
+        <http://spinrdf.org/spl#Attribute>
+    
+    Facts:  
+     <http://spinrdf.org/spl#predicate>  <http://spinrdf.org/spin#body>,
+     <http://spinrdf.org/spl#valueType>  <http://spinrdf.org/sp#Update>,
+     <http://spinrdf.org/spl#maxCount>  1,
+     <http://spinrdf.org/spl#minCount>  0
+    
+    
+Individual: _:e4af74e21b0c46aa6dbd0aa84767ce49
+
+    Annotations: 
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The instance to check."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    Facts:  
+     <http://spinrdf.org/spl#predicate>  <http://spinrdf.org/sp#arg1>
+    
+    
+Individual: _:e66c01bd80f708846dd8291909208ff1
+
+    Annotations: 
+        <http://spinrdf.org/spl#valueType> <http://spinrdf.org/sp#Ask>,
+        rdfs:comment "The ASK query wrapped by this template."
+    
+    Types: 
+        <http://spinrdf.org/spl#Attribute>
+    
+    Facts:  
+     <http://spinrdf.org/spl#predicate>  <http://spinrdf.org/spin#body>,
+     <http://spinrdf.org/spl#valueType>  <http://spinrdf.org/sp#Ask>,
+     <http://spinrdf.org/spl#maxCount>  1,
+     <http://spinrdf.org/spl#minCount>  0
+    
+    

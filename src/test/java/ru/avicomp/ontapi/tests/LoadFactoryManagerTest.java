@@ -16,12 +16,14 @@ package ru.avicomp.ontapi.tests;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.UnparsableOntologyException;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntFactoryImpl;
+import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.config.OntConfig;
@@ -29,6 +31,10 @@ import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,6 +75,32 @@ public class LoadFactoryManagerTest {
         Assert.assertSame(o, m.ontologies().findFirst().orElseThrow(AssertionError::new));
         Assert.assertEquals(comment, getComment(o));
     }
+
+
+    @Test
+    public void testLoadNotJenaHierarchy() throws Exception {
+        String a = "http://spinrdf.org/sp";
+        String b = "http://spinrdf.org/spif";
+        Map<String, Path> map = new HashMap<>();
+        map.put(a, ReadWriteUtils.getResourcePath("omn", "sp.omn"));
+        map.put(b, ReadWriteUtils.getResourcePath("omn", "spif.omn"));
+        map.put("http://spinrdf.org/spin", ReadWriteUtils.getResourcePath("omn", "spin.omn"));
+        map.put("http://spinrdf.org/spl", ReadWriteUtils.getResourcePath("omn", "spl.spin.omn"));
+
+        OntologyManager manager = OntManagers.createONT();
+        for (String uri : map.keySet()) {
+            manager.getIRIMappers().add(new SimpleIRIMapper(IRI.create(uri), IRI.create(map.get(uri).toUri())));
+        }
+        manager.getOntologyConfigurator()
+                .setSupportedSchemes(Collections.singletonList(OntConfig.DefaultScheme.FILE))
+                .setPerformTransformation(false);
+
+        manager.loadOntologyFromOntologyDocument(new FileDocumentSource(map.get(a).toFile(), OntFormat.MANCHESTER_SYNTAX.createOwlFormat()));
+        Assert.assertEquals("Should be one ontology inside manager", 1, manager.ontologies().count());
+        manager.loadOntologyFromOntologyDocument(new FileDocumentSource(map.get(b).toFile(), OntFormat.MANCHESTER_SYNTAX.createOwlFormat()));
+        Assert.assertEquals("Wrong num of onts", 4, manager.ontologies().count());
+    }
+
 
     /**
      * Moved from {@link CommonManagerTest}

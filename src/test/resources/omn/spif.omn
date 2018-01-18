@@ -1,0 +1,3289 @@
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+
+
+
+Ontology: <http://spinrdf.org/spif>
+
+Import: <http://spinrdf.org/spin>
+Import: <http://spinrdf.org/spl>
+
+Annotations: 
+    rdfs:comment "A library of \"generally useful\" SPARQL functions defined using SPIN. This library consists of functions that are impossible or difficult to express in terms of other functions, but rather will require a native implementation in languages like Java. In contrast, the SPL (http://spinrdf.org/spl#) namespace is reserved for functions that can be expressed entirely in terms of other SPARQL expressions and standard built-ins.",
+    owl:versionInfo "0.5.0"
+
+AnnotationProperty: <http://spinrdf.org/arg#datatype>
+
+    Annotations: 
+        rdfs:label "datatype"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#arg>
+    
+    
+AnnotationProperty: <http://spinrdf.org/arg#date>
+
+    Annotations: 
+        rdfs:label "date"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#arg>
+    
+    
+AnnotationProperty: <http://spinrdf.org/arg#number>
+
+    Annotations: 
+        rdfs:label "number"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#arg>
+    
+    
+AnnotationProperty: <http://spinrdf.org/arg#pattern>
+
+    Annotations: 
+        rdfs:label "pattern"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#arg>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#arg1>
+
+    
+AnnotationProperty: <http://spinrdf.org/sp#arg2>
+
+    
+AnnotationProperty: <http://spinrdf.org/sp#arg>
+
+    
+AnnotationProperty: <http://spinrdf.org/sp#text>
+
+    
+AnnotationProperty: <http://spinrdf.org/spin#body>
+
+    
+AnnotationProperty: <http://spinrdf.org/spin#constraint>
+
+    
+AnnotationProperty: <http://spinrdf.org/spin#returnType>
+
+    
+AnnotationProperty: <http://spinrdf.org/spl#defaultValue>
+
+    
+AnnotationProperty: <http://spinrdf.org/spl#optional>
+
+    
+AnnotationProperty: <http://spinrdf.org/spl#predicate>
+
+    
+AnnotationProperty: <http://spinrdf.org/spl#testExpression>
+
+    
+AnnotationProperty: <http://spinrdf.org/spl#testResult>
+
+    
+AnnotationProperty: <http://spinrdf.org/spl#valueType>
+
+    
+AnnotationProperty: owl:versionInfo
+
+    
+AnnotationProperty: rdfs:comment
+
+    
+AnnotationProperty: rdfs:label
+
+    
+Datatype: xsd:boolean
+
+    
+Datatype: xsd:date
+
+    
+Datatype: xsd:dateTime
+
+    
+Datatype: xsd:decimal
+
+    
+Datatype: xsd:integer
+
+    
+Datatype: xsd:string
+
+    
+Datatype: xsd:time
+
+    
+ObjectProperty: <http://spinrdf.org/spin#constraint>
+
+    
+Class: <http://spinrdf.org/sp#Select>
+
+    Individuals: 
+        _:3792b01bf96bf93b6df10adf5cbf6c36,
+        _:e097c6f86ee2fee9c50d97c35e4376bd
+    
+    
+Class: <http://spinrdf.org/spif#buildString>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:f159b0bb91267cf677751ad0656c0a61,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Constructs a new string by inserting the existing variable bindings into a template. The template can mention variable names in curly braces, such as \"Hello {?index}\" would create \"Hello 42\" is ?index has the value 42. As an alternative to variable names, the function can take additional arguments after the template, the variables of which can be accessed using {?1}, {?2} etc. For example: smf:buildString(\"Hello-{?1}-{?2}\", ?day, ?month) would insert day and month at places {?1} and {?2}.",
+        rdfs:label "build string"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#buildStringFromRDFList>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:1286d38318ed7eeb066ed1a8c9be4dc0,
+        <http://spinrdf.org/spin#constraint> _:42c3dcef2e95b7310f295c1df115acd1,
+        <http://spinrdf.org/spin#constraint> _:572027dbc38418c040a3ab6094819583,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Builds a string from the members of a given rdf:List (?arg1). The function iterates over all members of the list (which must be well-formed according to the RDF syntax rules). For each member, a string template (?arg2) is applied where the expression {?member} will be substituted with the current member. Optionally, a separator (?arg3) can be inserted between the list members in the result string, e.g. to insert a comma.",
+        rdfs:label "build string from RDF list"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#buildURI>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:a11c885fa8df7e1eb98bb8788b7c8102,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "Constructs a new URI resource by inserting the existing variable bindings into a template. The template can mention variable names in curly braces, such as \"my:Instance-{?index}\" would create \"my:Instance-42\" is ?index has the value 42. As an alternative to variable names, the function can take additional arguments after the template, the variables of which can be accessed using {?1}, {?2} etc. For example: smf:buildURI(\"my:Instance-{?1}-{?2}\", ?day, ?month) would insert day and month at places {?1} and {?2}.",
+        rdfs:label "build URI"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#URIFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#buildUniqueURI>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:bc54ab12812a741b213730165beafcd0,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "A variation of smf:buildURI that also makes sure that the created URI is unique in the current graph (that is, no triple contains the URI as either subject, predicate or object). This function is particularly useful for ontology mapping from a legacy data source into an RDF model.",
+        rdfs:label "build unique URI"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#URIFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#camelCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:08d6958e7de6b9f236f416277e86d446,
+        <http://spinrdf.org/spin#constraint> _:1126826931a7efc93115962dbe69ac56,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into camel case. 
+For example, \"semantic web\" becomes \"SemanticWeb\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "camel case"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#canInvoke>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:129538c4ccbf7c8390970d3c64a64a44,
+        <http://spinrdf.org/spin#constraint> _:144c945349de0758a38185bc35a38bca,
+        <http://spinrdf.org/spin#constraint> _:1b3cc7332d9d2d139488fc337501dfc0,
+        <http://spinrdf.org/spin#constraint> _:3b3210ad0576e9592a1ab928e39bca79,
+        <http://spinrdf.org/spin#constraint> _:f8e89e69224aff1958cfd2a0469adb66,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given SPIN function (?arg1) can be invoked with a given list of argument (?arg2, ?arg3, ...) without violating any of its declared SPIN constraints. In addition to the usual argument declarations, the SPIN function may declare ASK and CONSTRUCT queries to check additional pre-conditions.",
+        rdfs:label "can invoke"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#cast>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:04ba3b1f4ed89f84b6e86f6bdfdf03b9,
+        <http://spinrdf.org/spin#constraint> _:7a092aa4babc9cd4c2acb19f701ff58d,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2000/01/rdf-schema#Literal>,
+        rdfs:comment "Creates a new literal from an existing literal, but with a different datatype. This can, for example, be used to convert between floating point values and int values.",
+        rdfs:label "cast"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#convertSPINRDFToString>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:49a1c16c3aadc5fb10fba615453a355a,
+        <http://spinrdf.org/spin#constraint> _:c24de3adabf0907c35d2798347a1301d,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts a SPARQL query encoded in SPIN RDF format to a SPARQL string in textual form. The SPIN query must be well-formed in the context graph at execution time, and the provided argument must be the root of the expression (e.g., an instance of sp:Select).
+
+This function is available as part of the TopBraid SPIN Libraries.",
+        rdfs:label "convert SPIN RDF to string"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#countMatches>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:57b7332c6c63421be6e0e490a0dfdffc,
+        <http://spinrdf.org/spin#constraint> _:75b687672b24d7325215886ed4d8c8c0,
+        <http://spinrdf.org/spin#constraint> _:db461670d4224cd19347e186799ff5cf,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "Counts all occurrences of a triple pattern based on subject (?arg1), predicate (?arg2) and object (?arg3) input. Any of those can be unbound variables.
+
+This function is available as part of the TopBraid SPIN Libraries.",
+        rdfs:label "count matches"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#countTransitiveSubjects>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:1ffdb28ce64bf83ac17b44df17667321,
+        <http://spinrdf.org/spin#constraint> _:36902220528f33730f0147b21d598b3b,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "Given a predicate and an object, this function computes the number of matches using
+
+SELECT (COUNT(DISTINCT ?subject) AS ?result)
+WHERE {
+	?subject ?predicate* ?object .
+}
+
+The main purpose of this function is to optimize performance - this direction of * traversal is currently very slow in Jena. The function can be used to compute the number of subclasses of a given class."
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#currentTimeMillis>
+
+    Annotations: 
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#long>,
+        rdfs:comment "Returns the current time in milliseconds. See System.currentTimeMillis() in Java.",
+        rdfs:label "current time millis"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#dateFormat>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:8d6e9cadd2035a157bea661b912de52d,
+        <http://spinrdf.org/spin#constraint> _:b2d4f769c5d00b707dc0acd06c7fe185,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Takes a date/time literal and a pattern and renders the date according to the pattern. This is a reverse of spif:parseDate and uses the same format.",
+        rdfs:label "date format"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#DateFunctions>
+    
+    Individuals: 
+        _:b9567ada5d1031a186887355b7349a92,
+        _:e3d68ae0e63ce654d7f263e5e03f84e2
+    
+    
+Class: <http://spinrdf.org/spif#decimalFormat>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:b48e1617739b315b3593e5084bc94da0,
+        <http://spinrdf.org/spin#constraint> _:bc80847018ac546726a092ebf3e0fd47,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Takes a number as its first argument and applies a given formatting string to it, for example, to convert a floating point into a number that has exactly two decimal places after the dot. For example, spif:decimalFormat(12.3456, \"#.##\") returns \"12.35\". The resulting string can then by cast back to a number, e.g. using xsd:double(?str).",
+        rdfs:label "decimal format"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    Individuals: 
+        _:b8f8dd2bac884e41e6b280b07a79338b
+    
+    
+Class: <http://spinrdf.org/spif#decodeURL>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:4f151a5ee137a31140ecd7960633ec2a,
+        <http://spinrdf.org/spin#constraint> _:ac81b2fcb4ed5862b981917575ab3246,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Decodes a URL string - this is the inverse operation of spif:encodeURL.",
+        rdfs:label "decode URL"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#encodeURL>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:3dabc90bc0c8929a71367eb77eebb412,
+        <http://spinrdf.org/spin#constraint> _:8491b5baa7e260aab95db8859899f061,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Encodes a URL string, for example so that it can be passed as an argument to REST services.",
+        rdfs:label "encode URL"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#evalPath>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:78f593dd1ee0491f129d351afd834f91,
+        <http://spinrdf.org/spin#constraint> _:cb1c3409cff9381be58a101819711ec9,
+        rdfs:comment "Takes a starting node (?arg1) and a SPARQL path expression (?arg2) and binds all matching results of the path evaluation.",
+        rdfs:label "eval path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#MagicProperties>
+    
+    
+Class: <http://spinrdf.org/spif#for>
+
+    Annotations: 
+        rdfs:comment "Can be used to iterate over a range of (integer) numbers similar to a for loop in iterative programming languages. An unbound variable must be placed on the left side of this magic property. On the right side, a list of two numbers needs to be placed.
+
+For example, ?index spif:for (1 10) binds ?index to all xsd:integers >= 1 and <= 10.
+
+By default it will add +1 to each step. It is possible to walk different steps and direction by specifying a third argument on the right, e.g. ?index spif:for (10 1 -1) will walk from 10 to 1 backwards.",
+        rdfs:label "for"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#MagicProperties>
+    
+    
+Class: <http://spinrdf.org/spif#foreach>
+
+    Annotations: 
+        rdfs:comment "Can be used to \"iterate\" over a list of RDF nodes given as members of a list on the right. An unbound variable must be on the left side of the magic property. On the right side, a list of nodes with arbitrary length can be placed.
+
+For example, ?subject spif:foreach (owl:Thing owl:Nothing) will bind ?subject to owl:Thing and then owl:Nothing.",
+        rdfs:label "for each"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#MagicProperties>
+    
+    
+Class: <http://spinrdf.org/spif#generateLabel>
+
+    Annotations: 
+        <http://spinrdf.org/spin#body> _:3792b01bf96bf93b6df10adf5cbf6c36,
+        <http://spinrdf.org/spin#constraint> _:a34c374ad983a6ee0a3b1699f5107729,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Constructs a human-readable label for a URI resource by taking everything after the last '/' or the last '#' as starting point.",
+        rdfs:label "generate label"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    Individuals: 
+        _:9aa41832e239e19e1d7f90326c3ea7d9,
+        _:b2cb532dd26f045c5038cc593aa8c313
+    
+    
+Class: <http://spinrdf.org/spif#generateUUID>
+
+    Annotations: 
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Generates a new unique ID as a string literal. This is often useful for creating \"random\" URIs and other identifiers.",
+        rdfs:label "generate UUID"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#hasAllObjects>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:008c2a0afebef3606528d42401a42ce5,
+        <http://spinrdf.org/spin#constraint> _:6d9808d0c76e5fb00f9b238c134c3efb,
+        <http://spinrdf.org/spin#constraint> _:e80b82dd186c26edbe78b529fd0dca54,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given subject/predicate combination has all values enumerated from a given rdf:List. In other words, for each member ?object of the rdf:List, the triple (?arg1, ?arg2, ?object) must be in the model to return true. If the list is empty, true will also be returned.",
+        rdfs:label "has all objects"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#BooleanFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#indexOf>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:2b3aaf31d270a0705b06905f2350f701,
+        <http://spinrdf.org/spin#constraint> _:a4af37c9a4f4fa2ddff08c80ca88e1c6,
+        <http://spinrdf.org/spin#constraint> _:f25485c1f13d19808d123afacb4f9cf0,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "Gets the index of the first occurrence of a certain substring in a given search string. Returns an error if the substring is not found.",
+        rdfs:label "index of"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#invoke>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:71a993703d63d93a9bb940f60c3bcdf2,
+        <http://spinrdf.org/spin#constraint> _:dd8977edb8fdb0bc0d9b743915b361cf,
+        <http://spinrdf.org/spin#constraint> _:df552d8ff09b5490c77c0b3d6e6473fe,
+        <http://spinrdf.org/spin#constraint> _:e2bc5aeb92cd551ac790029720d291e5,
+        <http://spinrdf.org/spin#constraint> _:e30e6dd9d08bc5e8649b8dfe28bf9a67,
+        rdfs:comment "Calls another SPARQL function specified by a URI resource (?arg1), with additional arguments passed into from ?arg2 onwards. This can be used to dynamically call functions, the URI of which is now known statically. The result of the function call will be passed on as result of the invoke call.
+
+The function can also be a binary built-in SPARQL function using the SPIN function identifiers from the SPL ontology. For example, sp:gt will be executed as ?left > ?right.",
+        rdfs:label "invoke"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#isReadOnlyTriple>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:836dc075a0821b55ac301d2828742e29,
+        <http://spinrdf.org/spin#constraint> _:b65c4f2768f2e4c1ce0d7d98c020297c,
+        <http://spinrdf.org/spin#constraint> _:bd1b2f792ce8517737759501242356b8,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given triple is read-only, that is, cannot be deleted. Triples that are in the system ontology are generally not deletable. TopBraid also enforces that triples from a read-only file or back-end are read-only. Other platforms may have different privilege rules for this function.",
+        rdfs:label "is read only triple"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#BooleanFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#isValidURI>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:918bdf96dc32a93ac099f30d84a49882,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given input string is a well-formed absolute URI. This can be used to validate user input before it is turned into a URI resource.",
+        rdfs:label "is valid URI"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#URIFunctions>
+    
+    Individuals: 
+        _:b90aca956fcfebad9f8fa1152c9fc9b3,
+        _:cf2fb476bf5cea8d0582ef4ac749b9b8,
+        _:eea82486784b4a9374f8ce546979ea6a
+    
+    
+Class: <http://spinrdf.org/spif#labelTemplateSegment>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:e7a04e90cf5199db95c1194392804cfd,
+        rdfs:comment "Takes a Template and splits its spin:labelTemplate into an iteration over string constants or properties. The properties align with the spl:predicates of the declared spl:Arguments of the template. Among others, this magic property can be used to render template calls into user interface components.",
+        rdfs:label "label template segment"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#MagicProperties>
+    
+    
+Class: <http://spinrdf.org/spif#lastIndexOf>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:62dcaf38f8ebf4d1b4624fcf76dcc2b7,
+        <http://spinrdf.org/spin#constraint> _:b9f08b2adb4bc9f2609753fd1c906ccd,
+        <http://spinrdf.org/spin#constraint> _:c2307e42bfb7b40bfb226f239989676f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "Gets the index of the last occurrence of a certain substring in a given search string. Returns an error if the substring is not found.",
+        rdfs:label "last index of"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#localName>
+
+    Annotations: 
+        <http://spinrdf.org/spin#body> _:e097c6f86ee2fee9c50d97c35e4376bd,
+        <http://spinrdf.org/spin#constraint> _:627e742e94d7ae9ad1385112cf931730,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Gets a \"local name\" from a URI resource. This takes everything after the last '/' or '#' character of the URI. This function is a more intuitive alternative to afn:localname, which strictly follows the W3C namespace splitting algorithm that often leads to surprising results.",
+        rdfs:label "local name"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    Individuals: 
+        _:26de994a48176968b15cafe9ccb707c6,
+        _:7379041307faa285198ed4a6c3086f85
+    
+    
+Class: <http://spinrdf.org/spif#lowerCamelCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:1f5a23c95d68334647b4a65ca8fe0ee7,
+        <http://spinrdf.org/spin#constraint> _:3eaec9771378aac586b2dfb9916c02f7,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into lower camel case.
+For example, \"semantic web\" becomes \"semanticWeb\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "lower camel case"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#lowerCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:a8ef29214226afddd3b1f66450abee26,
+        <http://spinrdf.org/spin#constraint> _:c384c97a636fc532491b67035a8f0ac7,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into lower case. 
+For example, \"SEMANTIC Web\" becomes \"semantic web\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "lower case"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#lowerTitleCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:590d98cb364aec35499dd6481dec3b70,
+        <http://spinrdf.org/spin#constraint> _:5feeb3bb334160974c111e8b494650e0,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into lower title case. 
+For example, \"semantic web\" becomes \"semantic Web\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "lower title case"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#mod>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:1907dca2d0db038a1eba865d9976b6c8,
+        <http://spinrdf.org/spin#constraint> _:5e57e095de64f3602cae36ef3efb305e,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "The mathematical modulo operator, aka % in Java.",
+        rdfs:label "mod"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MathematicalFunctions>
+    
+    Individuals: 
+        _:bd8b468be3d7a053430c0271c0bb48a2
+    
+    
+Class: <http://spinrdf.org/spif#name>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:161a202ebd9f8a586794493b06f0c775,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Gets a human-readable string representation from an RDF node. If it's a literal, the function will return the literal's lexical text. If it's a resource the system will use the rdfs:label (if exists) or otherwise use the qname. For an unbound input, the function will return no value.",
+        rdfs:label "name"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#parseDate>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:08630930dc843b63c89a2f20361dd702,
+        <http://spinrdf.org/spin#constraint> _:267266174f72d8dc5b79ec6c4e7b9f00,
+        <http://spinrdf.org/spin#constraint> _:29585860195a8fb193b8401b5a958aa0,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2000/01/rdf-schema#Literal>,
+        rdfs:comment "Converts a string in a semi-structured format into a xsd:date, xsd:dateTime or xsd:time literal. The input string must be in a given template format, e.g. \"yyyy.MM.dd G 'at' HH:mm:ss z\" for strings such as 2001.07.04 AD at 12:08:56 PDT.",
+        rdfs:label "parse date"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#DateFunctions>
+    
+    Individuals: 
+        _:0363aef86172d482977f1dec1b9947f1,
+        _:2f26ba24bbf9ed910585dba6ff805b7d,
+        _:366b0488ab675de2b351f931744e00a0,
+        _:4e097058ce2589c5b986696ce823f2aa,
+        _:8db4962da7fb79526a300eb6823e2ee1,
+        _:927f10c9c9548cf1823b644ab3904198,
+        _:94b665d79c1a29c0b74e1496b918635c,
+        _:a27bae52e0021dc605e0ce81ce8c0220,
+        _:a646de2369f33e4e19e0d81fbc94029e,
+        _:e8daf7cd318625cf09a148ae7f95f576
+    
+    
+Class: <http://spinrdf.org/spif#prefix>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:bd66afddaa23f668042c913c22acfc4a,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Can be used to get namespaces and their prefixes. This magic property takes the namespace (string) or a variable on the left and a prefix or a variable on the right. If both are unbound variables, then it will iterate over all namespaces and their prefixes. Otherwise it will bind the namespace or prefix. If both are bound, the system checks whether the given prefix is for the given namespace.",
+        rdfs:label "prefix"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#MagicProperties>
+    
+    
+Class: <http://spinrdf.org/spif#random>
+
+    Annotations: 
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#double>,
+        rdfs:comment "Creates a random xsd:double between 0 and 1.",
+        rdfs:label "random"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MathematicalFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#regex>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:50f0ae04a8e663367a64c5752876ed85,
+        <http://spinrdf.org/spin#constraint> _:5da444c7a7587f8342567c54734e3ed4,
+        <http://spinrdf.org/spin#constraint> _:d61b326e4fd12ea44b0077cf901bd66f,
+        <http://spinrdf.org/spin#constraint> _:e5b5f2bec45b50fd9e79099338ba5f44,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "An input string is converted into a result string by applying a match and replacement expressions.
+For example, the input string \"semantic web\" with the match expression \"([A-z]+) ([A-z]+)\" and the replacement expression \"The $1 life\" returns the string \"The semantic life\".
+An optional input string is returned, if no match occurs. If this string is empty and no match occurs, then the result string is unbound.",
+        rdfs:label "regex"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#replaceAll>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:76b18787fa1ca009816970a007a73813,
+        <http://spinrdf.org/spin#constraint> _:9a0eb8d4dd2ccae216ba73a56052daa2,
+        <http://spinrdf.org/spin#constraint> _:fa91850756c9deebabe7882e3869b61f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Does a string replacement based on the Java function String.replaceAll().",
+        rdfs:label "replace all"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#shortestObjectsPath>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:3650fd14df9c013bb55e3cd2070b6af5,
+        <http://spinrdf.org/spin#constraint> _:a6a0808cac4e6c041fc5b07a16e2880e,
+        <http://spinrdf.org/spin#constraint> _:b7bbabac70e30c9c5998aab8ad487c86,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Finds the shortest path from a given subject walking up a given predicate (for example, rdfs:subClassOf) and returns the path as a string of URIs separated with a space. This can be used to find the shortest path from a resource in a tree structure to the root resource.",
+        rdfs:label "shortest objects path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#shortestSubjectsPath>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:20d1772508d61c27bcda723b0a7586ad,
+        <http://spinrdf.org/spin#constraint> _:a7ed9ffb091862a5ae578a9360a6f57f,
+        <http://spinrdf.org/spin#constraint> _:b64ce38fdbef3367e1c1603058a9918d,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Finds the shortest path from a given object walking up a given predicate (for example, schema:child) and returns the path as a string of URIs separated with a space. This can be used to find the shortest path from a resource in a tree structure to the root resource.",
+        rdfs:label "shortest subjects path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#split>
+
+    Annotations: 
+        rdfs:comment "Splits a given string and iterates over all sub-strings. An unbound variable must be placed on the left side of this magic property. A list with two members must be on the right. The first is the string to split, and the second is a regular expression.
+
+For example, ?str spif:split (\"Hello World\" \" \") will bind ?str to \"Hello\" and \"World\".",
+        rdfs:label "split"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spin#MagicProperties>
+    
+    
+Class: <http://spinrdf.org/spif#timeMillis>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:6f859f855ed1e148ae3b0b78ee5a7e2f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#long>,
+        rdfs:comment "Returns the time of a given xsd:dateTime value in milliseconds.",
+        rdfs:label "time millis"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#titleCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:22939592e90392594bf9ac9981fcb3a9,
+        <http://spinrdf.org/spin#constraint> _:a57509803660a9a88facce4770a5da8f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string to title case.
+For example, \"germany\" becomes \"Germany\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "title case"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#toJavaIdentifier>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:4b1327a2a06b39badb631fb83d86908d,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Produces a valid Java identifier based on a given input string, dropping any characters that would not be valid Java identifiers. Produces the empty string if no character can be reused from the given string. Note that this function is even stricter than the normal Java identifier algorithm, as it only allows ASCII characters or digits.",
+        rdfs:label "to Java identifier"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#trim>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:d2fd9e3bea3f813d0eca22bb9e8ad07f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Creates a new string value by trimming an input string. Leading and trailing whitespaces are deleted.",
+        rdfs:label "trim"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#unCamelCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:fa67020b62e132b2df5de6b12f723c78,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into a reverse camel case.",
+        rdfs:label "un-camel case"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    Individuals: 
+        _:1bbb08769387f9ff07cb6f7ae1ac6a4c,
+        _:5fd5f4783573374be8ecbc46b4693312
+    
+    
+Class: <http://spinrdf.org/spif#upperCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:2f7e409582672fcf8d2a21b8124f5521,
+        <http://spinrdf.org/spin#constraint> _:62edb734d3050a500e0a5286ebcf66fb,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into upper case. 
+For example, \"semantic web\" becomes \"SEMANTIC WEB\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "upper case"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#StringFunctions>
+    
+    
+Class: <http://spinrdf.org/spif#walkObjects>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:5ba636c1c739279ef35e790574152c8a,
+        <http://spinrdf.org/spin#constraint> _:62b7fa3a39c9436624d4d86ad2382c66,
+        <http://spinrdf.org/spin#constraint> _:e3c8eb6b93df670086374a3d31596210,
+        rdfs:comment "Performs a depth-first tree traversal starting at a given node (?arg1) and then following the objects using a given predicate (?arg2). For each node it applies a given function (?arg3) that must take the current node as its first argument. All other arguments of the walkObjects function call will be passed into that function. The traversal stops on the first non-null result of the nested function calls.
+
+As use case of this function is to walk up superclasses, e.g. to find the \"nearest\" owl:Restriction of a certain kind.",
+        rdfs:label "walk objects"
+    
+    SubClassOf: 
+        <http://spinrdf.org/spl#MiscFunctions>
+    
+    
+Class: <http://spinrdf.org/spin#Function>
+
+    
+Class: <http://spinrdf.org/spin#LibraryOntology>
+
+    
+Class: <http://spinrdf.org/spin#MagicProperties>
+
+    
+Class: <http://spinrdf.org/spin#MagicProperty>
+
+    
+Class: <http://spinrdf.org/spl#Argument>
+
+    Individuals: 
+        _:008c2a0afebef3606528d42401a42ce5,
+        _:04ba3b1f4ed89f84b6e86f6bdfdf03b9,
+        _:08630930dc843b63c89a2f20361dd702,
+        _:08d6958e7de6b9f236f416277e86d446,
+        _:1126826931a7efc93115962dbe69ac56,
+        _:1286d38318ed7eeb066ed1a8c9be4dc0,
+        _:129538c4ccbf7c8390970d3c64a64a44,
+        _:144c945349de0758a38185bc35a38bca,
+        _:161a202ebd9f8a586794493b06f0c775,
+        _:1907dca2d0db038a1eba865d9976b6c8,
+        _:1b3cc7332d9d2d139488fc337501dfc0,
+        _:1f5a23c95d68334647b4a65ca8fe0ee7,
+        _:1ffdb28ce64bf83ac17b44df17667321,
+        _:20d1772508d61c27bcda723b0a7586ad,
+        _:22939592e90392594bf9ac9981fcb3a9,
+        _:267266174f72d8dc5b79ec6c4e7b9f00,
+        _:29585860195a8fb193b8401b5a958aa0,
+        _:2b3aaf31d270a0705b06905f2350f701,
+        _:2f7e409582672fcf8d2a21b8124f5521,
+        _:3650fd14df9c013bb55e3cd2070b6af5,
+        _:36902220528f33730f0147b21d598b3b,
+        _:3b3210ad0576e9592a1ab928e39bca79,
+        _:3dabc90bc0c8929a71367eb77eebb412,
+        _:3eaec9771378aac586b2dfb9916c02f7,
+        _:42c3dcef2e95b7310f295c1df115acd1,
+        _:49a1c16c3aadc5fb10fba615453a355a,
+        _:4b1327a2a06b39badb631fb83d86908d,
+        _:4f151a5ee137a31140ecd7960633ec2a,
+        _:50f0ae04a8e663367a64c5752876ed85,
+        _:572027dbc38418c040a3ab6094819583,
+        _:57b7332c6c63421be6e0e490a0dfdffc,
+        _:590d98cb364aec35499dd6481dec3b70,
+        _:5ba636c1c739279ef35e790574152c8a,
+        _:5da444c7a7587f8342567c54734e3ed4,
+        _:5e57e095de64f3602cae36ef3efb305e,
+        _:5feeb3bb334160974c111e8b494650e0,
+        _:627e742e94d7ae9ad1385112cf931730,
+        _:62b7fa3a39c9436624d4d86ad2382c66,
+        _:62dcaf38f8ebf4d1b4624fcf76dcc2b7,
+        _:62edb734d3050a500e0a5286ebcf66fb,
+        _:6d9808d0c76e5fb00f9b238c134c3efb,
+        _:6f859f855ed1e148ae3b0b78ee5a7e2f,
+        _:71a993703d63d93a9bb940f60c3bcdf2,
+        _:75b687672b24d7325215886ed4d8c8c0,
+        _:76b18787fa1ca009816970a007a73813,
+        _:78f593dd1ee0491f129d351afd834f91,
+        _:7a092aa4babc9cd4c2acb19f701ff58d,
+        _:836dc075a0821b55ac301d2828742e29,
+        _:8491b5baa7e260aab95db8859899f061,
+        _:8d6e9cadd2035a157bea661b912de52d,
+        _:918bdf96dc32a93ac099f30d84a49882,
+        _:9a0eb8d4dd2ccae216ba73a56052daa2,
+        _:a11c885fa8df7e1eb98bb8788b7c8102,
+        _:a34c374ad983a6ee0a3b1699f5107729,
+        _:a4af37c9a4f4fa2ddff08c80ca88e1c6,
+        _:a57509803660a9a88facce4770a5da8f,
+        _:a6a0808cac4e6c041fc5b07a16e2880e,
+        _:a7ed9ffb091862a5ae578a9360a6f57f,
+        _:a8ef29214226afddd3b1f66450abee26,
+        _:ac81b2fcb4ed5862b981917575ab3246,
+        _:b2d4f769c5d00b707dc0acd06c7fe185,
+        _:b48e1617739b315b3593e5084bc94da0,
+        _:b64ce38fdbef3367e1c1603058a9918d,
+        _:b65c4f2768f2e4c1ce0d7d98c020297c,
+        _:b7bbabac70e30c9c5998aab8ad487c86,
+        _:b9f08b2adb4bc9f2609753fd1c906ccd,
+        _:bc54ab12812a741b213730165beafcd0,
+        _:bc80847018ac546726a092ebf3e0fd47,
+        _:bd1b2f792ce8517737759501242356b8,
+        _:bd66afddaa23f668042c913c22acfc4a,
+        _:c2307e42bfb7b40bfb226f239989676f,
+        _:c24de3adabf0907c35d2798347a1301d,
+        _:c384c97a636fc532491b67035a8f0ac7,
+        _:cb1c3409cff9381be58a101819711ec9,
+        _:d2fd9e3bea3f813d0eca22bb9e8ad07f,
+        _:d61b326e4fd12ea44b0077cf901bd66f,
+        _:db461670d4224cd19347e186799ff5cf,
+        _:dd8977edb8fdb0bc0d9b743915b361cf,
+        _:df552d8ff09b5490c77c0b3d6e6473fe,
+        _:e2bc5aeb92cd551ac790029720d291e5,
+        _:e30e6dd9d08bc5e8649b8dfe28bf9a67,
+        _:e3c8eb6b93df670086374a3d31596210,
+        _:e5b5f2bec45b50fd9e79099338ba5f44,
+        _:e7a04e90cf5199db95c1194392804cfd,
+        _:e80b82dd186c26edbe78b529fd0dca54,
+        _:f159b0bb91267cf677751ad0656c0a61,
+        _:f25485c1f13d19808d123afacb4f9cf0,
+        _:f8e89e69224aff1958cfd2a0469adb66,
+        _:fa67020b62e132b2df5de6b12f723c78,
+        _:fa91850756c9deebabe7882e3869b61f
+    
+    
+Class: <http://spinrdf.org/spl#BooleanFunctions>
+
+    
+Class: <http://spinrdf.org/spl#DateFunctions>
+
+    
+Class: <http://spinrdf.org/spl#MathematicalFunctions>
+
+    
+Class: <http://spinrdf.org/spl#MiscFunctions>
+
+    
+Class: <http://spinrdf.org/spl#StringFunctions>
+
+    
+Class: <http://spinrdf.org/spl#TestCase>
+
+    
+Class: <http://spinrdf.org/spl#URIFunctions>
+
+    
+Class: owl:Ontology
+
+    
+Class: rdf:Property
+
+    
+Individual: <http://spinrdf.org/arg#pattern>
+
+    Annotations: 
+        rdfs:label "pattern"
+    
+    Types: 
+        rdf:Property
+    
+    
+Individual: <http://spinrdf.org/spif#Test-dateFormat-1>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:b9567ada5d1031a186887355b7349a92,
+        <http://spinrdf.org/spl#testResult> "February 13, 2008",
+        rdfs:label "Test-date format"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-dateFormat-2>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:e3d68ae0e63ce654d7f263e5e03f84e2,
+        <http://spinrdf.org/spl#testResult> "01::02",
+        rdfs:label "Test-date format-2"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-decimalFormat-1>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:b8f8dd2bac884e41e6b280b07a79338b,
+        <http://spinrdf.org/spl#testResult> "12.35",
+        rdfs:label "Test-decimal format-1"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-generateLabel-1>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:9aa41832e239e19e1d7f90326c3ea7d9,
+        <http://spinrdf.org/spl#testResult> "Local name",
+        rdfs:label "Test-generate label-1"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-generateLabel-2>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:b2cb532dd26f045c5038cc593aa8c313,
+        <http://spinrdf.org/spl#testResult> "123",
+        rdfs:label "Test-generate label-2"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-isValidURI-1>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:eea82486784b4a9374f8ce546979ea6a,
+        <http://spinrdf.org/spl#testResult> false,
+        rdfs:label "Test-is valid URI-1"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-isValidURI-2>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:b90aca956fcfebad9f8fa1152c9fc9b3,
+        <http://spinrdf.org/spl#testResult> true
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-isValidURI-3>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:cf2fb476bf5cea8d0582ef4ac749b9b8,
+        <http://spinrdf.org/spl#testResult> true
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-localName-1>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:7379041307faa285198ed4a6c3086f85,
+        <http://spinrdf.org/spl#testResult> "Aldi",
+        rdfs:label "Test-local name-1"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-localName-2>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:26de994a48176968b15cafe9ccb707c6,
+        <http://spinrdf.org/spl#testResult> ".123",
+        rdfs:label "Test-local name-2"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-mod-1>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:bd8b468be3d7a053430c0271c0bb48a2,
+        <http://spinrdf.org/spl#testResult> 1,
+        rdfs:label "Test-mod-1"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-MMMMMMMMM_dd__yyyy>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:927f10c9c9548cf1823b644ab3904198,
+        <http://spinrdf.org/spl#testResult> "2008-02-13"^^xsd:date
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-MMMMMMMMM_dd_yyyy>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:366b0488ab675de2b351f931744e00a0,
+        <http://spinrdf.org/spl#testResult> "2008-02-13"^^xsd:date
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-MM_dd_yyyy>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:94b665d79c1a29c0b74e1496b918635c,
+        <http://spinrdf.org/spl#testResult> "2008-02-13"^^xsd:date
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-dd.MM.yyyy>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:0363aef86172d482977f1dec1b9947f1,
+        <http://spinrdf.org/spl#testResult> "2008-02-13"^^xsd:date
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-dd_MMMMMMMM__yyyy>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:e8daf7cd318625cf09a148ae7f95f576,
+        <http://spinrdf.org/spl#testResult> "2008-02-13"^^xsd:date,
+        rdfs:label "Test-parse date-dd MMMMMMMM  yyyy"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-dd_MMMMMMMM_yyyy>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:4e097058ce2589c5b986696ce823f2aa,
+        <http://spinrdf.org/spl#testResult> "2008-02-13"^^xsd:date,
+        rdfs:label "Test-parse date-dd MMMMMMMM yyyy"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-dd_MM_yyyy>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:a646de2369f33e4e19e0d81fbc94029e,
+        <http://spinrdf.org/spl#testResult> "2008-02-13"^^xsd:date
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-hhmm>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:2f26ba24bbf9ed910585dba6ff805b7d,
+        <http://spinrdf.org/spl#testResult> "18:30:00"^^xsd:time
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-yyyyMMdd>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:8db4962da7fb79526a300eb6823e2ee1,
+        <http://spinrdf.org/spl#testResult> "2008-02-13"^^xsd:date
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-parseDate-yyyyMMddhhmm>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:a27bae52e0021dc605e0ce81ce8c0220,
+        <http://spinrdf.org/spl#testResult> "2008-02-13T18:30:00"^^xsd:dateTime
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-unCamelCase-1>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:5fd5f4783573374be8ecbc46b4693312,
+        <http://spinrdf.org/spl#testResult> "Semantic web"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#Test-unCamelCase-2>
+
+    Annotations: 
+        <http://spinrdf.org/spl#testExpression> _:1bbb08769387f9ff07cb6f7ae1ac6a4c,
+        <http://spinrdf.org/spl#testResult> "seman tic Web23"
+    
+    Types: 
+        <http://spinrdf.org/spl#TestCase>
+    
+    
+Individual: <http://spinrdf.org/spif#buildString>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:f159b0bb91267cf677751ad0656c0a61,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Constructs a new string by inserting the existing variable bindings into a template. The template can mention variable names in curly braces, such as \"Hello {?index}\" would create \"Hello 42\" is ?index has the value 42. As an alternative to variable names, the function can take additional arguments after the template, the variables of which can be accessed using {?1}, {?2} etc. For example: smf:buildString(\"Hello-{?1}-{?2}\", ?day, ?month) would insert day and month at places {?1} and {?2}.",
+        rdfs:label "build string"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:f159b0bb91267cf677751ad0656c0a61
+    
+    
+Individual: <http://spinrdf.org/spif#buildStringFromRDFList>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:1286d38318ed7eeb066ed1a8c9be4dc0,
+        <http://spinrdf.org/spin#constraint> _:42c3dcef2e95b7310f295c1df115acd1,
+        <http://spinrdf.org/spin#constraint> _:572027dbc38418c040a3ab6094819583,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Builds a string from the members of a given rdf:List (?arg1). The function iterates over all members of the list (which must be well-formed according to the RDF syntax rules). For each member, a string template (?arg2) is applied where the expression {?member} will be substituted with the current member. Optionally, a separator (?arg3) can be inserted between the list members in the result string, e.g. to insert a comma.",
+        rdfs:label "build string from RDF list"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:1286d38318ed7eeb066ed1a8c9be4dc0,
+     <http://spinrdf.org/spin#constraint>  _:42c3dcef2e95b7310f295c1df115acd1,
+     <http://spinrdf.org/spin#constraint>  _:572027dbc38418c040a3ab6094819583
+    
+    
+Individual: <http://spinrdf.org/spif#buildURI>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:a11c885fa8df7e1eb98bb8788b7c8102,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "Constructs a new URI resource by inserting the existing variable bindings into a template. The template can mention variable names in curly braces, such as \"my:Instance-{?index}\" would create \"my:Instance-42\" is ?index has the value 42. As an alternative to variable names, the function can take additional arguments after the template, the variables of which can be accessed using {?1}, {?2} etc. For example: smf:buildURI(\"my:Instance-{?1}-{?2}\", ?day, ?month) would insert day and month at places {?1} and {?2}.",
+        rdfs:label "build URI"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:a11c885fa8df7e1eb98bb8788b7c8102
+    
+    
+Individual: <http://spinrdf.org/spif#buildUniqueURI>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:bc54ab12812a741b213730165beafcd0,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "A variation of smf:buildURI that also makes sure that the created URI is unique in the current graph (that is, no triple contains the URI as either subject, predicate or object). This function is particularly useful for ontology mapping from a legacy data source into an RDF model.",
+        rdfs:label "build unique URI"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:bc54ab12812a741b213730165beafcd0
+    
+    
+Individual: <http://spinrdf.org/spif#camelCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:08d6958e7de6b9f236f416277e86d446,
+        <http://spinrdf.org/spin#constraint> _:1126826931a7efc93115962dbe69ac56,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into camel case. 
+For example, \"semantic web\" becomes \"SemanticWeb\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "camel case"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:08d6958e7de6b9f236f416277e86d446,
+     <http://spinrdf.org/spin#constraint>  _:1126826931a7efc93115962dbe69ac56
+    
+    
+Individual: <http://spinrdf.org/spif#canInvoke>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:129538c4ccbf7c8390970d3c64a64a44,
+        <http://spinrdf.org/spin#constraint> _:144c945349de0758a38185bc35a38bca,
+        <http://spinrdf.org/spin#constraint> _:1b3cc7332d9d2d139488fc337501dfc0,
+        <http://spinrdf.org/spin#constraint> _:3b3210ad0576e9592a1ab928e39bca79,
+        <http://spinrdf.org/spin#constraint> _:f8e89e69224aff1958cfd2a0469adb66,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given SPIN function (?arg1) can be invoked with a given list of argument (?arg2, ?arg3, ...) without violating any of its declared SPIN constraints. In addition to the usual argument declarations, the SPIN function may declare ASK and CONSTRUCT queries to check additional pre-conditions.",
+        rdfs:label "can invoke"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:129538c4ccbf7c8390970d3c64a64a44,
+     <http://spinrdf.org/spin#constraint>  _:144c945349de0758a38185bc35a38bca,
+     <http://spinrdf.org/spin#constraint>  _:1b3cc7332d9d2d139488fc337501dfc0,
+     <http://spinrdf.org/spin#constraint>  _:3b3210ad0576e9592a1ab928e39bca79,
+     <http://spinrdf.org/spin#constraint>  _:f8e89e69224aff1958cfd2a0469adb66
+    
+    
+Individual: <http://spinrdf.org/spif#cast>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:04ba3b1f4ed89f84b6e86f6bdfdf03b9,
+        <http://spinrdf.org/spin#constraint> _:7a092aa4babc9cd4c2acb19f701ff58d,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2000/01/rdf-schema#Literal>,
+        rdfs:comment "Creates a new literal from an existing literal, but with a different datatype. This can, for example, be used to convert between floating point values and int values.",
+        rdfs:label "cast"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:04ba3b1f4ed89f84b6e86f6bdfdf03b9,
+     <http://spinrdf.org/spin#constraint>  _:7a092aa4babc9cd4c2acb19f701ff58d
+    
+    
+Individual: <http://spinrdf.org/spif#convertSPINRDFToString>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:49a1c16c3aadc5fb10fba615453a355a,
+        <http://spinrdf.org/spin#constraint> _:c24de3adabf0907c35d2798347a1301d,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts a SPARQL query encoded in SPIN RDF format to a SPARQL string in textual form. The SPIN query must be well-formed in the context graph at execution time, and the provided argument must be the root of the expression (e.g., an instance of sp:Select).
+
+This function is available as part of the TopBraid SPIN Libraries.",
+        rdfs:label "convert SPIN RDF to string"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:49a1c16c3aadc5fb10fba615453a355a,
+     <http://spinrdf.org/spin#constraint>  _:c24de3adabf0907c35d2798347a1301d
+    
+    
+Individual: <http://spinrdf.org/spif#countMatches>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:57b7332c6c63421be6e0e490a0dfdffc,
+        <http://spinrdf.org/spin#constraint> _:75b687672b24d7325215886ed4d8c8c0,
+        <http://spinrdf.org/spin#constraint> _:db461670d4224cd19347e186799ff5cf,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "Counts all occurrences of a triple pattern based on subject (?arg1), predicate (?arg2) and object (?arg3) input. Any of those can be unbound variables.
+
+This function is available as part of the TopBraid SPIN Libraries.",
+        rdfs:label "count matches"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:57b7332c6c63421be6e0e490a0dfdffc,
+     <http://spinrdf.org/spin#constraint>  _:75b687672b24d7325215886ed4d8c8c0,
+     <http://spinrdf.org/spin#constraint>  _:db461670d4224cd19347e186799ff5cf
+    
+    
+Individual: <http://spinrdf.org/spif#countTransitiveSubjects>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:1ffdb28ce64bf83ac17b44df17667321,
+        <http://spinrdf.org/spin#constraint> _:36902220528f33730f0147b21d598b3b,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "Given a predicate and an object, this function computes the number of matches using
+
+SELECT (COUNT(DISTINCT ?subject) AS ?result)
+WHERE {
+	?subject ?predicate* ?object .
+}
+
+The main purpose of this function is to optimize performance - this direction of * traversal is currently very slow in Jena. The function can be used to compute the number of subclasses of a given class."
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:1ffdb28ce64bf83ac17b44df17667321,
+     <http://spinrdf.org/spin#constraint>  _:36902220528f33730f0147b21d598b3b
+    
+    
+Individual: <http://spinrdf.org/spif#currentTimeMillis>
+
+    Annotations: 
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#long>,
+        rdfs:comment "Returns the current time in milliseconds. See System.currentTimeMillis() in Java.",
+        rdfs:label "current time millis"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    
+Individual: <http://spinrdf.org/spif#dateFormat>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:8d6e9cadd2035a157bea661b912de52d,
+        <http://spinrdf.org/spin#constraint> _:b2d4f769c5d00b707dc0acd06c7fe185,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Takes a date/time literal and a pattern and renders the date according to the pattern. This is a reverse of spif:parseDate and uses the same format.",
+        rdfs:label "date format"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:8d6e9cadd2035a157bea661b912de52d,
+     <http://spinrdf.org/spin#constraint>  _:b2d4f769c5d00b707dc0acd06c7fe185
+    
+    
+Individual: <http://spinrdf.org/spif#decimalFormat>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:b48e1617739b315b3593e5084bc94da0,
+        <http://spinrdf.org/spin#constraint> _:bc80847018ac546726a092ebf3e0fd47,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Takes a number as its first argument and applies a given formatting string to it, for example, to convert a floating point into a number that has exactly two decimal places after the dot. For example, spif:decimalFormat(12.3456, \"#.##\") returns \"12.35\". The resulting string can then by cast back to a number, e.g. using xsd:double(?str).",
+        rdfs:label "decimal format"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:b48e1617739b315b3593e5084bc94da0,
+     <http://spinrdf.org/spin#constraint>  _:bc80847018ac546726a092ebf3e0fd47
+    
+    
+Individual: <http://spinrdf.org/spif#decodeURL>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:4f151a5ee137a31140ecd7960633ec2a,
+        <http://spinrdf.org/spin#constraint> _:ac81b2fcb4ed5862b981917575ab3246,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Decodes a URL string - this is the inverse operation of spif:encodeURL.",
+        rdfs:label "decode URL"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:4f151a5ee137a31140ecd7960633ec2a,
+     <http://spinrdf.org/spin#constraint>  _:ac81b2fcb4ed5862b981917575ab3246
+    
+    
+Individual: <http://spinrdf.org/spif#encodeURL>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:3dabc90bc0c8929a71367eb77eebb412,
+        <http://spinrdf.org/spin#constraint> _:8491b5baa7e260aab95db8859899f061,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Encodes a URL string, for example so that it can be passed as an argument to REST services.",
+        rdfs:label "encode URL"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:3dabc90bc0c8929a71367eb77eebb412,
+     <http://spinrdf.org/spin#constraint>  _:8491b5baa7e260aab95db8859899f061
+    
+    
+Individual: <http://spinrdf.org/spif#evalPath>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:78f593dd1ee0491f129d351afd834f91,
+        <http://spinrdf.org/spin#constraint> _:cb1c3409cff9381be58a101819711ec9,
+        rdfs:comment "Takes a starting node (?arg1) and a SPARQL path expression (?arg2) and binds all matching results of the path evaluation.",
+        rdfs:label "eval path"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:78f593dd1ee0491f129d351afd834f91,
+     <http://spinrdf.org/spin#constraint>  _:cb1c3409cff9381be58a101819711ec9
+    
+    
+Individual: <http://spinrdf.org/spif#for>
+
+    Annotations: 
+        rdfs:comment "Can be used to iterate over a range of (integer) numbers similar to a for loop in iterative programming languages. An unbound variable must be placed on the left side of this magic property. On the right side, a list of two numbers needs to be placed.
+
+For example, ?index spif:for (1 10) binds ?index to all xsd:integers >= 1 and <= 10.
+
+By default it will add +1 to each step. It is possible to walk different steps and direction by specifying a third argument on the right, e.g. ?index spif:for (10 1 -1) will walk from 10 to 1 backwards.",
+        rdfs:label "for"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    
+Individual: <http://spinrdf.org/spif#foreach>
+
+    Annotations: 
+        rdfs:comment "Can be used to \"iterate\" over a list of RDF nodes given as members of a list on the right. An unbound variable must be on the left side of the magic property. On the right side, a list of nodes with arbitrary length can be placed.
+
+For example, ?subject spif:foreach (owl:Thing owl:Nothing) will bind ?subject to owl:Thing and then owl:Nothing.",
+        rdfs:label "for each"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    
+Individual: <http://spinrdf.org/spif#generateLabel>
+
+    Annotations: 
+        <http://spinrdf.org/spin#body> _:3792b01bf96bf93b6df10adf5cbf6c36,
+        <http://spinrdf.org/spin#constraint> _:a34c374ad983a6ee0a3b1699f5107729,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Constructs a human-readable label for a URI resource by taking everything after the last '/' or the last '#' as starting point.",
+        rdfs:label "generate label"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:a34c374ad983a6ee0a3b1699f5107729
+    
+    
+Individual: <http://spinrdf.org/spif#generateUUID>
+
+    Annotations: 
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Generates a new unique ID as a string literal. This is often useful for creating \"random\" URIs and other identifiers.",
+        rdfs:label "generate UUID"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    
+Individual: <http://spinrdf.org/spif#hasAllObjects>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:008c2a0afebef3606528d42401a42ce5,
+        <http://spinrdf.org/spin#constraint> _:6d9808d0c76e5fb00f9b238c134c3efb,
+        <http://spinrdf.org/spin#constraint> _:e80b82dd186c26edbe78b529fd0dca54,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given subject/predicate combination has all values enumerated from a given rdf:List. In other words, for each member ?object of the rdf:List, the triple (?arg1, ?arg2, ?object) must be in the model to return true. If the list is empty, true will also be returned.",
+        rdfs:label "has all objects"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:008c2a0afebef3606528d42401a42ce5,
+     <http://spinrdf.org/spin#constraint>  _:6d9808d0c76e5fb00f9b238c134c3efb,
+     <http://spinrdf.org/spin#constraint>  _:e80b82dd186c26edbe78b529fd0dca54
+    
+    
+Individual: <http://spinrdf.org/spif#indexOf>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:2b3aaf31d270a0705b06905f2350f701,
+        <http://spinrdf.org/spin#constraint> _:a4af37c9a4f4fa2ddff08c80ca88e1c6,
+        <http://spinrdf.org/spin#constraint> _:f25485c1f13d19808d123afacb4f9cf0,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "Gets the index of the first occurrence of a certain substring in a given search string. Returns an error if the substring is not found.",
+        rdfs:label "index of"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:2b3aaf31d270a0705b06905f2350f701,
+     <http://spinrdf.org/spin#constraint>  _:a4af37c9a4f4fa2ddff08c80ca88e1c6,
+     <http://spinrdf.org/spin#constraint>  _:f25485c1f13d19808d123afacb4f9cf0
+    
+    
+Individual: <http://spinrdf.org/spif#invoke>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:71a993703d63d93a9bb940f60c3bcdf2,
+        <http://spinrdf.org/spin#constraint> _:dd8977edb8fdb0bc0d9b743915b361cf,
+        <http://spinrdf.org/spin#constraint> _:df552d8ff09b5490c77c0b3d6e6473fe,
+        <http://spinrdf.org/spin#constraint> _:e2bc5aeb92cd551ac790029720d291e5,
+        <http://spinrdf.org/spin#constraint> _:e30e6dd9d08bc5e8649b8dfe28bf9a67,
+        rdfs:comment "Calls another SPARQL function specified by a URI resource (?arg1), with additional arguments passed into from ?arg2 onwards. This can be used to dynamically call functions, the URI of which is now known statically. The result of the function call will be passed on as result of the invoke call.
+
+The function can also be a binary built-in SPARQL function using the SPIN function identifiers from the SPL ontology. For example, sp:gt will be executed as ?left > ?right.",
+        rdfs:label "invoke"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:71a993703d63d93a9bb940f60c3bcdf2,
+     <http://spinrdf.org/spin#constraint>  _:dd8977edb8fdb0bc0d9b743915b361cf,
+     <http://spinrdf.org/spin#constraint>  _:df552d8ff09b5490c77c0b3d6e6473fe,
+     <http://spinrdf.org/spin#constraint>  _:e2bc5aeb92cd551ac790029720d291e5,
+     <http://spinrdf.org/spin#constraint>  _:e30e6dd9d08bc5e8649b8dfe28bf9a67
+    
+    
+Individual: <http://spinrdf.org/spif#isReadOnlyTriple>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:836dc075a0821b55ac301d2828742e29,
+        <http://spinrdf.org/spin#constraint> _:b65c4f2768f2e4c1ce0d7d98c020297c,
+        <http://spinrdf.org/spin#constraint> _:bd1b2f792ce8517737759501242356b8,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given triple is read-only, that is, cannot be deleted. Triples that are in the system ontology are generally not deletable. TopBraid also enforces that triples from a read-only file or back-end are read-only. Other platforms may have different privilege rules for this function.",
+        rdfs:label "is read only triple"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:836dc075a0821b55ac301d2828742e29,
+     <http://spinrdf.org/spin#constraint>  _:b65c4f2768f2e4c1ce0d7d98c020297c,
+     <http://spinrdf.org/spin#constraint>  _:bd1b2f792ce8517737759501242356b8
+    
+    
+Individual: <http://spinrdf.org/spif#isValidURI>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:918bdf96dc32a93ac099f30d84a49882,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "Checks whether a given input string is a well-formed absolute URI. This can be used to validate user input before it is turned into a URI resource.",
+        rdfs:label "is valid URI"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:918bdf96dc32a93ac099f30d84a49882
+    
+    
+Individual: <http://spinrdf.org/spif#labelTemplateSegment>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:e7a04e90cf5199db95c1194392804cfd,
+        rdfs:comment "Takes a Template and splits its spin:labelTemplate into an iteration over string constants or properties. The properties align with the spl:predicates of the declared spl:Arguments of the template. Among others, this magic property can be used to render template calls into user interface components.",
+        rdfs:label "label template segment"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:e7a04e90cf5199db95c1194392804cfd
+    
+    
+Individual: <http://spinrdf.org/spif#lastIndexOf>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:62dcaf38f8ebf4d1b4624fcf76dcc2b7,
+        <http://spinrdf.org/spin#constraint> _:b9f08b2adb4bc9f2609753fd1c906ccd,
+        <http://spinrdf.org/spin#constraint> _:c2307e42bfb7b40bfb226f239989676f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "Gets the index of the last occurrence of a certain substring in a given search string. Returns an error if the substring is not found.",
+        rdfs:label "last index of"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:62dcaf38f8ebf4d1b4624fcf76dcc2b7,
+     <http://spinrdf.org/spin#constraint>  _:b9f08b2adb4bc9f2609753fd1c906ccd,
+     <http://spinrdf.org/spin#constraint>  _:c2307e42bfb7b40bfb226f239989676f
+    
+    
+Individual: <http://spinrdf.org/spif#localName>
+
+    Annotations: 
+        <http://spinrdf.org/spin#body> _:e097c6f86ee2fee9c50d97c35e4376bd,
+        <http://spinrdf.org/spin#constraint> _:627e742e94d7ae9ad1385112cf931730,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Gets a \"local name\" from a URI resource. This takes everything after the last '/' or '#' character of the URI. This function is a more intuitive alternative to afn:localname, which strictly follows the W3C namespace splitting algorithm that often leads to surprising results.",
+        rdfs:label "local name"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:627e742e94d7ae9ad1385112cf931730
+    
+    
+Individual: <http://spinrdf.org/spif#lowerCamelCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:1f5a23c95d68334647b4a65ca8fe0ee7,
+        <http://spinrdf.org/spin#constraint> _:3eaec9771378aac586b2dfb9916c02f7,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into lower camel case.
+For example, \"semantic web\" becomes \"semanticWeb\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "lower camel case"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:1f5a23c95d68334647b4a65ca8fe0ee7,
+     <http://spinrdf.org/spin#constraint>  _:3eaec9771378aac586b2dfb9916c02f7
+    
+    
+Individual: <http://spinrdf.org/spif#lowerCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:a8ef29214226afddd3b1f66450abee26,
+        <http://spinrdf.org/spin#constraint> _:c384c97a636fc532491b67035a8f0ac7,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into lower case. 
+For example, \"SEMANTIC Web\" becomes \"semantic web\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "lower case"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:a8ef29214226afddd3b1f66450abee26,
+     <http://spinrdf.org/spin#constraint>  _:c384c97a636fc532491b67035a8f0ac7
+    
+    
+Individual: <http://spinrdf.org/spif#lowerTitleCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:590d98cb364aec35499dd6481dec3b70,
+        <http://spinrdf.org/spin#constraint> _:5feeb3bb334160974c111e8b494650e0,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into lower title case. 
+For example, \"semantic web\" becomes \"semantic Web\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "lower title case"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:590d98cb364aec35499dd6481dec3b70,
+     <http://spinrdf.org/spin#constraint>  _:5feeb3bb334160974c111e8b494650e0
+    
+    
+Individual: <http://spinrdf.org/spif#mod>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:1907dca2d0db038a1eba865d9976b6c8,
+        <http://spinrdf.org/spin#constraint> _:5e57e095de64f3602cae36ef3efb305e,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "The mathematical modulo operator, aka % in Java.",
+        rdfs:label "mod"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:1907dca2d0db038a1eba865d9976b6c8,
+     <http://spinrdf.org/spin#constraint>  _:5e57e095de64f3602cae36ef3efb305e
+    
+    
+Individual: <http://spinrdf.org/spif#name>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:161a202ebd9f8a586794493b06f0c775,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Gets a human-readable string representation from an RDF node. If it's a literal, the function will return the literal's lexical text. If it's a resource the system will use the rdfs:label (if exists) or otherwise use the qname. For an unbound input, the function will return no value.",
+        rdfs:label "name"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:161a202ebd9f8a586794493b06f0c775
+    
+    
+Individual: <http://spinrdf.org/spif#parseDate>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:08630930dc843b63c89a2f20361dd702,
+        <http://spinrdf.org/spin#constraint> _:267266174f72d8dc5b79ec6c4e7b9f00,
+        <http://spinrdf.org/spin#constraint> _:29585860195a8fb193b8401b5a958aa0,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2000/01/rdf-schema#Literal>,
+        rdfs:comment "Converts a string in a semi-structured format into a xsd:date, xsd:dateTime or xsd:time literal. The input string must be in a given template format, e.g. \"yyyy.MM.dd G 'at' HH:mm:ss z\" for strings such as 2001.07.04 AD at 12:08:56 PDT.",
+        rdfs:label "parse date"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:08630930dc843b63c89a2f20361dd702,
+     <http://spinrdf.org/spin#constraint>  _:267266174f72d8dc5b79ec6c4e7b9f00,
+     <http://spinrdf.org/spin#constraint>  _:29585860195a8fb193b8401b5a958aa0
+    
+    
+Individual: <http://spinrdf.org/spif#prefix>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:bd66afddaa23f668042c913c22acfc4a,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Can be used to get namespaces and their prefixes. This magic property takes the namespace (string) or a variable on the left and a prefix or a variable on the right. If both are unbound variables, then it will iterate over all namespaces and their prefixes. Otherwise it will bind the namespace or prefix. If both are bound, the system checks whether the given prefix is for the given namespace.",
+        rdfs:label "prefix"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:bd66afddaa23f668042c913c22acfc4a
+    
+    
+Individual: <http://spinrdf.org/spif#random>
+
+    Annotations: 
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#double>,
+        rdfs:comment "Creates a random xsd:double between 0 and 1.",
+        rdfs:label "random"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    
+Individual: <http://spinrdf.org/spif#regex>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:50f0ae04a8e663367a64c5752876ed85,
+        <http://spinrdf.org/spin#constraint> _:5da444c7a7587f8342567c54734e3ed4,
+        <http://spinrdf.org/spin#constraint> _:d61b326e4fd12ea44b0077cf901bd66f,
+        <http://spinrdf.org/spin#constraint> _:e5b5f2bec45b50fd9e79099338ba5f44,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "An input string is converted into a result string by applying a match and replacement expressions.
+For example, the input string \"semantic web\" with the match expression \"([A-z]+) ([A-z]+)\" and the replacement expression \"The $1 life\" returns the string \"The semantic life\".
+An optional input string is returned, if no match occurs. If this string is empty and no match occurs, then the result string is unbound.",
+        rdfs:label "regex"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:50f0ae04a8e663367a64c5752876ed85,
+     <http://spinrdf.org/spin#constraint>  _:5da444c7a7587f8342567c54734e3ed4,
+     <http://spinrdf.org/spin#constraint>  _:d61b326e4fd12ea44b0077cf901bd66f,
+     <http://spinrdf.org/spin#constraint>  _:e5b5f2bec45b50fd9e79099338ba5f44
+    
+    
+Individual: <http://spinrdf.org/spif#replaceAll>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:76b18787fa1ca009816970a007a73813,
+        <http://spinrdf.org/spin#constraint> _:9a0eb8d4dd2ccae216ba73a56052daa2,
+        <http://spinrdf.org/spin#constraint> _:fa91850756c9deebabe7882e3869b61f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Does a string replacement based on the Java function String.replaceAll().",
+        rdfs:label "replace all"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:76b18787fa1ca009816970a007a73813,
+     <http://spinrdf.org/spin#constraint>  _:9a0eb8d4dd2ccae216ba73a56052daa2,
+     <http://spinrdf.org/spin#constraint>  _:fa91850756c9deebabe7882e3869b61f
+    
+    
+Individual: <http://spinrdf.org/spif#shortestObjectsPath>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:3650fd14df9c013bb55e3cd2070b6af5,
+        <http://spinrdf.org/spin#constraint> _:a6a0808cac4e6c041fc5b07a16e2880e,
+        <http://spinrdf.org/spin#constraint> _:b7bbabac70e30c9c5998aab8ad487c86,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Finds the shortest path from a given subject walking up a given predicate (for example, rdfs:subClassOf) and returns the path as a string of URIs separated with a space. This can be used to find the shortest path from a resource in a tree structure to the root resource.",
+        rdfs:label "shortest objects path"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:3650fd14df9c013bb55e3cd2070b6af5,
+     <http://spinrdf.org/spin#constraint>  _:a6a0808cac4e6c041fc5b07a16e2880e,
+     <http://spinrdf.org/spin#constraint>  _:b7bbabac70e30c9c5998aab8ad487c86
+    
+    
+Individual: <http://spinrdf.org/spif#shortestSubjectsPath>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:20d1772508d61c27bcda723b0a7586ad,
+        <http://spinrdf.org/spin#constraint> _:a7ed9ffb091862a5ae578a9360a6f57f,
+        <http://spinrdf.org/spin#constraint> _:b64ce38fdbef3367e1c1603058a9918d,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Finds the shortest path from a given object walking up a given predicate (for example, schema:child) and returns the path as a string of URIs separated with a space. This can be used to find the shortest path from a resource in a tree structure to the root resource.",
+        rdfs:label "shortest subjects path"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:20d1772508d61c27bcda723b0a7586ad,
+     <http://spinrdf.org/spin#constraint>  _:a7ed9ffb091862a5ae578a9360a6f57f,
+     <http://spinrdf.org/spin#constraint>  _:b64ce38fdbef3367e1c1603058a9918d
+    
+    
+Individual: <http://spinrdf.org/spif#split>
+
+    Annotations: 
+        rdfs:comment "Splits a given string and iterates over all sub-strings. An unbound variable must be placed on the left side of this magic property. A list with two members must be on the right. The first is the string to split, and the second is a regular expression.
+
+For example, ?str spif:split (\"Hello World\" \" \") will bind ?str to \"Hello\" and \"World\".",
+        rdfs:label "split"
+    
+    Types: 
+        <http://spinrdf.org/spin#MagicProperty>
+    
+    
+Individual: <http://spinrdf.org/spif#timeMillis>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:6f859f855ed1e148ae3b0b78ee5a7e2f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#long>,
+        rdfs:comment "Returns the time of a given xsd:dateTime value in milliseconds.",
+        rdfs:label "time millis"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:6f859f855ed1e148ae3b0b78ee5a7e2f
+    
+    
+Individual: <http://spinrdf.org/spif#titleCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:22939592e90392594bf9ac9981fcb3a9,
+        <http://spinrdf.org/spin#constraint> _:a57509803660a9a88facce4770a5da8f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string to title case.
+For example, \"germany\" becomes \"Germany\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "title case"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:22939592e90392594bf9ac9981fcb3a9,
+     <http://spinrdf.org/spin#constraint>  _:a57509803660a9a88facce4770a5da8f
+    
+    
+Individual: <http://spinrdf.org/spif#toJavaIdentifier>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:4b1327a2a06b39badb631fb83d86908d,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Produces a valid Java identifier based on a given input string, dropping any characters that would not be valid Java identifiers. Produces the empty string if no character can be reused from the given string. Note that this function is even stricter than the normal Java identifier algorithm, as it only allows ASCII characters or digits.",
+        rdfs:label "to Java identifier"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:4b1327a2a06b39badb631fb83d86908d
+    
+    
+Individual: <http://spinrdf.org/spif#trim>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:d2fd9e3bea3f813d0eca22bb9e8ad07f,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Creates a new string value by trimming an input string. Leading and trailing whitespaces are deleted.",
+        rdfs:label "trim"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:d2fd9e3bea3f813d0eca22bb9e8ad07f
+    
+    
+Individual: <http://spinrdf.org/spif#unCamelCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:fa67020b62e132b2df5de6b12f723c78,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into a reverse camel case.",
+        rdfs:label "un-camel case"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:fa67020b62e132b2df5de6b12f723c78
+    
+    
+Individual: <http://spinrdf.org/spif#upperCase>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:2f7e409582672fcf8d2a21b8124f5521,
+        <http://spinrdf.org/spin#constraint> _:62edb734d3050a500e0a5286ebcf66fb,
+        <http://spinrdf.org/spin#returnType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "Converts an input string into upper case. 
+For example, \"semantic web\" becomes \"SEMANTIC WEB\".
+An optional matching expression can be given to only convert the matched characters.",
+        rdfs:label "upper case"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:2f7e409582672fcf8d2a21b8124f5521,
+     <http://spinrdf.org/spin#constraint>  _:62edb734d3050a500e0a5286ebcf66fb
+    
+    
+Individual: <http://spinrdf.org/spif#walkObjects>
+
+    Annotations: 
+        <http://spinrdf.org/spin#constraint> _:5ba636c1c739279ef35e790574152c8a,
+        <http://spinrdf.org/spin#constraint> _:62b7fa3a39c9436624d4d86ad2382c66,
+        <http://spinrdf.org/spin#constraint> _:e3c8eb6b93df670086374a3d31596210,
+        rdfs:comment "Performs a depth-first tree traversal starting at a given node (?arg1) and then following the objects using a given predicate (?arg2). For each node it applies a given function (?arg3) that must take the current node as its first argument. All other arguments of the walkObjects function call will be passed into that function. The traversal stops on the first non-null result of the nested function calls.
+
+As use case of this function is to walk up superclasses, e.g. to find the \"nearest\" owl:Restriction of a certain kind.",
+        rdfs:label "walk objects"
+    
+    Types: 
+        <http://spinrdf.org/spin#Function>
+    
+    Facts:  
+     <http://spinrdf.org/spin#constraint>  _:5ba636c1c739279ef35e790574152c8a,
+     <http://spinrdf.org/spin#constraint>  _:62b7fa3a39c9436624d4d86ad2382c66,
+     <http://spinrdf.org/spin#constraint>  _:e3c8eb6b93df670086374a3d31596210
+    
+    
+Individual: <http://spinrdf.org/spif>
+
+    Types: 
+        <http://spinrdf.org/spin#LibraryOntology>,
+        owl:Ontology
+    
+    
+Individual: _:008c2a0afebef3606528d42401a42ce5
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "the match subject"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:0363aef86172d482977f1dec1b9947f1
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "dd.MM.yyyy",
+        <http://spinrdf.org/sp#arg1> "13.02.2008"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:04ba3b1f4ed89f84b6e86f6bdfdf03b9
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/arg#datatype>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Datatype>,
+        rdfs:comment "The target datatype, e.g. xsd:integer. Leave blank for untyped literals."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:08630930dc843b63c89a2f20361dd702
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The code of the language (e.g. \"de\" for German) to use for parsing."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:08d6958e7de6b9f236f416277e86d446
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The match expression"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:1126826931a7efc93115962dbe69ac56
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the input string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:1286d38318ed7eeb066ed1a8c9be4dc0
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>,
+        rdfs:comment "the head of the rdf:List to convert to string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:129538c4ccbf7c8390970d3c64a64a44
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg4>,
+        rdfs:comment "The third argument of the function call."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:144c945349de0758a38185bc35a38bca
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg5>,
+        rdfs:comment "The forth argument of the function call."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:161a202ebd9f8a586794493b06f0c775
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        rdfs:comment "the node (literal or resource) that shall be rendered into a string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:1907dca2d0db038a1eba865d9976b6c8
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "The first operand."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:1b3cc7332d9d2d139488fc337501dfc0
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        rdfs:comment "The second argument of the function call."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:1bbb08769387f9ff07cb6f7ae1ac6a4c
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> "semanTic_Web23"
+    
+    Types: 
+        <http://spinrdf.org/spif#unCamelCase>
+    
+    
+Individual: _:1f5a23c95d68334647b4a65ca8fe0ee7
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the input string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:1ffdb28ce64bf83ac17b44df17667321
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>,
+        rdfs:comment "The predicate to walk."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:20d1772508d61c27bcda723b0a7586ad
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The object to start with."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:22939592e90392594bf9ac9981fcb3a9
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The input string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:267266174f72d8dc5b79ec6c4e7b9f00
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the input text"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:26de994a48176968b15cafe9ccb707c6
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> <http://example.org/test/.123>
+    
+    Types: 
+        <http://spinrdf.org/spif#localName>
+    
+    
+Individual: _:29585860195a8fb193b8401b5a958aa0
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/arg#pattern>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The template of the input string. This must conform to the pattern language implemented by the Java SimpleDateFormat class (http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html)."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:2b3aaf31d270a0705b06905f2350f701
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "The optional index to start with."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:2f26ba24bbf9ed910585dba6ff805b7d
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "hhmm",
+        <http://spinrdf.org/sp#arg1> "1830"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:2f7e409582672fcf8d2a21b8124f5521
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The match expression"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:3650fd14df9c013bb55e3cd2070b6af5
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The optional target resource (root of the tree). If not specified, then the first node that has no further objects will be used."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:366b0488ab675de2b351f931744e00a0
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "MMMMMMMMM dd yyyy",
+        <http://spinrdf.org/sp#arg1> "February 13 2008"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:36902220528f33730f0147b21d598b3b
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The object to start traversal at."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:3792b01bf96bf93b6df10adf5cbf6c36
+
+    Annotations: 
+        <http://spinrdf.org/sp#text> "SELECT ?label
+WHERE {
+    BIND (spif:localName(?arg1) AS ?localName) .
+    BIND (spif:unCamelCase(?localName) AS ?label) .
+}"
+    
+    Types: 
+        <http://spinrdf.org/sp#Select>
+    
+    
+Individual: _:3b3210ad0576e9592a1ab928e39bca79
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        rdfs:comment "The first argument of the function call."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:3dabc90bc0c8929a71367eb77eebb412
+
+    Annotations: 
+        <http://spinrdf.org/spl#defaultValue> "UTF-8",
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The (optional) encoding. Defaults to UTF-8."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:3eaec9771378aac586b2dfb9916c02f7
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The match expression"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:42c3dcef2e95b7310f295c1df115acd1
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the template string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:49a1c16c3aadc5fb10fba615453a355a
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://spinrdf.org/sp#Query>,
+        rdfs:comment "the root of the SPIN RDF query"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:4b1327a2a06b39badb631fb83d86908d
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The input string."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:4e097058ce2589c5b986696ce823f2aa
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "dd MMMMMMMMM yyyy",
+        <http://spinrdf.org/sp#arg1> "13 February 2008"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:4f151a5ee137a31140ecd7960633ec2a
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The URL to decode."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:50f0ae04a8e663367a64c5752876ed85
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The replacement expression"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:572027dbc38418c040a3ab6094819583
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the separator to insert between each string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:57b7332c6c63421be6e0e490a0dfdffc
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        rdfs:comment "the object in the match triple, or an unbound variable for a wildcard"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:590d98cb364aec35499dd6481dec3b70
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The match expression"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:5ba636c1c739279ef35e790574152c8a
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://spinrdf.org/spin#Function>,
+        rdfs:comment "The SPIN/SPARQL function to execute for each node."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:5da444c7a7587f8342567c54734e3ed4
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The match expression"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:5e57e095de64f3602cae36ef3efb305e
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "The second argument."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:5fd5f4783573374be8ecbc46b4693312
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> "SemanticWeb"
+    
+    Types: 
+        <http://spinrdf.org/spif#unCamelCase>
+    
+    
+Individual: _:5feeb3bb334160974c111e8b494650e0
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the input string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:627e742e94d7ae9ad1385112cf931730
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The URI resource to get the local name of."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:62b7fa3a39c9436624d4d86ad2382c66
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The start node of the traversal."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:62dcaf38f8ebf4d1b4624fcf76dcc2b7
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the sub string to search for"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:62edb734d3050a500e0a5286ebcf66fb
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The input string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:6d9808d0c76e5fb00f9b238c134c3efb
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>,
+        rdfs:comment "the match predicate"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:6f859f855ed1e148ae3b0b78ee5a7e2f
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#dateTime>,
+        rdfs:comment "The xsd:dateTime to convert."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:71a993703d63d93a9bb940f60c3bcdf2
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg4>,
+        rdfs:comment "The third argument of the function call."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:7379041307faa285198ed4a6c3086f85
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> <http://example.org/test#Aldi>
+    
+    Types: 
+        <http://spinrdf.org/spif#localName>
+    
+    
+Individual: _:75b687672b24d7325215886ed4d8c8c0
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>,
+        rdfs:comment "the predicate in the match triple, or an unbound variable for a wildcard"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:76b18787fa1ca009816970a007a73813
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The replacement string."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:78f593dd1ee0491f129d351afd834f91
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The path expression, as a parsable string."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:7a092aa4babc9cd4c2acb19f701ff58d
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Literal>,
+        rdfs:comment "the \"old\" literal that shall be converted"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:836dc075a0821b55ac301d2828742e29
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The subject of the triple to delete."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:8491b5baa7e260aab95db8859899f061
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The URL to encode."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:8d6e9cadd2035a157bea661b912de52d
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/arg#date>,
+        rdfs:comment "An xsd:date, xsd:dateTime or xsd:time literal containing the date and time to render."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:8db4962da7fb79526a300eb6823e2ee1
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "yyyyMMdd",
+        <http://spinrdf.org/sp#arg1> "20080213"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:918bdf96dc32a93ac099f30d84a49882
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The string to validate."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:927f10c9c9548cf1823b644ab3904198
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "MMMMMMMMM dd, yyyy",
+        <http://spinrdf.org/sp#arg1> "February 13, 2008"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:94b665d79c1a29c0b74e1496b918635c
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "MM/dd/yyyy",
+        <http://spinrdf.org/sp#arg1> "2/13/2008"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:9a0eb8d4dd2ccae216ba73a56052daa2
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The regular expression to search for."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:9aa41832e239e19e1d7f90326c3ea7d9
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> <http://example.org/test#LocalName>
+    
+    Types: 
+        <http://spinrdf.org/spif#generateLabel>
+    
+    
+Individual: _:a11c885fa8df7e1eb98bb8788b7c8102
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The URI template such as \"<http://my.com/Instance-{?index}>\". If the template contains a full URI, then it must be wrapped by <...>, otherwise the system will treat it as a qname."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:a27bae52e0021dc605e0ce81ce8c0220
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "yyyyMMddhhmm",
+        <http://spinrdf.org/sp#arg1> "200802131830"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:a34c374ad983a6ee0a3b1699f5107729
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The resource to generate a label for."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:a4af37c9a4f4fa2ddff08c80ca88e1c6
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the sub string to search for"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:a57509803660a9a88facce4770a5da8f
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The match expression"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:a646de2369f33e4e19e0d81fbc94029e
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "dd/MM/yyyy",
+        <http://spinrdf.org/sp#arg1> "13/2/2008"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:a6a0808cac4e6c041fc5b07a16e2880e
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>,
+        rdfs:comment "The predicate to walk, e.g. rdfs:subClassOf or skos:broader."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:a7ed9ffb091862a5ae578a9360a6f57f
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>,
+        rdfs:comment "The predicate to walk, e.g. schema:child."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:a8ef29214226afddd3b1f66450abee26
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the input string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:ac81b2fcb4ed5862b981917575ab3246
+
+    Annotations: 
+        <http://spinrdf.org/spl#defaultValue> "UTF-8",
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The (optional) encoding. Defaults to UTF-8."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:b2cb532dd26f045c5038cc593aa8c313
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> <http://example.org/test/123>
+    
+    Types: 
+        <http://spinrdf.org/spif#generateLabel>
+    
+    
+Individual: _:b2d4f769c5d00b707dc0acd06c7fe185
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/arg#pattern>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The output pattern."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:b48e1617739b315b3593e5084bc94da0
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/arg#pattern>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The pattern, following the syntax defined for the Java DecimalFormat class (see: http://download.oracle.com/javase/6/docs/api/java/text/DecimalFormat.html)."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:b64ce38fdbef3367e1c1603058a9918d
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The optional target resource (root of the tree). If not specified, then the first node that has no further subjects will be used."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:b65c4f2768f2e4c1ce0d7d98c020297c
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>,
+        rdfs:comment "The predicate of the triple to delete."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:b7bbabac70e30c9c5998aab8ad487c86
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The subject to start with."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:b8f8dd2bac884e41e6b280b07a79338b
+
+    Annotations: 
+        <http://spinrdf.org/arg#number> 12.3456,
+        <http://spinrdf.org/arg#pattern> "#.##"
+    
+    Types: 
+        <http://spinrdf.org/spif#decimalFormat>
+    
+    
+Individual: _:b90aca956fcfebad9f8fa1152c9fc9b3
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> "http://aldi.de"
+    
+    Types: 
+        <http://spinrdf.org/spif#isValidURI>
+    
+    
+Individual: _:b9567ada5d1031a186887355b7349a92
+
+    Annotations: 
+        <http://spinrdf.org/arg#date> "2008-02-13"^^xsd:date,
+        <http://spinrdf.org/arg#pattern> "MMMMMMMMM dd, yyyy"
+    
+    Types: 
+        <http://spinrdf.org/spif#dateFormat>
+    
+    
+Individual: _:b9f08b2adb4bc9f2609753fd1c906ccd
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#integer>,
+        rdfs:comment "The optional index to start with."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:bc54ab12812a741b213730165beafcd0
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The URI template such as \"<http://my.com/Instance-{?index}>\". If the template contains a full URI, then it must be wrapped by <...>, otherwise the system will treat it as a qname."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:bc80847018ac546726a092ebf3e0fd47
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/arg#number>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#decimal>,
+        rdfs:comment "The number to format."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:bd1b2f792ce8517737759501242356b8
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        rdfs:comment "The object of the triple to delete."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:bd66afddaa23f668042c913c22acfc4a
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The namespace (string) or an unbound variable."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:bd8b468be3d7a053430c0271c0bb48a2
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> 3,
+        <http://spinrdf.org/sp#arg2> 2
+    
+    Types: 
+        <http://spinrdf.org/spif#mod>
+    
+    
+Individual: _:c2307e42bfb7b40bfb226f239989676f
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the string to search in"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:c24de3adabf0907c35d2798347a1301d
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#boolean>,
+        rdfs:comment "true to embed HTML markup into the output"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:c384c97a636fc532491b67035a8f0ac7
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The match expression"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:cb1c3409cff9381be58a101819711ec9
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "The start node."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:cf2fb476bf5cea8d0582ef4ac749b9b8
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> "urn:x-evn-master:test/axiom%2042"
+    
+    Types: 
+        <http://spinrdf.org/spif#isValidURI>
+    
+    
+Individual: _:d2fd9e3bea3f813d0eca22bb9e8ad07f
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the text to trim"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:d61b326e4fd12ea44b0077cf901bd66f
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg4>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The optional string returned as result string if no match occurs. If this string is empty and no match occurs, then the result string is unbound."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:db461670d4224cd19347e186799ff5cf
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2000/01/rdf-schema#Resource>,
+        rdfs:comment "the subject in the match triple, or an unbound variable for a wildcard"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:dd8977edb8fdb0bc0d9b743915b361cf
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg5>,
+        rdfs:comment "The forth argument of the function call."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:df552d8ff09b5490c77c0b3d6e6473fe
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://spinrdf.org/spin#Function>,
+        rdfs:comment "The URI resource defining the function to call."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:e097c6f86ee2fee9c50d97c35e4376bd
+
+    Annotations: 
+        <http://spinrdf.org/sp#text> "SELECT ?localName
+WHERE {
+    BIND (xsd:string(?arg1) AS ?uri) .
+    BIND (spif:lastIndexOf(?uri, \"/\") AS ?slash) .
+    BIND (spif:lastIndexOf(?uri, \"#\") AS ?hash) .
+    BIND (IF(((!bound(?hash)) || (bound(?slash) && (?slash > ?hash))), ?slash, ?hash) AS ?sep) .
+    BIND (fn:substring(?uri, (?sep + 2)) AS ?localName) .
+}"
+    
+    Types: 
+        <http://spinrdf.org/sp#Select>
+    
+    
+Individual: _:e2bc5aeb92cd551ac790029720d291e5
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        rdfs:comment "The first argument of the function call."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:e30e6dd9d08bc5e8649b8dfe28bf9a67
+
+    Annotations: 
+        <http://spinrdf.org/spl#optional> true,
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        rdfs:comment "The second argument of the function call."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:e3c8eb6b93df670086374a3d31596210
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg2>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>,
+        rdfs:comment "The property to walk up."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:e3d68ae0e63ce654d7f263e5e03f84e2
+
+    Annotations: 
+        <http://spinrdf.org/arg#date> "01:02:03"^^xsd:time,
+        <http://spinrdf.org/arg#pattern> "hh::mm"
+    
+    Types: 
+        <http://spinrdf.org/spif#dateFormat>
+    
+    
+Individual: _:e5b5f2bec45b50fd9e79099338ba5f44
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the input string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:e7a04e90cf5199db95c1194392804cfd
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://spinrdf.org/spin#Template>,
+        rdfs:comment "The template to get the label segments of."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:e80b82dd186c26edbe78b529fd0dca54
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg3>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>,
+        rdfs:comment "an rdf:List containing the match objects"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:e8daf7cd318625cf09a148ae7f95f576
+
+    Annotations: 
+        <http://spinrdf.org/arg#pattern> "dd MMMMMMMMM, yyyy",
+        <http://spinrdf.org/sp#arg1> "13 February, 2008"
+    
+    Types: 
+        <http://spinrdf.org/spif#parseDate>
+    
+    
+Individual: _:eea82486784b4a9374f8ce546979ea6a
+
+    Annotations: 
+        <http://spinrdf.org/sp#arg1> "Aldi"
+    
+    Types: 
+        <http://spinrdf.org/spif#isValidURI>
+    
+    
+Individual: _:f159b0bb91267cf677751ad0656c0a61
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the template string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:f25485c1f13d19808d123afacb4f9cf0
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the string to search in"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:f8e89e69224aff1958cfd2a0469adb66
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://spinrdf.org/spin#Function>,
+        rdfs:comment "The function to check."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:fa67020b62e132b2df5de6b12f723c78
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "the input string"
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
+Individual: _:fa91850756c9deebabe7882e3869b61f
+
+    Annotations: 
+        <http://spinrdf.org/spl#predicate> <http://spinrdf.org/sp#arg1>,
+        <http://spinrdf.org/spl#valueType> <http://www.w3.org/2001/XMLSchema#string>,
+        rdfs:comment "The string to operate on."
+    
+    Types: 
+        <http://spinrdf.org/spl#Argument>
+    
+    
