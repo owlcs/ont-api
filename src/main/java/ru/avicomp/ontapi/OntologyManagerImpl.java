@@ -801,15 +801,25 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel getOntology(@Nonnull OWLOntologyID id) {
         getLock().readLock().lock();
         try {
-            Optional<OntInfo> res = content.get(id);
-            if (!res.isPresent() && !id.isAnonymous()) {
-                IRI iri = id.getOntologyIRI().orElseThrow(() -> new IllegalStateException("Should never happen."));
-                res = content.values().filter(e -> e.id().matchOntology(iri)).findFirst();
-            }
-            return res.map(OntInfo::get).orElse(null);
+            return ontology(id).orElse(null);
         } finally {
             getLock().readLock().unlock();
         }
+    }
+
+    /**
+     * Finds ontology by id or iri
+     *
+     * @param id {@link OWLOntologyID}
+     * @return Optional around {@link OntologyModel}
+     */
+    protected Optional<OntologyModel> ontology(OWLOntologyID id) {
+        Optional<OntInfo> res = content.get(id);
+        if (!res.isPresent() && !id.isAnonymous()) {
+            IRI iri = id.getOntologyIRI().orElseThrow(() -> new IllegalStateException("Should never happen."));
+            res = content.values().filter(e -> e.id().matchOntology(iri)).findFirst();
+        }
+        return res.map(OntInfo::get);
     }
 
     /**

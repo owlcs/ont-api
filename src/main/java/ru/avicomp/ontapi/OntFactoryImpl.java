@@ -598,6 +598,12 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             return new OntologyManagerImpl(delegate.getOWLDataFactory(), delegate.getLoadFactory(), new NoOpReadWriteLock()) {
 
                 @Override
+                protected Optional<OntologyModel> ontology(OWLOntologyID id) {
+                    Optional<OntologyModel> res = delegate.ontology(id);
+                    return res.isPresent() ? res : super.ontology(id);
+                }
+
+                @Override
                 protected Optional<OntologyModel> importedOntology(OWLImportsDeclaration declaration) {
                     Optional<OntologyModel> res = delegate.importedOntology(declaration);
                     return res.isPresent() ? res : super.importedOntology(declaration);
@@ -642,7 +648,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
 
                 @Override
                 public String toString() {
-                    return "CopyOf" + delegate.toString();
+                    return "CopyOf-" + delegate.toString();
                 }
             };
         }
