@@ -14,19 +14,12 @@
 
 package ru.avicomp.ontapi.tests;
 
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Resource;
 import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
@@ -38,13 +31,19 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * for testing pizza, foaf and googrelations ontologies.
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public class LoadTest {
-    private static final Logger LOGGER = Logger.getLogger(LoadTest.class);
+public class SimpleLoadTest {
+    private static final Logger LOGGER = Logger.getLogger(SimpleLoadTest.class);
 
     @Test
     public void testPizza() throws Exception {

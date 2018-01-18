@@ -25,9 +25,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
-import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import ru.avicomp.ontapi.*;
-import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.internal.InternalObject;
 import ru.avicomp.ontapi.internal.ReadHelper;
@@ -58,9 +56,9 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 22.12.2016.
  */
-public class ManagerTest {
+public class CommonManagerTest {
 
-    private static final Logger LOGGER = Logger.getLogger(ManagerTest.class);
+    private static final Logger LOGGER = Logger.getLogger(CommonManagerTest.class);
 
     @Test
     public void testBasics() throws OWLOntologyCreationException {
@@ -256,91 +254,6 @@ public class ManagerTest {
     }
 
     @Test
-    public void testLoadDifferentStrategies() throws Exception {
-        IRI sp = IRI.create("http://spinrdf.org/sp");
-        IRI spin = IRI.create("http://spinrdf.org/spin");
-        OWLOntologyIRIMapper mapSp = new SimpleIRIMapper(sp, IRI.create(ReadWriteUtils.getResourcePath("etc", "sp.ttl").toFile()));
-        OWLOntologyIRIMapper mapSpin = new SimpleIRIMapper(spin, IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toFile()));
-
-        LOGGER.info("1) Test load some web ontology for a case when only file scheme is allowed.");
-        OntologyManager m1 = OntManagers.createONT();
-        OntLoaderConfiguration conf = m1.getOntologyLoaderConfiguration().setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList()));
-        m1.setOntologyLoaderConfiguration(conf);
-        try {
-            Assert.fail("No exception while loading " + m1.loadOntology(sp));
-        } catch (OWLOntologyCreationException e) {
-            if (e instanceof OntFactoryImpl.ConfigMismatchException) {
-                LOGGER.info(e);
-            } else {
-                throw new AssertionError("Incorrect exception", e);
-            }
-        }
-
-        LOGGER.info("2) Add mapping and try to load again.");
-        m1.getIRIMappers().add(mapSp);
-        m1.loadOntology(sp);
-        Assert.assertEquals("Should be single ontology inside", 1, m1.ontologies().count());
-
-        LOGGER.info("3) Load new web-ontology which depends on this existing one.");
-        try {
-            Assert.fail("No exception while loading " + m1.loadOntology(spin));
-        } catch (OWLOntologyCreationException e) {
-            if (e instanceof OntFactoryImpl.ConfigMismatchException) {
-                LOGGER.info(e);
-            } else {
-                throw new AssertionError("Incorrect exception", e);
-            }
-        }
-        Assert.assertEquals("Should be single ontology inside", 1, m1.ontologies().count());
-
-        LOGGER.info("4) Try to load new web-ontology with file mapping which depends on some other web-ontology.");
-        OntologyManager m2 = OntManagers.createONT();
-        m2.setOntologyLoaderConfiguration(conf);
-        m2.getIRIMappers().add(mapSpin);
-        try {
-            Assert.fail("No exception while loading " + m2.loadOntology(spin));
-        } catch (OWLRuntimeException e) {
-            if (e instanceof UnloadableImportException) {
-                LOGGER.info(e);
-            } else {
-                throw new AssertionError("Incorrect exception", e);
-            }
-        }
-        Assert.assertEquals("Manager should be empty", 0, m2.ontologies().count());
-
-        LOGGER.info("5) Set ignore broken imports and try to load again.");
-        m2.setOntologyLoaderConfiguration(conf.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
-        m2.loadOntology(spin);
-        Assert.assertEquals("Should be only single ontology inside.", 1, m2.ontologies().count());
-
-        LOGGER.info("6) Set ignore some import and load ontology with dependencies.");
-        OntologyManager m3 = OntManagers.createONT();
-        m3.getIRIMappers().add(mapSp);
-        m3.getIRIMappers().add(mapSpin);
-        m3.setOntologyLoaderConfiguration(conf.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.THROW_EXCEPTION).addIgnoredImport(sp));
-        m3.loadOntology(spin);
-        Assert.assertEquals("Should be only single ontology inside.", 1, m3.ontologies().count());
-
-        LOGGER.info("7) Default way to load.");
-        OntologyManager m4 = OntManagers.createONT();
-        m4.getIRIMappers().add(mapSp);
-        m4.getIRIMappers().add(mapSpin);
-        m4.loadOntology(spin);
-        Assert.assertEquals("Should be two ontologies inside.", 2, m4.ontologies().count());
-
-        LOGGER.info("8) Test loading with MissingOntologyHeaderStrategy = true/false");
-        OWLOntologyManager m5 = OntManagers.createONT();
-        Assert.assertEquals("Incorrect default settings", MissingOntologyHeaderStrategy.INCLUDE_GRAPH, m5.getOntologyLoaderConfiguration().getMissingOntologyHeaderStrategy());
-        loadLoopedOntologyFamily(m5);
-        Assert.assertEquals("Wrong ontologies count.", 3, m5.ontologies().count());
-        OWLOntologyManager m6 = OntManagers.createONT();
-        m6.setOntologyLoaderConfiguration(m6.getOntologyLoaderConfiguration().setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy.IMPORT_GRAPH));
-        loadLoopedOntologyFamily(m6);
-        Assert.assertEquals("Wrong ontologies.", 4, m6.ontologies().count());
-        // todo: it would be nice to validate the result ontologie
-    }
-
-    @Test
     public void testLoadAnnotationsOption() {
         OntologyManager m = OntManagers.createONT();
         Assert.assertEquals("Incorrect default settings", true, m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
@@ -426,35 +339,6 @@ public class ManagerTest {
         Assert.assertEquals("Incorrect axioms collection in the third ontology", axioms2, o3.axioms().collect(Collectors.toSet()));
     }
 
-    @Test
-    public void testLoadCorruptedOntology() throws Exception {
-        OWLOntologyManager m = OntManagers.createONT();
-
-        IRI amyIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-amy");
-        IRI sueIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-sue");
-        IRI coreIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/core");
-
-        IRI amyFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-amy.ttl"));
-        IRI sueFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-sue.ttl"));
-        IRI wrongFile = IRI.create(ReadWriteUtils.getResourceURI("wrong-core.ttl"));
-
-        m.getIRIMappers().add(FileMap.create(amyIRI, amyFile));
-        m.getIRIMappers().add(FileMap.create(sueIRI, sueFile));
-        m.getIRIMappers().add(FileMap.create(coreIRI, wrongFile));
-        m.getIRIMappers().forEach(LOGGER::info);
-
-        LOGGER.info("-================-");
-        try {
-            Assert.fail("No exception while loading " + m.loadOntology(coreIRI));
-        } catch (OWLRuntimeException e) {
-            if (e instanceof UnloadableImportException) { // the deep root cause is a missed 'owl' prefix.
-                LOGGER.info(e);
-            } else {
-                throw new AssertionError("Incorrect exception", e);
-            }
-        }
-        Assert.assertEquals("There are some ontologies inside manager", 0, m.ontologies().count());
-    }
 
     @Test
     public void testPassingGraph() throws Exception {
@@ -485,30 +369,6 @@ public class ManagerTest {
         m2.addOntology(o2.getGraph());
         Assert.assertEquals("Counts of ontologies does not match", expected + 2, m2.ontologies().count());
 
-    }
-
-    private static void loadLoopedOntologyFamily(OWLOntologyManager m) throws Exception {
-        IRI amyIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-amy");
-        IRI sueIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-sue");
-        IRI bobIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-bob");
-        IRI coreIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/core");
-
-        IRI amyFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-amy.ttl"));
-        IRI sueFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-sue.ttl"));
-        IRI bobFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-bob.ttl"));
-        IRI coreFile = IRI.create(ReadWriteUtils.getResourceURI("core.ttl"));
-
-        m.getIRIMappers().add(FileMap.create(amyIRI, amyFile));
-        m.getIRIMappers().add(FileMap.create(bobIRI, bobFile));
-        m.getIRIMappers().add(FileMap.create(sueIRI, sueFile));
-        m.getIRIMappers().add(FileMap.create(coreIRI, coreFile));
-        m.getIRIMappers().forEach(LOGGER::info);
-
-        LOGGER.info("-================-");
-        OWLOntology bob = m.loadOntology(bobIRI);
-        ReadWriteUtils.print(bob);
-        LOGGER.debug("[ONT]");
-        m.ontologies().forEach(LOGGER::info);
     }
 
     private static void copyTest(OWLOntologyManager from, OWLOntologyManager to, OntologyCopy mode) throws Exception {
