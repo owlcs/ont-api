@@ -207,7 +207,7 @@ public enum OntFormat {
      * @see #isSupported()
      */
     public boolean isReadSupported() {
-        return isJena() && jenaLangs().anyMatch(RDFParserRegistry::isRegistered) || isNoneOf(LATEX, DL, DL_HTML, KRSS2);
+        return isJena() && jenaLangs().anyMatch(RDFParserRegistry::isRegistered) || isOWL() && isNoneOf(LATEX, DL, DL_HTML, KRSS2);
     }
 
     /**
@@ -215,7 +215,7 @@ public enum OntFormat {
      * @see #isSupported()
      */
     public boolean isWriteSupported() {
-        return isJena() && jenaLangs().anyMatch(RDFWriterRegistry::contains) || isNoneOf(RDFA, BINARY_RDF, KRSS);
+        return isJena() && jenaLangs().anyMatch(RDFWriterRegistry::contains) || isOWL() && isNoneOf(RDFA, BINARY_RDF, KRSS);
     }
 
     public boolean isJena() {
