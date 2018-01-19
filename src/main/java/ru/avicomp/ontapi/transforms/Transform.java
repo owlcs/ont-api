@@ -125,4 +125,9 @@ public abstract class Transform {
     public Stream<Statement> statements(Resource s, Property p, RDFNode o) {
         return statements(getBaseModel(), s, p, o).map(st -> getModel().asStatement(st.asTriple()));
     }
+
+    @Override
+    public String toString() {
+        return String.format("[%s:%s]", name(), Graphs.getName(getBaseGraph()));
+    }
 }

@@ -14,7 +14,13 @@
 
 package ru.avicomp.ontapi;
 
-import com.google.common.collect.ArrayListMultimap;
+import javax.annotation.Nonnull;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
@@ -25,12 +31,15 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
+import org.apache.jena.shared.JenaException;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ArrayListMultimap;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
@@ -42,13 +51,6 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.Transform;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
-
-import javax.annotation.Nonnull;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Ontology building&loading factory. The 'core' of the system, the point to create and load ontologies.
@@ -401,21 +403,36 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         }
 
         /**
-         * Recursively makes graph transformation.
+         * Recursively performs graph transformation.
          *
          * @param graph        {@link Graph}, in most cases it is {@link UnionGraph}.
          * @param processed    Set of base {@link Graph}s to not make transformation multiple times.
          * @param transformers {@link GraphTransformers.Store} the collection of transformers.
          * @return {@link Graph}
+         * @throws TransformException a wrap around {@link JenaException}
          * @see Transform
          */
-        protected Graph transform(Graph graph, Set<Graph> processed, GraphTransformers.Store transformers) {
+        protected Graph transform(Graph graph, Set<Graph> processed, GraphTransformers.Store transformers) throws TransformException {
             if (graph instanceof UnionGraph) {
-                ((UnionGraph) graph).getUnderlying().graphs().forEach(g -> transform(g, processed, transformers));
+                List<Graph> children = ((UnionGraph) graph).getUnderlying().graphs().collect(Collectors.toList());
+                for (Graph g : children) {
+                    try {
+                        transform(g, processed, transformers);
+                    } catch (TransformException t) {
+                        throw t.putParent(graph);
+                    }
+                }
             }
             Graph base = Graphs.getBase(graph);
             if (processed.contains(base)) return graph;
-            transformers.actions(graph).forEach(Transform::process);
+            List<Transform> actions = transformers.actions(graph).collect(Collectors.toList());
+            for (Transform action : actions) {
+                try {
+                    action.process();
+                } catch (JenaException e) {
+                    throw new TransformException(action, e);
+                }
+            }
             processed.add(base);
             return graph;
         }
@@ -917,14 +934,9 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         }
     }
 
-    @SuppressWarnings("unused")
     public static class UnsupportedFormatException extends OWLOntologyCreationException {
         private OntFormat format;
         private IRI source;
-
-        public UnsupportedFormatException(String message, Throwable cause) {
-            super(message, cause);
-        }
 
         public UnsupportedFormatException(String message) {
             super(message);
@@ -935,12 +947,12 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         }
 
         public UnsupportedFormatException putFormat(OntFormat format) {
-            this.format = OntApiException.notNull(format, "Null format!");
+            this.format = OntApiException.notNull(format, "Null format");
             return this;
         }
 
         public UnsupportedFormatException putSource(IRI iri) {
-            this.source = OntApiException.notNull(iri, "Null format!");
+            this.source = OntApiException.notNull(iri, "Null source");
             return this;
         }
 
@@ -964,6 +976,35 @@ public class OntFactoryImpl implements OntologyManager.Factory {
 
         public BadRecursionException(String message) {
             super(message);
+        }
+    }
+
+    public static class TransformException extends OWLOntologyCreationException {
+        private final Transform transform;
+        private Graph parent;
+
+        public TransformException(Transform transform, Throwable cause) {
+            super(cause);
+            this.transform = OntApiException.notNull(transform, "Null transform");
+        }
+
+        public TransformException putParent(Graph graph) {
+            this.parent = OntApiException.notNull(graph, "Null parent graph");
+            return this;
+        }
+
+        @Override
+        public String getMessage() {
+            StringBuilder sb = new StringBuilder();
+            if (this.parent != null) {
+                sb.append(Graphs.getName(this.parent)).append(" => ");
+            }
+            sb.append(transform);
+            Throwable cause = getCause();
+            if (cause != null) {
+                sb.append(": ").append(cause.getMessage());
+            }
+            return sb.toString();
         }
     }
 
