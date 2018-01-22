@@ -868,6 +868,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
     }
 
+    /**
+     * Answers iff ontology belongs to the manager
+     *
+     * @param ontology {@link OWLOntology} to test
+     * @return true if the manager has the ontology
+     */
     protected boolean has(OWLOntology ontology) {
         return content.values().map(OntInfo::get).anyMatch(o -> Objects.equals(o, ontology));
     }
@@ -1568,7 +1574,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @throws OWLOntologyCreationException ex
      * @see OWLOntologyManagerImpl#loadOntology(IRI, boolean, OWLOntologyLoaderConfiguration)
      */
-    protected OntologyModel load(@Nonnull IRI iri, boolean allowExists, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
+    protected OntologyModel load(IRI iri, boolean allowExists, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         // Check for matches on the ontology IRI first
         OWLOntologyID id = new OWLOntologyID(Optional.of(iri), Optional.empty());
         OntologyModel ontByID = getOntology(id);
@@ -1688,16 +1694,16 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * Loads an ontology by import declaration.
      * No lock.
      *
-     * @param declaration {@link OWLImportsDeclaration}
-     * @param conf        {@link OWLOntologyLoaderConfiguration}
-     * @return {@link OntologyModel}
+     * @param declaration {@link OWLImportsDeclaration}, not null
+     * @param conf        {@link OWLOntologyLoaderConfiguration}, not null
+     * @return {@link OntologyModel}, can be null
      * @throws OWLOntologyCreationException ex
      * @see OWLOntologyManagerImpl#loadImports(OWLImportsDeclaration, OWLOntologyLoaderConfiguration)
      */
-    @Nullable
-    protected OntologyModel loadImports(@Nonnull OWLImportsDeclaration declaration, @Nonnull OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
+    protected OntologyModel loadImports(OWLImportsDeclaration declaration, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         listeners.incrementImportsLoadCount();
         try {
             return load(declaration.getIRI(), true, conf);

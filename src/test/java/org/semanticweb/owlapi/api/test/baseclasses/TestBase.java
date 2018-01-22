@@ -68,7 +68,7 @@ public abstract class TestBase {
     protected static final File RESOURCES = resources();
     protected final OWLOntologyBuilder builder = DEBUG_USE_OWL ?
             (OWLOntologyBuilder) OWLOntologyImpl::new :
-            new ru.avicomp.ontapi.OntFactoryImpl.OntBuilderImpl();
+            new ru.avicomp.ontapi.OntFactoryImpl.ONTBuilderImpl();
     @Nonnull
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
