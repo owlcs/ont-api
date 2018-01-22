@@ -214,8 +214,12 @@ public class ReadWriteUtils {
         return getResourceURI(dir, name);
     }
 
+    public static Path getOutPath(String file) {
+        return Paths.get(DESTINATION_DIR).resolve(file);
+    }
+
     public static URI getOutURI(String file) {
-        return Paths.get(DESTINATION_DIR).resolve(file).toUri();
+        return getOutPath(file).toUri();
     }
 
     public static Path save(Model model, String name, OntFormat type) {
