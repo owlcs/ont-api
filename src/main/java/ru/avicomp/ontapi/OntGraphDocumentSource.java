@@ -16,6 +16,7 @@ package ru.avicomp.ontapi;
 
 import javax.annotation.Nullable;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +32,6 @@ import org.semanticweb.owlapi.model.PrefixManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Charsets;
 
 /**
  * This is an extended {@link OWLOntologyDocumentSource} to provide possibility of passing any graph as is.
@@ -59,7 +59,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
 
     @Override
     public Optional<Reader> getReader() {
-        return getInputStream().map(is -> new InputStreamReader(is, Charsets.UTF_8));
+        return getInputStream().map(is -> new InputStreamReader(is, StandardCharsets.UTF_8));
     }
 
     @Override
