@@ -14,12 +14,6 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.Implementation;
@@ -28,7 +22,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.vocabulary.RDFS;
-
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
@@ -36,6 +30,12 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * base class for any class-expression.
@@ -625,7 +625,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    protected enum ObjectRestrictionType {
+    private static Map<EnhGraph, Set<Node>> visited = new ConcurrentHashMap<>();
+
+    protected enum ObjectRestrictionType implements PredicateFilterProvider {
         CLASS {
             @Override
             public OntObjectFactory getObjectFactory(Configurable.Mode m) {
@@ -651,40 +653,59 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             }
         },;
 
+        @Override
         public abstract Implementation getObjectFactory(Configurable.Mode m);
-
-        public Configurable<OntFilter> getFilter(Property predicate) {
-            //return m -> new OntFilter.HasPredicate(predicate);
-            return mode -> (n, g) -> {
-                try (Stream<Node> objects = Iter.asStream(g.asGraph().find(n, predicate.asNode(), Node.ANY)).map(Triple::getObject)) {
-                    return objects.anyMatch(o -> getObjectFactory(mode).canWrap(o, g));
-                }
-            };
-        }
     }
 
-    protected enum RestrictionType {
+    protected enum RestrictionType implements PredicateFilterProvider {
         DATA {
             @Override
-            public Implementation getPropertyFactory(Configurable.Mode m) {
+            public Implementation getObjectFactory(Configurable.Mode m) {
                 return Entities.DATA_PROPERTY.get(m);
             }
         },
         OBJECT {
             @Override
-            public Implementation getPropertyFactory(Configurable.Mode m) {
+            public Implementation getObjectFactory(Configurable.Mode m) {
                 return OntPEImpl.abstractOPEFactory.get(m);
             }
         },;
 
-        public abstract Implementation getPropertyFactory(Configurable.Mode m);
+        @Override
+        public abstract Implementation getObjectFactory(Configurable.Mode m);
 
         public Configurable<OntFilter> getFilter() {
-            return mode -> (n, g) -> {
-                try (Stream<Node> objects = Iter.asStream(g.asGraph().find(n, OWL.onProperty.asNode(), Node.ANY)).map(Triple::getObject)) {
-                    return objects.anyMatch(o -> getPropertyFactory(mode).canWrap(o, g));
+            return getFilter(OWL.onProperty);
+        }
+    }
+
+    private interface PredicateFilterProvider {
+        Implementation getObjectFactory(Configurable.Mode m);
+
+        default Configurable<OntFilter> getFilter(Property predicate) {
+            return mode -> (node, graph) -> {
+                Set<Node> nodes = OntCEImpl.visited.get(graph);
+                if (nodes != null && nodes.contains(node)) {
+                    throw new OntApiException("Graph contains a recursion for node <" + node + ">");
+                }
+                nodes = OntCEImpl.visited.computeIfAbsent(graph, g -> new HashSet<>());
+                nodes.add(node);
+                try {
+                    return testObjects(mode, predicate, node, graph);
+                } finally {
+                    nodes.remove(node);
+                    if (nodes.isEmpty()) {
+                        OntCEImpl.visited.remove(graph);
+                    }
                 }
             };
+        }
+
+        default boolean testObjects(Configurable.Mode mode, Property predicate, Node node, EnhGraph graph) {
+            Implementation f = getObjectFactory(mode);
+            try (Stream<Node> objects = Iter.asStream(graph.asGraph().find(node, predicate.asNode(), Node.ANY)).map(Triple::getObject)) {
+                return objects.anyMatch(o -> f.canWrap(o, graph));
+            }
         }
     }
 

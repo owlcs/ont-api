@@ -38,6 +38,7 @@ public class MiscOntologyTest {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
         OntologyModel m = OntManagers.createONT().loadOntology(iri);
-        m.axioms().forEach(System.out::println);
+        m.asGraphModel().write(System.out, "ttl");
+        m.axioms().forEach(a -> LOGGER.debug("{}", a));
     }
 }
