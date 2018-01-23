@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.transforms;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,9 +44,9 @@ public abstract class Transform {
     private Model model;
     private Model base;
 
-    protected Transform(Graph graph, BuiltIn.Vocabulary vocabulary) {
-        this.graph = OntJenaException.notNull(graph, "Null graph.");
-        this.builtIn = OntJenaException.notNull(vocabulary, "Null built-in vocabulary.");
+    protected Transform(Graph graph, BuiltIn.Vocabulary vocabulary) throws NullPointerException {
+        this.graph = Objects.requireNonNull(graph, "Null graph.");
+        this.builtIn = Objects.requireNonNull(vocabulary, "Null built-in vocabulary.");
     }
 
     protected Transform(Graph graph) {
@@ -103,11 +104,11 @@ public abstract class Transform {
     }
 
     public void declare(Resource subject, Resource type) {
-        subject.addProperty(RDF.type, type);
+        subject.addProperty(RDF.type, Objects.requireNonNull(type, "Declare: null type for resource '" + subject + "'"));
     }
 
     public void undeclare(Resource subject, Resource type) {
-        getBaseModel().removeAll(subject, RDF.type, type);
+        getBaseModel().removeAll(subject, RDF.type, Objects.requireNonNull(type, "Undeclare: null type for resource '" + subject + "'"));
     }
 
     public boolean hasType(Resource resource, Resource type) {

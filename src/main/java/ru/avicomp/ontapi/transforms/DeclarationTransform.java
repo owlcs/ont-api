@@ -535,8 +535,8 @@ public class DeclarationTransform extends Transform {
             declare(statement.getSubject(), OWL.Restriction);
             if (isClassExpression(c) || isObjectPropertyExpression(p)) {
                 declareObjectProperty(p);
-                declareClass(c);
-                return Res.TRUE;
+                if (declareClass(c))
+                    return Res.TRUE;
             }
             if (isDataRange(c) || isDataProperty(p)) {
                 declareDataProperty(p);
@@ -563,7 +563,7 @@ public class DeclarationTransform extends Transform {
                 return Res.TRUE;
             }
             if (isDataProperty(left) || isObjectPropertyExpression(left)) {
-                declareClass(right);
+                if (declareClass(right))
                 return Res.TRUE;
             }
             if (right.isAnon()) {
@@ -841,7 +841,8 @@ public class DeclarationTransform extends Transform {
             return res;
         }
 
-        public void parseTail() {
+        @SuppressWarnings("UnusedReturnValue")
+        public Set<Statement> parseTail() {
             Map<Statement, Function<Statement, Res>> prev = new LinkedHashMap<>(rerun);
             Map<Statement, Function<Statement, Res>> next = new LinkedHashMap<>();
             int count = 0;
@@ -852,15 +853,15 @@ public class DeclarationTransform extends Transform {
                         next.put(s, prev.get(s));
                     }
                 }
-                if (next.isEmpty()) return;
+                if (next.isEmpty()) return Collections.emptySet();
                 if (next.size() == prev.size()) {
-                    LOGGER.warn("Unparsable statements " + next.keySet());
-                    return;
+                    break;
                 }
                 prev = next;
                 next = new LinkedHashMap<>();
             }
-            LOGGER.warn("Can't parse statements " + next.keySet());
+            LOGGER.warn("Ambiguous statements " + next.keySet());
+            return next.keySet();
         }
 
         public enum Res {
@@ -981,14 +982,18 @@ public class DeclarationTransform extends Transform {
             declare(resource, RDFS.Datatype, builtIn.datatypes());
         }
 
-        public void declareClass(Resource resource) {
+        public boolean declareClass(Resource resource) {
             if (builtIn.classes().contains(resource)) {
-                return;
+                return true;
             }
             Resource type = resource.isURIResource() ? OWL.Class :
                     containsClassExpressionProperty(resource) ? OWL.Class :
                             containsRestrictionProperty(resource) ? OWL.Restriction : null;
-            declare(resource, type);
+            if (type != null) {
+                declare(resource, type);
+                return true;
+            }
+            return false;
         }
 
         public boolean containsClassExpressionProperty(Resource candidate) {

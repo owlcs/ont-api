@@ -50,6 +50,8 @@ public class OWLTransform extends Transform {
 
     @Override
     public void perform() {
+        // fix ontology id:
+        new IDFixer(graph).perform();
         // table 5:
         Stream.of(OWL.DataRange, RDFS.Datatype, OWL.Restriction, OWL.Class)
                 .map(p -> statements(null, RDF.type, p))
@@ -76,34 +78,10 @@ public class OWLTransform extends Transform {
         changeType(OWL.DataRange, RDFS.Datatype);
 
         fixInvalidURIs();
-        fixOntology();
         fixAxioms();
         if (processIndividuals) {
             fixNamedIndividuals();
         }
-    }
-
-    /**
-     * merge several owl:Ontology to single one.
-     * as primary choose the one that has the largest number of triplets.
-     * if there is no any owl:Ontology -> add new anonymous owl:Ontology
-     */
-    protected void fixOntology() {
-        Model m = getBaseModel();
-        // choose or create the new one:
-        Resource ontology = Graphs.ontologyNode(getBaseGraph())
-                .map(m::getRDFNode).map(RDFNode::asResource)
-                .orElseGet(() -> m.createResource().addProperty(RDF.type, OWL.Ontology));
-        // move all content from other ontologies to the selected one
-        Stream<Resource> other = statements(null, RDF.type, OWL.Ontology)
-                .map(Statement::getSubject)
-                .filter(s -> !ontology.equals(s));
-        List<Statement> rest = other
-                .map(o -> statements(o, null, null))
-                .flatMap(Function.identity()).collect(Collectors.toList());
-        rest.forEach(s -> ontology.addProperty(s.getPredicate(), s.getObject()));
-        // remove all other ontologies
-        m.remove(rest);
     }
 
     protected void fixAxioms() {
@@ -218,6 +196,38 @@ public class OWLTransform extends Transform {
 
         protected static Property property(String local) {
             return ResourceFactory.createProperty(NS + local);
+        }
+    }
+
+    /**
+     * Class to perform ontology id transformation.
+     * It merges several owl:Ontology sections to single one.
+     * As primary chooses the one that has the largest number of triplets.
+     * If there is no any owl:Ontology then new anonymous owl:Ontology will be added to the graph.
+     */
+    public static class IDFixer extends Transform {
+
+        protected IDFixer(Graph graph) {
+            super(graph);
+        }
+
+        @Override
+        public void perform() {
+            Model m = getBaseModel();
+            // choose or create the new one:
+            Resource ontology = Graphs.ontologyNode(getBaseGraph())
+                    .map(m::getRDFNode).map(RDFNode::asResource)
+                    .orElseGet(() -> m.createResource().addProperty(RDF.type, OWL.Ontology));
+            // move all content from other ontologies to the selected one
+            Stream<Resource> other = statements(null, RDF.type, OWL.Ontology)
+                    .map(Statement::getSubject)
+                    .filter(s -> !ontology.equals(s));
+            List<Statement> rest = other
+                    .map(o -> statements(o, null, null))
+                    .flatMap(Function.identity()).collect(Collectors.toList());
+            rest.forEach(s -> ontology.addProperty(s.getPredicate(), s.getObject()));
+            // remove all other ontologies
+            m.remove(rest);
         }
     }
 }

@@ -15,8 +15,11 @@
 package ru.avicomp.ontapi.transforms;
 
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -42,7 +45,7 @@ public abstract class GraphTransformers {
             .add(DeclarationTransform::new);
 
     public static Store setTransformers(Store store) {
-        OntJenaException.notNull(store, "Null converter store specified.");
+        Objects.requireNonNull(store, "Null converter store specified.");
         Store prev = converters;
         converters = store;
         return prev;
@@ -120,16 +123,23 @@ public abstract class GraphTransformers {
     public static class DefaultMaker implements Maker {
         protected final Class<? extends Transform> impl;
 
-        public DefaultMaker(Class<? extends Transform> impl) {
+        public DefaultMaker(Class<? extends Transform> impl) throws IllegalArgumentException {
+            try {
+                if (!Modifier.isPublic(impl.getDeclaredConstructor(Graph.class).getModifiers())) {
+                    throw new IllegalArgumentException(impl.getName() + ": no public constructor.");
+                }
+            } catch (NoSuchMethodException e) {
+                throw new IllegalArgumentException(impl.getName() + " must have public constructor with " + Graph.class.getName() + " as the only parameter.", e);
+            }
             this.impl = impl;
         }
 
         @Override
-        public Transform create(Graph graph) {
+        public Transform create(Graph graph) throws IllegalStateException {
             try {
                 return impl.getDeclaredConstructor(Graph.class).newInstance(graph);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new OntJenaException("Must have public constructor with " + Graph.class.getName() + " as the only parameter.", e);
+                throw new IllegalStateException("Can't init " + impl.getName(), e);
             }
         }
 
