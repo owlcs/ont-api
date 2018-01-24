@@ -30,6 +30,7 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 /**
  * This is the global config and also the builder for the separated load and write configs.
+ * Used to manage general load/store behaviour of a manager (while immutable configs are for particular ontologies).
  * It overrides OWL-API {@link OntologyConfigurator} and provides access to the new (ONT-API) settings.
  * Note: this configuration is mutable, while load and write configs are not.
  * Additional (new) ONT-API options (getters):
@@ -42,6 +43,7 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
  * - {@link #isIgnoreAnnotationAxiomOverlaps()}
  * - {@link #isUseOWLParsersToLoad()}
  * - {@link #isControlImports()}
+ * - {@link #isIgnoreAxiomsReadErrors()} (since 1.1.0)
  *
  * @see OntSettings
  * @see OntLoaderConfiguration
@@ -235,6 +237,28 @@ public class OntConfig extends OntologyConfigurator {
         return put(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD, b);
     }
 
+    /**
+     * ONT-API(NEW) manager load config getter.
+     *
+     * @return true if any errors while reading axioms are ignored (by default false)
+     * @see OntLoaderConfiguration#isIgnoreAxiomsReadErrors()
+     * @since 1.1.0
+     */
+    public boolean isIgnoreAxiomsReadErrors() {
+        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS);
+    }
+
+    /**
+     * ONT-API(NEW) manager load config setter.
+     *
+     * @param b boolean to enable/disable ignoring axioms reading errors
+     * @return this instance
+     * @see OntLoaderConfiguration#setIgnoreAxiomsReadErrors(boolean)
+     * @since 1.1.0
+     */
+    public OntConfig setIgnoreAxiomsReadErrors(boolean b) {
+        return put(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS, b);
+    }
     /**
      * ONT-API(NEW) manager write config getter.
      *

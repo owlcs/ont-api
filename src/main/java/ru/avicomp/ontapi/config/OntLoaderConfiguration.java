@@ -30,6 +30,8 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
 /**
  * This is an extended {@link OWLOntologyLoaderConfiguration} with ONT-API specific settings.
  * Note: this config is immutable.
+ * Used to configure loading a particular ontology to manager, different ontologies might have different load configs.
+ *
  * @see OntConfig
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue", "unused"})
@@ -325,6 +327,32 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     public OntLoaderConfiguration setUseOWLParsersToLoad(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD, b);
+    }
+
+    /**
+     * ONT-API config getter.
+     * Answers should be throwing exception in case unable to read axioms of some type from a graph.
+     * Note: it manages behaviour of a whole axiom type, not a single axiom instance.
+     *
+     * @return true if errors while axioms reading must be ignored
+     * @see OntConfig#isIgnoreAxiomsReadErrors()
+     * @since 1.1.0
+     */
+    public boolean isIgnoreAxiomsReadErrors() {
+        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS);
+    }
+
+    /**
+     * ONT-API config setter.
+     * Changes 'ont.api.load.conf.ignore.axioms.read.errors' parameter.
+     *
+     * @param b true to ignore errors while reading axioms of some type from a graph, false to trow exception
+     * @return this or new config
+     * @see OntConfig#setIgnoreAxiomsReadErrors(boolean)
+     * @since 1.1.0
+     */
+    public OntLoaderConfiguration setIgnoreAxiomsReadErrors(boolean b) {
+        return set(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS, b);
     }
 
     /**

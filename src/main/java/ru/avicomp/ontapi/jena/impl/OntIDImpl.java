@@ -87,4 +87,14 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
     public void removeImportResource(Resource uri) {
         remove(OWL.imports, uri);
     }
+
+    @Override
+    public String toString() {
+        String iri = asNode().toString();
+        String ver = getVersionIRI();
+        if (ver != null) {
+            return iri + ":" + ver;
+        }
+        return iri;
+    }
 }

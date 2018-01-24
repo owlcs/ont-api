@@ -684,6 +684,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
         return containsAxiom(axiom) || axioms(axiom.getAxiomType()).anyMatch(ax -> ax.equalsIgnoreAnnotations(axiom));
     }
 
+    @SuppressWarnings("RedundantStreamOptionalCall") // java8 compile bug on map
     @Override
     public boolean contains(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key) {
         return base.axioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)

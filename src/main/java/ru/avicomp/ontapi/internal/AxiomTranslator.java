@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,6 +22,8 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -34,6 +37,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AxiomTranslator.class);
 
     /**
      * Writes axiom to model.
@@ -48,13 +52,21 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      *
      * @param model {@link OntGraphModel}
      * @return Set of {@link InternalObject} with {@link OWLAxiom} as key and Set of {@link Triple} as value
-     * @throws OntApiException if something is wrong
+     * @throws OntApiException if something is wrong and 'ont.api.load.conf.ignore.axioms.read.errors' is false.
      */
     public Set<InternalObject<Axiom>> read(OntGraphModel model) throws OntApiException {
         try {
-            return readAxioms(model);
-        } catch (JenaException e) {
-            throw new OntApiException(String.format("Can't process reading. Translator <%s>.", getClass()), e);
+            try {
+                return readAxioms(model);
+            } catch (JenaException e) {
+                throw new OntApiException(String.format("Can't process reading. Translator <%s>.", getClass()), e);
+            }
+        } catch (OntApiException e) {
+            if (!getConfig(model).loaderConfig().isIgnoreAxiomsReadErrors()) {
+                throw e;
+            }
+            LOGGER.warn("{}: ontology <{}> contains unparsable axioms", getClass().getSimpleName(), model.getID(), e);
+            return Collections.emptySet();
         }
     }
 

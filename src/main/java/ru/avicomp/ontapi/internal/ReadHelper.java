@@ -439,7 +439,6 @@ public class ReadHelper {
     @SuppressWarnings("unchecked")
     public static InternalObject<? extends OWLDataRange> getDataRange(OntDR dr, OWLDataFactory df, Set<Resource> seen) {
         if (OntApiException.notNull(dr, "Null data range.").isAnon() && seen.contains(dr)) {
-            //todo: config option
             throw new OntApiException("Recursive loop on data range " + dr);
         }
         seen.add(dr);
@@ -505,7 +504,6 @@ public class ReadHelper {
     @SuppressWarnings("unchecked")
     public static InternalObject<? extends OWLClassExpression> getClassExpression(OntCE ce, OWLDataFactory df, Set<Resource> seen) {
         if (OntApiException.notNull(ce, "Null class expression.").isAnon() && seen.contains(ce)) {
-            //todo: should be configurable (throw or null)
             throw new OntApiException("Recursive loop on class expression " + ce);
         }
         seen.add(ce);

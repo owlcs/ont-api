@@ -14,6 +14,13 @@
 
 package ru.avicomp.ontapi.tests;
 
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -22,21 +29,12 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.avicomp.ontapi.OntFactoryImpl;
-import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.OntologyManager;
+
+import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
-
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * To test loading mechanisms from {@link ru.avicomp.ontapi.OntFactoryImpl}
@@ -115,6 +113,19 @@ public class LoadFactoryManagerTest {
         m.getOntologyConfigurator().setSupportedSchemes(Collections.singletonList(OntConfig.DefaultScheme.FILE));
         OWLOntologyID id = m.loadOntology(IRI.create(path.toUri())).getOntologyID();
         LOGGER.error("The ontology {} is loaded.", id);
+    }
+
+    @Test
+    public void testLoadWithIgnoreReadAxiomsErrors() throws OWLOntologyCreationException {
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
+        LOGGER.debug("The file: {}", iri);
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true);
+        OntologyModel o = m.loadOntology(iri);
+        o.asGraphModel().write(System.out, "ttl");
+        o.axioms().forEach(a -> LOGGER.debug("{}", a));
+        Assert.assertEquals("Wrong axioms count", 4, o.getAxiomCount());
+        Assert.assertEquals(0, o.axioms(AxiomType.SUBCLASS_OF).count());
     }
 
     /**
