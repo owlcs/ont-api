@@ -25,7 +25,9 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * example:
+ * <pre>{@code
  * foaf:gender rdf:type owl:DatatypeProperty , owl:FunctionalProperty ;
+ * }</pre>
  * <p>
  * Created by @szuev on 30.09.2016.
  */

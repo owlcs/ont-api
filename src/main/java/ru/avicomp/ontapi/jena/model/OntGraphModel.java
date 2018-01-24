@@ -112,6 +112,7 @@ public interface OntGraphModel extends Model {
      * Lists all ont-objects for the specified type.
      *
      * @param type {@link Class}, the type of {@link OntObject}, not null.
+     * @param <O> type of ont-object
      * @return Stream of {@link OntObject}s.
      * @see #ontEntities()
      */
@@ -132,6 +133,7 @@ public interface OntGraphModel extends Model {
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not null.
      * @param uri, String, not null.
+     * @param <E> type of ont-entity
      * @return {@link OntEntity} or null
      */
     <E extends OntEntity> E getOntEntity(Class<E> type, String uri);
@@ -184,6 +186,7 @@ public interface OntGraphModel extends Model {
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not null.
      * @param uri, String, not null.
+     * @param <E> type of ont-entity.
      * @return {@link OntEntity}.
      * @throws OntJenaException.Creation in case something is wrong.
      * @see #getOntEntity(Class, String)
@@ -195,6 +198,7 @@ public interface OntGraphModel extends Model {
      *
      * @param type    {@link Class}, the type of {@link OntFR}, not null.
      * @param literal {@link Literal}, not null.
+     * @param <F> type of ont-facet-restriction.
      * @return {@link OntFR}.
      */
     <F extends OntFR> F createFacetRestriction(Class<F> type, Literal literal);

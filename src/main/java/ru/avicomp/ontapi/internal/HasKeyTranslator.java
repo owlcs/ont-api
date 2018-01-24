@@ -29,7 +29,9 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * base class : {@link AbstractSubChainedTranslator}
  * for HasKey axiom.
  * example:
+ * <pre>{@code
  * :MyClass1 owl:hasKey ( :ob-prop-1 ) .
+ * }</pre>
  * <p>
  * Created by @szuev on 17.10.2016.
  */

@@ -51,7 +51,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     }
 
     /**
-     * the analogue of{@link super#copyConfiguration()}, since the original method is private.
+     * the analogue of {@link OWLOntologyLoaderConfiguration#copyConfiguration()}, since the original method is private.
      *
      * @param owl to copy from.
      * @return new instance of {@link OntLoaderConfiguration}
@@ -142,10 +142,10 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     /**
      * ONT-API config setter.
      *
-     * @param t {@link GraphTransformers.Store} new graph transformers store. null means default
-     * @return {@link OntLoaderConfiguration}
-     * @see #isPerformTransformation()
-     * @see #setPerformTransformation(boolean)
+     * @param t {@link GraphTransformers.Store} new graph transformers store. null means the system defaults
+     * @return {@link OntLoaderConfiguration} new instance.
+     * @see OntLoaderConfiguration#isPerformTransformation()
+     * @see OntLoaderConfiguration#setPerformTransformation(boolean)
      */
     public OntLoaderConfiguration setGraphTransformers(GraphTransformers.Store t) {
         if (Objects.equals(transformers, t)) return this;
@@ -219,23 +219,23 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * In depends of parameter specified bulk annotations fall either into declaration or annotation assertion.
      * Consider the following example:
      * <pre>
-     * <http://class>   a                       owl:Class ;
+     * &lt;http://class&gt;   a                       owl:Class ;
      *                  rdfs:comment            "plain assertion" ;
      *                  rdfs:label              "bulk assertion" .
      * [                a                       owl:Axiom ;
      *                  rdfs:comment            "the child" ;
      *                  owl:annotatedProperty   rdfs:label ;
-     *                  owl:annotatedSource     <http://class> ;
+     *                  owl:annotatedSource     &lt;http://class&gt; ;
      *                  owl:annotatedTarget     "bulk assertion"
      * ] .
      * </pre>
      * In case {@link #isAllowBulkAnnotationAssertions()} equals {@code true} this slice of graph corresponds to the following list of axioms:
-     * * AnnotationAssertion(rdfs:comment <http://class> "plain assertion"^^xsd:string)
-     * * AnnotationAssertion(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label <http://class> "bulk assertion"^^xsd:string)
-     * * Declaration(Class(<http://class>))
+     * * AnnotationAssertion(rdfs:comment &lt;http://class&gt; "plain assertion"^^xsd:string)
+     * * AnnotationAssertion(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label &lt;http://class&gt; "bulk assertion"^^xsd:string)
+     * * Declaration(Class(&lt;http://class&gt;))
      * In case {@link #isAllowBulkAnnotationAssertions()} equals {@code false} there would be following axioms:
-     * * Declaration(Annotation(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label "bulk assertion"^^xsd:string) Class(<http://class>))
-     * * AnnotationAssertion(rdfs:comment <http://class> "plain assertion"^^xsd:string)
+     * * Declaration(Annotation(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label "bulk assertion"^^xsd:string) Class(&lt;http://class&gt;))
+     * * AnnotationAssertion(rdfs:comment &lt;http://class&gt; "plain assertion"^^xsd:string)
      * Note: the {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} does NOT work correctly
      * in the second case (to test try to reload ontology in manchester syntax. The loss of annotations is expected).
      *
@@ -318,13 +318,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
 
     /**
      * ONT-API config setter.
-     * To choose the preferable way to load (Jena vs pure OWL-API).
-     * It is mainly for test purposes.
-     * NOTE: It is strongly recommended to use default settings ({@code {@link #isUseOWLParsersToLoad()} = false}):
-     * - There is no confidence in OWL-API mechanisms: all of them work different way, there is no any guaranty.
-     * - They definitely contain bugs
-     * - You never can not be sure that graph would be the same, moreover - in some cases you can be sure that you get broken graph.
-     * - Worse performance.
+     * To choose the preferable way to load ontology from a document source (ONT-API (Jena+OWL-API) vs pure OWL-API).
      *
      * @param b true to use pure OWL-API parsers to load.
      * @return this or new config.

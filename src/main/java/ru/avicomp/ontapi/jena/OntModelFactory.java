@@ -39,7 +39,7 @@ public class OntModelFactory {
     }
 
     /**
-     * force init before any ont-model initializations here due to bug(?) in jena-arq-3.2.0 (upgrade 3.1.0 -> 3.2.0)
+     * force init before any ont-model initializations here due to bug(?) in jena-arq-3.2.0 (found in upgrade 3.1.0 -&gt; 3.2.0)
      * otherwise java.lang.ExceptionInInitializerError may occur.
      * to test (on 3.2.0) just run "new org.apache.jena.rdf.model.impl.ModelCom(null)" without (before) any JenaSystem.init();
      */

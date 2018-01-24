@@ -26,7 +26,9 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 /**
  * base classes {@link AbstractPropertyTypeTranslator}
  * example:
+ * <pre>{@code
  * :ob-prop-1 rdf:type owl:ObjectProperty, owl:ReflexiveProperty .
+ * }</pre>
  * Created by @szuev on 18.10.2016.
  */
 public class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLReflexiveObjectPropertyAxiom, OntOPE> {

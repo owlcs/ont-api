@@ -33,17 +33,18 @@ public class OntPersonality extends Personality<RDFNode> {
     }
 
     /**
-     * registers new OntObject if needed
+     * Registers new OntObject if needed
      *
      * @param view    Interface (OntObject)
      * @param factory Factory to crete object
+     * @return this instance
      */
     public OntPersonality register(Class<? extends OntObject> view, OntObjectFactory factory) {
         return (OntPersonality) super.add(OntJenaException.notNull(view, "Null view."), OntJenaException.notNull(factory, "Null factory."));
     }
 
     /**
-     * removes factory.
+     * Removes factory.
      *
      * @param view Interface (OntObject)
      */
@@ -52,7 +53,7 @@ public class OntPersonality extends Personality<RDFNode> {
     }
 
     /**
-     * gets factory for OntObject
+     * Gets factory for OntObject
      *
      * @param view Interface (OntObject)
      * @return {@link OntObjectFactory} factory.

@@ -27,8 +27,10 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * Examples:
+ * <pre>{@code
  * pizza:JalapenoPepperTopping rdfs:subClassOf pizza:PepperTopping.
  * pizza:JalapenoPepperTopping rdfs:subClassOf [ a owl:Restriction; owl:onProperty pizza:hasSpiciness; owl:someValuesFrom pizza:Hot].
+ * }</pre>
  * <p>
  * Created by @szuev on 28.09.2016.
  */

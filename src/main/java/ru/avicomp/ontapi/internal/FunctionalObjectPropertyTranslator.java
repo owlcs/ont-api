@@ -25,7 +25,9 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * example:
+ * <pre>{@code
  * pizza:isBaseOf rdf:type owl:ObjectProperty , owl:FunctionalProperty .
+ * }</pre>
  * <p>
  * Created by @szuev on 29.09.2016.
  */

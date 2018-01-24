@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  * [ a                      owl:Axiom ;
  *   rdfs:comment           "some comment 1", "some comment 2"@fr ;
  *   owl:annotatedProperty  rdf:type ;
- *   owl:annotatedSource    <http://example.test.org#SomeClassN1> ;
+ *   owl:annotatedSource    &lt;http://example.test.org#SomeClassN1&gt; ;
  *   owl:annotatedTarget    owl:Class
  * ] .
  * </pre>

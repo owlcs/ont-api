@@ -37,6 +37,7 @@ public class Iter {
      * It seems it should be called for such operations as {@link Stream#findFirst()}, {@link Stream#findAny()}, {@link Stream#anyMatch(Predicate)} etc.
      *
      * @param iterator {@link ClosableIterator}
+     * @param <T> the class-type of iterator
      * @return Stream
      */
     public static <T> Stream<T> asStream(ClosableIterator<T> iterator) {

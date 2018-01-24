@@ -145,7 +145,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     /**
-     * @see super@withRemapAllAnonymousIndividualsIds
+     * @see OWLOntologyWriterConfiguration#withRemapAllAnonymousIndividualsIds
      */
     @Override
     public OntWriterConfiguration withRemapAllAnonymousIndividualsIds(boolean b) {

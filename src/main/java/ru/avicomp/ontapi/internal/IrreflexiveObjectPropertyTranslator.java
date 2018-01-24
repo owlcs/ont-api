@@ -27,7 +27,10 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * Object property with owl:IrreflexiveProperty type
  *
  * NOTE: owl AxiomType is "IrrefexiveObjectProperty" ({@link org.semanticweb.owlapi.model.AxiomType#IRREFLEXIVE_OBJECT_PROPERTY}), not "IrreflexiveObjectProperty"
- * example: :ob-prop-2 rdf:type owl:ObjectProperty , owl:IrreflexiveProperty .
+ * example:
+ * <pre>{@code
+ * :ob-prop-2 rdf:type owl:ObjectProperty , owl:IrreflexiveProperty .
+ * }</pre>
  * Created by @szuev on 18.10.2016.
  */
 public class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLIrreflexiveObjectPropertyAxiom, OntOPE> {

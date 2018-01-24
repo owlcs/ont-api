@@ -476,7 +476,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
      * Abstract base component-restriction class.
      * It's for CE which has owl:onProperty and some component also (with predicate owl:dataRange,owl:onClass, owl:someValuesFrom, owl:allValuesFrom)
      *
-     * @param <O>
+     * @param <O> a class-type of {@link RDFNode rdf-node}
+     * @param <P> a class-type of {@link OntPE property-expression}
      */
     protected static abstract class ComponentRestrictionCEImpl<O extends RDFNode, P extends OntPE> extends OnPropertyRestrictionCEImpl<P> implements ComponentRestrictionCE<O, P> {
         protected final Property predicate;

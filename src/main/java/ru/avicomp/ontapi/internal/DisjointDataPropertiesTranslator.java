@@ -34,8 +34,10 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDisjointDataPropertiesAxiomImpl;
 /**
  * see {@link AbstractTwoWayNaryTranslator}
  * examples:
+ * <pre>{@code
  * :objProperty1 owl:propertyDisjointWith :objProperty2
  * [ rdf:type owl:AllDisjointProperties; owl:members ( :objProperty1 :objProperty2 :objProperty3 ) ]
+ * }</pre>
  * <p>
  * Created by szuev on 12.10.2016.
  */

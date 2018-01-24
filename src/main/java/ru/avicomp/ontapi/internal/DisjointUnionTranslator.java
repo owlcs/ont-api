@@ -29,7 +29,10 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 /**
  * base class: {@link AbstractSubChainedTranslator}
  * for DisjointUnion
- * example: :MyClass1 owl:disjointUnionOf ( :MyClass2 [ a owl:Class ; owl:unionOf ( :MyClass3 :MyClass4  ) ] ) ;
+ * example:
+ * <pre>{@code
+ * :MyClass1 owl:disjointUnionOf ( :MyClass2 [ a owl:Class ; owl:unionOf ( :MyClass3 :MyClass4  ) ] ) ;
+ * }</pre>
  * <p>
  * Created by @szuev on 17.10.2016.
  */

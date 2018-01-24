@@ -464,7 +464,7 @@ public class DeclarationTransform extends Transform {
      * - "_:x owl:intersectionOf ( C1 ... Cn )"
      * - "_:x rdf:type owl:AllDisjointProperties; owl:members ( P1 ... Pn )"
      * <p>
-     * Note: ObjectProperty & ClassExpression have more priority then DataProperty & DataRange
+     * Note: ObjectProperty &amp; ClassExpression have more priority then DataProperty &amp; DataRange
      */
     @SuppressWarnings("WeakerAccess")
     public static class ReasonerDeclarator extends BaseDeclarator {

@@ -67,6 +67,8 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config setter.
      *
+     * @param p {@link OntPersonality} the personality
+     * @return this instance
      * @see OntLoaderConfiguration#setPersonality(OntPersonality)
      */
     public OntConfig setPersonality(OntPersonality p) {
@@ -77,6 +79,7 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config getter.
      *
+     * @return {@link OntPersonality}
      * @see OntLoaderConfiguration#getPersonality()
      */
     public OntPersonality getPersonality() {
@@ -86,6 +89,8 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config setter.
      *
+     * @param t {@link ru.avicomp.ontapi.transforms.GraphTransformers.Store}
+     * @return this instance
      * @see OntLoaderConfiguration#setGraphTransformers(GraphTransformers.Store)
      */
     public OntConfig setGraphTransformers(GraphTransformers.Store t) {
@@ -96,6 +101,7 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config getter.
      *
+     * @return {@link ru.avicomp.ontapi.transforms.GraphTransformers.Store}
      * @see OntLoaderConfiguration#getGraphTransformers()
      */
     public GraphTransformers.Store getGraphTransformers() {
@@ -105,6 +111,7 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config getter.
      *
+     * @return List of supported {@link Scheme schemes}
      * @see OntLoaderConfiguration#getSupportedSchemes()
      */
     @SuppressWarnings("unchecked")
@@ -114,7 +121,8 @@ public class OntConfig extends OntologyConfigurator {
 
     /**
      * ONT-API(NEW) manager load config setter.
-     *
+     * @param schemes List of {@link Scheme}
+     * @return this instance
      * @see OntLoaderConfiguration#setSupportedSchemes(List)
      */
     public OntConfig setSupportedSchemes(List<OntConfig.Scheme> schemes) {
@@ -124,7 +132,9 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config getter.
      *
+     * @return true if transformation is enabled
      * @see OntLoaderConfiguration#isPerformTransformation()
+     * @see ru.avicomp.ontapi.transforms.Transform
      */
     public boolean isPerformTransformation() {
         return (boolean) get(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS);
@@ -133,6 +143,8 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config setter.
      *
+     * @param b true to enable transformation (by default it is enabled)
+     * @return {@link OntConfig} this instance
      * @see OntLoaderConfiguration#setPerformTransformation(boolean)
      */
     public OntConfig setPerformTransformation(boolean b) {
@@ -143,6 +155,7 @@ public class OntConfig extends OntologyConfigurator {
      * ONT-API(NEW) manager load config getter.
      *
      * @see OntLoaderConfiguration#isAllowBulkAnnotationAssertions()
+     * @return true if bulk annotations are allowed (it is by default)
      */
     public boolean isAllowBulkAnnotationAssertions() {
         return (boolean) get(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS);
@@ -151,6 +164,8 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config setter.
      *
+     * @param b true to enable bulk annotations
+     * @return this instance
      * @see OntLoaderConfiguration#setAllowBulkAnnotationAssertions(boolean)
      */
     public OntConfig setAllowBulkAnnotationAssertions(boolean b) {
@@ -160,6 +175,7 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config getter.
      *
+     * @return true if declarations are enabled (default)
      * @see OntLoaderConfiguration#isAllowReadDeclarations()
      */
     public boolean isAllowReadDeclarations() {
@@ -169,6 +185,8 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config setter.
      *
+     * @param b boolean enable/disable declarations
+     * @return this instance
      * @see OntLoaderConfiguration#setAllowReadDeclarations(boolean)
      */
     public OntConfig setAllowReadDeclarations(boolean b) {
@@ -178,6 +196,7 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config getter.
      *
+     * @return true if annotation axiom overlaps are ignored (default)
      * @see OntLoaderConfiguration#isIgnoreAnnotationAxiomOverlaps()
      */
     public boolean isIgnoreAnnotationAxiomOverlaps() {
@@ -187,6 +206,8 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config setter.
      *
+     * @param b boolean to enable/disable this config parameter
+     * @return this instance
      * @see OntLoaderConfiguration#setIgnoreAnnotationAxiomOverlaps(boolean)
      */
     public OntConfig setIgnoreAnnotationAxiomOverlaps(boolean b) {
@@ -196,6 +217,7 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config getter.
      *
+     * @return true if ONT-API loading disabled (false by default)
      * @see OntLoaderConfiguration#isUseOWLParsersToLoad()
      */
     public boolean isUseOWLParsersToLoad() {
@@ -205,6 +227,8 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config setter.
      *
+     * @param b boolean to enable/disable this config parameter
+     * @return this instance
      * @see OntLoaderConfiguration#setUseOWLParsersToLoad(boolean)
      */
     public OntConfig setUseOWLParsersToLoad(boolean b) {
@@ -214,6 +238,7 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager write config getter.
      *
+     * @return true if control-imports are enabled (it is by default)
      * @see OntWriterConfiguration#isControlImports()
      */
     public boolean isControlImports() {
@@ -223,6 +248,8 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager write config setter.
      *
+     * @param b boolean to enable/disable this config parameter
+     * @return this instance
      * @see OntWriterConfiguration#setControlImports(boolean)
      */
     public OntConfig setControlImports(boolean b) {
@@ -247,9 +274,11 @@ public class OntConfig extends OntologyConfigurator {
 
     /**
      * OWL-API(NEW) manager load config setter.
-     * This is NOT override method.
-     * The is NO such method in the original OWL-API ({@link OntologyConfigurator}) class.
+     * This is NOT override method:
+     * there is NO such method in the original general OWL-API config ({@link OntologyConfigurator}), but it present in load-config.
      *
+     * @param s String
+     * @return this instance
      * @see OWLOntologyLoaderConfiguration#setEntityExpansionLimit(String)
      * @see OntLoaderConfiguration#setEntityExpansionLimit(String)
      */
@@ -259,9 +288,10 @@ public class OntConfig extends OntologyConfigurator {
 
     /**
      * OWL-API(NEW) manager load config getter.
-     * This is NOT override method.
-     * The is NO such method in the original OWL-API ({@link OntologyConfigurator}) class.
+     * This is NOT override method:
+     * there is NO such method in the original general OWL-API config ({@link OntologyConfigurator}), but it present in load-config.
      *
+     * @return String, for more info see:
      * @see OWLOntologyLoaderConfiguration#getEntityExpansionLimit()
      * @see OntLoaderConfiguration#getEntityExpansionLimit()
      */

@@ -14,23 +14,6 @@
 
 package ru.avicomp.ontapi;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.riot.RDFDataMgr;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
-import org.semanticweb.owlapi.model.parameters.Imports;
-import org.semanticweb.owlapi.model.parameters.Navigation;
-import org.semanticweb.owlapi.model.parameters.OntologyCopy;
-import org.semanticweb.owlapi.search.Filters;
-import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
-import ru.avicomp.ontapi.internal.ConfigProvider;
-import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
-import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.model.OntID;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -43,6 +26,24 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.riot.RDFDataMgr;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
+import org.semanticweb.owlapi.model.parameters.Imports;
+import org.semanticweb.owlapi.model.parameters.Navigation;
+import org.semanticweb.owlapi.model.parameters.OntologyCopy;
+import org.semanticweb.owlapi.search.Filters;
+import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
+
+import ru.avicomp.ontapi.internal.ConfigProvider;
+import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.InternalModelHolder;
+import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.model.OntID;
+import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
 
 /**
  * 'Immutable' ontology only with methods to read information in the form of OWL-Objects from graph-model.
@@ -496,8 +497,8 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * WARNING: it differs from original OWL-API method (see {@link uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl#axioms(Class, Class, OWLObject, Navigation)}).
      * For internal use only.
      *
-     * @param type     {@link Class<OWLAxiom>}, not null, type of axioms.
-     * @param view     {@link Class<OWLObject>}. anything. ignored.
+     * @param type     {@link Class Class&lt;OWLAxiom&gt;}, not null, type of axioms.
+     * @param view     {@link Class Class&lt;OWLObject&gt;}. anything. ignored.
      * @param object   {@link OWLObject} to find occurrences.
      * @param position {@link Navigation} used in conjunction with {@code object} for some several kinds of axioms.
      * @return Stream of {@link OWLAxiom}s
@@ -706,6 +707,8 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * Note: only base graph!
      *
      * @param in {@link ObjectInputStream}
+     * @throws IOException if an I/O error occurs.
+     * @throws ClassNotFoundException if the class of a serialized object could not be found.
      * @see OntologyManagerImpl#readObject(ObjectInputStream)
      * @see OntologyModelImpl.Concurrent#readObject(ObjectInputStream)
      */
@@ -722,6 +725,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * Note: only base graph!
      *
      * @param out {@link ObjectOutputStream}
+     * @throws IOException if I/O errors occur while writing to the underlying <code>OutputStream</code>
      */
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject(); // serialize only base graph (it will be wrapped as UnionGraph):
@@ -729,9 +733,8 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     }
 
     /**
-     * Overridden {@link super#toString()} in order not to force the axioms loading.
-     * I believe that for brief information there should be a separate method
-     * and the original implementation of toString is not very good idea.
+     * Overridden {@link OWLObjectImpl#toString()} in order not to force the axioms loading.
+     * For brief information there should be a separate method and the original implementation of toString is not very good idea in our case.
      *
      * @return String
      */

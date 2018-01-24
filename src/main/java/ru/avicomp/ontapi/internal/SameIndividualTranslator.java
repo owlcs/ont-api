@@ -35,7 +35,9 @@ import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
 /**
  * base class {@link AbstractNaryTranslator}
  * example:
+ * <pre>{@code
  * :indi1 owl:sameAs :indi2, :indi3 .
+ * }</pre>
  * <p>
  * Created by szuev on 13.10.2016.
  */

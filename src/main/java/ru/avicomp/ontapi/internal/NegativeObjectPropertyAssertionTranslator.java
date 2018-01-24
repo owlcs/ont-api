@@ -25,7 +25,9 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * example:
+ * <pre>{@code
  * [ a owl:NegativePropertyAssertion; owl:sourceIndividual :ind1; owl:assertionProperty :objProp; owl:targetIndividual :ind2 ] .
+ * }</pre>
  * Created by szuev on 12.10.2016.
  */
 public class NegativeObjectPropertyAssertionTranslator extends AbstractNegativePropertyAssertionTranslator<OWLNegativeObjectPropertyAssertionAxiom, OntNPA.ObjectAssertion> {

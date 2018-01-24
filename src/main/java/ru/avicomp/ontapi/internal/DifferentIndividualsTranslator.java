@@ -34,7 +34,9 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
  * Note! it is for an owl-expression without any root!
  * see {@link AbstractTwoWayNaryTranslator}
  * Example:
+ * <pre>{@code
  * [ a owl:AllDifferent; owl:distinctMembers (pizza:America pizza:Italy pizza:Germany pizza:England pizza:France) ].
+ * }</pre>
  * <p>
  * Created by @szuev on 29.09.2016.
  */

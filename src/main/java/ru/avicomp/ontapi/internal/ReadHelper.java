@@ -334,7 +334,9 @@ public class ReadHelper {
      * Returns the container with set of {@link OWLAnnotation} associated with the specified statement.
      *
      * @param statement {@link OntStatement}
-     * @return {@link InternalObject.Collection} of {@link OWLAnnotation}
+     * @param df {@link OWLDataFactory}
+     * @param conf {@link OntLoaderConfiguration}
+     * @return a wrap {@link InternalObject.Collection} around {@link OWLAnnotation}
      */
     public static InternalObject.Collection<OWLAnnotation> getStatementAnnotations(OntStatement statement, OWLDataFactory df, OntLoaderConfiguration conf) {
         return new InternalObject.Collection<>(getAnnotations(statement, df, conf));

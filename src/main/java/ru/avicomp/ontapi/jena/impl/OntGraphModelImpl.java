@@ -253,6 +253,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
      *
      * @param type Class
      * @param uri  String
+     * @param <T> class-type of {@link OntObject}
      * @return OntObject
      */
     public <T extends OntObject> T createOntObject(Class<T> type, String uri) {

@@ -30,7 +30,9 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * example:
+ * <pre>{@code
  * pizza:hasBase owl:inverseOf pizza:isBaseOf ;
+ * }</pre>
  * <p>
  * Created by @szuev on 30.09.2016.
  */

@@ -14,23 +14,24 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.shared.Lock;
-import org.apache.jena.sparql.util.graph.GraphListenerBase;
-import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OwlObjects;
-import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
-import ru.avicomp.ontapi.jena.model.*;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.shared.Lock;
+import org.apache.jena.sparql.util.graph.GraphListenerBase;
+import org.semanticweb.owlapi.model.*;
+
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.OwlObjects;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.model.*;
 
 /**
  * Buffer RDF-OWL model.
@@ -105,7 +106,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Jena model method to work with embedded lock-mechanism.
      * Disabled since in OWL-API there is a different approach.
      *
-     * @see this#getLock()
+     * @see #getLock()
      */
     @Override
     public void enterCriticalSection(boolean requestReadLock) {
@@ -116,7 +117,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Jena model method to work with embedded lock-mechanism.
      * Disabled since in OWL-API there is a different approach.
      *
-     * @see this#getLock()
+     * @see #getLock()
      */
     @Override
     public void leaveCriticalSection() {
@@ -329,6 +330,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Gets owl-objects from axioms and annotations.
      *
      * @param type Class type of owl-object.
+     * @param <O> type of owl-object
      * @return Stream of {@link OWLObject}s.
      */
     @SuppressWarnings("unchecked")
@@ -453,6 +455,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Gets axioms by class-type.
      *
      * @param view Class
+     * @param <A> type of axiom
      * @return Stream of {@link OWLAxiom}s.
      */
     public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
@@ -463,6 +466,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Gets axioms by axiom-type.
      *
      * @param type {@link AxiomType}
+     * @param <A> type of axiom
      * @return Stream of {@link OWLAxiom}s.
      */
     @SuppressWarnings("unchecked")
@@ -521,6 +525,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @param object either {@link OWLAxiom} or {@link OWLAnnotation}
      * @param store  {@link OwlObjectTriplesMap}
      * @param writer {@link Consumer} to process writing.
+     * @param <O> type of owl-object
      */
     protected <O extends OWLObject> void add(O object, OwlObjectTriplesMap<O> store, Consumer<O> writer) {
         OwlObjectListener<O> listener = store.createListener(object);
@@ -540,6 +545,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @param object either {@link OWLAxiom} or {@link OWLAnnotation}
      * @param store  {@link OwlObjectTriplesMap}
+     * @param <O> type of owl-object
      * @see #clearObjectsCache()
      */
     protected <O extends OWLObject> void remove(O object, OwlObjectTriplesMap<O> store) {
@@ -732,7 +738,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         /**
-         * if at the moment there is an {@link OwlObjectListener} then it's called from {@link InternalModel#add(OWLAxiom)} => don't clear cache;
+         * if at the moment there is an {@link OwlObjectListener} then it's called from {@link InternalModel#add(OWLAxiom)} =&gt; don't clear cache;
          * otherwise it is direct call and cache must be reset to have correct list of axioms.
          *
          * @param t {@link Triple}

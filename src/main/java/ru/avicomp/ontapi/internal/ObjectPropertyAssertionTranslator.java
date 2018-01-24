@@ -28,7 +28,9 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * example:
+ * <pre>{@code
  * gr:Saturday rdf:type owl:NamedIndividual , gr:hasNext gr:Sunday ;
+ * }</pre>
  * Created by @szuev on 01.10.2016.
  */
 public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropertyAssertionAxiom> {

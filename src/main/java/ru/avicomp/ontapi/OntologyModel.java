@@ -36,7 +36,7 @@ public interface OntologyModel extends OWLOntology, OWLMutableOntology {
     OntGraphModel asGraphModel();
 
     /**
-     * Clears the axioms & entities cache.
+     * Clears the axioms and entities cache.
      * <p>
      * The cache are restored by recalling method {@link #axioms()}, which is called by any other axioms getter.
      * This method is necessary to obtain the list of axioms which uniquely correspond to the graph,
@@ -47,17 +47,17 @@ public interface OntologyModel extends OWLOntology, OWLMutableOntology {
      * An example.
      * Consider the ontology which contains only the following two axioms:
      * <pre>
-     *  SubClassOf(Annotation(<p> "comment1"^^xsd:string) <a> <b>)
-     *  Declaration(Annotation(rdfs:label "label"^^xsd:string) Datatype(<d>))
+     *  SubClassOf(Annotation(&lt;p&gt; "comment1"^^xsd:string) &lt;a&gt; &lt;b&gt;)
+     *  Declaration(Annotation(rdfs:label "label"^^xsd:string) Datatype(&lt;d&gt;))
      * </pre>
      * After re-caching the full list of axioms would be the following:
      * <pre>
-     *  Declaration(Class(<a>))
-     *  Declaration(Class(<b>))
-     *  Declaration(AnnotationProperty(<p>))
-     *  Declaration(Datatype(<d>))
-     *  SubClassOf(Annotation(<p> "comment"^^xsd:string) <a> <b>)
-     *  AnnotationAssertion(rdfs:label <d> "label"^^xsd:string)
+     *  Declaration(Class(&lt;a&gt;))
+     *  Declaration(Class(&lt;b&gt;))
+     *  Declaration(AnnotationProperty(&lt;p&gt;))
+     *  Declaration(Datatype(&lt;d&gt;))
+     *  SubClassOf(Annotation(&lt;p&gt; "comment"^^xsd:string) &lt;a&gt; &lt;b&gt;)
+     *  AnnotationAssertion(rdfs:label &lt;d&gt; "label"^^xsd:string)
      * </pre>
      * Note: the loading behaviour and the axioms list above may vary according to various config settings,
      * for more details see {@link ru.avicomp.ontapi.config.OntLoaderConfiguration}.

@@ -127,6 +127,7 @@ public interface OntObject extends Resource {
      *
      * @param predicate {@link Property} predicate
      * @param view      Interface to find and cast
+     * @param <O> a class-type of rdf-node
      * @return Stream of objects ({@link RDFNode}s)
      */
     <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view);

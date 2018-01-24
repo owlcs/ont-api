@@ -30,7 +30,11 @@ import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentObjectPropertiesAxiomImpl;
 
 /**
  * example:
- * <http://schema.org/image> rdf:type owl:ObjectProperty ;  owl:equivalentProperty foaf:depiction .
+ * <pre>
+ * {@code
+ *      &lt;http://schema.org/image&gt; rdf:type owl:ObjectProperty ;  owl:equivalentProperty foaf:depiction .
+ * }
+ * </pre>
  * Created by @szuev on 01.10.2016.
  */
 public class EquivalentObjectPropertiesTranslator extends AbstractNaryTranslator<OWLEquivalentObjectPropertiesAxiom, OWLObjectPropertyExpression, OntOPE> {

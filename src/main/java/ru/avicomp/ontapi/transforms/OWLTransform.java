@@ -29,7 +29,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * To convert OWL 1 DL => OWL 2 DL
+ * To convert OWL 1 DL =&gt; OWL 2 DL
  * <p>
  * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_RDF_Graphs_to_the_Structural_Specification'>Chapter 3</a>
  * also <a href='https://www.w3.org/TR/owl2-quick-reference/'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
@@ -91,8 +91,8 @@ public class OWLTransform extends Transform {
 
     /**
      * to replace
-     * {@link WRONG_OWL#propertyChain} -> {@link OWL#propertyChainAxiom}
-     * {@link WRONG_OWL#DataProperty} -> {@link OWL#DatatypeProperty}
+     * {@link WRONG_OWL#propertyChain} -&gt; {@link OWL#propertyChainAxiom}
+     * {@link WRONG_OWL#DataProperty} -&gt; {@link OWL#DatatypeProperty}
      *
      * @see WRONG_OWL
      */

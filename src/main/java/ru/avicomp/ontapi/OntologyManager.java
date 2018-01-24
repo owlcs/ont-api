@@ -69,7 +69,7 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Returns the writer config.
-     * see note for {@link this#getOntologyLoaderConfiguration()} method.
+     * see note for {@link #getOntologyLoaderConfiguration()} method.
      *
      * @return {@link OntWriterConfiguration}
      */

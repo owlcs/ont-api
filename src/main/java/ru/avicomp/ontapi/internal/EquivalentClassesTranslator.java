@@ -31,7 +31,10 @@ import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
 /**
  * Base class {@link AbstractNaryTranslator}
  * Example of ttl:
- * pizza:SpicyTopping owl:equivalentClass [ a owl:Class; owl:intersectionOf ( pizza:PizzaTopping [a owl:Restriction; owl:onProperty pizza:hasSpiciness; owl:someValuesFrom pizza:Hot] )] ;
+ * <pre>{@code
+ *  pizza:SpicyTopping owl:equivalentClass [ a owl:Class; owl:intersectionOf ( pizza:PizzaTopping [a owl:Restriction; owl:onProperty pizza:hasSpiciness; owl:someValuesFrom pizza:Hot] )] ;
+ * }
+ * </pre>
  * <p>
  * Created by @szuev on 29.09.2016.
  */

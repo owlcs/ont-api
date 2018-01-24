@@ -25,7 +25,9 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
  * example:
+ * <pre>{@code
  * gr:equal rdf:type owl:ObjectProperty ;  owl:inverseOf gr:equal ;  rdf:type owl:SymmetricProperty ,  owl:TransitiveProperty ;
+ * }</pre>
  * <p>
  * Created by @szuev on 30.09.2016.
  */

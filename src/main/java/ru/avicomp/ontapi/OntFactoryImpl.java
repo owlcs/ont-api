@@ -14,7 +14,13 @@
 
 package ru.avicomp.ontapi;
 
-import com.google.common.collect.ArrayListMultimap;
+import javax.annotation.Nonnull;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
@@ -32,6 +38,8 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ArrayListMultimap;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
@@ -44,15 +52,8 @@ import ru.avicomp.ontapi.transforms.Transform;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
-import javax.annotation.Nonnull;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 /**
- * Ontology building&loading factory. The 'core' of the system, the point to create and load ontologies.
+ * The ontology building and loading factory, the 'core' - the main and point to create and load ontologies.
  * See also base interface {@link OWLOntologyFactory} and its single implementation {@link OWLOntologyFactoryImpl}.
  * <p>
  * Created by szuev on 24.10.2016.
@@ -166,7 +167,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      * {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}), while
      * {@link OWLOntologyFactory#loadOWLOntology} requires four.
      * The single instance of {@link OntologyManager} is an {@link OWLOntologyManager} as well as {@link OWLOntologyCreationHandler}.
-     * And this is also true for {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl).
+     * And this is also true for {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl}.
      * Therefore, the {@link OWLOntologyCreationHandler} can be considered just as part of internal (OWL-API) implementation
      * and so there is no need in this parameter in our case.
      */
@@ -678,7 +679,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
          * All loaded content would be stored inside a copy, not the original manager.
          *
          * @param from          {@link OntologyManager}, the source manager
-         * @param defaultConfig {@link {@link OntLoaderConfiguration}, the default loader config, nullable
+         * @param defaultConfig {@link OntLoaderConfiguration}, the default loader config, nullable
          * @return {@link OntologyManager}, the target manager
          */
         protected OntologyManagerImpl createLoadCopy(OntologyManager from, OntLoaderConfiguration defaultConfig) {

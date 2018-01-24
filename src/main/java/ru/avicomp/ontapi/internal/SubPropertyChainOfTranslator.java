@@ -31,7 +31,10 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 /**
  * base class : {@link AbstractSubChainedTranslator}
  * for SubPropertyChainOf axiom
- * example: owl:topObjectProperty owl:propertyChainAxiom ( :ob-prop-1 :ob-prop-2 ) .
+ * example:
+ * <pre>{@code
+ * owl:topObjectProperty owl:propertyChainAxiom ( :ob-prop-1 :ob-prop-2 ) .
+ * }</pre>
  * <p>
  * Created by @szuev on 18.10.2016.
  */

@@ -182,6 +182,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @param predicate to search for rdf:Lists
      * @param view      Class, the type of returned nodes.
+     * @param <O> a class-type of rdf-node
      * @return Stream of {@link RDFNode} with specified type.
      */
     public <O extends RDFNode> Stream<O> rdfListMembers(Property predicate, Class<O> view) {

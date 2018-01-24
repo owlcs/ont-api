@@ -115,11 +115,12 @@ public class InternalObject<O extends OWLObject> {
     /**
      * finds {@link InternalObject} by {@link OWLObject}
      * Note: it does not take into account the hashCode.
-     * There is the violation of contract inside OWLLiteral and any other object (axiom, annotation) containing literals.
+     * There is the violation of contract inside OWLLiteral (checked for owl-api 5.0.4) and any other object (axiom, annotation) containing literals.
      * See description of the method {@link ReadHelper#getLiteral(Literal, OWLDataFactory)}
      *
      * @param set the collection of {@link InternalObject}
      * @param key {@link OWLObject}
+     * @param <O> class-type of owl-object
      * @return Optional around {@link InternalObject}
      */
     public static <O extends OWLObject> Optional<InternalObject<O>> find(java.util.Collection<InternalObject<O>> set, O key) {
@@ -196,6 +197,7 @@ public class InternalObject<O extends OWLObject> {
          * Note: stream will be closed.
          *
          * @param wrappers Stream of {@link InternalObject}
+         * @param <O> class-type of owl-object
          * @return {@link Collection} of {@link InternalObject}
          */
         public static <O extends OWLObject> Collection<O> create(Stream<InternalObject<O>> wrappers) {

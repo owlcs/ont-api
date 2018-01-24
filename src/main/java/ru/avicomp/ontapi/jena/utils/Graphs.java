@@ -148,7 +148,7 @@ public class Graphs {
      * Returns comparator for root nodes.
      * Tricky logic:
      * first compares roots as standalone nodes and the any uri-node is considered less then any blank-node,
-     * then compares roots as part of the graph using the rule 'the fewer children -> the greater weight'.
+     * then compares roots as part of the graph using the rule 'the fewer children -&gt; the greater weight'.
      *
      * @param graph {@link Graph}
      * @return {@link Comparator}
@@ -176,17 +176,17 @@ public class Graphs {
      * just for debugging.
      * Examples of output:
      * <pre> {@code
-     * <http://imports.test.Main.ttl>
-     *  <http://imports.test.C.ttl>
-     *      <http://imports.test.A.ttl>
-     *      <http://imports.test.B.ttl>
-     *  <http://imports.test.D.ttl>
+     * &lt;http://imports.test.Main.ttl&gt;
+     *  &lt;http://imports.test.C.ttl&gt;
+     *      &lt;http://imports.test.A.ttl&gt;
+     *      &lt;http://imports.test.B.ttl&gt;
+     *  &lt;http://imports.test.D.ttl&gt;
      * }, {@code
-     * <http://imports.test.D.ttl>
-     *  <http://imports.test.C.ttl>
-     *      <http://imports.test.A.ttl>
-     *      <http://imports.test.B.ttl>
-     *              <http://imports.test.Main.ttl>
+     * &lt;http://imports.test.D.ttl&gt;
+     *  &lt;http://imports.test.C.ttl&gt;
+     *      &lt;http://imports.test.A.ttl&gt;
+     *      &lt;http://imports.test.B.ttl&gt;
+     *              &lt;http://imports.test.Main.ttl&gt;
      * } </pre>
      *
      * @param graph {@link Graph}

@@ -31,7 +31,11 @@ import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentDataPropertiesAxiomImpl;
 
 /**
  * example:
- * gr:description rdf:type owl:DatatypeProperty ;  owl:equivalentProperty <http://schema.org/description> ;
+ * <pre>
+ * {@code
+ *  gr:description rdf:type owl:DatatypeProperty ;  owl:equivalentProperty &lt;http://schema.org/description&gt; ;
+ * }
+ * </pre>
  * Created by @szuev on 01.10.2016.
  */
 public class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<OWLEquivalentDataPropertiesAxiom, OWLDataPropertyExpression, OntNDP> {
