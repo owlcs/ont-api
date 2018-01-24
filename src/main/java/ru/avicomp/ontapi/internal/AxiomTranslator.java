@@ -14,15 +14,17 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntStatement;
-
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.jena.graph.Triple;
+import org.apache.jena.shared.JenaException;
+import org.semanticweb.owlapi.model.OWLAxiom;
+
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * The base class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
@@ -46,16 +48,17 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      *
      * @param model {@link OntGraphModel}
      * @return Set of {@link InternalObject} with {@link OWLAxiom} as key and Set of {@link Triple} as value
+     * @throws OntApiException if something is wrong
      */
-    public Set<InternalObject<Axiom>> read(OntGraphModel model) {
+    public Set<InternalObject<Axiom>> read(OntGraphModel model) throws OntApiException {
         try {
             return readAxioms(model);
-        } catch (Exception e) {
+        } catch (JenaException e) {
             throw new OntApiException(String.format("Can't process reading. Translator <%s>.", getClass()), e);
         }
     }
 
-    public Set<InternalObject<Axiom>> readAxioms(OntGraphModel model) {
+    public Set<InternalObject<Axiom>> readAxioms(OntGraphModel model) throws JenaException {
         return statements(model).map(this::asAxiom).collect(Collectors.toSet());
     }
 

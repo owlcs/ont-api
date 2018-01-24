@@ -14,6 +14,11 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.Implementation;
@@ -22,7 +27,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.vocabulary.RDFS;
-import ru.avicomp.ontapi.OntApiException;
+
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
@@ -30,12 +35,6 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * base class for any class-expression.
@@ -625,6 +624,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
+    // a hack to avoid a recursion with restrtictions when graph has a recursion also
     private static Map<EnhGraph, Set<Node>> visited = new ConcurrentHashMap<>();
 
     protected enum ObjectRestrictionType implements PredicateFilterProvider {
@@ -679,6 +679,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
+    /**
+     * Technical interface to make predicate filter for restrictions
+     */
     private interface PredicateFilterProvider {
         Implementation getObjectFactory(Configurable.Mode m);
 
@@ -686,7 +689,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             return mode -> (node, graph) -> {
                 Set<Node> nodes = OntCEImpl.visited.get(graph);
                 if (nodes != null && nodes.contains(node)) {
-                    throw new OntApiException("Graph contains a recursion for node <" + node + ">");
+                    throw new OntJenaException("Graph contains a recursion for node <" + node + ">");
                 }
                 nodes = OntCEImpl.visited.computeIfAbsent(graph, g -> new HashSet<>());
                 nodes.add(node);

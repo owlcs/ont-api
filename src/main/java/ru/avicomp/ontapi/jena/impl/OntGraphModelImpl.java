@@ -33,7 +33,6 @@ import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
 
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
@@ -185,7 +184,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public boolean isInBaseModel(Statement stmt) {
-        return isInBaseModel(OntApiException.notNull(stmt, "Null statement.").getSubject(), stmt.getPredicate(), stmt.getObject());
+        return isInBaseModel(OntJenaException.notNull(stmt, "Null statement.").getSubject(), stmt.getPredicate(), stmt.getObject());
     }
 
     protected boolean isInBaseModel(Resource s, Property p, RDFNode o) {
