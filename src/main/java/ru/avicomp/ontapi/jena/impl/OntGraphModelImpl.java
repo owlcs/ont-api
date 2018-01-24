@@ -494,4 +494,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return OntSWRLImpl.createImp(this, head.stream(), body.stream());
     }
 
+    @Override
+    public String toString() {
+        return String.format("OntGraphModel{%s}", getID());
+    }
 }

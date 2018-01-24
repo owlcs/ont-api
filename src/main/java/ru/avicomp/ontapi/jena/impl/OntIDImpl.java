@@ -93,7 +93,7 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
         String iri = asNode().toString();
         String ver = getVersionIRI();
         if (ver != null) {
-            return iri + ":" + ver;
+            return iri + "(" + ver + ")";
         }
         return iri;
     }

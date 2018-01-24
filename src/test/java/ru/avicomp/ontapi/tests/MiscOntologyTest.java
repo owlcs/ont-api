@@ -14,15 +14,25 @@
 
 package ru.avicomp.ontapi.tests;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.jena.impl.OntCEImpl;
+
+import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.model.OntClass;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
@@ -40,5 +50,47 @@ public class MiscOntologyTest {
         OntologyModel m = OntManagers.createONT().loadOntology(iri);
         m.asGraphModel().write(System.out, "ttl");
         m.axioms().forEach(a -> LOGGER.debug("{}", a));
+    }
+
+    @Test
+    public void testPrefixesOnReload() throws IOException, OWLOntologyStorageException, OWLOntologyCreationException {
+        LOGGER.debug("Create");
+        String prefName = "argh";
+        OntGraphModel model = OntModelFactory.createModel();
+        model.setID("http://test.com/ont").setVersionIRI("http://test.com/ver/1.0");
+        LOGGER.debug("{} has been created", model);
+        model.setNsPrefix(prefName, model.getID().getURI() + "#");
+        String clazz = model.createOntEntity(OntClass.class, model.getNsPrefixURI("argh") + "TheClass").getURI();
+        LOGGER.debug("Class {} has been added", clazz);
+        LOGGER.debug("\n{}", ReadWriteUtils.toString(model, OntFormat.TURTLE));
+
+        LOGGER.debug("Add to manager");
+        OntologyManager manager1 = OntManagers.createONT();
+        OntologyModel ontology1 = manager1.addOntology(model.getGraph());
+        Assert.assertEquals(1, ontology1.getAxiomCount());
+        OWLDocumentFormat format1 = manager1.getOntologyFormat(ontology1);
+        Assert.assertEquals(OntFormat.TURTLE.createOwlFormat(), format1);
+        //noinspection ConstantConditions
+        Assert.assertEquals("Wrong prefix", model.getNsPrefixURI(prefName), format1.asPrefixOWLDocumentFormat().getPrefix(prefName + ":"));
+
+        LOGGER.debug("Save");
+        Path file = Files.createTempFile(getClass().getName() + ".", ".rdf");
+        IRI iri = IRI.create(file.toUri());
+        LOGGER.debug("File to save {}", file);
+        OWLDocumentFormat format = OntFormat.RDF_XML.createOwlFormat();
+        format.asPrefixOWLDocumentFormat().setPrefixManager(format1.asPrefixOWLDocumentFormat());
+        manager1.saveOntology(ontology1, format, iri);
+
+        LOGGER.info("Reload");
+        OWLOntologyDocumentSource source = new FileDocumentSource(file.toFile(), OntFormat.RDF_XML.createOwlFormat());
+        OntologyManager manager2 = OntManagers.createONT();
+        OntologyModel ontology2 = manager2.loadOntologyFromOntologyDocument(source);
+
+        Assert.assertEquals(1, ontology2.getAxiomCount());
+        OWLDocumentFormat format2 = manager2.getOntologyFormat(ontology2);
+        LOGGER.debug("\n{}", ReadWriteUtils.toString(ontology2, format2));
+        Assert.assertEquals(OntFormat.RDF_XML.createOwlFormat(), format2);
+        //noinspection ConstantConditions
+        Assert.assertEquals("Wrong prefix", model.getNsPrefixURI(prefName), format2.asPrefixOWLDocumentFormat().getPrefix(prefName + ":"));
     }
 }
