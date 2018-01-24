@@ -46,6 +46,7 @@ import ru.avicomp.ontapi.jena.vocabulary.XSD;
 @SuppressWarnings("WeakerAccess")
 public class BuiltIn {
 
+    public static final Vocabulary DUMMY = new Empty();
     public static final Vocabulary OWL_VOCABULARY = new OWLVocabulary();
     public static final Vocabulary DC_VOCABULARY = new DCVocabulary();
     public static final Vocabulary SKOS_VOCABULARY = new SKOSVocabulary();
@@ -218,11 +219,24 @@ public class BuiltIn {
     /**
      * Access to {@link DC} vocabulary.
      */
-    public static class DCVocabulary implements Vocabulary {
+    public static class DCVocabulary extends Empty {
 
         @Override
         public Set<Property> annotationProperties() {
             return reservedProperties();
+        }
+
+        @Override
+        public Set<Property> reservedProperties() {
+            return getConstants(Property.class, DC.class);
+        }
+    }
+
+    public static class Empty implements Vocabulary {
+
+        @Override
+        public Set<Property> annotationProperties() {
+            return Collections.emptySet();
         }
 
         @Override
@@ -252,7 +266,7 @@ public class BuiltIn {
 
         @Override
         public Set<Property> reservedProperties() {
-            return getConstants(Property.class, DC.class);
+            return Collections.emptySet();
         }
     }
 

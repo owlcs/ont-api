@@ -27,7 +27,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * base class for {@link ObjectPropertyDomainTranslator} and {@link DataPropertyDomainTranslator} and {@link AnnotationPropertyDomainTranslator}
- * for rdfs:domain tripler.
+ * for rdfs:domain predicate.
  * <p>
  * Created by @szuev on 30.09.2016.
  */

@@ -47,9 +47,11 @@ public class MiscOntologyTest {
     public void testReadRecursiveGraph() throws OWLOntologyCreationException {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
-        OntologyModel m = OntManagers.createONT().loadOntology(iri);
-        m.asGraphModel().write(System.out, "ttl");
-        m.axioms().forEach(a -> LOGGER.debug("{}", a));
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().setPerformTransformation(false);
+        OntologyModel o = m.loadOntology(iri);
+        o.asGraphModel().write(System.out, "ttl");
+        o.axioms().forEach(a -> LOGGER.debug("{}", a));
     }
 
     @Test

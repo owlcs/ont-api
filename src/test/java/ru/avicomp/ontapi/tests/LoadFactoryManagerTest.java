@@ -120,7 +120,7 @@ public class LoadFactoryManagerTest {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
         OntologyManager m = OntManagers.createONT();
-        m.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true);
+        m.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true).setPerformTransformation(false);
         OntologyModel o = m.loadOntology(iri);
         o.asGraphModel().write(System.out, "ttl");
         o.axioms().forEach(a -> LOGGER.debug("{}", a));

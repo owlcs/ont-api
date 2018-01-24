@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.transforms;
 
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.LinkedHashSet;
@@ -24,8 +23,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
-
-import ru.avicomp.ontapi.jena.OntJenaException;
 
 /**
  * Class to perform some transformation action on the specified graph.
@@ -151,6 +148,11 @@ public abstract class GraphTransformers {
         @Override
         public int hashCode() {
             return impl.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("DefaultMaker{impl=%s}", impl);
         }
     }
 

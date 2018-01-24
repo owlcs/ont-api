@@ -28,8 +28,10 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
- * example:
+ * Example:
+ * <pre>{@code
  * :data-type-3 rdf:type rdfs:Datatype ; owl:equivalentClass [ rdf:type rdfs:Datatype ; owl:unionOf ( :data-type-1  :data-type-2 ) ] .
+ * }</pre>
  * <p>
  * Created by @szuev on 18.10.2016.
  */

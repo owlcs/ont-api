@@ -35,7 +35,9 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDisjointClassesAxiomImpl;
  * example:
  * <pre>{@code
  * :Complex2 owl:disjointWith  :Simple2 , :Simple1 .
+ * }</pre>
  * OWL2 alternative way:
+ * <pre>{@code
  * [ a owl:AllDisjointClasses ; owl:members ( :Complex2 :Simple1 :Simple2 ) ] .
  * }</pre>
  * <p>

@@ -27,7 +27,8 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 
 /**
  * base class for {@link DataPropertyRangeTranslator} and {@link ObjectPropertyRangeTranslator} and {@link AnnotationPropertyRangeTranslator}
- * example: foaf:name rdfs:range rdfs:Literal
+ * example:
+ * <pre>{@code foaf:name rdfs:range rdfs:Literal}</pre>
  * <p>
  * Created by @szuev on 30.09.2016.
  */

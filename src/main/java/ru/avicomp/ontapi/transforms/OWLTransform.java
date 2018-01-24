@@ -24,6 +24,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -51,7 +52,7 @@ public class OWLTransform extends Transform {
     @Override
     public void perform() {
         // fix ontology id:
-        new IDFixer(graph).perform();
+        new IDTransform(graph).perform();
         // table 5:
         Stream.of(OWL.DataRange, RDFS.Datatype, OWL.Restriction, OWL.Class)
                 .map(p -> statements(null, RDF.type, p))
@@ -205,10 +206,10 @@ public class OWLTransform extends Transform {
      * As primary chooses the one that has the largest number of triplets.
      * If there is no any owl:Ontology then new anonymous owl:Ontology will be added to the graph.
      */
-    public static class IDFixer extends Transform {
+    public static class IDTransform extends Transform {
 
-        protected IDFixer(Graph graph) {
-            super(graph);
+        public IDTransform(Graph graph) {
+            super(graph, BuiltIn.DUMMY);
         }
 
         @Override

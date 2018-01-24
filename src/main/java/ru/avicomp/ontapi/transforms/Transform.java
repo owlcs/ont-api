@@ -24,7 +24,6 @@ import org.apache.jena.rdf.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -49,7 +48,7 @@ public abstract class Transform {
         this.builtIn = Objects.requireNonNull(vocabulary, "Null built-in vocabulary.");
     }
 
-    protected Transform(Graph graph) {
+    public Transform(Graph graph) {
         this(graph, BuiltIn.get());
     }
 

@@ -26,7 +26,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Creating individual (both named and anonymous):
- * pizza:France rdf:type owl:NamedIndividual, pizza:Country, owl:Thing.
+ * <pre>{@code pizza:France rdf:type owl:NamedIndividual, pizza:Country, owl:Thing.}</pre>
  * <p>
  * Created by @szuev on 28.09.2016.
  */
