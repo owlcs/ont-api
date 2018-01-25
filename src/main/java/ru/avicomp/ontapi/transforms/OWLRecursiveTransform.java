@@ -14,49 +14,44 @@
 
 package ru.avicomp.ontapi.transforms;
 
+import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.utils.Graphs;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.List;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Class to perform ontology id transformation.
- * It merges several owl:Ontology sections to single one.
- * As primary chooses the one that has the largest number of triplets.
- * If there is no any owl:Ontology then new anonymous owl:Ontology will be added to the graph.
+ * To perform recursive transformation in terms of OWL2.
+ * Example of OWL2 allowed recursions:
+ * <pre>{@code
+ * _:a0 owl:differentFrom _:a1 .
+ * _:a1 owl:differentFrom _:a0 .
+ * }</pre>.
+ * It seems there triple {@code  _:a @predicate _:a} is allowed too.
+ *
+ * @see RecursiveTransform for more details
  */
-public class IDTransform extends Transform {
+public class OWLRecursiveTransform extends RecursiveTransform {
 
-    public IDTransform(Graph graph) {
-        super(graph, BuiltIn.DUMMY);
+    private static final Set<Node> ALLOWED_PREDICATES = Stream.of(OWL.differentFrom,
+            OWL.propertyDisjointWith,
+            OWL.disjointWith).map(FrontsNode::asNode).collect(Collectors.toSet());
+
+    public OWLRecursiveTransform(Graph graph) {
+        super(graph, false, true);
     }
 
     @Override
-    public void perform() {
-        Model m = getBaseModel();
-        // choose or create the new one:
-        Resource ontology = Graphs.ontologyNode(getBaseGraph())
-                .map(m::getRDFNode).map(RDFNode::asResource)
-                .orElseGet(() -> m.createResource().addProperty(RDF.type, OWL.Ontology));
-        // move all content from other ontologies to the selected one
-        Stream<Resource> other = statements(null, RDF.type, OWL.Ontology)
-                .map(Statement::getSubject)
-                .filter(s -> !ontology.equals(s));
-        List<Statement> rest = other
-                .map(o -> statements(o, null, null))
-                .flatMap(Function.identity()).collect(Collectors.toList());
-        rest.forEach(s -> ontology.addProperty(s.getPredicate(), s.getObject()));
-        // remove all other ontologies
-        m.remove(rest);
+    public Stream<Triple> wrongTriples() {
+        return super.wrongTriples()
+                .filter(t -> !t.getObject().equals(t.getSubject()))
+                .filter(t -> Iter.asStream(getBaseGraph()
+                        .find(subject ? t.getSubject() : Node.ANY, Node.ANY, subject ? Node.ANY : t.getObject()))
+                        .map(Triple::getPredicate).noneMatch(ALLOWED_PREDICATES::contains));
     }
 }

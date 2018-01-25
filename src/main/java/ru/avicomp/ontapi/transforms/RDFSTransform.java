@@ -33,7 +33,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * After this conversion is completed there would be an owl-ontology but maybe with some declarations missed and
  * with the RDFS-garbage (rdfs:Class, rdf:Property).
  * It seems it can be considered as an OWL1,
- * while rdfs:Class and rdf:Property would not be removed by the owl-transformer (see {@link OWLTransform}).
+ * while rdfs:Class and rdf:Property would not be removed by the owl-transformer (see {@link OWLCommonTransform}).
  * After working no standalone rdfs:Class or rdf:Property are expected.
  * And Note: this transformer prefers owl:AnnotationProperty and owl:Class in controversial cases.
  * <p>

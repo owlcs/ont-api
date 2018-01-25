@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Class to perform the final tuning of the ontology: mostly for fixing missed owl-declarations where it is possible.
- * It have to be running after {@link RDFSTransform} and {@link OWLTransform}.
+ * Class to perform the final tuning of the OWL-2 ontology: mostly for fixing missed owl-declarations where it is possible.
+ * It have to be running after {@link RDFSTransform} and {@link OWLCommonTransform}.
  * <p>
  * This transformer is designed to put in order any external (mainly none-OWL2) ontologies.
  * Also there are lots examples of incomplete or wrong ontologies provided by the tests from OWL-API contract pack,
@@ -63,9 +63,9 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Short Guide</a>
  */
 @SuppressWarnings("WeakerAccess")
-public class DeclarationTransform extends Transform {
+public class OWLDeclarationTransform extends Transform {
 
-    public DeclarationTransform(Graph graph) {
+    public OWLDeclarationTransform(Graph graph) {
         super(graph);
     }
 

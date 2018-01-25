@@ -35,11 +35,13 @@ import org.apache.jena.graph.Graph;
 @SuppressWarnings("WeakerAccess")
 public abstract class GraphTransformers {
 
-    // NOTE: the order is important
+    // NOTE: the order may be important
     protected static Store converters = new Store()
+            .add(OWLIDTransform::new)
+            .add(OWLRecursiveTransform::new)
             .add(RDFSTransform::new)
-            .add(OWLTransform::new)
-            .add(DeclarationTransform::new);
+            .add(OWLCommonTransform::new)
+            .add(OWLDeclarationTransform::new);
 
     /**
      * Sets global transformers store
@@ -63,8 +65,8 @@ public abstract class GraphTransformers {
     }
 
     /**
-     * helper method to perform conversion one {@link Graph} to another.
-     * Note: currently it returns the same graph, not a fixed copy.
+     * A helper method to perform {@link Graph graph} transformation using global settings.
+     * Note: it returns the same graph, not a fixed copy.
      *
      * @param graph input graph
      * @return output graph
@@ -84,7 +86,7 @@ public abstract class GraphTransformers {
     }
 
     /**
-     * Immutable store of graph transform makers
+     * Immutable store of graph-transform makers
      *
      * @see Maker
      */
@@ -117,7 +119,7 @@ public abstract class GraphTransformers {
         }
 
         public Stream<Transform> actions(Graph graph) {
-            return set.stream().map(factory -> factory.create(graph));
+            return set.stream().map(f -> f.create(graph));
         }
 
         @Override

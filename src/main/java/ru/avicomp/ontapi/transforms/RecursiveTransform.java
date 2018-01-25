@@ -33,7 +33,7 @@ import ru.avicomp.ontapi.transforms.vocabulary.AVC;
 
 /**
  * To remove/replace possible graph recursions
- * Example of graph which includes recursions:
+ * Example of graph with recursions:
  * <pre>{@code
  * :TheClass    a                   owl:Class ;
  *              rdfs:label          "Some class"@pt ;
@@ -86,7 +86,7 @@ public class RecursiveTransform extends Transform {
         viewed.add(test);
         return Iter.asStream(graph.find(test, Node.ANY, Node.ANY))
                 .map(Triple::getObject)
-                .anyMatch(o -> testSubject(graph, o, viewed));
+                .anyMatch(s -> testSubject(graph, s, viewed));
     }
 
     private static boolean testObject(Graph graph, Node test, Set<Node> viewed) {

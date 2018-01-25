@@ -14,13 +14,9 @@
 
 package ru.avicomp.ontapi.transforms;
 
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.transforms.vocabulary.WRONG_OWL;
@@ -38,26 +34,21 @@ import java.util.stream.Stream;
  * also <a href='https://www.w3.org/TR/owl2-quick-reference/'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
  */
 @SuppressWarnings("WeakerAccess")
-public class OWLTransform extends Transform {
+public class OWLCommonTransform extends Transform {
     protected static final boolean PROCESS_INDIVIDUALS_DEFAULT = false;
     private boolean processIndividuals;
 
-    public OWLTransform(Graph graph) {
+    public OWLCommonTransform(Graph graph) {
         this(graph, PROCESS_INDIVIDUALS_DEFAULT);
     }
 
-    protected OWLTransform(Graph graph, boolean processIndividuals) {
+    protected OWLCommonTransform(Graph graph, boolean processIndividuals) {
         super(graph);
         this.processIndividuals = processIndividuals;
     }
 
     @Override
     public void perform() {
-        // fix ontology id:
-        new IDTransform(graph).perform();
-        // fix possible recursions:
-        new OWLRecursiveTransform(graph).perform();
-
         // table 5:
         Stream.of(OWL.DataRange, RDFS.Datatype, OWL.Restriction, OWL.Class)
                 .map(p -> statements(null, RDF.type, p))
@@ -177,32 +168,4 @@ public class OWLTransform extends Transform {
         statements.forEach(s -> declare(s.getSubject(), OWL.NamedIndividual));
     }
 
-    /**
-     * To perform recursive transformation in terms of OWL2.
-     * Example of OWL2 allowed recursions:
-     * <pre>{@code
-     * _:a0 owl:differentFrom _:a1 .
-     * _:a1 owl:differentFrom _:a0 .
-     * }</pre>.
-     * It seems there triple {@code  _:a @predicate _:a} is allowed too.
-     */
-    public static class OWLRecursiveTransform extends RecursiveTransform {
-        private static final Set<Node> ALLOWED_PREDICATES =
-                Stream.of(OWL.differentFrom,
-                        OWL.propertyDisjointWith,
-                        OWL.disjointWith).map(FrontsNode::asNode).collect(Collectors.toSet());
-
-        public OWLRecursiveTransform(Graph graph) {
-            super(graph, false, true);
-        }
-
-        @Override
-        public Stream<Triple> wrongTriples() {
-            return super.wrongTriples()
-                    .filter(t -> !t.getObject().equals(t.getSubject()))
-                    .filter(t -> Iter.asStream(getBaseGraph()
-                            .find(subject ? t.getSubject() : Node.ANY, Node.ANY, subject ? Node.ANY : t.getObject()))
-                            .map(Triple::getPredicate).noneMatch(ALLOWED_PREDICATES::contains));
-        }
-    }
 }

@@ -29,9 +29,7 @@ import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
 
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
-import ru.avicomp.ontapi.transforms.DeclarationTransform;
-import ru.avicomp.ontapi.transforms.OWLTransform;
-import ru.avicomp.ontapi.transforms.RDFSTransform;
+import ru.avicomp.ontapi.transforms.*;
 
 /**
  * Enum of all ONT-API settings (20 origin OWL-API options + 9 new ONT-API options + ignored imports)
@@ -44,10 +42,10 @@ import ru.avicomp.ontapi.transforms.RDFSTransform;
 public enum OntSettings implements OntConfig.OptionSetting {
     OWL_API_LOAD_CONF_IGNORED_IMPORTS(new ArrayList<String>()),
 
-    ONT_API_LOAD_CONF_TRANSFORMERS(Stream.of(RDFSTransform.class, OWLTransform.class, DeclarationTransform.class)
+    ONT_API_LOAD_CONF_TRANSFORMERS(Stream.of(OWLIDTransform.class, OWLRecursiveTransform.class,
+            RDFSTransform.class, OWLCommonTransform.class, OWLDeclarationTransform.class)
             .collect(Collectors.toCollection(ArrayList::new))),
-    ONT_API_LOAD_CONF_SUPPORTED_SCHEMES(Stream.of(OntConfig.DefaultScheme.values())
-            .collect(Collectors.toCollection(ArrayList::new))),
+    ONT_API_LOAD_CONF_SUPPORTED_SCHEMES(OntConfig.DefaultScheme.all().collect(Collectors.toCollection(ArrayList::new))),
     ONT_API_LOAD_CONF_PERSONALITY_MODE(Configurable.Mode.MEDIUM),
     ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS(true),
     ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS(true),

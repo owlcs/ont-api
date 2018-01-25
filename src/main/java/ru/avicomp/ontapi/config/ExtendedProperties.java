@@ -60,6 +60,54 @@ public class ExtendedProperties extends Properties {
         super(defaults);
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getListProperty(String key, Class<T> type) {
+        List<T> res = new ArrayList<>();
+        MapType map = getMapType(type);
+        for (int i = 0; i < size(); i++) {
+            String v = getProperty(map.toListKey(key, i));
+            if (v == null) continue;
+            T obj;
+            try {
+                obj = (T) map.toObject(v);
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to get list property [" + key + ":" + i + "]", e);
+            }
+            res.add(obj);
+        }
+        return res;
+    }
+
+    protected MapType getMapType(Class<?> type) {
+        return Stream.of(MapType.values()).filter(m -> m.isSupported(type))
+                .findFirst().orElseThrow(() -> new RuntimeException(type + " is not supported."));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getTypedProperty(String key, Class<T> type) {
+        MapType map = getMapType(type);
+        String res = getProperty(map.toKey(key));
+        if (res == null) return null;
+        try {
+            return (T) map.toObject(res);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to get property '" + key + "'", e);
+        }
+    }
+
+    public <T> void setTypedProperty(String key, T value) {
+        if (value instanceof List) {
+            setListProperty(key, (List<?>) value);
+            return;
+        }
+        MapType map = getMapType(value.getClass());
+        try {
+            setProperty(map.toKey(key), map.toString(value));
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to set property '" + key + "'", e);
+        }
+    }
+
     protected enum MapType {
         CLASS(Class.class) {
             @Override
@@ -138,7 +186,7 @@ public class ExtendedProperties extends Properties {
 
         public abstract Object toObject(String value) throws Exception;
 
-        public String toString(Object value) throws Exception {
+        public String toString(Object value) {
             return String.valueOf(value);
         }
 
@@ -157,54 +205,6 @@ public class ExtendedProperties extends Properties {
         public boolean isSupported(Class<?> clazz) {
             return Objects.equals(type, clazz);
         }
-    }
-
-    protected MapType getMapType(Class<?> type) {
-        return Stream.of(MapType.values()).filter(m -> m.isSupported(type))
-                .findFirst().orElseThrow(() -> new RuntimeException(type + " is not supported."));
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T getTypedProperty(String key, Class<T> type) {
-        MapType map = getMapType(type);
-        String res = getProperty(map.toKey(key));
-        if (res == null) return null;
-        try {
-            return (T) map.toObject(res);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to get property '" + key + "'", e);
-        }
-    }
-
-    public <T> void setTypedProperty(String key, T value) {
-        if (value instanceof List) {
-            setListProperty(key, (List<?>) value);
-            return;
-        }
-        MapType map = getMapType(value.getClass());
-        try {
-            setProperty(map.toKey(key), map.toString(value));
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to set property '" + key + "'", e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> List<T> getListProperty(String key, Class<T> type) {
-        List<T> res = new ArrayList<>();
-        MapType map = getMapType(type);
-        int i = 0;
-        String v;
-        while ((v = getProperty(map.toListKey(key, i++))) != null) {
-            T obj;
-            try {
-                obj = (T) map.toObject(v);
-            } catch (Exception e) {
-                throw new RuntimeException("Unable to get list property [" + key + ":" + i + "]", e);
-            }
-            res.add(obj);
-        }
-        return res;
     }
 
     public <T> void setListProperty(String key, List<T> values) {
