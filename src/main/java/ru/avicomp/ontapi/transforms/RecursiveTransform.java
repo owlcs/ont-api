@@ -33,7 +33,7 @@ import ru.avicomp.ontapi.transforms.vocabulary.AVC;
 
 /**
  * To remove/replace possible graph recursions
- * Example of graph which includes recursions with usage:
+ * Example of graph which includes recursions:
  * <pre>{@code
  * :TheClass    a                   owl:Class ;
  *              rdfs:label          "Some class"@pt ;
@@ -51,7 +51,7 @@ import ru.avicomp.ontapi.transforms.vocabulary.AVC;
 @SuppressWarnings("WeakerAccess")
 public class RecursiveTransform extends Transform {
 
-    private static final int EMERGENCY_EXIT_LIMIT = 10_000;
+    protected static final int EMERGENCY_EXIT_LIMIT = 10_000;
     protected final boolean replace;
     protected final boolean subject;
 
@@ -59,7 +59,7 @@ public class RecursiveTransform extends Transform {
      * The main constructor.
      *
      * @param graph            the {@link Graph} to process
-     * @param replace          if true recursive b-nodes would be replaced with named nodes, otherwise
+     * @param replace          if true recursive b-nodes would be replaced with named nodes, otherwise they would be deleted
      * @param startWithSubject if true starts search subjects first, otherwise - objects.
      */
     public RecursiveTransform(Graph graph, boolean replace, boolean startWithSubject) {

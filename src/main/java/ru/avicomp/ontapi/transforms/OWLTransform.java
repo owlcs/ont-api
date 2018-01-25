@@ -14,19 +14,22 @@
 
 package ru.avicomp.ontapi.transforms;
 
+import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.vocabulary.RDFS;
+import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.transforms.vocabulary.WRONG_OWL;
+
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.vocabulary.RDFS;
-
-import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import ru.avicomp.ontapi.transforms.vocabulary.WRONG_OWL;
 
 /**
  * To convert OWL 1 DL =&gt; OWL 2 DL
@@ -52,6 +55,9 @@ public class OWLTransform extends Transform {
     public void perform() {
         // fix ontology id:
         new IDTransform(graph).perform();
+        // fix possible recursions:
+        new OWLRecursiveTransform(graph).perform();
+
         // table 5:
         Stream.of(OWL.DataRange, RDFS.Datatype, OWL.Restriction, OWL.Class)
                 .map(p -> statements(null, RDF.type, p))
@@ -111,11 +117,11 @@ public class OWLTransform extends Transform {
 
     /**
      * As shown by OWL-API-contract SubPropertyChainOfAxiom could be expressed in the following form:
-     * <pre>
+     * <pre>{@code
      * [    rdfs:subPropertyOf  :r ;
      *      owl:propertyChain   ( :p :q )
      * ] .
-     * </pre>
+     * }</pre>
      * Unfortunately I could not find specification for this case,
      * but I believe that this is an example of some rudimental OWL dialect, so it must be fixed here.
      */
@@ -171,4 +177,32 @@ public class OWLTransform extends Transform {
         statements.forEach(s -> declare(s.getSubject(), OWL.NamedIndividual));
     }
 
+    /**
+     * To perform recursive transformation in terms of OWL2.
+     * Example of OWL2 allowed recursions:
+     * <pre>{@code
+     * _:a0 owl:differentFrom _:a1 .
+     * _:a1 owl:differentFrom _:a0 .
+     * }</pre>.
+     * It seems there triple {@code  _:a @predicate _:a} is allowed too.
+     */
+    public static class OWLRecursiveTransform extends RecursiveTransform {
+        private static final Set<Node> ALLOWED_PREDICATES =
+                Stream.of(OWL.differentFrom,
+                        OWL.propertyDisjointWith,
+                        OWL.disjointWith).map(FrontsNode::asNode).collect(Collectors.toSet());
+
+        public OWLRecursiveTransform(Graph graph) {
+            super(graph, false, true);
+        }
+
+        @Override
+        public Stream<Triple> wrongTriples() {
+            return super.wrongTriples()
+                    .filter(t -> !t.getObject().equals(t.getSubject()))
+                    .filter(t -> Iter.asStream(getBaseGraph()
+                            .find(subject ? t.getSubject() : Node.ANY, Node.ANY, subject ? Node.ANY : t.getObject()))
+                            .map(Triple::getPredicate).noneMatch(ALLOWED_PREDICATES::contains));
+        }
+    }
 }

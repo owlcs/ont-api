@@ -128,6 +128,17 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(0, o.axioms(AxiomType.SUBCLASS_OF).count());
     }
 
+    @Test
+    public void testLoadRecursiveGraphWithTransform() throws OWLOntologyCreationException {
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
+        LOGGER.debug("The file: {}", iri);
+        OntologyModel o = OntManagers.createONT().loadOntology(iri);
+        o.asGraphModel().write(System.out, "ttl");
+        o.axioms().forEach(a -> LOGGER.debug("{}", a));
+        Assert.assertEquals("Wrong axioms count", 5, o.getAxiomCount());
+        Assert.assertEquals(1, o.axioms(AxiomType.SUBCLASS_OF).count());
+    }
+
     /**
      * Moved from {@link CommonManagerTest}
      *
