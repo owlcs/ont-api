@@ -14,34 +14,32 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
-
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointClassesAxiomImpl;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * see {@link AbstractTwoWayNaryTranslator}
  * example:
- * <pre>{@code
- * :Complex2 owl:disjointWith  :Simple2 , :Simple1 .
- * }</pre>
- * OWL2 alternative way:
- * <pre>{@code
- * [ a owl:AllDisjointClasses ; owl:members ( :Complex2 :Simple1 :Simple2 ) ] .
- * }</pre>
+ * <ul>
+ * <li>{@code :Complex2 owl:disjointWith  :Simple2 , :Simple1 . }</li>
+ * <li>OWL2 alternative way:
+ * {@code [ a owl:AllDisjointClasses ; owl:members ( :Complex2 :Simple1 :Simple2 ) ] . }</li>
+ * </ul>
  * <p>
  * Created by @szuev on 28.09.2016.
+ * @see OWLDisjointClassesAxiom
  */
 public class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom, OWLClassExpression, OntCE> {
     @Override

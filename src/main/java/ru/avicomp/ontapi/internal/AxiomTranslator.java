@@ -14,26 +14,29 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * The base class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
  * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>
+ * How to annotate see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>
+ * One more helpful link: <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick Reference Guide</a>
  * <p>
  * Created by @szuev on 28.09.2016.
+ *
+ * @param <Axiom> generic type of {@link OWLAxiom}
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {

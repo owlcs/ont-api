@@ -14,31 +14,34 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
-
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
- * This is for following axioms with two or more than two entities:
- * <p>
- * DisjointClasses ({@link DisjointClassesTranslator}),
- * DisjointObjectProperties ({@link DisjointObjectPropertiesTranslator}),
- * DisjointDataProperties ({@link DisjointDataPropertiesTranslator}),
- * DifferentIndividuals ({@link DifferentIndividualsTranslator}).
- * <p>
+ * This is a base for the following translators for axioms with two or more than two entities:
+ * <ul>
+ * <li>DisjointClasses ({@link DisjointClassesTranslator})</li>
+ * <li>DisjointObjectProperties ({@link DisjointObjectPropertiesTranslator})</li>
+ * <li>DisjointDataProperties ({@link DisjointDataPropertiesTranslator}),</li>
+ * <li>DifferentIndividuals ({@link DifferentIndividualsTranslator})</li>
+ * </ul>
  * Each of these axioms could be written in two ways: as single triple (or sequence of single triples) or as special anonymous node with rdf:List inside.
  * <p>
  * Created by szuev on 12.10.2016.
+ *
+ * @param <Axiom> generic type of {@link OWLAxiom}
+ * @param <OWL>   generic type of {@link OWLObject}
+ * @param <ONT>   generic type of {@link OntObject}
  */
 public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>, OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AbstractNaryTranslator<Axiom, OWL, ONT> {
     @Override

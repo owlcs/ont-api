@@ -14,35 +14,40 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.*;
-
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * Base class for following axioms:
- *      EquivalentClasses ({@link EquivalentClassesTranslator}),
- *      EquivalentObjectProperties ({@link EquivalentObjectPropertiesTranslator}),
- *      EquivalentDataProperties ({@link EquivalentDataPropertiesTranslator}),
- *      SameIndividual ({@link SameIndividualTranslator}).
+ * <ul>
+ * <li>EquivalentClasses ({@link EquivalentClassesTranslator})</li>
+ * <li>EquivalentObjectProperties ({@link EquivalentObjectPropertiesTranslator})</li>
+ * <li>EquivalentDataProperties ({@link EquivalentDataPropertiesTranslator})</li>
+ * <li>SameIndividual ({@link SameIndividualTranslator})</li>
+ * </ul>
  * Also for {@link AbstractTwoWayNaryTranslator} with following subclasses:
- *      DisjointClasses ({@link DisjointClassesTranslator}),
- *      DisjointObjectProperties ({@link DisjointObjectPropertiesTranslator}),
- *      DisjointDataProperties ({@link DisjointDataPropertiesTranslator}),
- *      DifferentIndividuals ({@link DifferentIndividualsTranslator}).
- * <p>
- * How to annotate see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>
+ * <ul>
+ * <li>DisjointClasses ({@link DisjointClassesTranslator})</li>
+ * <li>DisjointObjectProperties ({@link DisjointObjectPropertiesTranslator})</li>
+ * <li>DisjointDataProperties ({@link DisjointDataPropertiesTranslator})</li>
+ * <li>DifferentIndividuals ({@link DifferentIndividualsTranslator})</li>
+ * </ul>
  * <p>
  * Created by szuev on 13.10.2016.
+ *
+ * @param <Axiom> generic type of {@link OWLAxiom}
+ * @param <OWL>   generic type of {@link OWLObject}
+ * @param <ONT>   generic type of {@link OntObject}
  */
 public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>, OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AxiomTranslator<Axiom> {
 
@@ -54,7 +59,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
             return;
         }
         if (operands.size() != 2) {
-            throw new OntApiException("Should be two operands inside " + thisAxiom);
+            throw new OntApiException(getClass().getSimpleName() + ": expected two operands. Axiom: " + thisAxiom);
         }
         WriteHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations.stream());
     }

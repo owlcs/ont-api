@@ -24,10 +24,9 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.transforms.vocabulary.WRONG_OWL;
 
 /**
  * To convert OWL 1 DL =&gt; OWL 2 DL
@@ -98,12 +97,12 @@ public class OWLTransform extends Transform {
      * @see WRONG_OWL
      */
     public void fixInvalidURIs() {
-        Set<Statement> propertyChains = statements(null, OWLTransform.WRONG_OWL.propertyChain, null).collect(Collectors.toSet());
+        Set<Statement> propertyChains = statements(null, WRONG_OWL.propertyChain, null).collect(Collectors.toSet());
         propertyChains.forEach(s -> {
             getBaseModel().remove(s);
             getBaseModel().add(s.getSubject(), OWL.propertyChainAxiom, s.getObject());
         });
-        Set<Statement> dataProperties = statements(null, org.apache.jena.vocabulary.RDF.type, OWLTransform.WRONG_OWL.DataProperty).collect(Collectors.toSet());
+        Set<Statement> dataProperties = statements(null, org.apache.jena.vocabulary.RDF.type, WRONG_OWL.DataProperty).collect(Collectors.toSet());
         dataProperties.forEach(s -> {
             getBaseModel().remove(s);
             getBaseModel().add(s.getSubject(), org.apache.jena.vocabulary.RDF.type, OWL.DatatypeProperty);
@@ -172,63 +171,4 @@ public class OWLTransform extends Transform {
         statements.forEach(s -> declare(s.getSubject(), OWL.NamedIndividual));
     }
 
-    /**
-     * Vocabulary with wrong OWL URIs.
-     * As shown by OWL-API-contract-tests the OWL-API ontology could contain inappropriate URIs (properties and resources).
-     * Usually they are in RDF/XML format.
-     * Currently I see only two such cases:
-     * - owl:propertyChain
-     * - owl:DataProperty
-     * There are no such URIs in the OWL2 specification. Instead there are following things:
-     * - owl:propertyChainAxiom
-     * - owl:DatatypeProperty
-     * Unfortunately I could not find documentation about these things.
-     *
-     * @see OWL the correct vocabulary
-     */
-    public static class WRONG_OWL {
-        public final static String NS = OWL.NS;
-        public static final Property propertyChain = property("propertyChain");
-        public static final Resource DataProperty = resource("DataProperty");
-
-        protected static Resource resource(String local) {
-            return ResourceFactory.createResource(NS + local);
-        }
-
-        protected static Property property(String local) {
-            return ResourceFactory.createProperty(NS + local);
-        }
-    }
-
-    /**
-     * Class to perform ontology id transformation.
-     * It merges several owl:Ontology sections to single one.
-     * As primary chooses the one that has the largest number of triplets.
-     * If there is no any owl:Ontology then new anonymous owl:Ontology will be added to the graph.
-     */
-    public static class IDTransform extends Transform {
-
-        public IDTransform(Graph graph) {
-            super(graph, BuiltIn.DUMMY);
-        }
-
-        @Override
-        public void perform() {
-            Model m = getBaseModel();
-            // choose or create the new one:
-            Resource ontology = Graphs.ontologyNode(getBaseGraph())
-                    .map(m::getRDFNode).map(RDFNode::asResource)
-                    .orElseGet(() -> m.createResource().addProperty(RDF.type, OWL.Ontology));
-            // move all content from other ontologies to the selected one
-            Stream<Resource> other = statements(null, RDF.type, OWL.Ontology)
-                    .map(Statement::getSubject)
-                    .filter(s -> !ontology.equals(s));
-            List<Statement> rest = other
-                    .map(o -> statements(o, null, null))
-                    .flatMap(Function.identity()).collect(Collectors.toList());
-            rest.forEach(s -> ontology.addProperty(s.getPredicate(), s.getObject()));
-            // remove all other ontologies
-            m.remove(rest);
-        }
-    }
 }

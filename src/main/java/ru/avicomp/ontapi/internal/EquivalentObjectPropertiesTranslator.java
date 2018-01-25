@@ -36,6 +36,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentObjectPropertiesAxiomImpl;
  * }
  * </pre>
  * Created by @szuev on 01.10.2016.
+ * @see OWLEquivalentObjectPropertiesAxiom
  */
 public class EquivalentObjectPropertiesTranslator extends AbstractNaryTranslator<OWLEquivalentObjectPropertiesAxiom, OWLObjectPropertyExpression, OntOPE> {
 

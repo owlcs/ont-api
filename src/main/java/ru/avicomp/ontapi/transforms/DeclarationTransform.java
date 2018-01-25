@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
+import ru.avicomp.ontapi.transforms.vocabulary.AVC;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -47,7 +48,7 @@ import java.util.stream.Stream;
  * Consists of two inner transforms:
  * <ul>
  * <li>The first, {@link ManifestDeclarator}, works with the obvious cases
- * when type of the left or the right statements part is defined by the predicate or from some other clear hints.
+ * when the type of the left or the right statements part is defined by the predicate or from some other clear hints.
  * E.g. if we have triple "A rdfs:subClassOf B" then we know exactly - both "A" and "B" are owl-class expressions.
  * </li>
  * <li>The second, {@link ReasonerDeclarator}, performs iterative analyzing of whole graph to choose the correct entities type.
@@ -91,24 +92,6 @@ public class DeclarationTransform extends Transform {
                 .collect(Collectors.toSet());
         properties.forEach(p -> undeclare(p, RDF.Property));
         classes.forEach(c -> undeclare(c, RDFS.Class));
-    }
-
-    /**
-     * Vocabulary with temporary resources used by ONT-API only.
-     * Might be moved to {@link ru.avicomp.ontapi.jena.vocabulary} if necessary.
-     */
-    public static class AVC {
-        public final static String URI = "http://avc.ru/ont-api";
-        public final static String NS = URI + "#";
-        public static final Resource AnonymousIndividual = resource("AnonymousIndividual");
-
-        protected static Resource resource(String local) {
-            return ResourceFactory.createResource(NS + local);
-        }
-
-        protected static Property property(String local) {
-            return ResourceFactory.createProperty(NS + local);
-        }
     }
 
     /**
@@ -171,7 +154,7 @@ public class DeclarationTransform extends Transform {
     public static class ManifestDeclarator extends BaseDeclarator {
         protected Set<Resource> forbiddenClassCandidates;
 
-        protected ManifestDeclarator(Graph graph) {
+        public ManifestDeclarator(Graph graph) {
             super(graph);
         }
 
@@ -507,7 +490,7 @@ public class DeclarationTransform extends Transform {
          * @param graph          {@link Graph}
          * @param annotationsOpt if true then it chooses annotation property in unclear cases.
          */
-        protected ReasonerDeclarator(Graph graph, boolean annotationsOpt) {
+        public ReasonerDeclarator(Graph graph, boolean annotationsOpt) {
             super(graph);
             this.annotationsOpt = annotationsOpt;
         }

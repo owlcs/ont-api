@@ -28,19 +28,25 @@ import org.apache.jena.graph.Graph;
  * Class to perform some transformation action on the specified graph.
  * Currently it is to convert the OWL and RDFS ontological graphs to the OWL2-DL graph and to fix missed declarations.
  * Can be used to fix "mistaken" ontologies in accordance with OWL2 specification after loading from io-stream
- * but before using common API.
+ * but before using common (ONT-)API.
  * <p>
  * Created by szuev on 28.10.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class GraphTransformers {
 
-    // NOTE: the order are important
+    // NOTE: the order is important
     protected static Store converters = new Store()
             .add(RDFSTransform::new)
             .add(OWLTransform::new)
             .add(DeclarationTransform::new);
 
+    /**
+     * Sets global transformers store
+     *
+     * @param store {@link Store} the store
+     * @return previous store
+     */
     public static Store setTransformers(Store store) {
         Objects.requireNonNull(store, "Null converter store specified.");
         Store prev = converters;
@@ -48,6 +54,10 @@ public abstract class GraphTransformers {
         return prev;
     }
 
+    /**
+     * Gets global transformers store
+     * @return {@link Store}
+     */
     public static Store getTransformers() {
         return converters;
     }
@@ -64,13 +74,17 @@ public abstract class GraphTransformers {
         return graph;
     }
 
+    /**
+     * Transforms creator.
+     * @param <GC> {@link Transform}
+     */
     @FunctionalInterface
     public interface Maker<GC extends Transform> extends Serializable {
         GC create(Graph graph);
     }
 
     /**
-     * immutable store of graph transform makers/
+     * Immutable store of graph transform makers
      *
      * @see Maker
      */
@@ -117,6 +131,9 @@ public abstract class GraphTransformers {
         }
     }
 
+    /**
+     * Default impl of {@link Maker}
+     */
     public static class DefaultMaker implements Maker {
         protected final Class<? extends Transform> impl;
 

@@ -28,7 +28,7 @@ import ru.avicomp.ontapi.transforms.Transform;
 /**
  * Example of broken rdf:List from OWL-API-contract (e.g. see all.rdf),
  * instead 'rdf:nil' there is a resource with uri 'rdf:':
- * <pre>
+ * <pre>{@code
  * <rdf:Description rdf:about="a">
  *  <rdf:type>
  *      <owl:Restriction>
@@ -51,7 +51,7 @@ import ru.avicomp.ontapi.transforms.Transform;
  *      </owl:Restriction>
  *  </rdf:type>
  *  </rdf:Description>
- * </pre>
+ * }</pre>
  * Created by szuev on 26.04.2017.
  */
 public class WrongRDFListTransform extends Transform {

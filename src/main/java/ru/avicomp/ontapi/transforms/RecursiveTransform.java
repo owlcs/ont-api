@@ -14,6 +14,8 @@
 
 package ru.avicomp.ontapi.transforms;
 
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,12 +29,12 @@ import org.slf4j.LoggerFactory;
 
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.transforms.vocabulary.AVC;
 
 /**
- * To remove possible graph recursions
+ * To remove/replace possible graph recursions
  * Example of graph which includes recursions with usage:
- * <pre>
- * {@code
+ * <pre>{@code
  * :TheClass    a                   owl:Class ;
  *              rdfs:label          "Some class"@pt ;
  *              rdfs:subClassOf     _:b0 .
@@ -42,54 +44,87 @@ import ru.avicomp.ontapi.jena.utils.Iter;
  *                                      owl:onProperty      :someProperty ;
  *                                      owl:someValuesFrom  _:b0
  *                                  ] .
- * }
- * </pre>
+ * }</pre>
  * <p>
  * Created by @szuev on 24.01.2018.
  */
 @SuppressWarnings("WeakerAccess")
 public class RecursiveTransform extends Transform {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RecursiveTransform.class);
+
+    private static final int EMERGENCY_EXIT_LIMIT = 10_000;
+    protected final boolean replace;
+    protected final boolean subject;
+
+    /**
+     * The main constructor.
+     *
+     * @param graph            the {@link Graph} to process
+     * @param replace          if true recursive b-nodes would be replaced with named nodes, otherwise
+     * @param startWithSubject if true starts search subjects first, otherwise - objects.
+     */
+    public RecursiveTransform(Graph graph, boolean replace, boolean startWithSubject) {
+        super(graph, BuiltIn.DUMMY);
+        this.replace = replace;
+        this.subject = startWithSubject;
+    }
 
     public RecursiveTransform(Graph graph) {
-        super(graph, BuiltIn.DUMMY);
+        this(graph, true, true);
+    }
+
+    public static Stream<Triple> recursiveTriplesBySubject(Graph graph) {
+        return Iter.asStream(graph.find(Triple.ANY)).filter(t -> testSubject(graph, t.getSubject(), new HashSet<>()));
+    }
+
+    public static Stream<Triple> recursiveTriplesByObject(Graph graph) {
+        return Iter.asStream(graph.find(Triple.ANY)).filter(t -> testObject(graph, t.getObject(), new HashSet<>()));
+    }
+
+    private static boolean testSubject(Graph graph, Node test, Set<Node> viewed) {
+        if (!test.isBlank()) return false;
+        if (viewed.contains(test)) return true;
+        viewed.add(test);
+        return Iter.asStream(graph.find(test, Node.ANY, Node.ANY))
+                .map(Triple::getObject)
+                .anyMatch(o -> testSubject(graph, o, viewed));
+    }
+
+    private static boolean testObject(Graph graph, Node test, Set<Node> viewed) {
+        if (!test.isBlank()) return false;
+        if (viewed.contains(test)) return true;
+        viewed.add(test);
+        return Iter.asStream(graph.find(Node.ANY, Node.ANY, test))
+                .map(Triple::getSubject)
+                .anyMatch(o -> testObject(graph, o, viewed));
     }
 
     @Override
     public void perform() {
         Graph graph = getBaseGraph();
-        Set<Triple> delete = findRecursive(graph, true).collect(Collectors.toSet());
-        if (LOGGER.isDebugEnabled() && !delete.isEmpty()) {
-            LOGGER.debug("Count of triples to delete: {}", delete.size());
-        }
-        GraphUtil.delete(graph, delete.iterator());
+        Optional<Triple> r = Optional.empty();
+        int count = 0;
+        do {
+            if (count++ > EMERGENCY_EXIT_LIMIT) {
+                throw new TransformException("To many recursions in the graph");
+            }
+            r.ifPresent(t -> {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("{} [{}]", replace ? "Replace" : "Delete", t);
+                }
+                graph.delete(t);
+                if (!replace) return;
+                graph.add(createReplacement(t));
+            });
+            r = wrongTriples().findFirst();
+        } while (r.isPresent());
     }
 
-    /**
-     * Finds all recursive triplets.
-     *
-     * @param graph        {@link Graph}
-     * @param includeUsage if true all usages will be included to result also
-     * @return Stream of {@link Triple triples}
-     */
-    public static Stream<Triple> findRecursive(Graph graph, boolean includeUsage) {
-        Stream<Triple> res = Iter.asStream(graph.find(Triple.ANY)).filter(t -> isRecursive(graph, t));
-        if (includeUsage) {
-            res = res.flatMap(t -> Stream.concat(Stream.of(t), Iter.asStream(graph.find(Node.ANY, Node.ANY, t.getSubject()))));
-        }
-        return res;
+    public Triple createReplacement(Triple base) {
+        return subject ? Triple.create(AVC.error(base.getSubject()).asNode(), base.getPredicate(), base.getObject()) :
+                Triple.create(base.getSubject(), base.getPredicate(), AVC.error(base.getObject()).asNode());
     }
 
-    private static boolean isRecursive(Graph graph, Triple triple) {
-        return isRecursive(graph, null, triple.getSubject());
-    }
-
-    private static boolean isRecursive(Graph graph, Node subject, Node test) {
-        if (!test.isBlank()) return false;
-        if (test.equals(subject)) return true;
-        Node s = subject == null ? test : subject;
-        return Iter.asStream(graph.find(test, Node.ANY, Node.ANY))
-                .map(Triple::getObject)
-                .anyMatch(n -> isRecursive(graph, s, n));
+    public Stream<Triple> wrongTriples() {
+        return subject ? recursiveTriplesBySubject(getBaseGraph()) : recursiveTriplesByObject(getBaseGraph());
     }
 }

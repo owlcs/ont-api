@@ -36,6 +36,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class Transform {
+    // todo: logger will be removed later (when listener-mechanism would be implemented)
     protected static final Logger LOGGER = LoggerFactory.getLogger(Transform.class);
 
     protected final Graph graph;
@@ -53,9 +54,11 @@ public abstract class Transform {
     }
 
     /**
-     * performs the graph transformation.
+     * Performs the graph transformation.
+     *
+     * @throws TransformException if something wrong during operation.
      */
-    public abstract void perform();
+    public abstract void perform() throws TransformException;
 
     /**
      * decides is the transformation needed or not.

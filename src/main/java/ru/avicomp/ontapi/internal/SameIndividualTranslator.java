@@ -40,6 +40,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
  * }</pre>
  * <p>
  * Created by szuev on 13.10.2016.
+ * @see OWLSameIndividualAxiom
  */
 public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualAxiom, OWLIndividual, OntIndividual> {
     @Override

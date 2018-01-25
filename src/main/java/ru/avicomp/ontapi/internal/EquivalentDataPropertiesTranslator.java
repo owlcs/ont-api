@@ -37,6 +37,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentDataPropertiesAxiomImpl;
  * }
  * </pre>
  * Created by @szuev on 01.10.2016.
+ * @see OWLEquivalentDataPropertiesAxiom
  */
 public class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<OWLEquivalentDataPropertiesAxiom, OWLDataPropertyExpression, OntNDP> {
 

@@ -37,6 +37,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
  * </pre>
  * <p>
  * Created by @szuev on 29.09.2016.
+ * @see OWLEquivalentClassesAxiom
  */
 public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntCE> {
     @Override

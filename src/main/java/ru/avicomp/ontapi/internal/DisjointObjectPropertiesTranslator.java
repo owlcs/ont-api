@@ -33,12 +33,13 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDisjointObjectPropertiesAxiomImpl;
 /**
  * see {@link AbstractTwoWayNaryTranslator}
  * examples:
- * <pre>{@code
- * :dataProperty1 owl:propertyDisjointWith :dataProperty2
- * [ rdf:type owl:AllDisjointProperties; owl:members ( :dataProperty1 :dataProperty2 :dataProperty3 ) ]
- * }</pre>
+ * <ul>
+ * <li>{@code :dataProperty1 owl:propertyDisjointWith :dataProperty2}</li>
+ * <li>{@code  [ rdf:type owl:AllDisjointProperties; owl:members ( :dataProperty1 :dataProperty2 :dataProperty3 ) ]}</li>
+ * </ul>
  * <p>
  * Created by szuev on 12.10.2016.
+ * @see OWLDisjointObjectPropertiesAxiom
  */
 public class DisjointObjectPropertiesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointObjectPropertiesAxiom, OWLObjectPropertyExpression, OntOPE> {
     @Override

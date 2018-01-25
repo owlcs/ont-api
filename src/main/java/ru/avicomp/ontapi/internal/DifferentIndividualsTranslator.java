@@ -14,31 +14,33 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
-
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
- * Note! it is for an owl-expression without any root!
  * see {@link AbstractTwoWayNaryTranslator}
- * Example:
- * <pre>{@code
- * [ a owl:AllDifferent; owl:distinctMembers (pizza:America pizza:Italy pizza:Germany pizza:England pizza:France) ].
- * }</pre>
+ * Syntax:
+ * <ul>
+ * <li>{@code a1 owl:differentFrom a2.}</li>
+ * <li><pre>{@code _:x rdf:type owl:AllDifferent.
+ * _:x owl:members (a1 ... an). }</pre></li>
+ * </ul>
  * <p>
  * Created by @szuev on 29.09.2016.
+ *
+ * @see OWLDifferentIndividualsAxiom
  */
 public class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator<OWLDifferentIndividualsAxiom, OWLIndividual, OntIndividual> {
     @Override
