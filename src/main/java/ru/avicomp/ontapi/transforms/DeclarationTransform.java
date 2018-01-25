@@ -14,23 +14,22 @@
 
 package ru.avicomp.ontapi.transforms;
 
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
-
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Class to perform the final tuning of the ontology: mostly for fixing missed owl-declarations where it is possible.
@@ -46,15 +45,19 @@ import ru.avicomp.ontapi.jena.vocabulary.XSD;
  * but for correct output the input should also be correct.
  * <p>
  * Consists of two inner transforms:
- * - The first, {@link ManifestDeclarator}, works with the obvious cases
+ * <ul>
+ * <li>The first, {@link ManifestDeclarator}, works with the obvious cases
  * when type of the left or the right statements part is defined by the predicate or from some other clear hints.
  * E.g. if we have triple "A rdfs:subClassOf B" then we know exactly - both "A" and "B" are owl-class expressions.
- * - The second, {@link ReasonerDeclarator}, performs iterative analyzing of whole graph to choose the correct entities type.
+ * </li>
+ * <li>The second, {@link ReasonerDeclarator}, performs iterative analyzing of whole graph to choose the correct entities type.
  * E.g. we can have owl-restriction (existential/universal quantification)
  * "_:x rdf:type owl:Restriction; owl:onProperty A; owl:allValuesFrom B",
  * where "A" and "B" could be either object property and class expressions or data property and data-range,
  * and therefore we need to find other entries of these two entities in the graph;
  * for this example the only one declaration either of "A" or "B" is enough.
+ * </li>
+ * </ul>
  *
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Short Guide</a>
  */
@@ -112,42 +115,56 @@ public class DeclarationTransform extends Transform {
      * The transformer to restore declarations in the clear cases
      * (all notations are taken from the <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Short Guide</a>):
      * 1) The declaration in annotation
-     * - "_:x a owl:Annotation; owl:annotatedSource s; owl:annotatedProperty rdf:type; owl:annotatedTarget U."
+     * <ul>
+     * <li>{@code _:x a owl:Annotation; owl:annotatedSource s; owl:annotatedProperty rdf:type; owl:annotatedTarget U.}</li>
+     * </ul>
      * 2) Explicit class:
-     * - "C1 rdfs:subClassOf C2"
-     * - "C1 owl:disjointWith C2"
-     * - "_:x owl:complementOf C"
-     * - "_:x rdf:type owl:AllDisjointClasses; owl:members ( C1 ... Cn )"
-     * - "CN owl:disjointUnionOf ( C1 ... Cn )"
-     * - "C owl:hasKey ( P1 ... Pm R1 ... Rn )"
-     * - "_:x a owl:Restriction; _:x owl:onClass C"
+     * <ul>
+     * <li>{@code C1 rdfs:subClassOf C2}</li>
+     * <li>{@code C1 owl:disjointWith C2}</li>
+     * <li>{@code _:x owl:complementOf C}</li>
+     * <li>{@code _:x rdf:type owl:AllDisjointClasses; owl:members ( C1 ... Cn )}</li>
+     * <li>{@code CN owl:disjointUnionOf ( C1 ... Cn )}</li>
+     * <li>{@code C owl:hasKey ( P1 ... Pm R1 ... Rn )}</li>
+     * <li>{@code _:x a owl:Restriction; _:x owl:onClass C}</li>
+     * </ul>
      * 3) Explicit data-range:
-     * - "_:x owl:datatypeComplementOf D."
-     * - "_:x owl:onDatatype DN; owl:withRestrictions ( _:x1 ... _:xn )"
-     * - "_x: a owl:Restriction; owl:onProperties ( R1 ... Rn ); owl:allValuesFrom Dn"
-     * - "_x: a owl:Restriction; owl:onProperties ( R1 ... Rn ); owl:someValuesFrom Dn"
-     * - "_:x a owl:Restriction; owl:onDataRange D."
+     * <ul>
+     * <li>{@code _:x owl:datatypeComplementOf D.}</li>
+     * <li>{@code _:x owl:onDatatype DN; owl:withRestrictions ( _:x1 ... _:xn )}</li>
+     * <li>{@code _x: a owl:Restriction; owl:onProperties ( R1 ... Rn ); owl:allValuesFrom Dn}</li>
+     * <li>{@code _x: a owl:Restriction; owl:onProperties ( R1 ... Rn ); owl:someValuesFrom Dn}</li>
+     * <li>{@code _:x a owl:Restriction; owl:onDataRange D.}</li>
+     * </ul>
      * 4) Data range or class expression:
-     * - "_:x owl:oneOf ( a1 ... an )" or "_:x owl:oneOf ( v1 ... vn )"
+     * <ul><li>{@code _:x owl:oneOf ( a1 ... an )} or {@code _:x owl:oneOf ( v1 ... vn )}</li></ul>
      * 5) Explicit object property expression:
-     * - "P a owl:InverseFunctionalProperty",
-     * - "P rdf:type owl:ReflexiveProperty",
-     * - "P rdf:type owl:IrreflexiveProperty",
-     * - "P rdf:type owl:SymmetricProperty",
-     * - "P rdf:type owl:AsymmetricProperty",
-     * - "P rdf:type owl:TransitiveProperty"
-     * - "P1 owl:inverseOf P2"
-     * - "P owl:propertyChainAxiom ( P1 ... Pn )"
-     * - "_:x a owl:Restriction; owl:onProperty P; owl:hasSelf "true"^^xsd:boolean"
+     * <ul>
+     * <li>{@code P a owl:InverseFunctionalProperty}</li>
+     * <li>{@code P rdf:type owl:ReflexiveProperty}</li>
+     * <li>{@code P rdf:type owl:IrreflexiveProperty}</li>
+     * <li>{@code P rdf:type owl:SymmetricProperty}</li>
+     * <li>{@code P rdf:type owl:AsymmetricProperty}</li>
+     * <li>{@code P rdf:type owl:TransitiveProperty}</li>
+     * <li>{@code P1 owl:inverseOf P2}</li>
+     * <li>{@code P owl:propertyChainAxiom ( P1 ... Pn )}</li>
+     * <li>{@code _:x a owl:Restriction; owl:onProperty P; owl:hasSelf "true"^^xsd:boolean}</li>
+     * </ul>
      * 6) Data property or object property expression:
-     * - "_:x a owl:Restriction; owl:onProperty R; owl:hasValue v" or "_:x a owl:Restriction; owl:onProperty P; owl:hasValue a"
-     * - "_:x rdf:type owl:NegativePropertyAssertion; owl:sourceIndividual a1; owl:assertionProperty P; owl:targetIndividual a2" or
-     * "_:x rdf:type owl:NegativePropertyAssertion; owl:sourceIndividual a1; owl:assertionProperty R; owl:targetValue v"
+     * <ul>
+     * <li>{@code _:x a owl:Restriction; owl:onProperty R; owl:hasValue v} or {@code _:x a owl:Restriction; owl:onProperty P; owl:hasValue a}</li>
+     * <li>{@code _:x rdf:type owl:NegativePropertyAssertion; owl:sourceIndividual a1; owl:assertionProperty P; owl:targetIndividual a2} or
+     * {@code _:x rdf:type owl:NegativePropertyAssertion; owl:sourceIndividual a1; owl:assertionProperty R; owl:targetValue v}</li>
+     * </ul>
      * 7) Explicit individuals:
-     * - "a1 owl:sameAs a2" and "a1 owl:differentFrom a2"
-     * - "_:x rdf:type owl:AllDifferent; owl:members ( a1 ... an )"
+     * <ul>
+     * <li>{@code a1 owl:sameAs a2} and {@code a1 owl:differentFrom a2}</li>
+     * <li>{@code _:x rdf:type owl:AllDifferent; owl:members ( a1 ... an )}</li>
+     * </ul>
      * 8) Class assertions (individuals declarations):
-     * - "a rdf:type C"
+     * <ul>
+     * <li>{@code a rdf:type C}</li>
+     * </ul>
      * 9) SWRL rules. see {@link SWRL}
      */
     @SuppressWarnings("WeakerAccess")
@@ -437,32 +454,42 @@ public class DeclarationTransform extends Transform {
      * The transformer to restore declarations in the implicit cases
      * (all notations are taken from the <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Short Guide</a>):
      * 1) data or object universal or existential quantifications (restrictions):
-     * - "_:x rdf:type owl:Restriction; owl:onProperty P; owl:allValuesFrom C"
-     * - "_:x rdf:type owl:Restriction; owl:onProperty R; owl:someValuesFrom D"
+     * <ul>
+     * <li>{@code _:x rdf:type owl:Restriction; owl:onProperty P; owl:allValuesFrom C}</li>
+     * <li>{@code _:x rdf:type owl:Restriction; owl:onProperty R; owl:someValuesFrom D}</li>
+     * </ul>
      * 2) property domains:
-     * - "A rdfs:domain U"
-     * - "P rdfs:domain C"
-     * - "R rdfs:domain C"
+     * <ul>
+     * <li>{@code A rdfs:domain U}</li>
+     * <li>{@code P rdfs:domain C}</li>
+     * <li>{@code R rdfs:domain C}</li>
+     * </ul>
      * 3) property ranges:
-     * - "A rdfs:range U"
-     * - "R rdfs:range D"
-     * - "P rdfs:range C"
-     * 4) property assertions (during reasoning the "C owl:hasKey ( P1 ... Pm R1 ... Rn )"
-     * and "U rdf:type owl:FunctionalProperty" are used):
-     * - "s A t"
-     * - "a R v"
-     * - "a1 PN a2"
+     * <ul>
+     * <li>{@code A rdfs:range U}</li>
+     * <li>{@code R rdfs:range D}</li>
+     * <li>{@code P rdfs:range C}</li>
+     * </ul>
+     * 4) property assertions (during reasoning the {@code C owl:hasKey ( P1 ... Pm R1 ... Rn )}
+     * and {@code U rdf:type owl:FunctionalProperty} are used):
+     * <ul>
+     * <li>{@code s A t}</li>
+     * <li>{@code a R v}</li>
+     * <li>{@code a1 PN a2}</li>
+     * </ul>
      * 5) other expression and property constructions where one part could be determined from some another:
-     * - "C1 owl:equivalentClass C2"
-     * - "DN owl:equivalentClass D"
-     * - "P1 owl:equivalentProperty P2"
-     * - "R1 owl:propertyDisjointWith R2"
-     * - "A1 rdfs:subPropertyOf A2"
-     * - "P1 rdfs:subPropertyOf P2"
-     * - "R1 rdfs:subPropertyOf R2"
-     * - "_:x owl:unionOf ( D1 ... Dn )"
-     * - "_:x owl:intersectionOf ( C1 ... Cn )"
-     * - "_:x rdf:type owl:AllDisjointProperties; owl:members ( P1 ... Pn )"
+     * <ul>
+     * <li>{@code C1 owl:equivalentClass C2}</li>
+     * <li>{@code DN owl:equivalentClass D}</li>
+     * <li>{@code P1 owl:equivalentProperty P2}</li>
+     * <li>{@code R1 owl:propertyDisjointWith R2}</li>
+     * <li>{@code A1 rdfs:subPropertyOf A2}</li>
+     * <li>{@code P1 rdfs:subPropertyOf P2}</li>
+     * <li>{@code R1 rdfs:subPropertyOf R2}</li>
+     * <li>{@code _:x owl:unionOf ( D1 ... Dn )}</li>
+     * <li>{@code _:x owl:intersectionOf ( C1 ... Cn )}</li>
+     * <li>{@code _:x rdf:type owl:AllDisjointProperties; owl:members ( P1 ... Pn )}</li>
+     * </ul>
      * <p>
      * Note: ObjectProperty &amp; ClassExpression have more priority then DataProperty &amp; DataRange
      */
@@ -564,7 +591,7 @@ public class DeclarationTransform extends Transform {
             }
             if (isDataProperty(left) || isObjectPropertyExpression(left)) {
                 if (declareClass(right))
-                return Res.TRUE;
+                    return Res.TRUE;
             }
             if (right.isAnon()) {
                 declareClass(right);

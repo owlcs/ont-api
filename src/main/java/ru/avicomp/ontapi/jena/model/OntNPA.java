@@ -20,9 +20,9 @@ import org.apache.jena.rdf.model.RDFNode;
 /**
  * Negative property assertion. For {@link OntNDP} and {@link OntOPE} properties.
  * Negative Object Property Assertion example:
- * _:x rdf:type owl:NegativePropertyAssertion ; _:x owl:sourceIndividual a1; _:x owl:assertionProperty P; _:x owl:targetIndividual a2.
+ * {@code _:x rdf:type owl:NegativePropertyAssertion ; _:x owl:sourceIndividual a1; _:x owl:assertionProperty P; _:x owl:targetIndividual a2.}
  * Negative Data Property Assertion example:
- * _:x rdf:type owl:NegativePropertyAssertion; _:x owl:sourceIndividual a; _:x owl:assertionProperty R;  _:x owl:targetValue v.
+ * {@code _:x rdf:type owl:NegativePropertyAssertion; _:x owl:sourceIndividual a; _:x owl:assertionProperty R;  _:x owl:targetValue v.}
  * <p>
  * Created by @szuev on 15.11.2016.
  */

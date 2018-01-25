@@ -170,31 +170,41 @@ public enum OntFormat {
      * or as last attempt to load or save)... but maybe to read only or to write only,
      * or maybe with expectancy of some 'controlled' uri-transformations after reloading,
      * or maybe by additional configuring manager with external storers/parsers (although it is not supported by ONT-API right now)
-     * <p>
-     * - CSV ({@link Lang#CSV}) is not a valid Jena RDF serialization format (it is only for SPARQL results).
+     * <ul>
+     * <li>CSV ({@link Lang#CSV}) is not a valid Jena RDF serialization format (it is only for SPARQL results).
      * But it is possible to use it for reading csv files. Need to add jena-csv to dependencies.
      * For more details see <a href='http://jena.apache.org/documentation/csv/'>jena-csv</a>.
-     * BE WARNED: it is very tolerant format: almost any text file could be treated as csv.
-     * - TSV ({@link Lang#TSV}) Used by Jena for result sets, not RDF syntax.
-     * - {@link BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.eclipse.rdf4j.rio.binary.BinaryRDFWriterFactory}).
-     * for the following formats there are no {@link org.semanticweb.owlapi.model.OWLStorerFactory}s in the current OWL-API 5.1.4 dependencies:
-     * - {@link RDFaDocumentFormat}
-     * - {@link KRSSDocumentFormat}
-     * for the following formats there are no {@link org.semanticweb.owlapi.io.OWLParserFactory}s in the current OWL-API 5.1.4 dependencies:
-     * - {@link LatexDocumentFormat}
-     * - {@link DLSyntaxHTMLDocumentFormat}
-     * Incorrect behaviour on reloading (the reloaded test-ontology does not match to the initial):
-     * - {@link KRSS2DocumentFormat}
-     * - {@link DLSyntaxDocumentFormat}
-     * - {@link OBODocumentFormat}
+     * <p>BE WARNED: it is very tolerant format: almost any text file could be treated as csv.</p></li>
+     * <li>TSV ({@link Lang#TSV}) Used by Jena for result sets, not RDF syntax.</li>
+     * <li>{@link BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.eclipse.rdf4j.rio.binary.BinaryRDFWriterFactory}).</li>
+     * <li>for the following formats there are no {@link org.semanticweb.owlapi.model.OWLStorerFactory}s in the current OWL-API 5.1.4 dependencies:
+     *  <ul>
+     *      <li>{@link RDFaDocumentFormat}</li>
+     *      <li>{@link KRSSDocumentFormat}</li>
+     *      </ul>
+     * </li>
+     * <li>for the following formats there are no {@link org.semanticweb.owlapi.io.OWLParserFactory}s in the current OWL-API 5.1.4 dependencies:
+     *  <ul>
+     *      <li>{@link LatexDocumentFormat}</li>
+     *      <li>{@link DLSyntaxHTMLDocumentFormat}</li>
+     *  </ul>
+     * </li>
+     * <li>Incorrect behaviour on reloading (the reloaded test-ontology does not match to the initial):
+     *  <ul>
+     *      <li>{@link KRSS2DocumentFormat}</li>
+     *      <li>{@link DLSyntaxDocumentFormat}</li>
+     *      <li>{@link OBODocumentFormat}</li>
+     *  </ul>
      * The test ontology fot that case:
      * <pre> {@code
      * <http://ex> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
      * <http://ex#C> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
      * <http://ex#I> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NamedIndividual> , <http://ex#C> .
      * } </pre>
+     * </li>
+     * </ul>
      *
-     * @return false if format is broken by some reasons.
+     * @return false if format is considered dangerous and requires more attention
      * @see #isReadSupported()
      * @see #isWriteSupported()
      */

@@ -30,7 +30,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * owl:AnnotationProperty
+ * {@code owl:AnnotationProperty}
  * <p>
  * Created by szuev on 03.11.2016.
  */

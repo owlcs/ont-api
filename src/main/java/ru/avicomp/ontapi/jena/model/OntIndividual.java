@@ -121,15 +121,17 @@ public interface OntIndividual extends OntObject {
     /**
      * Class for Anonymous Individuals.
      * The anonymous individual is a blank node ("_:a") which satisfies one of the following conditions:
-     * 1) it has a class declaration (i.e. there is a triple "_:a rdf:type C", where C is a class expression)
-     * 2) it is a subject or an object in a statement with predicate owl:sameAs or owl:differentFrom
-     * 3) it is contained in a rdf:List with predicate owl:distinctMembers or owl:members in a blank node with rdf:type owl:AllDifferent
-     * 4) it is contained in a rdf:List with predicate owl:oneOf in a blank node with rdf:type owl:Class
-     * 5) it is a part of owl:NegativePropertyAssertion section with predicates owl:sourceIndividual or owl:targetIndividual
-     * 6) it is an object with predicate owl:hasValue inside "_:x rdf:type owl:Restriction" (Object Property Restriction)
-     * 7) it is a subject or an object in a statement where predicate is an uri-resource with rdf:type owl:AnnotationProperty (i.e. annotation property assertion "s A t")
-     * 8) it is a subject in a triple which corresponds data property assertion "_:a R v" (where "R" is a datatype property, "v" is a literal)
-     * 9) it is a subject or an object in a triple which corresponds object property assertion "_:a1 PN _:a2" (where PN is a named object property)
+     * <ul>
+     * <li>it has a class declaration (i.e. there is a triple "_:a rdf:type C", where C is a class expression)</li>
+     * <li>it is a subject or an object in a statement with predicate owl:sameAs or owl:differentFrom</li>
+     * <li>it is contained in a rdf:List with predicate owl:distinctMembers or owl:members in a blank node with rdf:type owl:AllDifferent</li>
+     * <li>it is contained in a rdf:List with predicate owl:oneOf in a blank node with rdf:type owl:Class</li>
+     * <li>it is a part of owl:NegativePropertyAssertion section with predicates owl:sourceIndividual or owl:targetIndividual</li>
+     * <li>it is an object with predicate owl:hasValue inside "_:x rdf:type owl:Restriction" (Object Property Restriction)</li>
+     * <li>it is a subject or an object in a statement where predicate is an uri-resource with rdf:type owl:AnnotationProperty (i.e. annotation property assertion "s A t")</li>
+     * <li>it is a subject in a triple which corresponds data property assertion "_:a R v" (where "R" is a datatype property, "v" is a literal)</li>
+     * <li>it is a subject or an object in a triple which corresponds object property assertion "_:a1 PN _:a2" (where PN is a named object property)</li>
+     * </ul>
      * <p>
      * Created by szuev on 10.11.2016.
      */

@@ -48,16 +48,20 @@ public interface Configurable<T> {
     enum Mode {
         /**
          * The following punnings are considered as illegal and are excluded:
-         * - owl:Class &lt;-&gt; rdfs:Datatype
-         * - owl:ObjectProperty &lt;-&gt; owl:DatatypeProperty
-         * - owl:ObjectProperty &lt;-&gt; owl:AnnotationProperty
-         * - owl:AnnotationProperty &lt;-&gt; owl:DatatypeProperty
+         * <ul>
+         * <li>owl:Class &lt;-&gt; rdfs:Datatype</li>
+         * <li>owl:ObjectProperty &lt;-&gt; owl:DatatypeProperty</li>
+         * <li>owl:ObjectProperty &lt;-&gt; owl:AnnotationProperty</li>
+         * <li>owl:AnnotationProperty &lt;-&gt; owl:DatatypeProperty</li>
+         * </ul>
          */
         STRICT,
         /**
          * Forbidden intersections of declarations:
-         * - Class &lt;-&gt; Datatype
-         * - ObjectProperty &lt;-&gt; DataProperty
+         * <ul>
+         * <li>Class &lt;-&gt; Datatype</li>
+         * <li>ObjectProperty &lt;-&gt; DataProperty</li>
+         * </ul>
          */
         MEDIUM,
         /**

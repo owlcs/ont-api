@@ -25,12 +25,14 @@ import java.util.stream.Stream;
  * owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion.
  * Example:
  * <pre>
+ * {@code
  * [ a                      owl:Axiom ;
  *   rdfs:comment           "some comment 1", "some comment 2"@fr ;
  *   owl:annotatedProperty  rdf:type ;
- *   owl:annotatedSource    &lt;http://example.test.org#SomeClassN1&gt; ;
+ *   owl:annotatedSource    <http://example.test.org#SomeClassN1> ;
  *   owl:annotatedTarget    owl:Class
  * ] .
+ * }
  * </pre>
  *
  * @see OntStatement

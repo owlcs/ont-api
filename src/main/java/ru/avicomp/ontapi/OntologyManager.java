@@ -42,15 +42,17 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
  * Base class: {@link OWLOntologyManager}
  * It is the main point for creating, loading and accessing {@link OntologyModel}s models.
  * New (ONT-API) methods:
- * - {@link #addOntology(Graph)}
- * - {@link #createGraphModel(String)}
- * - {@link #createGraphModel(String, String)}
- * - {@link #models()}
- * - {@link #getGraphModel(String)}
- * - {@link #getGraphModel(String, String)}
- * - {@link #addDocumentSourceMapper(DocumentSourceMapping)}
- * - {@link #removeDocumentSourceMapper(DocumentSourceMapping)}
- * - {@link #documentSourceMappers()}
+ * <ul>
+ * <li>{@link #addOntology(Graph)}</li>
+ * <li>{@link #createGraphModel(String)}</li>
+ * <li>{@link #createGraphModel(String, String)}</li>
+ * <li>{@link #models()}</li>
+ * <li>{@link #getGraphModel(String)}</li>
+ * <li>{@link #getGraphModel(String, String)}</li>
+ * <li>{@link #addDocumentSourceMapper(DocumentSourceMapping)}</li>
+ * <li>{@link #removeDocumentSourceMapper(DocumentSourceMapping)}</li>
+ * <li>{@link #documentSourceMappers()}</li>
+ * </ul>
  * <p>
  * Created by szuev on 24.10.2016.
  */

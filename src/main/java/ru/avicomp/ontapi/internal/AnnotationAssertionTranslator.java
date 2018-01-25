@@ -26,7 +26,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
  * Examples:
  * <pre>{@code
  *  foaf:LabelProperty vs:term_status "unstable" .
- *  foaf:LabelProperty rdfs:isDefinedBy &lt;http://xmlns.com/foaf/0.1/&gt; .
+ *  foaf:LabelProperty rdfs:isDefinedBy <http://xmlns.com/foaf/0.1/> .
  *  pizza:UnclosedPizza rdfs:label "PizzaAberta"@pt .
  * }</pre>
  * <p>

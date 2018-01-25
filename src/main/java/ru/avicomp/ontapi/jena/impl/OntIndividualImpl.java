@@ -87,13 +87,15 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
      * See description to the interface {@link OntIndividual.Anonymous}.
      * The current implementation allows treating b-node as anonymous individual
      * in any case with exception of the following:
-     * - it is a subject in statement "_:x rdf:type s", where "s" is not a class expression ("C").
-     * - it is a subject in statement "_:x @predicate @any", where @predicate is from reserved vocabulary
+     * <ul>
+     * <li>it is a subject in statement "_:x rdf:type s", where "s" is not a class expression ("C").</li>
+     * <li>it is a subject in statement "_:x @predicate @any", where @predicate is from reserved vocabulary
      * but not object, data or annotation built-in property
-     * and not owl:sameAs and owl:differentFrom.
-     * - it is an object in statement "@any @predicate _:x", where @predicate is from reserved vocabulary
+     * and not owl:sameAs and owl:differentFrom.</li>
+     * <li>it is an object in statement "@any @predicate _:x", where @predicate is from reserved vocabulary
      * but not object, data or annotation built-in property
-     * and not owl:sameAs, owl:differentFrom, owl:hasValue, owl:sourceIndividual and rdf:first.
+     * and not owl:sameAs, owl:differentFrom, owl:hasValue, owl:sourceIndividual and rdf:first.</li>
+     * </ul>
      *
      * for notations and self-education see our main <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Quick Refs</a>
      */

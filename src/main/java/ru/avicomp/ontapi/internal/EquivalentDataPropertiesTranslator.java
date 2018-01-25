@@ -33,7 +33,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentDataPropertiesAxiomImpl;
  * example:
  * <pre>
  * {@code
- *  gr:description rdf:type owl:DatatypeProperty ;  owl:equivalentProperty &lt;http://schema.org/description&gt; ;
+ *  gr:description rdf:type owl:DatatypeProperty ;  owl:equivalentProperty <http://schema.org/description> ;
  * }
  * </pre>
  * Created by @szuev on 01.10.2016.

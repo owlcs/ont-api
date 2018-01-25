@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 /**
  * for anonymous collections (owl:AllDisjointProperties,  owl:AllDisjointClasses, owl:AllDifferent).
  * Example:
- * _:x rdf:type owl:AllDisjointProperties; _:x owl:members ( R1 … Rn ).
+ * {@code _:x rdf:type owl:AllDisjointProperties; _:x owl:members ( R1 … Rn ).}
  * <p>
  * Created by @szuev on 15.11.2016.
  */

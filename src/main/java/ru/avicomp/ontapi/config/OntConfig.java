@@ -34,17 +34,18 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
  * It overrides OWL-API {@link OntologyConfigurator} and provides access to the new (ONT-API) settings.
  * Note: this configuration is mutable, while load and write configs are not.
  * Additional (new) ONT-API options (getters):
- * - {@link #getPersonality()}
- * - {@link #getGraphTransformers()}
- * - {@link #isPerformTransformation()}
- * - {@link #getSupportedSchemes()}
- * - {@link #isAllowReadDeclarations()}
- * - {@link #isAllowBulkAnnotationAssertions()}
- * - {@link #isIgnoreAnnotationAxiomOverlaps()}
- * - {@link #isUseOWLParsersToLoad()}
- * - {@link #isControlImports()}
- * - {@link #isIgnoreAxiomsReadErrors()} (since 1.1.0)
- *
+ * <ul>
+ * <li>{@link #getPersonality()}</li>
+ * <li>{@link #getGraphTransformers()}</li>
+ * <li>{@link #isPerformTransformation()}</li>
+ * <li>{@link #getSupportedSchemes()}</li>
+ * <li>{@link #isAllowReadDeclarations()}</li>
+ * <li>{@link #isAllowBulkAnnotationAssertions()}</li>
+ * <li>{@link #isIgnoreAnnotationAxiomOverlaps()}</li>
+ * <li>{@link #isUseOWLParsersToLoad()}</li>
+ * <li>{@link #isControlImports()}</li>
+ * <li>{@link #isIgnoreAxiomsReadErrors()} (since 1.1.0)</li>
+ * </ul>
  * @see OntSettings
  * @see OntLoaderConfiguration
  * @see OntWriterConfiguration

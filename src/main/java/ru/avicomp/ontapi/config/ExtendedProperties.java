@@ -23,12 +23,14 @@ import java.util.stream.Stream;
 /**
  * This is a simple extended {@link Properties} with supporting several primitive typed objects.
  * Currently there are only 6 additional types:
- * - {@link Class}
- * - {@link Enum}
- * - {@link Boolean}
- * - {@link Integer}
- * - {@link Long}
- * - {@link Double}
+ * <ul>
+ * <li>{@link Class}</li>
+ * <li>{@link Enum}</li>
+ * <li>{@link Boolean}</li>
+ * <li>{@link Integer}</li>
+ * <li>{@link Long}</li>
+ * <li>{@link Double}</li>
+ * </ul>
  * It also supports a {@link List} consisting of the types listed above.
  * Example:
  * The following snippet
@@ -66,7 +68,7 @@ public class ExtendedProperties extends Properties {
             }
 
             @Override
-            public String toString(Object value) throws Exception {
+            public String toString(Object value) {
                 return ((Class) value).getName();
             }
         },
@@ -83,7 +85,7 @@ public class ExtendedProperties extends Properties {
             }
 
             @Override
-            public String toString(Object value) throws Exception {
+            public String toString(Object value) {
                 Enum val = (Enum) value;
                 return val.getDeclaringClass().getName() + "#" + val.name();
             }
@@ -95,31 +97,31 @@ public class ExtendedProperties extends Properties {
         },
         BOOLEAN(Boolean.class) {
             @Override
-            public Object toObject(String value) throws Exception {
+            public Object toObject(String value) {
                 return Boolean.parseBoolean(value);
             }
         },
         INTEGER(Integer.class) {
             @Override
-            public Object toObject(String value) throws Exception {
+            public Object toObject(String value) {
                 return Integer.valueOf(value);
             }
         },
         LONG(Long.class) {
             @Override
-            public Object toObject(String value) throws Exception {
+            public Object toObject(String value) {
                 return Long.valueOf(value);
             }
         },
         DOUBLE(Double.class) {
             @Override
-            public Object toObject(String value) throws Exception {
+            public Object toObject(String value) {
                 return Double.valueOf(value);
             }
         },
         STRING(String.class) {
             @Override
-            public Object toObject(String value) throws Exception {
+            public Object toObject(String value) {
                 return value;
             }
 

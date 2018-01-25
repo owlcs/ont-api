@@ -176,17 +176,17 @@ public class Graphs {
      * just for debugging.
      * Examples of output:
      * <pre> {@code
-     * &lt;http://imports.test.Main.ttl&gt;
-     *  &lt;http://imports.test.C.ttl&gt;
-     *      &lt;http://imports.test.A.ttl&gt;
-     *      &lt;http://imports.test.B.ttl&gt;
-     *  &lt;http://imports.test.D.ttl&gt;
+     * <http://imports.test.Main.ttl>
+     *  <http://imports.test.C.ttl>
+     *      <http://imports.test.A.ttl>
+     *      <http://imports.test.B.ttl>
+     *  <http://imports.test.D.ttl>
      * }, {@code
-     * &lt;http://imports.test.D.ttl&gt;
-     *  &lt;http://imports.test.C.ttl&gt;
-     *      &lt;http://imports.test.A.ttl&gt;
-     *      &lt;http://imports.test.B.ttl&gt;
-     *              &lt;http://imports.test.Main.ttl&gt;
+     * <http://imports.test.D.ttl>
+     *  <http://imports.test.C.ttl>
+     *      <http://imports.test.A.ttl>
+     *      <http://imports.test.B.ttl>
+     *              <http://imports.test.Main.ttl>
      * } </pre>
      *
      * @param graph {@link Graph}

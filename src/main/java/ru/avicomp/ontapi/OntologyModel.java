@@ -22,7 +22,11 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 /**
  * OWL 2 Ontology.
  * It is access point to the structural (OWL) representation of underlying graph.
- *
+ * Following methods are new:
+ * <ul>
+ *     <li>{@link #asGraphModel()}</li>
+ *     <li>{@link #clearCache()}</li>
+ * </ul>
  * @see OWLOntology
  * Created by szuev on 24.10.2016.
  */

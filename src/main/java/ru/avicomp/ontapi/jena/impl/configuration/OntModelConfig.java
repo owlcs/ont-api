@@ -154,17 +154,21 @@ public class OntModelConfig {
     public static final OntPersonality ONT_PERSONALITY_LAX = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.LAX);
     /**
      * Personality with four kinds of restriction on type intersection (i.e. "illegal punnings"):
-     * {@link OntDT}  &lt;-&gt; {@link OntClass}
-     * {@link OntNAP} &lt;-&gt; {@link OntNOP}
-     * {@link OntNOP} &lt;-&gt; {@link OntNDP}
-     * {@link OntNDP} &lt;-&gt; {@link OntNAP}
+     * <ul>
+     * <li>{@link OntDT}  &lt;-&gt; {@link OntClass}</li>
+     * <li>{@link OntNAP} &lt;-&gt; {@link OntNOP}</li>
+     * <li>{@link OntNOP} &lt;-&gt; {@link OntNDP}</li>
+     * <li>{@link OntNDP} &lt;-&gt; {@link OntNAP}</li>
+     * </ul>
      * each of the pairs above can't exist in the corresponding model at the same time for the same node.
      */
     public static final OntPersonality ONT_PERSONALITY_STRICT = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.STRICT);
     /**
      * The week variant of previous one - two forbidden intersections:
-     * {@link OntDT}  &lt;-&gt; {@link OntClass}
-     * {@link OntNOP} &lt;-&gt; {@link OntNDP}
+     * <ul>
+     * <li>{@link OntDT}  &lt;-&gt; {@link OntClass}</li>
+     * <li>{@link OntNOP} &lt;-&gt; {@link OntNDP}</li>
+     * </ul>
      */
     public static final OntPersonality ONT_PERSONALITY_MEDIUM = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.MEDIUM);
 
