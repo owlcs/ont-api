@@ -14,17 +14,30 @@
 
 package ru.avicomp.ontapi.tests;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
-import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
-import org.semanticweb.owlapi.model.parameters.OntologyCopy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.internal.InternalObject;
@@ -36,19 +49,9 @@ import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
-import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.SpinModels;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.*;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * to test core ({@link OntManagers})
@@ -58,7 +61,7 @@ import java.util.stream.Stream;
  */
 public class CommonManagerTest {
 
-    private static final Logger LOGGER = Logger.getLogger(CommonManagerTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommonManagerTest.class);
 
     @Test
     public void testBasics() throws OWLOntologyCreationException {
@@ -135,7 +138,7 @@ public class CommonManagerTest {
         Assert.assertEquals(managerLock, ((ConcurrentGraph) ((OntologyModel) o1).asGraphModel().getBaseGraph()).lock());
         Assert.assertEquals(managerLock, ((ConcurrentGraph) ((OntologyModel) o2).asGraphModel().getBaseGraph()).lock());
 
-        o1.axioms().forEach(LOGGER::debug);
+        o1.axioms().forEach(a -> LOGGER.debug("{}", a));
         ((OntologyModel) o1).asGraphModel().createOntEntity(OntClass.class, "urn:c1").createIndividual("urn:i");
         OWLDataFactory df = m.getOWLDataFactory();
         o1.add(df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(IRI.create("urn:ap")), IRI.create("urn:c1"), df.getOWLLiteral("test", "e")));
@@ -143,7 +146,7 @@ public class CommonManagerTest {
         ((OntologyModel) o1).clearCache();
         Assert.assertEquals("+ 1 declaration", 5, o1.getAxiomCount());
 
-        o2.axioms().forEach(LOGGER::debug);
+        o2.axioms().forEach(a -> LOGGER.debug("{}", a));
         Assert.assertEquals(12, o2.getAxiomCount());
         ((OntologyModel) o2).clearCache();
         Assert.assertEquals(12, o2.getAxiomCount());
@@ -157,100 +160,6 @@ public class CommonManagerTest {
     @Test
     public void testSerializationWithConcurrency() throws Exception {
         serializationTest(OntManagers.createConcurrentONT());
-    }
-
-    @Test
-    public void testCoping() throws Exception {
-        copyTest(OntManagers.createONT(), OntManagers.createOWL(), OntologyCopy.SHALLOW);
-        copyTest(OntManagers.createONT(), OntManagers.createOWL(), OntologyCopy.DEEP);
-        copyTest(OntManagers.createOWL(), OntManagers.createONT(), OntologyCopy.SHALLOW);
-        copyTest(OntManagers.createOWL(), OntManagers.createONT(), OntologyCopy.DEEP);
-        copyTest(OntManagers.createONT(), OntManagers.createONT(), OntologyCopy.SHALLOW);
-        copyTest(OntManagers.createONT(), OntManagers.createONT(), OntologyCopy.DEEP);
-    }
-
-    @Test
-    public void testMoving() throws Exception {
-        LOGGER.info("1) Move OWL -> ONT");
-        OWLDataFactory df = OntManagers.getDataFactory();
-        OWLOntologyManager m1 = OntManagers.createOWL();
-        OWLOntologyManager m2 = OntManagers.createONT();
-        OWLOntologyManager m3 = OntManagers.createONT();
-        IRI iri1 = IRI.create("http://test/1");
-        OWLOntology o1 = m1.createOntology(iri1);
-        o1.add(df.getOWLSubClassOfAxiom(df.getOWLClass("a"), df.getOWLClass("b")));
-        try {
-            m2.copyOntology(o1, OntologyCopy.MOVE);
-            Assert.fail("Moving from OWL to ONT should be disabled");
-        } catch (OWLOntologyCreationException e) {
-            LOGGER.info(e);
-        }
-        Assert.assertEquals("Incorrect ont-count in source", 1, m1.ontologies().count());
-        Assert.assertEquals("Incorrect ont-count in destinaction", 0, m2.ontologies().count());
-
-        LOGGER.info("2) Move ONT -> OWL");
-        IRI iri2 = IRI.create("http://test/2");
-        IRI docIRI = IRI.create("file://nothing");
-        OWLDocumentFormat format = OntFormat.JSON_LD.createOwlFormat();
-        OWLOntology o2 = m2.createOntology(iri2);
-        m2.setOntologyFormat(o2, format);
-        m2.setOntologyDocumentIRI(o2, docIRI);
-        o2.add(df.getOWLEquivalentClassesAxiom(df.getOWLClass("a"), df.getOWLClass("b")));
-
-        try {
-            m1.copyOntology(o2, OntologyCopy.MOVE);
-            Assert.fail("Expected exception while moving from ONT -> OWL");
-        } catch (OntApiException a) {
-            LOGGER.info(a);
-        }
-        // check ONT manager
-        // And don't care about OWL manager, we can't help him anymore.
-        Assert.assertTrue("Can't find " + iri2, m2.contains(iri2));
-        Assert.assertTrue("Can't find " + o2, m2.contains(o2));
-        Assert.assertSame("Incorrect manager!", m2, o2.getOWLOntologyManager());
-        Assert.assertEquals("Incorrect document IRI", docIRI, m2.getOntologyDocumentIRI(o2));
-        Assert.assertEquals("Incorrect format", format, m2.getOntologyFormat(o2));
-
-        LOGGER.info("3) Move ONT -> ONT");
-        Assert.assertSame("Not same ontology!", o2, m3.copyOntology(o2, OntologyCopy.MOVE));
-        Assert.assertTrue("Can't find " + iri2, m3.contains(iri2));
-        Assert.assertFalse("There is still " + iri2, m2.contains(iri2));
-        Assert.assertTrue("Can't find " + o2, m3.contains(o2));
-        Assert.assertFalse("There is still " + o2, m2.contains(o2));
-        Assert.assertSame("Not the same ontology", o2, m3.getOntology(iri2));
-        Assert.assertSame("Incorrect manager!", m3, o2.getOWLOntologyManager());
-        Assert.assertEquals("Incorrect document IRI", docIRI, m3.getOntologyDocumentIRI(o2));
-        Assert.assertEquals("Incorrect format", format, m3.getOntologyFormat(o2));
-        Assert.assertNull("Still have ont-format", m2.getOntologyFormat(o2));
-        try {
-            Assert.fail("Expected exception, but found some doc iri " + m2.getOntologyDocumentIRI(o2));
-        } catch (UnknownOWLOntologyException u) {
-            LOGGER.info(u);
-        }
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test
-    public void testCopyWholeManager() throws Exception {
-        IRI iri1 = IRI.create("http://spinrdf.org/sp");
-        IRI doc1 = IRI.create(ReadWriteUtils.getResourcePath("etc", "sp.ttl").toUri());
-        IRI iri2 = IRI.create("http://spinrdf.org/spin");
-        IRI doc2 = IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toUri());
-
-        OntologyManager orig = OntManagers.createONT();
-        orig.getIRIMappers().add(FileMap.create(iri1, doc1));
-        orig.getIRIMappers().add(FileMap.create(iri2, doc2));
-        orig.loadOntologyFromOntologyDocument(iri2);
-        Assert.assertEquals(2, orig.ontologies().count());
-
-        LOGGER.info("Copy manager");
-        OntologyManager copy = copyManager(orig);
-        Assert.assertEquals(2, copy.ontologies().count());
-
-        // validate doc iris:
-        Assert.assertEquals(doc1, copy.getOntologyDocumentIRI(copy.getOntology(iri1)));
-        // Note: the same behaviour as OWL-API (tested: 5.1.4): the primary ontology has ontology-iri as document-iri.
-        Assert.assertEquals(iri2, copy.getOntologyDocumentIRI(copy.getOntology(iri2)));
     }
 
     @Test
@@ -272,7 +181,7 @@ public class CommonManagerTest {
         o1.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1));
         o1.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a2));
         List<OWLAxiom> axioms = o1.axioms().collect(Collectors.toList());
-        axioms.forEach(LOGGER::debug);
+        axioms.forEach(a -> LOGGER.debug("{}", a));
         ReadWriteUtils.print(o1);
 
         LOGGER.info("Change Load Annotation settings");
@@ -280,7 +189,7 @@ public class CommonManagerTest {
         Assert.assertEquals("Incorrect settings", false, m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
         // check the axioms changed.
         List<OWLAxiom> axioms1 = o1.axioms().collect(Collectors.toList());
-        axioms1.forEach(LOGGER::debug);
+        axioms1.forEach(a -> LOGGER.debug("{}", a));
         Assert.assertEquals("Should be 2 axioms only", 2, axioms1.size());
         Assert.assertTrue("Can't find declaration for " + ap, axioms1.contains(df.getOWLDeclarationAxiom(ap)));
         Assert.assertTrue("The declaration for " + cl + " should be with annotations now", axioms1.contains(df.getOWLDeclarationAxiom(cl, Arrays.asList(a1, a2))));
@@ -290,7 +199,7 @@ public class CommonManagerTest {
         axioms.forEach(o2::add);
         ReadWriteUtils.print(o2);
         List<OWLAxiom> axioms2 = o2.axioms().collect(Collectors.toList());
-        axioms2.forEach(LOGGER::debug);
+        axioms2.forEach(a -> LOGGER.debug("{}", a));
         Assert.assertEquals("Should be 2 axioms only", 2, axioms2.size());
         Assert.assertTrue("Can't find declaration for " + ap, axioms2.contains(df.getOWLDeclarationAxiom(ap)));
         Assert.assertTrue("The declaration for " + cl + " should not be unannotated now", axioms2.contains(df.getOWLDeclarationAxiom(cl)));
@@ -313,7 +222,7 @@ public class CommonManagerTest {
                 df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a2)
         ).collect(Collectors.toSet());
         LOGGER.debug("Axioms to be added: ");
-        axioms1.forEach(LOGGER::debug);
+        axioms1.forEach(a -> LOGGER.debug("{}", a));
         axioms1.forEach(o1::add);
 
         LOGGER.debug("Create second ontology with the same content.");
@@ -325,7 +234,7 @@ public class CommonManagerTest {
         LOGGER.info("Change Allow Bulk Annotation Assertion setting");
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setAllowBulkAnnotationAssertions(false));
         Assert.assertEquals("Incorrect settings", false, m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
-        o1.axioms().forEach(LOGGER::debug);
+        o1.axioms().forEach(a -> LOGGER.debug("{}", a));
         Set<OWLAxiom> axioms2 = Stream.of(
                 df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1),
                 df.getOWLDeclarationAxiom(cl, Stream.of(a2).collect(Collectors.toSet()))
@@ -369,66 +278,6 @@ public class CommonManagerTest {
         m2.addOntology(o2.getGraph());
         Assert.assertEquals("Counts of ontologies does not match", expected + 2, m2.ontologies().count());
 
-    }
-
-    private static void copyTest(OWLOntologyManager from, OWLOntologyManager to, OntologyCopy mode) throws Exception {
-        LOGGER.info("Copy (" + mode + ") " + from.getClass().getInterfaces()[0].getSimpleName() + " -> " + to.getClass().getInterfaces()[0].getSimpleName());
-        long fromCount = from.ontologies().count();
-        long toCount = to.ontologies().count();
-
-        OWLDataFactory df = from.getOWLDataFactory();
-        IRI iri = IRI.create("test" + System.currentTimeMillis());
-        LOGGER.debug("Create ontology " + iri);
-        OWLClass clazz = df.getOWLClass("x");
-        OWLOntology o1 = from.createOntology(iri);
-        o1.add(df.getOWLDeclarationAxiom(clazz));
-
-        to.copyOntology(o1, OntologyCopy.DEEP);
-        Assert.assertEquals("Incorrect ontologies count inside OWL-manager", fromCount + 1, from.ontologies().count());
-        Assert.assertEquals("Incorrect ontologies count inside ONT-manager", toCount + 1, to.ontologies().count());
-        Assert.assertTrue("Can't find " + iri, to.contains(iri));
-        OWLOntology o2 = to.getOntology(iri);
-        Assert.assertNotNull("Can't find " + to, o2);
-        Assert.assertNotSame("Should not be same", o1, o2);
-        Set<OWLClass> classes = o2.classesInSignature().collect(Collectors.toSet());
-        Assert.assertEquals("Should be single class inside", 1, classes.size());
-        Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
-    }
-
-    /**
-     * Copies managers content to new instance
-     *
-     * @param from {@link OntologyManager}
-     * @return new instance of {@link OntologyManager}
-     */
-    public static OntologyManager copyManager(OntologyManager from) {
-        OntologyManager res = OntManagers.createONT();
-        copyManager(from, res, false);
-        return res;
-    }
-
-    /**
-     * Copies managers content.
-     *
-     * @param from     source
-     * @param to       destination
-     * @param silently if true ignore {@link OWLOntologyCreationException} while coping
-     * @throws OntApiException if there are some exceptions and {@code silently = true}
-     */
-    public static void copyManager(OntologyManager from, OntologyManager to, boolean silently) throws OntApiException {
-        OntApiException ex = new OntApiException("Can't copy manager:");
-        from.ontologies()
-                .sorted(Comparator.comparingInt(o -> (int) o.imports().count()))
-                .forEach(o -> {
-                    try {
-                        to.copyOntology(o, OntologyCopy.DEEP);
-                    } catch (OWLOntologyCreationException e) {
-                        ex.addSuppressed(e);
-                    }
-                });
-        if (!silently && ex.getSuppressed().length != 0) {
-            throw ex;
-        }
     }
 
     private static void serializationTest(OWLOntologyManager origin) throws Exception {

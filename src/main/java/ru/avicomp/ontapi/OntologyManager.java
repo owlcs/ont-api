@@ -196,10 +196,17 @@ public interface OntologyManager extends OWLOntologyManager {
     OntologyModel addOntology(@Nonnull Graph graph);
 
     /**
+     * Note: the axioms list may differ in source and result due to different config settings etc.
+     * TODO: this method should not throw checked exception, in ONT-API it doesn't make sense, see {@link #createOntology()} explanation.
+     * @param source {@link OWLOntology} the source, could be pure OWL-API ontology
+     * @param settings {@link OntologyCopy} the settings
+     * @return new {@link OntologyModel}
+     * @throws OWLOntologyCreationException in case of error.
+     * @throws OntApiException if any
      * @see OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)
      */
     @Override
-    OntologyModel copyOntology(@Nonnull OWLOntology toCopy, @Nonnull OntologyCopy settings) throws OWLOntologyCreationException;
+    OntologyModel copyOntology(@Nonnull OWLOntology source, @Nonnull OntologyCopy settings) throws OWLOntologyCreationException;
 
     /**
      * @see OWLOntologyManager#loadOntology(IRI)

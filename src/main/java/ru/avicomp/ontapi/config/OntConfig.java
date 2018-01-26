@@ -145,7 +145,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * Disables all schemes with except 'file://' to prevent internet diving/
+     * Disables all schemes with except 'file://' to prevent internet diving.
      *
      * @return this manager
      * @see OntConfig#setSupportedSchemes(List)

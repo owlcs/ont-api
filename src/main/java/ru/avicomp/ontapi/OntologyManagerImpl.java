@@ -63,8 +63,9 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 /**
  * ONT-API Ontology Manager default implementation ({@link OntologyManager}).
-
+ * <p>
  * Created by @szuev on 03.10.2016.
+ *
  * @see OWLOntologyManagerImpl
  */
 @SuppressWarnings("WeakerAccess")
@@ -575,32 +576,43 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel createOntology(@Nonnull OWLOntologyID id) {
         getLock().writeLock().lock();
         try {
-            Optional<OntInfo> ont = content.get(id);
-            if (ont.isPresent()) {
-                throw new OWLOntologyAlreadyExistsException(id);
-            }
-            IRI doc = computeDocumentIRI(id);
-            if (doc == null) {
-                throw new OWLOntologyCreationException("Can't compute document iri from id " + id);
-            }
-            if (content.values().anyMatch(o -> Objects.equals(o.getDocumentIRI(), doc))) {
-                throw new OWLOntologyDocumentAlreadyExistsException(doc);
-            }
-            for (OWLOntologyFactory factory : ontologyFactories) {
-                // we are working only with the one factory which returns OntologyModel, not OWLOntology,
-                // todo: reminder: other factories should be wrapped and turn into OntologyManager.Factory.
-                if (factory.canCreateFromDocumentIRI(doc)) {
-                    OntologyModel res = (OntologyModel) factory.createOWLOntology(this, id, doc, this);
-                    content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addDocumentIRI(doc);
-                    return res;
-                }
-            }
-            throw new OWLOntologyFactoryNotFoundException(doc);
+            return create(id).get();
         } catch (OWLOntologyCreationException e) {
             throw new OntApiException("Unable to create ontology " + id, e);
         } finally {
             getLock().writeLock().unlock();
         }
+    }
+
+
+    /**
+     * @param id {@link OWLOntologyID}
+     * @return {@link OntInfo} the container with ontology
+     * @throws OWLOntologyCreationException        if creation is not possible either because the
+     *                                             ontology already exists or because of fail while compute document-iri
+     * @throws OWLOntologyFactoryNotFoundException if no suitable factory found,
+     */
+    protected OntInfo create(OWLOntologyID id) throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
+        Optional<OntInfo> ont = content.get(id);
+        if (ont.isPresent()) {
+            throw new OWLOntologyAlreadyExistsException(id);
+        }
+        IRI doc = computeDocumentIRI(id);
+        if (doc == null) {
+            throw new OWLOntologyCreationException("Can't compute document iri from id " + id);
+        }
+        if (content.values().anyMatch(o -> Objects.equals(o.getDocumentIRI(), doc))) {
+            throw new OWLOntologyDocumentAlreadyExistsException(doc);
+        }
+        for (OWLOntologyFactory factory : getOntologyFactories()) {
+            // we are working only with the one factory which returns OntologyModel, not OWLOntology,
+            // todo: reminder: other factories should be wrapped and turn into OntologyManager.Factory.
+            if (factory.canCreateFromDocumentIRI(doc)) { // always true
+                factory.createOWLOntology(this, id, doc, this);
+                return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addDocumentIRI(doc);
+            }
+        }
+        throw new OWLOntologyFactoryNotFoundException(doc);
     }
 
     /**
@@ -1436,67 +1448,70 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         if (importedOntology == null) {
             return;
         }
-        Stream<OWLOntologyChange> relatedChanges;
+        List<OWLOntologyChange> relatedChanges;
         if (change instanceof AddImport) {
             // remove duplicated declarations if they are present in the imported ontology
             relatedChanges = importedOntology.axioms(AxiomType.DECLARATION, Imports.INCLUDED)
                     .filter(ontology::containsAxiom)
-                    .map(a -> new RemoveAxiom(ontology, a));
+                    .map(a -> new RemoveAxiom(ontology, a)).collect(Collectors.toList());
         } else {
             // return back declarations which are still in use:
             relatedChanges = importedOntology.signature(Imports.INCLUDED)
                     .filter(ontology::containsReference)
                     .map(e -> getOWLDataFactory().getOWLDeclarationAxiom(e))
-                    .map(a -> new AddAxiom(ontology, a));
+                    .map(a -> new AddAxiom(ontology, a)).collect(Collectors.toList());
         }
         relatedChanges.forEach(ontology::applyDirectChange);
     }
 
     /**
-     * @param toCopy   {@link OWLOntology}
+     * @param source   {@link OWLOntology}
      * @param settings {@link OntologyCopy}
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException ex
      * @see OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)
      */
     @Override
-    public OntologyModel copyOntology(@Nonnull OWLOntology toCopy, @Nonnull OntologyCopy settings) throws OWLOntologyCreationException {
+    public OntologyModel copyOntology(@Nonnull OWLOntology source, @Nonnull OntologyCopy settings) throws OWLOntologyCreationException {
         getLock().writeLock().lock();
         try {
-            OntApiException.notNull(toCopy, "Null ontology.");
+            OntApiException.notNull(source, "Null ontology.");
             OntApiException.notNull(settings, "Null settings.");
-            OWLOntologyManager m = toCopy.getOWLOntologyManager();
+            OWLOntologyManager m = source.getOWLOntologyManager();
             OntologyModel res;
             switch (settings) {
                 case MOVE:
-                    if (!OntologyModel.class.isInstance(toCopy)) {
+                    if (!OntologyModel.class.isInstance(source)) {
                         throw new OWLOntologyCreationException(String.format("Can't move %s: not an %s. Use %s or %s parameter.",
-                                toCopy.getOntologyID(), OntologyModel.class.getSimpleName(), OntologyCopy.DEEP, OntologyCopy.SHALLOW));
+                                source.getOntologyID(), OntologyModel.class.getSimpleName(), OntologyCopy.DEEP, OntologyCopy.SHALLOW));
                     }
                     // todo: what about ontologies with impors? what about moving between managers with different lock ?
-                    res = (OntologyModel) toCopy;
+                    res = (OntologyModel) source;
                     ontologyCreated(res);
                     break;
                 case SHALLOW:
                 case DEEP:
-                    OntologyModel o = createOntology(toCopy.getOntologyID());
-                    AxiomType.AXIOM_TYPES.forEach(t -> addAxioms(o, toCopy.axioms(t)));
-                    toCopy.annotations().forEach(a -> applyChange(new AddOntologyAnnotation(o, a)));
-                    toCopy.importsDeclarations().forEach(a -> applyChange(new AddImport(o, a)));
+                    // todo: in case of ONT replace coping axioms with coping graphs
+                    OntInfo info = create(source.getOntologyID());
+                    OntologyModel o = info.get();
+                    AxiomType.AXIOM_TYPES.forEach(t -> OntologyManagerImpl.this.addAxioms(o, source.axioms(t)));
+                    source.annotations().forEach(a -> applyChange(new AddOntologyAnnotation(o, a)));
+                    source.importsDeclarations().forEach(a -> applyChange(new AddImport(o, a)));
                     res = o;
                     break;
                 default:
                     throw new OWLRuntimeException("settings value not understood: " + settings);
             }
             if (settings == OntologyCopy.MOVE || settings == OntologyCopy.DEEP) {
-                setOntologyDocumentIRI(res, m.getOntologyDocumentIRI(toCopy));
-                OWLDocumentFormat ontologyFormat = m.getOntologyFormat(toCopy);
+                // todo: what about configs?
+                setOntologyDocumentIRI(res, m.getOntologyDocumentIRI(source));
+                OWLDocumentFormat ontologyFormat = m.getOntologyFormat(source);
                 if (ontologyFormat != null) {
                     setOntologyFormat(res, ontologyFormat);
                 }
             }
             if (settings == OntologyCopy.MOVE) {
-                m.removeOntology(toCopy);
+                m.removeOntology(source);
                 // at this point toReturn and toCopy are the same object
                 // change the manager on the ontology
                 res.setOWLOntologyManager(this);
@@ -1644,7 +1659,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @Nullable
     protected OntologyModel load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
-        for (OWLOntologyFactory factory : ontologyFactories) {
+        for (OWLOntologyFactory factory : getOntologyFactories()) {
             if (!factory.canAttemptLoading(source))
                 continue;
             // todo: only single factory by now. implement wrapper-factory for native owl-factories.
