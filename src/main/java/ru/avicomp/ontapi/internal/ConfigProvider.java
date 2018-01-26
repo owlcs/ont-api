@@ -36,12 +36,13 @@ public interface ConfigProvider {
      * The config.
      * It may content reference to the manager as well,
      * but default implementation ({@link #DEFAULT}) is not intended to work with such things.
+     * <p>
+     * Created by @szuev on 05.04.2017.
      *
      * @see OWLDataFactory
      * @see org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration
      * @see OWLOntologyWriterConfiguration
      * @see OntLoaderConfiguration
-     * Created by @szuev on 05.04.2017.
      */
     interface Config {
 
@@ -54,12 +55,14 @@ public interface ConfigProvider {
 
         /**
          * Returns loader-configuration settings.
+         *
          * @return {@link OntLoaderConfiguration}
          */
         OntLoaderConfiguration loaderConfig();
 
         /**
          * Returns writer-configuration settings.
+         *
          * @return {@link OntWriterConfiguration}
          */
         OntWriterConfiguration writerConfig();

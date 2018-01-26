@@ -14,7 +14,19 @@
 
 package ru.avicomp.ontapi;
 
-import com.google.common.collect.Multimap;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
@@ -31,6 +43,8 @@ import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Multimap;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
@@ -46,26 +60,12 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentPriorityCollection;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 
 /**
  * ONT-API Ontology Manager default implementation ({@link OntologyManager}).
- *
- * @see OWLOntologyManagerImpl
- * <p>
+
  * Created by @szuev on 03.10.2016.
+ * @see OWLOntologyManagerImpl
  */
 @SuppressWarnings("WeakerAccess")
 public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.OWLOntologyCreationHandler, Serializable {

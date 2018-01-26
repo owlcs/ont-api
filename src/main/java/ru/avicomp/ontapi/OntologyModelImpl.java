@@ -36,10 +36,10 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
 /**
  * The main ontology model implementation. Not concurrent. Editable.
  * Provides access to {@link OntGraphModel}.
+ * Created by @szuev on 27.09.2016.
  * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl
  * @see OntBaseModelImpl
  * @see OntologyModel
- * Created by @szuev on 27.09.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel {

@@ -22,11 +22,10 @@ import org.apache.jena.util.iterator.ClosableIterator;
 
 /**
  * To work with Jena Iterators.
- *
+ * Created by szuev on 11.04.2017.
  * @see org.apache.jena.util.iterator.ExtendedIterator
  * @see org.apache.jena.atlas.iterator.Iter
  * @see ClosableIterator
- * Created by szuev on 11.04.2017.
  */
 public class Iter {
 

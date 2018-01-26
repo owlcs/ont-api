@@ -34,9 +34,8 @@ import java.util.stream.Stream;
  * ] .
  * }
  * </pre>
- *
- * @see OntStatement
  * Created by @szuev on 26.03.2017.
+ * @see OntStatement
  */
 public interface OntAnnotation extends OntObject {
 

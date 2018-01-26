@@ -33,23 +33,35 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
  * Used to manage general load/store behaviour of a manager (while immutable configs are for particular ontologies).
  * It overrides OWL-API {@link OntologyConfigurator} and provides access to the new (ONT-API) settings.
  * Note: this configuration is mutable, while load and write configs are not.
- * Additional (new) ONT-API options (getters):
+ * Additional (new) ONT-API methods:
  * <ul>
  * <li>{@link #getPersonality()}</li>
+ * <li>{@link #setPersonality(OntPersonality)}</li>
  * <li>{@link #getGraphTransformers()}</li>
+ * <li>{@link #setGraphTransformers(GraphTransformers.Store)}</li>
  * <li>{@link #isPerformTransformation()}</li>
+ * <li>{@link #setPerformTransformation(boolean)}</li>
  * <li>{@link #getSupportedSchemes()}</li>
+ * <li>{@link #setSupportedSchemes(List)}</li>
+ * <li>{@link #disableWebAccess()} (since 1.1.0)</li>
  * <li>{@link #isAllowReadDeclarations()}</li>
+ * <li>{@link #setAllowReadDeclarations(boolean)}</li>
  * <li>{@link #isAllowBulkAnnotationAssertions()}</li>
+ * <li>{@link #setAllowBulkAnnotationAssertions(boolean)}</li>
  * <li>{@link #isIgnoreAnnotationAxiomOverlaps()}</li>
+ * <li>{@link #setIgnoreAnnotationAxiomOverlaps(boolean)}</li>
  * <li>{@link #isUseOWLParsersToLoad()}</li>
+ * <li>{@link #setUseOWLParsersToLoad(boolean)}</li>
  * <li>{@link #isControlImports()}</li>
+ * <li>{@link #setControlImports(boolean)} </li>
  * <li>{@link #isIgnoreAxiomsReadErrors()} (since 1.1.0)</li>
+ * <li>{@link #setIgnoreAxiomsReadErrors(boolean)} (since 1.1.0)</li>
  * </ul>
+ * Created by szuev on 27.02.2017.
+ *
  * @see OntSettings
  * @see OntLoaderConfiguration
  * @see OntWriterConfiguration
- * Created by szuev on 27.02.2017.
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class OntConfig extends OntologyConfigurator {
@@ -130,6 +142,17 @@ public class OntConfig extends OntologyConfigurator {
      */
     public OntConfig setSupportedSchemes(List<OntConfig.Scheme> schemes) {
         return put(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, schemes instanceof Serializable ? schemes : new ArrayList<>(schemes));
+    }
+
+    /**
+     * Disables all schemes with except 'file://' to prevent internet diving/
+     *
+     * @return this manager
+     * @see OntConfig#setSupportedSchemes(List)
+     * @since 1.1.0
+     */
+    public OntConfig disableWebAccess() {
+        return setSupportedSchemes(Collections.singletonList(DefaultScheme.FILE));
     }
 
     /**

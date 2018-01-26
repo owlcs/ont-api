@@ -29,10 +29,10 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 /**
  * An Ont Statement. This is not a {@link org.apache.jena.rdf.model.Resource}.
  * OWL2 Annotations could be attached to this statement recursively.
- *
+ * Created by @szuev on 13.11.2016.
  * @see OntAnnotation
  * @see Statement
- * Created by @szuev on 13.11.2016.
+
  */
 public interface OntStatement extends Statement {
 

@@ -17,9 +17,9 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
 /**
  * Helper to work with {@link Graph Apache Jena Graps} in OWL-API terms
  *
+ * Created by @szuev on 19.08.2017.
  * @see ru.avicomp.ontapi.jena.utils.Graphs
  * @since 1.0.1
- * Created by @szuev on 19.08.2017.
  */
 @SuppressWarnings("WeakerAccess")
 public class OntGraphUtils {

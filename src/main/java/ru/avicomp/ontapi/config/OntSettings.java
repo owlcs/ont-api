@@ -35,9 +35,10 @@ import ru.avicomp.ontapi.transforms.*;
  * Enum of all ONT-API settings (20 origin OWL-API options + 9 new ONT-API options + ignored imports)
  * Note: System properties are not taken into account (this is a difference from OWL-API).
  * We use the properties file as the primary settings store and this enum goes as secondary attempt to load.
- *
- * @see ConfigurationOptions
+ * See <a href="file:../resources/ontapi.properties">ontapi.properties</a>
+ * <p>
  * Created by @szuev on 14.04.2017.
+ * @see ConfigurationOptions
  */
 public enum OntSettings implements OntConfig.OptionSetting {
     OWL_API_LOAD_CONF_IGNORED_IMPORTS(new ArrayList<String>()),

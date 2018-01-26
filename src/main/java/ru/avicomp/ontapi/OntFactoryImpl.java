@@ -160,8 +160,6 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      * - the decorator of pure OWL-API factory-loader, i.e. {@link OWLOntologyFactoryImpl}
      * - the jena-based factory-loader.
      *
-     * @see OWLLoaderImpl
-     * @see ONTLoaderImpl
      * <p>
      * Note: there are only three input parameters passed to the single method ({@link OWLOntologyDocumentSource},
      * {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}), while
@@ -170,6 +168,8 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      * And this is also true for {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl}.
      * Therefore, the {@link OWLOntologyCreationHandler} can be considered just as part of internal (OWL-API) implementation
      * and so there is no need in this parameter in our case.
+     * @see OWLLoaderImpl
+     * @see ONTLoaderImpl
      */
     @SuppressWarnings("WeakerAccess")
     public interface OntLoader extends Serializable {

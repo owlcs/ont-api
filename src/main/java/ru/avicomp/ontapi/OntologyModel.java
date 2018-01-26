@@ -27,8 +27,8 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
  *     <li>{@link #asGraphModel()}</li>
  *     <li>{@link #clearCache()}</li>
  * </ul>
- * @see OWLOntology
  * Created by szuev on 24.10.2016.
+ * @see OWLOntology
  */
 public interface OntologyModel extends OWLOntology, OWLMutableOntology {
 

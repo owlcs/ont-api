@@ -27,7 +27,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 /**
  * base class for {@link SubObjectPropertyOfTranslator}, {@link SubDataPropertyOfTranslator} and {@link SubAnnotationPropertyOfTranslator}
  * Example:
- * foaf:msnChatID  rdfs:subPropertyOf foaf:nick .
+ * {@code foaf:msnChatID  rdfs:subPropertyOf foaf:nick .}
  * <p>
  * Created by @szuev on 30.09.2016.
  */
