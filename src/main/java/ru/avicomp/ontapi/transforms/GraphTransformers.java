@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.transforms;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -78,6 +79,7 @@ public abstract class GraphTransformers {
 
     /**
      * Transforms creator.
+     * Extends Serializable due to OWL-API requirements.
      * @param <GC> {@link Transform}
      */
     @FunctionalInterface
@@ -99,12 +101,23 @@ public abstract class GraphTransformers {
             return res;
         }
 
+        /**
+         * Adds last
+         *
+         * @param f {@link Maker} to add
+         * @return a copy of this store
+         */
         public Store add(Maker f) {
             Store res = copy();
             res.set.add(f);
             return res;
         }
 
+        /**
+         * Adds first
+         * @param f {@link Maker} to add
+         * @return a copy of this store
+         */
         public Store addFirst(Maker f) {
             Store res = new Store();
             res.set.add(f);
@@ -112,14 +125,43 @@ public abstract class GraphTransformers {
             return res;
         }
 
+        @Deprecated
         public Store remove(Maker f) {
             Store res = copy();
             res.set.remove(f);
             return res;
         }
 
+        /**
+         * Removes first
+         *
+         * @return a copy of this store without first element.
+         */
+        public Store removeFirst() {
+            Store res = new Store();
+            if (set.isEmpty()) throw new IllegalStateException("Nothing to remove");
+            set.stream().skip(1).forEach(maker -> res.set.add(maker));
+            return res;
+        }
+
+        /**
+         * Removes last
+         *
+         * @return a copy of this store without last element.
+         */
+        public Store remove() {
+            Store res = new Store();
+            if (set.isEmpty()) throw new IllegalStateException("Nothing to remove");
+            set.stream().limit(set.size() - 1).forEach(maker -> res.set.add(maker));
+            return res;
+        }
+
         public Stream<Transform> actions(Graph graph) {
             return set.stream().map(f -> f.create(graph));
+        }
+
+        public Set<Maker> asSet() {
+            return Collections.unmodifiableSet(set);
         }
 
         @Override

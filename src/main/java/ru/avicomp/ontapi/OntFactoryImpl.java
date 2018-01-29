@@ -376,7 +376,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 }
                 boolean isPrimary = graphs.size() == 1;
                 Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
-                if (isPrimary && config.isPerformTransformation()) {
+                if (isPrimary && config.isPerformTransformation()) { // todo: skip any transform in case of it is loaded by owl?
                     if (LOGGER.isDebugEnabled())
                         LOGGER.debug("Perform graph transformations.");
                     transform(graph, new HashSet<>(), config.getGraphTransformers());

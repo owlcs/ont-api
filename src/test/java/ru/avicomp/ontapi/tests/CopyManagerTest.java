@@ -113,10 +113,67 @@ public class CopyManagerTest {
         IRI doc1 = IRI.create(ReadWriteUtils.getResourcePath("etc", "sp.ttl").toUri());
         IRI iri2 = IRI.create("http://spinrdf.org/spin");
         IRI doc2 = IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toUri());
+        IRI iri3 = IRI.create("http://spinrdf.org/spl");
+        IRI doc3 = IRI.create(ReadWriteUtils.getResourcePath("etc", "spl.spin.ttl").toUri());
+        IRI iri4 = IRI.create("http://spinrdf.org/spif");
+        IRI doc4 = IRI.create(ReadWriteUtils.getResourcePath("etc", "spif.ttl").toUri());
 
         OntologyManager from = OntManagers.createONT();
         from.getIRIMappers().add(FileMap.create(iri1, doc1));
         from.getIRIMappers().add(FileMap.create(iri2, doc2));
+        from.getIRIMappers().add(FileMap.create(iri3, doc3));
+        from.getIRIMappers().add(FileMap.create(iri4, doc4));
+
+        // loads sp.ttl, then spif.ttl, then try to load spin.ttl
+        from.loadOntologyFromOntologyDocument(iri1);
+        Assert.assertEquals(1, from.ontologies().count());
+        from.loadOntologyFromOntologyDocument(iri4);
+        Assert.assertEquals(4, from.ontologies().count());
+        try {
+            from.loadOntologyFromOntologyDocument(doc2);
+            Assert.fail(doc2 + " has been successfully loaded.");
+        } catch (OWLOntologyAlreadyExistsException e) {
+            LOGGER.info("It is ok : {}", e.getMessage());
+        }
+        Assert.assertEquals(4, from.ontologies().count());
+
+
+        LOGGER.info("Copy manager");
+        OntologyManager to = CopyManagerTest.copyManager(from);
+        Assert.assertEquals(4, to.ontologies().count());
+
+        // validate doc iris:
+        OWLOntology o2 = to.getOntology(iri2);
+        Assert.assertNotNull(o2);
+        Assert.assertEquals(doc2, to.getOntologyDocumentIRI(o2));
+        OWLOntology o3 = to.getOntology(iri3);
+        Assert.assertNotNull(o3);
+        Assert.assertEquals(doc3, to.getOntologyDocumentIRI(o3));
+        // Note: the same behaviour as OWL-API (tested: 5.1.4): the primary ontology has ontology-iri as document-iri.
+        OWLOntology o4 = to.getOntology(iri4);
+        Assert.assertNotNull(o4);
+        Assert.assertEquals(iri4, to.getOntologyDocumentIRI(o4));
+        OWLOntology o1 = to.getOntology(iri1);
+        Assert.assertNotNull(o1);
+        Assert.assertEquals(iri1, to.getOntologyDocumentIRI(o1));
+
+
+        compareManagersContentTest(from, to);
+
+    }
+
+    @Test
+    public void testCopyWholeManager2() throws Exception {
+        IRI iri1 = IRI.create("http://spinrdf.org/sp");
+        IRI doc1 = IRI.create(ReadWriteUtils.getResourcePath("omn", "sp.omn").toUri());
+        IRI iri2 = IRI.create("http://spinrdf.org/spin");
+        IRI doc2 = IRI.create(ReadWriteUtils.getResourcePath("omn", "spin.omn").toUri());
+
+        OntologyManager from = OntManagers.createONT();
+        from.getOntologyConfigurator().disableWebAccess();
+        from.getIRIMappers().add(FileMap.create(iri1, doc1));
+        from.getIRIMappers().add(FileMap.create(iri2, doc2));
+
         from.loadOntologyFromOntologyDocument(iri2);
         Assert.assertEquals(2, from.ontologies().count());
 
@@ -128,15 +185,16 @@ public class CopyManagerTest {
         OWLOntology o1 = to.getOntology(iri1);
         Assert.assertNotNull(o1);
         Assert.assertEquals(doc1, to.getOntologyDocumentIRI(o1));
-        // Note: the same behaviour as OWL-API (tested: 5.1.4): the primary ontology has ontology-iri as document-iri.
         OWLOntology o2 = to.getOntology(iri2);
         Assert.assertNotNull(o2);
         Assert.assertEquals(iri2, to.getOntologyDocumentIRI(o2));
+
         compareManagersContentTest(from, to);
+
     }
 
     @Test
-    public void testCopyWholeManager2() throws Exception {
+    public void testCopyWholeManager3() throws Exception {
         OntologyManager from = OntManagers.createONT();
         from.getOntologyConfigurator().disableWebAccess().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
         from.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("owlapi/importscyclic", "relaMath.owl")));

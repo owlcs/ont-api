@@ -1025,7 +1025,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().readLock().lock();
         try {
             if (!has(ontology)) throw new UnknownOWLOntologyException(ontology.getOntologyID());
-            return documentIRIByOntology(ontology).orElseThrow(() -> new OntApiException("Null document iri"));
+            return documentIRIByOntology(ontology).orElseThrow(() -> new OntApiException("Null document iri, ontology id=" + ontology.getOntologyID()));
         } finally {
             getLock().readLock().unlock();
         }
