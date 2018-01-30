@@ -47,8 +47,8 @@ public class OWLRecursiveTransform extends RecursiveTransform {
     }
 
     @Override
-    public Stream<Triple> wrongTriples() {
-        return super.wrongTriples()
+    public Stream<Triple> recursiveTriples() {
+        return super.recursiveTriples()
                 .filter(t -> !t.getObject().equals(t.getSubject()))
                 .filter(t -> Iter.asStream(getBaseGraph()
                         .find(subject ? t.getSubject() : Node.ANY, Node.ANY, subject ? Node.ANY : t.getObject()))

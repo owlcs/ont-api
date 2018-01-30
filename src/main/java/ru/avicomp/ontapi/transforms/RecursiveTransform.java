@@ -14,26 +14,21 @@
 
 package ru.avicomp.ontapi.transforms;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.transforms.vocabulary.AVC;
 
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
+
 /**
  * To remove/replace possible graph recursions
- * Example of graph with recursions:
+ * Example of graph with a simple recursions:
  * <pre>{@code
  * :TheClass    a                   owl:Class ;
  *              rdfs:label          "Some class"@pt ;
@@ -45,8 +40,10 @@ import ru.avicomp.ontapi.transforms.vocabulary.AVC;
  *                                      owl:someValuesFrom  _:b0
  *                                  ] .
  * }</pre>
- * <p>
  * Created by @szuev on 24.01.2018.
+ * <p>
+ * Note: this transform is slow - the complexity is ~O(n*log(n))
+ * @see AVC#error(String)
  */
 @SuppressWarnings("WeakerAccess")
 public class RecursiveTransform extends Transform {
@@ -73,29 +70,65 @@ public class RecursiveTransform extends Transform {
     }
 
     public static Stream<Triple> recursiveTriplesBySubject(Graph graph) {
-        return Iter.asStream(graph.find(Triple.ANY)).filter(t -> testSubject(graph, t.getSubject(), new HashSet<>()));
+        return anonymous(graph).filter(t -> testSubject(graph, t.getSubject()));
     }
 
     public static Stream<Triple> recursiveTriplesByObject(Graph graph) {
-        return Iter.asStream(graph.find(Triple.ANY)).filter(t -> testObject(graph, t.getObject(), new HashSet<>()));
+        return anonymous(graph).filter(t -> testObject(graph, t.getObject()));
     }
 
-    private static boolean testSubject(Graph graph, Node test, Set<Node> viewed) {
-        if (!test.isBlank()) return false;
-        if (viewed.contains(test)) return true;
-        viewed.add(test);
-        return Iter.asStream(graph.find(test, Node.ANY, Node.ANY))
+    /**
+     * Returns all triples with blank subject and object
+     *
+     * @param graph {@link Graph}
+     * @return Stream of {@link Triple triples}
+     */
+    public static Stream<Triple> anonymous(Graph graph) {
+        return Iter.asStream(graph.find(Triple.ANY)
+                .filterKeep(t -> t.getSubject().isBlank())
+                .filterKeep(t -> t.getObject().isBlank()));
+    }
+
+    /**
+     * Answers iff specified node is recursive.
+     * Search starts from subject node.
+     *
+     * @param graph {@link Graph}
+     * @param test  {@link Node}  the subject to test
+     * @return true if this node in recursion
+     * @see #testObject(Graph, Node)
+     */
+    public static boolean testSubject(Graph graph, Node test) {
+        return test.isBlank() && objectsBySubject(graph, test, new HashSet<>()).anyMatch(test::equals);
+    }
+
+    /**
+     * Answers iff specified node is recursive.
+     * Search starts from object node.
+     *
+     * @param graph {@link Graph}
+     * @param test  {@link Node}  the object to test
+     * @return true if this node in recursion
+     * @see #testSubject(Graph, Node)
+     */
+    public static boolean testObject(Graph graph, Node test) {
+        return test.isBlank() && subjectsByObject(graph, test, new HashSet<>()).anyMatch(test::equals);
+    }
+
+    private static Stream<Node> objectsBySubject(Graph graph, Node subject, Set<Triple> visited) {
+        return Iter.asStream(graph.find(subject, Node.ANY, Node.ANY))
+                .filter(visited::add)
                 .map(Triple::getObject)
-                .anyMatch(s -> testSubject(graph, s, viewed));
+                .filter(Node::isBlank)
+                .flatMap(s -> Stream.concat(Stream.of(s), objectsBySubject(graph, s, visited)));
     }
 
-    private static boolean testObject(Graph graph, Node test, Set<Node> viewed) {
-        if (!test.isBlank()) return false;
-        if (viewed.contains(test)) return true;
-        viewed.add(test);
-        return Iter.asStream(graph.find(Node.ANY, Node.ANY, test))
+    private static Stream<Node> subjectsByObject(Graph graph, Node object, Set<Triple> visited) {
+        return Iter.asStream(graph.find(Node.ANY, Node.ANY, object))
+                .filter(visited::add)
                 .map(Triple::getSubject)
-                .anyMatch(o -> testObject(graph, o, viewed));
+                .filter(Node::isBlank)
+                .flatMap(o -> Stream.concat(Stream.of(o), subjectsByObject(graph, o, visited)));
     }
 
     @Override
@@ -115,7 +148,7 @@ public class RecursiveTransform extends Transform {
                 if (!replace) return;
                 graph.add(createReplacement(t));
             });
-            r = wrongTriples().findFirst();
+            r = recursiveTriples().findFirst();
         } while (r.isPresent());
     }
 
@@ -124,7 +157,7 @@ public class RecursiveTransform extends Transform {
                 Triple.create(base.getSubject(), base.getPredicate(), AVC.error(base.getObject()).asNode());
     }
 
-    public Stream<Triple> wrongTriples() {
+    public Stream<Triple> recursiveTriples() {
         return subject ? recursiveTriplesBySubject(getBaseGraph()) : recursiveTriplesByObject(getBaseGraph());
     }
 }

@@ -17,7 +17,10 @@ package ru.avicomp.ontapi;
 import com.google.common.collect.ArrayListMultimap;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jena.graph.*;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
@@ -902,7 +905,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             }
 
             protected Node ontology() {
-                return ontology == null ? ontology = Graphs.ontologyNode(Graphs.getBase(graph)).orElse(new Node_Variable("NullOntology")) : ontology;
+                return ontology == null ? ontology = Graphs.ontologyNode(Graphs.getBase(graph)).orElse(NodeFactory.createVariable("NullOntology")) : ontology;
             }
 
             public String getURI() {
