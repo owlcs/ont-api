@@ -14,13 +14,7 @@
 
 package ru.avicomp.ontapi;
 
-import javax.annotation.Nonnull;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ArrayListMultimap;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.*;
@@ -28,15 +22,12 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
-import org.apache.jena.shared.JenaException;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ArrayListMultimap;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
@@ -44,10 +35,16 @@ import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
-import ru.avicomp.ontapi.transforms.GraphTransformers;
-import ru.avicomp.ontapi.transforms.Transform;
+import ru.avicomp.ontapi.transforms.TransformException;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
+
+import javax.annotation.Nonnull;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * The ontology building and loading factory, the 'core' - the main and point to create and load ontologies.
@@ -156,7 +153,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      * Currently there are two main implementations:
      * - the decorator of pure OWL-API factory-loader, i.e. {@link OWLOntologyFactoryImpl}
      * - the jena-based factory-loader.
-     *
+     * <p>
      * <p>
      * Note: there are only three input parameters passed to the single method ({@link OWLOntologyDocumentSource},
      * {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}), while
@@ -165,6 +162,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      * And this is also true for {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl}.
      * Therefore, the {@link OWLOntologyCreationHandler} can be considered just as part of internal (OWL-API) implementation
      * and so there is no need in this parameter in our case.
+     *
      * @see OWLLoaderImpl
      * @see ONTLoaderImpl
      */
@@ -373,10 +371,15 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 }
                 boolean isPrimary = graphs.size() == 1;
                 Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
-                if (isPrimary && config.isPerformTransformation()) { // todo: skip any transform in case of it is loaded by owl?
+                if (isPrimary && info.withTransforms() && config.isPerformTransformation()) {
                     if (LOGGER.isDebugEnabled())
                         LOGGER.debug("Perform graph transformations.");
-                    transform(graph, new HashSet<>(), config.getGraphTransformers());
+                    try {
+                        config.getGraphTransformers().transform(graph);
+                    } catch (TransformException t) {
+                        throw new OWLTransformException(t);
+                    }
+
                 }
                 OntFormat format = info.getFormat();
                 OntologyManagerImpl impl = asIMPL(manager);
@@ -392,7 +395,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                     OntologyManagerImpl.setDefaultPrefix(pm, res);
                 }
                 if (isPrimary) {
-                    // todo: should we pass stats from transforms? do we need it?
+                    // todo: pass stats from transforms. add config param
                     OWLOntologyLoaderMetaData fake = new RDFParserMetaData(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, 0,
                             Collections.emptySet(), ArrayListMultimap.create());
                     owlFormat.setOntologyLoaderMetaData(fake);
@@ -468,41 +471,6 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             UnionGraph res = new UnionGraph(main);
             children.forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), manager, config)));
             return res;
-        }
-
-        /**
-         * Recursively performs graph transformation.
-         *
-         * @param graph        {@link Graph}, in most cases it is {@link UnionGraph}.
-         * @param processed    Set of base {@link Graph}s to not make transformation multiple times.
-         * @param transformers {@link GraphTransformers.Store} the collection of transformers.
-         * @return {@link Graph}
-         * @throws TransformException a wrap around {@link JenaException}
-         * @see Transform
-         */
-        protected Graph transform(Graph graph, Set<Graph> processed, GraphTransformers.Store transformers) throws TransformException {
-            if (graph instanceof UnionGraph) {
-                List<Graph> children = ((UnionGraph) graph).getUnderlying().graphs().collect(Collectors.toList());
-                for (Graph g : children) {
-                    try {
-                        transform(g, processed, transformers);
-                    } catch (TransformException t) {
-                        throw t.putParent(graph);
-                    }
-                }
-            }
-            Graph base = Graphs.getBase(graph);
-            if (processed.contains(base)) return graph;
-            List<Transform> actions = transformers.actions(graph).collect(Collectors.toList());
-            for (Transform action : actions) {
-                try {
-                    action.process();
-                } catch (JenaException e) {
-                    throw new TransformException(action, e);
-                }
-            }
-            processed.add(base);
-            return graph;
         }
 
         /**
@@ -593,7 +561,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
          * Wraps a model as inner container.
          *
          * @param model {@link OntologyModel ontology}
-         * @param src the document source {@link IRI}, null to indicate the ontology is existing
+         * @param src   the document source {@link IRI}, null to indicate the ontology is existing
          * @return {@link GraphInfo graph-wrapper}
          */
         protected GraphInfo toGraphInfo(OntologyModel model, IRI src) { // npe in case no format?
@@ -604,7 +572,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
                 PrefixManager pm = (PrefixManager) owlFormat;
                 Models.setNsPrefixes(graph.getPrefixMapping(), pm.getPrefixName2PrefixMap());
             }
-            return toGraphInfo(graph, format, src);
+            return new GraphInfo(graph, format, src, false);
         }
 
         /**
@@ -616,7 +584,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
          * @return {@link GraphInfo}
          */
         protected GraphInfo toGraphInfo(Graph graph, OntFormat format, IRI src) {
-            return new GraphInfo(graph, format, src);
+            return new GraphInfo(graph, format, src, true);
         }
 
         /**
@@ -897,6 +865,9 @@ public class OntFactoryImpl implements OntologyManager.Factory {
             return new BufferedInputStream(is);
         }
 
+        /**
+         * The analogue of {@link java.util.function.Function} with checked {@link OWLOntologyInputSourceException owl-exception}.
+         */
         protected interface OntInputSupplier {
 
             /**
@@ -910,22 +881,24 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         }
 
         /**
-         * Just container for {@link Graph} and some load parameters, such as source-iri and format.
+         * A container for a {@link Graph graph} and some load parameters, such as source-iri and format.
          * Used for simplification as temporary storage by this factory only.
          */
         public class GraphInfo {
             private final OntFormat format;
             private final Graph graph;
-            private boolean fresh;
+            private final IRI source;
+
+            private boolean fresh, transforms;
             private Node ontology;
             private Set<String> imports;
-            private IRI source;
 
-            protected GraphInfo(Graph graph, OntFormat format, IRI source) {
+            protected GraphInfo(Graph graph, OntFormat format, IRI source, boolean withTransforms) {
                 this.graph = graph;
                 this.format = format;
                 this.source = source;
                 this.fresh = source != null;
+                this.transforms = withTransforms;
             }
 
             protected Node ontology() {
@@ -950,6 +923,10 @@ public class OntFactoryImpl implements OntologyManager.Factory {
 
             protected boolean isFresh() {
                 return fresh;
+            }
+
+            protected boolean withTransforms() {
+                return transforms;
             }
 
             protected void setProcessed() {
@@ -1021,32 +998,10 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         }
     }
 
-    public static class TransformException extends OWLOntologyCreationException {
-        private final Transform transform;
-        private Graph parent;
+    public static class OWLTransformException extends OWLOntologyCreationException {
 
-        public TransformException(Transform transform, Throwable cause) {
-            super(cause);
-            this.transform = OntApiException.notNull(transform, "Null transform");
-        }
-
-        public TransformException putParent(Graph graph) {
-            this.parent = OntApiException.notNull(graph, "Null parent graph");
-            return this;
-        }
-
-        @Override
-        public String getMessage() {
-            StringBuilder sb = new StringBuilder();
-            if (this.parent != null) {
-                sb.append(Graphs.getName(this.parent)).append(" => ");
-            }
-            sb.append(transform);
-            Throwable cause = getCause();
-            if (cause != null) {
-                sb.append(": ").append(cause.getMessage());
-            }
-            return sb.toString();
+        public OWLTransformException(TransformException cause) {
+            super(cause.getMessage(), cause.getCause() == null ? cause : cause.getCause());
         }
     }
 

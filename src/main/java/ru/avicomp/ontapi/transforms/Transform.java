@@ -14,21 +14,20 @@
 
 package ru.avicomp.ontapi.transforms;
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The base class for any graph-converter.
@@ -69,12 +68,8 @@ public abstract class Transform {
         return true;
     }
 
-    public void process() {
-        if (test()) {
-            if (LOGGER.isDebugEnabled())
-                LOGGER.debug(String.format("Process <%s> on <%s>", name(), Graphs.getName(getBaseGraph())));
-            perform();
-        }
+    protected static Stream<Statement> statements(Model m, Resource s, Property p, RDFNode o) {
+        return Iter.asStream(m.listStatements(s, p, o));
     }
 
     public String name() {
@@ -97,7 +92,15 @@ public abstract class Transform {
         return base == null ? base = ModelFactory.createModelForGraph(getBaseGraph()) : base;
     }
 
-    public void changeType(Resource realType, Resource newType) {
+    public void process() throws TransformException {
+        if (test()) {
+            if (LOGGER.isDebugEnabled())
+                LOGGER.debug(String.format("Process <%s> on <%s>", name(), Graphs.getName(getBaseGraph())));
+            perform();
+        }
+    }
+
+    protected void changeType(Resource realType, Resource newType) {
         Set<Resource> toFix = statements(null, RDF.type, realType).map(Statement::getSubject).collect(Collectors.toSet());
         toFix.forEach(subject -> {
             undeclare(subject, realType);
@@ -105,27 +108,23 @@ public abstract class Transform {
         });
     }
 
-    public void declare(Resource subject, Resource type) {
+    protected void declare(Resource subject, Resource type) {
         subject.addProperty(RDF.type, Objects.requireNonNull(type, "Declare: null type for resource '" + subject + "'"));
     }
 
-    public void undeclare(Resource subject, Resource type) {
+    protected void undeclare(Resource subject, Resource type) {
         getBaseModel().removeAll(subject, RDF.type, Objects.requireNonNull(type, "Undeclare: null type for resource '" + subject + "'"));
-    }
-
-    public boolean hasType(Resource resource, Resource type) {
-        return resource.hasProperty(RDF.type, type);
     }
 
     protected boolean containsType(Resource type) {
         return getBaseModel().contains(null, RDF.type, type);
     }
 
-    public static Stream<Statement> statements(Model m, Resource s, Property p, RDFNode o) {
-        return Iter.asStream(m.listStatements(s, p, o));
+    protected boolean hasType(Resource resource, Resource type) {
+        return resource.hasProperty(RDF.type, type);
     }
 
-    public Stream<Statement> statements(Resource s, Property p, RDFNode o) {
+    protected Stream<Statement> statements(Resource s, Property p, RDFNode o) {
         return statements(getBaseModel(), s, p, o).map(st -> getModel().asStatement(st.asTriple()));
     }
 

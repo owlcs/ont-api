@@ -14,13 +14,6 @@
 
 package ru.avicomp.ontapi.tests;
 
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -29,12 +22,19 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.transforms.OWLRecursiveTransform;
 import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * To test loading mechanisms from {@link ru.avicomp.ontapi.OntFactoryImpl}
@@ -99,7 +99,7 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals("Wrong num of onts", 4, manager.ontologies().count());
     }
 
-    @Test(expected = OntFactoryImpl.TransformException.class)
+    @Test(expected = OntFactoryImpl.OWLTransformException.class)
     public void tesLoadWrongRDFSyntax() throws OWLOntologyCreationException {
         // wrong []-List
         OntManagers.createONT().loadOntology(IRI.create(ReadWriteUtils.getResourceURI("wrong.rdf")));
@@ -132,7 +132,9 @@ public class LoadFactoryManagerTest {
     public void testLoadRecursiveGraphWithTransform() throws OWLOntologyCreationException {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
-        OntologyModel o = OntManagers.createONT().loadOntology(iri);
+        OntologyManager m = OntManagers.createONT();
+        Assert.assertTrue(m.getOntologyConfigurator().getGraphTransformers().contains(OWLRecursiveTransform.class.getName()));
+        OntologyModel o = m.loadOntology(iri);
         o.asGraphModel().write(System.out, "ttl");
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
         Assert.assertEquals("Wrong axioms count", 5, o.getAxiomCount());

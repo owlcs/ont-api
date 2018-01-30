@@ -14,16 +14,20 @@
 
 package ru.avicomp.ontapi.transforms;
 
+import org.apache.jena.graph.Graph;
+import org.apache.jena.shared.JenaException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.utils.Graphs;
+
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.jena.graph.Graph;
 
 /**
  * Class to perform some transformation action on the specified graph.
@@ -59,6 +63,7 @@ public abstract class GraphTransformers {
 
     /**
      * Gets global transformers store
+     *
      * @return {@link Store}
      */
     public static Store getTransformers() {
@@ -71,97 +76,155 @@ public abstract class GraphTransformers {
      *
      * @param graph input graph
      * @return output graph
+     * @throws TransformException in case something wrong while processing
      */
-    public static Graph convert(Graph graph) {
-        getTransformers().actions(graph).forEach(Transform::process);
+    public static Graph convert(Graph graph) throws TransformException {
+        getTransformers().transform(graph);
         return graph;
     }
 
     /**
      * Transforms creator.
      * Extends Serializable due to OWL-API requirements.
+     *
      * @param <GC> {@link Transform}
      */
     @FunctionalInterface
     public interface Maker<GC extends Transform> extends Serializable {
         GC create(Graph graph);
+
+        /**
+         * Returns identifier, expected to be unique in bounds of store
+         *
+         * @return String
+         */
+        default String id() {
+            return toString();
+        }
     }
 
     /**
-     * Immutable store of graph-transform makers
+     * Immutable store of graph-transform makers and engine to perform transformation on graph.
      *
      * @see Maker
      */
     public static class Store implements Serializable {
-        protected Set<Maker> set = new LinkedHashSet<>();
+        protected static final Logger LOGGER = LoggerFactory.getLogger(Store.class);
+        protected Map<String, Maker> set = new LinkedHashMap<>();
 
+        /**
+         * Copies this instance/
+         *
+         * @return new instance
+         */
         public Store copy() {
             Store res = new Store();
-            res.set = new LinkedHashSet<>(this.set);
+            res.set = new LinkedHashMap<>(this.set);
             return res;
         }
 
         /**
-         * Adds last
+         * Adds last to store.
          *
          * @param f {@link Maker} to add
          * @return a copy of this store
          */
         public Store add(Maker f) {
             Store res = copy();
-            res.set.add(f);
+            res.set.put(f.id(), f);
             return res;
         }
 
         /**
-         * Adds first
+         * Adds first to store.
+         *
          * @param f {@link Maker} to add
          * @return a copy of this store
          */
         public Store addFirst(Maker f) {
             Store res = new Store();
-            res.set.add(f);
-            res.set.addAll(this.set);
-            return res;
-        }
-
-        @Deprecated
-        public Store remove(Maker f) {
-            Store res = copy();
-            res.set.remove(f);
+            res.set.put(f.id(), f);
+            this.set.forEach((k, v) -> res.set.put(k, v));
             return res;
         }
 
         /**
-         * Removes first
+         * Removes first from store.
          *
          * @return a copy of this store without first element.
          */
         public Store removeFirst() {
-            Store res = new Store();
-            if (set.isEmpty()) throw new IllegalStateException("Nothing to remove");
-            set.stream().skip(1).forEach(maker -> res.set.add(maker));
+            String key = set.keySet().stream().findFirst().orElseThrow(() -> new IllegalStateException("Nothing to remove"));
+            Store res = copy();
+            res.set.remove(key);
             return res;
         }
 
         /**
-         * Removes last
+         * Removes last from store.
          *
          * @return a copy of this store without last element.
          */
         public Store remove() {
-            Store res = new Store();
             if (set.isEmpty()) throw new IllegalStateException("Nothing to remove");
-            set.stream().limit(set.size() - 1).forEach(maker -> res.set.add(maker));
+            String key = (String) set.keySet().toArray()[set.size() - 1];
+            Store res = copy();
+            res.set.remove(key);
             return res;
         }
 
-        public Stream<Transform> actions(Graph graph) {
-            return set.stream().map(f -> f.create(graph));
+        public boolean contains(String id) {
+            return set.containsKey(id);
         }
 
-        public Set<Maker> asSet() {
-            return Collections.unmodifiableSet(set);
+        public Stream<Maker> makers() {
+            return set.values().stream();
+        }
+
+        public Stream<Transform> actions(Graph graph) {
+            return makers().map(f -> f.create(graph)).filter(Transform::test);
+        }
+
+        /**
+         * @param graph {@link Graph} to perform operations on.
+         * @throws TransformException if something wrong while transformations
+         */
+        public void transform(Graph graph) throws TransformException {
+            transform(graph, new HashSet<>());
+        }
+
+        /**
+         * Recursively performs graph transformation.
+         * todo: should return transform statistic object.
+         *
+         * @param graph     {@link Graph}, in most cases it is {@link UnionGraph}.
+         * @param processed Set of base {@link Graph}s to avoid transformations multiple times on the same graph.
+         * @throws TransformException if something is wrong
+         * @see Transform
+         */
+        protected void transform(Graph graph, Set<Graph> processed) throws TransformException {
+            List<Graph> children = Graphs.subGraphs(graph).collect(Collectors.toList());
+            for (Graph g : children) {
+                try {
+                    transform(g, processed);
+                } catch (StoreException t) {
+                    throw t.putParent(graph);
+                }
+            }
+            Graph base = Graphs.getBase(graph);
+            if (processed.contains(base)) return;
+            List<Transform> actions = actions(graph).collect(Collectors.toList());
+            for (Transform action : actions) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(String.format("Process <%s> on <%s>", action.name(), Graphs.getName(base)));
+                }
+                try {
+                    action.perform();
+                } catch (JenaException e) {
+                    throw new StoreException(action, e);
+                }
+            }
+            processed.add(base);
         }
 
         @Override
@@ -172,6 +235,35 @@ public abstract class GraphTransformers {
         @Override
         public int hashCode() {
             return set.hashCode();
+        }
+    }
+
+    private static class StoreException extends TransformException {
+        private final Transform transform;
+        private Graph parent;
+
+        public StoreException(Transform transform, Throwable cause) {
+            super(cause);
+            this.transform = OntApiException.notNull(transform, "Null transform");
+        }
+
+        public StoreException putParent(Graph graph) {
+            this.parent = OntApiException.notNull(graph, "Null parent graph");
+            return this;
+        }
+
+        @Override
+        public String getMessage() {
+            StringBuilder sb = new StringBuilder();
+            if (this.parent != null) {
+                sb.append(Graphs.getName(this.parent)).append(" => ");
+            }
+            sb.append(transform);
+            Throwable cause = getCause();
+            if (cause != null) {
+                sb.append(": ").append(cause.getMessage());
+            }
+            return sb.toString();
         }
     }
 
@@ -199,6 +291,11 @@ public abstract class GraphTransformers {
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new IllegalStateException("Can't init " + impl.getName(), e);
             }
+        }
+
+        @Override
+        public String id() {
+            return impl.getName();
         }
 
         @Override
