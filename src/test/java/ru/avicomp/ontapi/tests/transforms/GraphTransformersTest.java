@@ -12,15 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.tests;
-
-import java.io.InputStream;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+package ru.avicomp.ontapi.tests.transforms;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -34,7 +26,6 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.topbraid.spin.vocabulary.SP;
-
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
@@ -54,6 +45,14 @@ import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.SpinModels;
 import ru.avicomp.ontapi.utils.SpinTransform;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * to test {@link GraphTransformers}

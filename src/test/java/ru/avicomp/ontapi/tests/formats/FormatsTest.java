@@ -12,12 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.tests;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+package ru.avicomp.ontapi.tests.formats;
 
 import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
@@ -28,12 +23,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Test loading from different formats.
@@ -98,7 +97,7 @@ public class FormatsTest {
                     if (AxiomType.DECLARATION.equals(axiom.getAxiomType())) {
                         OWLDeclarationAxiom declarationAxiom = (OWLDeclarationAxiom) axiom;
                         if (declarationAxiom.getEntity().isBuiltIn()) return false;
-                        if (declarationAxiom.getEntity().isOWLAnnotationProperty()) return false;
+                        return !declarationAxiom.getEntity().isOWLAnnotationProperty();
                     }
                     return true;
                 })

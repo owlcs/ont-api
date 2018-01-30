@@ -12,11 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.tests;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+package ru.avicomp.ontapi.tests.model;
 
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Resource;
@@ -24,7 +20,6 @@ import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
@@ -36,6 +31,10 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * test owl:AllDisjointClasses and owl:disjointWith using jena and owl-api

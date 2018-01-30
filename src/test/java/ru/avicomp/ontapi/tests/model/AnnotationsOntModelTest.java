@@ -12,11 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.tests;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+package ru.avicomp.ontapi.tests.model;
 
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
@@ -27,7 +23,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
-
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
@@ -41,6 +36,10 @@ import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * test for annotations.
  * <p>
@@ -49,7 +48,7 @@ import ru.avicomp.ontapi.utils.TestUtils;
 public class AnnotationsOntModelTest extends OntModelTestBase {
 
     @Test
-    public void testSingleComplexAnnotation() throws Exception {
+    public void testSingleComplexAnnotation() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/1");
         // test data:
         OntIRI clazzIRI = iri.addFragment("SomeClass1");
@@ -115,7 +114,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
      * test complex woody annotations.
      */
     @Test
-    public void testComplexAnnotations() throws Exception {
+    public void testComplexAnnotations() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/2");
         OntologyManager manager = OntManagers.createONT();
         OWLDataFactory df = manager.getOWLDataFactory();

@@ -1,4 +1,4 @@
-package ru.avicomp.ontapi.tests;
+package ru.avicomp.ontapi.tests.formats;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -12,12 +12,14 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.tests;
+package ru.avicomp.ontapi.tests.model;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.*;
-
+import org.semanticweb.owlapi.model.AddAxiom;
+import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.RemoveAxiom;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
@@ -36,7 +38,7 @@ import ru.avicomp.ontapi.utils.OntIRI;
 public class IndividualsOntModelTest extends OntModelTestBase {
 
     @Test
-    public void test() throws OWLOntologyCreationException {
+    public void test() {
         OntIRI iri = OntIRI.create("http://test.test/add-class-individual");
         OntologyManager manager = OntManagers.createONT();
         OWLDataFactory factory = manager.getOWLDataFactory();
