@@ -24,6 +24,8 @@ import ru.avicomp.ontapi.transforms.vocabulary.AVC;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -116,18 +118,20 @@ public class RecursiveTransform extends Transform {
     }
 
     private static Stream<Node> objectsBySubject(Graph graph, Node subject, Set<Triple> visited) {
-        return Iter.asStream(graph.find(subject, Node.ANY, Node.ANY))
+        Set<Node> nodes = Iter.asStream(graph.find(subject, Node.ANY, Node.ANY))
                 .filter(visited::add)
                 .map(Triple::getObject)
-                .filter(Node::isBlank)
+                .filter(Node::isBlank).collect(Collectors.toSet());
+        return nodes.stream()
                 .flatMap(s -> Stream.concat(Stream.of(s), objectsBySubject(graph, s, visited)));
     }
 
     private static Stream<Node> subjectsByObject(Graph graph, Node object, Set<Triple> visited) {
-        return Iter.asStream(graph.find(Node.ANY, Node.ANY, object))
+        Set<Node> nodes = Iter.asStream(graph.find(Node.ANY, Node.ANY, object))
                 .filter(visited::add)
                 .map(Triple::getSubject)
-                .filter(Node::isBlank)
+                .filter(Node::isBlank).collect(Collectors.toSet());
+        return nodes.stream()
                 .flatMap(o -> Stream.concat(Stream.of(o), subjectsByObject(graph, o, visited)));
     }
 
@@ -153,8 +157,12 @@ public class RecursiveTransform extends Transform {
     }
 
     public Triple createReplacement(Triple base) {
-        return subject ? Triple.create(AVC.error(base.getSubject()).asNode(), base.getPredicate(), base.getObject()) :
-                Triple.create(base.getSubject(), base.getPredicate(), AVC.error(base.getObject()).asNode());
+        return createReplacement(base, n -> AVC.error(n).asNode());
+    }
+
+    public Triple createReplacement(Triple base, UnaryOperator<Node> mapper) {
+        return subject ? Triple.create(mapper.apply(base.getSubject()), base.getPredicate(), base.getObject()) :
+                Triple.create(base.getSubject(), base.getPredicate(), mapper.apply(base.getObject()));
     }
 
     public Stream<Triple> recursiveTriples() {

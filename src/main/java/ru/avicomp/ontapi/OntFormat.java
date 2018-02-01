@@ -21,10 +21,7 @@ import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -116,13 +113,16 @@ public enum OntFormat {
     }
 
     /**
-     * The primary jena Language.
+     * Returns the primary jena language which is good to use in load and save operations or at least to save.
      *
      * @return {@link Lang}, could be null.
      */
     @Nullable
     public Lang getLang() {
-        return jenaLangs.isEmpty() ? null : jenaLangs.get(0);
+        Optional<Lang> res = jenaLangs.stream().filter(RDFParserRegistry::isRegistered).filter(RDFWriterRegistry::contains).findFirst();
+        if (res.isPresent()) return res.get();
+        res = jenaLangs.stream().filter(RDFWriterRegistry::contains).findFirst();
+        return res.orElse(null);
     }
 
     /**

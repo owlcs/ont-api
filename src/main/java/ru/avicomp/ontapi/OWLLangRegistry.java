@@ -23,8 +23,6 @@ import org.semanticweb.owlapi.model.OWLStorerFactory;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -147,31 +145,6 @@ public class OWLLangRegistry {
         return res;
     }
 
-    public static void main(String... args) { // todo: test will be removed.
-        LangKey.asMap().forEach(new BiConsumer<String, LangDetails>() {
-            @Override
-            public void accept(String s, LangDetails v) {
-                String r = s + "\t";
-                if (v == null) {
-                    r += "unknown";
-                } else {
-                    r += (v.getStorerFactory() != null) + ", " + (v.getParserFactory() != null);
-                }
-                System.out.println(r);
-            }
-        });
-        Arrays.stream(LangKey.values()).forEach(new Consumer<LangKey>() {
-            @Override
-            public void accept(LangKey key) {
-                try {
-                    System.out.println(createFormat(key.getKey()));
-                } catch (LangException e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-        });
-    }
-
     /**
      * Constructs LangDetails container using storer and parser factories classes.
      * Each of arguments can be null but not at the same time.
@@ -275,7 +248,7 @@ public class OWLLangRegistry {
         BINARYRDF("BinaryRDFDocumentFormat", "rio.RioBinaryRdfStorerFactory", "rio.RioBinaryRdfParserFactory") {
             /**
              * A hack method.
-             * OWL-API (owlapi-eio:5.1.4) contains a bug of {@link org.semanticweb.owlapi.formats.BinaryRDFDocumentFormat BinaryRDFDocumentFormat}
+             * OWL-API (owlapi-rio:5.1.4) contains a bug of {@link org.semanticweb.owlapi.formats.BinaryRDFDocumentFormat BinaryRDFDocumentFormat}
              * implementation: it is marked as textual.
              * Tge snippet
              * <pre>{@code
