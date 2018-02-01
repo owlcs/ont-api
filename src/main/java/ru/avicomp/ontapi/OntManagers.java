@@ -14,10 +14,8 @@
 
 package ru.avicomp.ontapi;
 
-import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.semanticweb.owlapi.OWLAPIParsersModule;
 import org.semanticweb.owlapi.OWLAPIServiceLoaderModule;
 import org.semanticweb.owlapi.io.OWLParserFactory;
@@ -25,15 +23,16 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyManagerFactory;
 import org.semanticweb.owlapi.model.OWLStorerFactory;
-
-import com.google.common.collect.Sets;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import uk.ac.manchester.cs.owl.owlapi.OWLAPIImplModule;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.Concurrency;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
+
+import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * The main (static) access point to {@link OWLOntologyManager} instances.
@@ -109,7 +108,6 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * The ONT-API impl of {@link Profile}
      */
     public static class ONTManagerProfile extends BaseProfile implements Profile<OntologyManager> {
-        private static final OWLOntologyManager FACTORIES = new OWLManagerProfile(Concurrency.NON_CONCURRENT).create();
 
         public ONTManagerProfile(Concurrency concurrent) {
             super(concurrent);
@@ -117,10 +115,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
 
         @Override
         public OntologyManager create() {
-            // todo: passing OWL-factories created by Injector is a temporary solution.
-            // (and actually we don' need them to work with ONT-API if we don't use OWL-specific formats to load or save ontologies)
-            Set<OWLStorerFactory> storers = Sets.newHashSet(FACTORIES.getOntologyStorers());
-            Set<OWLParserFactory> parsers = Sets.newHashSet(FACTORIES.getOntologyParsers());
+            Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
+            Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
             ReadWriteLock lock = Concurrency.CONCURRENT.equals(concurrency) ? new ReentrantReadWriteLock() : new NoOpReadWriteLock();
             OntologyManager res = new OntologyManagerImpl(new OWLDataFactoryImpl(), lock);
             res.setOntologyStorers(storers);

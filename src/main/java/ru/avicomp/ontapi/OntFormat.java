@@ -34,6 +34,7 @@ import java.util.stream.Stream;
  * For working with the OWL-API interfaces the {@link #createOwlFormat()} method could be used.
  * OWLFormats are located inside owlapi-api, owlapi-rio, owlapi-parsers, owlapi-storers and owlapi-obiformat dependencies.
  * Note: during parsing by {@link OntFactoryImpl} jena has more priority than owl-api, in other cases the enum order are used.
+ * TODO: should interact with {@link OWLLangRegistry}, not with OWL-API stuff directly.
  * <p>
  * Created by @szuev on 27.09.2016.
  */

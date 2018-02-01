@@ -157,7 +157,6 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      * - the decorator of pure OWL-API factory-loader, i.e. {@link OWLOntologyFactoryImpl}
      * - the jena-based factory-loader.
      * <p>
-     * <p>
      * Note: there are only three input parameters passed to the single method ({@link OWLOntologyDocumentSource},
      * {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}), while
      * {@link OWLOntologyFactory#loadOWLOntology} requires four.
@@ -250,7 +249,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     public static class OWLLoaderImpl implements OntLoader {
         protected static final Logger LOGGER = LoggerFactory.getLogger(OWLLoaderImpl.class);
 
-        protected final OWLOntologyFactoryImpl factory;
+        protected final OWLOntologyFactory factory;
 
         // to avoid recursion loop,
         // which may happen since OWL-API parsers may use the manager again, which uses factory with the same parsers

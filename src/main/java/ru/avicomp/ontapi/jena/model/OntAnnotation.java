@@ -18,11 +18,13 @@ import java.util.stream.Stream;
 
 /**
  * An annotation ont-object.
- * It's the anonymous jena-resource ({@link OntObject}) with one of the two types:
- * - owl:Axiom ({@link ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom}) for root annotations, it is usually owned by axiomatic statements.
- * - owl:Annotation ({@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation}) for sub-annotations,
- * and also for annotation of several specific axioms with main-statement '_:x rdf:type @type' where @type is
- * owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion.
+ * It's an anonymous jena-resource ({@link OntObject}) with one of the two types:
+ * <ul>
+ * <li>owl:Axiom ({@link ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom}) for root annotations, it is usually owned by axiomatic statements.</li>
+ * <li>owl:Annotation (see {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation}) for sub-annotations,
+ * and also for annotation of several specific axioms with main-statement {@code _:x rdf:type @type} where @type is
+ * owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion.</li>
+ * </ul>
  * Example:
  * <pre>
  * {@code

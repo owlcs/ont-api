@@ -14,11 +14,6 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.Implementation;
@@ -27,7 +22,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.vocabulary.RDFS;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.*;
@@ -35,6 +29,11 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * base class for any class-expression.
@@ -625,7 +624,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    // a hack to avoid a recursion with restrtictions when graph has a recursion also
+    // a hack to avoid a recursion with restrictions when graph has a recursion also
     private static Map<EnhGraph, Set<Node>> visited = new ConcurrentHashMap<>();
 
     protected enum ObjectRestrictionType implements PredicateFilterProvider {

@@ -14,21 +14,22 @@
 
 package ru.avicomp.ontapi.jena.impl.configuration;
 
-import java.util.stream.Stream;
-
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
+
+import java.util.stream.Stream;
 
 /**
  * Default implementation of {@link OntObjectFactory}.
  * This is a designer that consists of three modules:
- * - {@link OntMaker} for initialization and physical creation a node {@link EnhNode} in the graph {@link EnhGraph}.
- * - {@link OntFilter} to test the presence of a node in the graph
- * - {@link OntFinder} to search for nodes in the graph.
+ * <ul>
+ * <li>{@link OntMaker} for initialization and physical creation a node {@link EnhNode} in the graph {@link EnhGraph}.</li>
+ * <li>{@link OntFilter} to test the presence of a node in the graph.</li>
+ * <li>{@link OntFinder} to search for nodes in the graph.</li>
+ * </ul>
  * <p>
  * Created by szuev on 07.11.2016.
  */

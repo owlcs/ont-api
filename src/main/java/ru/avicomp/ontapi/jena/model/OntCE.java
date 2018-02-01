@@ -14,21 +14,19 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.Collection;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.vocabulary.RDFS;
-
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+
+import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * Common interface for Class Expressions (both named and anonymous).
  * See for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
  * <p>
  * Created by szuev on 01.11.2016.
- *
  * @see OntClass
  */
 public interface OntCE extends OntObject {

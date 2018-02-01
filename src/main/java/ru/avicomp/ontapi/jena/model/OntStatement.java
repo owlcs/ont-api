@@ -14,17 +14,16 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdf.model.Statement;
+import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.rdf.model.Statement;
-
-import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * An Ont Statement. This is not a {@link org.apache.jena.rdf.model.Resource}.
@@ -32,7 +31,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * Created by @szuev on 13.11.2016.
  * @see OntAnnotation
  * @see Statement
-
  */
 public interface OntStatement extends Statement {
 
