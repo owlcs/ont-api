@@ -14,48 +14,46 @@
 
 package ru.avicomp.ontapi;
 
-import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
-import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
-import org.semanticweb.owlapi.io.OWLParserFactory;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-import org.semanticweb.owlapi.model.OWLDocumentFormatImpl;
-import org.semanticweb.owlapi.model.OWLStorerFactory;
-
-import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.semanticweb.owlapi.io.OWLParserFactory;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
+import org.semanticweb.owlapi.model.OWLStorerFactory;
+
+import com.google.common.reflect.Reflection;
+
 /**
- * The global OWL-API lang registry.
- * To control I/O behaviour with OWL-API formats depending on maven-dependencies.
+ * The global OWL-API format syntax registry.
+ * To control I/O behaviour with OWL-API formats.
  * Created by @szuev on 31.01.2018.
  *
  * @see OWLDocumentFormat
  * @see LangKey
- * @see LangDetails
+ * @see OWLLang
  */
 public class OWLLangRegistry {
-    private static Map<String, LangDetails> registry = LangKey.asMap();
+    private static Map<String, OWLLang> registry = LangKey.asMap();
 
     /**
-     * Registers a new LangDetail in global scope using format class-name as key.
+     * Registers a new OWLLang in global scope using format class-name as key.
      *
-     * @param lang {@link LangDetails}, not null
-     * @return {@link LangDetails lang-details}, the previous value or null.
+     * @param lang {@link OWLLang}, not null
+     * @return {@link OWLLang lang-details}, the previous value or null.
      */
-    public static LangDetails register(LangDetails lang) {
+    public static OWLLang register(OWLLang lang) {
         return register(lang.getName(), lang);
     }
 
     /**
-     * Registers a new LangDetail in global scope with specified key.
+     * Registers a new OWLLang in global scope with specified key.
      *
      * @param key  the key to inner map, not null
-     * @param lang {@link LangDetails}, nullable
-     * @return {@link LangDetails lang-details}, the previous value or null.
+     * @param lang {@link OWLLang}, nullable
+     * @return {@link OWLLang lang-details}, the previous value or null.
      */
-    public static LangDetails register(String key, LangDetails lang) {
+    public static OWLLang register(String key, OWLLang lang) {
         return registry.put(key, lang);
     }
 
@@ -63,34 +61,20 @@ public class OWLLangRegistry {
      * Removes global registration for specified owl-api-lang by string key (usually class-name of owl-format).
      *
      * @param key String, the key
-     * @return the previous {@link LangDetails lang-details} associated with the key or null
+     * @return the previous {@link OWLLang lang-details} associated with the key or null
      */
-    public static LangDetails unregister(String key) {
+    public static OWLLang unregister(String key) {
         return registry.remove(key);
     }
 
     /**
-     * Gets lang-details by key.
+     * Gets lang-details by lang-key.
      *
      * @param key String
-     * @return Optional containing {@link LangDetails} or null.
+     * @return Optional containing {@link OWLLang} can be empty.
      */
-    public static Optional<LangDetails> getLang(String key) {
+    public static Optional<OWLLang> getLang(String key) {
         return Optional.ofNullable(registry.get(key));
-    }
-
-    /**
-     * Creates a OWL-API format by lang-key
-     *
-     * @param key String key
-     * @return {@link OWLDocumentFormat}, not null
-     * @throws LangException if no possible to create format.
-     */
-    public static OWLDocumentFormat createFormat(String key) throws LangException {
-        return getLang(key)
-                .map(LangDetails::getFormatFactory)
-                .map(Supplier::get)
-                .orElseThrow(() -> new LangException(key + " is not registered"));
     }
 
     /**
@@ -108,7 +92,7 @@ public class OWLLangRegistry {
      * @return Stream of {@link OWLStorerFactory}s.
      */
     public static Stream<OWLStorerFactory> storerFactories() {
-        return registry.values().stream().filter(Objects::nonNull).map(LangDetails::getStorerFactory).filter(Objects::nonNull);
+        return registry.values().stream().filter(Objects::nonNull).map(OWLLang::getStorerFactory).filter(Objects::nonNull);
     }
 
     /**
@@ -117,7 +101,91 @@ public class OWLLangRegistry {
      * @return Stream of {@link OWLParserFactory}s.
      */
     public static Stream<OWLParserFactory> parserFactories() {
-        return registry.values().stream().filter(Objects::nonNull).map(LangDetails::getParserFactory).filter(Objects::nonNull);
+        return registry.values().stream().filter(Objects::nonNull).map(OWLLang::getParserFactory).filter(Objects::nonNull);
+    }
+
+    /**
+     * Constructs OWLLang container using storer and parser factories classes.
+     * Each of arguments can be null but not at the same time.
+     *
+     * @param storerFactoryClass Class-type of {@link OWLStorerFactory}, nullable
+     * @param parserFactoryClass Class-type of {@link OWLParserFactory}, nullable
+     * @return the {@link OWLLang} object
+     * @throws LangException if input is wrong and lang-details can not be constructed.
+     */
+    private static OWLLang create(Class<? extends OWLStorerFactory> storerFactoryClass,
+                                  Class<? extends OWLParserFactory> parserFactoryClass,
+                                  Supplier<OWLDocumentFormat> factory) throws LangException {
+        OWLStorerFactory storer = null;
+        OWLParserFactory parser = null;
+        if (storerFactoryClass != null) {
+            storer = newInstance(storerFactoryClass);
+        }
+        if (parserFactoryClass != null) {
+            parser = newInstance(parserFactoryClass);
+        }
+        return create(storer, parser, factory);
+    }
+
+    /**
+     * Constructs OWLLang container using storer and parser factories instances.
+     * Each of arguments can be null but not at the same time.
+     *
+     * @param storer  {@link OWLStorerFactory}, nullable
+     * @param parser  {@link OWLParserFactory}, nullable
+     * @param factory {@link OWLDocumentFormat} provider, nullable
+     * @return the {@link OWLLang} object
+     * @throws LangException if input is wrong and lang-details can not be constructed.
+     */
+    private static OWLLang create(OWLStorerFactory storer, OWLParserFactory parser, Supplier<OWLDocumentFormat> factory) throws LangException {
+        OWLDocumentFormat format = null;
+        if (storer != null) {
+            format = storer.getFormatFactory().createFormat();
+        }
+        if (parser != null) {
+            OWLDocumentFormat parserFormat = parser.getSupportedFormat().createFormat();
+            if (format == null) {
+                format = parserFormat;
+            } else if (!format.getClass().equals(parserFormat.getClass())) {
+                throw new LangException(String.format("Storer/Parser formats do not match. Storer: %s. Parser: %s.", toClassName(storer), toClassName(parser)));
+            }
+        }
+        if (format == null) {
+            throw new LangException(String.format("Unable to determine format. Storer: %s. Parser: %s.", toClassName(storer), toClassName(parser)));
+        }
+        if (factory == null) {
+            factory = makeFormatFactory(storer, parser);
+        }
+        return new OWLLang(format.getClass(), storer, parser, factory);
+    }
+
+    /**
+     * Creates a {@link OWLLang lang} object.
+     * A factory method to make new lang-details object based on specified storer and parser
+     * Storer and parser can not be null at the same time.
+     *
+     * @param storer {@link OWLStorerFactory}, nullable
+     * @param parser {@link OWLParserFactory}, nullable
+     * @return the {@link OWLLang} object
+     * @throws LangException if input is wrong and lang-details can not be constructed.
+     */
+    public static OWLLang create(OWLStorerFactory storer, OWLParserFactory parser) {
+        return create(storer, parser, null);
+    }
+
+    /**
+     * Creates a format factory from storer and parser
+     *
+     * @param storer {@link OWLStorerFactory}
+     * @param parser {@link OWLDocumentFormat}
+     * @return Supplier which returns {@link OWLDocumentFormat}
+     */
+    private static Supplier<OWLDocumentFormat> makeFormatFactory(OWLStorerFactory storer, OWLParserFactory parser) {
+        return storer != null ? () -> storer.getFormatFactory().createFormat() : parser != null ? () -> parser.getSupportedFormat().createFormat() : null;
+    }
+
+    private static String toClassName(Object object) {
+        return object == null ? null : object.getClass().getName();
     }
 
     /**
@@ -146,97 +214,42 @@ public class OWLLangRegistry {
     }
 
     /**
-     * Constructs LangDetails container using storer and parser factories classes.
-     * Each of arguments can be null but not at the same time.
+     * Creates an instance of specified class.
      *
-     * @param storerFactoryClass Class-type of {@link OWLStorerFactory}, nullable
-     * @param parserFactoryClass Class-type of {@link OWLParserFactory}, nullable
-     * @return the {@link LangDetails} object
-     * @throws LangException if input is wrong and lang-details can not be constructed.
+     * @param type class
+     * @param <T>  class-type wildcard
+     * @return instance of {@code T}
+     * @throws LangException in case no possible to create instance
      */
-    public static LangDetails create(Class<? extends OWLStorerFactory> storerFactoryClass,
-                                     Class<? extends OWLParserFactory> parserFactoryClass) throws LangException {
-        OWLStorerFactory storer = null;
-        OWLParserFactory parser = null;
-        if (storerFactoryClass != null) {
-            try {
-                storer = storerFactoryClass.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new LangException("Wrong storer type " + storerFactoryClass.getName(), e);
-            }
-        }
-        if (parserFactoryClass != null) {
-            try {
-                parser = parserFactoryClass.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new LangException("Wrong parser type " + parserFactoryClass.getName(), e);
-            }
-        }
-        return create(storer, parser);
-    }
-
-    /**
-     * Constructs LangDetails container using storer and parser factories instances.
-     * Each of arguments can be null but not at the same time.
-     *
-     * @param storer {@link OWLStorerFactory}, nullable
-     * @param parser {@link OWLParserFactory}, nullable
-     * @return the {@link LangDetails} object
-     * @throws LangException if input is wrong and lang-details can not be constructed.
-     */
-    public static LangDetails create(OWLStorerFactory storer, OWLParserFactory parser) throws LangException {
-        OWLDocumentFormat format = null;
-        if (storer != null) {
-            format = storer.getFormatFactory().createFormat();
-        }
-        if (parser != null) {
-            OWLDocumentFormat parserFormat = parser.getSupportedFormat().createFormat();
-            if (format == null) {
-                format = parserFormat;
-            } else if (!format.getClass().equals(parserFormat.getClass())) {
-                throw new LangException(String.format("Storer/Parser formats do not match. Storer: %s. Parser: %s.", toClassName(storer), toClassName(parser)));
-            }
-        }
-        if (format == null) {
-            throw new LangException(String.format("Unable to determine format. Storer: %s. Parser: %s.", toClassName(storer), toClassName(parser)));
-        }
-        return new LangDetails(format.getClass(), storer, parser);
-    }
-
-    private static String toClassName(Object object) {
-        return object == null ? null : object.getClass().getName();
-    }
-
-    private static OWLDocumentFormat newFormatInstance(Class<? extends OWLDocumentFormat> type) throws LangException {
+    private static <T> T newInstance(Class<T> type) throws LangException {
         try {
             return type.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new LangException("Can't create " + type.getName(), e);
+            throw new LangException("Can't create instance of " + type.getName(), e);
         }
     }
 
-    private static LangDetails createRegistryDetails(String storerFactoryTypeName,
-                                                     String parserFactoryTypeName,
-                                                     Class<? extends OWLDocumentFormat> formatType,
-                                                     Supplier<OWLDocumentFormat> factory) throws LangException {
-        LangDetails res;
-        Class<? extends OWLStorerFactory> storerType = storerFactoryTypeName == null ? null : findClass(OWLStorerFactory.class, storerFactoryTypeName);
-        Class<? extends OWLParserFactory> parserType = parserFactoryTypeName == null ? null : findClass(OWLParserFactory.class, parserFactoryTypeName);
-        if (storerType == null && parserType == null) {
-            res = new LangDetails(formatType, factory);
-        } else {
-            res = create(storerType, parserType);
-            if (!formatType.equals(res.getType()))
-                throw new LangException("Wrong format. Expected:" + formatType + ". Actual: " + res.getType() + ".");
-        }
-        return res;
+    /**
+     * Overrides {@link OWLDocumentFormat#isTextual()} method to return false.
+     * It is a reflection hack.
+     *
+     * @param implType      class-type of concrete class.
+     * @param interfaceType class-type of interface
+     * @return binary {@link OWLDocumentFormat}.
+     */
+    private static OWLDocumentFormat makeBinaryFormat(Class<? extends OWLDocumentFormat> implType, Class<? extends OWLDocumentFormat> interfaceType) {
+        OWLDocumentFormat target = newInstance(implType);
+        return Reflection.newProxy(interfaceType, (proxy, method, args) -> {
+            if (method.getName().equals("isTextual")) return false;
+            return method.invoke(target, args);
+        });
     }
 
     /**
      * A set of constants reflecting OWL-API I/O subsystem.
-     * Each constant contains string reference to {@link OWLDocumentFormat}, {@link OWLStorerFactory} and {@link OWLParserFactory},
-     * The corresponding classes are contained in different modules (owlapi-impl, owlapi-parsers, owlapi-rio, owlapi-oboformat).
-     * This enum provides load information about all these things.
+     * Each constant contains string reference to {@link OWLDocumentFormat}, {@link OWLStorerFactory} and {@link OWLParserFactory} classes,
+     * which are contained in different modules (owlapi-impl, owlapi-parsers, owlapi-rio, owlapi-oboformat).
+     * This enum provides load information about all these things which assemblies during initialization.
      */
     public enum LangKey {
         RIORDFXML("RioRDFXMLDocumentFormat", "rio.RioRDFXMLStorerFactory", "rio.RioRDFXMLParserFactory"),
@@ -247,10 +260,10 @@ public class OWLLangRegistry {
         RDFJSON("RDFJsonDocumentFormat", "rio.RioJsonStorerFactory", "rio.RioJsonParserFactory"),
         BINARYRDF("BinaryRDFDocumentFormat", "rio.RioBinaryRdfStorerFactory", "rio.RioBinaryRdfParserFactory") {
             /**
-             * A hack method.
+             * This is a hack method.
              * OWL-API (owlapi-rio:5.1.4) contains a bug of {@link org.semanticweb.owlapi.formats.BinaryRDFDocumentFormat BinaryRDFDocumentFormat}
              * implementation: it is marked as textual.
-             * Tge snippet
+             * The snippet
              * <pre>{@code
              *  OWLOntology o = org.semanticweb.owlapi.apibinding.OWLManager.createOWLOntologyManager().createOntology(IRI.create("empty"));
              *  o.saveOntology(new BinaryRDFDocumentFormat(), new StreamDocumentTarget(System.out));
@@ -264,17 +277,19 @@ public class OWLLangRegistry {
              * at org.semanticweb.owlapi.util.AbstractOWLStorer.storeOntology(AbstractOWLStorer.java:106)
              * at uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl.saveOntology(OWLOntologyManagerImpl.java:1339)
              * }</pre>
+             * To prevent this situation the method returns a patched format: the method {@link OWLDocumentFormat#isTextual()} returns false.
              *
              * @return {@link OWLDocumentFormat} provider.
              */
             @Override
-            protected Supplier<OWLDocumentFormat> formatFactory() {
-                return () -> new FormatWrapper(super.formatFactory().get()) {
-
-                    @Override
-                    public boolean isTextual() {
-                        return false;
+            protected Supplier<OWLDocumentFormat> getDefaultFormatFactory() {
+                return () -> {
+                    String name = OWL_API_FORMATS_PACKAGE_NAME + ".RioRDFDocumentFormat";
+                    Class<? extends OWLDocumentFormat> type = findClass(OWLDocumentFormat.class, name);
+                    if (type == null) {
+                        throw new LangException("Can't find " + name + " in class-path");
                     }
+                    return makeBinaryFormat(getType(), type);
                 };
             }
         },
@@ -293,7 +308,8 @@ public class OWLLangRegistry {
         KRSS2("KRSS2DocumentFormat", "krss2.renderer.KRSS2OWLSyntaxStorerFactory", "krss2.parser.KRSS2OWLParserFactory"),
         KRSS("KRSSDocumentFormat", "krss2.renderer.KRSSSyntaxStorerFactory", "krss1.parser.KRSSOWLParserFactory") {
             /**
-             * By some unclear reason this format is not included in OWL-API supply, maybe it is due to replacement by KRSS2.
+             * To match with OWL-API: skip KRSS
+             * By some unclear reason this format is not included in OWL-API supply configuration, maybe it is due to replacement by KRSS2.
              * Of course we can implement properties control for this case, but right now it seems to be excess.
              * @return false
              */
@@ -315,18 +331,18 @@ public class OWLLangRegistry {
         }
 
         /**
-         * Represents the content of this enum as a Map: format class names as keys, {@link LangDetails} as values.
+         * Represents the content of this enum as a Map: format class name as key, {@link OWLLang} as value.
          *
-         * @return LinkedHashMap
+         * @return LinkedHashMap, which may contain nulls as values.
          */
-        public static Map<String, LangDetails> asMap() {
-            Map<String, LangDetails> res = new LinkedHashMap<>();
-            Arrays.stream(values()).forEach(key -> res.put(key.getKey(), key.getDetails()));
+        public static Map<String, OWLLang> asMap() {
+            Map<String, OWLLang> res = new LinkedHashMap<>();
+            Arrays.stream(values()).forEach(key -> res.put(key.getKey(), key.createLang()));
             return res;
         }
 
         /**
-         * Returns a {@link OWLDocumentFormat} class name as string.
+         * Returns a {@link OWLDocumentFormat} class-name as string.
          *
          * @return String
          */
@@ -334,14 +350,20 @@ public class OWLLangRegistry {
             return OWL_API_FORMATS_PACKAGE_NAME + "." + format;
         }
 
-        private Class<? extends OWLDocumentFormat> getType() throws LangException {
+        /**
+         * Finds particular format class type by name
+         *
+         * @return Class
+         * @throws LangException in case no class found
+         */
+        protected Class<? extends OWLDocumentFormat> getType() throws LangException {
             Class<? extends OWLDocumentFormat> res = findClass(OWLDocumentFormat.class, getKey());
             if (res == null) throw new LangException(getKey() + " not found in system.");
             return res;
         }
 
         /**
-         * Returns a {@link OWLStorerFactory} class name as string.
+         * Returns a {@link OWLStorerFactory} class-name as string.
          *
          * @return String
          */
@@ -350,7 +372,7 @@ public class OWLLangRegistry {
         }
 
         /**
-         * Returns a {@link OWLParserFactory} class name as string.
+         * Returns a {@link OWLParserFactory} class-name as string.
          *
          * @return String
          */
@@ -359,7 +381,7 @@ public class OWLLangRegistry {
         }
 
         /**
-         * Answers iff format can be used while manager's creation.
+         * Answers iff format can be used while owl-manager creation.
          *
          * @return boolean
          */
@@ -368,26 +390,33 @@ public class OWLLangRegistry {
         }
 
         /**
-         * Returns a factory to create format instance.
-         * By default using reflection.
+         * Returns a custom factory to create format instance.
          * The result factory can throw {@link LangException} in case it is not possible to create format instance.
          *
-         * @return a {@link OWLDocumentFormat}s provider.
+         * @return a {@link OWLDocumentFormat}s provider or null to use storer or parser format factory.
          */
-        protected Supplier<OWLDocumentFormat> formatFactory() {
-            return () -> newFormatInstance(getType());
+        protected Supplier<OWLDocumentFormat> getDefaultFormatFactory() {
+            return null;
         }
 
         /**
-         * Gets details for this constant containing storer and parser.
+         * Creates an owl-lang details object associated with this constant.
          *
-         * @return {@link LangDetails} object or null in case format is not present in system dependencies or disabled.
+         * @return {@link OWLLang} object or null in case format is not present in system dependencies or marked as disabled.
          */
-        public LangDetails getDetails() {
+        private OWLLang createLang() throws LangException {
             if (!enabled()) return null;
             Class<? extends OWLDocumentFormat> type = findClass(OWLDocumentFormat.class, getKey());
             if (type == null) return null;
-            return createRegistryDetails(getStorerClassName(), getParserClassName(), type, formatFactory());
+            Class<? extends OWLStorerFactory> storerType = findClass(OWLStorerFactory.class, getStorerClassName());
+            Class<? extends OWLParserFactory> parserType = findClass(OWLParserFactory.class, getParserClassName());
+            if (storerType == null && parserType == null) {
+                return new OWLLang(type, null, null, () -> newInstance(type));
+            }
+            OWLLang res = create(storerType, parserType, getDefaultFormatFactory());
+            if (!type.equals(res.getType()))
+                throw new LangException("Wrong format. Expected:" + type + ". Actual: " + res.getType() + ".");
+            return res;
         }
     }
 
@@ -398,9 +427,9 @@ public class OWLLangRegistry {
      * @see OWLParserFactory
      * @see OWLDocumentFormat
      * @see OWLLangRegistry#create(OWLStorerFactory, OWLParserFactory)
-     * @see OWLLangRegistry#create(Class, Class)
      */
-    public static class LangDetails {
+    @SuppressWarnings("WeakerAccess")
+    public static class OWLLang {
         private final Class<? extends OWLDocumentFormat> format;
         private final OWLStorerFactory storer;
         private final OWLParserFactory parser;
@@ -414,20 +443,11 @@ public class OWLLangRegistry {
          * @param parser  {@link OWLParserFactory} the parser factory, nullable
          * @param factory the {@link OWLDocumentFormat} provider, nullable
          */
-        protected LangDetails(Class<? extends OWLDocumentFormat> type, OWLStorerFactory storer, OWLParserFactory parser, Supplier<OWLDocumentFormat> factory) {
+        protected OWLLang(Class<? extends OWLDocumentFormat> type, OWLStorerFactory storer, OWLParserFactory parser, Supplier<OWLDocumentFormat> factory) {
             this.format = Objects.requireNonNull(type, "Format type can not be null.");
             this.storer = storer;
             this.parser = parser;
             this.factory = factory;
-        }
-
-        public LangDetails(Class<? extends OWLDocumentFormat> type, OWLStorerFactory storer, OWLParserFactory parser) {
-            this(type, storer, parser,
-                    storer != null ? () -> storer.getFormatFactory().createFormat() : parser != null ? () -> parser.getSupportedFormat().createFormat() : null);
-        }
-
-        public LangDetails(Class<? extends OWLDocumentFormat> type, Supplier<OWLDocumentFormat> factory) {
-            this(type, null, null, factory);
         }
 
         @Override
@@ -438,8 +458,8 @@ public class OWLLangRegistry {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof LangDetails)) return false;
-            LangDetails other = (LangDetails) o;
+            if (!(o instanceof OWLLang)) return false;
+            OWLLang other = (OWLLang) o;
             return Objects.equals(format, other.format);
         }
 
@@ -467,11 +487,20 @@ public class OWLLangRegistry {
         public Supplier<OWLDocumentFormat> getFormatFactory() {
             return factory;
         }
+
+        public boolean isWritable() {
+            return storer != null;
+        }
+
+        public boolean isReadable() {
+            return parser != null;
+        }
     }
 
     /**
-     * Ont-API exception which could be throw only by this class
+     * Ont-API exception which could be throw only inside this class.
      */
+    @SuppressWarnings({"WeakerAccess", "unused"})
     public static class LangException extends OntApiException {
         public LangException() {
         }
@@ -488,68 +517,6 @@ public class OWLLangRegistry {
             super(cause);
         }
 
-    }
-
-    /**
-     * A typical wrapper for {@link OWLDocumentFormat}
-     */
-    @SuppressWarnings("NullableProblems")
-    public static class FormatWrapper extends OWLDocumentFormatImpl {
-        private final OWLDocumentFormat delegate;
-
-        public FormatWrapper(OWLDocumentFormat format) {
-            this.delegate = Objects.requireNonNull(format, "Null format.");
-        }
-
-        @Override
-        public boolean isAddMissingTypes() {
-            return delegate.isAddMissingTypes();
-        }
-
-        @Override
-        public void setAddMissingTypes(boolean addMissingTypes) {
-            delegate.setAddMissingTypes(addMissingTypes);
-        }
-
-        @Override
-        public void setParameter(Serializable key, Serializable value) {
-            delegate.setParameter(key, value);
-        }
-
-        @Override
-        public <T> T getParameter(Serializable key, T defaultValue) {
-            return delegate.getParameter(key, defaultValue);
-        }
-
-        @Override
-        public boolean isPrefixOWLDocumentFormat() {
-            return delegate.isPrefixOWLDocumentFormat();
-        }
-
-        @Override
-        public PrefixDocumentFormat asPrefixOWLDocumentFormat() {
-            return delegate.asPrefixOWLDocumentFormat();
-        }
-
-        @Override
-        public Optional<OWLOntologyLoaderMetaData> getOntologyLoaderMetaData() {
-            return delegate.getOntologyLoaderMetaData();
-        }
-
-        @Override
-        public void setOntologyLoaderMetaData(OWLOntologyLoaderMetaData loaderMetaData) {
-            delegate.setOntologyLoaderMetaData(loaderMetaData);
-        }
-
-        @Override
-        public String getKey() {
-            return delegate.getKey();
-        }
-
-        @Override
-        public boolean isTextual() {
-            return delegate.isTextual();
-        }
     }
 
 }

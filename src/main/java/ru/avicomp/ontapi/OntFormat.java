@@ -14,97 +14,98 @@
 
 package ru.avicomp.ontapi;
 
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFParserRegistry;
-import org.apache.jena.riot.RDFWriterRegistry;
-import org.semanticweb.owlapi.formats.*;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-
 import javax.annotation.Nullable;
+import java.io.Writer;
 import java.util.*;
 import java.util.stream.Stream;
 
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFParserRegistry;
+import org.apache.jena.riot.RDFWriterRegistry;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
+
+import ru.avicomp.ontapi.OWLLangRegistry.LangKey;
+import ru.avicomp.ontapi.OWLLangRegistry.OWLLang;
+
 /**
- * The map between jena languages ({@link Lang}) and OWL-API formats ({@link OWLDocumentFormat}).
+ * The map between jena languages ({@link Lang}) and OWL-API formats ({@link LangKey}).
  * There are 22 ONT formats (22(19 actual, i.e. without intersection) OWL document formats + 15(11 actual) jena languages),
  * but only 12 of them can be used without any hesitation (see {@link #isSupported()}).
  * For working with the OWL-API interfaces the {@link #createOwlFormat()} method could be used.
  * OWLFormats are located inside owlapi-api, owlapi-rio, owlapi-parsers, owlapi-storers and owlapi-obiformat dependencies.
  * Note: during parsing by {@link OntFactoryImpl} jena has more priority than owl-api, in other cases the enum order are used.
- * TODO: should interact with {@link OWLLangRegistry}, not with OWL-API stuff directly.
  * <p>
  * Created by @szuev on 27.09.2016.
  */
 public enum OntFormat {
     TURTLE("Turtle", "ttl", Arrays.asList(Lang.TURTLE, Lang.TTL, Lang.N3), // n3 is treated as turtle
-            Arrays.asList(TurtleDocumentFormat.class, RioTurtleDocumentFormat.class, N3DocumentFormat.class)),
-    RDF_XML("RDF/XML", "rdf", Collections.singletonList(Lang.RDFXML), Arrays.asList(RDFXMLDocumentFormat.class, RioRDFXMLDocumentFormat.class)),
+            Arrays.asList(LangKey.TURTLE, LangKey.RIOTURTLE, LangKey.N3)),
+    RDF_XML("RDF/XML", "rdf", Collections.singletonList(Lang.RDFXML), Arrays.asList(LangKey.RDFXML, LangKey.RIORDFXML)),
     // json has more priority since json-ld can't be read as json, but json can be as json-ld
-    RDF_JSON("RDF/JSON", "rj", Lang.RDFJSON, RDFJsonDocumentFormat.class),
-    JSON_LD("JSON-LD", "jsonld", Lang.JSONLD, RDFJsonLDDocumentFormat.class),
+    RDF_JSON("RDF/JSON", "rj", Lang.RDFJSON, LangKey.RDFJSON),
+    JSON_LD("JSON-LD", "jsonld", Lang.JSONLD, LangKey.RDFJSONLD),
 
-    NTRIPLES("N-Triples", "nt", Arrays.asList(Lang.NTRIPLES, Lang.NT), Collections.singletonList(NTriplesDocumentFormat.class)),
-    NQUADS("N-Quads", "nq", Arrays.asList(Lang.NQUADS, Lang.NQ), Collections.singletonList(NQuadsDocumentFormat.class)),
-    TRIG("TriG", "trig", Lang.TRIG, TrigDocumentFormat.class),
-    TRIX("TriX", "trix", Lang.TRIX, TrixDocumentFormat.class),
+    NTRIPLES("N-Triples", "nt", Arrays.asList(Lang.NTRIPLES, Lang.NT), Collections.singletonList(LangKey.NTRIPLES)),
+    NQUADS("N-Quads", "nq", Arrays.asList(Lang.NQUADS, Lang.NQ), Collections.singletonList(LangKey.NQUADS)),
+    TRIG("TriG", "trig", Lang.TRIG, LangKey.TRIG),
+    TRIX("TriX", "trix", Lang.TRIX, LangKey.TRIX),
     // jena only:
     RDF_THRIFT("RDF-THRIFT", "trdf", Lang.RDFTHRIFT, null),
     CSV("CSV", "csv", Lang.CSV, null),
     TSV("TSV", "tsv", Lang.TSV, null),
     // owl-api formats only
-    OWL_XML("OWL/XML", "owl", null, OWLXMLDocumentFormat.class),
-    MANCHESTER_SYNTAX("ManchesterSyntax", "omn", null, ManchesterSyntaxDocumentFormat.class),
-    FUNCTIONAL_SYNTAX("FunctionalSyntax", "fss", null, FunctionalSyntaxDocumentFormat.class),
-    BINARY_RDF("BinaryRDF", "brf", null, BinaryRDFDocumentFormat.class),
-    RDFA("RDFA", "xhtml", null, RDFaDocumentFormat.class),
-    OBO("OBO", "obo", null, OBODocumentFormat.class) {
-        /**
-         * Disabled, since a lot of errors during using this format.
-         * @return {@code false}
-         */
-        @Override
-        public boolean isSupported() {
-            return false;
-        }
-    },
-    KRSS("KRSS", "krss", null, KRSSDocumentFormat.class),
-    KRSS2("KRSS2", "krss2", null, KRSS2DocumentFormat.class),
-    DL("DL", "dl", null, DLSyntaxDocumentFormat.class),
-    DL_HTML("DL/HTML", "html", null, DLSyntaxHTMLDocumentFormat.class),
-    LATEX("LATEX", "tex", null, LatexDocumentFormat.class),;
+    OWL_XML("OWL/XML", "owl", null, LangKey.OWLXML),
+    MANCHESTER_SYNTAX("ManchesterSyntax", "omn", null, LangKey.MANCHESTERSYNTAX),
+    FUNCTIONAL_SYNTAX("FunctionalSyntax", "fss", null, LangKey.FUNCTIONALSYNTAX),
+    BINARY_RDF("BinaryRDF", "brf", null, LangKey.BINARYRDF),
+    RDFA("RDFA", "xhtml", null, LangKey.RDFA),
+    OBO("OBO", "obo", null, LangKey.OBO),
+    KRSS("KRSS", "krss", null, LangKey.KRSS),
+    KRSS2("KRSS2", "krss2", null, LangKey.KRSS2),
+    DL("DL", "dl", null, LangKey.DLSYNTAX),
+    DL_HTML("DL/HTML", "html", null, LangKey.DLSYNTAXHTML),
+    LATEX("LATEX", "tex", null, LangKey.LATEX),;
 
     private final String id;
     private String ext;
     private final List<Lang> jenaLangs;
-    private final List<Class<? extends OWLDocumentFormat>> owlTypes;
+    private final List<LangKey> owlTypes;
 
     /**
-     * @param id   String, "short name", could be used inside jena {@link org.apache.jena.rdf.model.Model} model to read and write.
+     * The main constructor.
+     *
+     * @param id   String, unique id or "short name".
      * @param ext  String, primary extension.
-     * @param jena List of language objects ({@link Lang}). Could be used inside jena {@link org.apache.jena.riot.RDFDataMgr} manager to read and write.
-     * @param owl  List of {@link OWLDocumentFormat} classes. OWLDocumentFormat is used to read and write in OWL-API (... and also to store prefixes sometimes).
+     * @param jena List of jena language objects (i.e {@link Lang})
+     * @param owl  List of owl language keys {@link LangKey}
      */
-    OntFormat(String id, String ext, List<Lang> jena, List<Class<? extends OWLDocumentFormat>> owl) {
+    OntFormat(String id, String ext, List<Lang> jena, List<LangKey> owl) {
         this.id = OntApiException.notNull(id, "Id is required.");
         this.ext = ext;
         this.jenaLangs = Collections.unmodifiableList(jena);
         this.owlTypes = Collections.unmodifiableList(owl);
     }
 
-    OntFormat(String id, String ext, Lang jena, Class<? extends OWLDocumentFormat> owl) {
+    OntFormat(String id, String ext, Lang jena, LangKey owl) {
         this(id, ext,
                 jena == null ? Collections.emptyList() : Collections.singletonList(jena),
                 owl == null ? Collections.emptyList() : Collections.singletonList(owl));
     }
 
+    /**
+     * Returns the format identificator, which can be considered as syntax short name.
+     * Could be used in Jena model as language tip to read and write
+     * (see e.g. {@link org.apache.jena.rdf.model.Model#read(String, String), {@link org.apache.jena.rdf.model.Model#write(Writer, String)}}
+     *
+     * @return String
+     */
     public String getID() {
         return id;
     }
 
     /**
      * The primary file extension.
-     * There is no usage in the API.
-     * It's for convenience only.
+     * There is no direct usage in the API, so it's for convenience only.
      *
      * @return String.
      */
@@ -113,20 +114,19 @@ public enum OntFormat {
     }
 
     /**
-     * Returns the primary jena language which is good to use in load and save operations or at least to save.
+     * Returns the primary jena language (first alias from the list)
      *
-     * @return {@link Lang}, could be null.
+     * @return {@link Lang} or null.
+     * @see OntFormat#getOWLLang()
      */
     @Nullable
     public Lang getLang() {
-        Optional<Lang> res = jenaLangs.stream().filter(RDFParserRegistry::isRegistered).filter(RDFWriterRegistry::contains).findFirst();
-        if (res.isPresent()) return res.get();
-        res = jenaLangs.stream().filter(RDFWriterRegistry::contains).findFirst();
-        return res.orElse(null);
+        return jenaLangs.size() == 0 ? null : jenaLangs.get(0);
     }
 
     /**
-     * Gets all jena Languages associated with this type in the form of Stream.
+     * Gets all jena languages associated with this type in the form of Stream.
+     * Technically it is the stream of aliases, i.e. it does no matter what to use.
      *
      * @return Stream of {@link Lang}, could be empty.
      */
@@ -135,40 +135,63 @@ public enum OntFormat {
     }
 
     /**
-     * Gets instances of all OWL-API formats associated with this type in the form of Stream
+     * Chooses the most suitable owl language details container:
+     * it should have associated storer and parser factories or at least one of them.
      *
-     * @return Stream of {@link OWLDocumentFormat}, could be empty.
+     * @return {@link OWLLangRegistry.OWLLang} or null.
+     * @see OntFormat#getLang()
      */
-    public Stream<OWLDocumentFormat> owlFormats() {
-        return owlTypes.stream().map(OntFormat::owlFormatInstance);
+    public OWLLangRegistry.OWLLang getOWLLang() {
+        return owlLangs().min(Comparator.comparingInt(OntFormat::computeOrder)).orElse(null);
+    }
+
+    private static int computeOrder(OWLLang d) {
+        int res = 1;
+        if (d.isWritable()) res -= 1;
+        if (d.isReadable()) res -= 1;
+        return res;
     }
 
     /**
+     * Gets all OWL-API language keys associated with this enum-type instance in the form of Stream.
+     *
+     * @return Stream of {@link LangKey}s, could be empty.
+     */
+    public Stream<LangKey> owlKeys() {
+        return owlTypes.stream();
+    }
+
+    /**
+     * Gets all registered OWL-langs in form of LangDetails Stream.
+     *
+     * @return Stream of {@link OWLLang}
+     */
+    public Stream<OWLLang> owlLangs() {
+        return owlKeys().map(k -> OWLLangRegistry.getLang(k.getKey()))
+                .filter(Optional::isPresent).map(Optional::get);
+    }
+
+
+    /**
      * Creates new instance of {@link OWLDocumentFormat} by type setting.
-     * if there is no any owl-document format in this map then return instance of fake format ({@link SimpleDocumentFormat})
-     * with reference to this instance inside.
-     * So there is a support OWL-API-style even for pure jena formats.
+     * If there is no any ready to use owl-document format then the 'fake' format ({@link SimpleDocumentFormat})
+     * with reference to this enum-instance will be returned.
      *
      * @return {@link OWLDocumentFormat}, no null.
      * @throws OntApiException if something wrong.
      */
     public OWLDocumentFormat createOwlFormat() {
-        return owlTypes.isEmpty() ? new SimpleDocumentFormat() : owlFormatInstance(owlTypes.get(0));
-    }
-
-    protected static OWLDocumentFormat owlFormatInstance(Class<? extends OWLDocumentFormat> type) {
-        try {
-            return type.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new OntApiException("Can't create " + type.getSimpleName(), e);
-        }
+        OWLLang res = getOWLLang();
+        if (res == null) return new SimpleDocumentFormat();
+        return res.getFormatFactory().get();
     }
 
     /**
-     * Returns {@code true} if format is good for using by ONT-API(Jena) mechanisms.
+     * TODO: fix this description or remove method at all.
+     * Returns {@code true} if format is good for using by ONT-API (i.e. Jena+OWL-API) mechanisms both to read and write.
      * Note: this method has an advisory character:
-     * even if the format is not good, usually it is still possible to use it by the native OWL-API mechanisms (directly
-     * or as last attempt to load or save)... but maybe to read only or to write only,
+     * even if the format is considered no good, usually it is still possible to use it by the native OWL-API mechanisms
+     * (directly or as last attempt to load or save)... but maybe to read only or to write only,
      * or maybe with expectancy of some 'controlled' uri-transformations after reloading,
      * or maybe by additional configuring manager with external storers/parsers (although it is not supported by ONT-API right now)
      * <ul>
@@ -177,26 +200,26 @@ public enum OntFormat {
      * For more details see <a href='http://jena.apache.org/documentation/csv/'>jena-csv</a>.
      * <p>BE WARNED: it is very tolerant format: almost any text file could be treated as csv.</p></li>
      * <li>TSV ({@link Lang#TSV}) Used by Jena for result sets, not RDF syntax.</li>
-     * <li>{@link BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.eclipse.rdf4j.rio.binary.BinaryRDFWriterFactory}).</li>
+     * <li>{@link org.semanticweb.owlapi.formats.BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.eclipse.rdf4j.rio.binary.BinaryRDFWriterFactory}).</li>
      * <li>for the following formats there are no {@link org.semanticweb.owlapi.model.OWLStorerFactory}s in the current OWL-API 5.1.4 dependencies:
-     *  <ul>
-     *      <li>{@link RDFaDocumentFormat}</li>
-     *      <li>{@link KRSSDocumentFormat}</li>
-     *      </ul>
+     * <ul>
+     * <li>{@link org.semanticweb.owlapi.formats.RDFaDocumentFormat}</li>
+     * <li>{@link org.semanticweb.owlapi.formats.KRSSDocumentFormat}</li>
+     * </ul>
      * </li>
      * <li>for the following formats there are no {@link org.semanticweb.owlapi.io.OWLParserFactory}s in the current OWL-API 5.1.4 dependencies:
-     *  <ul>
-     *      <li>{@link LatexDocumentFormat}</li>
-     *      <li>{@link DLSyntaxHTMLDocumentFormat}</li>
-     *  </ul>
+     * <ul>
+     * <li>{@link org.semanticweb.owlapi.formats.LatexDocumentFormat}</li>
+     * <li>{@link org.semanticweb.owlapi.formats.DLSyntaxHTMLDocumentFormat}</li>
+     * </ul>
      * </li>
      * <li>Incorrect behaviour on reloading (the reloaded test-ontology does not match to the initial):
-     *  <ul>
-     *      <li>{@link KRSS2DocumentFormat}</li>
-     *      <li>{@link DLSyntaxDocumentFormat}</li>
-     *      <li>{@link OBODocumentFormat}</li>
-     *  </ul>
-     * The test ontology fot that case:
+     * <ul>
+     * <li>{@link org.semanticweb.owlapi.formats.KRSS2DocumentFormat}</li>
+     * <li>{@link org.semanticweb.owlapi.formats.DLSyntaxDocumentFormat}</li>
+     * <li>{@link org.semanticweb.owlapi.formats.OBODocumentFormat}</li>
+     * </ul>
+     * The test ontology fot last that case:
      * <pre> {@code
      * <http://ex> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
      * <http://ex#C> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
@@ -205,12 +228,12 @@ public enum OntFormat {
      * </li>
      * </ul>
      *
-     * @return false if format is considered dangerous and requires more attention
+     * @return false if format is considered dangerous and requires more attention.
      * @see #isReadSupported()
      * @see #isWriteSupported()
      */
     public boolean isSupported() {
-        return isWriteSupported() && isReadSupported();
+        return isWriteSupported() && isReadSupported() && isNoneOf(OBO, DL, KRSS2);
     }
 
     /**
@@ -218,7 +241,8 @@ public enum OntFormat {
      * @see #isSupported()
      */
     public boolean isReadSupported() {
-        return isJena() && jenaLangs().anyMatch(RDFParserRegistry::isRegistered) || isOWL() && isNoneOf(LATEX, DL, DL_HTML, KRSS2);
+        return jenaLangs().anyMatch(RDFParserRegistry::isRegistered) ||
+                owlLangs().anyMatch(OWLLang::isReadable);
     }
 
     /**
@@ -226,7 +250,8 @@ public enum OntFormat {
      * @see #isSupported()
      */
     public boolean isWriteSupported() {
-        return isJena() && jenaLangs().anyMatch(RDFWriterRegistry::contains) || isOWL() && isNoneOf(RDFA, BINARY_RDF, KRSS);
+        return jenaLangs().anyMatch(RDFWriterRegistry::contains) ||
+                owlLangs().anyMatch(OWLLangRegistry.OWLLang::isWritable);
     }
 
     public boolean isJena() {
@@ -246,7 +271,8 @@ public enum OntFormat {
     }
 
     /**
-     * Currently there are only two xml formats: RDF/XML and OWL/XML
+     * Answers iff it is XML.
+     * There are only two xml formats: RDF/XML and OWL/XML
      *
      * @return true if one of them.
      */
@@ -255,7 +281,8 @@ public enum OntFormat {
     }
 
     /**
-     * Currently there are only two json formats: RDF/JSON and JSONLD
+     * Answers iff it is JSON.
+     * There are only two json formats: RDF/JSON and JSONLD
      *
      * @return true if one of them.
      */
@@ -276,6 +303,8 @@ public enum OntFormat {
     }
 
     /**
+     * Finds OntFormat by instance of OWLDocumentFormat.
+     *
      * @param owlFormat {@link OWLDocumentFormat} instance
      * @return OntFormat or null
      * @throws NullPointerException in case of wrong argument
@@ -286,19 +315,23 @@ public enum OntFormat {
     }
 
     /**
+     * Finds OntFormat by class of OWLDocumentFormat.
+     *
      * @param type {@link OWLDocumentFormat} class type
      * @return OntFormat or null
      * @throws NullPointerException in case of wrong argument
      */
     public static OntFormat get(Class<? extends OWLDocumentFormat> type) {
-        OntApiException.notNull(type, "Null owl-document-format class specified.");
-        for (OntFormat r : values()) {
-            if (r.owlTypes.stream().anyMatch(type::equals)) return r;
+        String key = OntApiException.notNull(type, "Null owl-document-format class specified.").getName();
+        for (OntFormat f : values()) {
+            if (f.owlKeys().map(LangKey::getKey).anyMatch(key::equals)) return f;
         }
         return null;
     }
 
     /**
+     * Finds OntFormat by jena-lang.
+     *
      * @param lang {@link Lang}
      * @return OntFormat or null
      * @throws NullPointerException in case of wrong argument
@@ -306,15 +339,18 @@ public enum OntFormat {
     public static OntFormat get(Lang lang) {
         OntApiException.notNull(lang, "Null jena-language specified.");
         for (OntFormat r : values()) {
-            if (r.jenaLangs.stream().anyMatch(lang::equals)) return r;
+            if (r.jenaLangs().anyMatch(lang::equals)) return r;
         }
         return null;
     }
 
     /**
+     * Finds OntFormat by identifier.
+     *
      * @param id String, the id of format
      * @return OntFormat or null
      * @throws NullPointerException in case of wrong argument
+     * @see OntFormat#getID()
      */
     public static OntFormat get(String id) {
         OntApiException.notNull(id, "Null ont-format id specified.");
@@ -324,7 +360,10 @@ public enum OntFormat {
         return null;
     }
 
-    public class SimpleDocumentFormat extends AbstractRDFPrefixDocumentFormat {
+    /**
+     * Implementation of {@link OWLDocumentFormat} attached to this enum-type.
+     */
+    public class SimpleDocumentFormat extends org.semanticweb.owlapi.formats.AbstractRDFPrefixDocumentFormat {
         @Override
         public String getKey() {
             return id;
