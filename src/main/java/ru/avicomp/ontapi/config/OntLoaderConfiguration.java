@@ -220,24 +220,28 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * This option manages annotation assertion axioms in conjunction with declaration axioms.
      * In depends of parameter specified bulk annotations fall either into declaration or annotation assertion.
      * Consider the following example:
-     * <pre>
-     * &lt;http://class&gt;   a                       owl:Class ;
+     * <pre>{@code
+     * <http://class>   a                       owl:Class ;
      *                  rdfs:comment            "plain assertion" ;
      *                  rdfs:label              "bulk assertion" .
      * [                a                       owl:Axiom ;
      *                  rdfs:comment            "the child" ;
      *                  owl:annotatedProperty   rdfs:label ;
-     *                  owl:annotatedSource     &lt;http://class&gt; ;
+     *                  owl:annotatedSource     <http://class> ;
      *                  owl:annotatedTarget     "bulk assertion"
      * ] .
-     * </pre>
+     * }</pre>
      * In case {@link #isAllowBulkAnnotationAssertions()} equals {@code true} this slice of graph corresponds to the following list of axioms:
-     * * AnnotationAssertion(rdfs:comment &lt;http://class&gt; "plain assertion"^^xsd:string)
-     * * AnnotationAssertion(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label &lt;http://class&gt; "bulk assertion"^^xsd:string)
-     * * Declaration(Class(&lt;http://class&gt;))
+     * <ul>
+     * <li>AnnotationAssertion(rdfs:comment &lt;http://class&gt; "plain assertion"^^xsd:string)</li>
+     * <li>AnnotationAssertion(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label &lt;http://class&gt; "bulk assertion"^^xsd:string)</li>
+     * <li>Declaration(Class(&lt;http://class&gt;))</li>
+     * </ul>
      * In case {@link #isAllowBulkAnnotationAssertions()} equals {@code false} there would be following axioms:
-     * * Declaration(Annotation(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label "bulk assertion"^^xsd:string) Class(&lt;http://class&gt;))
-     * * AnnotationAssertion(rdfs:comment &lt;http://class&gt; "plain assertion"^^xsd:string)
+     * <ul>
+     * <li>Declaration(Annotation(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label "bulk assertion"^^xsd:string) Class(&lt;http://class&gt;))</li>
+     * <li>AnnotationAssertion(rdfs:comment &lt;http://class&gt; "plain assertion"^^xsd:string)</li>
+     * </ul>
      * Note: the {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} does NOT work correctly
      * in the second case (to test try to reload ontology in manchester syntax. The loss of annotations is expected).
      *
@@ -295,9 +299,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * Determines the behavior while reading annotation axioms
      * if there is a 'punning' entity as subject in the root statement.
      * There are three types of annotation axioms with following defining statements:
-     * - 'A rdfs:subPropertyOf Aj'
-     * - 'A rdfs:domain U'
-     * - 'A rdfs:range U'
+     * <ul>
+     * <li>{@code A rdfs:subPropertyOf Aj}</li>
+     * <li>{@code A rdfs:domain U}</li>
+     * <li>{@code A rdfs:range U}</li>
+     * </ul>
      * and in case 'A' is also object property ('P') or data property ('R')
      * then these statements define also corresponded object or data property axioms.
      *

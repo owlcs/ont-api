@@ -174,7 +174,7 @@ public class OWLLangRegistry {
     }
 
     /**
-     * Creates a format factory from storer and parser
+     * Creates a format factory from storer and parser.
      *
      * @param storer {@link OWLStorerFactory}
      * @param parser {@link OWLDocumentFormat}
@@ -261,8 +261,9 @@ public class OWLLangRegistry {
         BINARYRDF("BinaryRDFDocumentFormat", "rio.RioBinaryRdfStorerFactory", "rio.RioBinaryRdfParserFactory") {
             /**
              * This is a hack method.
-             * OWL-API (owlapi-rio:5.1.4) contains a bug of {@link org.semanticweb.owlapi.formats.BinaryRDFDocumentFormat BinaryRDFDocumentFormat}
-             * implementation: it is marked as textual.
+             * OWL-API (owlapi-rio:5.1.4) contains a bug of
+             * <a href='https://github.com/owlcs/owlapi/blob/version5/rio/src/main/java/org/semanticweb/owlapi/formats/BinaryRDFDocumentFormat.java'>
+             * org.semanticweb.owlapi.formats.BinaryRDFDocumentFormat</a> implementation: it is marked as textual.
              * The snippet
              * <pre>{@code
              *  OWLOntology o = org.semanticweb.owlapi.apibinding.OWLManager.createOWLOntologyManager().createOntology(IRI.create("empty"));
@@ -308,7 +309,7 @@ public class OWLLangRegistry {
         KRSS2("KRSS2DocumentFormat", "krss2.renderer.KRSS2OWLSyntaxStorerFactory", "krss2.parser.KRSS2OWLParserFactory"),
         KRSS("KRSSDocumentFormat", "krss2.renderer.KRSSSyntaxStorerFactory", "krss1.parser.KRSSOWLParserFactory") {
             /**
-             * To match with OWL-API: skip KRSS
+             * To match with OWL-API: skip KRSS.
              * By some unclear reason this format is not included in OWL-API supply configuration, maybe it is due to replacement by KRSS2.
              * Of course we can implement properties control for this case, but right now it seems to be excess.
              * @return false
@@ -351,7 +352,7 @@ public class OWLLangRegistry {
         }
 
         /**
-         * Finds particular format class type by name
+         * Finds particular format class type by name.
          *
          * @return Class
          * @throws LangException in case no class found

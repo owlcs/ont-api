@@ -1855,7 +1855,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * todo: currently it is only for turtle.
-     * see similar fragment inside constructor of {@link org.semanticweb.owlapi.rdf.turtle.renderer.TurtleRenderer}.
+     * see similar fragment inside constructor of
+     * <a href='https://github.com/owlcs/owlapi/blob/version5/parsers/src/main/java/org/semanticweb/owlapi/rdf/turtle/renderer/TurtleRenderer.java'>
+     * org.semanticweb.owlapi.rdf.turtle.renderer.TurtleRenderer</a>.
      * todo: it seems we don't need default prefixes at all.
      *
      * @param pm  {@link PrefixManager}

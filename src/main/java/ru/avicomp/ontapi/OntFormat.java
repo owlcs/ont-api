@@ -28,12 +28,18 @@ import ru.avicomp.ontapi.OWLLangRegistry.LangKey;
 import ru.avicomp.ontapi.OWLLangRegistry.OWLLang;
 
 /**
- * The map between jena languages ({@link Lang}) and OWL-API formats ({@link LangKey}).
+ * The map between jena languages ({@link Lang}) and OWL-API syntax formats ({@link OWLLang}).
  * There are 22 ONT formats (22(19 actual, i.e. without intersection) OWL document formats + 15(11 actual) jena languages),
- * but only 12 of them can be used without any hesitation (see {@link #isSupported()}).
- * For working with the OWL-API interfaces the {@link #createOwlFormat()} method could be used.
- * OWLFormats are located inside owlapi-api, owlapi-rio, owlapi-parsers, owlapi-storers and owlapi-obiformat dependencies.
- * Note: during parsing by {@link OntFactoryImpl} jena has more priority than owl-api, in other cases the enum order are used.
+ * but only 12 of them can be used without any hesitation (see {@link #isSupported()} for more details).
+ * For working with the OWL-API interfaces the {@link #createOwlFormat()} method can be used.
+ * OWL-API formats are located inside <a href='https://github.com/owlcs/owlapi/tree/version5/api'>owlapi-api</a>,
+ * <a href='https://github.com/owlcs/owlapi/tree/version5/rio'>owlapi-rio</a>,
+ * <a href='https://github.com/owlcs/owlapi/tree/version5/parsers'>owlapi-parsers</a> and
+ * <a href='https://github.com/owlcs/owlapi/tree/version5/oboformat'>owlapi-obiformat</a> modules,
+ * which may absent in dependencies.
+ * Jena formats are located inside <a href='https://github.com/apache/jena/tree/master/jena-arq'>jena-arq</a> and
+ * <a href='https://github.com/apache/jena/tree/master/jena-csv'>jena-csv</a>.
+ * Note: on loading Apache Jena has more priority than OWL-API, in other cases the enum order are used.
  * <p>
  * Created by @szuev on 27.09.2016.
  */
@@ -95,7 +101,7 @@ public enum OntFormat {
     /**
      * Returns the format identificator, which can be considered as syntax short name.
      * Could be used in Jena model as language tip to read and write
-     * (see e.g. {@link org.apache.jena.rdf.model.Model#read(String, String), {@link org.apache.jena.rdf.model.Model#write(Writer, String)}}
+     * (see e.g. {@link org.apache.jena.rdf.model.Model#read(String, String)}, {@link org.apache.jena.rdf.model.Model#write(Writer, String)})
      *
      * @return String
      */
@@ -187,48 +193,38 @@ public enum OntFormat {
     }
 
     /**
-     * TODO: fix this description or remove method at all.
-     * Returns {@code true} if format is good for using by ONT-API (i.e. Jena+OWL-API) mechanisms both to read and write.
-     * Note: this method has an advisory character:
-     * even if the format is considered no good, usually it is still possible to use it by the native OWL-API mechanisms
-     * (directly or as last attempt to load or save)... but maybe to read only or to write only,
-     * or maybe with expectancy of some 'controlled' uri-transformations after reloading,
-     * or maybe by additional configuring manager with external storers/parsers (although it is not supported by ONT-API right now)
+     * Returns {@code true} if format is good for using by ONT-API without any restrictions both to read and write.
+     * <b>Note: this method has an advisory character and reflects the current state of ONT-API.</b>
+     * Even if the format is considered 'no good', and it is supported by OWL-API, usually it is still possible use it by the native mechanisms.
+     * The list of reasons why these formats require special attention:
      * <ul>
-     * <li>CSV ({@link Lang#CSV}) is not a valid Jena RDF serialization format (it is only for SPARQL results).
-     * But it is possible to use it for reading csv files. Need to add jena-csv to dependencies.
-     * For more details see <a href='http://jena.apache.org/documentation/csv/'>jena-csv</a>.
-     * <p>BE WARNED: it is very tolerant format: almost any text file could be treated as csv.</p></li>
-     * <li>TSV ({@link Lang#TSV}) Used by Jena for result sets, not RDF syntax.</li>
-     * <li>{@link org.semanticweb.owlapi.formats.BinaryRDFDocumentFormat} does not support writing to a Writer (see {@link org.eclipse.rdf4j.rio.binary.BinaryRDFWriterFactory}).</li>
-     * <li>for the following formats there are no {@link org.semanticweb.owlapi.model.OWLStorerFactory}s in the current OWL-API 5.1.4 dependencies:
-     * <ul>
-     * <li>{@link org.semanticweb.owlapi.formats.RDFaDocumentFormat}</li>
-     * <li>{@link org.semanticweb.owlapi.formats.KRSSDocumentFormat}</li>
+     * <li>CSV (Jena lang: {@link Lang#CSV}) is not a valid Jena RDF serialization format, it is only for SPARQL results.
+     * But it is possible to use it for reading csv files. Need to add jena-csv to class-path.
+     * For more details see <a href='http://jena.apache.org/documentation/csv/'>jena-csv documentation</a>.
+     * <b>Be warned: it is very tolerant format: almost any text file could be treated as csv.</b></li>
+     * <li>TSV (Jena lang:{@link Lang#TSV}) is used by Jena for result sets, not RDF syntax. It was added here for completeness only.</li>
+     * <li>RDFA (OWL-API lang: {@link LangKey#RDFA}) is available only for reading (it has no {@link org.semanticweb.owlapi.model.OWLStorerFactory storer factory} in OWL-API 5.1.4 supply).</li>
+     * <li>LATEX (OWL-API lang: {@link LangKey#LATEX}) is available only for writing (it has no {@link org.semanticweb.owlapi.io.OWLParserFactory parser factory} in OWL-API 5.1.4 supply).</li>
+     * <li>DL_HTML (OWL-API lang: {@link LangKey#DLSYNTAXHTML}) is available only for writing (it has no {@link org.semanticweb.owlapi.io.OWLParserFactory parser factory} in OWL-API 5.1.4 supply).</li>
+     * <li>KRSS (OWL-API lang: {@link LangKey#KRSS}) is excluded in standard OWL-API (5.1.4) supply</li>
+     * <li>KRSS2 (OWL-API lang: {@link LangKey#KRSS2}) does not pass reload test, i.e. the list of significant axioms do not match after sequential saving and loading.</li>
+     * <li>DL (OWL-API lang: {@link LangKey#DLSYNTAX}) does not pass reload test.</li>
+     * <li>OBO (OWL-API lang: {@link LangKey#OBO}) does not pass reload test.</li>
      * </ul>
-     * </li>
-     * <li>for the following formats there are no {@link org.semanticweb.owlapi.io.OWLParserFactory}s in the current OWL-API 5.1.4 dependencies:
-     * <ul>
-     * <li>{@link org.semanticweb.owlapi.formats.LatexDocumentFormat}</li>
-     * <li>{@link org.semanticweb.owlapi.formats.DLSyntaxHTMLDocumentFormat}</li>
-     * </ul>
-     * </li>
-     * <li>Incorrect behaviour on reloading (the reloaded test-ontology does not match to the initial):
-     * <ul>
-     * <li>{@link org.semanticweb.owlapi.formats.KRSS2DocumentFormat}</li>
-     * <li>{@link org.semanticweb.owlapi.formats.DLSyntaxDocumentFormat}</li>
-     * <li>{@link org.semanticweb.owlapi.formats.OBODocumentFormat}</li>
-     * </ul>
-     * The test ontology fot last that case:
-     * <pre> {@code
-     * <http://ex> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
-     * <http://ex#C> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
-     * <http://ex#I> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NamedIndividual> , <http://ex#C> .
-     * } </pre>
-     * </li>
-     * </ul>
+     * The test ontology for last three formats:
+     * <pre>
+     * &#064;prefix test:  &lt;http://test.org/&gt; .
+     * &#064;prefix owl:   &lt;http://www.w3.org/2002/07/owl#&gt; .
+     * &#064;prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+     * test:simple  a  owl:Ontology .
+     * test:class1  a  owl:Class .
+     * test:class2  a           owl:Class ;
+     *         rdfs:subClassOf  test:class1 .
+     * test:individual  a  test:class1 , owl:NamedIndividual .
+     * </pre>
      *
-     * @return false if format is considered dangerous and requires more attention.
+     * @return false if format is considered dangerous and requires special attention.
+     * @see OWLLangRegistry.LangKey
      * @see #isReadSupported()
      * @see #isWriteSupported()
      */
@@ -237,7 +233,8 @@ public enum OntFormat {
     }
 
     /**
-     * @return true if reading is possible through OWL-API or Jena
+     * Answers iff this format supports read operation.
+     * @return true if reading is possible through OWL-API or Jena.
      * @see #isSupported()
      */
     public boolean isReadSupported() {
@@ -246,7 +243,8 @@ public enum OntFormat {
     }
 
     /**
-     * @return true if writing is possible through OWL-API or Jena
+     * Answers iff this format supports write operation.
+     * @return true if writing is possible through OWL-API or Jena.
      * @see #isSupported()
      */
     public boolean isWriteSupported() {
@@ -254,25 +252,42 @@ public enum OntFormat {
                 owlLangs().anyMatch(OWLLangRegistry.OWLLang::isWritable);
     }
 
+    /**
+     * Answers iff this format is provided by jena.
+     *
+     * @return boolean
+     */
     public boolean isJena() {
         return !jenaLangs.isEmpty();
     }
 
+    /**
+     * Answers iff this format is provided by owl-api.
+     * @return boolean
+     */
     public boolean isOWL() {
         return !owlTypes.isEmpty();
     }
 
+    /**
+     * Answers iff this format is provided by jena only, i.e. no owl-api support.
+     * @return boolean
+     */
     public boolean isJenaOnly() {
         return isJena() && !isOWL();
     }
 
+    /**
+     * Answers iff this format is provided by owl-api, i.e. no jena-support.
+     * @return boolean
+     */
     public boolean isOWLOnly() {
         return isOWL() && !isJena();
     }
 
     /**
      * Answers iff it is XML.
-     * There are only two xml formats: RDF/XML and OWL/XML
+     * Now there are only two xml formats: RDF/XML and OWL/XML
      *
      * @return true if one of them.
      */
@@ -282,7 +297,7 @@ public enum OntFormat {
 
     /**
      * Answers iff it is JSON.
-     * There are only two json formats: RDF/JSON and JSONLD
+     * Now there are only two json formats: RDF/JSON and JSONLD
      *
      * @return true if one of them.
      */
@@ -298,6 +313,10 @@ public enum OntFormat {
         return Stream.of(formats).noneMatch(this::equals);
     }
 
+    /**
+     * Returns all formats as stream.
+     * @return Stream of formats.
+     */
     public static Stream<OntFormat> formats() {
         return Stream.of(values());
     }

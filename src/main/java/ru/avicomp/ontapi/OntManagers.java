@@ -14,29 +14,30 @@
 
 package ru.avicomp.ontapi;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import org.semanticweb.owlapi.OWLAPIParsersModule;
-import org.semanticweb.owlapi.OWLAPIServiceLoaderModule;
-import org.semanticweb.owlapi.io.OWLParserFactory;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyManagerFactory;
-import org.semanticweb.owlapi.model.OWLStorerFactory;
-import ru.avicomp.ontapi.jena.OntModelFactory;
-import uk.ac.manchester.cs.owl.owlapi.OWLAPIImplModule;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
-import uk.ac.manchester.cs.owl.owlapi.concurrent.Concurrency;
-import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
-
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+import org.semanticweb.owlapi.io.OWLParserFactory;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyManagerFactory;
+import org.semanticweb.owlapi.model.OWLStorerFactory;
+
+import ru.avicomp.ontapi.jena.OntModelFactory;
+import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
+import uk.ac.manchester.cs.owl.owlapi.concurrent.Concurrency;
+import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
+
 /**
  * The main (static) access point to {@link OWLOntologyManager} instances.
- * This is an analogue of org.semanticweb.owlapi.apibinding.OWLManager (see owlapi-apibinding)
+ * This is an analogue of
+ * <a href='https://github.com/owlcs/owlapi/blob/version5/apibinding/src/main/java/org/semanticweb/owlapi/apibinding/OWLManager.java'>org.semanticweb.owlapi.apibinding.OWLManager</a>.
+ * Note: to produce pure OWL-API managers need include owlapi-apibinding module to class-path.
  * <p>
  * Created by @szuev on 27.09.2016.
  */
@@ -48,37 +49,71 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     public static final ONTManagerProfile DEFAULT_PROFILE = new ONTManagerProfile(Concurrency.NON_CONCURRENT);
-    public static final OWLDataFactory OWL_DATA_FACTORY = new OWLDataFactoryImpl();
-
     private static Profile<? extends OWLOntologyManager> profile = DEFAULT_PROFILE;
 
     /**
+     * Gets a global data factory that can be used to create OWL API objects.
+     *
      * @return {@link OWLDataFactory} impl
      */
     public static OWLDataFactory getDataFactory() {
-        return OWL_DATA_FACTORY;
+        return DEFAULT_PROFILE.factory();
     }
 
+    /**
+     * Creates an ONT-API ontology manager with default settings.
+     *
+     * @return {@link OntologyManager} the new manager instance.
+     */
     public static OntologyManager createONT() {
         return DEFAULT_PROFILE.create();
     }
 
+    /**
+     * Creates an ONT-API ontology manager with default settings and locking for concurrent access.
+     *
+     * @return {@link OntologyManager} the new manager instance.
+     */
     public static OntologyManager createConcurrentONT() {
         return new ONTManagerProfile(Concurrency.CONCURRENT).create();
     }
 
+    /**
+     * Creates a pure OWL-API ontology manager with default settings.
+     *
+     * @return {@link OWLOntologyManager}
+     * @throws OntApiException       if there is no owlapi-apibinding in class-path
+     * @throws IllegalStateException if unable to find factories methods inside owlapi-apibinding manager provider
+     */
     public static OWLOntologyManager createOWL() {
         return new OWLManagerProfile(Concurrency.NON_CONCURRENT).create();
     }
 
+    /**
+     * Creates a pure OWL-API ontology manager with default settings and locking for concurrent access.
+     *
+     * @return {@link OWLOntologyManager}
+     * @throws OntApiException       if there is no owlapi-apibinding in class-path
+     * @throws IllegalStateException if unable to find factories methods inside owlapi-apibinding manager provider
+     */
     public static OWLOntologyManager createConcurrentOWL() {
         return new OWLManagerProfile(Concurrency.CONCURRENT).create();
     }
 
+    /**
+     * Gets a default global {@link Profile profile}
+     *
+     * @return profile
+     */
     public static Profile<? extends OWLOntologyManager> getProfile() {
         return profile;
     }
 
+    /**
+     * Sets new default global {@link Profile profile}
+     *
+     * @param p profile object, not null
+     */
     public static void setProfile(Profile<? extends OWLOntologyManager> p) {
         profile = OntApiException.notNull(p, "Null manager profile specified.");
     }
@@ -88,15 +123,41 @@ public class OntManagers implements OWLOntologyManagerFactory {
         return profile.create();
     }
 
+    /**
+     * The provider for manager and data-factory.
+     *
+     * @param <M> a subtype of {@link OWLOntologyManager}
+     */
+    @FunctionalInterface
     public interface Profile<M extends OWLOntologyManager> {
+        OWLDataFactory DEFAULT_DATA_FACTORY = new OWLDataFactoryImpl();
+
+        /**
+         * Creates a new OWLOntologyManager instance.
+         *
+         * @return {@link OWLOntologyManager}
+         */
         M create();
+
+        /**
+         * Creates a new OWLDataFactory instance.
+         *
+         * @return {@link OWLDataFactory}
+         */
+        default OWLDataFactory factory() {
+            return DEFAULT_DATA_FACTORY;
+        }
     }
 
-    private static abstract class BaseProfile {
+    protected static abstract class BaseProfile {
         protected final Concurrency concurrency;
 
         private BaseProfile(Concurrency concurrent) {
-            this.concurrency = concurrent;
+            this.concurrency = Objects.requireNonNull(concurrent, "Null concurrency mode");
+        }
+
+        public boolean isConcurrent() {
+            return Concurrency.CONCURRENT.equals(concurrency);
         }
 
         public Concurrency getConcurrency() {
@@ -117,7 +178,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
         public OntologyManager create() {
             Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
             Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
-            ReadWriteLock lock = Concurrency.CONCURRENT.equals(concurrency) ? new ReentrantReadWriteLock() : new NoOpReadWriteLock();
+            ReadWriteLock lock = isConcurrent() ? new ReentrantReadWriteLock() : new NoOpReadWriteLock();
             OntologyManager res = new OntologyManagerImpl(new OWLDataFactoryImpl(), lock);
             res.setOntologyStorers(storers);
             res.setOntologyParsers(parsers);
@@ -126,28 +187,50 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * the OWL-API impl of {@link Profile}
+     * The OWL-API impl of {@link Profile}.
+     * This implementation uses reflection, not injections.
      */
     public static class OWLManagerProfile extends BaseProfile implements Profile<OWLOntologyManager> {
-        public OWLManagerProfile(Concurrency concurrent) {
+        public static final String OWL_API_BINDING_MANAGERS_PROVIDER_CLASS = "org.semanticweb.owlapi.apibinding.OWLManager";
+        private final Method manager, factory;
+
+        public OWLManagerProfile(Concurrency concurrent) throws OntApiException, IllegalStateException {
             super(concurrent);
+            Class<?> provider;
+            try {
+                provider = Class.forName(OWL_API_BINDING_MANAGERS_PROVIDER_CLASS);
+            } catch (ClassNotFoundException e) {
+                throw new OntApiException("No " + OWL_API_BINDING_MANAGERS_PROVIDER_CLASS + " in class-path. " +
+                        "Please include owlapi-apibinding module to maven dependencies.", e);
+            }
+            this.manager = findStaticMethod(provider, isConcurrent() ? "createConcurrentOWLOntologyManager" : "createOWLOntologyManager");
+            this.factory = findStaticMethod(provider, "getOWLDataFactory");
         }
 
-        public OWLDataFactory getOWLDataFactory() {
-            return createInjector().getInstance(OWLDataFactory.class);
+        private static Method findStaticMethod(Class<?> provider, String name) throws IllegalStateException {
+            try {
+                return provider.getMethod(name);
+            } catch (NoSuchMethodException e) {
+                throw new IllegalStateException("Can't find method '" + name + "' in " + provider, e);
+            }
         }
 
         @Override
-        public OWLOntologyManager create() {
-            Injector injector = createInjector();
-            OWLOntologyManager instance = injector.getInstance(OWLOntologyManager.class);
-            injector.injectMembers(instance);
-            return instance;
+        public OWLOntologyManager create() throws IllegalStateException {
+            try {
+                return (OWLOntologyManager) manager.invoke(null);
+            } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
+                throw new IllegalStateException("Can't create manager using " + manager, e);
+            }
         }
 
-        public Injector createInjector() {
-            return Guice.createInjector(new OWLAPIImplModule(concurrency), new OWLAPIParsersModule(),
-                    new OWLAPIServiceLoaderModule());
+        @Override
+        public OWLDataFactory factory() {
+            try {
+                return (OWLDataFactory) factory.invoke(null);
+            } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
+                throw new IllegalStateException("Can't create data factory using " + factory, e);
+            }
         }
     }
 
