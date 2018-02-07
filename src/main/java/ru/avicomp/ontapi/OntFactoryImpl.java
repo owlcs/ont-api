@@ -14,7 +14,13 @@
 
 package ru.avicomp.ontapi;
 
-import com.google.common.collect.ArrayListMultimap;
+import javax.annotation.Nonnull;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
@@ -31,6 +37,8 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ArrayListMultimap;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
@@ -39,19 +47,11 @@ import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.transforms.TransformException;
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
-
-import javax.annotation.Nonnull;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * The ontology building and loading factory, the 'core' - the main and point to create and load ontologies.
- * See also base interface {@link OWLOntologyFactory} and its single implementation {@link OWLOntologyFactoryImpl}.
+ * See also base interface {@link OWLOntologyFactory} and its single implementation {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl}.
  * <p>
  * Created by szuev on 24.10.2016.
  */
@@ -67,7 +67,18 @@ public class OntFactoryImpl implements OntologyManager.Factory {
 
     public OntFactoryImpl() {
         ontologyBuilder = new ONTBuilderImpl();
-        ontologyLoader = new ONTLoaderImpl(ontologyBuilder);
+        ontologyLoader = new ONTLoaderImpl(makeAlternative(ontologyBuilder));
+    }
+
+    /**
+     * Makes an OntLoader using OntBuilder, which will be used as alternative in the primary loader.
+     *
+     * @param builder {@link OntBuilder}, not null
+     * @return {@link OntLoader} or null
+     */
+    public static OntLoader makeAlternative(OntBuilder builder) {
+        OWLOntologyFactory factory = OntManagers.createOWLOntologyLoadFactory(builder);
+        return factory == null ? null : new OWLLoaderImpl(factory);
     }
 
     @Override
@@ -154,7 +165,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     /**
      * A interface to load model from any source.
      * Currently there are two main implementations:
-     * - the decorator of pure OWL-API factory-loader, i.e. {@link OWLOntologyFactoryImpl}
+     * - the decorator of pure OWL-API factory-loader, i.e. {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl}
      * - the jena-based factory-loader.
      * <p>
      * Note: there are only three input parameters passed to the single method ({@link OWLOntologyDocumentSource},
@@ -242,7 +253,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     }
 
     /**
-     * To load {@link OntologyModel} through pure OWL-API mechanisms (using {@link OWLOntologyFactoryImpl}).
+     * To load {@link OntologyModel} through pure OWL-API mechanisms (using {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl}).
      * Some formats (such as {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} or
      * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by jena, so it is the only way.
      */
@@ -255,8 +266,13 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         // which may happen since OWL-API parsers may use the manager again, which uses factory with the same parsers
         protected Set<IRI> sources = new HashSet<>();
 
-        public OWLLoaderImpl(OntBuilder builder) {
-            factory = new OWLOntologyFactoryImpl(OntApiException.notNull(builder, "Null builder"));
+        /**
+         * Main constructor.
+         *
+         * @param factory {@link OWLOntologyFactory}, not null
+         */
+        public OWLLoaderImpl(OWLOntologyFactory factory) {
+            this.factory = OntApiException.notNull(factory, "Null owl-load-factory impl.");
         }
 
         /**
@@ -309,12 +325,12 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         protected Map<IRI, Optional<IRI>> sourceMap = new HashMap<>();
         protected Map<IRI, GraphInfo> loaded = new HashMap<>();
 
+        /**
+         * Main constructor.
+         * @param alternative {@link OntLoader}, nullable
+         */
         public ONTLoaderImpl(OntLoader alternative) {
             this.alternative = alternative;
-        }
-
-        public ONTLoaderImpl(OntBuilder builder) {
-            this(new OWLLoaderImpl(OntApiException.notNull(builder, "Null builder.")));
         }
 
         @Override

@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -23,13 +24,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import org.semanticweb.owlapi.io.OWLParserFactory;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyManagerFactory;
-import org.semanticweb.owlapi.model.OWLStorerFactory;
+import org.semanticweb.owlapi.model.*;
 
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.Concurrency;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
@@ -57,7 +56,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @return {@link OWLDataFactory} impl
      */
     public static OWLDataFactory getDataFactory() {
-        return DEFAULT_PROFILE.factory();
+        return DEFAULT_PROFILE.dataFactory();
     }
 
     /**
@@ -124,6 +123,19 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
+     * Creates an OWL-API load factory instance.
+     * Static accessor to the {@link OWLOntologyFactory} OWL-API implementation.
+     *
+     * @param builder {@link OWLOntologyBuilder}, required parameter
+     * @return {@link OWLOntologyFactory} instance or null if it absents in class-path.
+     */
+    @SuppressWarnings("ConstantConditions")
+    @Nullable
+    static OWLOntologyFactory createOWLOntologyLoadFactory(OWLOntologyBuilder builder) {
+        return new OWLOntologyFactoryImpl(builder);
+    }
+
+    /**
      * The provider for manager and data-factory.
      *
      * @param <M> a subtype of {@link OWLOntologyManager}
@@ -140,15 +152,18 @@ public class OntManagers implements OWLOntologyManagerFactory {
         M create();
 
         /**
-         * Creates a new OWLDataFactory instance.
+         * Provides OWLDataFactory instance.
          *
          * @return {@link OWLDataFactory}
          */
-        default OWLDataFactory factory() {
+        default OWLDataFactory dataFactory() {
             return DEFAULT_DATA_FACTORY;
         }
     }
 
+    /**
+     * Abstract Profile with {@link Concurrency}.
+     */
     protected static abstract class BaseProfile {
         protected final Concurrency concurrency;
 
@@ -225,7 +240,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         @Override
-        public OWLDataFactory factory() {
+        public OWLDataFactory dataFactory() {
             try {
                 return (OWLDataFactory) factory.invoke(null);
             } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {

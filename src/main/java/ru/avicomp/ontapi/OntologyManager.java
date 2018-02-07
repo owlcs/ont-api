@@ -34,7 +34,6 @@ import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
 
 /**
@@ -130,7 +129,7 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param id {@link OWLOntologyID} ID
      * @return {@link OntologyModel} or {@code null}
-     * @see OWLOntologyManagerImpl#getOntology(OWLOntologyID)
+     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(OWLOntologyID)
      * @see #contains(OWLOntologyID)
      */
     @Override
