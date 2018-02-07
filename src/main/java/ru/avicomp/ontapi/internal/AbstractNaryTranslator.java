@@ -14,18 +14,17 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.graph.Triple;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.*;
+
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Base class for following axioms:
@@ -73,8 +72,6 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
     abstract Class<ONT> getView();
 
-    abstract Axiom create(Stream<OWL> components, Set<OWLAnnotation> annotations);
-
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
         return model.statements(null, getPredicate(), null)
@@ -85,92 +82,6 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     @Override
     public boolean testStatement(OntStatement statement) {
         return statement.getPredicate().equals(getPredicate()) && statement.getSubject().canAs(getView());
-    }
-
-    private Set<InternalObject<Axiom>> readPairwiseAxioms(OntGraphModel model) {
-        Set<InternalObject<Axiom>> init = super.read(model);
-        Set<InternalObject<Axiom>> res = new HashSet<>();
-        init.forEach(c -> {
-            Set<Triple> value = c.getTriples(); // ? need to change this
-            c.getObject().splitToAnnotatedPairs().forEach(a -> {
-                //noinspection unchecked
-                res.add(new InternalObject<>((Axiom) a, value));
-            });
-        });
-        return res;
-    }
-
-    /**
-     * todo: better place this mechanism as {@link ru.avicomp.ontapi.transforms.Transform}. At the moment it is not used.
-     * Compresses collection of nary axioms to more compact form.
-     * <p>
-     * The mechanism is the same for all kind of nary-axioms with except of SameAs axiom.
-     * Pairwise axioms could be merged to one if and only if they have the same annotations and mutually complement each other,
-     * i.e. three pairwise axioms {a, b}, {a, c}, {b, c} equivalent one axiom {a, b, c}.
-     * Example: classes 'A', 'B', 'C' are mutually disjoint if and only if each pair is disjoint ('A'-'B', 'B'-'C' and 'A'-'C')
-     *
-     * @param init initial Map with Axioms as keys and Set of Triple as values.
-     * @return shrunken set of axioms.
-     */
-    Set<InternalObject<Axiom>> shrink(Set<InternalObject<Axiom>> init) {
-        if (init.size() < 2) {
-            return new HashSet<>(init);
-        }
-        Map<Set<OWLAnnotation>, Set<Axiom>> groupedByAnnotations =
-                init.stream().map(InternalObject::getObject).collect(Collectors.groupingBy(a -> a.annotations().collect(Collectors.toSet()), Collectors.toSet()));
-        Set<InternalObject<Axiom>> res = new HashSet<>();
-        for (Set<OWLAnnotation> annotations : groupedByAnnotations.keySet()) {
-            Set<Axiom> compressed = shrink(groupedByAnnotations.get(annotations), annotations);
-            compressed.forEach(axiom -> {
-                //noinspection SuspiciousMethodCalls, unchecked
-                Set<Triple> value = axiom.splitToAnnotatedPairs().stream()
-                        .map(a -> InternalObject.find(init, (Axiom) a).map(InternalObject::triples).orElse(Stream.empty()))
-                        .flatMap(Function.identity()).collect(Collectors.toSet());
-                res.add(new InternalObject<>(axiom, value));
-            });
-        }
-        return res;
-    }
-
-    /**
-     * Examples:
-     * {a, b}, {a, d}, {b, c}                           -> {d, a}, {b, c}, {a, b}
-     * {a, b}, {a, c}, {b, c}, {g, a}                   -> {a, g}, {a, b, c}
-     * {a, b}, {a, c}, {a, d}, {b, c}, {b, d}, {c, d}   -> {a, b, c, d}
-     * {a, b}, {a, c}, {a, d}, {b, c}, {b, f}, {f, c}   -> {a, b, c}, {b, c, f}, {d, a}
-     *
-     * @param init        Set of pairwise Axioms (each should contain only two operands)
-     * @param annotations Set of OWLAnnotations
-     * @return new Set of Axioms (see examples)
-     */
-    private Set<Axiom> shrink(Set<Axiom> init, Set<OWLAnnotation> annotations) {
-        if (init.isEmpty()) return Collections.emptySet();
-        Set<Axiom> res = new HashSet<>();
-        if (init.size() == 1) {
-            res.addAll(init);
-            return res;
-        }
-        List<Axiom> split = new LinkedList<>(init);
-        Axiom first = create(split.remove(0).operands(), annotations);
-        while (!split.isEmpty()) {
-            Axiom next = split.remove(0);
-            // do operands(stream)->set->stream to avoid BootstrapMethodError
-            Stream<OWL> operands = Stream.of(first.operands().collect(Collectors.toSet()), next.operands().collect(Collectors.toSet()))
-                    .map(Collection::stream).flatMap(Function.identity());
-            Axiom candidate = create(operands, annotations);
-            if (init.containsAll(candidate.asPairwiseAxioms())) {
-                first = candidate;
-            } else {
-                //noinspection SuspiciousMethodCalls
-                split.removeAll(first.asPairwiseAxioms());
-                res.add(first);
-                first = create(next.operands(), annotations);
-            }
-            if (split.isEmpty()) {
-                res.add(first);
-            }
-        }
-        return res;
     }
 
     @Override

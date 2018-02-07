@@ -14,10 +14,6 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLEquivalentObjectPropertiesAxiom;
@@ -26,7 +22,6 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentObjectPropertiesAxiomImpl;
 
 /**
  * example:
@@ -48,11 +43,6 @@ public class EquivalentObjectPropertiesTranslator extends AbstractNaryTranslator
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
-    }
-
-    @Override
-    OWLEquivalentObjectPropertiesAxiom create(Stream<OWLObjectPropertyExpression> components, Set<OWLAnnotation> annotations) {
-        return new OWLEquivalentObjectPropertiesAxiomImpl(components.collect(Collectors.toSet()), annotations);
     }
 
     @Override

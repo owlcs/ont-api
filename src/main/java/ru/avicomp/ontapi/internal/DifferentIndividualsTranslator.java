@@ -14,20 +14,18 @@
 
 package ru.avicomp.ontapi.internal;
 
+import java.util.stream.Stream;
+
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
+
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
-
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * see {@link AbstractTwoWayNaryTranslator}
@@ -51,11 +49,6 @@ public class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator
     @Override
     Class<OntIndividual> getView() {
         return OntIndividual.class;
-    }
-
-    @Override
-    OWLDifferentIndividualsAxiom create(Stream<OWLIndividual> components, Set<OWLAnnotation> annotations) {
-        return new OWLDifferentIndividualsAxiomImpl(components.collect(Collectors.toSet()), annotations);
     }
 
     @Override

@@ -14,10 +14,6 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -26,7 +22,6 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
 
 /**
  * Base class {@link AbstractNaryTranslator}
@@ -48,11 +43,6 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
     @Override
     Class<OntCE> getView() {
         return OntCE.class;
-    }
-
-    @Override
-    OWLEquivalentClassesAxiom create(Stream<OWLClassExpression> components, Set<OWLAnnotation> annotations) {
-        return new OWLEquivalentClassesAxiomImpl(components.collect(Collectors.toSet()), annotations);
     }
 
     @Override

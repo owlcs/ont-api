@@ -14,8 +14,6 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.rdf.model.Property;
@@ -28,7 +26,6 @@ import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import uk.ac.manchester.cs.owl.owlapi.OWLDisjointObjectPropertiesAxiomImpl;
 
 /**
  * see {@link AbstractTwoWayNaryTranslator}
@@ -50,11 +47,6 @@ public class DisjointObjectPropertiesTranslator extends AbstractTwoWayNaryTransl
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
-    }
-
-    @Override
-    OWLDisjointObjectPropertiesAxiom create(Stream<OWLObjectPropertyExpression> components, Set<OWLAnnotation> annotations) {
-        return new OWLDisjointObjectPropertiesAxiomImpl(components.collect(Collectors.toSet()), annotations);
     }
 
     @Override
