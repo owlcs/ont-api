@@ -24,8 +24,7 @@
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>ONT-API is an open source java API which replicates OWL-API interfaces but based on Apache Jena.
-    </description>
+    <description>ONT-API is an OWL-API over Apache Jena</description>
     <url>https://github.com/avicomp/ont-api</url>
 
     <properties>
@@ -154,6 +153,12 @@
             <artifactId>shacl</artifactId>
             <version>1.0.1</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.jena</groupId>
+                    <artifactId>jena-arq</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
