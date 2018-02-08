@@ -38,7 +38,7 @@ public class SWRLRuleOntModelTest extends OntModelTestBase {
         OWLOntologyManager manager = OntManagers.createONT();
         OWLOntology owl = make(manager, OntIRI.create("http://test.org/rule"));
 
-        owl.axioms().forEach(LOGGER::info);
+        owl.axioms().map(String::valueOf).forEach(LOGGER::info);
 
         debug(owl);
 

@@ -96,7 +96,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         expected = original.axioms().sorted().collect(Collectors.toList());
         expected.remove(factory.getOWLDisjointClassesAxiom(owlComplex1, owlSimple1));
 
-        expected.forEach(LOGGER::debug);
+        expected.stream().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
         LOGGER.info("Remove OWL:AllDisjointClasses");

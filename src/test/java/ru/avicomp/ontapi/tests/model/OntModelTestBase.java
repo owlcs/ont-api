@@ -14,11 +14,12 @@
 
 package ru.avicomp.ontapi.tests.model;
 
-import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
@@ -35,14 +36,14 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 02.10.2016.
  */
-public abstract class OntModelTestBase {
-    static final Logger LOGGER = Logger.getLogger(OntModelTestBase.class);
+abstract class OntModelTestBase {
+    static final Logger LOGGER = LoggerFactory.getLogger(OntModelTestBase.class);
 
     public static void debug(OWLOntology ontology) {
         LOGGER.info("DEBUG:");
         ReadWriteUtils.print(ontology, OntFormat.TURTLE);
         LOGGER.debug("Axioms:");
-        ontology.axioms().forEach(LOGGER::debug);
+        ontology.axioms().map(String::valueOf).forEach(LOGGER::debug);
     }
 
     Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType... excluded) {
@@ -56,7 +57,7 @@ public abstract class OntModelTestBase {
         OWLOntologyManager manager = OntManagers.createOWL();
         OWLOntology result = ReadWriteUtils.convertJenaToOWL(manager, original.asGraphModel());
         LOGGER.info("All (actual) axioms from reloaded ontology[OWL]:");
-        result.axioms().forEach(LOGGER::info);
+        result.axioms().map(String::valueOf).forEach(LOGGER::info);
         Map<AxiomType, List<OWLAxiom>> expected = TestUtils.toMap(filterAxioms(original, excluded));
         Map<AxiomType, List<OWLAxiom>> actual = TestUtils.toMap(filterAxioms(result, excluded));
         TestUtils.compareAxioms(expected, actual);

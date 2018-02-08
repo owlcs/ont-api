@@ -22,11 +22,14 @@ import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntID;
+import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.OntIRI;
@@ -35,6 +38,9 @@ import ru.avicomp.ontapi.utils.TestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * to test behaviour with owl:imports
@@ -162,9 +168,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         LOGGER.info("Check axioms after reload:");
         LOGGER.debug("Origin ont");
-        child.axioms().forEach(LOGGER::debug);
+        child.axioms().map(String::valueOf).forEach(LOGGER::debug);
         LOGGER.debug("Reloaded ont");
-        newChild.axioms().forEach(LOGGER::debug);
+        newChild.axioms().map(String::valueOf).forEach(LOGGER::debug);
         TestUtils.compareAxioms(child.axioms(), newChild.axioms());
 
         LOGGER.info("Remove import test");
@@ -176,6 +182,43 @@ public class ImportsOntModelTest extends OntModelTestBase {
         checkTriplePresence(child.asGraphModel(), dataPropIRI.toResource(), RDF.type, OWL.DatatypeProperty);
         checkTriplePresence(child.asGraphModel(), annPropIRI.toResource(), RDF.type, OWL.AnnotationProperty);
         checkTripleAbsence(child.asGraphModel(), dataTypeIRI.toResource(), RDF.type, RDFS.Datatype);
+    }
+
+    @Test
+    public void testSimpleImportsBehaviour() {
+        OntologyManager m = OntManagers.createONT();
+        String a_uri = "A";
+        String b_uri = "B";
+        OntologyModel a_owl = m.createOntology(IRI.create(a_uri));
+        OntologyModel b_owl = m.createOntology(IRI.create(b_uri));
+
+        OntGraphModel a = m.getGraphModel(a_uri);
+        Assert.assertNotNull(a);
+        OntGraphModel b = m.getGraphModel(b_uri);
+        Assert.assertNotNull(b);
+        a.addImport(b);
+
+        Assert.assertTrue(a_owl.imports().anyMatch(o -> Objects.equals(o, b_owl)));
+
+        LOGGER.info("Add class and associated individual");
+        OntIndividual i = b.createOntEntity(OntClass.class, "class").createIndividual("individual");
+        b_owl.axioms().forEach(x -> LOGGER.debug("{}", x));
+
+        Set<OWLAxiom> b_axioms_1 = b_owl.axioms().collect(Collectors.toSet());
+        Set<OWLAxiom> a_axioms_1 = a_owl.axioms(Imports.INCLUDED).collect(Collectors.toSet());
+        Assert.assertEquals(3, b_axioms_1.size());
+        Assert.assertEquals(0, a_owl.getAxiomCount());
+        Assert.assertEquals(b_axioms_1, a_axioms_1);
+
+        LOGGER.info("Remove individual (class assertion + declaration)");
+        b.removeOntObject(i);
+        b_owl.axioms().forEach(x -> LOGGER.debug("{}", x));
+
+        Set<OWLAxiom> b_axioms_2 = b_owl.axioms().collect(Collectors.toSet());
+        Set<OWLAxiom> a_axioms_2 = a_owl.axioms(Imports.INCLUDED).collect(Collectors.toSet());
+        Assert.assertEquals(1, b_axioms_2.size());
+        Assert.assertEquals(0, a_owl.getAxiomCount());
+        Assert.assertEquals(b_axioms_2, a_axioms_2);
     }
 
     private static void checkTriple(OntGraphModel base, OntGraphModel child, Resource subject, Property predicate, RDFNode object) {

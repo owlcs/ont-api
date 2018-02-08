@@ -100,13 +100,13 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLAxiom expected = factory.getOWLDeclarationAxiom(factory.getOWLClass(clazzIRI), annotations);
 
         LOGGER.info("Current axioms:");
-        owl.axioms().forEach(LOGGER::debug);
+        owl.axioms().map(String::valueOf).forEach(LOGGER::debug);
         TestUtils.compareAxioms(Stream.of(expected), owl.axioms());
 
         LOGGER.info("Reload ontology.");
         OWLOntology reload = ReadWriteUtils.convertJenaToOWL(OntManagers.createOWL(), jena, null);
         LOGGER.info("Axioms after reload:");
-        reload.axioms().forEach(LOGGER::debug);
+        reload.axioms().map(String::valueOf).forEach(LOGGER::debug);
         TestUtils.compareAxioms(Stream.of(expected), reload.axioms());
     }
 
@@ -424,7 +424,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         LOGGER.debug(txt);
         ReadWriteUtils.print(o1, OntFormat.FUNCTIONAL_SYNTAX);
         LOGGER.debug("Annotations:");
-        o1.annotations().forEach(LOGGER::debug);
+        o1.annotations().map(String::valueOf).forEach(LOGGER::debug);
         // checking jena shadow
         if (manager instanceof OntologyManager) {
             OntGraphModel jena = ((OntologyModel) o1).asGraphModel();
@@ -471,7 +471,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
             OntGraphModel jena = ((OntologyModel) o1).asGraphModel();
             List<Statement> rest = jena.listStatements().toList();
             LOGGER.debug("Rest statements : ");
-            rest.forEach(LOGGER::debug);
+            rest.stream().map(String::valueOf).forEach(LOGGER::debug);
             Assert.assertEquals("Expected only single triplet", 1, rest.size());
         }
 
