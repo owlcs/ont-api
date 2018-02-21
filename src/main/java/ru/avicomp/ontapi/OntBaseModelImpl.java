@@ -494,7 +494,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * <li>7) Any property characteristic axiom (i.e. Functional, Symmetric, Reflexive etc.) whose subject is the specified property</li>
      * <li>8) Inverse properties axioms that contain the specified property</li>
      * </ul>
-     * <b>Note: either condition <p>3</p> or OWL-API-5.1.4 implementation (owlapi-impl) are wrong as shown by tests.</b>
+     * <b>Note: either condition *3* or OWL-API-5.1.4 implementation (owlapi-impl) are wrong as shown by tests.</b>
      *
      * @param property The property whose defining axioms are to be retrieved.
      * @return A stream of object property axioms that describe the specified property.
