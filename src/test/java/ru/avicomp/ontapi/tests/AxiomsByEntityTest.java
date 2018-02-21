@@ -67,11 +67,13 @@ public class AxiomsByEntityTest {
         OWLOntology expected = data.createOntology(OntManagers.createOWL());
         OntologyModel actual = (OntologyModel) data.createOntology(OntManagers.createONT());
 
-        Set<OWLEntity> entities = data.testEntities(actual, expected);
+        data.testAxioms(expected, actual);
 
-        data.testReferencingAxioms(entities, actual, expected);
+        Set<OWLEntity> entities = data.testEntities(expected, actual);
 
-        data.testAxiomsBy(entities, actual, expected);
+        data.testReferencingAxioms(entities, expected, actual);
+
+        data.testAxiomsBy(entities, expected, actual);
     }
 
     /**
@@ -236,7 +238,7 @@ public class AxiomsByEntityTest {
 
                 OWLAxiom sub = FACTORY.getOWLSubObjectPropertyOfAxiom(p, x);
                 OWLAxiom eq = FACTORY.getOWLEquivalentObjectPropertiesAxiom(y, z, FACTORY.getOWLObjectInverseOf(p), x);
-                OWLAxiom sub2 = FACTORY.getOWLSubPropertyChainOfAxiom(Arrays.asList(z, p), x);
+                OWLAxiom chain = FACTORY.getOWLSubPropertyChainOfAxiom(Arrays.asList(z, k, p), x);
                 OWLAxiom dis = FACTORY.getOWLDisjointObjectPropertiesAxiom(p, l);
                 OWLAxiom ran = FACTORY.getOWLObjectPropertyRangeAxiom(k, c);
                 OWLAxiom dom = FACTORY.getOWLObjectPropertyDomainAxiom(m, c);
@@ -249,7 +251,7 @@ public class AxiomsByEntityTest {
                 OWLAxiom in = FACTORY.getOWLInverseFunctionalObjectPropertyAxiom(m);
                 OWLAxiom tr = FACTORY.getOWLTransitiveObjectPropertyAxiom(y);
                 OWLAxiom ina = FACTORY.getOWLInverseObjectPropertiesAxiom(h, z);
-                return Stream.of(sub, eq, sub2, dis, ran, dom, fun, ref, ir, as, sy, in, tr, ina);
+                return Stream.of(sub, eq, chain, dis, ran, dom, fun, ref, ir, as, sy, in, tr, ina);
             }
 
             @Override
@@ -313,6 +315,7 @@ public class AxiomsByEntityTest {
              *  <li>Range axioms that specify a range of the specified property</li>
              *  <li>Functional data property characteristic axiom whose subject is the specified property</li>
              * </ul>
+             *
              * @param e {@link OWLDataProperty}
              * @param o {@link OWLOntology}
              * @return Stream
@@ -332,10 +335,11 @@ public class AxiomsByEntityTest {
                 OWLAnnotation an1 = FACTORY.getOWLAnnotation(a, FACTORY.getOWLLiteral("", "n"));
                 OWLAnnotation an2 = FACTORY.getOWLAnnotation(FACTORY.getRDFSIsDefinedBy(), FACTORY.getOWLLiteral(false),
                         FACTORY.getOWLAnnotation(FACTORY.getRDFSLabel(), iri("iri1")));
-                OWLAxiom sub = FACTORY.getOWLSubAnnotationPropertyOfAxiom(a, FACTORY.getRDFSSeeAlso(), Arrays.asList(an1, an2));
+                OWLAxiom sub1 = FACTORY.getOWLSubAnnotationPropertyOfAxiom(a, FACTORY.getRDFSSeeAlso(), Arrays.asList(an1, an2));
+                OWLAxiom sub2 = FACTORY.getOWLSubAnnotationPropertyOfAxiom(b, a);
                 OWLAxiom dom = FACTORY.getOWLAnnotationPropertyDomainAxiom(a, b.getIRI());
                 OWLAxiom ran = FACTORY.getOWLAnnotationPropertyRangeAxiom(c, iri("iri2"));
-                return Stream.of(sub, dom, ran);
+                return Stream.of(sub1, sub2, dom, ran);
             }
 
             @Override
@@ -376,7 +380,7 @@ public class AxiomsByEntityTest {
             return IRI.create(getURI() + "#" + name);
         }
 
-        Set<OWLEntity> testEntities(OntologyModel actual, OWLOntology expected) {
+        Set<OWLEntity> testEntities(OWLOntology expected, OntologyModel actual) {
             Set<OWLEntity> actualEntities = entities(actual).collect(Collectors.toSet());
             Set<OWLEntity> expectedEntities = entities(expected).collect(Collectors.toSet());
             Assert.assertEquals(String.format("%s - wrong %s list:", toString(actual), this),
@@ -384,7 +388,13 @@ public class AxiomsByEntityTest {
             return expectedEntities;
         }
 
-        void testReferencingAxioms(Set<OWLEntity> entities, OntologyModel actual, OWLOntology expected) {
+        void testAxioms(OWLOntology expected, OntologyModel actual) {
+            List<OWLAxiom> actualAxioms = actual.axioms().sorted().collect(Collectors.toList());
+            List<OWLAxiom> expectedAxioms = expected.axioms().sorted().collect(Collectors.toList());
+            assertAxioms(toString(actual) + " - wrong axioms list", expectedAxioms, actualAxioms);
+        }
+
+        void testReferencingAxioms(Set<OWLEntity> entities, OWLOntology expected, OntologyModel actual) {
             Map<OWLPrimitive, Set<OWLAxiom>> actualReferencingAxioms = getReferencingAxiomsByClass(entities, actual);
             Map<OWLPrimitive, Set<OWLAxiom>> expectedRefAxioms = getReferencingAxiomsByClass(entities, expected);
             entities.forEach(e -> assertAxioms(
@@ -392,7 +402,7 @@ public class AxiomsByEntityTest {
                     expectedRefAxioms.get(e), actualReferencingAxioms.get(e)));
         }
 
-        void testAxiomsBy(Set<OWLEntity> entities, OntologyModel actual, OWLOntology expected) {
+        void testAxiomsBy(Set<OWLEntity> entities, OWLOntology expected, OntologyModel actual) {
             Map<OWLEntity, Set<OWLAxiom>> actualDirectAxioms = getAxioms(entities, actual);
             Map<OWLEntity, Set<OWLAxiom>> expectedDirectAxioms = getAxioms(entities, expected);
             entities.forEach(c -> assertAxioms(

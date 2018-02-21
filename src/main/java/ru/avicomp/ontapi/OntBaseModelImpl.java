@@ -97,8 +97,8 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * Used also during {@link OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)}
      *
      * @param manager {@link OntologyManager}, nullable.
-     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)
      * @throws OntApiException in case wrong manager specified.
+     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)
      */
     @Override
     public void setOWLOntologyManager(OWLOntologyManager manager) {
@@ -453,24 +453,162 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
         ).map(c -> base.axioms(c)).flatMap(Function.identity());
     }
 
+    /**
+     * Gets the axioms that form the definition/description of a class.
+     * The results include:
+     * <ul>
+     * <li>Subclass axioms where the subclass is equal to the specified class</li>
+     * <li>Equivalent class axioms where the specified class is an operand in the equivalent class axiom</li>
+     * <li>Disjoint class axioms where the specified class is an operand in the disjoint class axiom</li>
+     * <li>Disjoint union axioms, where the specified class is the named class that is equivalent to the disjoint union</li>
+     * </ul>
+     *
+     * @param clazz The class whose describing axioms are to be retrieved.
+     * @return A stream of class axioms that describe the class.
+     */
     @Override
     public Stream<OWLClassAxiom> axioms(@Nonnull OWLClass clazz) {
-        return classAxioms().filter(a -> OwlObjects.objects(OWLClass.class, a).anyMatch(clazz::equals));
+        Stream<? extends OWLClassAxiom> subClassOf = base.axioms(OWLSubClassOfAxiom.class)
+                .filter(a -> Objects.equals(a.getSubClass(), clazz));
+        Stream<? extends OWLClassAxiom> disjointUnion = base.axioms(OWLDisjointUnionAxiom.class)
+                .filter(a -> Objects.equals(a.getOWLClass(), clazz));
+        Stream<? extends OWLClassAxiom> nary = Stream.of(
+                OWLDisjointClassesAxiom.class,
+                OWLEquivalentClassesAxiom.class
+        ).map(c -> base.axioms(c))
+                .flatMap(Function.identity())
+                .filter(a -> a.operands().anyMatch(c -> Objects.equals(c, clazz)));
+        return Stream.of(subClassOf, disjointUnion, nary).flatMap(Function.identity());
     }
 
+    /**
+     * Gets the axioms that form the definition/description of an object property.
+     * The result set of object property axioms include:
+     * <ul>
+     * <li>1) Sub-property axioms where the sub property is the specified property</li>
+     * <li>2) Equivalent property axioms where the axiom contains the specified property</li>
+     * <li>3) Equivalent property axioms that contain the inverse of the specified property</li>
+     * <li>4) Disjoint property axioms that contain the specified property</li>
+     * <li>5) Domain axioms that specify a domain of the specified property</li>
+     * <li>6) Range axioms that specify a range of the specified property</li>
+     * <li>7) Any property characteristic axiom (i.e. Functional, Symmetric, Reflexive etc.) whose subject is the specified property</li>
+     * <li>8) Inverse properties axioms that contain the specified property</li>
+     * </ul>
+     * <b>Note: either condition <p>3</p> or OWL-API-5.1.4 implementation (owlapi-impl) are wrong as shown by tests.</b>
+     *
+     * @param property The property whose defining axioms are to be retrieved.
+     * @return A stream of object property axioms that describe the specified property.
+     */
     @Override
     public Stream<OWLObjectPropertyAxiom> axioms(@Nonnull OWLObjectPropertyExpression property) {
-        return objectPropertyAxioms().filter(a -> OwlObjects.objects(OWLObjectPropertyExpression.class, a).anyMatch(property::equals));
+        Stream<? extends OWLObjectPropertyAxiom> subPropertyOf = base.axioms(OWLSubObjectPropertyOfAxiom.class)
+                .filter(a -> Objects.equals(a.getSubProperty(), property));
+        @SuppressWarnings("unchecked")
+        Stream<? extends OWLObjectPropertyAxiom> nary = Stream.of(
+                OWLEquivalentObjectPropertiesAxiom.class,
+                OWLDisjointObjectPropertiesAxiom.class,
+                OWLInverseObjectPropertiesAxiom.class
+        ).map(c -> base.axioms(c))
+                .flatMap(Function.identity())
+                .map(OWLNaryPropertyAxiom.class::cast)
+                .filter(a -> a.operands().anyMatch(o -> Objects.equals(o, property)))
+                .map(OWLObjectPropertyAxiom.class::cast);
+        Stream<? extends OWLObjectPropertyAxiom> unary = Stream.of(
+                OWLObjectPropertyDomainAxiom.class,
+                OWLObjectPropertyRangeAxiom.class,
+                OWLTransitiveObjectPropertyAxiom.class,
+                OWLIrreflexiveObjectPropertyAxiom.class,
+                OWLReflexiveObjectPropertyAxiom.class,
+                OWLSymmetricObjectPropertyAxiom.class,
+                OWLFunctionalObjectPropertyAxiom.class,
+                OWLInverseFunctionalObjectPropertyAxiom.class,
+                OWLAsymmetricObjectPropertyAxiom.class
+        ).map(c -> base.axioms(c))
+                .flatMap(Function.identity())
+                .map(OWLUnaryPropertyAxiom.class::cast)
+                .filter(a -> Objects.equals(a.getProperty(), property))
+                .map(OWLObjectPropertyAxiom.class::cast);
+        return Stream.of(subPropertyOf, nary, unary).flatMap(Function.identity());
     }
 
+    /**
+     * Gets the axioms that form the definition/description of a data property.
+     * The result set of data property axioms include:
+     * <ul>
+     * <li>Sub-property axioms where the sub property is the specified property</li>
+     * <li>Equivalent property axioms where the axiom contains the specified property</li>
+     * <li>Disjoint property axioms that contain the specified property</li>
+     * <li>Domain axioms that specify a domain of the specified property</li>
+     * <li>Range axioms that specify a range of the specified property</li>
+     * <li>Functional data property characteristic axiom whose subject is the specified property</li>
+     * </ul>
+     *
+     * @param property The property whose defining axioms are to be retrieved.
+     * @return A stream of data property axioms.
+     */
     @Override
     public Stream<OWLDataPropertyAxiom> axioms(@Nonnull OWLDataProperty property) {
-        return dataPropertyAxioms().filter(a -> OwlObjects.objects(OWLDataProperty.class, a).anyMatch(property::equals));
+        Stream<? extends OWLDataPropertyAxiom> subPropertyOf = base.axioms(OWLSubDataPropertyOfAxiom.class)
+                .filter(a -> Objects.equals(a.getSubProperty(), property));
+        @SuppressWarnings("unchecked")
+        Stream<? extends OWLDataPropertyAxiom> nary = Stream.of(
+                OWLEquivalentDataPropertiesAxiom.class,
+                OWLDisjointDataPropertiesAxiom.class,
+                OWLInverseObjectPropertiesAxiom.class
+        ).map(c -> base.axioms(c))
+                .flatMap(Function.identity())
+                .map(OWLNaryPropertyAxiom.class::cast)
+                .filter(a -> a.operands().anyMatch(o -> Objects.equals(o, property)))
+                .map(OWLDataPropertyAxiom.class::cast);
+        Stream<? extends OWLDataPropertyAxiom> unary = Stream.of(
+                OWLDataPropertyDomainAxiom.class,
+                OWLDataPropertyRangeAxiom.class,
+                OWLFunctionalDataPropertyAxiom.class
+        ).map(c -> base.axioms(c))
+                .flatMap(Function.identity())
+                .map(OWLUnaryPropertyAxiom.class::cast)
+                .filter(a -> Objects.equals(a.getProperty(), property))
+                .map(OWLDataPropertyAxiom.class::cast);
+        return Stream.of(subPropertyOf, nary, unary).flatMap(Function.identity());
     }
 
+    /**
+     * Gets the axioms that form the definition/description of an individual.
+     * Conditions:
+     * <ul>
+     * <li>Individual type assertions that assert the type of the specified individual</li>
+     * <li>Same individuals axioms that contain the specified individual</li>
+     * <li>Different individuals axioms that contain the specified individual</li>
+     * <li>Object property assertion axioms whose subject is the specified individual</li>
+     * <li>Data property assertion axioms whose subject is the specified individual</li>
+     * <li>Negative object property assertion axioms whose subject is the specified individual</li>
+     * <li>Negative data property assertion axioms whose subject is the specified individual</li>
+     * </ul>
+     *
+     * @param individual The individual whose defining axioms are to be retrieved.
+     * @return Stream of individual axioms.
+     */
     @Override
     public Stream<OWLIndividualAxiom> axioms(@Nonnull OWLIndividual individual) {
-        return individualAxioms().filter(a -> OwlObjects.objects(OWLIndividual.class, a).anyMatch(individual::equals));
+        Stream<? extends OWLIndividualAxiom> classAssertion = base.axioms(OWLClassAssertionAxiom.class)
+                .filter(a -> Objects.equals(a.getIndividual(), individual));
+        Stream<? extends OWLIndividualAxiom> nary = Stream.of(
+                OWLSameIndividualAxiom.class,
+                OWLDifferentIndividualsAxiom.class
+        ).map(c -> base.axioms(c))
+                .flatMap(Function.identity())
+                .map(OWLNaryIndividualAxiom.class::cast)
+                .filter(a -> a.operands().anyMatch(o -> Objects.equals(o, individual)));
+        Stream<? extends OWLIndividualAxiom> propertyAssertion = Stream.of(
+                OWLObjectPropertyAssertionAxiom.class,
+                OWLDataPropertyAssertionAxiom.class,
+                OWLNegativeObjectPropertyAssertionAxiom.class,
+                OWLNegativeDataPropertyAssertionAxiom.class
+        ).map(c -> base.axioms(c))
+                .flatMap(Function.identity())
+                .map(OWLPropertyAssertionAxiom.class::cast)
+                .filter(a -> Objects.equals(a.getSubject(), individual));
+        return Stream.of(classAssertion, nary, propertyAssertion).flatMap(Function.identity());
     }
 
     @Override
@@ -708,7 +846,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * Note: only base graph!
      *
      * @param in {@link ObjectInputStream}
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException            if an I/O error occurs.
      * @throws ClassNotFoundException if the class of a serialized object could not be found.
      * @see OntologyManagerImpl#readObject(ObjectInputStream)
      * @see OntologyModelImpl.Concurrent#readObject(ObjectInputStream)

@@ -21,7 +21,8 @@ import java.util.stream.Stream;
 import org.semanticweb.owlapi.model.*;
 
 /**
- * Helper to work with {@link OWLObject} (mostly for parsing {@link org.semanticweb.owlapi.model.OWLAxiom})
+ * Helper to work with {@link OWLObject} (mostly for retrieving components from {@link org.semanticweb.owlapi.model.OWLAxiom owl-axioms}).
+ * Note: its methods are recursive.
  * <p>
  * Created by @szuev on 08.02.2017.
  */
@@ -50,6 +51,9 @@ public class OwlObjects {
             return Stream.of(view.cast(o));
         }
         if (o instanceof HasComponents) {
+            if (o instanceof HasAnnotations) {
+                return objects(view, (HasComponents & HasAnnotations) o);
+            }
             return parseComponents(view, (HasComponents) o);
         }
         if (o instanceof HasAnnotations) {
@@ -58,12 +62,11 @@ public class OwlObjects {
         Stream<?> stream = null;
         if (o instanceof Stream) {
             stream = ((Stream<?>) o);
-        }
-        if (o instanceof Collection) {
+        } else if (o instanceof Collection) {
             stream = ((Collection<?>) o).stream();
         }
         if (stream != null) {
-            return stream.map(_o -> toStream(view, _o)).flatMap(Function.identity());
+            return stream.map(x -> toStream(view, x)).flatMap(Function.identity());
         }
         return Stream.empty();
     }
