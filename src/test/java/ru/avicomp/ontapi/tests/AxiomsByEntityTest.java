@@ -14,22 +14,23 @@
 
 package ru.avicomp.ontapi.tests;
 
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * To test following {@link OWLAxiomCollection}#axioms methods:
@@ -41,6 +42,8 @@ import java.util.stream.Stream;
  * <li>{@link ru.avicomp.ontapi.OntBaseModelImpl#axioms(OWLDataProperty)}</li>
  * <li>{@link ru.avicomp.ontapi.OntBaseModelImpl#axioms(OWLObjectPropertyExpression)}</li>
  * </ul>
+ * Also to test {@link ru.avicomp.ontapi.OntBaseModelImpl#referencingAxioms(OWLPrimitive)} and
+ * {@link OWLAxiomCollection}#signature methods.
  * <p>
  * Created by @szuev on 20.02.2018.
  */
@@ -61,53 +64,14 @@ public class AxiomsByEntityTest {
 
     @Test
     public void testAxioms() {
-        OWLOntology expected = createOntology(OntManagers.createOWL());
-        OWLOntology actual = createOntology(OntManagers.createONT());
+        OWLOntology expected = data.createOntology(OntManagers.createOWL());
+        OntologyModel actual = (OntologyModel) data.createOntology(OntManagers.createONT());
 
-        Set<OWLEntity> actualEntities = data.entities(actual).collect(Collectors.toSet());
-        Set<OWLEntity> expectedEntities = data.entities(expected).collect(Collectors.toSet());
-        Assert.assertEquals("Wrong " + data + " list", actualEntities, expectedEntities);
+        Set<OWLEntity> entities = data.testEntities(actual, expected);
 
-        Map<OWLPrimitive, Set<OWLAxiom>> actualReferencingAxioms = getReferencingAxiomsByClass(expectedEntities, actual);
-        Map<OWLPrimitive, Set<OWLAxiom>> expectedRefAxioms = getReferencingAxiomsByClass(expectedEntities, expected);
-        expectedEntities.forEach(e -> Assert.assertEquals(toString(actual) + " - wrong referencing axioms list for " + e + ":",
-                expectedRefAxioms.get(e), actualReferencingAxioms.get(e)));
+        data.testReferencingAxioms(entities, actual, expected);
 
-        Map<OWLEntity, Set<OWLAxiom>> actualDirectAxioms = getAxioms(expectedEntities, actual);
-        Map<OWLEntity, Set<OWLAxiom>> expectedDirectAxioms = getAxioms(expectedEntities, expected);
-        expectedEntities.forEach(c -> Assert.assertEquals(toString(actual) + " - wrong direct axioms list for " + data + ":" + c + ":",
-                expectedDirectAxioms.get(c), actualDirectAxioms.get(c)));
-    }
-
-    public OWLOntology createOntology(OWLOntologyManager manager) {
-        OWLOntology res = create(data.getURI(), manager);
-        data.createTestAxioms().forEach(a -> manager.applyChange(new AddAxiom(res, a)));
-        res.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        LOGGER.debug("{} created.", toString(res));
-        return res;
-    }
-
-    private static OWLOntology create(String url, OWLOntologyManager manager) {
-        try {
-            return manager.createOntology(IRI.create(url));
-        } catch (OWLOntologyCreationException e) {
-            throw new AssertionError("Can't create ontology " + url, e);
-        }
-    }
-
-
-    private Map<OWLEntity, Set<OWLAxiom>> getAxioms(Set<OWLEntity> entities, OWLOntology o) {
-        return entities.stream().collect(Collectors.toMap(Function.identity(), c -> data.axiomsBy(c, o).collect(Collectors.toSet())));
-    }
-
-    private static Map<OWLPrimitive, Set<OWLAxiom>> getReferencingAxiomsByClass(Set<? extends OWLPrimitive> entities, OWLOntology o) {
-        return entities.stream().collect(Collectors.toMap(Function.identity(),
-                c -> o.referencingAxioms(c).collect(Collectors.toSet())));
-    }
-
-    public static String toString(OWLOntology o) {
-        IRI iri = o.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
-        return "[" + (o instanceof OntologyModel ? "ONT" : "OWL") + "]: <" + iri + ">";
+        data.testAxiomsBy(entities, actual, expected);
     }
 
     /**
@@ -117,13 +81,21 @@ public class AxiomsByEntityTest {
         CLASS {
             @Override
             Stream<OWLAxiom> createTestAxioms() {
-                String ns = getURI() + "#";
-                OWLClass x = DATA_FACTORY.getOWLClass(IRI.create(ns + "X"));
-                OWLObjectProperty p = DATA_FACTORY.getOWLObjectProperty(IRI.create(ns + "p"));
-                OWLClass y = DATA_FACTORY.getOWLClass(IRI.create(ns + "Y"));
-                OWLClass z = DATA_FACTORY.getOWLClass(IRI.create(ns + "Z"));
-                OWLAxiom gca = DATA_FACTORY.getOWLSubClassOfAxiom(DATA_FACTORY.getOWLObjectIntersectionOf(DATA_FACTORY.getOWLObjectSomeValuesFrom(p, y), x), z);
-                return Stream.of(gca);
+                OWLObjectProperty p = FACTORY.getOWLObjectProperty(iri("p"));
+                OWLClass x = FACTORY.getOWLClass(iri("X"));
+                OWLClass y = FACTORY.getOWLClass(iri("Y"));
+                OWLClass z = FACTORY.getOWLClass(iri("Z"));
+                OWLClass h = FACTORY.getOWLClass(iri("H"));
+                OWLClass r = FACTORY.getOWLClass(iri("R"));
+                OWLClass s = FACTORY.getOWLClass(iri("S"));
+                OWLAxiom sub = FACTORY.getOWLSubClassOfAxiom(FACTORY
+                        .getOWLObjectIntersectionOf(FACTORY.getOWLObjectSomeValuesFrom(p, y), x), z);
+                OWLAxiom eq = FACTORY.getOWLEquivalentClassesAxiom(x, y, FACTORY.getOWLThing());
+                OWLAxiom dis = FACTORY.getOWLDisjointClassesAxiom(Arrays.asList(h, r, z),
+                        Collections.singleton(FACTORY.getRDFSLabel("dis")));
+                OWLAxiom un = FACTORY.getOWLDisjointUnionAxiom(s, Arrays.asList(x, y, r),
+                        Arrays.asList(FACTORY.getRDFSLabel("un"), FACTORY.getRDFSComment("com")));
+                return Stream.of(sub, eq, dis, un);
             }
 
             @Override
@@ -131,21 +103,42 @@ public class AxiomsByEntityTest {
                 return o.classesInSignature().map(x -> x);
             }
 
+            /**
+             * Conditions:
+             * <ul>
+             * <li>Subclass axioms where the subclass is equal to the specified class</li>
+             * <li>Equivalent class axioms where the specified class is an operand in the equivalent class axiom</li>
+             * <li>Disjoint class axioms where the specified class is an operand in the disjoint class axiom</li>
+             * <li>Disjoint union axioms, where the specified class is the named class that is equivalent to the disjoint union</li>
+             * </ul>
+             *
+             * @param e {@link OWLClass}
+             * @param o {@link OWLOntology}
+             * @return Stream
+             */
             @Override
             Stream<? extends OWLAxiom> axiomsBy(OWLEntity e, OWLOntology o) {
                 return o.axioms((OWLClass) e);
             }
         },
+
         DATATYPE {
             @Override
             Stream<OWLAxiom> createTestAxioms() {
-                String ns = getURI() + "#";
-                OWLDatatype x = DATA_FACTORY.getOWLDatatype(IRI.create(ns + "x"));
-                OWLDatatype y = DATA_FACTORY.getOWLDatatype(IRI.create(ns + "y"));
-                OWLDataPropertyExpression p = DATA_FACTORY.getOWLDataProperty(IRI.create(ns + "y"));
-                OWLAxiom a = DATA_FACTORY.getOWLDeclarationAxiom(x);
-                OWLAxiom b = DATA_FACTORY.getOWLSubClassOfAxiom(DATA_FACTORY.getOWLDataAllValuesFrom(p, y), DATA_FACTORY.getOWLDataAllValuesFrom(p, x));
-                return Stream.of(a, b);
+                OWLDatatype x = FACTORY.getOWLDatatype(iri("X"));
+                OWLDatatype y = FACTORY.getOWLDatatype(iri("Y"));
+                OWLDatatype z = FACTORY.getOWLDatatype(iri("Z"));
+                OWLDatatype q = FACTORY.getOWLDatatype(iri("Q"));
+                OWLClass c = FACTORY.getOWLClass(iri("C"));
+                OWLDataPropertyExpression p = FACTORY.getOWLDataProperty(iri("p"));
+                OWLDataPropertyExpression r = FACTORY.getOWLDataProperty(iri("r"));
+                OWLAxiom dec = FACTORY.getOWLDeclarationAxiom(x);
+                OWLAxiom eq = FACTORY.getOWLDatatypeDefinitionAxiom(y, OWL2Datatype.XSD_INTEGER);
+                OWLAxiom ran = FACTORY.getOWLDataPropertyRangeAxiom(p,
+                        FACTORY.getOWLDatatypeRestriction(z, OWLFacet.MAX_EXCLUSIVE, FACTORY.getOWLLiteral("lit", "no")),
+                        Collections.singleton(FACTORY.getRDFSComment("com")));
+                OWLAxiom sub = FACTORY.getOWLSubClassOfAxiom(c, FACTORY.getOWLDataMaxCardinality(12, r, q));
+                return Stream.of(dec, eq, ran, sub);
             }
 
             @Override
@@ -153,86 +146,221 @@ public class AxiomsByEntityTest {
                 return o.datatypesInSignature().map(x -> x);
             }
 
+            /**
+             * @param e {@link OWLDatatype}
+             * @param o {@link OWLOntology}
+             * @return Stream
+             */
             @Override
             Stream<? extends OWLAxiom> axiomsBy(OWLEntity e, OWLOntology o) {
                 return o.axioms((OWLDatatype) e);
             }
         },
+
         INDIVIDUAL {
             @Override
             Stream<OWLAxiom> createTestAxioms() {
-                throw new UnsupportedOperationException("TODO");
+                OWLClass c = FACTORY.getOWLClass(IRI.create("C"));
+                OWLIndividual i = FACTORY.getOWLNamedIndividual(IRI.create("I"));
+                OWLIndividual j = FACTORY.getOWLNamedIndividual(IRI.create("J"));
+                OWLIndividual k = FACTORY.getOWLNamedIndividual(IRI.create("K"));
+                OWLIndividual l = FACTORY.getOWLNamedIndividual(IRI.create("L"));
+                OWLIndividual r = FACTORY.getOWLNamedIndividual(IRI.create("R"));
+                OWLIndividual anon = FACTORY.getOWLAnonymousIndividual();
+                OWLObjectProperty p1 = FACTORY.getOWLObjectProperty(iri("p1"));
+                OWLDataProperty p2 = FACTORY.getOWLDataProperty(iri("p2"));
+                OWLAnnotationProperty p3 = FACTORY.getOWLAnnotationProperty(iri("p3"));
+                OWLObjectProperty p4 = FACTORY.getOWLObjectProperty(iri("p4"));
+                OWLDataProperty p5 = FACTORY.getOWLDataProperty(iri("p5"));
+                OWLAnnotation a = FACTORY.getOWLAnnotation(p3, FACTORY.getOWLLiteral(true));
+                OWLAnnotation b = FACTORY.getOWLAnnotation(p3, IRI.create("iri"), FACTORY.getRDFSComment("c"));
+                OWLAxiom as = FACTORY.getOWLClassAssertionAxiom(c, i, Arrays.asList(a, b));
+                OWLAxiom sa = FACTORY.getOWLSameIndividualAxiom(j, k, anon);
+                OWLAxiom dif = FACTORY.getOWLSameIndividualAxiom(j, r, FACTORY.getOWLAnonymousIndividual());
+                OWLAxiom opa = FACTORY.getOWLObjectPropertyAssertionAxiom(p1, l, anon);
+                OWLAxiom dpa = FACTORY.getOWLDataPropertyAssertionAxiom(p2, l, 12.2);
+                OWLAxiom nop1 = FACTORY.getOWLNegativeObjectPropertyAssertionAxiom(p4, i, j);
+                OWLAxiom nop2 = FACTORY.getOWLNegativeObjectPropertyAssertionAxiom(p4, anon, r);
+                OWLAxiom nod = FACTORY.getOWLNegativeDataPropertyAssertionAxiom(p5, i, FACTORY.getOWLLiteral(2.3f));
+                return Stream.of(as, sa, dif, opa, dpa, nop2, nop1, nod);
             }
 
             @Override
             Stream<OWLEntity> entities(OWLOntology o) {
-                throw new UnsupportedOperationException("TODO");
+                // todo: anonymous individuals ?
+                return o.individualsInSignature().map(x -> x);
+            }
+
+            /**
+             * Conditions:
+             * <ul>
+             *  <li>Individual type assertions that assert the type of the specified individual</li>
+             *  <li>Same individuals axioms that contain the specified individual</li>
+             *  <li>Different individuals axioms that contain the specified individual</li>
+             *  <li>Object property assertion axioms whose subject is the specified individual</li>
+             *  <li>Data property assertion axioms whose subject is the specified individual</li>
+             *  <li>Negative object property assertion axioms whose subject is the specified individual</li>
+             *  <li>Negative data property assertion axioms whose subject is the specified individual</li>
+             * </ul>
+             * @param e {@link OWLIndividual}
+             * @param o {@link OWLOntology}
+             * @return Stream
+             */
+            @Override
+            Stream<? extends OWLAxiom> axiomsBy(OWLEntity e, OWLOntology o) {
+                return o.axioms((OWLIndividual) e);
             }
 
             @Override
-            Stream<? extends OWLAxiom> axiomsBy(OWLEntity e, OWLOntology o) {
-                throw new UnsupportedOperationException("TODO");
+            void assertAxioms(String message, Collection<OWLAxiom> expected, Collection<OWLAxiom> actual) {
+                Set<String> _actual = actual.stream().map(Entity::toString).collect(Collectors.toSet());
+                Set<String> _expected = expected.stream().map(Entity::toString).collect(Collectors.toSet());
+                Assert.assertEquals(message, _expected, _actual);
             }
         },
+
         OBJECT_PROPERTY {
             @Override
             Stream<OWLAxiom> createTestAxioms() {
-                String ns = getURI() + "#";
-                OWLObjectProperty x = DATA_FACTORY.getOWLObjectProperty(IRI.create(ns + "x"));
-                OWLObjectProperty p = DATA_FACTORY.getOWLObjectProperty(IRI.create(ns + "p"));
-                OWLObjectProperty y = DATA_FACTORY.getOWLObjectProperty(IRI.create(ns + "y"));
-                OWLObjectProperty z = DATA_FACTORY.getOWLObjectProperty(IRI.create(ns + "z"));
-                OWLAxiom a = DATA_FACTORY.getOWLSubObjectPropertyOfAxiom(p, x);
-                OWLAxiom b = DATA_FACTORY.getOWLEquivalentObjectPropertiesAxiom(y, z, DATA_FACTORY.getOWLObjectInverseOf(p), x);
-                OWLAxiom c = DATA_FACTORY.getOWLSubPropertyChainOfAxiom(Arrays.asList(z, p), x);
-                return Stream.of(a, b, c);
+                OWLClass c = FACTORY.getOWLClass(IRI.create("C"));
+                OWLObjectProperty x = FACTORY.getOWLObjectProperty(iri("x"));
+                OWLObjectProperty p = FACTORY.getOWLObjectProperty(iri("p"));
+                OWLObjectProperty y = FACTORY.getOWLObjectProperty(iri("y"));
+                OWLObjectProperty z = FACTORY.getOWLObjectProperty(iri("z"));
+                OWLObjectProperty k = FACTORY.getOWLObjectProperty(iri("k"));
+                OWLObjectProperty l = FACTORY.getOWLObjectProperty(iri("l"));
+                OWLObjectProperty m = FACTORY.getOWLObjectProperty(iri("m"));
+                OWLObjectProperty v = FACTORY.getOWLObjectProperty(iri("v"));
+                OWLObjectProperty h = FACTORY.getOWLObjectProperty(iri("h"));
+                OWLObjectProperty w = FACTORY.getOWLObjectProperty(iri("w"));
+
+                OWLAxiom sub = FACTORY.getOWLSubObjectPropertyOfAxiom(p, x);
+                OWLAxiom eq = FACTORY.getOWLEquivalentObjectPropertiesAxiom(y, z, FACTORY.getOWLObjectInverseOf(p), x);
+                OWLAxiom sub2 = FACTORY.getOWLSubPropertyChainOfAxiom(Arrays.asList(z, p), x);
+                OWLAxiom dis = FACTORY.getOWLDisjointObjectPropertiesAxiom(p, l);
+                OWLAxiom ran = FACTORY.getOWLObjectPropertyRangeAxiom(k, c);
+                OWLAxiom dom = FACTORY.getOWLObjectPropertyDomainAxiom(m, c);
+
+                OWLAxiom fun = FACTORY.getOWLFunctionalObjectPropertyAxiom(y);
+                OWLAxiom ref = FACTORY.getOWLReflexiveObjectPropertyAxiom(z);
+                OWLAxiom ir = FACTORY.getOWLIrreflexiveObjectPropertyAxiom(v);
+                OWLAxiom as = FACTORY.getOWLAsymmetricObjectPropertyAxiom(w);
+                OWLAxiom sy = FACTORY.getOWLSymmetricObjectPropertyAxiom(k);
+                OWLAxiom in = FACTORY.getOWLInverseFunctionalObjectPropertyAxiom(m);
+                OWLAxiom tr = FACTORY.getOWLTransitiveObjectPropertyAxiom(y);
+                OWLAxiom ina = FACTORY.getOWLInverseObjectPropertiesAxiom(h, z);
+                return Stream.of(sub, eq, sub2, dis, ran, dom, fun, ref, ir, as, sy, in, tr, ina);
             }
 
             @Override
             Stream<OWLEntity> entities(OWLOntology o) {
+                // todo: inverse object properties ?
                 return o.objectPropertiesInSignature().map(x -> x);
             }
 
+            /**
+             * Conditions:
+             * <ul>
+             *  <li>Sub-property axioms where the sub property is the specified property</li>
+             *  <li>Equivalent property axioms where the axiom contains the specified property</li>
+             *  <li>Equivalent property axioms that contain the inverse of the specified property</li>
+             *  <li>Disjoint property axioms that contain the specified property</li>
+             *  <li>Domain axioms that specify a domain of the specified property</li>
+             *  <li>Range axioms that specify a range of the specified property</li>
+             *  <li>Any property characteristic axiom (i.e. Functional, Symmetric, Reflexive etc.) whose subject is the specified property</li>
+             *  <li>Inverse properties axioms that contain the specified property</li>
+             * </ul>
+             * @param e {@link OWLObjectPropertyExpression}
+             * @param o {@link OWLOntology}
+             * @return Stream
+             */
             @Override
             Stream<? extends OWLAxiom> axiomsBy(OWLEntity e, OWLOntology o) {
-                return o.axioms((OWLObjectProperty) e);
+                return o.axioms((OWLObjectPropertyExpression) e);
             }
         },
+
         DATATYPE_PROPERTY {
             @Override
             Stream<OWLAxiom> createTestAxioms() {
-                throw new UnsupportedOperationException("TODO");
+                OWLClass c = FACTORY.getOWLClass(iri("C"));
+                OWLDataProperty a = FACTORY.getOWLDataProperty(iri("a"));
+                OWLDataProperty b = FACTORY.getOWLDataProperty(iri("b"));
+                OWLDataProperty x = FACTORY.getOWLDataProperty(iri("x"));
+                OWLDataProperty d = FACTORY.getOWLDataProperty(iri("d"));
+
+                OWLAxiom sub = FACTORY.getOWLSubDataPropertyOfAxiom(a, FACTORY.getOWLTopDataProperty());
+                OWLAxiom eq = FACTORY.getOWLEquivalentDataPropertiesAxiom(a, b, x);
+                OWLAxiom di = FACTORY.getOWLDisjointDataPropertiesAxiom(d, d);
+                OWLAxiom dom = FACTORY.getOWLDataPropertyDomainAxiom(x, c);
+                OWLAxiom ra = FACTORY.getOWLDataPropertyRangeAxiom(x, OWL2Datatype.RDF_XML_LITERAL);
+                OWLAxiom fun = FACTORY.getOWLFunctionalDataPropertyAxiom(b);
+                return Stream.of(sub, eq, di, dom, ra, fun);
             }
 
             @Override
             Stream<OWLEntity> entities(OWLOntology o) {
-                throw new UnsupportedOperationException("TODO");
+                return o.dataPropertiesInSignature().map(x -> x);
             }
 
+            /*
+             * Conditions:
+             * <ul>
+             *  <li>Sub-property axioms where the sub property is the specified property</li>
+             *  <li>Equivalent property axioms where the axiom contains the specified property</li>
+             *  <li>Disjoint property axioms that contain the specified property</li>
+             *  <li>Domain axioms that specify a domain of the specified property</li>
+             *  <li>Range axioms that specify a range of the specified property</li>
+             *  <li>Functional data property characteristic axiom whose subject is the specified property</li>
+             * </ul>
+             * @param e {@link OWLDataProperty}
+             * @param o {@link OWLOntology}
+             * @return Stream
+             */
             @Override
             Stream<? extends OWLAxiom> axiomsBy(OWLEntity e, OWLOntology o) {
-                throw new UnsupportedOperationException("TODO");
+                return o.axioms((OWLDataProperty) e);
             }
         },
+
         ANNOTATION_PROPERTY {
             @Override
             Stream<OWLAxiom> createTestAxioms() {
-                throw new UnsupportedOperationException("TODO");
+                OWLAnnotationProperty a = FACTORY.getOWLAnnotationProperty(iri("a"));
+                OWLAnnotationProperty b = FACTORY.getOWLAnnotationProperty(iri("b"));
+                OWLAnnotationProperty c = FACTORY.getOWLAnnotationProperty(iri("c"));
+                OWLAnnotation an1 = FACTORY.getOWLAnnotation(a, FACTORY.getOWLLiteral("", "n"));
+                OWLAnnotation an2 = FACTORY.getOWLAnnotation(FACTORY.getRDFSIsDefinedBy(), FACTORY.getOWLLiteral(false),
+                        FACTORY.getOWLAnnotation(FACTORY.getRDFSLabel(), iri("iri1")));
+                OWLAxiom sub = FACTORY.getOWLSubAnnotationPropertyOfAxiom(a, FACTORY.getRDFSSeeAlso(), Arrays.asList(an1, an2));
+                OWLAxiom dom = FACTORY.getOWLAnnotationPropertyDomainAxiom(a, b.getIRI());
+                OWLAxiom ran = FACTORY.getOWLAnnotationPropertyRangeAxiom(c, iri("iri2"));
+                return Stream.of(sub, dom, ran);
             }
 
             @Override
             Stream<OWLEntity> entities(OWLOntology o) {
-                throw new UnsupportedOperationException("TODO");
+                return o.annotationPropertiesInSignature().map(x -> x);
             }
 
+            /**
+             * <ul>
+             *  <li>Annotation subPropertyOf axioms where the specified property is the sub property</li>
+             *  <li>Annotation property domain axioms that specify a domain for the specified property</li>
+             *  <li>Annotation property range axioms that specify a range for the specified property</li>
+             * </ul>
+             * @param e {@link OWLAnnotationProperty}
+             * @param o {@link OWLOntology}
+             * @return Stream
+             */
             @Override
             Stream<? extends OWLAxiom> axiomsBy(OWLEntity e, OWLOntology o) {
-                throw new UnsupportedOperationException("TODO");
+                return o.axioms((OWLAnnotationProperty) e);
             }
         };
 
 
-        private static final OWLDataFactory DATA_FACTORY = OntManagers.getDataFactory();
+        private static final OWLDataFactory FACTORY = OntManagers.getDataFactory();
 
         abstract Stream<OWLAxiom> createTestAxioms();
 
@@ -243,6 +371,77 @@ public class AxiomsByEntityTest {
         String getURI() {
             return "http://test.com/" + name();
         }
+
+        IRI iri(String name) {
+            return IRI.create(getURI() + "#" + name);
+        }
+
+        Set<OWLEntity> testEntities(OntologyModel actual, OWLOntology expected) {
+            Set<OWLEntity> actualEntities = entities(actual).collect(Collectors.toSet());
+            Set<OWLEntity> expectedEntities = entities(expected).collect(Collectors.toSet());
+            Assert.assertEquals(String.format("%s - wrong %s list:", toString(actual), this),
+                    expectedEntities, actualEntities);
+            return expectedEntities;
+        }
+
+        void testReferencingAxioms(Set<OWLEntity> entities, OntologyModel actual, OWLOntology expected) {
+            Map<OWLPrimitive, Set<OWLAxiom>> actualReferencingAxioms = getReferencingAxiomsByClass(entities, actual);
+            Map<OWLPrimitive, Set<OWLAxiom>> expectedRefAxioms = getReferencingAxiomsByClass(entities, expected);
+            entities.forEach(e -> assertAxioms(
+                    String.format("%s - wrong referencing axioms list for %s %s:", toString(actual), this, e),
+                    expectedRefAxioms.get(e), actualReferencingAxioms.get(e)));
+        }
+
+        void testAxiomsBy(Set<OWLEntity> entities, OntologyModel actual, OWLOntology expected) {
+            Map<OWLEntity, Set<OWLAxiom>> actualDirectAxioms = getAxioms(entities, actual);
+            Map<OWLEntity, Set<OWLAxiom>> expectedDirectAxioms = getAxioms(entities, expected);
+            entities.forEach(c -> assertAxioms(
+                    String.format("%s - wrong direct axioms list for %s %s:", toString(actual), this, c),
+                    expectedDirectAxioms.get(c), actualDirectAxioms.get(c)));
+        }
+
+        void assertAxioms(String message, Collection<OWLAxiom> expected, Collection<OWLAxiom> actual) {
+            Assert.assertEquals(message, expected, actual);
+        }
+
+        OWLOntology createOntology(OWLOntologyManager manager) {
+            OWLOntology res = create(getURI(), manager);
+            createTestAxioms().forEach(a -> manager.applyChange(new AddAxiom(res, a)));
+            res.axioms().map(String::valueOf).forEach(LOGGER::debug);
+            LOGGER.debug("{} created.", toString(res));
+            return res;
+        }
+
+        private static OWLOntology create(String url, OWLOntologyManager manager) {
+            try {
+                return manager.createOntology(IRI.create(url));
+            } catch (OWLOntologyCreationException e) {
+                throw new AssertionError("Can't create ontology " + url, e);
+            }
+        }
+
+        private static boolean isONT(OWLOntology o) {
+            return o instanceof OntologyModel;
+        }
+
+        private static String toString(OWLOntology o) {
+            IRI iri = o.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
+            return "[" + (isONT(o) ? "ONT(Actual)" : "OWL") + "]: <" + iri + ">";
+        }
+
+        private static String toString(OWLAxiom a) {
+            return a.toString().replaceAll("_:genid\\d+", "_:anon");
+        }
+
+        private static Map<OWLPrimitive, Set<OWLAxiom>> getReferencingAxiomsByClass(Set<? extends OWLPrimitive> entities, OWLOntology o) {
+            return entities.stream().collect(Collectors.toMap(Function.identity(),
+                    c -> o.referencingAxioms(c).collect(Collectors.toSet())));
+        }
+
+        private Map<OWLEntity, Set<OWLAxiom>> getAxioms(Set<OWLEntity> entities, OWLOntology o) {
+            return entities.stream().collect(Collectors.toMap(Function.identity(), c -> axiomsBy(c, o).collect(Collectors.toSet())));
+        }
+
 
     }
 }
