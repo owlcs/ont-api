@@ -14,11 +14,6 @@
 
 package ru.avicomp.ontapi.tests;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,9 +23,13 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * To test following {@link OWLAxiomCollection}#axioms methods:
@@ -162,12 +161,12 @@ public class AxiomsByEntityTest {
         INDIVIDUAL {
             @Override
             Stream<OWLAxiom> createTestAxioms() {
-                OWLClass c = FACTORY.getOWLClass(IRI.create("C"));
-                OWLIndividual i = FACTORY.getOWLNamedIndividual(IRI.create("I"));
-                OWLIndividual j = FACTORY.getOWLNamedIndividual(IRI.create("J"));
-                OWLIndividual k = FACTORY.getOWLNamedIndividual(IRI.create("K"));
-                OWLIndividual l = FACTORY.getOWLNamedIndividual(IRI.create("L"));
-                OWLIndividual r = FACTORY.getOWLNamedIndividual(IRI.create("R"));
+                OWLClass c = FACTORY.getOWLClass(iri("C"));
+                OWLIndividual i = FACTORY.getOWLNamedIndividual(iri("I"));
+                OWLIndividual j = FACTORY.getOWLNamedIndividual(iri("J"));
+                OWLIndividual k = FACTORY.getOWLNamedIndividual(iri("K"));
+                OWLIndividual l = FACTORY.getOWLNamedIndividual(iri("L"));
+                OWLIndividual r = FACTORY.getOWLNamedIndividual(iri("R"));
                 OWLIndividual anon = FACTORY.getOWLAnonymousIndividual();
                 OWLObjectProperty p1 = FACTORY.getOWLObjectProperty(iri("p1"));
                 OWLDataProperty p2 = FACTORY.getOWLDataProperty(iri("p2"));
@@ -175,7 +174,7 @@ public class AxiomsByEntityTest {
                 OWLObjectProperty p4 = FACTORY.getOWLObjectProperty(iri("p4"));
                 OWLDataProperty p5 = FACTORY.getOWLDataProperty(iri("p5"));
                 OWLAnnotation a = FACTORY.getOWLAnnotation(p3, FACTORY.getOWLLiteral(true));
-                OWLAnnotation b = FACTORY.getOWLAnnotation(p3, IRI.create("iri"), FACTORY.getRDFSComment("c"));
+                OWLAnnotation b = FACTORY.getOWLAnnotation(p3, iri("iri"), FACTORY.getRDFSComment("c"));
                 OWLAxiom as = FACTORY.getOWLClassAssertionAxiom(c, i, Arrays.asList(a, b));
                 OWLAxiom sa = FACTORY.getOWLSameIndividualAxiom(j, k, anon);
                 OWLAxiom dif = FACTORY.getOWLSameIndividualAxiom(j, r, FACTORY.getOWLAnonymousIndividual());
@@ -224,7 +223,7 @@ public class AxiomsByEntityTest {
         OBJECT_PROPERTY {
             @Override
             Stream<OWLAxiom> createTestAxioms() {
-                OWLClass c = FACTORY.getOWLClass(IRI.create("C"));
+                OWLClass c = FACTORY.getOWLClass(iri("C"));
                 OWLObjectProperty x = FACTORY.getOWLObjectProperty(iri("x"));
                 OWLObjectProperty p = FACTORY.getOWLObjectProperty(iri("p"));
                 OWLObjectProperty y = FACTORY.getOWLObjectProperty(iri("y"));
