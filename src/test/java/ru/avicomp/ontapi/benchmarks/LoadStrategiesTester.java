@@ -41,8 +41,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -55,10 +54,10 @@ public class LoadStrategiesTester {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadStrategiesTester.class);
 
     private static List<TestData> ontologies = Arrays.asList(
-            /*new TestData(
+            new TestData( // put to test/resources directory or comment out
                     "test-ontology",
                     LoadStrategiesTester.class.getResource("/ontolog.rdf.xml"), OntFormat.RDF_XML, "http://coim/intellect/ontolog",
-                    7464, 1002, true),*/
+                    7464, 1002, true),
             new TestData(
                     "pizza",
                     LoadStrategiesTester.class.getResource("/pizza.ttl"), OntFormat.TURTLE, "http://www.co-ode.org/ontologies/pizza/pizza.owl",
@@ -73,8 +72,10 @@ public class LoadStrategiesTester {
             new TestData(
                     "galen",
                     toURL("https://data.bioontology.org/ontologies/GALEN/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf"), OntFormat.RDF_XML, null, // ~20 MB
-                    96463, 23141, false));
+                    96463, 23141, false)
+    );
 
+    private static Map<String, Map<String, List<Double>>> res = new HashMap<>();
     private final TestData data;
     private final Strategy type;
 
@@ -84,7 +85,7 @@ public class LoadStrategiesTester {
     }
 
     @BeforeClass
-    public static void prepare() throws Exception {
+    public static void download() throws Exception {
         for (TestData d : ontologies) {
             if (d.hasLocation()) continue;
             Path dst = ReadWriteUtils.getOutPath(d.dataName() + "." + d.format().getExt());
@@ -125,7 +126,7 @@ public class LoadStrategiesTester {
         LOGGER.info("Axioms count: {}", count);
         Instant e = Instant.now();
 
-        LOGGER.info("Seconds {}", duration(s, e));
+        finalAction("axioms", type, s, e);
         assertEquals(isONT(o), "Wrong axioms count", axioms, count);
     }
 
@@ -142,13 +143,28 @@ public class LoadStrategiesTester {
         LOGGER.info("Classes count: {}", count);
         Instant e = Instant.now();
 
-        LOGGER.info("Seconds {}", duration(s, e));
+        finalAction("classes", type, s, e);
         assertEquals(isONT(o), "Wrong classes count", classes, count);
     }
 
-    private static float duration(Instant s, Instant e) {
+    @AfterClass
+    public static void info() {
+        res.forEach((name, map) -> {
+            LOGGER.info("Method={}", name);
+            map.forEach((strategy, floats) -> LOGGER.info("[{}][{}]:::{}",
+                    name, strategy, floats.stream().mapToDouble(v -> v).average().orElse(-1)));
+        });
+    }
+
+    private static void finalAction(String method, Strategy str, Instant s, Instant e) {
+        double d = duration(s, e);
+        LOGGER.info("Seconds {}", d);
+        res.computeIfAbsent(method, k -> new HashMap<>()).computeIfAbsent(str.toString(), k -> new ArrayList<>()).add(d);
+    }
+
+    private static double duration(Instant s, Instant e) {
         Duration d = Duration.between(s, e);
-        return d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000f;
+        return d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000.0;
     }
 
     private static String getOntologyName(TestData data, OWLOntology o) {
@@ -172,7 +188,7 @@ public class LoadStrategiesTester {
             return;
         }
         if (expected == actual) return;
-        LOGGER.warn(message + ":\n Expected :" + expected + "\n Actual   :" + actual);
+        LOGGER.error(message + ":\n Expected :" + expected + "\n Actual   :" + actual);
     }
 
     private enum StandardStrategy {
