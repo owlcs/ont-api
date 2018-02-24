@@ -14,9 +14,6 @@
 
 package ru.avicomp.ontapi.jena;
 
-import java.util.Iterator;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
@@ -24,6 +21,10 @@ import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.graph.compose.Union;
 import org.apache.jena.graph.impl.SimpleEventManager;
 import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.util.iterator.ExtendedIterator;
+
+import java.util.Iterator;
+import java.util.stream.Stream;
 
 /**
  * Union Graph.
@@ -85,6 +86,14 @@ public class UnionGraph extends Union {
 
     public void removeGraph(Graph graph) {
         getUnderlying().removeGraph(graph);
+    }
+
+    @Override
+    protected ExtendedIterator<Triple> _graphBaseFind(Triple t) {
+        if (((OntMultiUnion) R).hasSubGraphs()) {
+            return super._graphBaseFind(t);
+        }
+        return L.find(t);
     }
 
     public static class OntMultiUnion extends MultiUnion {
