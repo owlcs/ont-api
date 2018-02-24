@@ -14,7 +14,6 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -72,7 +71,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         Resource type = getAnnotationRootType(getSubject());
         Resource root = findAnnotationObject(this, type).orElseGet(() -> createAnnotationObject(OntStatementImpl.this, type));
         root.addProperty(property, value);
-        return new OntStatementImpl(root, property, value, getModel());
+        return getModel().createOntStatement(false, root, property, value);
     }
 
     @Override
@@ -83,7 +82,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     @Override
     public boolean hasAnnotations() {
         Optional<OntAnnotation> root = asAnnotationResource();
-        return root.isPresent() && root.get().assertions().findFirst().isPresent();
+        return root.isPresent() && root.get().assertions().findAny().isPresent();
     }
 
     @Override
@@ -92,7 +91,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         Optional<OntAnnotation> root = asAnnotationResource();
         if (!root.isPresent()) return;
         if (getModel().contains(root.get(), property, value)) {
-            OntStatement res = new OntStatementImpl(root.get(), property, value, getModel());
+            OntStatement res = getModel().createOntStatement(false, root.get(), property, value);
             if (res.hasAnnotations()) {
                 throw new OntJenaException("Can't delete " + res + ": it has children");
             }
@@ -132,9 +131,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
             return subjects.filter(r -> r.hasProperty(RDF.type, type))
                     .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
                     .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
-                    //.map(r -> r.as(OntAnnotation.class))
-                    .map(FrontsNode::asNode)
-                    .map(r -> base.getModel().getNodeAs(r, OntAnnotation.class))
+                    .map(r -> r.as(OntAnnotation.class))
+                    //.map(FrontsNode::asNode)
+                    //.map(r -> base.getModel().getNodeAs(r, OntAnnotation.class))
                     .findFirst();
         }
     }
@@ -188,7 +187,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         public OntStatement addAnnotation(OntNAP property, RDFNode value) {
             checkAnnotationInput(property, value);
             getModel().add(getSubject(), property, value);
-            return new OntStatementImpl(getSubject(), property, value, getModel());
+            return getModel().createOntStatement(false, getSubject(), property, value);
         }
 
         @Override
@@ -196,7 +195,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
             Stream<OntStatement> res = Iter.asStream(getModel()
                     .listStatements(getSubject(), null, (RDFNode) null))
                     .filter(s -> s.getPredicate().canAs(OntNAP.class))
-                    .map(s -> new OntStatementImpl(s.getSubject(), s.getPredicate().as(OntNAP.class), s.getObject(), getModel()));
+                    .map(s -> getModel().createOntStatement(false, s.getSubject(), s.getPredicate(), s.getObject()));
             return Stream.concat(res, super.annotations());
         }
 

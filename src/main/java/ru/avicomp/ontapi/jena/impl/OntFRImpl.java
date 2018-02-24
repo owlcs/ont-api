@@ -20,7 +20,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntFR;
@@ -67,7 +66,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
 
     @Override
     public OntStatement getRoot() {
-        return new OntStatementImpl.RootImpl(this, predicate(getActualClass()), getValue(), getModel());
+        return getModel().createOntStatement(true, this, predicate(getActualClass()), getValue());
     }
 
     @Override

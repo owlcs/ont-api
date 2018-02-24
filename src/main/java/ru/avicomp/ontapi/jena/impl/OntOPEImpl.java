@@ -14,21 +14,20 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntFilter;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * owl:ObjectProperty (could be also Annotation, InverseFunctional, Transitive, SymmetricProperty, etc)
@@ -92,7 +91,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public OntStatement getRoot() {
-            return new OntStatementImpl.RootImpl(this, OWL.inverseOf, getRequiredDirectProperty(), getModel());
+            return getModel().createOntStatement(true, this, OWL.inverseOf, getRequiredDirectProperty());
         }
 
         protected Resource getRequiredDirectProperty() {

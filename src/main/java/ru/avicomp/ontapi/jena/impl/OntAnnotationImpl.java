@@ -14,18 +14,12 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-
 import ru.avicomp.ontapi.jena.impl.configuration.CommonOntObjectFactory;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntMaker;
@@ -36,6 +30,11 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The implementation of Annotation OntObject.
@@ -74,7 +73,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         return Iter.asStream(listProperties())
                 .filter(st -> !SPEC.contains(st.getPredicate()))
                 .filter(st -> st.getPredicate().canAs(OntNAP.class))
-                .map(st -> new OntStatementImpl(this, st.getPredicate().as(OntNAP.class), st.getObject(), getModel()))
+                .map(st -> getModel().createOntStatement(false, this, st.getPredicate(), st.getObject()))
                 .map(OntStatement.class::cast);
     }
 

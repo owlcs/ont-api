@@ -14,15 +14,6 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -32,7 +23,6 @@ import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
@@ -41,6 +31,15 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.io.OutputStream;
+import java.io.Writer;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base model to work through jena only.
@@ -207,7 +206,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
      *
      * @return Stream of entities types.
      */
-    protected Stream<Class<? extends OntEntity>> entityTypes() {
+    public static Stream<Class<? extends OntEntity>> entityTypes() {
         return Stream.of(OntClass.class, OntDT.class, OntIndividual.Named.class, OntNOP.class, OntNAP.class, OntNDP.class);
     }
 
@@ -294,12 +293,33 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return Iter.asStream(listStatements(s, p, o)).map(st -> toOntStatement(null, st));
     }
 
+    /**
+     * Wraps a jena statement as ont-statement
+     *
+     * @param main {@link OntStatement} the root, can be null
+     * @param st   {@link Statement}
+     * @return {@link OntStatement}
+     */
     protected OntStatement toOntStatement(OntStatement main, Statement st) {
         if (st.equals(main)) return main;
         if (main != null && st.getPredicate().canAs(OntNAP.class)) {
-            return new OntStatementImpl(main.getSubject(), st.getPredicate().as(OntNAP.class), st.getObject(), this);
+            return createOntStatement(false, main.getSubject(), st.getPredicate(), st.getObject());
         }
-        return new OntStatementImpl(st.getSubject(), st.getPredicate(), st.getObject(), this);
+        return createOntStatement(false, st.getSubject(), st.getPredicate(), st.getObject());
+    }
+
+    /**
+     * Creates an ont-statement.
+     * Must be the only point to init the {@link OntStatement} used inside model.
+     *
+     * @param root true if root
+     * @param s    {@link Resource} subject
+     * @param p    {@link Property} predicate
+     * @param o    {@link RDFNode} object
+     * @return {@link OntStatement}
+     */
+    protected OntStatement createOntStatement(boolean root, Resource s, Property p, RDFNode o) {
+        return root ? new OntStatementImpl.RootImpl(s, p, o, this) : new OntStatementImpl(s, p, o, this);
     }
 
     @Override

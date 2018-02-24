@@ -14,12 +14,6 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
@@ -27,13 +21,18 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * base resource.
@@ -68,13 +67,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntStatement getRoot() {
-        try (Stream<OntStatement> types = types().map(t -> new OntStatementImpl.RootImpl(this, RDF.type, t, getModel()))) {
+        try (Stream<OntStatement> types = types().map(t -> getModel().createOntStatement(true, this, RDF.type, t))) {
             return types.findFirst().orElse(null);
         }
     }
 
     protected OntStatement getRoot(Property property, Resource type) {
-        return hasProperty(property, type) ? new OntStatementImpl.RootImpl(this, property, type, getModel()) : null;
+        return hasProperty(property, type) ? getModel().createOntStatement(true, this, property, type) : null;
     }
 
     @Override
@@ -85,7 +84,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public boolean isLocal() {
-        OntStatement declaration = getRoot(); // built-in could have null root-declaration
+        OntStatement declaration = getRoot(); // built-ins have null root-declaration
         return declaration != null && declaration.isLocal();
     }
 
@@ -182,7 +181,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @param predicate to search for rdf:Lists
      * @param view      Class, the type of returned nodes.
-     * @param <O> a class-type of rdf-node
+     * @param <O>       a class-type of rdf-node
      * @return Stream of {@link RDFNode} with specified type.
      */
     public <O extends RDFNode> Stream<O> rdfListMembers(Property predicate, Class<O> view) {
