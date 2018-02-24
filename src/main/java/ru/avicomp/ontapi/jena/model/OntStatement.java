@@ -149,7 +149,7 @@ public interface OntStatement extends Statement {
      * @return true if it is annotated.
      */
     default boolean hasAnnotations() {
-        return annotations().count() != 0;
+        return annotations().findFirst().isPresent();
     }
 
     /**
