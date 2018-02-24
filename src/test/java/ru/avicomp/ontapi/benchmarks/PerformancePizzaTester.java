@@ -21,6 +21,7 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -39,10 +40,12 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Not a test: only for manual running!
  * Test performance on an example of the <a href='file:/test/resources/pizza.ttl'>pizza</a> ontology.
  * <p>
  * Created by @szuev on 16.12.2016.
  */
+@Ignore
 @SuppressWarnings("ConstantConditions")
 public class PerformancePizzaTester {
     private static final Logger LOGGER = Logger.getLogger(PerformancePizzaTester.class);

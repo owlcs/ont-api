@@ -14,10 +14,7 @@
 
 package ru.avicomp.ontapi.benchmarks;
 
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -49,36 +46,34 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
+ * Not a test: only for manual running!
  * Created by @szuev on 23.02.2018.
  */
+@Ignore
 @RunWith(Parameterized.class)
 public class LoadStrategiesTester {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadStrategiesTester.class);
 
     private static List<TestData> ontologies = Arrays.asList(
+            /*new TestData(
+                    "test-ontology",
+                    LoadStrategiesTester.class.getResource("/ontolog.rdf.xml"), OntFormat.RDF_XML, "http://coim/intellect/ontolog",
+                    7464, 1002, true),*/
             new TestData(
                     "pizza",
-                    LoadStrategiesTester.class.getResource("/pizza.ttl"),
-                    OntFormat.TURTLE, "http://www.co-ode.org/ontologies/pizza/pizza.owl",
+                    LoadStrategiesTester.class.getResource("/pizza.ttl"), OntFormat.TURTLE, "http://www.co-ode.org/ontologies/pizza/pizza.owl",
                     945, 100, true),
-            new TestData("teleost",
-                    toURL("https://data.bioontology.org/ontologies/TTO/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf"), OntFormat.RDF_XML, null, // ~50 MB
-                    //toURL("https://data.bioontology.org/ontologies/TTO/submissions/44/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb"), OntFormat.RDF_XML, "http://purl.obolibrary.org/obo/tto.owl", // ~70 MB
-                    // to long for ONT-API, disabled. todo: investigate
-                    -1,
-                    //375007,
-                    38705, false
-            ),
-            new TestData("psychology", // ~5 MB
-                    toURL("https://data.bioontology.org/ontologies/APAONTO/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf"),
-                    OntFormat.RDF_XML, null, 38872, 6037, false
-            ),
             new TestData(
-                    "galen", // ~20 MB
-                    toURL("https://data.bioontology.org/ontologies/GALEN/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf"),
-                    OntFormat.RDF_XML, null, 96463, 23141,
-                    false // exclude experimental strategies for Galen ontology - they are dramatically slow (~10-20 min)
-            ));
+                    "teleost",
+                    toURL("https://data.bioontology.org/ontologies/TTO/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf"), OntFormat.RDF_XML, null, // ~50 MB
+                    375004, 38705, false),
+            new TestData("psychology",
+                    toURL("https://data.bioontology.org/ontologies/APAONTO/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf"), OntFormat.RDF_XML, null, // ~5 MB
+                    38872, 6037, false),
+            new TestData(
+                    "galen",
+                    toURL("https://data.bioontology.org/ontologies/GALEN/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf"), OntFormat.RDF_XML, null, // ~20 MB
+                    96463, 23141, false));
 
     private final TestData data;
     private final Strategy type;
@@ -89,7 +84,7 @@ public class LoadStrategiesTester {
     }
 
     @BeforeClass
-    public static void prepare() throws Exception { // force init, just in case:
+    public static void prepare() throws Exception {
         for (TestData d : ontologies) {
             if (d.hasLocation()) continue;
             Path dst = ReadWriteUtils.getOutPath(d.dataName() + "." + d.format().getExt());
@@ -129,40 +124,55 @@ public class LoadStrategiesTester {
         int count = o.getAxiomCount();
         LOGGER.info("Axioms count: {}", count);
         Instant e = Instant.now();
-        Duration d = Duration.between(s, e);
-        float sec = d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000f;
-        LOGGER.info("Seconds {}", sec);
-        Assert.assertEquals(count, axioms);
+
+        LOGGER.info("Seconds {}", duration(s, e));
+        assertEquals(isONT(o), "Wrong axioms count", axioms, count);
     }
 
     @Test
     public void testLoadClasses() {
+        int classes = data.classesCount();
+        Assume.assumeTrue("Skipped. Data: " + data, classes > 0);
         OWLOntologyManager m = type.create();
         Instant s = Instant.now();
         OWLOntology o = type.load(m, data.location());
-        // validate data:
         String name = getOntologyName(data, o);
-        // axioms: load(in case of ONT-API) or just get(in case of OWL-API)
         LOGGER.info("Counting classes for <{}>", name);
-
-        long count = o instanceof OntologyModel ? ((OntologyModel) o).asGraphModel().listClasses().count() : o.classesInSignature().count();
+        long count = isONT(o) ? ((OntologyModel) o).asGraphModel().listClasses().count() : o.classesInSignature().count();
         LOGGER.info("Classes count: {}", count);
         Instant e = Instant.now();
+
+        LOGGER.info("Seconds {}", duration(s, e));
+        assertEquals(isONT(o), "Wrong classes count", classes, count);
+    }
+
+    private static float duration(Instant s, Instant e) {
         Duration d = Duration.between(s, e);
-        float sec = d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000f;
-        LOGGER.info("Seconds {}", sec);
-        Assert.assertEquals(count, data.classesCount());
+        return d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000f;
     }
 
     private static String getOntologyName(TestData data, OWLOntology o) {
         if (!data.isAnon()) {
             IRI iri = o.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
-            Assert.assertEquals(iri.toString(), data.ontologyIRI());
+            Assert.assertEquals(data.ontologyIRI(), iri.toString());
             return iri.toString();
         } else {
             Assert.assertTrue(o.isAnonymous());
             return data.dataName();
         }
+    }
+
+    private static boolean isONT(OWLOntology o) {
+        return o instanceof OntologyModel;
+    }
+
+    private static void assertEquals(boolean doThrow, String message, long expected, long actual) {
+        if (doThrow) {
+            Assert.assertEquals(message, expected, actual);
+            return;
+        }
+        if (expected == actual) return;
+        LOGGER.warn(message + ":\n Expected :" + expected + "\n Actual   :" + actual);
     }
 
     private enum StandardStrategy {
@@ -333,7 +343,7 @@ public class LoadStrategiesTester {
 
         @Override
         public String toString() {
-            return "{" + name + "}";
+            return "{" + name.toUpperCase() + "}";
         }
 
         boolean withExperimental() {
