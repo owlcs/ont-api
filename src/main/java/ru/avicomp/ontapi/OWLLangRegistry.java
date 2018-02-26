@@ -43,7 +43,7 @@ public class OWLLangRegistry {
      * @return {@link OWLLang lang-details}, the previous value or null.
      */
     public static OWLLang register(OWLLang lang) {
-        return register(lang.getName(), lang);
+        return register(lang.getType().getName(), lang);
     }
 
     /**
@@ -471,10 +471,6 @@ public class OWLLangRegistry {
 
         public Class<? extends OWLDocumentFormat> getType() {
             return format;
-        }
-
-        public String getName() {
-            return toClassName(format);
         }
 
         public OWLStorerFactory getStorerFactory() {
