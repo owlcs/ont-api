@@ -128,9 +128,10 @@ public class ReadHelper {
     }
 
     /**
-     * NOTE: THE VIOLATION OF THE FUNDAMENTAL JAVA CONTRACT (OWL-API 5.0.5):
+     * NOTE: THE VIOLATION OF THE FUNDAMENTAL JAVA CONTRACT (OWL-API-impl 5.1.4):
      * The different implementations of {@link OWLLiteral} have different mechanism to calculate hash.
-     * For example {@link uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplInteger}.hashCode != {@link uk.ac.manchester.cs.owl.owlapi.OWLLiteralImpl}.hashCode
+     * For example <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLLiteralImplInteger.java'>uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplInteger</a>.hashCode
+     * != <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLLiteralImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLLiteralImpl</a>.hashCode
      * So even if {@link OWLLiteral}s equal there is no guarantee that {@link Set}s of {@link OWLLiteral}s equal too.
      *
      * @param literal {@link Literal}

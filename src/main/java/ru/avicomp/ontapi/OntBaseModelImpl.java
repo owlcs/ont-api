@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -47,7 +47,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl;
 
 /**
  * 'Immutable' ontology only with methods to read information in the form of OWL-Objects from graph-model.
- * It's our analogy of {@link uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl}
+ * It's our analogy of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl</a>
  * <p>
  * Created by @szuev on 03.12.2016.
  */
@@ -98,7 +98,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      *
      * @param manager {@link OntologyManager}, nullable.
      * @throws OntApiException in case wrong manager specified.
-     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)</a>
      */
     @Override
     public void setOWLOntologyManager(OWLOntologyManager manager) {
@@ -632,7 +632,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
 
     /**
      * Generic search method: results all axioms which refer object, are instances of type.
-     * WARNING: it differs from original OWL-API method (see {@link uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl#axioms(Class, Class, OWLObject, Navigation)}).
+     * WARNING: it differs from original OWL-API method.
      * For internal use only.
      *
      * @param type     {@link Class Class&lt;OWLAxiom&gt;}, not null, type of axioms.
@@ -640,8 +640,8 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * @param object   {@link OWLObject} to find occurrences.
      * @param position {@link Navigation} used in conjunction with {@code object} for some several kinds of axioms.
      * @return Stream of {@link OWLAxiom}s
-     * @see uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl#axioms(Class, Class, OWLObject, Navigation)
-     * @see uk.ac.manchester.cs.owl.owlapi.Internals#get(Class, Class, Navigation)
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java#L544'>uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl#axioms(Class, Class, OWLObject, Navigation)</a>
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/Internals.java#L495'>uk.ac.manchester.cs.owl.owlapi.Internals#get(Class, Class, Navigation)</a>
      */
     @SuppressWarnings("unchecked")
     @Override

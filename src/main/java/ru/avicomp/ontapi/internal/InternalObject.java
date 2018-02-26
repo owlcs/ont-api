@@ -115,7 +115,7 @@ public class InternalObject<O extends OWLObject> {
     /**
      * finds {@link InternalObject} by {@link OWLObject}
      * Note: it does not take into account the hashCode.
-     * There is the violation of contract inside OWLLiteral (checked for owl-api 5.0.4) and any other object (axiom, annotation) containing literals.
+     * There is the violation of contract inside OWLLiteral (checked for owl-api 5.1.4) and any other object (axiom, annotation) containing literals.
      * See description of the method {@link ReadHelper#getLiteral(Literal, OWLDataFactory)}
      *
      * @param set the collection of {@link InternalObject}

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -51,7 +51,7 @@ import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
 
 /**
  * The ontology building and loading factory, the 'core' - the main and point to create and load ontologies.
- * See also base interface {@link OWLOntologyFactory} and its single implementation {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl}.
+ * See also base interface {@link OWLOntologyFactory} and its single implementation <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>.
  * <p>
  * Created by szuev on 24.10.2016.
  */
@@ -165,14 +165,14 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     /**
      * A interface to load model from any source.
      * Currently there are two main implementations:
-     * - the decorator of pure OWL-API factory-loader, i.e. {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl}
+     * - the decorator of pure OWL-API factory-loader, i.e. <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>
      * - the jena-based factory-loader.
      * <p>
      * Note: there are only three input parameters passed to the single method ({@link OWLOntologyDocumentSource},
      * {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}), while
      * {@link OWLOntologyFactory#loadOWLOntology} requires four.
      * The single instance of {@link OntologyManager} is an {@link OWLOntologyManager} as well as {@link OWLOntologyCreationHandler}.
-     * And this is also true for {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl}.
+     * And this is also true for <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>.
      * Therefore, the {@link OWLOntologyCreationHandler} can be considered just as part of internal (OWL-API) implementation
      * and so there is no need in this parameter in our case.
      *
@@ -253,7 +253,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     }
 
     /**
-     * To load {@link OntologyModel} through pure OWL-API mechanisms (using {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl}).
+     * To load {@link OntologyModel} through pure OWL-API mechanisms (using <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>).
      * Some formats (such as {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} or
      * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by jena, so it is the only way.
      */

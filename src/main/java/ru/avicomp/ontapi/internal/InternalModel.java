@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -35,14 +35,14 @@ import ru.avicomp.ontapi.jena.model.*;
 
 /**
  * Buffer RDF-OWL model.
- * It's our analogy of {@link uk.ac.manchester.cs.owl.owlapi.Internals}.
+ * It's our analogy of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/Internals.java'>uk.ac.manchester.cs.owl.owlapi.Internals</a>.
  * This is a non-serializable(!) {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities directly.
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and it is used by the facade model
  * ({@link ru.avicomp.ontapi.OntologyModel}) while reading and writing the structural representation of ontology.
  * <p>
  * TODO: Should it return {@link InternalObject}s, not just naked {@link OWLObject}s?
  * It seems it would be very convenient and could make this class useful not only as part of inner implementation.
- * TODO: to support not-in-memory graphs need to add disabling cache option somewhere to configuration and fix read/add/remove operations correspondingly.
+ * TODO: to support not-in-memory graphs+structural-view need to add disabling cache option somewhere to configuration and fix read/add/remove operations correspondingly.
  * <p>
  * Created by @szuev on 26.10.2016.
  */

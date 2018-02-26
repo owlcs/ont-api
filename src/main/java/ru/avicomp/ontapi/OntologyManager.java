@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -117,7 +117,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * Contrary to the original description this method works with version IRI also if it fails with ontology IRI.
      *
      * @param iri {@link IRI} ontology IRI or version IRI as can be seen from the OWL-API implementation
-     *            (see {@link uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(IRI)})
+     *            (see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(IRI)</a>)
      * @return {@link OntologyModel} or null
      */
     @Override
@@ -129,7 +129,7 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param id {@link OWLOntologyID} ID
      * @return {@link OntologyModel} or {@code null}
-     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(OWLOntologyID)
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(OWLOntologyID)</a>
      * @see #contains(OWLOntologyID)
      */
     @Override
@@ -140,7 +140,7 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param iri {@link IRI} the ontology iri or version iri
      * @return true if ontology exists
-     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(IRI)
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(IRI)</a>
      */
     @Override
     boolean contains(@Nonnull IRI iri);
@@ -152,7 +152,7 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param id {@link OWLOntologyID} the id
      * @return true if {@code id} is not anonymous and there is an ontology with the same iri as in the specified {@code id}
-     * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(OWLOntologyID)
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(OWLOntologyID)</a>
      */
     @Override
     boolean contains(@Nonnull OWLOntologyID id);
