@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,15 +10,9 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 package org.semanticweb.owlapi.api.test.baseclasses;
-
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.net.URISyntaxException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -27,7 +21,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.Timeout;
 import org.semanticweb.owlapi.api.test.anonymous.AnonymousIndividualsNormaliser;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFJsonLDDocumentFormat;
@@ -39,10 +32,15 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
+import ru.avicomp.owlapi.OWLManager;
 import uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock;
+
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -58,17 +56,12 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 @SuppressWarnings({"javadoc", "null"})
 public abstract class TestBase {
 
-    // specify VM option '-Ddebug.use.owl=true' to run "pure" OWL-tests:
-    public static final boolean DEBUG_USE_OWL = Boolean.parseBoolean(System.getProperty("debug.use.owl", Boolean.FALSE.toString()));
-
     protected static final Logger LOGGER = LoggerFactory.getLogger(TestBase.class);
     protected static final String uriBase = "http://www.semanticweb.org/owlapi/test";
     protected static OWLDataFactory df;
     protected static OWLOntologyManager masterManager;
     protected static final File RESOURCES = resources();
-    protected final OWLOntologyBuilder builder = DEBUG_USE_OWL ?
-            (OWLOntologyBuilder) OWLOntologyImpl::new :
-            new ru.avicomp.ontapi.OntFactoryImpl.ONTBuilderImpl();
+    protected final OWLOntologyBuilder builder = OWLManager.createOntologyBuilder();
     @Nonnull
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -90,7 +83,7 @@ public abstract class TestBase {
     }
 
     public static OWLOntologyManager createOWLManager() {
-        return DEBUG_USE_OWL ? OWLManager.createOWLOntologyManager() : ru.avicomp.ontapi.OntManagers.createONT();
+        return OWLManager.createOWLOntologyManager();
     }
 
     @BeforeClass
@@ -100,9 +93,7 @@ public abstract class TestBase {
     }
 
     protected static OWLOntologyManager setupManager() {
-        OWLOntologyManager manager = DEBUG_USE_OWL ?
-                new OWLOntologyManagerImpl(df, new NoOpReadWriteLock()) :
-                new ru.avicomp.ontapi.OntologyManagerImpl(df, new NoOpReadWriteLock());
+        OWLOntologyManager manager = OWLManager.newManager(df, new NoOpReadWriteLock());
         manager.getOntologyFactories().set(masterManager.getOntologyFactories());
         manager.getOntologyParsers().set(masterManager.getOntologyParsers());
         manager.getOntologyStorers().set(masterManager.getOntologyStorers());
@@ -395,7 +386,7 @@ public abstract class TestBase {
     @SuppressWarnings("WeakerAccess")
     protected OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format, boolean recalculateAxiomsCache)
             throws OWLOntologyStorageException, OWLOntologyCreationException {
-        if (!DEBUG_USE_OWL && recalculateAxiomsCache) {
+        if (!OWLManager.DEBUG_USE_OWL && recalculateAxiomsCache) {
             ((ru.avicomp.ontapi.OntologyModel) ont).clearCache();
         }
         if (LOGGER.isDebugEnabled()) {

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,24 +10,25 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 package org.semanticweb.owlapi.profiles;
-
-import java.lang.Class;
-import java.util.*;
-import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.profiles.violations.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
+import ru.avicomp.owlapi.OWLManager;
+
+import java.lang.Class;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Boolean;
@@ -57,7 +58,7 @@ public class OWLProfileTestCase extends TestBase {
     @Override
     public void setupManagersClean() {
         super.setupManagersClean();
-        if (!DEBUG_USE_OWL) {
+        if (!OWLManager.DEBUG_USE_OWL) {
             // allow illegal punnings
             ru.avicomp.ontapi.config.OntLoaderConfiguration conf = ((ru.avicomp.ontapi.OntologyManager) m).getOntologyLoaderConfiguration()
                     .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX);
@@ -291,7 +292,7 @@ public class OWLProfileTestCase extends TestBase {
     public void shouldCreateViolationForOWLEquivalentClassesAxiomInOWL2DLProfile() {
         declare(o, OP);
         o.add(EquivalentClasses());
-        if (DEBUG_USE_OWL) {
+        if (OWLManager.DEBUG_USE_OWL) {
             runAssert(o, Profiles.OWL2_DL, 1, Stream.of(InsufficientOperands.class).toArray(Class[]::new));
         } else {
             // ONT-API: no possibility to add axiom which has no any triples.
@@ -304,7 +305,7 @@ public class OWLProfileTestCase extends TestBase {
     public void shouldCreateViolationForOWLDisjointClassesAxiomInOWL2DLProfile() {
         declare(o, OP);
         o.add(DisjointClasses());
-        if (DEBUG_USE_OWL) {
+        if (OWLManager.DEBUG_USE_OWL) {
             int expected = 1;
             Class[] expectedViolations = {InsufficientOperands.class};
             runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
@@ -333,7 +334,7 @@ public class OWLProfileTestCase extends TestBase {
     @Tests(method = "public Object visit(OWLEquivalentObjectPropertiesAxiom node)")
     public void shouldCreateViolationForOWLEquivalentObjectPropertiesAxiomInOWL2DLProfile() {
         o.add(EquivalentObjectProperties());
-        if (DEBUG_USE_OWL) {
+        if (OWLManager.DEBUG_USE_OWL) {
             int expected = 1;
             Class[] expectedViolations = {InsufficientPropertyExpressions.class};
             runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
@@ -347,7 +348,7 @@ public class OWLProfileTestCase extends TestBase {
     @Tests(method = "public Object visit(OWLDisjointDataPropertiesAxiom node)")
     public void shouldCreateViolationForOWLDisjointDataPropertiesAxiomInOWL2DLProfile() {
         o.add(DisjointDataProperties());
-        if (DEBUG_USE_OWL) {
+        if (OWLManager.DEBUG_USE_OWL) {
             int expected = 1;
             Class[] expectedViolations = {InsufficientPropertyExpressions.class};
             runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
@@ -363,7 +364,7 @@ public class OWLProfileTestCase extends TestBase {
     @Tests(method = "public Object visit(OWLEquivalentDataPropertiesAxiom node)")
     public void shouldCreateViolationForOWLEquivalentDataPropertiesAxiomInOWL2DLProfile() {
         o.add(EquivalentDataProperties());
-        if (DEBUG_USE_OWL) {
+        if (OWLManager.DEBUG_USE_OWL) {
             runAssert(o, Profiles.OWL2_DL, 1, Stream.of(InsufficientPropertyExpressions.class).toArray(Class[]::new));
         } else {
             // in ONT-API there is no possibility to add or read empty owl:equivalentProperty axiom
@@ -385,7 +386,7 @@ public class OWLProfileTestCase extends TestBase {
     @Tests(method = "public Object visit(OWLSameIndividualAxiom node)")
     public void shouldCreateViolationForOWLSameIndividualAxiomInOWL2DLProfile() {
         o.add(SameIndividual());
-        if (DEBUG_USE_OWL) {
+        if (OWLManager.DEBUG_USE_OWL) {
             int expected = 1;
             Class[] expectedViolations = {InsufficientIndividuals.class};
             runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);
@@ -399,7 +400,7 @@ public class OWLProfileTestCase extends TestBase {
     @Tests(method = "public Object visit(OWLDifferentIndividualsAxiom node)")
     public void shouldCreateViolationForOWLDifferentIndividualsAxiomInOWL2DLProfile() {
         o.add(DifferentIndividuals());
-        if (DEBUG_USE_OWL) {
+        if (OWLManager.DEBUG_USE_OWL) {
             int expected = 1;
             Class[] expectedViolations = {InsufficientIndividuals.class};
             runAssert(o, Profiles.OWL2_DL, expected, expectedViolations);

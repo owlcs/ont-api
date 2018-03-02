@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,15 +10,12 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 
 package org.semanticweb.owlapi.api.test.fileroundtrip;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
@@ -32,8 +29,12 @@ import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasoner;
 import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.vocab.OWLFacet;
+import ru.avicomp.owlapi.OWLManager;
 
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
@@ -64,7 +65,7 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         LOGGER.debug("COUNT: " + actual.size());
         LOGGER.debug("Expected:");
         expected.forEach(a -> LOGGER.info(String.valueOf(a)));
-        if (DEBUG_USE_OWL) {
+        if (OWLManager.DEBUG_USE_OWL) {
             Assert.assertEquals("Incorrect set of axioms", expected, actual);
         } else { // all explicit declarations are included!
             Assert.assertTrue("Some axioms are absent", actual.containsAll(expected));
@@ -349,7 +350,7 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         OWLOntology ontology = ontologyFromClasspathFile("SubClassOfUntypedSomeValuesFrom.rdf");
         OWLOntologyManager m = ontology.getOWLOntologyManager();
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
-        if (!DEBUG_USE_OWL) {
+        if (!OWLManager.DEBUG_USE_OWL) {
             ((ru.avicomp.ontapi.OntologyModel) ontology).asGraphModel()
                     .createResource("http://www.semanticweb.org/owlapi/test#P")
                     .addProperty(org.apache.jena.vocabulary.RDF.type, ru.avicomp.ontapi.jena.vocabulary.OWL.ObjectProperty);

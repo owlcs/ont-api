@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,11 +10,9 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 package org.semanticweb.owlapi.api.test.syntax;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,6 +23,10 @@ import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import ru.avicomp.owlapi.OWLManager;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class;
@@ -208,7 +210,7 @@ public class TurtleTestCase extends TestBase {
         OWLOntology ontology = loadOntologyFromString(input);
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
         OWLIndividual i = NamedIndividual(IRI.create("http://taxonomy.wolterskluwer.de/practicearea/10112", ""));
-        OWLProperty p = DEBUG_USE_OWL ?
+        OWLProperty p = OWLManager.DEBUG_USE_OWL ?
                 AnnotationProperty(IRI.create("http://www.w3.org/2004/02/skos/core#", "broader")) :
                 ObjectProperty(IRI.create("http://www.w3.org/2004/02/skos/core#", "broader"));
         OWLClass c = Class(IRI.create("http://www.w3.org/2004/02/skos/core#", "Concept"));
@@ -320,8 +322,7 @@ public class TurtleTestCase extends TestBase {
     }
 
     @Test
-    public void shouldFindExpectedAxiomsForBlankNodes() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    public void shouldFindExpectedAxiomsForBlankNodes() throws OWLOntologyCreationException {
         OWLObjectProperty r = ObjectProperty(IRI.create(
                 "http://www.derivo.de/ontologies/examples/anonymous-individuals#", "r"));
         String input = "@prefix : <http://www.derivo.de/ontologies/examples/anonymous-individuals#> .\n"
