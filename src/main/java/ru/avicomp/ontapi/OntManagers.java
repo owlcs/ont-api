@@ -15,7 +15,7 @@
 
 package ru.avicomp.ontapi;
 
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.reflect.Reflection;
 import org.semanticweb.owlapi.io.OWLParserFactory;
@@ -330,19 +330,19 @@ public class OntManagers implements OWLOntologyManagerFactory {
                         }
                         throw new OntApiException("[" + name + "] unsupported method call: " + method);
                     });
-            ListMultimap<Class<?>, Object> nonConcurrentParams = ArrayListMultimap.create();
+            LinkedListMultimap<Class<?>, Object> nonConcurrentParams = LinkedListMultimap.create();
             nonConcurrentParams.put(owlOntologyImplementationFactoryType, owlOntologyImplementationFactoryInstance);
             OWLOntologyBuilder res = (OWLOntologyBuilder) newInstance("uk.ac.manchester.cs.owl.owlapi.concurrent.NonConcurrentOWLOntologyBuilder",
                     nonConcurrentParams);
             if (!concurrency) return res;
-            ListMultimap<Class<?>, Object> concurrentParams = ArrayListMultimap.create();
+            LinkedListMultimap<Class<?>, Object> concurrentParams = LinkedListMultimap.create();
             concurrentParams.put(OWLOntologyBuilder.class, res);
             concurrentParams.put(ReadWriteLock.class, lock());
             return (OWLOntologyBuilder) newInstance("uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyBuilder", concurrentParams);
         }
 
         public OWLOntology createOWLOntologyImpl(OWLOntologyManager manager, OWLOntologyID id) {
-            ListMultimap<Class<?>, Object> params = ArrayListMultimap.create();
+            LinkedListMultimap<Class<?>, Object> params = LinkedListMultimap.create();
             params.put(OWLOntologyManager.class, manager);
             params.put(OWLOntologyID.class, id);
             return (OWLOntology) newInstance("uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl", params);
@@ -387,13 +387,13 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         public OWLDataFactory createDataFactory(boolean withCompression) {
-            ListMultimap<Class<?>, Object> params = ArrayListMultimap.create();
+            LinkedListMultimap<Class<?>, Object> params = LinkedListMultimap.create();
             params.put(Boolean.TYPE, withCompression);
             return (OWLDataFactory) newInstance("uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl", params);
         }
 
         public OWLOntologyFactory createLoadFactory(OWLOntologyBuilder builder) {
-            ListMultimap<Class<?>, Object> params = ArrayListMultimap.create();
+            LinkedListMultimap<Class<?>, Object> params = LinkedListMultimap.create();
             params.put(OWLOntologyBuilder.class, builder);
             return (OWLOntologyFactory) newInstance("uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl", params);
         }
@@ -407,7 +407,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
          * @throws OntApiException       if no class found
          * @throws IllegalStateException if class does not meet expectations
          */
-        private static Object newInstance(String classPath, ListMultimap<Class<?>, Object> params) {
+        private static Object newInstance(String classPath, LinkedListMultimap<Class<?>, Object> params) {
             Class<?> clazz = findClass(classPath);
             String name = MessageFormat.format("{0}({1})", clazz.getName(),
                     params.keys().stream().map(Class::getSimpleName).collect(Collectors.joining(", ")));
