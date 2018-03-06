@@ -27,7 +27,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An Ont Statement. This is not a {@link org.apache.jena.rdf.model.Resource}.
+ * An ONT Statement.
+ *
+ * This is not a {@link org.apache.jena.rdf.model.Resource}.
  * OWL2 Annotations could be attached to this statement recursively.
  * Created by @szuev on 13.11.2016.
  * @see OntAnnotation
@@ -40,6 +42,7 @@ public interface OntStatement extends Statement {
      *
      * @return {@link OntGraphModel}
      */
+    @Override
     OntGraphModel getModel();
 
     /**
@@ -53,14 +56,14 @@ public interface OntStatement extends Statement {
     OntStatement addAnnotation(OntNAP property, RDFNode value);
 
     /**
-     * Gets attached annotations, empty stream if it is assertion annotation
+     * Gets attached annotations, empty stream if it is assertion annotation.
      *
      * @return Stream of annotations, could be empty.
      */
     Stream<OntStatement> annotations();
 
     /**
-     * Deletes the child annotation if present
+     * Deletes the child annotation if present.
      *
      * @param property annotation property
      * @param value    uri-resource, literal or anonymous individual
@@ -77,7 +80,7 @@ public interface OntStatement extends Statement {
     Optional<OntAnnotation> asAnnotationResource();
 
     /**
-     * Answers iff this statement is root
+     * Answers iff this statement is root.
      *
      * @return true if root.
      * @see OntObject#getRoot()
@@ -150,7 +153,9 @@ public interface OntStatement extends Statement {
      * @return true if it is annotated.
      */
     default boolean hasAnnotations() {
-        return annotations().findAny().isPresent();
+        try (Stream<OntStatement> annotations = annotations()) {
+            return annotations.findAny().isPresent();
+        }
     }
 
     /**

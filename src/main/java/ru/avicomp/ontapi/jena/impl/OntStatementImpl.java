@@ -83,7 +83,12 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     @Override
     public boolean hasAnnotations() {
         Optional<OntAnnotation> root = asAnnotationResource();
-        return root.isPresent() && root.get().assertions().findAny().isPresent();
+        if (root.isPresent()) {
+            try (Stream<OntStatement> assertions = root.get().assertions()) {
+                return assertions.findAny().isPresent();
+            }
+        }
+        return false;
     }
 
     @Override
@@ -191,10 +196,13 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
             return getModel().createOntStatement(false, getSubject(), property, value);
         }
 
+        private Stream<Statement> properties() {
+            return Iter.asStream(getSubject().listProperties());
+        }
+
         @Override
         public Stream<OntStatement> annotations() {
-            Stream<OntStatement> res = Iter.asStream(getModel()
-                    .listStatements(getSubject(), null, (RDFNode) null))
+            Stream<OntStatement> res = properties()
                     .filter(s -> s.getPredicate().canAs(OntNAP.class))
                     .map(s -> getModel().createOntStatement(false, s.getSubject(), s.getPredicate(), s.getObject()));
             return Stream.concat(res, super.annotations());
@@ -202,7 +210,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
         @Override
         public boolean hasAnnotations() {
-            try (Stream<Statement> statements = Iter.asStream(getSubject().listProperties())) {
+            try (Stream<Statement> statements = properties()) {
                 return statements.map(Statement::getPredicate).anyMatch(p -> p.canAs(OntNAP.class)) || super.hasAnnotations();
             }
         }

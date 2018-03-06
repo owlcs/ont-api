@@ -59,9 +59,9 @@ public interface OntObject extends Resource {
     OntStatement getRoot();
 
     /**
+     * todo: unclear method name, better to rename
      * Returns the content of object: all characteristic statements,
      * i.e. all those statements which determine this object.
-     * todo: rename?
      * For non-composite objects the result might contain only the root statement.
      * For composite (usually anonymous, e.g. disjoint section, class expression, etc) objects
      * the result would contain all statements in the graph but without statements related to the components.
