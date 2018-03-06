@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,32 +10,29 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.jena.graph.FrontsTriple;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
-
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Helper to translate rdf-graph to the owl-objects form.
@@ -148,12 +145,12 @@ public class ReadHelper {
         OntDT dt = literal.getModel().getResource(literal.getDatatypeURI()).as(OntDT.class);
         InternalObject<OWLDatatype> owl;
         if (dt.isBuiltIn()) {
-            owl = InternalObject.create(df.getOWLDatatype(IRI.create(dt.getURI())), Stream.empty());
+            owl = InternalObject.create(df.getOWLDatatype(IRI.create(dt.getURI())));
         } else {
             owl = (InternalObject<OWLDatatype>) getDataRange(dt, df);
         }
         OWLLiteral res = df.getOWLLiteral(txt, owl.getObject());
-        return InternalObject.create(res, Stream.empty()).append(owl);
+        return InternalObject.create(res).append(owl);
     }
 
     public static InternalObject<IRI> wrapIRI(OntObject object) {
@@ -298,7 +295,15 @@ public class ReadHelper {
                 (isAllowBulkAnnotationAssertions(conf) || !statement.hasAnnotations());
     }
 
-    private static Set<InternalObject<OWLAnnotation>> getAnnotations(OntStatement statement, OWLDataFactory df, OntLoaderConfiguration conf) {
+    /**
+     * Returns the container with set of {@link OWLAnnotation} associated with the specified statement.
+     *
+     * @param statement {@link OntStatement}
+     * @param df        {@link OWLDataFactory}
+     * @param conf      {@link OntLoaderConfiguration}
+     * @return a set of wraps {@link InternalObject} around {@link OWLAnnotation}
+     */
+    public static Set<InternalObject<OWLAnnotation>> getAnnotations(OntStatement statement, OWLDataFactory df, OntLoaderConfiguration conf) {
         Set<InternalObject<OWLAnnotation>> res = getAllAnnotations(statement, df);
         if (isAnnotationAssertionsAllowed(conf) && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
@@ -330,26 +335,14 @@ public class ReadHelper {
     }
 
     /**
-     * Returns the container with set of {@link OWLAnnotation} associated with the specified statement.
-     *
-     * @param statement {@link OntStatement}
-     * @param df {@link OWLDataFactory}
-     * @param conf {@link OntLoaderConfiguration}
-     * @return a wrap {@link InternalObject.Collection} around {@link OWLAnnotation}
-     */
-    public static InternalObject.Collection<OWLAnnotation> getStatementAnnotations(OntStatement statement, OWLDataFactory df, OntLoaderConfiguration conf) {
-        return new InternalObject.Collection<>(getAnnotations(statement, df, conf));
-    }
-
-    /**
      * Returns all annotations related to the object (including assertions).
      *
      * @param obj {@link OntObject}
      * @param df  {@link OWLDataFactory}
-     * @return {@link InternalObject.Collection} of {@link OWLAnnotation}
+     * @return a set of {@link InternalObject} for {@link OWLAnnotation}
      */
-    public static InternalObject.Collection<OWLAnnotation> getObjectAnnotations(OntObject obj, OWLDataFactory df) {
-        return new InternalObject.Collection<>(getAllAnnotations(obj.getRoot(), df));
+    public static Set<InternalObject<OWLAnnotation>> getObjectAnnotations(OntObject obj, OWLDataFactory df) {
+        return getAllAnnotations(obj.getRoot(), df);
     }
 
     private static Set<InternalObject<OWLAnnotation>> getAllAnnotations(OntStatement statement, OWLDataFactory df) {
@@ -374,17 +367,17 @@ public class ReadHelper {
         return InternalObject.create(res, ann).append(p).append(v);
     }
 
-    private static InternalObject<OWLAnnotation> getHierarchicalAnnotations(OntStatement ann, OWLDataFactory df) {
-        OntObject subject = ann.getSubject();
-        Stream<OntStatement> content = Stream.of(ann);
+    private static InternalObject<OWLAnnotation> getHierarchicalAnnotations(OntStatement root, OWLDataFactory df) {
+        OntObject subject = root.getSubject();
+        InternalObject<OWLAnnotationProperty> p = fetchAnnotationProperty(root.getPredicate().as(OntNAP.class), df);
+        InternalObject<? extends OWLAnnotationValue> v = getAnnotationValue(root.getObject(), df);
+        Set<InternalObject<OWLAnnotation>> children = root.annotations().map(a -> getHierarchicalAnnotations(a, df)).collect(Collectors.toSet());
+        OWLAnnotation object = df.getOWLAnnotation(p.getObject(), v.getObject(), children.stream().map(InternalObject::getObject));
+        InternalObject<OWLAnnotation> res = InternalObject.create(object, root);
         if (subject.canAs(OntAnnotation.class)) {
-            content = Stream.concat(content, subject.content());
+            res = res.append(subject);
         }
-        InternalObject<OWLAnnotationProperty> p = fetchAnnotationProperty(ann.getPredicate().as(OntNAP.class), df);
-        InternalObject<? extends OWLAnnotationValue> v = getAnnotationValue(ann.getObject(), df);
-        InternalObject.Collection<OWLAnnotation> children = InternalObject.Collection.create(ann.annotations().map(a -> getHierarchicalAnnotations(a, df)));
-        OWLAnnotation res = df.getOWLAnnotation(p.getObject(), v.getObject(), children.getObjects());
-        return InternalObject.create(res, content).add(children.getTriples()).append(p).append(v);
+        return res.append(p).append(v).append(children);
     }
 
     /**
@@ -449,11 +442,10 @@ public class ReadHelper {
         if (OntDR.Restriction.class.equals(view)) {
             OntDR.Restriction _dr = (OntDR.Restriction) dr;
             InternalObject<OWLDatatype> d = fetchDatatype(_dr.getDatatype(), df);
-            List<InternalObject<OWLFacetRestriction>> restrictions = _dr.facetRestrictions().map(f -> getFacetRestriction(f, df)).collect(Collectors.toList());
+            Set<InternalObject<OWLFacetRestriction>> restrictions = _dr.facetRestrictions().map(f -> getFacetRestriction(f, df))
+                    .collect(Collectors.toSet());
             OWLDataRange res = df.getOWLDatatypeRestriction(d.getObject(), restrictions.stream().map(InternalObject::getObject).collect(Collectors.toList()));
-            Stream<Triple> triples = Stream.concat(_dr.content().map(FrontsTriple::asTriple),
-                    restrictions.stream().map(InternalObject::triples).flatMap(Function.identity()));
-            return new InternalObject<>(res, triples.collect(Collectors.toSet()));
+            return InternalObject.create(res, dr).append(restrictions);
         }
         if (OntDR.ComplementOf.class.equals(view)) {
             OntDR.ComplementOf _dr = (OntDR.ComplementOf) dr;
@@ -462,20 +454,20 @@ public class ReadHelper {
         }
         if (OntDR.UnionOf.class.equals(view) ||
                 OntDR.IntersectionOf.class.equals(view)) {
-            List<InternalObject<? extends OWLDataRange>> dataRanges =
+            Set<InternalObject<? extends OWLDataRange>> dataRanges =
                     (OntDR.UnionOf.class.equals(view) ? ((OntDR.UnionOf) dr).dataRanges() : ((OntDR.IntersectionOf) dr).dataRanges())
-                            .map(d -> getDataRange(d, df, seen)).collect(Collectors.toList());
+                            .map(d -> getDataRange(d, df, seen))
+                            .collect(Collectors.toSet());
             OWLDataRange res = OntDR.UnionOf.class.equals(view) ?
                     df.getOWLDataUnionOf(dataRanges.stream().map(InternalObject::getObject)) :
                     df.getOWLDataIntersectionOf(dataRanges.stream().map(InternalObject::getObject));
-            Stream<Triple> triples = Stream.concat(dr.content().map(FrontsTriple::asTriple),
-                    dataRanges.stream().map(InternalObject::triples).flatMap(Function.identity()));
-            return new InternalObject<>(res, triples.collect(Collectors.toSet()));
+            return InternalObject.create(res, dr).appendWildcards(dataRanges);
         }
         if (OntDR.OneOf.class.equals(view)) {
             OntDR.OneOf _dr = (OntDR.OneOf) dr;
-            InternalObject.Collection<OWLLiteral> literals = InternalObject.Collection.create(_dr.values().map(v -> getLiteral(v, df)));
-            return InternalObject.create(df.getOWLDataOneOf(literals.getObjects()), _dr);
+            Set<InternalObject<OWLLiteral>> literals = _dr.values().map(v -> getLiteral(v, df)).collect(Collectors.toSet());
+            OWLDataRange res = df.getOWLDataOneOf(literals.stream().map(InternalObject::getObject));
+            return InternalObject.create(res, _dr);
         }
         throw new OntApiException("Unsupported data range expression " + dr);
     }
@@ -593,8 +585,8 @@ public class ReadHelper {
         if (OntCE.UnionOf.class.equals(view) ||
                 OntCE.IntersectionOf.class.equals(view)) {
             OntCE.ComponentsCE<OntCE> _ce = (OntCE.ComponentsCE<OntCE>) ce;
-            List<InternalObject<? extends OWLClassExpression>> components = _ce.components()
-                    .map(c -> getClassExpression(c, df, seen)).collect(Collectors.toList());
+            Set<InternalObject<? extends OWLClassExpression>> components = _ce.components()
+                    .map(c -> getClassExpression(c, df, seen)).collect(Collectors.toSet());
             OWLClassExpression res;
             if (OntCE.UnionOf.class.equals(view))
                 res = df.getOWLObjectUnionOf(components.stream().map(InternalObject::getObject));
@@ -602,18 +594,14 @@ public class ReadHelper {
                 res = df.getOWLObjectIntersectionOf(components.stream().map(InternalObject::getObject));
             else
                 throw new OntApiException("Should never happen");
-            Stream<Triple> triples = Stream.concat(_ce.content().map(FrontsTriple::asTriple),
-                    components.stream().map(InternalObject::triples).flatMap(Function.identity()));
-            return new InternalObject<>(res, triples.collect(Collectors.toSet()));
+            return InternalObject.create(res, _ce).appendWildcards(components);
         }
         if (OntCE.OneOf.class.equals(view)) {
             OntCE.OneOf _ce = (OntCE.OneOf) ce;
-            List<InternalObject<? extends OWLIndividual>> components = _ce.components()
-                    .map(c -> fetchIndividual(c, df)).collect(Collectors.toList());
+            Set<InternalObject<? extends OWLIndividual>> components = _ce.components()
+                    .map(c -> fetchIndividual(c, df)).collect(Collectors.toSet());
             OWLClassExpression res = df.getOWLObjectOneOf(components.stream().map(InternalObject::getObject));
-            Stream<Triple> triples = Stream.concat(_ce.content().map(FrontsTriple::asTriple),
-                    components.stream().map(InternalObject::triples).flatMap(Function.identity()));
-            return new InternalObject<>(res, triples.collect(Collectors.toSet()));
+            return InternalObject.create(res, _ce).appendWildcards(components);
         }
         if (OntCE.ComplementOf.class.isInstance(ce)) {
             OntCE.ComplementOf _ce = (OntCE.ComplementOf) ce;
@@ -679,9 +667,7 @@ public class ReadHelper {
             IRI iri = IRI.create(_atom.getPredicate().getURI());
             List<InternalObject<? extends SWRLDArgument>> arguments = _atom.arguments().map(a -> getSWRLLiteralArg(a, df)).collect(Collectors.toList());
             SWRLAtom res = df.getSWRLBuiltInAtom(iri, arguments.stream().map(InternalObject::getObject).collect(Collectors.toList()));
-            Stream<Triple> triples = Stream.concat(_atom.content().map(FrontsTriple::asTriple),
-                    arguments.stream().map(InternalObject::triples).flatMap(Function.identity()));
-            return new InternalObject<>(res, triples.collect(Collectors.toSet()));
+            return InternalObject.create(res, _atom).appendWildcards(arguments);
         }
         if (OntSWRL.Atom.OntClass.class.equals(view)) {
             OntSWRL.Atom.OntClass _atom = (OntSWRL.Atom.OntClass) atom;

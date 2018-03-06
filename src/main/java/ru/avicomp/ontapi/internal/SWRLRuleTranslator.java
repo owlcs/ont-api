@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,21 +10,22 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLRule;
-
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+
+import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * for "Rule" Axiom {@link org.semanticweb.owlapi.model.AxiomType#SWRL_RULE}
@@ -51,15 +52,16 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    public InternalObject<SWRLRule> asAxiom(OntStatement statement) {
+    public InternalObject<SWRLRule> toAxiom(OntStatement statement) {
         ConfigProvider.Config conf = getConfig(statement);
         OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
 
-        InternalObject.Collection<? extends SWRLAtom> head = InternalObject.Collection.create(imp.head().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())));
-        InternalObject.Collection<? extends SWRLAtom> body = InternalObject.Collection.create(imp.body().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())));
+        Collection<InternalObject<? extends SWRLAtom>> head = imp.head().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())).collect(Collectors.toList());
+        Collection<InternalObject<? extends SWRLAtom>> body = imp.body().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())).collect(Collectors.toList());
 
-        InternalObject.Collection<OWLAnnotation> annotations = ReadHelper.getStatementAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
-        SWRLRule res = conf.dataFactory().getSWRLRule(body.objects().collect(Collectors.toList()), head.objects().collect(Collectors.toList()), annotations.getObjects());
-        return InternalObject.create(res, imp.content()).add(annotations.getTriples()).add(body.getTriples()).add(head.getTriples());
+        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
+        SWRLRule res = conf.dataFactory().getSWRLRule(body.stream().map(InternalObject::getObject).collect(Collectors.toList()),
+                head.stream().map(InternalObject::getObject).collect(Collectors.toList()), InternalObject.extract(annotations));
+        return InternalObject.create(res, imp).append(annotations).appendWildcards(body).appendWildcards(head);
     }
 }

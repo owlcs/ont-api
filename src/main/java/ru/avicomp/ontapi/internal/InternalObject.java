@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,46 +10,40 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 
 package ru.avicomp.ontapi.internal;
-
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Statement;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObject;
-
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntObject;
+import ru.avicomp.ontapi.jena.model.OntStatement;
+
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Immutable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple}s.
  * <p>
  * Created by @szuev on 27.11.2016.
  */
-@SuppressWarnings("WeakerAccess")
-public class InternalObject<O extends OWLObject> {
+public abstract class InternalObject<O extends OWLObject> {
     private final O object;
-    private final Set<Triple> triples;
     private int hashCode;
 
-    public InternalObject(O object, Set<Triple> triples) {
-        this.object = OntApiException.notNull(object, "Null OWLObject.");
-        this.triples = Collections.unmodifiableSet(OntApiException.notNull(triples, "Null triples."));
-    }
-
-    public InternalObject(O object, Triple triple) {
-        this(object, Collections.singleton(triple));
+    protected InternalObject(O object) {
+        this.object = Objects.requireNonNull(object, "Null OWLObject.");
     }
 
     /**
@@ -64,14 +58,17 @@ public class InternalObject<O extends OWLObject> {
     /**
      * Gets {@link Triple}s associated with encapsulated {@link OWLObject}
      *
-     * @return Set of triples
+     * @return Stream of triples, may be no distinct.
      */
-    public Set<Triple> getTriples() {
-        return triples;
-    }
+    public abstract Stream<Triple> triples();
 
-    public Stream<Triple> triples() {
-        return triples.stream();
+    /**
+     * Answers if there are definitely no associated triples.
+     *
+     * @return boolean
+     */
+    protected boolean isEmpty() {
+        return false;
     }
 
     /**
@@ -80,28 +77,16 @@ public class InternalObject<O extends OWLObject> {
      * @return graph
      * @see ru.avicomp.ontapi.jena.utils.Graphs#toTurtleString(Graph)
      */
-    public Graph asGraph() {
+    public Graph toGraph() {
         Graph res = OntModelFactory.createDefaultGraph();
-        GraphUtil.add(res, triples.iterator());
+        GraphUtil.add(res, triples().iterator());
         return res;
-    }
-
-    public InternalObject<O> add(java.util.Collection<Triple> _triples) {
-        if (OntApiException.notNull(_triples, "Null triples.").isEmpty())
-            return this;
-        Set<Triple> set = new HashSet<>(this.triples);
-        set.addAll(_triples);
-        return new InternalObject<>(object, set);
-    }
-
-    public InternalObject<O> append(InternalObject<? extends OWLObject> other) {
-        return add(other.getTriples());
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof InternalObject)) return false;
         InternalObject<?> that = (InternalObject<?>) o;
         return object.equals(that.object);
     }
@@ -112,96 +97,120 @@ public class InternalObject<O extends OWLObject> {
         return hashCode = object.hashCode();
     }
 
+    @Override
+    public String toString() {
+        return String.valueOf(object);
+    }
+
+    public static <O extends OWLObject> InternalObject<O> create(O o) {
+        return new InternalObject<O>(o) {
+            @Override
+            public Stream<Triple> triples() {
+                return Stream.empty();
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return true;
+            }
+        };
+    }
+
+    public static <O extends OWLObject> InternalObject<O> create(O o, OntStatement root) {
+        return create(o, root.asTriple());
+    }
+
+    static <O extends OWLObject> InternalObject<O> create(O o, Triple root) {
+        return new InternalObject<O>(o) {
+            @Override
+            public Stream<Triple> triples() {
+                return Stream.of(root);
+            }
+        };
+    }
+
+    public static <O extends OWLObject> InternalObject<O> create(O o, OntObject root) {
+        return new InternalObject<O>(o) {
+            @Override
+            public Stream<Triple> triples() {
+                return root.content().map(FrontsTriple::asTriple);
+            }
+        };
+    }
+
+    public InternalObject<O> append(OntObject other) {
+        return append(() -> other.content().map(FrontsTriple::asTriple));
+    }
+
+    public InternalObject<O> append(InternalObject<? extends OWLObject> other) {
+        return append(other::triples);
+    }
+
+    public <B extends OWLObject> InternalObject<O> append(Collection<InternalObject<B>> others) {
+        return append(() -> others.stream().flatMap(InternalObject::triples));
+    }
+
+    <B extends OWLObject> InternalObject<O> appendWildcards(Collection<InternalObject<? extends B>> others) {
+        return append(() -> others.stream().flatMap(InternalObject::triples));
+    }
+
+    public InternalObject<O> append(Supplier<Stream<Triple>> triples) {
+        return new InternalObject<O>(object) {
+            @Override
+            public Stream<Triple> triples() {
+                return concat(triples.get());
+            }
+        };
+    }
+
+    private Stream<Triple> concat(Stream<Triple> other) {
+        return isEmpty() ? other : Stream.concat(this.triples(), other);
+    }
+
+    public InternalObject<O> add(Triple triple) {
+        return append(() -> Stream.of(triple));
+    }
+
+    public InternalObject<O> delete(Triple triple) {
+        if (isEmpty()) return this;
+        return new InternalObject<O>(object) {
+            @Override
+            public Stream<Triple> triples() {
+                return InternalObject.this.triples().filter(t -> !triple.equals(t));
+            }
+        };
+    }
+
     /**
-     * finds {@link InternalObject} by {@link OWLObject}
-     * Note: it does not take into account the hashCode.
-     * There is the violation of contract inside OWLLiteral (checked for owl-api 5.1.4) and any other object (axiom, annotation) containing literals.
-     * See description of the method {@link ReadHelper#getLiteral(Literal, OWLDataFactory)}
+     * Finds {@link InternalObject} by {@link OWLObject}
      *
      * @param set the collection of {@link InternalObject}
      * @param key {@link OWLObject}
      * @param <O> class-type of owl-object
      * @return Optional around {@link InternalObject}
+     * @see ru.avicomp.owlapi.OWLObjectImpl#equals(Object)
      */
-    public static <O extends OWLObject> Optional<InternalObject<O>> find(java.util.Collection<InternalObject<O>> set, O key) {
-        OntApiException.notNull(key, "null key");
-        return set.stream().filter(Objects::nonNull).filter(o -> key.equals(o.getObject())).findAny();
-        //int h = OntApiException.notNull(key, "null key").hashCode();
-        //return set.stream().filter(Objects::nonNull).filter(o -> o.hashCode() == h).filter(o -> key.equals(o.getObject())).findAny();
+    public static <O extends OWLObject> Optional<InternalObject<O>> find(Collection<InternalObject<O>> set, O key) {
+        int h = OntApiException.notNull(key, "null key").hashCode();
+        int t = key.typeIndex();
+        return set.stream()
+                .filter(Objects::nonNull)
+                .filter(o -> o.object.typeIndex() == t)
+                .filter(o -> o.hashCode() == h)
+                .filter(o -> key.equals(o.object))
+                .findAny();
     }
 
-    public static <O extends OWLObject> InternalObject<O> create(O o, Stream<? extends Statement> content) {
-        return new InternalObject<>(o, content.map(FrontsTriple::asTriple).collect(Collectors.toSet()));
+    public static <O extends OWLObject> Stream<O> objects(Collection<InternalObject<O>> wraps) {
+        return wraps.stream().map(InternalObject::getObject);
     }
 
-    public static <O extends OWLObject> InternalObject<O> create(O o, OntObject content) {
-        return create(o, content.content());
+    public static <O extends OWLObject> Set<O> extract(Collection<InternalObject<O>> wraps) {
+        return objects(wraps).collect(Collectors.toSet());
     }
 
-    public static <O extends OWLObject> InternalObject<O> create(O o, Statement content) {
-        return new InternalObject<>(o, content.asTriple());
+    static <R extends OWLObject> Set<R> extractWildcards(Collection<InternalObject<? extends R>> wraps) {
+        return wraps.stream().map(InternalObject::getObject).collect(Collectors.toSet());
     }
 
-    /**
-     * The 'collection' of {@link InternalObject}s.
-     */
-    public static class Collection<O extends OWLObject> {
-        protected final java.util.Collection<InternalObject<O>> wraps;
-        private Set<Triple> triples;
-
-        public Collection(java.util.Collection<InternalObject<O>> wrappers) {
-            this.wraps = wrappers;
-        }
-
-        /**
-         * Gets naked {@link OWLObject}s.
-         *
-         * @return Set of objects.
-         */
-        public Set<O> getObjects() {
-            return objects().collect(Collectors.toSet());
-        }
-
-        /**
-         * Gets {@link Triple}s.
-         *
-         * @return Set of triples.
-         */
-        public Set<Triple> getTriples() {
-            return triples == null ? triples = Collections.unmodifiableSet(wraps.stream()
-                    .map(InternalObject::triples)
-                    .flatMap(Function.identity())
-                    .collect(Collectors.toSet())) : triples;
-        }
-
-        /**
-         * @return Set of {@link InternalObject}
-         */
-        public Set<InternalObject<O>> getWraps() {
-            return Collections.unmodifiableSet(wraps instanceof Set ? (Set<InternalObject<O>>) wraps : new HashSet<>(wraps));
-        }
-
-        public Stream<O> objects() {
-            return wraps.stream().map(InternalObject::getObject);
-        }
-
-        public Stream<Triple> triples() {
-            return getTriples().stream();
-        }
-
-        public Optional<InternalObject<O>> find(O key) {
-            return InternalObject.find(wraps, key);
-        }
-
-        /**
-         * Note: stream will be closed.
-         *
-         * @param wrappers Stream of {@link InternalObject}
-         * @param <O> class-type of owl-object
-         * @return {@link Collection} of {@link InternalObject}
-         */
-        public static <O extends OWLObject> Collection<O> create(Stream<InternalObject<O>> wrappers) {
-            return new Collection<>(wrappers.collect(Collectors.toList()));
-        }
-    }
 }

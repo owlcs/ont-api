@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,15 +10,10 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 
 package ru.avicomp.ontapi.jena.impl;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -29,7 +24,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.*;
 import ru.avicomp.ontapi.jena.model.OntCE;
@@ -38,6 +32,12 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * both for anon and named individuals.
@@ -79,7 +79,14 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
         @Override
         public OntStatement getRoot() {
+            // todo: it seems this logic is wrong - it should return the "this rdf:type OWLClass" statement.
             return getRoot(RDF.type, OWL.NamedIndividual);
+        }
+
+        @Override
+        public Stream<OntStatement> content() {
+            // todo: what about not local statements and individuals with attached to several classes?
+            return statements(RDF.type);
         }
     }
 
@@ -166,7 +173,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
         @Override
         public void detachClass(OntCE clazz) {
-            if (classes().filter(c -> !clazz.equals(c)).count() == 0) {
+            if (classes().allMatch(clazz::equals)) {
                 // otherwise the anonymous individual could be lost.
                 // use another way for removing the single class-assertion.
                 throw new OntJenaException("Can't detach class " + clazz + ": it is a single for individual " + this);

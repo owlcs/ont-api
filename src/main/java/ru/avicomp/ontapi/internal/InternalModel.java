@@ -10,6 +10,7 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -20,6 +21,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
@@ -28,6 +30,7 @@ import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -343,6 +346,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     public void remove(OWLAnnotation annotation) {
         remove(annotation, getAnnotationTripleStore());
+        // todo: there is no need to invalidate whole objects cache
         clearObjectsCache();
     }
 
@@ -354,7 +358,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> annotations() {
-        return getAnnotationTripleStore().getObjects().stream();
+        return getAnnotationTripleStore().objects();
     }
 
     /**
@@ -372,10 +376,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
         Stream<OWLAxiom> res = types.stream()
-                    .map(t -> getAxiomTripleStore(t.getActualClass()).getObjects())
-                    .map(Collection::stream)
-                    .flatMap(Function.identity())
-                    .map(OWLAxiom.class::cast);
+                .map(t -> getAxiomTripleStore(t.getActualClass()))
+                .flatMap(InternalObjectTriplesMap::objects)
+                .map(OWLAxiom.class::cast);
         return getConfig().parallel() ? res.collect(Collectors.toList()).stream() : res;
     }
 
@@ -390,7 +393,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Removes axiom from the model
+     * Removes axiom from the model.
+     * Clears cache for an entity type, if the entity has been belonged to the removed axiom.
      *
      * @param axiom {@link OWLAxiom}
      * @see #remove(OWLAnnotation)
@@ -403,7 +407,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
                 OWLDataProperty.class,
                 OWLObjectProperty.class,
                 OWLNamedIndividual.class,
-                OWLAnonymousIndividual.class).filter(c -> OwlObjects.objects(c, axiom).anyMatch(p -> true))
+                OWLAnonymousIndividual.class)
+                .filter(entityType -> OwlObjects.objects(entityType, axiom).findAny().isPresent())
                 .forEach(type -> objects.invalidate(type));
     }
 
@@ -501,7 +506,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return {@link InternalObject}
      */
     protected InternalObjectTriplesMap<OWLAnnotation> readAnnotationTriples() {
-        return new InternalObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), getConfig().dataFactory()).getWraps());
+        return new InternalObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), getConfig().dataFactory()));
     }
 
     /**
@@ -524,7 +529,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @param <O>    type of owl-object
      */
     protected <O extends OWLObject> void add(O object, InternalObjectTriplesMap<O> store, Consumer<O> writer) {
-        OwlObjectListener<O> listener = store.createListener(object);
+        OwlObjectListener<O> listener = createListener(store, object);
         try {
             getGraph().getEventManager().register(listener);
             writer.accept(object);
@@ -536,54 +541,26 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Removes an object from the model.
-     * Note: remove associated objects from {@link #objects}!
+     * Removes an OWLObject from the model.
+     * Note: need also remove associated objects from {@link #objects} cache!
      *
-     * @param object either {@link OWLAxiom} or {@link OWLAnnotation}
-     * @param store  {@link InternalObjectTriplesMap}
-     * @param <O>    type of owl-object
+     * @param component either {@link OWLAxiom} or {@link OWLAnnotation}
+     * @param map       {@link InternalObjectTriplesMap}
+     * @param <O>       the type of OWLObject
      * @see #clearObjectsCache()
      */
-    protected <O extends OWLObject> void remove(O object, InternalObjectTriplesMap<O> store) {
-        Set<Triple> triples = store.get(object);
-        store.clear(object);
-        triples.stream().filter(this::canDelete).forEach(this::delete);
+    protected <O extends OWLObject> void remove(O component, InternalObjectTriplesMap<O> map) {
+        Set<Triple> triples = map.getTripleSet(component);
+        map.remove(component);
+        triples.stream().filter(t -> !containsTriple(t)).forEach(this::delete);
+    }
+
+    protected boolean containsTriple(Triple triple) {
+        return getComponents().stream().anyMatch(c -> c.contains(triple));
     }
 
     /**
-     * Auxiliary method.
-     * Returns Set of OWLAxiom types by specified triple. The set could be empty if the triple does not belong to any axioms.
-     *
-     * @param triple {@link Triple}
-     * @return Set of OWLAxioms types (classes)
-     */
-    protected Set<Class<? extends OWLAxiom>> getAxiomTypes(Triple triple) {
-        return components.asMap().values().stream()
-                .filter(v -> !Objects.equals(v.type(), OWLAnnotation.class))
-                .map(s -> s.get(triple).stream())
-                .flatMap(Function.identity())
-                .map(OWLAxiom.class::cast)
-                .map(a -> a.getAxiomType().getActualClass())
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * Checks if it is possible to delete triple from the graph.
-     *
-     * @param triple {@link Triple}
-     * @return true if there are no axiom which includes this triple, otherwise false.
-     */
-    protected boolean canDelete(Triple triple) {
-        int count = 0;
-        for (InternalObjectTriplesMap<? extends OWLObject> store : components.asMap().values()) {
-            count += store.get(triple).size();
-            if (count > 1) return false;
-        }
-        return count == 0;
-    }
-
-    /**
-     * Deletes triple from base graph and clear jena cache for it.
+     * Deletes a triple from the base graph and clear jena cache for it.
      *
      * @param triple {@link Triple}
      */
@@ -605,7 +582,37 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Auxiliary. Clears {@link #objects} and {@link #temporaryObjects}
+     * Clears cache for the specified triple.
+     * This method is called while working with jena model.
+     *
+     * @param triple {@link Triple}
+     */
+    protected void clearCacheOnDelete(Triple triple) {
+        getComponents().stream()
+                .filter(map -> findObjectsToInvalidate(map, triple).findAny().isPresent())
+                .forEach(o -> components.invalidate(o.type()));
+        // todo: there is no need to invalidate whole objects cache
+        clearObjectsCache();
+    }
+
+    protected static <O extends OWLObject> Stream<O> findObjectsToInvalidate(InternalObjectTriplesMap<O> map, Triple triple) {
+        return map.objects().filter(o -> {
+            try {
+                Set<Triple> res = map.get(o); // the triple set is not expected to be null, but just in case there is checking for null also.
+                return res == null || res.contains(triple);
+            } catch (JenaException j) { // may occur in case previous operation broke object structure
+                return true;
+            }
+        });
+    }
+
+    protected Collection<InternalObjectTriplesMap<? extends OWLObject>> getComponents() {
+        return components.asMap().values();
+    }
+
+    /**
+     * Auxiliary method.
+     * Invalidates {@link #objects} and {@link #temporaryObjects} caches.
      */
     protected void clearObjectsCache() {
         objects.invalidateAll();
@@ -613,22 +620,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Clears a whole cache.
+     * Invalidates all caches.
      */
     public void clearCache() {
         components.invalidateAll();
         clearObjectsCache();
     }
 
-    /**
-     * Clears cache for the specified triple
-     *
-     * @param triple {@link Triple}
-     */
-    public void clearCache(Triple triple) {
-        getAxiomTypes(triple).forEach(key -> components.invalidate(key));
-        clearObjectsCache();
-    }
 
     @Override
     public String toString() {
@@ -637,53 +635,139 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * Auxiliary object to provide common way for working with {@link OWLObject}s and {@link Triple}s together.
+     * Based on {@link InternalObject}, which is a wrapper around OWLObject with the reference to associated triples.
      *
-     * @param <O> {@link OWLAxiom} or {@link OWLAnnotation} (currently).
+     * @param <O> Component type: a subtype of {@link OWLAxiom} or {@link OWLAnnotation}
      */
     public static class InternalObjectTriplesMap<O extends OWLObject> {
         protected final Class<O> type;
-        protected Map<O, Set<Triple>> map;
+        protected final Set<InternalObject<O>> set;
+        protected LoadingCache<O, Set<Triple>> cache = Caffeine.newBuilder().softValues().build(this::loadTripleSet);
 
         public InternalObjectTriplesMap(Class<O> type, Set<InternalObject<O>> set) {
             this.type = type;
-            this.map = set.stream().collect(Collectors.toMap(InternalObject::getObject, InternalObject::getTriples));
+            this.set = set;
         }
 
         public Class<O> type() {
             return type;
         }
 
-        public void add(O object, Triple triple) {
-            map.computeIfAbsent(object, e -> new HashSet<>()).add(triple);
+        private Optional<InternalObject<O>> find(O key) {
+            // may be long: go over whole collection with concrete component type
+            return InternalObject.find(set, key);
         }
 
-        public Set<Triple> get(O object) {
-            return map.getOrDefault(object, Collections.emptySet());
+        @Nonnull
+        private Set<Triple> loadTripleSet(O key) {
+            return find(key).map(s -> s.triples()
+                    .collect(Collectors.toSet())).orElse(Collections.emptySet());
         }
 
-        public Set<O> get(Triple triple) {
-            return map.entrySet().stream().filter(e -> e.getValue().contains(triple)).map(Map.Entry::getKey).collect(Collectors.toSet());
+        /**
+         * Adds triple to this map.
+         * If there is no triple-container for specified object, or it is empty, or it is in-memory,
+         * then a triple will be added to inner set, otherwise appended to existing stream.
+         *
+         * @param key    OWLObject (axiom or annotation)
+         * @param triple {@link Triple}
+         */
+        public void add(O key, Triple triple) {
+            InternalObject<O> res = find(key).map(o -> o.isEmpty() ? new TripleSet<>(o) : o).orElseGet(() -> new TripleSet<>(key));
+            set.add(res.add(triple));
+            fromCache(key).ifPresent(set -> set.add(triple));
         }
 
-        public void delete(O object, Triple triple) {
-            get(object).remove(triple);
+        /**
+         * Removes an object-triple pair from this map
+         *
+         * @param key    OWLObject (axiom or annotation)
+         * @param triple {@link Triple}
+         */
+        public void remove(O key, Triple triple) {
+            find(key).ifPresent(o -> set.add(o.delete(triple)));
+            fromCache(key).ifPresent(set -> set.remove(triple));
         }
 
-        public void clear() {
-            map.clear();
+        /**
+         * Removes an object and all associated triples
+         *
+         * @param key OWLObject (axiom or annotation)
+         */
+        public void remove(O key) {
+            cache.invalidate(key);
+            set.remove(new TripleSet<>(key));
         }
 
-        public void clear(O object) {
-            map.remove(object);
+        protected Optional<Set<Triple>> fromCache(O key) {
+            return Optional.ofNullable(cache.getIfPresent(key));
         }
 
-        public Set<O> getObjects() {
-            return map.keySet();
+        protected Set<Triple> get(O key) {
+            return cache.get(key);
         }
 
-        public OwlObjectListener<O> createListener(O obj) {
-            return new OwlObjectListener<>(this, obj);
+        public Set<Triple> getTripleSet(O key) {
+            return Objects.requireNonNull(get(key));
         }
+
+        public boolean contains(Triple triple) {
+            return objects().anyMatch(o -> getTripleSet(o).contains(triple));
+        }
+
+        public Stream<O> objects() {
+            return set.stream().map(InternalObject::getObject);
+        }
+
+        /**
+         * An {@link InternalObject} which holds triples in memory.
+         * Used in caches.
+         * Note: it is mutable object while the base is immutable.
+         *
+         * @param <V>
+         */
+        private class TripleSet<V extends O> extends InternalObject<V> {
+            private final Set<Triple> triples;
+
+            protected TripleSet(V object) { // empty
+                this(object, new HashSet<>());
+            }
+
+            protected TripleSet(InternalObject<V> object) {
+                this(object.getObject(), object.triples().collect(Collectors.toCollection(HashSet::new)));
+            }
+
+            private TripleSet(V object, Set<Triple> triples) {
+                super(object);
+                this.triples = triples;
+            }
+
+            @Override
+            public Stream<Triple> triples() {
+                return triples.stream();
+            }
+
+            @Override
+            protected boolean isEmpty() {
+                return triples.isEmpty();
+            }
+
+            @Override
+            public InternalObject<V> add(Triple triple) {
+                triples.add(triple);
+                return this;
+            }
+
+            @Override
+            public InternalObject<V> delete(Triple triple) {
+                triples.remove(triple);
+                return this;
+            }
+        }
+    }
+
+    public <O extends OWLObject> OwlObjectListener<O> createListener(InternalObjectTriplesMap<O> map, O obj) {
+        return new OwlObjectListener<>(map, obj);
     }
 
     /**
@@ -707,7 +791,35 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
         @Override
         protected void deleteEvent(Triple t) {
-            store.delete(object, t);
+            store.remove(object, t);
+        }
+    }
+
+    /**
+     * The direct listener to synchronize caches while working through OWL-API and jena at the same time.
+     */
+    public class DirectListener extends GraphListenerBase {
+        private boolean hasObjectListener() {
+            return getGraph().getEventManager().hasListeners(OwlObjectListener.class);
+        }
+
+        /**
+         * if at the moment there is an {@link OwlObjectListener} then it's called from {@link InternalModel#add(OWLAxiom)} =&gt; don't clear cache;
+         * otherwise it is direct call and cache must be reset to have correct list of axioms.
+         *
+         * @param t {@link Triple}
+         */
+        @Override
+        protected void addEvent(Triple t) {
+            if (hasObjectListener()) return;
+            // we don't know which axiom would own this triple, so we clear whole cache.
+            clearCache();
+        }
+
+        @Override
+        protected void deleteEvent(Triple t) {
+            if (hasObjectListener()) return;
+            clearCacheOnDelete(t);
         }
     }
 
@@ -781,36 +893,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             return Caffeine.newBuilder().maximumSize(2048).buildAsync(parser).synchronous();
         }
 
-    }
-
-
-
-    /**
-     * The direct listener to synchronize caches while working through OWL-API and jena at the same time.
-     */
-    public class DirectListener extends GraphListenerBase {
-        private boolean hasObjectListener() {
-            return getGraph().getEventManager().hasListeners(OwlObjectListener.class);
-        }
-
-        /**
-         * if at the moment there is an {@link OwlObjectListener} then it's called from {@link InternalModel#add(OWLAxiom)} =&gt; don't clear cache;
-         * otherwise it is direct call and cache must be reset to have correct list of axioms.
-         *
-         * @param t {@link Triple}
-         */
-        @Override
-        protected void addEvent(Triple t) {
-            if (hasObjectListener()) return;
-            // we don't know which axiom would own this triple, so we clear whole cache.
-            clearCache();
-        }
-
-        @Override
-        protected void deleteEvent(Triple t) {
-            if (hasObjectListener()) return;
-            clearCache(t);
-        }
     }
 
 }
