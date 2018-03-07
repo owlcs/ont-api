@@ -14,6 +14,20 @@
 
 package ru.avicomp.ontapi.benchmarks;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -27,22 +41,10 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
-
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * Not a test: only for manual running!
@@ -54,10 +56,10 @@ public class LoadStrategiesTester {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadStrategiesTester.class);
 
     private static List<TestData> ontologies = Arrays.asList(
-            new TestData( // put to test/resources directory or comment out
+            /*new TestData( // put to test/resources directory or comment out
                     "test-ontology",
                     LoadStrategiesTester.class.getResource("/ontolog.rdf.xml"), OntFormat.RDF_XML, "http://coim/intellect/ontolog",
-                    7464, 1002, true),
+                    7464, 1002, true),*/
             new TestData(
                     "pizza",
                     LoadStrategiesTester.class.getResource("/pizza.ttl"), OntFormat.TURTLE, "http://www.co-ode.org/ontologies/pizza/pizza.owl",
@@ -75,7 +77,7 @@ public class LoadStrategiesTester {
                     96463, 23141, false)
     );
 
-    private static Map<String, Map<String, List<Double>>> res = new HashMap<>();
+    private static Map<MethodName, Map<String, List<Double>>> res = new EnumMap<>(MethodName.class);
     private final TestData data;
     private final Strategy type;
 
@@ -126,7 +128,7 @@ public class LoadStrategiesTester {
         LOGGER.info("Axioms count: {}", count);
         Instant e = Instant.now();
 
-        finalAction("axioms", type, s, e);
+        finalAction(MethodName.AXIOMS, type, s, e);
         assertEquals(isONT(o), "Wrong axioms count", axioms, count);
     }
 
@@ -143,7 +145,7 @@ public class LoadStrategiesTester {
         LOGGER.info("Classes count: {}", count);
         Instant e = Instant.now();
 
-        finalAction("classes", type, s, e);
+        finalAction(MethodName.CLASSES, type, s, e);
         assertEquals(isONT(o), "Wrong classes count", classes, count);
     }
 
@@ -151,12 +153,19 @@ public class LoadStrategiesTester {
     public static void info() {
         res.forEach((name, map) -> {
             LOGGER.info("Method={}", name);
-            map.forEach((strategy, floats) -> LOGGER.info("[{}][{}]:::{}",
-                    name, strategy, floats.stream().mapToDouble(v -> v).average().orElse(-1)));
+            Map<String, Double> averages = map.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(v -> v).average().orElse(-1)));
+            averages.forEach((strategy, average) -> LOGGER.info("[{}][{}]:::{}",
+                    name, strategy, average));
+            ratio(name, averages, StandardStrategy.ONT_LIGHT, StandardStrategy.OWLAPI_COMMON);
         });
     }
 
-    private static void finalAction(String method, Strategy str, Instant s, Instant e) {
+    private static void ratio(MethodName name, Map<String, Double> averages, StandardStrategy left, StandardStrategy right) {
+        LOGGER.info("[{}][{}/{}]={}", name, left, right, averages.get(left.name()) / averages.get(right.name()));
+    }
+
+    private static void finalAction(MethodName method, Strategy str, Instant s, Instant e) {
         double d = duration(s, e);
         LOGGER.info("Seconds {}", d);
         res.computeIfAbsent(method, k -> new HashMap<>()).computeIfAbsent(str.toString(), k -> new ArrayList<>()).add(d);
@@ -281,6 +290,7 @@ public class LoadStrategiesTester {
     }
 
     public static OWLOntologyDocumentSource createSource(URL url, OntFormat format) {
+        Assert.assertNotNull("No source", url);
         URI uri;
         try {
             uri = url.toURI();
@@ -326,12 +336,16 @@ public class LoadStrategiesTester {
         return res;
     }
 
+    private enum MethodName {
+        AXIOMS,
+        CLASSES,
+    }
+
     interface Strategy {
         OWLOntologyManager create();
 
         OWLOntology load(OWLOntologyManager manager, URL file);
     }
-
 
     private static class TestData {
         private final String name;

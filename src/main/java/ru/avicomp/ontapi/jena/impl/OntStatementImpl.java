@@ -15,20 +15,26 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.FrontsTriple;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.StatementImpl;
+
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-
-import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * An Ont Statement.
@@ -41,6 +47,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class OntStatementImpl extends StatementImpl implements OntStatement {
+    private int hashCode;
 
     public OntStatementImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
         super(subject, predicate, object, (ModelCom) model);
@@ -63,7 +70,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public OntObject getSubject() {
-        return super.getSubject().as(OntObject.class);
+        return subject instanceof OntObject ? (OntObject) subject : subject.as(OntObject.class);
     }
 
     @Override
@@ -77,7 +84,12 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public Stream<OntStatement> annotations() {
-        return asAnnotationResource().map(OntAnnotation::assertions).orElse(Stream.empty());
+        return asAnnotationResource().map(OntAnnotation::assertions).orElseGet(Stream::empty);
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode != 0 ? hashCode : (hashCode = super.hashCode());
     }
 
     @Override
@@ -103,9 +115,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
             }
             getModel().removeAll(root.get(), property, value);
         }
-        if (root.get().assertions().count() == 0) { // if no children remove whole parent section.
-            getModel().removeAll(root.get(), null, null);
-        }
+        if (root.get().assertions().findAny().isPresent())
+            return;
+        // if no children remove whole parent section.
+        getModel().removeAll(root.get(), null, null);
     }
 
     protected void checkAnnotationInput(OntNAP property, RDFNode value) {
@@ -134,14 +147,25 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      */
     protected static Optional<OntAnnotation> findAnnotationObject(OntStatementImpl base, Resource type) {
         try (Stream<Resource> subjects = Iter.asStream(base.getModel().listSubjectsWithProperty(OWL.annotatedSource, base.getSubject()))) {
-            return subjects.filter(r -> r.hasProperty(RDF.type, type))
-                    .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
-                    .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
-                    .map(r -> r.as(OntAnnotation.class))
-                    //.map(FrontsNode::asNode)
-                    //.map(r -> base.getModel().getNodeAs(r, OntAnnotation.class))
-                    .findFirst();
+            return subjects
+                    .filter(r -> r.listProperties().mapWith(FrontsTriple::asTriple).toSet()
+                            .containsAll(buildRequiredAnnotationComponents(type, r, base.predicate, base.object)))
+                    //.filter(r -> r.hasProperty(RDF.type, type))
+                    //.filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
+                    //.filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
+                    //.map(r -> r.as(OntAnnotation.class))
+                    .map(FrontsNode::asNode)
+                    .map(r -> base.getModel().getNodeAs(r, OntAnnotation.class))
+                    .findAny();
         }
+    }
+
+    private static Collection<Triple> buildRequiredAnnotationComponents(Resource type, Resource s, Property p, RDFNode o) {
+        return Arrays.asList(
+                Triple.create(s.asNode(), RDF.type.asNode(), type.asNode())
+                , Triple.create(s.asNode(), OWL.annotatedProperty.asNode(), p.asNode())
+                , Triple.create(s.asNode(), OWL.annotatedTarget.asNode(), o.asNode())
+        );
     }
 
     /**

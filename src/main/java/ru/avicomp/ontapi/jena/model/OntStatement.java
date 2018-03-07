@@ -15,16 +15,17 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.rdf.model.Statement;
-import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdf.model.Statement;
+
+import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * An ONT Statement.
@@ -56,7 +57,7 @@ public interface OntStatement extends Statement {
     OntStatement addAnnotation(OntNAP property, RDFNode value);
 
     /**
-     * Gets attached annotations, empty stream if it is assertion annotation.
+     * Gets attached annotations, empty stream if this object is assertion annotation.
      *
      * @return Stream of annotations, could be empty.
      */

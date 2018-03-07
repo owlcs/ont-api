@@ -15,9 +15,13 @@
 
 package ru.avicomp.ontapi.internal;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import javax.annotation.Nonnull;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
@@ -25,17 +29,14 @@ import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
+
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
-
-import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Buffer RDF-OWL model.
@@ -55,16 +56,23 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     // Configuration settings
     private final ConfigProvider.Config config;
-    // Axioms & header annotations cache.
+    // The main axioms & header annotations cache.
     // Used to work through OWL-API interfaces. The use of jena model methods must clear this cache.
     protected LoadingCache<Class<? extends OWLObject>, InternalObjectTriplesMap<? extends OWLObject>> components =
             Caffeine.newBuilder().softValues().build(this::readObjectTriples);
+
     // Temporary cache for collecting axioms, should be reset after axioms getting.
     protected CommonObjectsCache temporaryObjects = new CommonObjectsCache();
     // OWL objects store to improve performance (working with OWL-API 'signature' methods)
     // Any change in the graph must reset these caches.
     protected LoadingCache<Class<? extends OWLObject>, Set<? extends OWLObject>> objects =
             Caffeine.newBuilder().softValues().build(this::readObjects);
+
+    // Temporary cache, used while retrieving annotations from the graph, should be invalidated immediately after finishing read
+    protected LoadingCache<OntStatement, Set<OntStatement>> annotationsCache =
+            Caffeine.newBuilder()
+                    .maximumSize(500_000) // this number came from teleost ontology
+                    .softValues().build(this::readAnnotations);
 
     /**
      * For internal usage only.
@@ -314,6 +322,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return (Stream<O>) Objects.requireNonNull(objects.get(type), "Nothing found. Type: " + type).stream();
     }
 
+    protected Set<OntStatement> readAnnotations(OntStatement key) {
+        return key.annotations().collect(Collectors.toSet());
+    }
+
+    protected Set<OntStatement> fetchAnnotationsSet(OntStatement key) {
+        return annotationsCache.get(key);
+    }
+
     /**
      * Extracts object with specified type from ontology header and axioms.
      *
@@ -347,7 +363,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     public void remove(OWLAnnotation annotation) {
         remove(annotation, getAnnotationTripleStore());
         // todo: there is no need to invalidate whole objects cache
-        clearObjectsCache();
+        clearObjectsCaches();
     }
 
     /**
@@ -421,6 +437,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         try {
             return axioms(AxiomType.AXIOM_TYPES);
         } finally {
+            annotationsCache.invalidateAll();
             temporaryObjects.clear();
         }
     }
@@ -547,7 +564,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @param component either {@link OWLAxiom} or {@link OWLAnnotation}
      * @param map       {@link InternalObjectTriplesMap}
      * @param <O>       the type of OWLObject
-     * @see #clearObjectsCache()
+     * @see #clearObjectsCaches()
      */
     protected <O extends OWLObject> void remove(O component, InternalObjectTriplesMap<O> map) {
         Set<Triple> triples = map.getTripleSet(component);
@@ -592,7 +609,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
                 .filter(map -> findObjectsToInvalidate(map, triple).findAny().isPresent())
                 .forEach(o -> components.invalidate(o.type()));
         // todo: there is no need to invalidate whole objects cache
-        clearObjectsCache();
+        clearObjectsCaches();
     }
 
     protected static <O extends OWLObject> Stream<O> findObjectsToInvalidate(InternalObjectTriplesMap<O> map, Triple triple) {
@@ -614,7 +631,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Auxiliary method.
      * Invalidates {@link #objects} and {@link #temporaryObjects} caches.
      */
-    protected void clearObjectsCache() {
+    protected void clearObjectsCaches() {
+        annotationsCache.invalidateAll();
         objects.invalidateAll();
         temporaryObjects.clear();
     }
@@ -624,7 +642,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     public void clearCache() {
         components.invalidateAll();
-        clearObjectsCache();
+        clearObjectsCaches();
     }
 
 

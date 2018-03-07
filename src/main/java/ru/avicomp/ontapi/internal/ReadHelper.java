@@ -15,24 +15,25 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
-import org.semanticweb.owlapi.vocab.OWLFacet;
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.config.OntLoaderConfiguration;
-import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
-import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
+import org.semanticweb.owlapi.vocab.OWLFacet;
+
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
+import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 /**
  * Helper to translate rdf-graph to the owl-objects form.
@@ -98,6 +99,20 @@ public class ReadHelper {
     @SuppressWarnings("unchecked")
     public static InternalObject<OWLNamedIndividual> fetchNamedIndividual(OntIndividual.Named individual, OWLDataFactory df) {
         return (InternalObject<OWLNamedIndividual>) fetchIndividual(individual, df);
+    }
+
+    public static Stream<OntStatement> annotations(OntStatement statement) {
+        return statement.getModel() instanceof InternalModel ?
+                ((InternalModel) statement.getModel()).fetchAnnotationsSet(statement).stream() :
+                statement.annotations();
+        //return statement.annotations();
+    }
+
+    public static boolean hasAnnotations(OntStatement statement) {
+        return statement.getModel() instanceof InternalModel ?
+                !((InternalModel) statement.getModel()).fetchAnnotationsSet(statement).isEmpty() :
+                statement.hasAnnotations();
+        //return statement.hasAnnotations();
     }
 
     /**
@@ -292,7 +307,7 @@ public class ReadHelper {
 
     public static boolean isAnnotationAssertionStatement(OntStatement statement, OntLoaderConfiguration conf) {
         return statement.isAnnotation() && !statement.getSubject().canAs(OntAnnotation.class) &&
-                (isAllowBulkAnnotationAssertions(conf) || !statement.hasAnnotations());
+                (isAllowBulkAnnotationAssertions(conf) || !hasAnnotations(statement));
     }
 
     /**
@@ -308,7 +323,7 @@ public class ReadHelper {
         if (isAnnotationAssertionsAllowed(conf) && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
-            statement.annotations().filter(s -> isAnnotationAssertionStatement(s, conf))
+            annotations(statement).filter(s -> isAnnotationAssertionStatement(s, conf))
                     .map(a -> getAnnotation(a, df)).forEach(res::remove);
         }
         return res;
@@ -346,7 +361,7 @@ public class ReadHelper {
     }
 
     private static Set<InternalObject<OWLAnnotation>> getAllAnnotations(OntStatement statement, OWLDataFactory df) {
-        return statement.annotations().map(a -> getAnnotation(a, df)).collect(Collectors.toSet());
+        return annotations(statement).map(a -> getAnnotation(a, df)).collect(Collectors.toSet());
     }
 
     /**
@@ -357,7 +372,7 @@ public class ReadHelper {
      * @return {@link InternalObject} around {@link OWLAnnotation}
      */
     public static InternalObject<OWLAnnotation> getAnnotation(OntStatement ann, OWLDataFactory df) {
-        return ann.hasAnnotations() ? getHierarchicalAnnotations(ann, df) : getPlainAnnotation(ann, df);
+        return hasAnnotations(ann) ? getHierarchicalAnnotations(ann, df) : getPlainAnnotation(ann, df);
     }
 
     private static InternalObject<OWLAnnotation> getPlainAnnotation(OntStatement ann, OWLDataFactory df) {
@@ -371,7 +386,7 @@ public class ReadHelper {
         OntObject subject = root.getSubject();
         InternalObject<OWLAnnotationProperty> p = fetchAnnotationProperty(root.getPredicate().as(OntNAP.class), df);
         InternalObject<? extends OWLAnnotationValue> v = getAnnotationValue(root.getObject(), df);
-        Set<InternalObject<OWLAnnotation>> children = root.annotations().map(a -> getHierarchicalAnnotations(a, df)).collect(Collectors.toSet());
+        Set<InternalObject<OWLAnnotation>> children = annotations(root).map(a -> getHierarchicalAnnotations(a, df)).collect(Collectors.toSet());
         OWLAnnotation object = df.getOWLAnnotation(p.getObject(), v.getObject(), children.stream().map(InternalObject::getObject));
         InternalObject<OWLAnnotation> res = InternalObject.create(object, root);
         if (subject.canAs(OntAnnotation.class)) {

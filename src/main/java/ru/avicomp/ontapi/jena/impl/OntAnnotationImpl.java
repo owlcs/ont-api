@@ -14,12 +14,20 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+
 import ru.avicomp.ontapi.jena.impl.configuration.CommonOntObjectFactory;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntMaker;
@@ -30,11 +38,6 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The implementation of Annotation OntObject.
@@ -72,9 +75,20 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public Stream<OntStatement> assertions() {
         return Iter.asStream(listProperties())
                 .filter(st -> !SPEC.contains(st.getPredicate()))
-                .filter(st -> st.getPredicate().canAs(OntNAP.class))
-                .map(st -> getModel().createOntStatement(false, this, st.getPredicate(), st.getObject()))
-                .map(OntStatement.class::cast);
+                // original 'right' way:
+                //.filter(st -> st.getPredicate().canAs(OntNAP.class))
+                //.map(st -> getModel().createOntStatement(false, this, st.getPredicate(), st.getObject()))
+                // expected to be faster a little:
+                .map(new Function<Statement, OntStatement>() {
+                    @Override
+                    public OntStatement apply(Statement st) {
+                        OntGraphModelImpl model = getModel();
+                        OntNAP nap = model.getOntEntity(OntNAP.class, st.getPredicate());
+                        return nap == null ? null : model.createOntStatement(false, OntAnnotationImpl.this, nap, st.getObject());
+                    }
+                })
+                .filter(Objects::nonNull)
+                ;
     }
 
     public static Stream<Node> findRootAnnotations(EnhGraph eg) {
