@@ -15,25 +15,24 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWLFacet;
-
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Helper to translate rdf-graph to the owl-objects form.
@@ -102,17 +101,11 @@ public class ReadHelper {
     }
 
     public static Stream<OntStatement> annotations(OntStatement statement) {
-        return statement.getModel() instanceof InternalModel ?
-                ((InternalModel) statement.getModel()).fetchAnnotationsSet(statement).stream() :
-                statement.annotations();
-        //return statement.annotations();
+        return statement.annotations();
     }
 
     public static boolean hasAnnotations(OntStatement statement) {
-        return statement.getModel() instanceof InternalModel ?
-                !((InternalModel) statement.getModel()).fetchAnnotationsSet(statement).isEmpty() :
-                statement.hasAnnotations();
-        //return statement.hasAnnotations();
+        return statement.hasAnnotations();
     }
 
     /**

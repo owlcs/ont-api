@@ -15,13 +15,9 @@
 
 package ru.avicomp.ontapi.internal;
 
-import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
@@ -29,14 +25,17 @@ import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
-
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
+
+import javax.annotation.Nonnull;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Buffer RDF-OWL model.
@@ -67,12 +66,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     // Any change in the graph must reset these caches.
     protected LoadingCache<Class<? extends OWLObject>, Set<? extends OWLObject>> objects =
             Caffeine.newBuilder().softValues().build(this::readObjects);
-
-    // Temporary cache, used while retrieving annotations from the graph, should be invalidated immediately after finishing read
-    protected LoadingCache<OntStatement, Set<OntStatement>> annotationsCache =
-            Caffeine.newBuilder()
-                    .maximumSize(500_000) // this number came from teleost ontology
-                    .softValues().build(this::readAnnotations);
 
     /**
      * For internal usage only.
@@ -322,14 +315,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return (Stream<O>) Objects.requireNonNull(objects.get(type), "Nothing found. Type: " + type).stream();
     }
 
-    protected Set<OntStatement> readAnnotations(OntStatement key) {
-        return key.annotations().collect(Collectors.toSet());
-    }
-
-    protected Set<OntStatement> fetchAnnotationsSet(OntStatement key) {
-        return annotationsCache.get(key);
-    }
-
     /**
      * Extracts object with specified type from ontology header and axioms.
      *
@@ -437,7 +422,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         try {
             return axioms(AxiomType.AXIOM_TYPES);
         } finally {
-            annotationsCache.invalidateAll();
             temporaryObjects.clear();
         }
     }
@@ -632,7 +616,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Invalidates {@link #objects} and {@link #temporaryObjects} caches.
      */
     protected void clearObjectsCaches() {
-        annotationsCache.invalidateAll();
         objects.invalidateAll();
         temporaryObjects.clear();
     }
