@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,16 +10,10 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 
 package ru.avicomp.ontapi.jena.utils;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -30,12 +24,18 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DC;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.SKOS;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Helper to work with constants from {@link ru.avicomp.ontapi.jena.vocabulary} and {@link org.apache.jena.vocabulary} packages.
@@ -151,20 +151,20 @@ public class BuiltIn {
                         XSD.unsignedLong, XSD.unsignedInt, XSD.unsignedShort, XSD.unsignedByte,
                         XSD.hexBinary, XSD.base64Binary,
                         XSD.anyURI, XSD.dateTime, XSD.dateTimeStamp
-                ).collect(Collectors.toSet());
+                ).collect(Iter.toUnmodifiableSet());
         public static final Set<RDFDatatype> JENA_RDF_DATATYPE_SET = initBuiltInRDFDatatypes(OWL2_DATATYPES);
 
         public static final Set<Resource> DATATYPES = JENA_RDF_DATATYPE_SET.stream().map(RDFDatatype::getURI).
-                map(ResourceFactory::createResource).collect(Collectors.toSet());
-        public static final Set<Resource> CLASSES = Stream.of(OWL.Nothing, OWL.Thing).collect(Collectors.toSet());
+                map(ResourceFactory::createResource).collect(Iter.toUnmodifiableSet());
+        public static final Set<Resource> CLASSES = Stream.of(OWL.Nothing, OWL.Thing).collect(Iter.toUnmodifiableSet());
 
         public static final Set<Property> ANNOTATION_PROPERTIES =
                 Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy, OWL.versionInfo,
-                        OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated).collect(Collectors.toSet());
+                        OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated).collect(Iter.toUnmodifiableSet());
         public static final Set<Property> DATA_PROPERTIES =
-                Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Collectors.toSet());
+                Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Iter.toUnmodifiableSet());
         public static final Set<Property> OBJECT_PROPERTIES =
-                Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Collectors.toSet());
+                Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Iter.toUnmodifiableSet());
 
         private static Set<RDFDatatype> initBuiltInRDFDatatypes(Set<Resource> datatypes) {
             TypeMapper mapper = TypeMapper.getInstance();
@@ -278,19 +278,19 @@ public class BuiltIn {
         public static final Set<Property> ANNOTATION_PROPERTIES =
                 Stream.of(SKOS.altLabel, SKOS.changeNote, SKOS.definition,
                         SKOS.editorialNote, SKOS.example, SKOS.hiddenLabel, SKOS.historyNote,
-                        SKOS.note, SKOS.prefLabel, SKOS.scopeNote).collect(Collectors.toSet());
+                        SKOS.note, SKOS.prefLabel, SKOS.scopeNote).collect(Iter.toUnmodifiableSet());
         public static final Set<Property> OBJECT_PROPERTIES =
                 Stream.of(SKOS.broadMatch, SKOS.broader, SKOS.broaderTransitive,
                         SKOS.closeMatch, SKOS.exactMatch, SKOS.hasTopConcept, SKOS.inScheme,
                         SKOS.mappingRelation, SKOS.member, SKOS.memberList, SKOS.narrowMatch,
                         SKOS.narrower, SKOS.narrowerTransitive, SKOS.related,
-                        SKOS.relatedMatch, SKOS.semanticRelation, SKOS.topConceptOf).collect(Collectors.toSet());
+                        SKOS.relatedMatch, SKOS.semanticRelation, SKOS.topConceptOf).collect(Iter.toUnmodifiableSet());
         /**
          * NOTE: In the {@link org.semanticweb.owlapi.vocab.SKOSVocabulary} there is also skos:TopConcept
          * But in fact there is no such resource in the <a href='https://www.w3.org/2009/08/skos-reference/skos.htm'>specification</a>.
          */
         public static final Set<Resource> CLASSES =
-                Stream.of(SKOS.Collection, SKOS.Concept, SKOS.ConceptScheme, SKOS.OrderedCollection).collect(Collectors.toSet());
+                Stream.of(SKOS.Collection, SKOS.Concept, SKOS.ConceptScheme, SKOS.OrderedCollection).collect(Iter.toUnmodifiableSet());
 
         @Override
         public Set<Property> annotationProperties() {

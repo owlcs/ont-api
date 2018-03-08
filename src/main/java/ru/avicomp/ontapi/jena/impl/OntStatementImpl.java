@@ -15,6 +15,7 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -70,7 +71,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
         checkAnnotationInput(property, value);
-        Resource type = getAnnotationRootType(getSubject());
+        Resource type = detectAnnotationRootType(getSubject());
         Resource root = findAnnotationObject(this, type).orElseGet(() -> createAnnotationObject(OntStatementImpl.this, type));
         root.addProperty(property, value);
         return getModel().createOntStatement(false, root, property, value);
@@ -129,7 +130,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public Optional<OntAnnotation> asAnnotationResource() {
-        return findAnnotationObject(this, getAnnotationRootType(getSubject()));
+        return findAnnotationObject(this, detectAnnotationRootType(getSubject()));
     }
 
     /**
@@ -140,14 +141,23 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return Optional around the {@link OntAnnotation}
      */
     protected static Optional<OntAnnotation> findAnnotationObject(OntStatementImpl base, Resource type) {
-        try (Stream<Resource> subjects = Iter.asStream(base.getModel().listSubjectsWithProperty(OWL.annotatedSource, base.getSubject()))) {
-            return subjects
-                    .filter(r -> r.hasProperty(RDF.type, type))
-                    .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
-                    .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
-                    .map(r -> r.as(OntAnnotation.class))
-                    .findAny();
+        try (Stream<OntAnnotation> res = annotationObjects(base, type)) {
+            return res.findFirst();
         }
+    }
+
+    protected static Stream<OntAnnotation> annotationObjects(OntStatementImpl base, Resource type) {
+        return Iter.asStream(base.getModel().listSubjectsWithProperty(OWL.annotatedSource, base.getSubject()))
+                .filter(r -> r.hasProperty(RDF.type, type))
+                .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
+                .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
+                .map(FrontsNode::asNode)
+                .map(r -> new OntAnnotationImpl(r, base.getModel()) {
+                    @Override
+                    public OntStatement getBase() {
+                        return base;
+                    }
+                });
     }
 
     /**
@@ -168,13 +178,18 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     /**
      * Determines the annotation type.
-     * Root annotations (including some anon-axioms bodies) go with the type owl:Axiom {@link OWL#Axiom}
+     * Root annotations (including some anon-axioms bodies) go with the type owl:Axiom {@link OWL#Axiom},
+     * sub-annotations have type owl:Annotation.
      *
      * @param subject {@link Resource} the subject resource to test
      * @return {@link OWL#Axiom} or {@link OWL#Annotation}
      */
-    public static Resource getAnnotationRootType(Resource subject) {
-        return subject.isAnon() && subject.canAs(OntAnnotation.class) ? OWL.Annotation : OWL.Axiom;
+    protected static Resource detectAnnotationRootType(OntObject subject) {
+        if (subject.isAnon() &&
+                subject.types().anyMatch(t -> OWL.Axiom.equals(t) || OWL.Annotation.equals(t) || OntAnnotationImpl.EXTRA_ROOT_TYPES.contains(t))) {
+            return OWL.Annotation;
+        }
+        return OWL.Axiom;
     }
 
     /**

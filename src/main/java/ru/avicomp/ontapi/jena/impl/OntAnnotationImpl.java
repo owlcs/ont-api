@@ -20,7 +20,9 @@ import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.configuration.CommonOntObjectFactory;
 import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
 import ru.avicomp.ontapi.jena.impl.configuration.OntMaker;
@@ -34,27 +36,27 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * The implementation of Annotation OntObject.
- * Note: the search is carried out only for the root annotations,
- * i.e the result of snippet {@code model.ontObjects(OntAnnotation.class)} would not contain nested annotations.
+ * Note: the search is carried out only for the root annotations:
+ * the result of snippet {@code model.ontObjects(OntAnnotation.class)} would not contain nested annotations.
  * <p>
  * Created by @szuev on 26.03.2017.
  */
 @SuppressWarnings("ALL")
 public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
+    public static final Set<Property> REQUIRED_PROPERTIES = Stream.of(OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
+            .collect(Iter.toUnmodifiableSet());
     public static final Set<Property> SPEC =
-            Stream.of(RDF.type, OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
-                    .collect(Collectors.toSet());
+            Stream.concat(Stream.of(RDF.type), REQUIRED_PROPERTIES.stream()).collect(Iter.toUnmodifiableSet());
     public static final Set<Resource> EXTRA_ROOT_TYPES =
             Stream.of(OWL.AllDisjointClasses, OWL.AllDisjointProperties, OWL.AllDifferent, OWL.NegativePropertyAssertion)
-                    .collect(Collectors.toSet());
+                    .collect(Iter.toUnmodifiableSet());
     public static final Set<Node> EXTRA_ROOT_TYPES_AS_NODES = EXTRA_ROOT_TYPES.stream()
             .map(FrontsNode::asNode)
-            .collect(Collectors.toSet());
+            .collect(Iter.toUnmodifiableSet());
     public static Configurable<OntObjectFactory> annotationFactory = m -> new CommonOntObjectFactory(
             new OntMaker.Default(OntAnnotationImpl.class),
             OntAnnotationImpl::findRootAnnotations,
@@ -70,12 +72,20 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     }
 
     @Override
+    public OntStatement getBase() {
+        Resource s = getRequiredObject(OWL.annotatedSource, Resource.class);
+        Property p = getRequiredObject(OWL.annotatedProperty, Property.class);
+        RDFNode o = getRequiredObject(OWL.annotatedTarget, RDFNode.class);
+        return getModel().statements(s, p, o).findAny()
+                .orElseThrow(() -> new OntJenaException("Can't find triple [" + s + ", " + p + ", " + o + "]"));
+    }
+
+    @Override
     public Stream<OntStatement> assertions() {
         return Iter.asStream(listProperties())
                 .filter(st -> !SPEC.contains(st.getPredicate()))
                 .filter(st -> st.getPredicate().canAs(OntNAP.class))
-                .map(st -> getModel().createOntStatement(false, this, st.getPredicate(), st.getObject()))
-                ;
+                .map(st -> getModel().createOntStatement(false, this, st.getPredicate(), st.getObject()));
     }
 
     public static Stream<Node> findRootAnnotations(EnhGraph eg) {
@@ -90,7 +100,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         if (!node.isBlank()) return false;
         Set<Node> types = graph.asGraph().find(node, RDF.type.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
         if ((types.contains(OWL.Axiom.asNode()) || types.contains(OWL.Annotation.asNode())) &&
-                Stream.of(OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
+                REQUIRED_PROPERTIES.stream()
                         .map(FrontsNode::asNode)
                         .allMatch(p -> graph.asGraph().contains(node, p, Node.ANY))) {
             return true;

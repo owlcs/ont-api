@@ -129,20 +129,20 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         public static final Set<Node> ALLOWED_IN_SUBJECT_PREDICATES =
                 Stream.concat(Entities.BUILTIN.properties().stream(),
                         Stream.of(OWL.sameAs, OWL.differentFrom))
-                        .map(FrontsNode::asNode).collect(Collectors.toSet());
+                        .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
         public static final Set<Node> ALLOWED_IN_OBJECT_PREDICATES =
                 Stream.concat(Entities.BUILTIN.properties().stream(),
                         Stream.of(OWL.sameAs, OWL.differentFrom, OWL.sourceIndividual, OWL.hasValue, RDF.first))
-                        .map(FrontsNode::asNode).collect(Collectors.toSet());
+                        .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
 
         public static final Set<Node> BUILT_IN_SUBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
                 .map(FrontsNode::asNode)
                 .filter(n -> !ALLOWED_IN_SUBJECT_PREDICATES.contains(n))
-                .collect(Collectors.toSet());
+                .collect(Iter.toUnmodifiableSet());
         public static final Set<Node> BUILT_IN_OBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
                 .map(FrontsNode::asNode)
                 .filter(n -> !ALLOWED_IN_OBJECT_PREDICATES.contains(n))
-                .collect(Collectors.toSet());
+                .collect(Iter.toUnmodifiableSet());
 
         public static boolean testAnonymousIndividual(Node node, EnhGraph eg, Configurable.Mode mode) {
             if (!node.isBlank()) {
