@@ -15,24 +15,24 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdf.model.Statement;
+import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.rdf.model.Statement;
-
-import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
-
 /**
  * An ONT Statement.
- *
+ * <p>
  * This is not a {@link org.apache.jena.rdf.model.Resource}.
- * OWL2 Annotations could be attached to this statement recursively.
+ * OWL2 Annotations can be attached to this statement recursively.
  * Created by @szuev on 13.11.2016.
+ *
  * @see OntAnnotation
  * @see Statement
  */
@@ -57,9 +57,12 @@ public interface OntStatement extends Statement {
     OntStatement addAnnotation(OntNAP property, RDFNode value);
 
     /**
-     * Gets attached annotations, empty stream if this object is assertion annotation.
+     * Gets attached annotations (annotation assertions), empty stream if this object is assertion annotation.
+     * Note: it works only with primary {@link OntAnnotation}, to get all assertions use the following approach:
+     * {@code annotationResources().flatMap(OntAnnotation::assertions)}.
      *
      * @return Stream of annotations, could be empty.
+     * @see #asAnnotationResource()
      */
     Stream<OntStatement> annotations();
 
@@ -73,15 +76,24 @@ public interface OntStatement extends Statement {
     void deleteAnnotation(OntNAP property, RDFNode value);
 
     /**
-     * Presents the annotation statement as an annotation object if it is possible.
-     * It works only for bulk annotations.
+     * Returns the stream of annotation objects attached to this statement.
+     * E.g. for the statement {@code s A t} the annotation object looks like
+     * {@code
+     * _:b0 a owl:Axiom .
+     * _:b0 Aj tj .
+     * _:b0 owl:annotatedSource s .
+     * _:b0 owl:annotatedProperty A .
+     * _:b0 owl:annotatedTarget t .
+     * }.
+     * Technically, although it does not make sense, it is possible that the given statement has several such b-nodes.
      *
-     * @return Optional around of {@link OntAnnotation}.
+     * @return Stream of {@link OntAnnotation} resources.
+     * @see #asAnnotationResource() to get first annotation-object.
      */
-    Optional<OntAnnotation> asAnnotationResource();
+    Stream<OntAnnotation> annotationResources();
 
     /**
-     * Answers iff this statement is root.
+     * Answers iff this statement is root (i.e. is a definition for some OntObject).
      *
      * @return true if root.
      * @see OntObject#getRoot()
@@ -104,6 +116,19 @@ public interface OntStatement extends Statement {
      */
     @Override
     OntObject getSubject();
+
+    /**
+     * Returns the primary annotation object attached to this statement.
+     * It is assumed that this method always returns the same result if no changes in graph made.
+     *
+     * @return Optional around of {@link OntAnnotation}, can be empty.
+     * @see #annotationResources()
+     */
+    default Optional<OntAnnotation> asAnnotationResource() {
+        try (Stream<OntAnnotation> res = annotationResources()) {
+            return res.findFirst();
+        }
+    }
 
     /**
      * @return true if predicate is rdf:type

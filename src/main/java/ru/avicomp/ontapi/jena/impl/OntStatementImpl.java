@@ -15,7 +15,6 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -43,6 +42,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OntStatementImpl extends StatementImpl implements OntStatement {
     private int hashCode;
+    private Resource annotationResourceType;
 
     public OntStatementImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
         super(subject, predicate, object, (ModelCom) model);
@@ -71,8 +71,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
         checkAnnotationInput(property, value);
-        Resource type = detectAnnotationRootType(getSubject());
-        Resource root = findAnnotationObject(this, type).orElseGet(() -> createAnnotationObject(OntStatementImpl.this, type));
+        Resource root = asAnnotationResource().orElseGet(() -> createAnnotationObject(OntStatementImpl.this, getAnnotationResourceType()));
         root.addProperty(property, value);
         return getModel().createOntStatement(false, root, property, value);
     }
@@ -129,35 +128,45 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
-    public Optional<OntAnnotation> asAnnotationResource() {
-        return findAnnotationObject(this, detectAnnotationRootType(getSubject()));
+    public Stream<OntAnnotation> annotationResources() {
+        return annotationObjects(this, getAnnotationResourceType());
     }
 
     /**
-     * Finds the annotation object corresponding the given statement and rdfs-type
+     * Returns annotation objects corresponding the given statement and rdfs-type
      *
      * @param base base ont-statement
      * @param type owl:Axiom or owl:Annotation
-     * @return Optional around the {@link OntAnnotation}
+     * @return Stream of {@link OntAnnotation}
      */
-    protected static Optional<OntAnnotation> findAnnotationObject(OntStatementImpl base, Resource type) {
-        try (Stream<OntAnnotation> res = annotationObjects(base, type)) {
-            return res.findFirst();
-        }
-    }
-
     protected static Stream<OntAnnotation> annotationObjects(OntStatementImpl base, Resource type) {
         return Iter.asStream(base.getModel().listSubjectsWithProperty(OWL.annotatedSource, base.getSubject()))
                 .filter(r -> r.hasProperty(RDF.type, type))
                 .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
                 .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
-                .map(FrontsNode::asNode)
-                .map(r -> new OntAnnotationImpl(r, base.getModel()) {
-                    @Override
-                    public OntStatement getBase() {
-                        return base;
-                    }
-                });
+                .map(r -> new AttachedAnnotationImpl(r, base));
+    }
+
+    /**
+     * An {@link OntAnnotationImpl} with reference to itself.
+     */
+    private static class AttachedAnnotationImpl extends OntAnnotationImpl {
+        private final OntStatementImpl base;
+
+        public AttachedAnnotationImpl(Resource subject, OntStatementImpl base) {
+            super(subject.asNode(), base.getModel());
+            this.base = base;
+        }
+
+        @Override
+        public OntStatement getBase() {
+            return new OntStatementImpl(base.getSubject(), base.getPredicate(), base.getObject(), getModel()) {
+                @Override
+                public Optional<OntAnnotation> asAnnotationResource() {
+                    return Optional.of(AttachedAnnotationImpl.this);
+                }
+            };
+        }
     }
 
     /**
@@ -190,6 +199,15 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
             return OWL.Annotation;
         }
         return OWL.Axiom;
+    }
+
+    /**
+     * Returns the rdf:type of attached annotation objects.
+     *
+     * @return {@link OWL#Axiom {@code owl:Axiom}} or {@link OWL#Annotation {@code owl:Annotation}}
+     */
+    protected Resource getAnnotationResourceType() {
+        return annotationResourceType == null ? annotationResourceType = detectAnnotationRootType(getSubject()) : annotationResourceType;
     }
 
     /**
