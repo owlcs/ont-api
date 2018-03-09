@@ -1,0 +1,26 @@
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xml:   <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://purl.obolibrary.org/obo/TTO_1006537>
+        a       owl:Class ;
+        <http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym>
+                "Squalus cinereus" .
+
+[ a       owl:Ontology ] .
+
+[ a                      owl:Axiom ;
+  <http://www.geneontology.org/formats/oboInOwl#hasDbXref>
+          "CASSPC:6553" , "CASSPC:46467" ;
+  owl:annotatedProperty  <http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym> ;
+  owl:annotatedSource    <http://purl.obolibrary.org/obo/TTO_1006537> ;
+  owl:annotatedTarget    "Squalus cinereus"
+] .
+
+<http://www.geneontology.org/formats/oboInOwl#hasDbXref>
+        a       owl:AnnotationProperty .
+
+<http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym>
+        a       owl:AnnotationProperty .
