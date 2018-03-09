@@ -10,9 +10,27 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 
 package ru.avicomp.ontapi.benchmarks;
+
+import org.junit.*;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.io.IRIDocumentSource;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.io.OWLParserFactory;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -28,24 +46,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.semanticweb.owlapi.io.FileDocumentSource;
-import org.semanticweb.owlapi.io.IRIDocumentSource;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.OWLParserFactory;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ru.avicomp.ontapi.*;
-import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
-import ru.avicomp.ontapi.utils.ReadWriteUtils;
-
 /**
  * Not a test: only for manual running!
  * Created by @szuev on 23.02.2018.
@@ -56,7 +56,7 @@ public class LoadStrategiesTester {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadStrategiesTester.class);
 
     private static List<TestData> ontologies = Arrays.asList(
-            /*new TestData( // put to test/resources directory or comment out
+            /*new TestData( // put to 'test/resources' directory and uncomment
                     "test-ontology",
                     LoadStrategiesTester.class.getResource("/ontolog.rdf.xml"), OntFormat.RDF_XML, "http://coim/intellect/ontolog",
                     7464, 1002, true),*/
@@ -67,7 +67,7 @@ public class LoadStrategiesTester {
             new TestData(
                     "teleost",
                     toURL("https://data.bioontology.org/ontologies/TTO/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf"), OntFormat.RDF_XML, null, // ~50 MB
-                    375004, 38705, false),
+                    375007, 38705, false),
             new TestData("psychology",
                     toURL("https://data.bioontology.org/ontologies/APAONTO/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf"), OntFormat.RDF_XML, null, // ~5 MB
                     38872, 6037, false),
