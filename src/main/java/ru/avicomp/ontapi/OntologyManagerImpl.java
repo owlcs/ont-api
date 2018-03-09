@@ -102,17 +102,17 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         content = new OntologyCollection(isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet());
     }
 
-    protected OntologyManagerImpl(OWLDataFactory dataFactory, OntologyManager.Factory loadFactory, ReadWriteLock readWriteLock) {
+    protected OntologyManagerImpl(OWLDataFactory dataFactory, OntologyFactory loadFactory, ReadWriteLock readWriteLock) {
         this(dataFactory, readWriteLock, PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
         this.ontologyFactories.add(loadFactory);
     }
 
     public OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
-        this(dataFactory, new OntFactoryImpl(), readWriteLock);
+        this(dataFactory, new OntologyFactoryImpl(), readWriteLock);
     }
 
-    protected OntologyManager.Factory getLoadFactory() {
-        return (Factory) ontologyFactories.iterator().next();
+    protected OntologyFactory getLoadFactory() {
+        return (OntologyFactory) ontologyFactories.iterator().next();
     }
 
     public boolean isConcurrent() {
@@ -151,7 +151,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyConfigurator(@Nonnull OntologyConfigurator conf) {
         getLock().writeLock().lock();
         try {
-            configProvider = OntFactoryImpl.asONT(conf);
+            configProvider = OntologyFactoryImpl.asONT(conf);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -167,7 +167,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
-            OntLoaderConfiguration config = OntFactoryImpl.asONT(conf);
+            OntLoaderConfiguration config = OntologyFactoryImpl.asONT(conf);
             if (Objects.equals(loaderConfig, config)) return;
             loaderConfig = config;
             content.values() // todo: need reset cache only if there is changes in the settings related to the axioms.
@@ -203,7 +203,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().writeLock().lock();
         try {
             if (Objects.equals(writerConfig, conf)) return;
-            writerConfig = OntFactoryImpl.asONT(conf);
+            writerConfig = OntologyFactoryImpl.asONT(conf);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -225,7 +225,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * todo: wrap original OWL-API factory with our {@link OntologyManager.Factory} to produce {@link OntologyModel}
+     * todo: wrap original OWL-API factory with our {@link OntologyFactory} to produce {@link OntologyModel}
      *
      * @param factories Set of {@link OWLOntologyFactory}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setOntologyFactories(Set)</a>

@@ -54,7 +54,7 @@ public class FileRoundTripSubClassOfUntypedOWLClassStrictTestCase extends Abstra
     public void testAxioms() {
         config = config.setStrict(true);
         if (!OWLManager.DEBUG_USE_OWL) {
-            config = ru.avicomp.ontapi.OntFactoryImpl.asONT(config).setUseOWLParsersToLoad(true);
+            config = ru.avicomp.ontapi.OntologyFactoryImpl.asONT(config).setUseOWLParsersToLoad(true);
         }
         OWLOntology ont = createOntology();
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);

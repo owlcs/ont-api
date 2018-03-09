@@ -88,6 +88,7 @@ public abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom
 
     }
 
+    @FunctionalInterface
     interface TriFunction<A, B, C, R> {
         R apply(A a, B b, C c);
     }

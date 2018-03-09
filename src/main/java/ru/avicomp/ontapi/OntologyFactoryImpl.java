@@ -50,22 +50,22 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * The ontology building and loading factory, the 'core' - the main and point to create and load ontologies.
+ * The ontology building and loading factory, the 'core' - the main point to create and load ontologies.
  * See also base interface {@link OWLOntologyFactory} and its single implementation <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>.
  * <p>
  * Created by szuev on 24.10.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntFactoryImpl implements OntologyManager.Factory {
+public class OntologyFactoryImpl implements OntologyFactory {
 
     static {
         ErrorHandlerFactory.setDefaultErrorHandler(ErrorHandlerFactory.errorHandlerNoLogging);
     }
 
-    protected final OntBuilder ontologyBuilder;
-    protected final OntLoader ontologyLoader;
+    protected final Builder ontologyBuilder;
+    protected final Loader ontologyLoader;
 
-    public OntFactoryImpl() {
+    public OntologyFactoryImpl() {
         ontologyBuilder = new ONTBuilderImpl();
         ontologyLoader = new ONTLoaderImpl(makeAlternative(ontologyBuilder));
     }
@@ -73,10 +73,10 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     /**
      * Makes an OntLoader using OntBuilder, which will be used as alternative in the primary loader.
      *
-     * @param builder {@link OntBuilder}, not null
-     * @return {@link OntLoader} or null
+     * @param builder {@link Builder}, not null
+     * @return {@link Loader} or null
      */
-    public static OntLoader makeAlternative(OntBuilder builder) {
+    public static Loader makeAlternative(Builder builder) {
         OWLOntologyFactory factory = OntManagers.createOWLOntologyLoadFactory(builder);
         return factory == null ? null : new OWLLoaderImpl(factory);
     }
@@ -114,6 +114,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      *
      * @param manager {@link OWLOntologyManager}
      * @return {@link OntologyManager}
+     * @throws ClassCastException if of wrong instance
      */
     public static OntologyManager asONT(OWLOntologyManager manager) {
         return (OntologyManager) manager;
@@ -163,69 +164,9 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     }
 
     /**
-     * A interface to load model from any source.
-     * Currently there are two main implementations:
-     * - the decorator of pure OWL-API factory-loader, i.e. <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>
-     * - the jena-based factory-loader.
-     * <p>
-     * Note: there are only three input parameters passed to the single method ({@link OWLOntologyDocumentSource},
-     * {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}), while
-     * {@link OWLOntologyFactory#loadOWLOntology} requires four.
-     * The single instance of {@link OntologyManager} is an {@link OWLOntologyManager} as well as {@link OWLOntologyCreationHandler}.
-     * And this is also true for <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>.
-     * Therefore, the {@link OWLOntologyCreationHandler} can be considered just as part of internal (OWL-API) implementation
-     * and so there is no need in this parameter in our case.
-     *
-     * @see OWLLoaderImpl
-     * @see ONTLoaderImpl
+     * The main impl of {@link Builder}
      */
-    @SuppressWarnings("WeakerAccess")
-    public interface OntLoader extends Serializable {
-
-        /**
-         * The base method to load ontology model ({@link OntologyModel}) to the manager ({@link OntologyManager}).
-         * if the result model contains imports they should come as models also.
-         *
-         * @param source  {@link OWLOntologyDocumentSource} the source (iri, file iri, stream or who knows what)
-         * @param manager {@link OntologyManager}, the manager
-         * @param conf    {@link OntLoaderConfiguration}, the load settings
-         * @return {@link OntologyModel} the result model inside the manager.
-         * @throws OWLOntologyCreationException if something wrong.
-         */
-        OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration conf) throws OWLOntologyCreationException;
-
-    }
-
-    /**
-     * @see OWLOntologyBuilder
-     */
-    public interface OntBuilder extends OWLOntologyBuilder {
-
-        /**
-         * Creates a detached ontology, which is related to the specified manager.
-         * Does not change the manager state, although the result ontology will have a reference to it.
-         *
-         * @param manager {@link OWLOntologyManager}, not null
-         * @param id      {@link OWLOntologyID}, not null
-         * @return {@link OntologyModel}, new instance reflecting manager settings.
-         */
-        @Override
-        OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager, @Nonnull OWLOntologyID id);
-
-        /**
-         * Creates a new ontology inside the specified manager.
-         *
-         * @param manager {@link OntologyManager}, not null
-         * @param id      {@link OWLOntologyID}, not null
-         * @return {@link OntologyModel}, new instance inside manager.
-         */
-        OntologyModel create(@Nonnull OntologyManager manager, @Nonnull OWLOntologyID id);
-    }
-
-    /**
-     * The main impl of {@link OntBuilder}
-     */
-    public static class ONTBuilderImpl implements OntBuilder {
+    public static class ONTBuilderImpl implements Builder {
 
         @Override
         public OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager, @Nonnull OWLOntologyID id) {
@@ -257,7 +198,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      * Some formats (such as {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} or
      * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by jena, so it is the only way.
      */
-    public static class OWLLoaderImpl implements OntLoader {
+    public static class OWLLoaderImpl implements Loader {
         protected static final Logger LOGGER = LoggerFactory.getLogger(OWLLoaderImpl.class);
 
         protected final OWLOntologyFactory factory;
@@ -303,7 +244,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
     }
 
     /**
-     * The main impl of {@link OntLoader}.
+     * The main impl of {@link Loader}.
      * Uses Apache Jena as a primary way to load ontologies into the manager.
      * Should resolves any problems such as cycle imports or throws informative exceptions.
      * In case of some problems while loading there is no need to clear manager to keep it synchronized
@@ -311,7 +252,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
      *
      * @see RDFDataMgr
      */
-    public static class ONTLoaderImpl implements OntLoader {
+    public static class ONTLoaderImpl implements Loader {
         protected static final Logger LOGGER = LoggerFactory.getLogger(ONTLoaderImpl.class);
 
         // following constants are copy-pasted from org.semanticweb.owlapi.io.DocumentSource:
@@ -319,7 +260,7 @@ public class OntFactoryImpl implements OntologyManager.Factory {
         protected static final String LAST_REQUEST_TYPE = ", */*; q=0.09";
         protected static final String DEFAULT_REQUEST = "application/rdf+xml, application/xml; q=0.7, text/xml; q=0.6" + TEXTPLAIN_REQUEST_TYPE + LAST_REQUEST_TYPE;
         // to use OWL-API parsers:
-        protected OntLoader alternative;
+        protected Loader alternative;
         // state:
         protected Map<String, GraphInfo> graphs = new LinkedHashMap<>();
         protected Map<IRI, Optional<IRI>> sourceMap = new HashMap<>();
@@ -327,9 +268,9 @@ public class OntFactoryImpl implements OntologyManager.Factory {
 
         /**
          * Main constructor.
-         * @param alternative {@link OntLoader}, nullable
+         * @param alternative {@link Loader}, nullable
          */
-        public ONTLoaderImpl(OntLoader alternative) {
+        public ONTLoaderImpl(Loader alternative) {
             this.alternative = alternative;
         }
 

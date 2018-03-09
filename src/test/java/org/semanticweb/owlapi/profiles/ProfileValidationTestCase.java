@@ -136,7 +136,7 @@ public class ProfileValidationTestCase extends TestBase {
         OWLOntologyManager m = setupManager();
         m.getOntologyConfigurator().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
         if (OWLManager.DEBUG_USE_OWL) return m;
-        ru.avicomp.ontapi.config.OntLoaderConfiguration conf = ru.avicomp.ontapi.OntFactoryImpl.asONT(m.getOntologyLoaderConfiguration());
+        ru.avicomp.ontapi.config.OntLoaderConfiguration conf = ru.avicomp.ontapi.OntologyFactoryImpl.asONT(m.getOntologyLoaderConfiguration());
         m.setOntologyLoaderConfiguration(
                 conf
                 //.setAllowReadDeclarations(false)

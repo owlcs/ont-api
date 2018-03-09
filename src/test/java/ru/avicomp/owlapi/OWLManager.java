@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.OntologyFactoryImpl;
 import ru.avicomp.ontapi.config.OntConfig;
 
 import java.util.concurrent.locks.ReadWriteLock;
@@ -125,7 +126,7 @@ public class OWLManager {
     public static OWLOntologyBuilder createOntologyBuilder() {
         return OWLManager.DEBUG_USE_OWL ?
                 (OWLOntologyBuilder) uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl::new :
-                new ru.avicomp.ontapi.OntFactoryImpl.ONTBuilderImpl();
+                new OntologyFactoryImpl.ONTBuilderImpl();
     }
 
 }
