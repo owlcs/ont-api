@@ -106,6 +106,12 @@ public class LoadStrategiesTester {
         }
     }
 
+    @Before
+    public void before() {
+        LOGGER.debug("Clear OWL-API caches");
+        OWLAPICaches.clearAll();
+    }
+
     @Parameterized.Parameters(name = "{1}-{0}")
     public static Object[][] data() {
         return ontologies.stream()
