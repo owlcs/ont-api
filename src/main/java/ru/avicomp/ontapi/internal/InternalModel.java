@@ -25,12 +25,17 @@ import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -52,6 +57,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings({"WeakerAccess"})
 public class InternalModel extends OntGraphModelImpl implements OntGraphModel, ConfigProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
     // Configuration settings
     private final ConfigProvider.Config config;
@@ -141,63 +147,63 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Auxiliary method, which is used while axioms collecting.
+     * Auxiliary method which is used while axioms collecting.
      *
      * @param ce {@link OntCE}
      * @return {@link InternalObject} which wraps {@link OWLClassExpression}
      */
     protected InternalObject<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
-        return temporaryObjects.get(ce);
+        return temporaryObjects.get(ce, true);
     }
 
     /**
-     * Auxiliary method, which is used while axioms collecting.
+     * Auxiliary method which is used while axioms collecting.
      *
      * @param dr {@link OntDR}
      * @return {@link InternalObject} which wraps {@link OWLDataRange}
      */
     protected InternalObject<? extends OWLDataRange> fetchDataRange(OntDR dr) {
-        return temporaryObjects.get(dr);
+        return temporaryObjects.get(dr, true);
     }
 
     /**
-     * Auxiliary method, which is used while axioms collecting.
+     * Auxiliary method which is used while axioms collecting.
      *
      * @param indi {@link OntIndividual}
      * @return {@link InternalObject} which wraps {@link OWLIndividual}
      */
     protected InternalObject<? extends OWLIndividual> fetchIndividual(OntIndividual indi) {
-        return temporaryObjects.get(indi);
+        return temporaryObjects.get(indi, true);
     }
 
     /**
-     * Auxiliary method, which is used while axioms collecting.
+     * Auxiliary method which is used while axioms collecting.
      *
      * @param nap {@link OntNAP}
      * @return {@link InternalObject} which wraps {@link OWLAnnotationProperty}
      */
     protected InternalObject<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap) {
-        return temporaryObjects.get(nap);
+        return temporaryObjects.get(nap, true);
     }
 
     /**
-     * Auxiliary method, which is used while axioms collecting.
+     * Auxiliary method which is used while axioms collecting.
      *
      * @param ndp {@link OntNDP}
      * @return {@link InternalObject} which wraps {@link OWLDataProperty}
      */
     protected InternalObject<OWLDataProperty> fetchDataProperty(OntNDP ndp) {
-        return temporaryObjects.get(ndp);
+        return temporaryObjects.get(ndp, true);
     }
 
     /**
-     * Auxiliary method, which is used while axioms collecting.
+     * Auxiliary method which is used while axioms collecting.
      *
      * @param ope {@link OntOPE}
      * @return {@link InternalObject} which wraps {@link OWLObjectPropertyExpression}
      */
     protected InternalObject<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
-        return temporaryObjects.get(ope);
+        return temporaryObjects.get(ope, true);
     }
 
     /**
@@ -485,9 +491,21 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     @SuppressWarnings("unchecked")
     protected <O extends OWLObject> InternalObjectTriplesMap<O> readObjectTriples(Class<? extends OWLObject> type) {
-        if (OWLAnnotation.class.equals(type))
-            return (InternalObjectTriplesMap<O>) readAnnotationTriples();
-        return (InternalObjectTriplesMap<O>) readAxiomTriples((Class<? extends OWLAxiom>) type);
+        InternalObjectTriplesMap<O> res;
+        Instant start = null;
+        if (LOGGER.isDebugEnabled()) {
+            start = Instant.now();
+        }
+        if (OWLAnnotation.class.equals(type)) {
+            res = (InternalObjectTriplesMap<O>) readAnnotationTriples();
+        } else {
+            res = (InternalObjectTriplesMap<O>) readAxiomTriples((Class<? extends OWLAxiom>) type);
+        }
+        if (start != null) {
+            Duration d = Duration.between(start, Instant.now());
+            LOGGER.debug("[{}]:::{}s", type.getSimpleName(), d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000.0);
+        }
+        return res;
     }
 
     /**
@@ -857,28 +875,28 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             individuals.invalidateAll();
         }
 
-        public InternalObject<? extends OWLClassExpression> get(OntCE ce) {
-            return classExpressions.get(ce);
+        public InternalObject<? extends OWLClassExpression> get(OntCE ce, boolean load) {
+            return load ? classExpressions.get(ce) : classExpressions.getIfPresent(ce);
         }
 
-        public InternalObject<? extends OWLDataRange> get(OntDR ce) {
-            return dataRanges.get(ce);
+        public InternalObject<? extends OWLDataRange> get(OntDR ce, boolean load) {
+            return load ? dataRanges.get(ce) : dataRanges.getIfPresent(ce);
         }
 
-        public InternalObject<OWLAnnotationProperty> get(OntNAP nap) {
-            return annotationProperties.get(nap);
+        public InternalObject<OWLAnnotationProperty> get(OntNAP nap, boolean load) {
+            return load ? annotationProperties.get(nap) : annotationProperties.getIfPresent(nap);
         }
 
-        public InternalObject<OWLDataProperty> get(OntNDP ndp) {
-            return datatypeProperties.get(ndp);
+        public InternalObject<OWLDataProperty> get(OntNDP ndp, boolean load) {
+            return load ? datatypeProperties.get(ndp) : datatypeProperties.getIfPresent(ndp);
         }
 
-        public InternalObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
-            return objectProperties.get(ope);
+        public InternalObject<? extends OWLObjectPropertyExpression> get(OntOPE ope, boolean load) {
+            return load ? objectProperties.get(ope) : objectProperties.getIfPresent(ope);
         }
 
-        public InternalObject<? extends OWLIndividual> get(OntIndividual i) {
-            return individuals.get(i);
+        public InternalObject<? extends OWLIndividual> get(OntIndividual i, boolean load) {
+            return load ? individuals.get(i) : individuals.getIfPresent(i);
         }
 
         /**

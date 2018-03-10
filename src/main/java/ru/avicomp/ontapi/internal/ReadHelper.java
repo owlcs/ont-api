@@ -438,6 +438,13 @@ public class ReadHelper {
      */
     @SuppressWarnings("unchecked")
     public static InternalObject<? extends OWLDataRange> getDataRange(OntDR dr, OWLDataFactory df, Set<Resource> seen) {
+        OntGraphModel model = dr.getModel();
+        if (model instanceof InternalModel) {
+            // hack to facilitate recursion call (when this method is invoked from itself, not from InternalModel).
+            // todo: this solution is ugly, need to rewrite
+            InternalObject<? extends OWLDataRange> res = ((InternalModel) model).temporaryObjects.get(dr, false);
+            if (res != null) return res;
+        }
         if (OntApiException.notNull(dr, "Null data range.").isAnon() && seen.contains(dr)) {
             throw new OntApiException("Recursive loop on data range " + dr);
         }
@@ -502,6 +509,11 @@ public class ReadHelper {
      */
     @SuppressWarnings("unchecked")
     public static InternalObject<? extends OWLClassExpression> getClassExpression(OntCE ce, OWLDataFactory df, Set<Resource> seen) {
+        OntGraphModel model = ce.getModel();
+        if (model instanceof InternalModel) { // hack to facilitate recursion call. todo: ugly solution
+            InternalObject<? extends OWLClassExpression> res = ((InternalModel) model).temporaryObjects.get(ce, false);
+            if (res != null) return res;
+        }
         if (OntApiException.notNull(ce, "Null class expression.").isAnon() && seen.contains(ce)) {
             throw new OntApiException("Recursive loop on class expression " + ce);
         }

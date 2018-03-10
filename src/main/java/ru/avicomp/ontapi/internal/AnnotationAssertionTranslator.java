@@ -16,6 +16,7 @@
 package ru.avicomp.ontapi.internal;
 
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
@@ -61,7 +62,20 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
                 .filter(this::testStatement)
                 .flatMap(s -> {
                     Set<OntAnnotation> annotations = s.annotationResources().collect(Collectors.toSet());
-                    if (annotations.isEmpty()) return Stream.of(s);
+                    if (annotations.isEmpty()) {
+                        // todo: hotfix - direct invoking OntStatementImpl here seems to be not very good solution.
+                        return Stream.of(new OntStatementImpl(s.getSubject(), s.getPredicate(), s.getObject(), s.getModel()) {
+                            @Override
+                            public Stream<OntStatement> annotations() {
+                                return Stream.empty();
+                            }
+
+                            @Override
+                            public boolean hasAnnotations() {
+                                return false;
+                            }
+                        });
+                    }
                     return annotations.stream().map(OntAnnotation::getBase);
                 });
     }

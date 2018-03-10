@@ -162,6 +162,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         public OntStatement getBase() {
             return new OntStatementImpl(base.getSubject(), base.getPredicate(), base.getObject(), getModel()) {
                 @Override
+                public boolean hasAnnotations() {
+                    return true;
+                }
+
+                @Override
                 public Optional<OntAnnotation> asAnnotationResource() {
                     return Optional.of(AttachedAnnotationImpl.this);
                 }

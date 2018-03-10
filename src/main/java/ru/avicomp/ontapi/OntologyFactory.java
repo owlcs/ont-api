@@ -41,15 +41,16 @@ public interface OntologyFactory extends OWLOntologyFactory {
                                   @Nonnull OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
 
     /**
-     * A interface to load model from any source.
-     * Currently there are two main implementations:
-     * - the decorator of pure OWL-API factory-loader, i.e. <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>
-     * - the jena-based factory-loader.
-     * <p>
-     * Note: there are only three input parameters passed to the single method ({@link OWLOntologyDocumentSource},
-     * {@link OntologyManager} and {@link OWLOntologyLoaderConfiguration}), while
-     * {@link OWLOntologyFactory#loadOWLOntology} requires four.
-     * The single instance of {@link OntologyManager} is an {@link OWLOntologyManager} as well as {@link OWLOntologyCreationHandler}.
+     * A technical interface to perform loading model from any document source.
+     * Currently there are two implementations:
+     * <ul>
+     *     <li>{@link OntologyFactoryImpl.OWLLoaderImpl} - OWL-API based loader, decorator of pure OWLOntologyFactory implementation from OWL-API-impl,
+     *     see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a></li>
+     *     <li>{@link OntologyFactoryImpl.ONTLoaderImpl} - Jena based loader</li>
+     * </ul>
+     * The single method requires three input parameters ({@link OWLOntologyDocumentSource},
+     * {@link OntologyManager}, {@link OWLOntologyLoaderConfiguration}), while {@link OWLOntologyFactory#loadOWLOntology} requires four.
+     * This is due to the fact that {@link OntologyManagerImpl} is an {@link OWLOntologyManager} as well as {@link OWLOntologyCreationHandler}.
      * And this is also true for <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>.
      * Therefore, the {@link OWLOntologyCreationHandler} can be considered just as part of internal (OWL-API) implementation
      * and so there is no need in this parameter in our case.
@@ -61,7 +62,7 @@ public interface OntologyFactory extends OWLOntologyFactory {
 
         /**
          * The base method to load ontology model ({@link OntologyModel}) to the manager ({@link OntologyManager}).
-         * if the result model contains imports they should come as models also.
+         * If the result model contains imports they should come as models also.
          *
          * @param source  {@link OWLOntologyDocumentSource} the source (iri, file iri, stream or who knows what)
          * @param manager {@link OntologyManager}, the manager
@@ -74,6 +75,7 @@ public interface OntologyFactory extends OWLOntologyFactory {
     }
 
     /**
+     * A technical interface to create models either attached to the manager or standalone.
      * @see OWLOntologyBuilder
      */
     interface Builder extends OWLOntologyBuilder {
