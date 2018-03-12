@@ -440,6 +440,20 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         });
     }
 
+    @Test
+    public void testLoadRootSplitBulkAnnotations() throws Exception {
+        OWLOntologyManager m = OntManagers.createONT();
+        String file = "test-annotations-3.ttl";
+        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
+        o.axioms().forEach(x -> LOGGER.debug("{}", x));
+        Assert.assertEquals("Wrong declarations count", 3, o.axioms(AxiomType.DECLARATION).count());
+        Assert.assertEquals("Wrong annotations count", 1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+        o.axioms(AxiomType.DECLARATION).forEach(a -> {
+            int expected = a.getEntity().isOWLClass() ? 1 : 0;
+            Assert.assertEquals("Wrong annotations count: ", expected, a.annotations().count());
+        });
+    }
+
     private void annotateOntologyTest(OWLOntologyManager manager) throws Exception {
         long count = manager.ontologies().count();
         OntIRI iri = OntIRI.create("http://test.org/annotations/7");

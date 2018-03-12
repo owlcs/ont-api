@@ -247,6 +247,18 @@ public class CommonManagerTest {
         Assert.assertEquals("Incorrect axioms collection in the third ontology", axioms2, o3.axioms().collect(Collectors.toSet()));
     }
 
+    @Test
+    public void testLoadSplitBulkRootAnnotations() throws OWLOntologyCreationException {
+        OWLOntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
+        String file = "test-annotations-3.ttl";
+        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
+        o.axioms().forEach(System.err::println);
+        Assert.assertEquals(0, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+        Assert.assertEquals(3, o.axioms(AxiomType.DECLARATION).count());
+        long annotationsCount = o.axioms(AxiomType.DECLARATION).filter(a -> a.getEntity().isOWLClass()).mapToLong(a -> a.annotations().count()).sum();
+        Assert.assertEquals("Wrong annotations count", 3, annotationsCount);
+    }
 
     @Test
     public void testPassingGraph() throws Exception {
