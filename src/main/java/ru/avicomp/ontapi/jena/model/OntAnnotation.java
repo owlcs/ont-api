@@ -15,29 +15,30 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import org.apache.jena.rdf.model.RDFNode;
+
 import java.util.stream.Stream;
 
 /**
  * An annotation ont-object.
  * It's an anonymous jena-resource ({@link OntObject}) with one of the two types:
  * <ul>
- * <li>owl:Axiom ({@link ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom}) for root annotations, it is usually owned by axiomatic statements.</li>
+ * <li>owl:Axiom (see {@link org.apache.jena.vocabulary.OWL2#Axiom ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom}) for root annotations, it is usually owned by axiomatic statements.</li>
  * <li>owl:Annotation (see {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation}) for sub-annotations,
  * and also for annotation of several specific axioms with main-statement {@code _:x rdf:type @type} where @type is
  * owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion.</li>
  * </ul>
  * Example:
- * <pre>
- * {@code
+ * <pre>{@code
  * [ a                      owl:Axiom ;
  *   rdfs:comment           "some comment 1", "some comment 2"@fr ;
  *   owl:annotatedProperty  rdf:type ;
  *   owl:annotatedSource    <http://example.test.org#SomeClassN1> ;
  *   owl:annotatedTarget    owl:Class
  * ] .
- * }
+ * }</pre>
  * For more info see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.2 Translation of Annotations</a>.
- * </pre>
+ *
  * Created by @szuev on 26.03.2017.
  * @see OntStatement
  */
@@ -54,11 +55,21 @@ public interface OntAnnotation extends OntObject {
     /**
      * Returns the annotations assertions attached to this object.
      * The annotation assertion is a statements with annotation property ({@link OntNAP}) as predicate.
-     * The example above contains two such statements: '_:x rdfs:comment "comment1";' and '_:x rdfs:comment "comment2"@fr'.
+     * The example above contains two such statements: {@code _:x rdfs:comment "some comment 1"} and {@code _:x rdfs:comment "some comment 2"@fr}.
      *
      * @return Stream of annotation statements {@link OntStatement}s,
      * @see OntObject#annotations()
      */
     Stream<OntStatement> assertions();
+
+    /**
+     * Adds a new annotation assertion to this annotation resource.
+     *
+     * @param property {@link OntNAP}
+     * @param value    {@link RDFNode}
+     * @return {@link OntStatement}
+     * @see OntStatement#addAnnotation(OntNAP, RDFNode)
+     */
+    OntStatement addAnnotation(OntNAP property, RDFNode value);
 
 }

@@ -15,22 +15,21 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The base class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
@@ -85,7 +84,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @throws JenaException unable to read axioms for this type.
      */
     public Stream<InternalObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
-        return statements(model).map(this::toAxiom);
+        return statements(model).flatMap(OntStatement::split).map(this::toAxiom);
     }
 
     /**

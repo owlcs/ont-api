@@ -299,6 +299,7 @@ public class ReadHelper {
     }
 
     public static boolean isAnnotationAssertionStatement(OntStatement statement, OntLoaderConfiguration conf) {
+        // todo: change sequence ?
         return statement.isAnnotation() && !statement.getSubject().canAs(OntAnnotation.class) &&
                 (isAllowBulkAnnotationAssertions(conf) || !hasAnnotations(statement));
     }

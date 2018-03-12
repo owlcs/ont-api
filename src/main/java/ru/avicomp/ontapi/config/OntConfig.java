@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -10,23 +10,23 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ *
  */
 
 package ru.avicomp.ontapi.config;
+
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
+import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
+import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Stream;
-
-import org.semanticweb.owlapi.model.*;
-
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
-import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
-import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
-import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 /**
  * This is the global config and also the builder for the separated load and write configs.
@@ -136,6 +136,7 @@ public class OntConfig extends OntologyConfigurator {
 
     /**
      * ONT-API(NEW) manager load config setter.
+     *
      * @param schemes List of {@link Scheme}
      * @return this instance
      * @see OntLoaderConfiguration#setSupportedSchemes(List)
@@ -180,8 +181,8 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API(NEW) manager load config getter.
      *
-     * @see OntLoaderConfiguration#isAllowBulkAnnotationAssertions()
      * @return true if bulk annotations are allowed (it is by default)
+     * @see OntLoaderConfiguration#isAllowBulkAnnotationAssertions()
      */
     public boolean isAllowBulkAnnotationAssertions() {
         return (boolean) get(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS);
@@ -283,6 +284,7 @@ public class OntConfig extends OntologyConfigurator {
     public OntConfig setIgnoreAxiomsReadErrors(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS, b);
     }
+
     /**
      * ONT-API(NEW) manager write config getter.
      *
@@ -305,6 +307,19 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
+     * Specifies whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded or
+     * whether they should be discarded on loading. By default, the loading of annotation axioms is enabled.
+     * <p>
+     * Note(1): The behaviour is slightly different from OWL-API (v5.1.4).
+     * If loading axioms is disabled all annotation property assertion axioms turn into annotations in the composition of nearest declaration axioms.
+     * E.g. the snippet
+     * {@code
+     * <http://class> a       owl:Class ;
+     * rdfs:comment "comment1"@es .
+     * } looks like {@code Declaration(Annotation(rdfs:comment "comment1"@es) Class(<http://class>))} in ON-API structural view, while in OWL-API
+     * it would be just naked declaration (i.e. {@code Declaration(Class(<http://class>))}).
+     * Note(2): this method does not affect underling graph.
+     *
      * @see OntologyConfigurator#setLoadAnnotationAxioms(boolean)
      */
     @Override

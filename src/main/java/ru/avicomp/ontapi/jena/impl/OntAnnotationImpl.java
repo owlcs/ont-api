@@ -31,11 +31,14 @@ import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Comparator;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -45,7 +48,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 26.03.2017.
  */
-@SuppressWarnings("ALL")
+@SuppressWarnings("WeakerAccess")
 public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static final Set<Property> REQUIRED_PROPERTIES = Stream.of(OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
             .collect(Iter.toUnmodifiableSet());
@@ -61,6 +64,8 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
             new OntMaker.Default(OntAnnotationImpl.class),
             OntAnnotationImpl::findRootAnnotations,
             OntAnnotationImpl::testAnnotation);
+
+    public static final Comparator<OntAnnotation> DEFAULT_COMPORATOR = makeComparator();
 
     public OntAnnotationImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -88,6 +93,13 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
                 .map(st -> getModel().createOntStatement(false, this, st.getPredicate(), st.getObject()));
     }
 
+    @Override
+    public OntStatement addAnnotation(OntNAP property, RDFNode value) {
+        OntGraphModelImpl model = getModel();
+        model.add(this, property, value);
+        return model.createOntStatement(false, this, property, value);
+    }
+
     public static Stream<Node> findRootAnnotations(EnhGraph eg) {
         return Stream.concat(Stream.of(OWL.Axiom.asNode()), EXTRA_ROOT_TYPES_AS_NODES.stream())
                 .map(t -> eg.asGraph().find(Node.ANY, RDF.type.asNode(), t))
@@ -108,4 +120,34 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         // special cases: owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion
         return EXTRA_ROOT_TYPES_AS_NODES.stream().anyMatch(types::contains);
     }
+
+    /**
+     * Creates a new comparator.
+     * The first are annotations with the most numerous assertions,
+     * the remaining comparison operations are not so important,
+     * but the provided order should be preserved after graph reload.
+     *
+     * @return {@link Comparator} of {@link OntAnnotation}.
+     */
+    public static Comparator<OntAnnotation> makeComparator() {
+        return (left, right) -> {
+            Set<OntStatement> leftSet = left.assertions().collect(Collectors.toSet());
+            Set<OntStatement> rightSet = right.assertions().collect(Collectors.toSet());
+            int res = Integer.compare(leftSet.size(), rightSet.size());
+            while (res == 0) {
+                OntStatement s1 = removeMin(leftSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
+                OntStatement s2 = removeMin(rightSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
+                res = Models.STATEMENT_COMPARATOR_IGNORE_BLANK.compare(s1, s2);
+                if (leftSet.isEmpty() || rightSet.isEmpty()) break;
+            }
+            return -res;
+        };
+    }
+
+    private static <S> S removeMin(Set<S> notEmptySet, Comparator<? super S> comparator) throws IllegalStateException {
+        S res = notEmptySet.stream().min(comparator).orElseThrow(IllegalStateException::new);
+        if (!notEmptySet.remove(res)) throw new IllegalStateException();
+        return res;
+    }
+
 }

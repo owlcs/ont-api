@@ -16,15 +16,11 @@
 package ru.avicomp.ontapi.internal;
 
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
-import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -59,25 +55,7 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
         if (!getConfig(model).loaderConfig().isLoadAnnotationAxioms()) return Stream.empty();
         return model.statements()
                 .filter(OntStatement::isLocal)
-                .filter(this::testStatement)
-                .flatMap(s -> {
-                    Set<OntAnnotation> annotations = s.annotationResources().collect(Collectors.toSet());
-                    if (annotations.isEmpty()) {
-                        // todo: hotfix - direct invoking OntStatementImpl here seems to be not very good solution.
-                        return Stream.of(new OntStatementImpl(s.getSubject(), s.getPredicate(), s.getObject(), s.getModel()) {
-                            @Override
-                            public Stream<OntStatement> annotations() {
-                                return Stream.empty();
-                            }
-
-                            @Override
-                            public boolean hasAnnotations() {
-                                return false;
-                            }
-                        });
-                    }
-                    return annotations.stream().map(OntAnnotation::getBase);
-                });
+                .filter(this::testStatement);
     }
 
     @Override

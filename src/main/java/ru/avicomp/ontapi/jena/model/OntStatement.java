@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 public interface OntStatement extends Statement {
 
     /**
-     * Returns reference to the attached model.
+     * Get the OntGraphModel this OnStatement was created in.
      *
      * @return {@link OntGraphModel}
      */
@@ -47,44 +47,48 @@ public interface OntStatement extends Statement {
     OntGraphModel getModel();
 
     /**
-     * Adds annotation.
+     * Annotates this statement.
+     * If this statement is root (see {@link #isRoot()}) the result is a plain annotation assertion (i.e. {@code this.subject property value}},
+     * otherwise it is an assertion statement from a new (or present) {@link OntAnnotation} resource.
      *
-     * @param property Named annotation property.
-     * @param value    RDFNode (uri-resource, literal or anonymous individual)
-     * @return OntStatement for newly added annotation.
+     * @param property {@link OntNAP} named annotation property, not null.
+     * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not null.
+     * @return {@link OntStatement} for newly added annotation.
      * @throws OntJenaException in case input is incorrect.
+     * @see OntAnnotation#addAnnotation(OntNAP, RDFNode)
      */
     OntStatement addAnnotation(OntNAP property, RDFNode value);
 
     /**
-     * Gets attached annotations (annotation assertions), empty stream if this object is assertion annotation.
-     * Note: it works only with primary {@link OntAnnotation}, to get all assertions use the following approach:
-     * {@code annotationResources().flatMap(OntAnnotation::assertions)}.
+     * Gets attached annotations (annotation assertions).
      *
-     * @return Stream of annotations, could be empty.
+     * @return Stream of {@link OntStatement annotation assertion statements}, can be empty.
      * @see #asAnnotationResource()
      */
     Stream<OntStatement> annotations();
 
     /**
      * Deletes the child annotation if present.
+     * Does nothing if no assertion found.
+     * Throws an exception if specified annotation has it is own annotations.
+     * If this statement is not root and corresponding {@link OntAnnotation} resource has no assertions any more, it is deleted also.
      *
-     * @param property annotation property
-     * @param value    uri-resource, literal or anonymous individual
-     * @throws OntJenaException in case input is incorrect.
+     * @param property {@link OntNAP} named annotation property, not null.
+     * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not null.
+     * @throws OntJenaException in case input is incorrect or deleted annotation has it is own annotations.
      */
-    void deleteAnnotation(OntNAP property, RDFNode value);
+    void deleteAnnotation(OntNAP property, RDFNode value) throws OntJenaException;
 
     /**
      * Returns the stream of annotation objects attached to this statement.
      * E.g. for the statement {@code s A t} the annotation object looks like
-     * {@code
+     * <pre>{@code
      * _:b0 a owl:Axiom .
      * _:b0 Aj tj .
      * _:b0 owl:annotatedSource s .
      * _:b0 owl:annotatedProperty A .
      * _:b0 owl:annotatedTarget t .
-     * }.
+     * }</pre>
      * Technically, although it does not make sense, it is possible that the given statement has several such b-nodes.
      *
      * @return Stream of {@link OntAnnotation} resources.
@@ -109,7 +113,7 @@ public interface OntStatement extends Statement {
     boolean isLocal();
 
     /**
-     * An accessor method to return the subject of the statements.
+     * An accessor method to return the subject of the statements in form of OntObject.
      *
      * @return {@link OntObject}
      * @see Statement#getSubject()
@@ -118,17 +122,53 @@ public interface OntStatement extends Statement {
     OntObject getSubject();
 
     /**
-     * Returns the primary annotation object attached to this statement.
-     * It is assumed that this method always returns the same result if no changes in graph made.
+     * Returns the primary annotation object (resource) which is related to this statement.
+     * It is assumed that this method always returns the same result if no changes in graph made,
+     * even after graph reloading.
      *
      * @return Optional around of {@link OntAnnotation}, can be empty.
      * @see #annotationResources()
      */
-    default Optional<OntAnnotation> asAnnotationResource() {
-        try (Stream<OntAnnotation> res = annotationResources()) {
-            return res.findFirst();
-        }
-    }
+    Optional<OntAnnotation> asAnnotationResource();
+
+    /**
+     * Splits the statement on several equivalent ones but with disjoint annotations.
+     * This method is useful in case there are several b-nodes for each annotations instead a single one.
+     * It is not canonical way to add sub-annotations and should not be widely used, since it is redundant.
+     * So usually the result stream contains only single element: this OntStatement instance.
+     * Consider an example:
+     * <pre>{@code
+     * s A t .
+     * _:b0  a                     owl:Axiom .
+     * _:b0  A1                    t1 .
+     * _:b0  owl:annotatedSource   s .
+     * _:b0  owl:annotatedProperty A .
+     * _:b0  owl:annotatedTarget   t .
+     * _:b1  a                     owl:Axiom .
+     * _:b1  A2                    t2 .
+     * _:b1  owl:annotatedSource   s .
+     * _:b1  owl:annotatedProperty A .
+     * _:b1  owl:annotatedTarget   t .
+     * }</pre>
+     * Here the statement ("s A t") has two sub-annotations ("this A1 t1" and "this A2 t2"),
+     * but they are spread over different resources.
+     * In this case the method returns stream of two ont-statement, and each of them has only one sub-annotation.
+     * For generality, here is an example of a correct and equivalent graph:
+     * <pre>{@code
+     * s A t .
+     * [ a                      owl:Axiom ;
+     * A1                     t1 ;
+     * A2                     t2 ;
+     * owl:annotatedProperty  A ;
+     * owl:annotatedSource    s ;
+     * owl:annotatedTarget    t
+     * ]  .
+     * }</pre>
+     *
+     * @return Stream of {@link OntStatement ont-statements}, not empty,
+     * each element equals to this statement but has different related annotations.
+     */
+    Stream<OntStatement> split();
 
     /**
      * @return true if predicate is rdf:type
@@ -196,4 +236,5 @@ public interface OntStatement extends Statement {
     default OntStatement addAnnotation(OntNAP predicate, String message, String lang) {
         return addAnnotation(predicate, ResourceFactory.createLangLiteral(message, lang));
     }
+
 }

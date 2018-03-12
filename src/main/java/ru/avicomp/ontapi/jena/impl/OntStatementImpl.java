@@ -27,7 +27,11 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -70,15 +74,14 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
-        checkAnnotationInput(property, value);
-        Resource root = asAnnotationResource().orElseGet(() -> createAnnotationObject(OntStatementImpl.this, getAnnotationResourceType()));
-        root.addProperty(property, value);
-        return getModel().createOntStatement(false, root, property, value);
+        OntJenaException.notNull(property, "Null property.");
+        OntJenaException.notNull(value, "Null value.");
+        return asAnnotationResource().orElseGet(() -> createAnnotationObject(OntStatementImpl.this, getAnnotationResourceType())).addAnnotation(property, value);
     }
 
     @Override
     public Stream<OntStatement> annotations() {
-        return asAnnotationResource().map(OntAnnotation::assertions).orElseGet(Stream::empty);
+        return annotationResources().flatMap(OntAnnotation::assertions);
     }
 
     @Override
@@ -87,44 +90,29 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
-    public boolean hasAnnotations() {
-        Optional<OntAnnotation> root = asAnnotationResource();
-        if (root.isPresent()) {
-            try (Stream<OntStatement> assertions = root.get().assertions()) {
-                return assertions.findAny().isPresent();
-            }
-        }
-        return false;
-    }
-
-    @Override
     public void deleteAnnotation(OntNAP property, RDFNode value) {
-        checkAnnotationInput(property, value);
-        Optional<OntAnnotation> root = asAnnotationResource();
-        if (!root.isPresent()) return;
-        if (getModel().contains(root.get(), property, value)) {
-            OntStatement res = getModel().createOntStatement(false, root.get(), property, value);
-            if (res.hasAnnotations()) {
-                throw new OntJenaException("Can't delete " + res + ": it has children");
-            }
-            getModel().removeAll(root.get(), property, value);
-        }
-        if (root.get().assertions().findAny().isPresent())
-            return;
-        // if no children remove whole parent section.
-        getModel().removeAll(root.get(), null, null);
-    }
-
-    protected void checkAnnotationInput(OntNAP property, RDFNode value) {
         OntJenaException.notNull(property, "Null property.");
-        if (OntJenaException.notNull(value, "Null value.").isResource()) {
-            if (value.isURIResource()) return;
-            if (value.canAs(OntIndividual.Anonymous.class)) return;
-            throw new OntJenaException("Incorrect resource specified " + value + ": should be either uri-resource or anonymous individual.");
-        } else if (value.isLiteral()) {
+        OntJenaException.notNull(value, "Null value.");
+        Set<OntStatement> candidates = annotationResources()
+                .flatMap(OntAnnotation::assertions)
+                .filter(s -> Objects.equals(property, s.getPredicate()))
+                .filter(s -> Objects.equals(value, s.getObject()))
+                .collect(Collectors.toSet());
+        if (candidates.isEmpty()) {
             return;
         }
-        throw new OntJenaException("Should never happen.");
+        Set<OntStatement> delete = candidates.stream()
+                .filter(s -> !s.hasAnnotations()).collect(Collectors.toSet());
+        if (delete.isEmpty()) {
+            throw new OntJenaException("Can't delete [*, " + property + ", " + value + "]: " +
+                    "candidates have their own annotations which should be deleted first.");
+        }
+        OntGraphModelImpl model = getModel();
+        delete.forEach(model::remove);
+        Set<OntAnnotation> empty = annotationResources()
+                .filter(f -> Objects.equals(f.listProperties().toSet().size(), OntAnnotationImpl.SPEC.size()))
+                .collect(Collectors.toSet());
+        empty.forEach(a -> model.removeAll(a, null, null));
     }
 
     @Override
@@ -132,8 +120,53 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         return annotationObjects(this, getAnnotationResourceType());
     }
 
+    @Override
+    public Optional<OntAnnotation> asAnnotationResource() {
+        try (Stream<OntAnnotation> res = annotationResources().sorted(OntAnnotationImpl.DEFAULT_COMPORATOR)) {
+            return res.findFirst();
+        }
+    }
+
+    public List<OntAnnotation> getAnnotationResources() {
+        return annotationResources().sorted(OntAnnotationImpl.DEFAULT_COMPORATOR).collect(Collectors.toList());
+    }
+
     /**
-     * Returns annotation objects corresponding the given statement and rdfs-type
+     * Warning: returns not lazy stream
+     *
+     * @return Stream of ont-statements.
+     */
+    @Override
+    public Stream<OntStatement> split() {
+        List<OntAnnotation> res = getAnnotationResources();
+        if (res.size() < 2) {
+            return Stream.of(this);
+        }
+        if (isRoot()) {
+            OntAnnotation first = res.remove(0);
+            OntStatementImpl r = new RootImpl(getSubject(), getPredicate(), getObject(), getModel()) {
+                @Override
+                public Stream<OntAnnotation> annotationResources() {
+                    return Stream.of(first);
+                }
+            };
+            return Stream.concat(Stream.of(r), res.stream().map(OntAnnotation::getBase));
+        }
+        return res.stream().map(OntAnnotation::getBase);
+    }
+
+
+    /**
+     * Returns the rdf:type of attached annotation objects.
+     *
+     * @return {@link OWL#Axiom {@code owl:Axiom}} or {@link OWL#Annotation {@code owl:Annotation}}
+     */
+    protected Resource getAnnotationResourceType() {
+        return annotationResourceType == null ? annotationResourceType = detectAnnotationRootType(getSubject()) : annotationResourceType;
+    }
+
+    /**
+     * Returns annotation objects corresponding to the given statement and rdfs-type
      *
      * @param base base ont-statement
      * @param type owl:Axiom or owl:Annotation
@@ -145,33 +178,6 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
                 .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
                 .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
                 .map(r -> new AttachedAnnotationImpl(r, base));
-    }
-
-    /**
-     * An {@link OntAnnotationImpl} with reference to itself.
-     */
-    private static class AttachedAnnotationImpl extends OntAnnotationImpl {
-        private final OntStatementImpl base;
-
-        public AttachedAnnotationImpl(Resource subject, OntStatementImpl base) {
-            super(subject.asNode(), base.getModel());
-            this.base = base;
-        }
-
-        @Override
-        public OntStatement getBase() {
-            return new OntStatementImpl(base.getSubject(), base.getPredicate(), base.getObject(), getModel()) {
-                @Override
-                public boolean hasAnnotations() {
-                    return true;
-                }
-
-                @Override
-                public Optional<OntAnnotation> asAnnotationResource() {
-                    return Optional.of(AttachedAnnotationImpl.this);
-                }
-            };
-        }
     }
 
     /**
@@ -195,24 +201,43 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * Root annotations (including some anon-axioms bodies) go with the type owl:Axiom {@link OWL#Axiom},
      * sub-annotations have type owl:Annotation.
      *
-     * @param subject {@link Resource} the subject resource to test
+     * @param s {@link Resource} the subject resource to test
      * @return {@link OWL#Axiom} or {@link OWL#Annotation}
      */
-    protected static Resource detectAnnotationRootType(OntObject subject) {
-        if (subject.isAnon() &&
-                subject.types().anyMatch(t -> OWL.Axiom.equals(t) || OWL.Annotation.equals(t) || OntAnnotationImpl.EXTRA_ROOT_TYPES.contains(t))) {
+    protected static Resource detectAnnotationRootType(OntObject s) {
+        if (s.isAnon() &&
+                s.types().anyMatch(t -> OWL.Axiom.equals(t) || OWL.Annotation.equals(t) || OntAnnotationImpl.EXTRA_ROOT_TYPES.contains(t))) {
             return OWL.Annotation;
         }
         return OWL.Axiom;
     }
 
     /**
-     * Returns the rdf:type of attached annotation objects.
-     *
-     * @return {@link OWL#Axiom {@code owl:Axiom}} or {@link OWL#Annotation {@code owl:Annotation}}
+     * An {@link OntAnnotationImpl} with reference to itself.
      */
-    protected Resource getAnnotationResourceType() {
-        return annotationResourceType == null ? annotationResourceType = detectAnnotationRootType(getSubject()) : annotationResourceType;
+    private static class AttachedAnnotationImpl extends OntAnnotationImpl {
+        private final OntStatementImpl base;
+
+        public AttachedAnnotationImpl(Resource subject, OntStatementImpl base) {
+            super(subject.asNode(), base.getModel());
+            this.base = base;
+        }
+
+        @Override
+        public OntStatement getBase() {
+            return new OntStatementImpl(base.getSubject(), base.getPredicate(), base.getObject(), getModel()) {
+
+                @Override
+                public Stream<OntStatement> annotations() {
+                    return assertions();
+                }
+
+                @Override
+                public Optional<OntAnnotation> asAnnotationResource() {
+                    return Optional.of(AttachedAnnotationImpl.this);
+                }
+            };
+        }
     }
 
     /**
@@ -235,13 +260,12 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
         @Override
         public OntStatement addAnnotation(OntNAP property, RDFNode value) {
-            checkAnnotationInput(property, value);
-            getModel().add(getSubject(), property, value);
+            getModel().add(getSubject(), OntJenaException.notNull(property, "Null property."), OntJenaException.notNull(value, "Null value."));
             return getModel().createOntStatement(false, getSubject(), property, value);
         }
 
         private Stream<Statement> properties() {
-            return Iter.asStream(getSubject().listProperties());
+            return Iter.asStream(subject.listProperties());
         }
 
         @Override
@@ -253,16 +277,8 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         }
 
         @Override
-        public boolean hasAnnotations() {
-            try (Stream<Statement> statements = properties()) {
-                return statements.map(Statement::getPredicate).anyMatch(p -> p.canAs(OntNAP.class)) || super.hasAnnotations();
-            }
-        }
-
-        @Override
         public void deleteAnnotation(OntNAP property, RDFNode value) {
-            checkAnnotationInput(property, value);
-            getModel().removeAll(getSubject(), property, value);
+            getModel().removeAll(getSubject(), OntJenaException.notNull(property, "Null property."), OntJenaException.notNull(value, "Null value."));
             super.deleteAnnotation(property, value);
         }
     }
