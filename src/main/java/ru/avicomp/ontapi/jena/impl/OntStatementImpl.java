@@ -122,13 +122,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public Optional<OntAnnotation> asAnnotationResource() {
-        try (Stream<OntAnnotation> res = annotationResources().sorted(OntAnnotationImpl.DEFAULT_COMPORATOR)) {
+        try (Stream<OntAnnotation> res = annotationResources().sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR)) {
             return res.findFirst();
         }
-    }
-
-    public List<OntAnnotation> getAnnotationResources() {
-        return annotationResources().sorted(OntAnnotationImpl.DEFAULT_COMPORATOR).collect(Collectors.toList());
     }
 
     /**
@@ -136,9 +132,8 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      *
      * @return Stream of ont-statements.
      */
-    @Override
     public Stream<OntStatement> split() {
-        List<OntAnnotation> res = getAnnotationResources();
+        List<OntAnnotation> res = annotationResources().sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR).collect(Collectors.toList());
         if (res.size() < 2) {
             return Stream.of(this);
         }

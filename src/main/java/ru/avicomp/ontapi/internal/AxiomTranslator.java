@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -84,7 +85,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @throws JenaException unable to read axioms for this type.
      */
     public Stream<InternalObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
-        return statements(model).flatMap(OntStatement::split).map(this::toAxiom);
+        return statements(model).flatMap(Models::split).map(this::toAxiom);
     }
 
     /**

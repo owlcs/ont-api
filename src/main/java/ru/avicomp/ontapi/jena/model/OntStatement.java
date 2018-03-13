@@ -132,45 +132,6 @@ public interface OntStatement extends Statement {
     Optional<OntAnnotation> asAnnotationResource();
 
     /**
-     * Splits the statement on several equivalent ones but with disjoint annotations.
-     * This method is useful in case there are several b-nodes for each annotations instead a single one.
-     * It is not canonical way to add sub-annotations and should not be widely used, since it is redundant.
-     * So usually the result stream contains only single element: this OntStatement instance.
-     * Consider an example:
-     * <pre>{@code
-     * s A t .
-     * _:b0  a                     owl:Axiom .
-     * _:b0  A1                    t1 .
-     * _:b0  owl:annotatedSource   s .
-     * _:b0  owl:annotatedProperty A .
-     * _:b0  owl:annotatedTarget   t .
-     * _:b1  a                     owl:Axiom .
-     * _:b1  A2                    t2 .
-     * _:b1  owl:annotatedSource   s .
-     * _:b1  owl:annotatedProperty A .
-     * _:b1  owl:annotatedTarget   t .
-     * }</pre>
-     * Here the statement ("s A t") has two sub-annotations ("this A1 t1" and "this A2 t2"),
-     * but they are spread over different resources.
-     * In this case the method returns stream of two ont-statement, and each of them has only one sub-annotation.
-     * For generality, here is an example of a correct and equivalent graph:
-     * <pre>{@code
-     * s A t .
-     * [ a                      owl:Axiom ;
-     * A1                     t1 ;
-     * A2                     t2 ;
-     * owl:annotatedProperty  A ;
-     * owl:annotatedSource    s ;
-     * owl:annotatedTarget    t
-     * ]  .
-     * }</pre>
-     *
-     * @return Stream of {@link OntStatement ont-statements}, not empty,
-     * each element equals to this statement but has different related annotations.
-     */
-    Stream<OntStatement> split();
-
-    /**
      * @return true if predicate is rdf:type
      */
     default boolean isDeclaration() {

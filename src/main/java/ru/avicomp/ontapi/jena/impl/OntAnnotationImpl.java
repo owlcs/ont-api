@@ -65,7 +65,23 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
             OntAnnotationImpl::findRootAnnotations,
             OntAnnotationImpl::testAnnotation);
 
-    public static final Comparator<OntAnnotation> DEFAULT_COMPORATOR = makeComparator();
+    /**
+     * The first are annotations with the most numerous assertions,
+     * the remaining comparison operations are not so important,
+     * but the provided order should be preserved after graph reload.
+     */
+    public static final Comparator<OntAnnotation> DEFAULT_ANNOTATION_COMPARATOR = (left, right) -> {
+        Set<OntStatement> leftSet = left.assertions().collect(Collectors.toSet());
+        Set<OntStatement> rightSet = right.assertions().collect(Collectors.toSet());
+        int res = Integer.compare(leftSet.size(), rightSet.size());
+        while (res == 0) {
+            OntStatement s1 = removeMin(leftSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
+            OntStatement s2 = removeMin(rightSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
+            res = Models.STATEMENT_COMPARATOR_IGNORE_BLANK.compare(s1, s2);
+            if (leftSet.isEmpty() || rightSet.isEmpty()) break;
+        }
+        return -res;
+    };
 
     public OntAnnotationImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -119,29 +135,6 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         }
         // special cases: owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion
         return EXTRA_ROOT_TYPES_AS_NODES.stream().anyMatch(types::contains);
-    }
-
-    /**
-     * Creates a new comparator.
-     * The first are annotations with the most numerous assertions,
-     * the remaining comparison operations are not so important,
-     * but the provided order should be preserved after graph reload.
-     *
-     * @return {@link Comparator} of {@link OntAnnotation}.
-     */
-    public static Comparator<OntAnnotation> makeComparator() {
-        return (left, right) -> {
-            Set<OntStatement> leftSet = left.assertions().collect(Collectors.toSet());
-            Set<OntStatement> rightSet = right.assertions().collect(Collectors.toSet());
-            int res = Integer.compare(leftSet.size(), rightSet.size());
-            while (res == 0) {
-                OntStatement s1 = removeMin(leftSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
-                OntStatement s2 = removeMin(rightSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
-                res = Models.STATEMENT_COMPARATOR_IGNORE_BLANK.compare(s1, s2);
-                if (leftSet.isEmpty() || rightSet.isEmpty()) break;
-            }
-            return -res;
-        };
     }
 
     private static <S> S removeMin(Set<S> notEmptySet, Comparator<? super S> comparator) throws IllegalStateException {
