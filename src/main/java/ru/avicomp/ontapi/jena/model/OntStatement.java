@@ -71,7 +71,8 @@ public interface OntStatement extends Statement {
      * Deletes the child annotation if present.
      * Does nothing if no assertion found.
      * Throws an exception if specified annotation has it is own annotations.
-     * If this statement is not root and corresponding {@link OntAnnotation} resource has no assertions any more, it is deleted also.
+     * If this statement is not root and corresponding {@link OntAnnotation} resource has no assertions any more,
+     * it deletes the whole OntAnnotation resource also.
      *
      * @param property {@link OntNAP} named annotation property, not null.
      * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not null.
@@ -98,6 +99,18 @@ public interface OntStatement extends Statement {
 
     /**
      * Answers iff this statement is root (i.e. is a definition for some OntObject).
+     * The root statement can be annotated with both plain and bulk annotation assertions:
+     * <pre>{@code
+     * :class   rdf:type                owl:Class ;
+     *          rdfs:isDefinedBy        :annotation-1 .
+     * [
+     *          rdf:type                owl:Axiom ;
+     *          rdfs:seeAlso            :annotations-2 ;
+     *          owl:annotatedProperty   rdf:type ;
+     *          owl:annotatedSource     :class ;
+     *          owl:annotatedTarget     owl:Class
+     * ] .}</pre>
+     * The non-root statement can only have bulk annotations.
      *
      * @return true if root.
      * @see OntObject#getRoot()
@@ -175,7 +188,7 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Answers iff this statement has annotations attached
+     * Answers iff this statement has any annotations attached (both plain and bulk).
      *
      * @return true if it is annotated.
      */

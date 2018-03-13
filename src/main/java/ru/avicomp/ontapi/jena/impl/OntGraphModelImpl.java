@@ -192,7 +192,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     /**
-     * to retrieve the stream of {@link OntObject}s
+     * To retrieve the stream of {@link OntObject}s
      *
      * @param type Class
      * @return Stream
@@ -202,18 +202,13 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         return getPersonality().getOntImplementation(type).find(this).map(e -> getNodeAs(e.asNode(), type));
     }
 
-    /**
-     * Returns entity types as stream.
-     *
-     * @return Stream of entities types.
-     */
-    public static Stream<Class<? extends OntEntity>> entityTypes() {
-        return Stream.of(OntClass.class, OntDT.class, OntIndividual.Named.class, OntNOP.class, OntNAP.class, OntNDP.class);
-    }
-
     @Override
     public Stream<OntEntity> ontEntities() {
-        return entityTypes().map(this::ontEntities).flatMap(Function.identity());
+        /*return Iter.asStream(listSubjectsWithProperty(RDF.type))
+                .filter(RDFNode::isURIResource)
+                .flatMap(r -> OntEntity.entityTypes().map(t -> getOntEntity(t, r)).filter(Objects::nonNull));*/
+        // this looks faster:
+        return OntEntity.entityTypes().map(this::ontEntities).flatMap(Function.identity());
     }
 
     /**
@@ -223,7 +218,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
      * @return Stream of {@link OntEntity}s.
      */
     public Stream<OntEntity> ambiguousEntities(boolean withImports) {
-        Set<Class<? extends OntEntity>> types = entityTypes().collect(Collectors.toSet());
+        Set<Class<? extends OntEntity>> types = OntEntity.entityTypes().collect(Collectors.toSet());
         return ontEntities().filter(e -> withImports || e.isLocal()).filter(e -> types.stream()
                 .filter(view -> e.canAs(view) && (withImports || e.as(view).isLocal())).count() > 1);
     }
@@ -321,7 +316,12 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
      * @return {@link OntStatement}
      */
     protected OntStatement createOntStatement(boolean root, Resource s, Property p, RDFNode o) {
-        return root ? new OntStatementImpl.RootImpl(s, p, o, this) : new OntStatementImpl(s, p, o, this);
+        return new OntStatementImpl(s, p, o, this) {
+            @Override
+            public boolean isRoot() {
+                return root;
+            }
+        };
     }
 
     @Override

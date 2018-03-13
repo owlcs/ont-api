@@ -18,6 +18,7 @@ package ru.avicomp.ontapi.internal;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
@@ -503,7 +504,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
         if (start != null) {
             Duration d = Duration.between(start, Instant.now());
-            LOGGER.debug("[{}]:::{}s", type.getSimpleName(), d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000.0);
+            // commons-lang3 is included in jena-arq (3.6.0)
+            LOGGER.debug("{}:::{}s", StringUtils.rightPad("[" + type.getSimpleName() + "]", 42), d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000.0);
         }
         return res;
     }

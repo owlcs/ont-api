@@ -100,14 +100,6 @@ public class ReadHelper {
         return (InternalObject<OWLNamedIndividual>) fetchIndividual(individual, df);
     }
 
-    public static Stream<OntStatement> annotations(OntStatement statement) {
-        return statement.annotations();
-    }
-
-    public static boolean hasAnnotations(OntStatement statement) {
-        return statement.hasAnnotations();
-    }
-
     /**
      * @param anon {@link OntIndividual.Anonymous}
      * @param df   {@link OWLDataFactory}
@@ -299,25 +291,31 @@ public class ReadHelper {
     }
 
     public static boolean isAnnotationAssertionStatement(OntStatement statement, OntLoaderConfiguration conf) {
-        // todo: change sequence ?
-        return statement.isAnnotation() && !statement.getSubject().canAs(OntAnnotation.class) &&
-                (isAllowBulkAnnotationAssertions(conf) || !hasAnnotations(statement));
+        return statement.isAnnotation() && !statement.getSubject().canAs(OntAnnotation.class) && (isAllowBulkAnnotationAssertions(conf) || !hasAnnotations(statement));
+    }
+
+    public static Stream<OntStatement> annotations(OntStatement statement) {
+        return statement.annotations();
+    }
+
+    public static boolean hasAnnotations(OntStatement statement) {
+        return statement.hasAnnotations();
     }
 
     /**
      * Returns the container with set of {@link OWLAnnotation} associated with the specified statement.
      *
-     * @param statement {@link OntStatement}
+     * @param stm {@link OntStatement}
      * @param df        {@link OWLDataFactory}
      * @param conf      {@link OntLoaderConfiguration}
      * @return a set of wraps {@link InternalObject} around {@link OWLAnnotation}
      */
-    public static Set<InternalObject<OWLAnnotation>> getAnnotations(OntStatement statement, OWLDataFactory df, OntLoaderConfiguration conf) {
-        Set<InternalObject<OWLAnnotation>> res = getAllAnnotations(statement, df);
-        if (isAnnotationAssertionsAllowed(conf) && isDeclarationStatement(statement)) {
+    public static Set<InternalObject<OWLAnnotation>> getAnnotations(OntStatement stm, OWLDataFactory df, OntLoaderConfiguration conf) {
+        Set<InternalObject<OWLAnnotation>> res = getAllAnnotations(stm, df);
+        if (isAnnotationAssertionsAllowed(conf) && isDeclarationStatement(stm)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
-            annotations(statement).filter(s -> isAnnotationAssertionStatement(s, conf))
+            annotations(stm).filter(s -> isAnnotationAssertionStatement(s, conf))
                     .map(a -> getAnnotation(a, df)).forEach(res::remove);
         }
         return res;

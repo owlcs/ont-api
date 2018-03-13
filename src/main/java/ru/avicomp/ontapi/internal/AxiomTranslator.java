@@ -85,7 +85,12 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @throws JenaException unable to read axioms for this type.
      */
     public Stream<InternalObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
-        return statements(model).flatMap(Models::split).map(this::toAxiom);
+        return statements(model)
+                // CacheStatement helps to speed up a little if ontology has a lot of annotations,
+                // otherwise, it may even slow down the process of axioms collecting ...
+                .map(Models::createCachedStatement)
+                .flatMap(Models::split)
+                .map(this::toAxiom);
     }
 
     /**

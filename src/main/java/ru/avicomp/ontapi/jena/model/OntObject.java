@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Base Ont Resource.
+ * A base Ont RDF Resource, a common super-type for all of the abstractions in the {@link OntGraphModel ontology}.
  * The analogue of {@link org.apache.jena.ontology.OntResource}
  * <p>
  * Created by szuev on 01.11.2016.

@@ -119,8 +119,11 @@ public interface OntGraphModel extends Model {
     <O extends OntObject> Stream<O> ontObjects(Class<O> type);
 
     /**
-     * Note: this method returns not distinct stream.
-     * This means that resources may have the same uri ('punnings')
+     * Lists all entities declared in the model.
+     * Builtins are not included.
+     * The retrieved entities can belong to the underlying graphs also.
+     * Note: this method returns not distinct stream -
+     * the duplicate elements means that it is so called 'puns'.
      *
      * @return Stream of {@link OntEntity}
      * @see #ontObjects(Class)
@@ -130,6 +133,7 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the ont-entity for the specified type and uri.
+     * This method can be used to wrap builtin entities, which are not belong to the graph in fact.
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not null.
      * @param uri, String, not null.

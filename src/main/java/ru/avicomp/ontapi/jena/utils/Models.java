@@ -23,6 +23,7 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.impl.CachedStatementImpl;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -97,6 +98,7 @@ public class Models {
 
     /**
      * Determines is s specified resource belongs to a list.
+     *
      * @param model     Model
      * @param candidate Resource to test
      * @return true if specified resource is a member of some rdf:List
@@ -178,7 +180,7 @@ public class Models {
      * Splits the statement on several equivalent ones but with disjoint annotations.
      * This method is useful in case there are several b-nodes for each annotations instead a single one.
      * It is not canonical way to add sub-annotations and should not be widely used, since it is redundant.
-     * So usually the result stream contains only single element: this OntStatement instance.
+     * So usually the result stream contains only a single element: the specified OntStatement instance.
      * Consider an example:
      * <pre>{@code
      * s A t .
@@ -214,6 +216,18 @@ public class Models {
      */
     public static Stream<OntStatement> split(OntStatement statement) {
         return ((OntStatementImpl) statement).split();
+    }
+
+
+    /**
+     * Creates a wrapper for ont-statement with in-memory caches.
+     * Currently just for debugging.
+     *
+     * @param delegate {@link OntStatement}
+     * @return {@link OntStatement}
+     */
+    public static OntStatement createCachedStatement(OntStatement delegate) {
+        return delegate instanceof CachedStatementImpl ? delegate : new CachedStatementImpl(delegate);
     }
 
 }
