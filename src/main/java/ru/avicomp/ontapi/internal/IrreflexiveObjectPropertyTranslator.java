@@ -48,10 +48,11 @@ public class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTra
 
     @Override
     public InternalObject<OWLIrreflexiveObjectPropertyAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<? extends OWLObjectPropertyExpression> p = ReadHelper.fetchObjectPropertyExpression(getSubject(statement), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLIrreflexiveObjectPropertyAxiom res = conf.dataFactory().getOWLIrreflexiveObjectPropertyAxiom(p.getObject(), InternalObject.extract(annotations));
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLIrreflexiveObjectPropertyAxiom res = reader.getOWLDataFactory()
+                .getOWLIrreflexiveObjectPropertyAxiom(p.getObject(), InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations).append(p);
     }
 }

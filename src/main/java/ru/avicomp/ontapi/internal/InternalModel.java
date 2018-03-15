@@ -68,7 +68,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             Caffeine.newBuilder().softValues().build(this::readObjectTriples);
 
     // Temporary cache for collecting axioms, should be reset after axioms getting.
-    protected CommonObjectsCache temporaryObjects = new CommonObjectsCache();
+    protected final InternalDataFactory cacheDataFactory;
     // OWL objects store to improve performance (working with OWL-API 'signature' methods)
     // Any change in the graph must reset these caches.
     protected LoadingCache<Class<? extends OWLObject>, Set<? extends OWLObject>> objects =
@@ -83,6 +83,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     public InternalModel(Graph base, ConfigProvider.Config config) {
         super(base, config.loaderConfig().getPersonality());
         this.config = config;
+        this.cacheDataFactory = new CaffeineDataFactory(config);
         getGraph().getEventManager().register(new DirectListener());
     }
 
@@ -94,6 +95,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     @Override
     public ConfigProvider.Config getConfig() {
         return config;
+    }
+
+    public InternalDataFactory getObjectsCache() {
+        return cacheDataFactory;
     }
 
     /**
@@ -135,7 +140,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLImportsDeclaration}s
      */
     public Stream<OWLImportsDeclaration> importDeclarations() {
-        return getID().imports().map(IRI::create).map(i -> getConfig().dataFactory().getOWLImportsDeclaration(i));
+        return getID().imports().map(cacheDataFactory::toIRI).map(i -> getConfig().dataFactory().getOWLImportsDeclaration(i));
     }
 
     /**
@@ -148,94 +153,34 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Auxiliary method which is used while axioms collecting.
-     *
-     * @param ce {@link OntCE}
-     * @return {@link InternalObject} which wraps {@link OWLClassExpression}
-     */
-    protected InternalObject<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
-        return temporaryObjects.get(ce, true);
-    }
-
-    /**
-     * Auxiliary method which is used while axioms collecting.
-     *
-     * @param dr {@link OntDR}
-     * @return {@link InternalObject} which wraps {@link OWLDataRange}
-     */
-    protected InternalObject<? extends OWLDataRange> fetchDataRange(OntDR dr) {
-        return temporaryObjects.get(dr, true);
-    }
-
-    /**
-     * Auxiliary method which is used while axioms collecting.
-     *
-     * @param indi {@link OntIndividual}
-     * @return {@link InternalObject} which wraps {@link OWLIndividual}
-     */
-    protected InternalObject<? extends OWLIndividual> fetchIndividual(OntIndividual indi) {
-        return temporaryObjects.get(indi, true);
-    }
-
-    /**
-     * Auxiliary method which is used while axioms collecting.
-     *
-     * @param nap {@link OntNAP}
-     * @return {@link InternalObject} which wraps {@link OWLAnnotationProperty}
-     */
-    protected InternalObject<OWLAnnotationProperty> fetchAnnotationProperty(OntNAP nap) {
-        return temporaryObjects.get(nap, true);
-    }
-
-    /**
-     * Auxiliary method which is used while axioms collecting.
-     *
-     * @param ndp {@link OntNDP}
-     * @return {@link InternalObject} which wraps {@link OWLDataProperty}
-     */
-    protected InternalObject<OWLDataProperty> fetchDataProperty(OntNDP ndp) {
-        return temporaryObjects.get(ndp, true);
-    }
-
-    /**
-     * Auxiliary method which is used while axioms collecting.
-     *
-     * @param ope {@link OntOPE}
-     * @return {@link InternalObject} which wraps {@link OWLObjectPropertyExpression}
-     */
-    protected InternalObject<? extends OWLObjectPropertyExpression> fetchObjectProperty(OntOPE ope) {
-        return temporaryObjects.get(ope, true);
-    }
-
-    /**
      * Returns an owl-entity by iri specified.
      *
      * @param iri {@link IRI}
      * @return List of {@link OWLEntity}s.
      */
-    public List<OWLEntity> getEntities(IRI iri) {
-        if (iri == null) return Collections.emptyList();
+    public Stream<OWLEntity> entities(IRI iri) {
+        if (iri == null) return Stream.empty();
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
-        List<OWLEntity> res = new ArrayList<>();
+        List<InternalObject<? extends OWLEntity>> res = new ArrayList<>();
         if (e.canAs(OntClass.class)) {
-            res.add(fetchClassExpression(e.as(OntClass.class)).getObject().asOWLClass());
+            res.add(cacheDataFactory.get(e.as(OntClass.class)));
         }
         if (e.canAs(OntDT.class)) {
-            res.add(fetchDataRange(e.as(OntDT.class)).getObject().asOWLDatatype());
+            res.add(cacheDataFactory.get(e.as(OntDT.class)));
         }
         if (e.canAs(OntNAP.class)) {
-            res.add(fetchAnnotationProperty(e.as(OntNAP.class)).getObject());
+            res.add(cacheDataFactory.get(e.as(OntNAP.class)));
         }
         if (e.canAs(OntNDP.class)) {
-            res.add(fetchDataProperty(e.as(OntNDP.class)).getObject());
+            res.add(cacheDataFactory.get(e.as(OntNDP.class)));
         }
         if (e.canAs(OntNOP.class)) {
-            res.add(fetchObjectProperty(e.as(OntNOP.class)).getObject().asOWLObjectProperty());
+            res.add(cacheDataFactory.get(e.as(OntNOP.class)));
         }
         if (e.canAs(OntIndividual.Named.class)) {
-            res.add(fetchIndividual(e.as(OntIndividual.Named.class)).getObject().asOWLNamedIndividual());
+            res.add(cacheDataFactory.get(e.as(OntIndividual.Named.class)));
         }
-        return res;
+        return res.stream().map(InternalObject::getObject);
     }
 
     /**
@@ -331,8 +276,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     protected <O extends OWLObject> Set<O> readObjects(Class<O> type) {
         return Stream.concat(
-                annotations().map(annotation -> OwlObjects.objects(type, annotation)).flatMap(Function.identity()),
-                axioms().map(axiom -> OwlObjects.objects(type, axiom)).flatMap(Function.identity()))
+                annotations().map(a -> OwlObjects.objects(type, a)).flatMap(Function.identity()),
+                axioms().map(a -> OwlObjects.objects(type, a)).flatMap(Function.identity()))
                 .collect(Collectors.toSet());
     }
 
@@ -426,11 +371,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLAxiom}s.
      */
     public Stream<OWLAxiom> axioms() {
-        try {
-            return axioms(AxiomType.AXIOM_TYPES);
-        } finally {
-            temporaryObjects.clear();
-        }
+        return axioms(AxiomType.AXIOM_TYPES);
     }
 
     /**
@@ -505,7 +446,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         if (start != null) {
             Duration d = Duration.between(start, Instant.now());
             // commons-lang3 is included in jena-arq (3.6.0)
-            LOGGER.debug("{}:::{}s", StringUtils.rightPad("[" + type.getSimpleName() + "]", 42), d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000.0);
+            LOGGER.debug("[{}]{}:::{}s", getID(),
+                    StringUtils.rightPad("[" + type.getSimpleName() + "]", 42), d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000.0);
         }
         return res;
     }
@@ -527,7 +469,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return {@link InternalObject}
      */
     protected InternalObjectTriplesMap<OWLAnnotation> readAnnotationTriples() {
-        return new InternalObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), getConfig().dataFactory()));
+        return new InternalObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), cacheDataFactory));
     }
 
     /**
@@ -633,11 +575,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * Auxiliary method.
-     * Invalidates {@link #objects} and {@link #temporaryObjects} caches.
+     * Invalidates {@link #objects} and {@link #cacheDataFactory} caches.
      */
     protected void clearObjectsCaches() {
         objects.invalidateAll();
-        temporaryObjects.clear();
+        cacheDataFactory.clear();
     }
 
     /**
@@ -846,28 +788,26 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * The internal cache holder which is using while reading owl-objects.
-     *
-     * @see #fetchClassExpression(OntCE)
-     * @see #fetchDataRange(OntDR)
-     * @see #fetchIndividual(OntIndividual)
-     * @see #fetchObjectProperty(OntOPE)
-     * @see #fetchDataProperty(OntNDP)
-     * @see #fetchAnnotationProperty(OntNAP)
      */
-    protected class CommonObjectsCache {
-        protected LoadingCache<OntCE, InternalObject<? extends OWLClassExpression>> classExpressions =
-                build(c -> ReadHelper.getClassExpression(c, getConfig().dataFactory()));
-        protected LoadingCache<OntDR, InternalObject<? extends OWLDataRange>> dataRanges =
-                build(d -> ReadHelper.getDataRange(d, getConfig().dataFactory()));
-        protected LoadingCache<OntNAP, InternalObject<OWLAnnotationProperty>> annotationProperties =
-                build(p -> ReadHelper.getAnnotationProperty(p, getConfig().dataFactory()));
-        protected LoadingCache<OntNDP, InternalObject<OWLDataProperty>> datatypeProperties =
-                build(p -> ReadHelper.getDataProperty(p, getConfig().dataFactory()));
-        protected LoadingCache<OntOPE, InternalObject<? extends OWLObjectPropertyExpression>> objectProperties =
-                build(p -> ReadHelper.getObjectPropertyExpression(p, getConfig().dataFactory()));
-        protected LoadingCache<OntIndividual, InternalObject<? extends OWLIndividual>> individuals =
-                build(i -> ReadHelper.getIndividual(i, getConfig().dataFactory()));
+    public static class CaffeineDataFactory extends NoCacheDataFactory {
+        protected final LoadingCache<OntCE, InternalObject<? extends OWLClassExpression>> classExpressions;
+        protected final LoadingCache<OntDR, InternalObject<? extends OWLDataRange>> dataRanges;
+        protected final LoadingCache<OntNAP, InternalObject<OWLAnnotationProperty>> annotationProperties;
+        protected final LoadingCache<OntNDP, InternalObject<OWLDataProperty>> datatypeProperties;
+        protected final LoadingCache<OntOPE, InternalObject<? extends OWLObjectPropertyExpression>> objectProperties;
+        protected final LoadingCache<OntIndividual, InternalObject<? extends OWLIndividual>> individuals;
 
+        public CaffeineDataFactory(ConfigProvider.Config config) {
+            super(config);
+            this.classExpressions = build(super::get);
+            this.dataRanges = build(super::get);
+            this.annotationProperties = build(super::get);
+            this.datatypeProperties = build(super::get);
+            this.objectProperties = build(super::get);
+            this.individuals = build(super::get);
+        }
+
+        @Override
         public void clear() {
             classExpressions.invalidateAll();
             dataRanges.invalidateAll();
@@ -877,28 +817,34 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             individuals.invalidateAll();
         }
 
-        public InternalObject<? extends OWLClassExpression> get(OntCE ce, boolean load) {
-            return load ? classExpressions.get(ce) : classExpressions.getIfPresent(ce);
+        @Override
+        public InternalObject<? extends OWLClassExpression> get(OntCE ce) {
+            return classExpressions.get(ce);
         }
 
-        public InternalObject<? extends OWLDataRange> get(OntDR ce, boolean load) {
-            return load ? dataRanges.get(ce) : dataRanges.getIfPresent(ce);
+        @Override
+        public InternalObject<? extends OWLDataRange> get(OntDR dr) {
+            return dataRanges.get(dr);
         }
 
-        public InternalObject<OWLAnnotationProperty> get(OntNAP nap, boolean load) {
-            return load ? annotationProperties.get(nap) : annotationProperties.getIfPresent(nap);
+        @Override
+        public InternalObject<OWLAnnotationProperty> get(OntNAP nap) {
+            return annotationProperties.get(nap);
         }
 
-        public InternalObject<OWLDataProperty> get(OntNDP ndp, boolean load) {
-            return load ? datatypeProperties.get(ndp) : datatypeProperties.getIfPresent(ndp);
+        @Override
+        public InternalObject<OWLDataProperty> get(OntNDP ndp) {
+            return datatypeProperties.get(ndp);
         }
 
-        public InternalObject<? extends OWLObjectPropertyExpression> get(OntOPE ope, boolean load) {
-            return load ? objectProperties.get(ope) : objectProperties.getIfPresent(ope);
+        @Override
+        public InternalObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
+            return objectProperties.get(ope);
         }
 
-        public InternalObject<? extends OWLIndividual> get(OntIndividual i, boolean load) {
-            return load ? individuals.get(i) : individuals.getIfPresent(i);
+        @Override
+        public InternalObject<? extends OWLIndividual> get(OntIndividual i) {
+            return individuals.get(i);
         }
 
         /**
@@ -910,10 +856,39 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
          * @param <V>    value type
          * @return {@link LoadingCache}
          */
-        private <K, V> LoadingCache<K, V> build(CacheLoader<K, V> parser) {
-            return Caffeine.newBuilder().maximumSize(2048).buildAsync(parser).synchronous();
+        private static <K, V> LoadingCache<K, V> build(CacheLoader<K, V> parser) {
+            return Caffeine.newBuilder() // the number from OWL-API DataFactory impl:
+                    .maximumSize(2048)
+                    .buildAsync(parser).synchronous();
         }
 
+        @Override
+        public CacheMap<OntCE, InternalObject<? extends OWLClassExpression>> classExpressionStore() {
+            return new CaffeineCacheMap<>(classExpressions);
+        }
+
+        @Override
+        public CacheMap<OntDR, InternalObject<? extends OWLDataRange>> dataRangeStore() {
+            return new CaffeineCacheMap<>(dataRanges);
+        }
+
+        public class CaffeineCacheMap<K, V> implements CacheMap<K, V> {
+            public CaffeineCacheMap(LoadingCache<K, V> cache) {
+                this.cache = cache;
+            }
+
+            private final LoadingCache<K, V> cache;
+
+            @Override
+            public V get(K key) {
+                return cache.getIfPresent(key);
+            }
+
+            @Override
+            public void put(K key, V value) {
+                cache.put(key, value);
+            }
+        }
     }
 
 }

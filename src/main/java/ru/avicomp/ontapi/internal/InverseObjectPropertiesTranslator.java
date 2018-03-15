@@ -72,11 +72,12 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
 
     @Override
     public InternalObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<? extends OWLObjectPropertyExpression> f = ReadHelper.fetchObjectPropertyExpression(statement.getSubject().as(OntOPE.class), conf.dataFactory());
-        InternalObject<? extends OWLObjectPropertyExpression> s = ReadHelper.fetchObjectPropertyExpression(statement.getObject().as(OntOPE.class), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLInverseObjectPropertiesAxiom res = conf.dataFactory().getOWLInverseObjectPropertiesAxiom(f.getObject(), s.getObject(), InternalObject.extract(annotations));
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<? extends OWLObjectPropertyExpression> f = reader.get(statement.getSubject().as(OntOPE.class));
+        InternalObject<? extends OWLObjectPropertyExpression> s = reader.get(statement.getObject().as(OntOPE.class));
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLInverseObjectPropertiesAxiom res = reader.getOWLDataFactory()
+                .getOWLInverseObjectPropertiesAxiom(f.getObject(), s.getObject(), InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations).append(f).append(s);
     }
 }

@@ -46,10 +46,11 @@ public class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTransl
 
     @Override
     public InternalObject<OWLFunctionalDataPropertyAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<OWLDataProperty> p = ReadHelper.fetchDataProperty(getSubject(statement), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLFunctionalDataPropertyAxiom res = conf.dataFactory().getOWLFunctionalDataPropertyAxiom(p.getObject(), InternalObject.extract(annotations));
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<OWLDataProperty> p = reader.get(getSubject(statement));
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLFunctionalDataPropertyAxiom res = reader.getOWLDataFactory()
+                .getOWLFunctionalDataPropertyAxiom(p.getObject(), InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations).append(p);
     }
 }

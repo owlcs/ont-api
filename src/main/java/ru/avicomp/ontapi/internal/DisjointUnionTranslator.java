@@ -59,11 +59,12 @@ public class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDis
 
     @Override
     public InternalObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        return makeAxiom(conf, statement,
-                clazz -> ReadHelper.fetchClassExpression(clazz, conf.dataFactory()),
-                clazz -> clazz.disjointUnionOf().map(s -> ReadHelper.fetchClassExpression(s, conf.dataFactory())).collect(Collectors.toSet()),
-                (subject, members, annotations) -> conf.dataFactory().getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(),
-                        InternalObject.extractWildcards(members), InternalObject.extract(annotations)));
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        return makeAxiom(statement, reader.get(statement),
+                reader::get,
+                clazz -> clazz.disjointUnionOf().map(reader::get).collect(Collectors.toSet()),
+                (subject, members, annotations) -> reader.getOWLDataFactory()
+                        .getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(),
+                                InternalObject.extractWildcards(members), InternalObject.extract(annotations)));
     }
 }

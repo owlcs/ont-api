@@ -60,18 +60,19 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
 
     @Override
     public boolean testStatement(OntStatement statement) {
-        return ReadHelper.isAnnotationAssertionStatement(statement, getConfig(statement).loaderConfig()) &&
+        return ReadHelper.isAnnotationAssertionStatement(statement, getConfig(statement.getModel()).loaderConfig()) &&
                 ReadHelper.isEntityOrAnonymousIndividual(statement.getSubject());
     }
 
     @Override
     public InternalObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<? extends OWLAnnotationSubject> s = ReadHelper.getAnnotationSubject(statement.getSubject(), conf.dataFactory());
-        InternalObject<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getPredicate().as(OntNAP.class), conf.dataFactory());
-        InternalObject<? extends OWLAnnotationValue> v = ReadHelper.getAnnotationValue(statement.getObject(), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLAnnotationAssertionAxiom res = conf.dataFactory().getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<? extends OWLAnnotationSubject> s = reader.get(statement.getSubject());
+        InternalObject<OWLAnnotationProperty> p = reader.get(statement.getPredicate().as(OntNAP.class));
+        InternalObject<? extends OWLAnnotationValue> v = reader.get(statement.getObject());
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLAnnotationAssertionAxiom res = reader.getOWLDataFactory()
+                .getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
                 InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations).append(s).append(p).append(v);
     }

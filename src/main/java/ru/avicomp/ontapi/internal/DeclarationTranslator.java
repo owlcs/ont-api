@@ -56,10 +56,10 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     public InternalObject<OWLDeclarationAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<? extends OWLEntity> entity = ReadHelper.wrapEntity(statement.getSubject().as(OntEntity.class), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLDeclarationAxiom res = conf.dataFactory().getOWLDeclarationAxiom(entity.getObject(), InternalObject.extract(annotations));
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<? extends OWLEntity> entity = reader.get(statement.getSubject().as(OntEntity.class));
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getObject(), InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations);
     }
 }

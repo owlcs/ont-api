@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
-import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Models;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -118,33 +116,22 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     public abstract InternalObject<Axiom> toAxiom(OntStatement statement);
 
     /**
-     * Returns the container with set of {@link OWLAnnotation} associated with the specified statement.
-     *
-     * @param statement {@link OntStatement}
-     * @param conf      {@link ConfigProvider}
-     * @return Collection of {@link InternalObject wrap}s around {@link OWLAnnotation}
-     */
-    Collection<InternalObject<OWLAnnotation>> getAnnotations(OntStatement statement, ConfigProvider.Config conf) {
-        return ReadHelper.getAnnotations(statement, conf.dataFactory(), conf.loaderConfig());
-    }
-
-    /**
      * Gets the config from model's settings or dummy if it is naked Jena model.
      *
      * @param model {@link OntGraphModel}
      * @return {@link ConfigProvider.Config}
      */
-    public ConfigProvider.Config getConfig(OntGraphModel model) {
-        return model instanceof ConfigProvider ? ((ConfigProvider) model).getConfig() : ConfigProvider.DEFAULT;
+    public static ConfigProvider.Config getConfig(OntGraphModel model) {
+        return model instanceof ConfigProvider ? ((ConfigProvider) model).getConfig() : ConfigProvider.DEFAULT_CONFIG;
     }
 
     /**
-     * Gets the config from statement.
+     * Gets the ONT-API Data-Factory from model's settings.
      *
-     * @param statement {@link OntStatement}
-     * @return {@link ConfigProvider.Config}
+     * @param model {@link OntGraphModel}
+     * @return {@link InternalDataFactory}
      */
-    protected ConfigProvider.Config getConfig(OntStatement statement) {
-        return getConfig(statement.getModel());
+    public static InternalDataFactory getDataFactory(OntGraphModel model) {
+        return model instanceof InternalModel ? ((InternalModel) model).getObjectsCache() : ConfigProvider.DEFAULT_DATA_FACTORY;
     }
 }

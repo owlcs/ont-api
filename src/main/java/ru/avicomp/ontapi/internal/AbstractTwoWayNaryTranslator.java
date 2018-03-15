@@ -85,8 +85,8 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
 
     abstract Class<? extends OntDisjoint<ONT>> getDisjointView();
 
-    InternalObject<Axiom> makeAxiom(ConfigProvider.Config conf,
-                                    OntStatement statement,
+    InternalObject<Axiom> makeAxiom(OntStatement statement,
+                                    Collection<InternalObject<OWLAnnotation>> annotations,
                                     Function<ONT, InternalObject<? extends OWL>> membersExtractor,
                                     BiFunction<Collection<InternalObject<? extends OWL>>,
                                             Collection<InternalObject<OWLAnnotation>>, Axiom> creator) {
@@ -100,7 +100,6 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
             members = Stream.of(statement.getSubject(), statement.getObject()).map(r -> r.as(getView()))
                     .map(membersExtractor).collect(Collectors.toSet());
         }
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
         Axiom axiom = creator.apply(members, annotations);
         return (disjoint != null ? InternalObject.create(axiom, disjoint) : InternalObject.create(axiom, statement))
                 .append(annotations).appendWildcards(members);

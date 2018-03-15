@@ -16,7 +16,6 @@ package ru.avicomp.ontapi.internal;
 
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
-
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
@@ -28,14 +27,15 @@ import ru.avicomp.ontapi.config.OntWriterConfiguration;
  * Created by @szuev on 06.04.2017.
  */
 public interface ConfigProvider {
-    Config DEFAULT = new Dummy();
+    Config DEFAULT_CONFIG = new Dummy();
+    InternalDataFactory DEFAULT_DATA_FACTORY = new NoCacheDataFactory(DEFAULT_CONFIG);
 
     ConfigProvider.Config getConfig();
 
     /**
      * The config.
      * It may content reference to the manager as well,
-     * but default implementation ({@link #DEFAULT}) is not intended to work with such things.
+     * but default implementation ({@link #DEFAULT_CONFIG}) is not intended to work with such things.
      * <p>
      * Created by @szuev on 05.04.2017.
      *
@@ -100,10 +100,6 @@ public interface ConfigProvider {
         @Override
         public OntWriterConfiguration writerConfig() {
             return WRITER_CONFIGURATION;
-        }
-
-        public OntConfig globalConfig() {
-            return GLOBAL_CONFIG;
         }
     }
 }

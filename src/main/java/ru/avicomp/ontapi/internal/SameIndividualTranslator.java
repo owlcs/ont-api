@@ -24,8 +24,6 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * base class {@link AbstractNaryTranslator}
@@ -48,18 +46,14 @@ public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndi
         return OntIndividual.class;
     }
 
-    private Set<InternalObject<OWLSameIndividualAxiom>> extractStandaloneAxioms(Set<InternalObject<OWLSameIndividualAxiom>> set) {
-        return set.stream().filter(a -> set.stream().filter(b -> !a.equals(b))
-                .noneMatch(b -> ReadHelper.isIntersect(a.getObject(), b.getObject()))).collect(Collectors.toSet());
-    }
-
     @Override
     public InternalObject<OWLSameIndividualAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<? extends OWLIndividual> a = ReadHelper.fetchIndividual(statement.getSubject().as(getView()), conf.dataFactory());
-        InternalObject<? extends OWLIndividual> b = ReadHelper.fetchIndividual(statement.getObject().as(getView()), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLSameIndividualAxiom res = conf.dataFactory().getOWLSameIndividualAxiom(a.getObject(), b.getObject(), InternalObject.extract(annotations));
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<? extends OWLIndividual> a = reader.get(statement.getSubject().as(getView()));
+        InternalObject<? extends OWLIndividual> b = reader.get(statement.getObject().as(getView()));
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLSameIndividualAxiom res = reader.getOWLDataFactory()
+                .getOWLSameIndividualAxiom(a.getObject(), b.getObject(), InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations).append(a).append(b);
     }
 }

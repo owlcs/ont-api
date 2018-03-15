@@ -60,17 +60,18 @@ public class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<O
 
     @Override
     public InternalObject<OWLSubPropertyChainOfAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        return makeAxiom(conf, statement,
-                ope -> ReadHelper.fetchObjectPropertyExpression(ope, conf.dataFactory()),
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        return makeAxiom(statement, reader.get(statement),
+                reader::get,
                 ope -> {
                     RDFList list = statement.getObject().as(RDFList.class);
                     return list.asJavaList().stream()
                             .map(p -> p.as(OntOPE.class))
-                            .map(p -> ReadHelper.fetchObjectPropertyExpression(p, conf.dataFactory())).collect(Collectors.toList());
+                            .map(reader::get).collect(Collectors.toList());
                 },
                 (subject, members, annotations) ->
-                        conf.dataFactory().getOWLSubPropertyChainOfAxiom(members.stream().map(InternalObject::getObject).collect(Collectors.toList()),
+                        reader.getOWLDataFactory()
+                                .getOWLSubPropertyChainOfAxiom(members.stream().map(InternalObject::getObject).collect(Collectors.toList()),
                                 subject.getObject(), InternalObject.extract(annotations)));
 
     }

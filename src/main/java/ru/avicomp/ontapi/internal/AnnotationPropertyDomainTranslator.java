@@ -59,11 +59,12 @@ public class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTr
 
     @Override
     public InternalObject<OWLAnnotationPropertyDomainAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<OWLAnnotationProperty> p = ReadHelper.fetchAnnotationProperty(statement.getSubject().as(getView()), conf.dataFactory());
-        InternalObject<IRI> d = ReadHelper.wrapIRI(statement.getObject().as(OntObject.class));
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLAnnotationPropertyDomainAxiom res = conf.dataFactory().getOWLAnnotationPropertyDomainAxiom(p.getObject(), d.getObject(), InternalObject.extract(annotations));
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<OWLAnnotationProperty> p = reader.get(statement.getSubject().as(getView()));
+        InternalObject<IRI> d = reader.asIRI(statement.getObject().as(OntObject.class));
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLAnnotationPropertyDomainAxiom res = reader.getOWLDataFactory()
+                .getOWLAnnotationPropertyDomainAxiom(p.getObject(), d.getObject(), InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations).append(p).append(d);
     }
 }

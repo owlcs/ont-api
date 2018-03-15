@@ -75,12 +75,13 @@ public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObject
 
     @Override
     public InternalObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<? extends OWLIndividual> subject = ReadHelper.fetchIndividual(statement.getSubject().as(OntIndividual.class), conf.dataFactory());
-        InternalObject<? extends OWLObjectPropertyExpression> property = ReadHelper.fetchObjectPropertyExpression(statement.getPredicate().as(OntOPE.class), conf.dataFactory());
-        InternalObject<? extends OWLIndividual> object = ReadHelper.fetchIndividual(statement.getObject().as(OntIndividual.class), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLObjectPropertyAssertionAxiom res = conf.dataFactory().getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<? extends OWLIndividual> subject = reader.get(statement.getSubject().as(OntIndividual.class));
+        InternalObject<? extends OWLObjectPropertyExpression> property = reader.get(statement.getPredicate().as(OntOPE.class));
+        InternalObject<? extends OWLIndividual> object = reader.get(statement.getObject().as(OntIndividual.class));
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
+                .getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
                 InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations).append(subject).append(property).append(object);
     }

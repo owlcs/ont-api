@@ -334,7 +334,7 @@ public class CommonManagerTest {
         });
     }
 
-    @SuppressWarnings({"OptionalGetWithoutIsPresent", "ConstantConditions"})
+    @SuppressWarnings({"OptionalGetWithoutIsPresent", "ConstantConditions", "UnusedReturnValue"})
     private static OWLOntologyManager setUpManager(OWLOntologyManager m) throws OWLOntologyCreationException {
         OWLDataFactory f = m.getOWLDataFactory();
 
@@ -384,10 +384,9 @@ public class CommonManagerTest {
                 Assert.assertFalse("Found " + c + " inside original ontology", o1.containsResource(c))
         );
         OntologyModel ont = copy.getOntology(IRI.create(uri));
-        OWLDataFactory df = copy.getOWLDataFactory();
         Assert.assertNotNull(ont);
         List<OWLClass> newOWLClasses = newClasses.stream()
-                .map(ce -> ReadHelper.fetchClassExpression(ce, df))
+                .map(ReadHelper::fetchClassExpression)
                 .map(InternalObject::getObject)
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: " + newOWLClasses);

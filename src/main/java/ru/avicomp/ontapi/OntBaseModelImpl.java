@@ -263,7 +263,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
 
     @Override
     public Stream<OWLEntity> entitiesInSignature(@Nullable IRI entityIRI) {
-        return base.getEntities(entityIRI).stream();
+        return base.entities(entityIRI);
     }
 
     @Override
@@ -856,7 +856,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
         Graph base = OntModelFactory.createDefaultGraph();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
-        setBase(new InternalModel(base, ConfigProvider.DEFAULT));
+        setBase(new InternalModel(base, ConfigProvider.DEFAULT_CONFIG));
     }
 
     /**

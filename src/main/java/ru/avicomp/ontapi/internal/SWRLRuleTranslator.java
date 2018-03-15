@@ -53,14 +53,15 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
     @Override
     public InternalObject<SWRLRule> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
+        InternalDataFactory reader = getDataFactory(statement.getModel());
         OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
 
-        Collection<InternalObject<? extends SWRLAtom>> head = imp.head().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())).collect(Collectors.toList());
-        Collection<InternalObject<? extends SWRLAtom>> body = imp.body().map(a -> ReadHelper.getSWRLAtom(a, conf.dataFactory())).collect(Collectors.toList());
+        Collection<InternalObject<? extends SWRLAtom>> head = imp.head().map(reader::get).collect(Collectors.toList());
+        Collection<InternalObject<? extends SWRLAtom>> body = imp.body().map(reader::get).collect(Collectors.toList());
 
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        SWRLRule res = conf.dataFactory().getSWRLRule(body.stream().map(InternalObject::getObject).collect(Collectors.toList()),
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        SWRLRule res = reader.getOWLDataFactory()
+                .getSWRLRule(body.stream().map(InternalObject::getObject).collect(Collectors.toList()),
                 head.stream().map(InternalObject::getObject).collect(Collectors.toList()), InternalObject.extract(annotations));
         return InternalObject.create(res, imp).append(annotations).appendWildcards(body).appendWildcards(head);
     }

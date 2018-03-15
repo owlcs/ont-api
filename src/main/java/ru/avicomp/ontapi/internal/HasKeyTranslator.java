@@ -62,13 +62,14 @@ public class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxio
 
     @Override
     public InternalObject<OWLHasKeyAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        return makeAxiom(conf, statement,
-                ce -> ReadHelper.fetchClassExpression(ce, conf.dataFactory()),
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        return makeAxiom(statement, reader.get(statement),
+                reader::get,
                 ce -> ce.hasKey()
                         .filter(p -> p.canAs(OntOPE.class) || p.canAs(OntNDP.class)) // only P or R (!)
-                        .map(p -> ReadHelper.getProperty(p, conf.dataFactory())).collect(Collectors.toSet()),
+                        .map(reader::get).collect(Collectors.toSet()),
                 (subject, members, annotations) ->
-                        conf.dataFactory().getOWLHasKeyAxiom(subject.getObject(), InternalObject.extractWildcards(members), InternalObject.extract(annotations)));
+                        reader.getOWLDataFactory()
+                                .getOWLHasKeyAxiom(subject.getObject(), InternalObject.extractWildcards(members), InternalObject.extract(annotations)));
     }
 }

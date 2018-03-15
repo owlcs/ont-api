@@ -70,8 +70,8 @@ public abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom
                 && statement.getObject().canAs(RDFList.class);
     }
 
-    InternalObject<Axiom> makeAxiom(ConfigProvider.Config conf,
-                                    OntStatement statement,
+    InternalObject<Axiom> makeAxiom(OntStatement statement,
+                                    Collection<InternalObject<OWLAnnotation>> annotations,
                                     Function<ONT, InternalObject<? extends OWL_SUBJECT>> subjectExtractor,
                                     Function<ONT, Collection<InternalObject<? extends OWL_MEMBERS>>> membersExtractor,
                                     TriFunction<InternalObject<? extends OWL_SUBJECT>,
@@ -81,7 +81,6 @@ public abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom
         ONT clazz = statement.getSubject().as(getView());
         InternalObject<? extends OWL_SUBJECT> subject = subjectExtractor.apply(clazz);
         Collection<InternalObject<? extends OWL_MEMBERS>> members = membersExtractor.apply(clazz);
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
         Axiom res = axiomMaker.apply(subject, members, annotations);
         return InternalObject.create(res, statement)
                 .append(() -> ((OntObjectImpl) statement.getSubject()).rdfListContent(getPredicate()).map(FrontsTriple::asTriple));

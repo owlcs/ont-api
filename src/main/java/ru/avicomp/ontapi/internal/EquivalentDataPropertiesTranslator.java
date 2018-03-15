@@ -50,11 +50,12 @@ public class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<O
 
     @Override
     public InternalObject<OWLEquivalentDataPropertiesAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<OWLDataProperty> a = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), conf.dataFactory());
-        InternalObject<OWLDataProperty> b = ReadHelper.fetchDataProperty(statement.getObject().as(getView()), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLEquivalentDataPropertiesAxiom res = conf.dataFactory().getOWLEquivalentDataPropertiesAxiom(a.getObject(), b.getObject(), InternalObject.extract(annotations));
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<OWLDataProperty> a = reader.get(statement.getSubject().as(getView()));
+        InternalObject<OWLDataProperty> b = reader.get(statement.getObject().as(getView()));
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLEquivalentDataPropertiesAxiom res = reader.getOWLDataFactory()
+                .getOWLEquivalentDataPropertiesAxiom(a.getObject(), b.getObject(), InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations).append(a).append(b);
     }
 }

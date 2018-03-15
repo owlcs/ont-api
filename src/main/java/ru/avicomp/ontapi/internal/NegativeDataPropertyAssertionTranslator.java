@@ -43,13 +43,14 @@ public class NegativeDataPropertyAssertionTranslator extends AbstractNegativePro
 
     @Override
     public InternalObject<OWLNegativeDataPropertyAssertionAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
+        InternalDataFactory reader = getDataFactory(statement.getModel());
         OntNPA.DataAssertion npa = statement.getSubject().as(getView());
-        InternalObject<? extends OWLIndividual> s = ReadHelper.fetchIndividual(npa.getSource(), conf.dataFactory());
-        InternalObject<OWLDataProperty> p = ReadHelper.fetchDataProperty(npa.getProperty(), conf.dataFactory());
-        InternalObject<OWLLiteral> o = ReadHelper.getLiteral(npa.getTarget(), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLNegativeDataPropertyAssertionAxiom res = conf.dataFactory().getOWLNegativeDataPropertyAssertionAxiom(p.getObject(),
+        InternalObject<? extends OWLIndividual> s = reader.get(npa.getSource());
+        InternalObject<OWLDataProperty> p = reader.get(npa.getProperty());
+        InternalObject<OWLLiteral> o = reader.get(npa.getTarget());
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLNegativeDataPropertyAssertionAxiom res = reader.getOWLDataFactory()
+                .getOWLNegativeDataPropertyAssertionAxiom(p.getObject(),
                 s.getObject(), o.getObject(), InternalObject.extract(annotations));
         return InternalObject.create(res, npa).append(annotations).append(s).append(p).append(o);
     }

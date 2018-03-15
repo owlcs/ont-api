@@ -51,11 +51,11 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
 
     @Override
     public InternalObject<OWLDataPropertyDomainAxiom> toAxiom(OntStatement statement) {
-        ConfigProvider.Config conf = getConfig(statement);
-        InternalObject<OWLDataProperty> p = ReadHelper.fetchDataProperty(statement.getSubject().as(getView()), conf.dataFactory());
-        InternalObject<? extends OWLClassExpression> ce = ReadHelper.fetchClassExpression(statement.getObject().as(OntCE.class), conf.dataFactory());
-        Collection<InternalObject<OWLAnnotation>> annotations = getAnnotations(statement, conf);
-        OWLDataPropertyDomainAxiom res = conf.dataFactory().getOWLDataPropertyDomainAxiom(p.getObject(), ce.getObject(), InternalObject.extract(annotations));
+        InternalDataFactory reader = getDataFactory(statement.getModel());
+        InternalObject<OWLDataProperty> p = reader.get(statement.getSubject().as(getView()));
+        InternalObject<? extends OWLClassExpression> ce = reader.get(statement.getObject().as(OntCE.class));
+        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        OWLDataPropertyDomainAxiom res = reader.getOWLDataFactory().getOWLDataPropertyDomainAxiom(p.getObject(), ce.getObject(), InternalObject.extract(annotations));
         return InternalObject.create(res, statement).append(annotations).append(p).append(ce);
     }
 }

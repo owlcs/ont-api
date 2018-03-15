@@ -94,7 +94,7 @@ public class InternalModelTest {
     public void testOntologyAnnotations() {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
-        InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), ConfigProvider.DEFAULT);
+        InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), ConfigProvider.DEFAULT_CONFIG);
 
         Set<OWLAnnotation> annotations = model.annotations().collect(Collectors.toSet());
         annotations.forEach(LOGGER::debug);
@@ -242,7 +242,7 @@ public class InternalModelTest {
         LOGGER.info("Load jena model from " + fileURI);
         Model init = ReadWriteUtils.load(fileURI, format);
         Graph graph = GraphTransformers.convert(init.getGraph());
-        return new InternalModel(graph, ConfigProvider.DEFAULT);
+        return new InternalModel(graph, ConfigProvider.DEFAULT_CONFIG);
     }
 
 }
