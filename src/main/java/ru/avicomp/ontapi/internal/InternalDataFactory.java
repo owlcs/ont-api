@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -50,10 +51,6 @@ public interface InternalDataFactory {
 
     InternalObject<? extends OWLIndividual> get(OntIndividual i);
 
-    InternalObject<? extends OWLAnnotationValue> get(RDFNode value);
-
-    InternalObject<? extends OWLAnnotationSubject> get(OntObject subject);
-
     InternalObject<OWLLiteral> get(Literal literal);
 
     InternalObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
@@ -66,6 +63,29 @@ public interface InternalDataFactory {
 
     default IRI toIRI(String str) {
         return IRI.create(Objects.requireNonNull(str, "Null IRI."));
+    }
+
+    default InternalObject<? extends OWLAnnotationValue> get(RDFNode value) {
+        if (OntApiException.notNull(value, "Null node").isLiteral()) {
+            return get(value.asLiteral());
+        }
+        if (value.isURIResource()) {
+            return asIRI(value.as(OntObject.class));
+        }
+        if (value.isAnon()) {
+            return get(Models.asAnonymousIndividual(value));
+        }
+        throw new OntApiException("Not an AnnotationValue " + value);
+    }
+
+    default InternalObject<? extends OWLAnnotationSubject> get(OntObject subject) {
+        if (OntApiException.notNull(subject, "Null resource").isURIResource()) {
+            return asIRI(subject);
+        }
+        if (subject.isAnon()) {
+            return get(Models.asAnonymousIndividual(subject));
+        }
+        throw new OntApiException("Not an AnnotationSubject " + subject);
     }
 
     @SuppressWarnings("unchecked")

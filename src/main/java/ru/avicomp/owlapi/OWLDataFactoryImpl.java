@@ -43,6 +43,7 @@ import static ru.avicomp.owlapi.InternalizedEntities.*;
  *
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl</a>
+ * @see ru.avicomp.ontapi.internal.InternalDataFactory
  */
 @SuppressWarnings("NullableProblems")
 public class OWLDataFactoryImpl implements OWLDataFactory {

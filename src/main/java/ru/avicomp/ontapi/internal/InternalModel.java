@@ -21,6 +21,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.Lock;
@@ -83,7 +84,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     public InternalModel(Graph base, ConfigProvider.Config config) {
         super(base, config.loaderConfig().getPersonality());
         this.config = config;
-        this.cacheDataFactory = new CaffeineDataFactory(config);
+        this.cacheDataFactory = new CacheDataFactory(config);
+        //new NoCacheDataFactory(config);
         getGraph().getEventManager().register(new DirectListener());
     }
 
@@ -789,15 +791,16 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     /**
      * The internal cache holder which is using while reading owl-objects.
      */
-    public static class CaffeineDataFactory extends NoCacheDataFactory {
+    public static class CacheDataFactory extends NoCacheDataFactory {
         protected final LoadingCache<OntCE, InternalObject<? extends OWLClassExpression>> classExpressions;
         protected final LoadingCache<OntDR, InternalObject<? extends OWLDataRange>> dataRanges;
         protected final LoadingCache<OntNAP, InternalObject<OWLAnnotationProperty>> annotationProperties;
         protected final LoadingCache<OntNDP, InternalObject<OWLDataProperty>> datatypeProperties;
         protected final LoadingCache<OntOPE, InternalObject<? extends OWLObjectPropertyExpression>> objectProperties;
         protected final LoadingCache<OntIndividual, InternalObject<? extends OWLIndividual>> individuals;
+        protected final LoadingCache<Literal, InternalObject<OWLLiteral>> literals;
 
-        public CaffeineDataFactory(ConfigProvider.Config config) {
+        public CacheDataFactory(ConfigProvider.Config config) {
             super(config);
             this.classExpressions = build(super::get);
             this.dataRanges = build(super::get);
@@ -805,6 +808,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             this.datatypeProperties = build(super::get);
             this.objectProperties = build(super::get);
             this.individuals = build(super::get);
+            this.literals = build(super::get);
         }
 
         @Override
@@ -815,6 +819,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             datatypeProperties.invalidateAll();
             objectProperties.invalidateAll();
             individuals.invalidateAll();
+            literals.invalidateAll();
         }
 
         @Override
@@ -843,18 +848,29 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         @Override
+        public InternalObject<OWLLiteral> get(Literal literal) {
+            return literals.get(literal);
+        }
+
+        @Override
         public InternalObject<? extends OWLIndividual> get(OntIndividual i) {
             return individuals.get(i);
         }
 
+        @Override
+        public IRI toIRI(String str) { // use global cache
+            return ru.avicomp.ontapi.OntologyManagerImpl.getIRICache().get(str);
+        }
+
         /**
-         * Builds synchronized LoadingCache since
+         * Builds synchronized caffeine LoadingCache since
          * <a href='https://github.com/ben-manes/caffeine/issues/209'>a recursive computation is not supported in Java’s maps</a>
          *
          * @param parser {@link CacheLoader}
          * @param <K>    key type
          * @param <V>    value type
          * @return {@link LoadingCache}
+         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternalsImpl.java#L63'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl#builder(CacheLoader)</a>
          */
         private static <K, V> LoadingCache<K, V> build(CacheLoader<K, V> parser) {
             return Caffeine.newBuilder() // the number from OWL-API DataFactory impl:
@@ -863,17 +879,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         @Override
-        public CacheMap<OntCE, InternalObject<? extends OWLClassExpression>> classExpressionStore() {
-            return new CaffeineCacheMap<>(classExpressions);
+        public SimpleMap<OntCE, InternalObject<? extends OWLClassExpression>> classExpressionStore() {
+            return new CacheMap<>(classExpressions);
         }
 
         @Override
-        public CacheMap<OntDR, InternalObject<? extends OWLDataRange>> dataRangeStore() {
-            return new CaffeineCacheMap<>(dataRanges);
+        public SimpleMap<OntDR, InternalObject<? extends OWLDataRange>> dataRangeStore() {
+            return new CacheMap<>(dataRanges);
         }
 
-        public class CaffeineCacheMap<K, V> implements CacheMap<K, V> {
-            public CaffeineCacheMap(LoadingCache<K, V> cache) {
+        public class CacheMap<K, V> implements SimpleMap<K, V> {
+            public CacheMap(LoadingCache<K, V> cache) {
                 this.cache = cache;
             }
 

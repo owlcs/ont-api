@@ -225,7 +225,7 @@ public class ReadHelper {
         if (OntApiException.notNull(dr, "Null data range.").isAnon() && seen.contains(dr)) {
             throw new OntApiException("Recursive loop on data range " + dr);
         }
-        NoCacheDataFactory.CacheMap<OntDR, InternalObject<? extends OWLDataRange>> found = df.dataRangeStore();
+        NoCacheDataFactory.SimpleMap<OntDR, InternalObject<? extends OWLDataRange>> found = df.dataRangeStore();
         InternalObject<? extends OWLDataRange> r = found.get(dr);
         if (r != null) return r;
         seen.add(dr);
@@ -292,7 +292,7 @@ public class ReadHelper {
         if (ce.isAnon() && seen.contains(ce)) {
             throw new OntApiException("Recursive loop on class expression " + ce);
         }
-        NoCacheDataFactory.CacheMap<OntCE, InternalObject<? extends OWLClassExpression>> found = df.classExpressionStore();
+        NoCacheDataFactory.SimpleMap<OntCE, InternalObject<? extends OWLClassExpression>> found = df.classExpressionStore();
         InternalObject<? extends OWLClassExpression> res = found.get(ce);
         if (res != null) return res;
         seen.add(ce);

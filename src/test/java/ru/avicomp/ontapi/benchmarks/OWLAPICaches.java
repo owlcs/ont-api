@@ -18,6 +18,7 @@ package ru.avicomp.ontapi.benchmarks;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.junit.Assert;
+import ru.avicomp.ontapi.OntologyManagerImpl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -50,6 +51,7 @@ public class OWLAPICaches {
     public static void clearAll() {
         clearDataFactoryCaches();
         clearObjectCaches();
+        OntologyManagerImpl.getIRICache().invalidateAll();
     }
 
     private static List<LoadingCache> getGlobalCaches(Class<?> clazz) {
