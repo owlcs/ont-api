@@ -132,6 +132,6 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link InternalDataFactory}
      */
     public static InternalDataFactory getDataFactory(OntGraphModel model) {
-        return model instanceof InternalModel ? ((InternalModel) model).getObjectsCache() : ConfigProvider.DEFAULT_DATA_FACTORY;
+        return model instanceof InternalModel ? ((InternalModel) model).getDataFactory() : ConfigProvider.DEFAULT_DATA_FACTORY;
     }
 }

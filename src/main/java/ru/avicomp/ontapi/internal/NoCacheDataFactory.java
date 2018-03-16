@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -161,7 +162,7 @@ public class NoCacheDataFactory implements InternalDataFactory {
         void put(K key, V value);
 
         /**
-         * If the specified key is not already associated with a value. attempts to compute its value using the given mapping
+         * If the specified key is not already associated with a value, attempts to compute its value using the given mapping
          * function and enters it into this map unless {@code null}.
          *
          * @param key key with which the specified value is to be associated
@@ -175,6 +176,20 @@ public class NoCacheDataFactory implements InternalDataFactory {
                     "Null map result, key: " + key);
             put(key, v);
             return v;
+        }
+
+        static <K, V> SimpleMap<K, V> fromMap(Map<K, V> map) {
+            return new SimpleMap<K, V>() {
+                @Override
+                public V get(K key) {
+                    return map.get(key);
+                }
+
+                @Override
+                public void put(K key, V value) {
+                    map.put(key, value);
+                }
+            };
         }
     }
 

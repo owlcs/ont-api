@@ -86,6 +86,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         this.config = config;
         this.cacheDataFactory = new CacheDataFactory(config);
         //new NoCacheDataFactory(config);
+        //new MapDataFactory(config);
         getGraph().getEventManager().register(new DirectListener());
     }
 
@@ -99,7 +100,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return config;
     }
 
-    public InternalDataFactory getObjectsCache() {
+    public InternalDataFactory getDataFactory() {
         return cacheDataFactory;
     }
 
@@ -790,6 +791,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * The internal cache holder which is using while reading owl-objects.
+     * Currently it is based on caffeine cache since it is used widely by OWL-API.
      */
     public static class CacheDataFactory extends NoCacheDataFactory {
         protected final LoadingCache<OntCE, InternalObject<? extends OWLClassExpression>> classExpressions;
@@ -904,6 +906,79 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             public void put(K key, V value) {
                 cache.put(key, value);
             }
+        }
+    }
+
+    /**
+     * Impl for debug.
+     */
+    public static class MapDataFactory extends NoCacheDataFactory {
+        private Map<OntCE, InternalObject<? extends OWLClassExpression>> classExpressions = new HashMap<>();
+        private Map<OntDR, InternalObject<? extends OWLDataRange>> dataRanges = new HashMap<>();
+        private Map<OntNAP, InternalObject<OWLAnnotationProperty>> annotationProperties = new HashMap<>();
+        private Map<OntNDP, InternalObject<OWLDataProperty>> datatypeProperties = new HashMap<>();
+        private Map<OntOPE, InternalObject<? extends OWLObjectPropertyExpression>> objectProperties = new HashMap<>();
+        private Map<OntIndividual, InternalObject<? extends OWLIndividual>> individuals = new HashMap<>();
+        private Map<Literal, InternalObject<OWLLiteral>> literals = new HashMap<>();
+
+        public MapDataFactory(Config config) {
+            super(config);
+        }
+
+        @Override
+        public void clear() {
+            classExpressions.clear();
+            dataRanges.clear();
+            annotationProperties.clear();
+            objectProperties.clear();
+            datatypeProperties.clear();
+            individuals.clear();
+            literals.clear();
+        }
+
+        @Override
+        public InternalObject<? extends OWLClassExpression> get(OntCE ce) {
+            return classExpressions.computeIfAbsent(ce, super::get);
+        }
+
+        @Override
+        public InternalObject<? extends OWLDataRange> get(OntDR dr) {
+            return dataRanges.computeIfAbsent(dr, super::get);
+        }
+
+        @Override
+        public InternalObject<OWLAnnotationProperty> get(OntNAP nap) {
+            return annotationProperties.computeIfAbsent(nap, super::get);
+        }
+
+        @Override
+        public InternalObject<OWLDataProperty> get(OntNDP ndp) {
+            return datatypeProperties.computeIfAbsent(ndp, super::get);
+        }
+
+        @Override
+        public InternalObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
+            return objectProperties.computeIfAbsent(ope, super::get);
+        }
+
+        @Override
+        public InternalObject<OWLLiteral> get(Literal l) {
+            return literals.computeIfAbsent(l, super::get);
+        }
+
+        @Override
+        public InternalObject<? extends OWLIndividual> get(OntIndividual i) {
+            return individuals.computeIfAbsent(i, super::get);
+        }
+
+        @Override
+        public SimpleMap<OntCE, InternalObject<? extends OWLClassExpression>> classExpressionStore() {
+            return SimpleMap.fromMap(classExpressions);
+        }
+
+        @Override
+        public SimpleMap<OntDR, InternalObject<? extends OWLDataRange>> dataRangeStore() {
+            return SimpleMap.fromMap(dataRanges);
         }
     }
 
