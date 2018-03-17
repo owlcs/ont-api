@@ -31,3 +31,4 @@ Exclusions:
 * owl/owlapi/OWLDataFactoryInternals.java
 * owl/owlapi/OWLDataFactoryInternalsImpl.java
 * owl/owlapi/OWLDataFactoryInternalsImplNoCache.java 
+* owl/owlapi/CompressionEnabled.java
