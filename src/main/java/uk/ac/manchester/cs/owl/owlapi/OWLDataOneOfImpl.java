@@ -15,6 +15,7 @@ package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.OWLDataOneOf;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Collection;
 import java.util.Collections;

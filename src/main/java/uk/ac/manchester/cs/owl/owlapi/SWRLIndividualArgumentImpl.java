@@ -15,6 +15,7 @@ package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.SWRLIndividualArgument;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 

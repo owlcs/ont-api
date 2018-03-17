@@ -14,6 +14,7 @@
 package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group

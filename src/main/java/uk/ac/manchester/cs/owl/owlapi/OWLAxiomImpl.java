@@ -16,6 +16,7 @@ package uk.ac.manchester.cs.owl.owlapi;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.util.NNF;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Collection;
 import java.util.List;

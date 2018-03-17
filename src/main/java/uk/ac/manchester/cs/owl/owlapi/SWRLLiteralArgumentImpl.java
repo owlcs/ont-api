@@ -15,6 +15,7 @@ package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.SWRLLiteralArgument;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 

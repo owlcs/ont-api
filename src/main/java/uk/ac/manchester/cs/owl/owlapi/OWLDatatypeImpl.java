@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 

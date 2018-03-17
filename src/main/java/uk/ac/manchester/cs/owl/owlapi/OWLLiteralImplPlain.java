@@ -16,6 +16,7 @@ package uk.ac.manchester.cs.owl.owlapi;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nullable;
 

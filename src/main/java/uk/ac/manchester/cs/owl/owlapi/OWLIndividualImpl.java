@@ -14,6 +14,7 @@
 package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.OWLIndividual;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group

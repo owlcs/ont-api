@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nullable;
 import java.io.*;

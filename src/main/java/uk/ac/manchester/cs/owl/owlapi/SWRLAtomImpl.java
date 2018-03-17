@@ -15,6 +15,7 @@ package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLPredicate;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 

@@ -15,6 +15,7 @@ package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group

@@ -16,6 +16,7 @@ package uk.ac.manchester.cs.owl.owlapi;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDatatypeRestriction;
 import org.semanticweb.owlapi.model.OWLFacetRestriction;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Collection;
 import java.util.List;

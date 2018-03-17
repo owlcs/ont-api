@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Collection;
 import java.util.Collections;
