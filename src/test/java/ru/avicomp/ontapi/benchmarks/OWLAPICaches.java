@@ -18,6 +18,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.junit.Assert;
 import ru.avicomp.ontapi.OntologyManagerImpl;
+import ru.avicomp.owlapi.OWLManager;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -36,23 +37,15 @@ import java.util.stream.Collectors;
 public class OWLAPICaches {
 
     public static void clearDataFactoryCaches() {
-        List<LoadingCache> caches = getGlobalCaches(findClass("uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl"));
+        List<LoadingCache> caches = getGlobalCaches(OWLManager.findClass("uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl"));
         Assert.assertEquals(7, caches.size());
         caches.forEach(Cache::invalidateAll);
     }
 
     public static void clearObjectCaches() {
-        List<LoadingCache> caches = getGlobalCaches(findClass("uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl"));
+        List<LoadingCache> caches = getGlobalCaches(OWLManager.findClass("uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl"));
         Assert.assertEquals(8, caches.size());
         caches.forEach(Cache::invalidateAll);
-    }
-
-    public static Class<?> findClass(String name) {
-        try {
-            return Class.forName(name);
-        } catch (ClassNotFoundException e) {
-            throw new AssertionError("Unable to find " + name, e);
-        }
     }
 
     public static void clearAll() {
