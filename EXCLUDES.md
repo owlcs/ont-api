@@ -1,4 +1,4 @@
-## 511 original commits from owlapi-iml (directory https://github.com/owlcs/owlapi/tree/version5/impl/src/main/java/uk/ac/manchester/cs; revision: https://github.com/owlcs/owlapi/commit/dcc52e73b72e105d55daa4424e1a4f9ae4a253a6)
+## 473 original commits from owlapi-iml (directory https://github.com/owlcs/owlapi/tree/version5/impl/src/main/java/uk/ac/manchester/cs; revision: https://github.com/owlcs/owlapi/commit/dcc52e73b72e105d55daa4424e1a4f9ae4a253a6)
 
 Exclusions:
 
@@ -26,3 +26,8 @@ Exclusions:
 * owl/OWLOntologyImpl.java
 * owl/OWLOntologyIRIMapperImpl.java
 * owl/OWLOntologyManagerImpl.java
+*
+* owl/owlapi/OWLDataFactoryImpl.java
+* owl/owlapi/OWLDataFactoryInternals.java
+* owl/owlapi/OWLDataFactoryInternalsImpl.java
+* owl/owlapi/OWLDataFactoryInternalsImplNoCache.java 
