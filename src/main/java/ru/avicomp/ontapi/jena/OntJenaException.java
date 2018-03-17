@@ -1,0 +1,86 @@
+/*
+ * This file is part of the ONT API.
+ * The contents of this file are subject to the LGPL License, Version 3.0.
+ * Copyright (c) 2017, Avicomp Services, AO
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with this program.  If not, see http://www.gnu.org/licenses/.
+ *
+ * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ */
+
+package ru.avicomp.ontapi.jena;
+
+import java.util.function.Supplier;
+
+import org.apache.jena.shared.JenaException;
+
+/**
+ * To use inside ont-jena subsystem (package {@link ru.avicomp.ontapi.jena}).
+ * <p>
+ * Created by @szuev on 24.11.2016.
+ */
+public class OntJenaException extends JenaException {
+    public OntJenaException() {
+        super();
+    }
+
+    public OntJenaException(String message) {
+        super(message);
+    }
+
+    public OntJenaException(Throwable cause) {
+        super(cause);
+    }
+
+    public OntJenaException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public static <T> T notNull(T obj, String message) {
+        if (obj == null)
+            throw message == null ? new OntJenaException() : new OntJenaException(message);
+        return obj;
+    }
+
+    public static Supplier<OntJenaException> supplier(String msg) {
+        return () -> new OntJenaException(msg);
+    }
+
+    /**
+     * this is an analogue of {@link org.apache.jena.ontology.ConversionException},
+     * used inside top level api ({@link ru.avicomp.ontapi.jena.model.OntGraphModel} and maybe {@link ru.avicomp.ontapi.jena.model.OntObject}).
+     */
+    public static class Conversion extends OntJenaException {
+        public Conversion(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public Conversion(String message) {
+            super(message);
+        }
+    }
+
+    public static class Creation extends OntJenaException {
+        public Creation(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public Creation(String message) {
+            super(message);
+        }
+    }
+
+    public static class Unsupported extends OntJenaException {
+        public Unsupported() {
+            super();
+        }
+
+        public Unsupported(String message) {
+            super(message);
+        }
+    }
+}

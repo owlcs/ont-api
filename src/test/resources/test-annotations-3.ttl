@@ -1,0 +1,30 @@
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xml:   <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+[ a       owl:Ontology ] .
+
+<http://purl.obolibrary.org/obo/TTO_1006537>
+        a       owl:Class ;
+         rdfs:comment "comment1"@es .
+
+[ a                      owl:Axiom ;
+  <http://www.geneontology.org/formats/oboInOwl#hasDbXref>
+          "CASSPC:6553" ;
+  owl:annotatedProperty  rdf:type ;
+  owl:annotatedSource    <http://purl.obolibrary.org/obo/TTO_1006537> ;
+  owl:annotatedTarget    owl:Class
+] .
+
+[ a                      owl:Axiom ;
+  <http://www.geneontology.org/formats/oboInOwl#hasDbXref>
+          "CASSPC:46467" ;
+  owl:annotatedProperty  rdf:type ;
+  owl:annotatedSource    <http://purl.obolibrary.org/obo/TTO_1006537> ;
+  owl:annotatedTarget    owl:Class
+] .
+
+<http://www.geneontology.org/formats/oboInOwl#hasDbXref>
+        a       owl:AnnotationProperty .

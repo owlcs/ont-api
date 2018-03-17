@@ -1,0 +1,36 @@
+Prefix(:=<http://test/formats#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+
+
+Ontology(<http://test/formats>
+
+Declaration(Class(:ClassN1))
+Declaration(ObjectProperty(:ObjectPropertyN1))
+Declaration(DataProperty(:DataPropertyN1))
+############################
+#   Object Properties
+############################
+
+# Object Property: :ObjectPropertyN1 (:ObjectPropertyN1)
+
+ObjectPropertyDomain(:ObjectPropertyN1 :ClassN1)
+ObjectPropertyRange(:ObjectPropertyN1 :ClassN1)
+
+
+############################
+#   Data Properties
+############################
+
+# Data Property: :DataPropertyN1 (:DataPropertyN1)
+
+DataPropertyDomain(:DataPropertyN1 :ClassN1)
+DataPropertyRange(:DataPropertyN1 xsd:anyURI)
+
+
+
+
+)

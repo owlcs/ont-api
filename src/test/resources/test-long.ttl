@@ -1,0 +1,3013 @@
+@prefix :      <http://www.semanticweb.org/owlapi/test34671573693248#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xml:   <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+<urn:tests#uri34671573694020>
+        a       owl:Class .
+
+<urn:tests#uri34671573693889>
+        a       owl:Class .
+
+<urn:tests#uri34671573693636>
+        a       owl:Class .
+
+<urn:tests#uri34671573693930>
+        a       owl:Class .
+
+<urn:tests#uri34671573694033>
+        a       owl:Class .
+
+<urn:tests#uri34671573693471>
+        a       owl:Class .
+
+<urn:tests#uri34671573693649>
+        a       owl:Class .
+
+<urn:tests#uri34671573693943>
+        a       owl:Class .
+
+<urn:tests#uri34671573694046>
+        a       owl:Class .
+
+<urn:tests#uri34671573693484>
+        a       owl:Class .
+
+<urn:tests#uri34671573693409>
+        a       owl:Class .
+
+<urn:tests#uri34671573693956>
+        a       owl:Class .
+
+<urn:tests#uri34671573693703>
+        a       owl:Class .
+
+<urn:tests#uri34671573694059>
+        a       owl:Class .
+
+<urn:tests#uri34671573693497>
+        a       owl:Class .
+
+<urn:tests#uri34671573693791>
+        a       owl:Class .
+
+<urn:tests#uri34671573694100>
+        a       owl:Class .
+
+<urn:tests#uri34671573693969>
+        a       owl:Class .
+
+<urn:tests#uri34671573693716>
+        a       owl:Class .
+
+<urn:tests#uri34671573693257>
+        a       owl:Class .
+
+<urn:tests#uri34671573694113>
+        a       owl:Class .
+
+<urn:tests#uri34671573693551>
+        a       owl:Class .
+
+<urn:tests#uri34671573693729>
+        a       owl:Class .
+
+<urn:tests#uri34671573694126>
+        a       owl:Class .
+
+<urn:tests#uri34671573693564>
+        a       owl:Class .
+
+<urn:tests#uri34671573693311>
+        a       owl:Class .
+
+<urn:tests#uri34671573694139>
+        a       owl:Class .
+
+<urn:tests#uri34671573693577>
+        a       owl:Class .
+
+<urn:tests#uri34671573693324>
+        a       owl:Class .
+
+<urn:tests#uri34671573693871>
+        a       owl:Class .
+
+<urn:tests#uri34671573693884>
+        a       owl:Class .
+
+<urn:tests#uri34671573693337>
+        a       owl:Class .
+
+<urn:tests#uri34671573693631>
+        a       owl:Class .
+
+<urn:tests#uri34671573693809>
+        a       owl:Class .
+
+<urn:tests#uri34671573693897>
+        a       owl:Class .
+
+<urn:tests#uri34671573694206>
+        a       owl:Class .
+
+<urn:tests#uri34671573693644>
+        a       owl:Class .
+
+<urn:tests#uri34671573694041>
+        a       owl:Class .
+
+<urn:tests#uri34671573694219>
+        a       owl:Class .
+
+<urn:tests#uri34671573693657>
+        a       owl:Class .
+
+<urn:tests#uri34671573693404>
+        a       owl:Class .
+
+<urn:tests#uri34671573693951>
+        a       owl:Class .
+
+<urn:tests#uri34671573694054>
+        a       owl:Class .
+
+<urn:tests#uri34671573693492>
+        a       owl:Class .
+
+<urn:tests#uri34671573693417>
+        a       owl:Class .
+
+<urn:tests#uri34671573693964>
+        a       owl:Class .
+
+<urn:tests#uri34671573693711>
+        a       owl:Class .
+
+<urn:tests#uri34671573694067>
+        a       owl:Class .
+
+<urn:tests#uri34671573693252>
+        a       owl:Class .
+
+<urn:tests#uri34671573693977>
+        a       owl:Class .
+
+<urn:tests#uri34671573693724>
+        a       owl:Class .
+
+<urn:tests#uri34671573693265>
+        a       owl:Class .
+
+<urn:tests#uri34671573694121>
+        a       owl:Class .
+
+<urn:tests#uri34671573693737>
+        a       owl:Class .
+
+<urn:tests#uri34671573693278>
+        a       owl:Class .
+
+<urn:tests#uri34671573694134>
+        a       owl:Class .
+
+<urn:tests#uri34671573693572>
+        a       owl:Class .
+
+<urn:tests#uri34671573694147>
+        a       owl:Class .
+
+<urn:tests#uri34671573693585>
+        a       owl:Class .
+
+<urn:tests#uri34671573693332>
+        a       owl:Class .
+
+<urn:tests#uri34671573693804>
+        a       owl:Class .
+
+<urn:tests#uri34671573693598>
+        a       owl:Class .
+
+<urn:tests#uri34671573693892>
+        a       owl:Class .
+
+<urn:tests#uri34671573693345>
+        a       owl:Class .
+
+<urn:tests#uri34671573694201>
+        a       owl:Class .
+
+<urn:tests#uri34671573693817>
+        a       owl:Class .
+
+<urn:tests#uri34671573693358>
+        a       owl:Class .
+
+<urn:tests#uri34671573694214>
+        a       owl:Class .
+
+<urn:tests#uri34671573693652>
+        a       owl:Class .
+
+<urn:tests#uri34671573694227>
+        a       owl:Class .
+
+<urn:tests#uri34671573693665>
+        a       owl:Class .
+
+<urn:tests#uri34671573693412>
+        a       owl:Class .
+
+<urn:tests#uri34671573694062>
+        a       owl:Class .
+
+<urn:tests#uri34671573693678>
+        a       owl:Class .
+
+<urn:tests#uri34671573693425>
+        a       owl:Class .
+
+<urn:tests#uri34671573693972>
+        a       owl:Class .
+
+<urn:tests#uri34671573694075>
+        a       owl:Class .
+
+<urn:tests#uri34671573693260>
+        a       owl:Class .
+
+<urn:tests#uri34671573693438>
+        a       owl:Class .
+
+<urn:tests#uri34671573693985>
+        a       owl:Class .
+
+<urn:tests#uri34671573693732>
+        a       owl:Class .
+
+<urn:tests#uri34671573694088>
+        a       owl:Class .
+
+<urn:tests#uri34671573693273>
+        a       owl:Class .
+
+<urn:tests#uri34671573693998>
+        a       owl:Class .
+
+<urn:tests#uri34671573693745>
+        a       owl:Class .
+
+<urn:tests#uri34671573693286>
+        a       owl:Class .
+
+<urn:tests#uri34671573693580>
+        a       owl:Class .
+
+<urn:tests#uri34671573694142>
+        a       owl:Class .
+
+<urn:tests#uri34671573693758>
+        a       owl:Class .
+
+<urn:tests#uri34671573693505>
+        a       owl:Class .
+
+<urn:tests#uri34671573693299>
+        a       owl:Class .
+
+<urn:tests#uri34671573694155>
+        a       owl:Class .
+
+<urn:tests#uri34671573693593>
+        a       owl:Class .
+
+<urn:tests#uri34671573693340>
+        a       owl:Class .
+
+<urn:tests#uri34671573693518>
+        a       owl:Class .
+
+<urn:tests#uri34671573693812>
+        a       owl:Class .
+
+<urn:tests#uri34671573694168>
+        a       owl:Class .
+
+<urn:tests#uri34671573693353>
+        a       owl:Class .
+
+<urn:tests#uri34671573693825>
+        a       owl:Class .
+
+<urn:tests#uri34671573693366>
+        a       owl:Class .
+
+<urn:tests#uri34671573694222>
+        a       owl:Class .
+
+<urn:tests#uri34671573693660>
+        a       owl:Class .
+
+<urn:tests#uri34671573693838>
+        a       owl:Class .
+
+<urn:tests#uri34671573693379>
+        a       owl:Class .
+
+<urn:tests#uri34671573694235>
+        a       owl:Class .
+
+<urn:tests#uri34671573693673>
+        a       owl:Class .
+
+<urn:tests#uri34671573693420>
+        a       owl:Class .
+
+<urn:tests#uri34671573694070>
+        a       owl:Class .
+
+<urn:tests#uri34671573694248>
+        a       owl:Class .
+
+<urn:tests#uri34671573693686>
+        a       owl:Class .
+
+<urn:tests#uri34671573693433>
+        a       owl:Class .
+
+<urn:tests#uri34671573693980>
+        a       owl:Class .
+
+<urn:tests#uri34671573694083>
+        a       owl:Class .
+
+<urn:tests#uri34671573693905>
+        a       owl:Class .
+
+<urn:tests#uri34671573693699>
+        a       owl:Class .
+
+<urn:tests#uri34671573694008>
+        a       owl:Class .
+
+<urn:tests#uri34671573693446>
+        a       owl:Class .
+
+<urn:tests#uri34671573693993>
+        a       owl:Class .
+
+<urn:tests#uri34671573693740>
+        a       owl:Class .
+
+<urn:tests#uri34671573694096>
+        a       owl:Class .
+
+<urn:tests#uri34671573693918>
+        a       owl:Class .
+
+<urn:tests#uri34671573693281>
+        a       owl:Class .
+
+<urn:tests#uri34671573693459>
+        a       owl:Class .
+
+<urn:tests#uri34671573693753>
+        a       owl:Class .
+
+<urn:tests#uri34671573693500>
+        a       owl:Class .
+
+<urn:tests#uri34671573693294>
+        a       owl:Class .
+
+<urn:tests#uri34671573694150>
+        a       owl:Class .
+
+<urn:tests#uri34671573693766>
+        a       owl:Class .
+
+<urn:tests#uri34671573693513>
+        a       owl:Class .
+
+<urn:tests#uri34671573694163>
+        a       owl:Class .
+
+<urn:tests#uri34671573693779>
+        a       owl:Class .
+
+<urn:tests#uri34671573693526>
+        a       owl:Class .
+
+<urn:tests#uri34671573693820>
+        a       owl:Class .
+
+<urn:tests#uri34671573694176>
+        a       owl:Class .
+
+<urn:tests#uri34671573693361>
+        a       owl:Class .
+
+<urn:tests#uri34671573693539>
+        a       owl:Class .
+
+<urn:tests#uri34671573693833>
+        a       owl:Class .
+
+<urn:tests#uri34671573694189>
+        a       owl:Class .
+
+<urn:tests#uri34671573693374>
+        a       owl:Class .
+
+<urn:tests#uri34671573694230>
+        a       owl:Class .
+
+<urn:tests#uri34671573693846>
+        a       owl:Class .
+
+<urn:tests#uri34671573693387>
+        a       owl:Class .
+
+<urn:tests#uri34671573694243>
+        a       owl:Class .
+
+<urn:tests#uri34671573693681>
+        a       owl:Class .
+
+<urn:tests#uri34671573693859>
+        a       owl:Class .
+
+<urn:tests#uri34671573693606>
+        a       owl:Class .
+
+<urn:tests#uri34671573693900>
+        a       owl:Class .
+
+<urn:tests#uri34671573693694>
+        a       owl:Class .
+
+<urn:tests#uri34671573694003>
+        a       owl:Class .
+
+<urn:tests#uri34671573693441>
+        a       owl:Class .
+
+<urn:tests#uri34671573693619>
+        a       owl:Class .
+
+<urn:tests#uri34671573694091>
+        a       owl:Class .
+
+<urn:tests#uri34671573693913>
+        a       owl:Class .
+
+<urn:tests#uri34671573694016>
+        a       owl:Class .
+
+<urn:tests#uri34671573693454>
+        a       owl:Class .
+
+<urn:tests#uri34671573693926>
+        a       owl:Class .
+
+<urn:tests#uri34671573694029>
+        a       owl:Class .
+
+<urn:tests#uri34671573693467>
+        a       owl:Class .
+
+<urn:tests#uri34671573693761>
+        a       owl:Class .
+
+<urn:tests#uri34671573693939>
+        a       owl:Class .
+
+<urn:tests#uri34671573693774>
+        a       owl:Class .
+
+<urn:tests#uri34671573693521>
+        a       owl:Class .
+
+<urn:tests#uri34671573694171>
+        a       owl:Class .
+
+<urn:tests#uri34671573693787>
+        a       owl:Class .
+
+<urn:tests#uri34671573693534>
+        a       owl:Class .
+
+<urn:tests#uri34671573694184>
+        a       owl:Class .
+
+<urn:tests#uri34671573694109>
+        a       owl:Class .
+
+<urn:tests#uri34671573693547>
+        a       owl:Class .
+
+<urn:tests#uri34671573693841>
+        a       owl:Class .
+
+<urn:tests#uri34671573694197>
+        a       owl:Class .
+
+<urn:tests#uri34671573693382>
+        a       owl:Class .
+
+<urn:tests#uri34671573693854>
+        a       owl:Class .
+
+<urn:tests#uri34671573693307>
+        a       owl:Class .
+
+<urn:tests#uri34671573693601>
+        a       owl:Class .
+
+<urn:tests#uri34671573693395>
+        a       owl:Class .
+
+<urn:tests#uri34671573693867>
+        a       owl:Class .
+
+<urn:tests#uri34671573693614>
+        a       owl:Class .
+
+<urn:tests#uri34671573694011>
+        a       owl:Class .
+
+<urn:tests#uri34671573693627>
+        a       owl:Class .
+
+<urn:tests#uri34671573693921>
+        a       owl:Class .
+
+<urn:tests#uri34671573694024>
+        a       owl:Class .
+
+<urn:tests#uri34671573693462>
+        a       owl:Class .
+
+<urn:tests#uri34671573693934>
+        a       owl:Class .
+
+<urn:tests#uri34671573694037>
+        a       owl:Class .
+
+<urn:tests#uri34671573693475>
+        a       owl:Class .
+
+<urn:tests#uri34671573693947>
+        a       owl:Class .
+
+<urn:tests#uri34671573693488>
+        a       owl:Class .
+
+<urn:tests#uri34671573693782>
+        a       owl:Class .
+
+<urn:tests#uri34671573693707>
+        a       owl:Class .
+
+<urn:tests#uri34671573693795>
+        a       owl:Class .
+
+<urn:tests#uri34671573694104>
+        a       owl:Class .
+
+<urn:tests#uri34671573693542>
+        a       owl:Class .
+
+<urn:tests#uri34671573694192>
+        a       owl:Class .
+
+<urn:tests#uri34671573694117>
+        a       owl:Class .
+
+<urn:tests#uri34671573693555>
+        a       owl:Class .
+
+<urn:tests#uri34671573693302>
+        a       owl:Class .
+
+<urn:tests#uri34671573693390>
+        a       owl:Class .
+
+<urn:tests#uri34671573693568>
+        a       owl:Class .
+
+<urn:tests#uri34671573693862>
+        a       owl:Class .
+
+<urn:tests#uri34671573693315>
+        a       owl:Class .
+
+<urn:tests#uri34671573693328>
+        a       owl:Class .
+
+<urn:tests#uri34671573693875>
+        a       owl:Class .
+
+<urn:tests#uri34671573693622>
+        a       owl:Class .
+
+<urn:tests#uri34671573693888>
+        a       owl:Class .
+
+<urn:tests#uri34671573693635>
+        a       owl:Class .
+
+<urn:tests#uri34671573694032>
+        a       owl:Class .
+
+<urn:tests#uri34671573693470>
+        a       owl:Class .
+
+<urn:tests#uri34671573693648>
+        a       owl:Class .
+
+<urn:tests#uri34671573693942>
+        a       owl:Class .
+
+<urn:tests#uri34671573694045>
+        a       owl:Class .
+
+<urn:tests#uri34671573693483>
+        a       owl:Class .
+
+<urn:tests#uri34671573693408>
+        a       owl:Class .
+
+<urn:tests#uri34671573693955>
+        a       owl:Class .
+
+<urn:tests#uri34671573693702>
+        a       owl:Class .
+
+<urn:tests#uri34671573694058>
+        a       owl:Class .
+
+<urn:tests#uri34671573693496>
+        a       owl:Class .
+
+<urn:tests#uri34671573693790>
+        a       owl:Class .
+
+<urn:tests#uri34671573693968>
+        a       owl:Class .
+
+<urn:tests#uri34671573693715>
+        a       owl:Class .
+
+<urn:tests#uri34671573693256>
+        a       owl:Class .
+
+<urn:tests#uri34671573694112>
+        a       owl:Class .
+
+<urn:tests#uri34671573693550>
+        a       owl:Class .
+
+<urn:tests#uri34671573693728>
+        a       owl:Class .
+
+<urn:tests#uri34671573693269>
+        a       owl:Class .
+
+<urn:tests#uri34671573694125>
+        a       owl:Class .
+
+<urn:tests#uri34671573693563>
+        a       owl:Class .
+
+<urn:tests#uri34671573693310>
+        a       owl:Class .
+
+<urn:tests#uri34671573694138>
+        a       owl:Class .
+
+<urn:tests#uri34671573693576>
+        a       owl:Class .
+
+<urn:tests#uri34671573693870>
+        a       owl:Class .
+
+<urn:tests#uri34671573693323>
+        a       owl:Class .
+
+<urn:tests#uri34671573693589>
+        a       owl:Class .
+
+<urn:tests#uri34671573693883>
+        a       owl:Class .
+
+<urn:tests#uri34671573693336>
+        a       owl:Class .
+
+<urn:tests#uri34671573693630>
+        a       owl:Class .
+
+<urn:tests#uri34671573693808>
+        a       owl:Class .
+
+<urn:tests#uri34671573693896>
+        a       owl:Class .
+
+<urn:tests#uri34671573693349>
+        a       owl:Class .
+
+<urn:tests#uri34671573694205>
+        a       owl:Class .
+
+<urn:tests#uri34671573693643>
+        a       owl:Class .
+
+<urn:tests#uri34671573694040>
+        a       owl:Class .
+
+<urn:tests#uri34671573694218>
+        a       owl:Class .
+
+<urn:tests#uri34671573693656>
+        a       owl:Class .
+
+<urn:tests#uri34671573693403>
+        a       owl:Class .
+
+<urn:tests#uri34671573693950>
+        a       owl:Class .
+
+<urn:tests#uri34671573694053>
+        a       owl:Class .
+
+<urn:tests#uri34671573693491>
+        a       owl:Class .
+
+<urn:tests#uri34671573693669>
+        a       owl:Class .
+
+<urn:tests#uri34671573693416>
+        a       owl:Class .
+
+<urn:tests#uri34671573693963>
+        a       owl:Class .
+
+<urn:tests#uri34671573693710>
+        a       owl:Class .
+
+<urn:tests#uri34671573694066>
+        a       owl:Class .
+
+<urn:tests#uri34671573693251>
+        a       owl:Class .
+
+<urn:tests#uri34671573693429>
+        a       owl:Class .
+
+<urn:tests#uri34671573693976>
+        a       owl:Class .
+
+<urn:tests#uri34671573693723>
+        a       owl:Class .
+
+<urn:tests#uri34671573694079>
+        a       owl:Class .
+
+<urn:tests#uri34671573693264>
+        a       owl:Class .
+
+<urn:tests#uri34671573694120>
+        a       owl:Class .
+
+<urn:tests#uri34671573693989>
+        a       owl:Class .
+
+<urn:tests#uri34671573693736>
+        a       owl:Class .
+
+<urn:tests#uri34671573693277>
+        a       owl:Class .
+
+<urn:tests#uri34671573694133>
+        a       owl:Class .
+
+<urn:tests#uri34671573693571>
+        a       owl:Class .
+
+<urn:tests#uri34671573693749>
+        a       owl:Class .
+
+<urn:tests#uri34671573694146>
+        a       owl:Class .
+
+<urn:tests#uri34671573693584>
+        a       owl:Class .
+
+<urn:tests#uri34671573693331>
+        a       owl:Class .
+
+<urn:tests#uri34671573693509>
+        a       owl:Class .
+
+<urn:tests#uri34671573693803>
+        a       owl:Class .
+
+<urn:tests#uri34671573694159>
+        a       owl:Class .
+
+<urn:tests#uri34671573693597>
+        a       owl:Class .
+
+<urn:tests#uri34671573693891>
+        a       owl:Class .
+
+<urn:tests#uri34671573693344>
+        a       owl:Class .
+
+<urn:tests#uri34671573694200>
+        a       owl:Class .
+
+<urn:tests#uri34671573693816>
+        a       owl:Class .
+
+<urn:tests#uri34671573693357>
+        a       owl:Class .
+
+<urn:tests#uri34671573694213>
+        a       owl:Class .
+
+<urn:tests#uri34671573693651>
+        a       owl:Class .
+
+<urn:tests#uri34671573693829>
+        a       owl:Class .
+
+<urn:tests#uri34671573694226>
+        a       owl:Class .
+
+<urn:tests#uri34671573693664>
+        a       owl:Class .
+
+<urn:tests#uri34671573693411>
+        a       owl:Class .
+
+<urn:tests#uri34671573694061>
+        a       owl:Class .
+
+<urn:tests#uri34671573694239>
+        a       owl:Class .
+
+<urn:tests#uri34671573693677>
+        a       owl:Class .
+
+<urn:tests#uri34671573693424>
+        a       owl:Class .
+
+<urn:tests#uri34671573693971>
+        a       owl:Class .
+
+<urn:tests#uri34671573694074>
+        a       owl:Class .
+
+<urn:tests#uri34671573693984>
+        a       owl:Class .
+
+<urn:tests#uri34671573693437>
+        a       owl:Class .
+
+<urn:tests#uri34671573693731>
+        a       owl:Class .
+
+<urn:tests#uri34671573694087>
+        a       owl:Class .
+
+<urn:tests#uri34671573693909>
+        a       owl:Class .
+
+<urn:tests#uri34671573693272>
+        a       owl:Class .
+
+<urn:tests#uri34671573693997>
+        a       owl:Class .
+
+<urn:tests#uri34671573693744>
+        a       owl:Class .
+
+<urn:tests#uri34671573693285>
+        a       owl:Class .
+
+<urn:tests#uri34671573694141>
+        a       owl:Class .
+
+<urn:tests#uri34671573693757>
+        a       owl:Class .
+
+<urn:tests#uri34671573693504>
+        a       owl:Class .
+
+<urn:tests#uri34671573693298>
+        a       owl:Class .
+
+<urn:tests#uri34671573694154>
+        a       owl:Class .
+
+<urn:tests#uri34671573693592>
+        a       owl:Class .
+
+<urn:tests#uri34671573693517>
+        a       owl:Class .
+
+<urn:tests#uri34671573693811>
+        a       owl:Class .
+
+<urn:tests#uri34671573694167>
+        a       owl:Class .
+
+<urn:tests#uri34671573693352>
+        a       owl:Class .
+
+<urn:tests#uri34671573693824>
+        a       owl:Class .
+
+<urn:tests#uri34671573693365>
+        a       owl:Class .
+
+<urn:tests#uri34671573694221>
+        a       owl:Class .
+
+<urn:tests#uri34671573693837>
+        a       owl:Class .
+
+<urn:tests#uri34671573693378>
+        a       owl:Class .
+
+<urn:tests#uri34671573694234>
+        a       owl:Class .
+
+<urn:tests#uri34671573693672>
+        a       owl:Class .
+
+<urn:tests#uri34671573694247>
+        a       owl:Class .
+
+<urn:tests#uri34671573693685>
+        a       owl:Class .
+
+<urn:tests#uri34671573693432>
+        a       owl:Class .
+
+<urn:tests#uri34671573694082>
+        a       owl:Class .
+
+<urn:tests#uri34671573693904>
+        a       owl:Class .
+
+<urn:tests#uri34671573694007>
+        a       owl:Class .
+
+<urn:tests#uri34671573693698>
+        a       owl:Class .
+
+<urn:tests#uri34671573693992>
+        a       owl:Class .
+
+<urn:tests#uri34671573693445>
+        a       owl:Class .
+
+<urn:tests#uri34671573694095>
+        a       owl:Class .
+
+<urn:tests#uri34671573693917>
+        a       owl:Class .
+
+<urn:tests#uri34671573693280>
+        a       owl:Class .
+
+<urn:tests#uri34671573693458>
+        a       owl:Class .
+
+<urn:tests#uri34671573693752>
+        a       owl:Class .
+
+<urn:tests#uri34671573693293>
+        a       owl:Class .
+
+<urn:tests#uri34671573693765>
+        a       owl:Class .
+
+<urn:tests#uri34671573693512>
+        a       owl:Class .
+
+<urn:tests#uri34671573694162>
+        a       owl:Class .
+
+<urn:tests#uri34671573693778>
+        a       owl:Class .
+
+<urn:tests#uri34671573693525>
+        a       owl:Class .
+
+<urn:tests#uri34671573694175>
+        a       owl:Class .
+
+<urn:tests#uri34671573693360>
+        a       owl:Class .
+
+<urn:tests#uri34671573693538>
+        a       owl:Class .
+
+<urn:tests#uri34671573693832>
+        a       owl:Class .
+
+<urn:tests#uri34671573694188>
+        a       owl:Class .
+
+<urn:tests#uri34671573693373>
+        a       owl:Class .
+
+<urn:tests#uri34671573693845>
+        a       owl:Class .
+
+<urn:tests#uri34671573693386>
+        a       owl:Class .
+
+<urn:tests#uri34671573694242>
+        a       owl:Class .
+
+<urn:tests#uri34671573693680>
+        a       owl:Class .
+
+<urn:tests#uri34671573693858>
+        a       owl:Class .
+
+<urn:tests#uri34671573693605>
+        a       owl:Class .
+
+<urn:tests#uri34671573693399>
+        a       owl:Class .
+
+<urn:tests#uri34671573693693>
+        a       owl:Class .
+
+<urn:tests#uri34671573694002>
+        a       owl:Class .
+
+<urn:tests#uri34671573693440>
+        a       owl:Class .
+
+<urn:tests#uri34671573693618>
+        a       owl:Class .
+
+<urn:tests#uri34671573694090>
+        a       owl:Class .
+
+<urn:tests#uri34671573693912>
+        a       owl:Class .
+
+<urn:tests#uri34671573694015>
+        a       owl:Class .
+
+<urn:tests#uri34671573693453>
+        a       owl:Class .
+
+<urn:tests#uri34671573693925>
+        a       owl:Class .
+
+<urn:tests#uri34671573694028>
+        a       owl:Class .
+
+<urn:tests#uri34671573693466>
+        a       owl:Class .
+
+<urn:tests#uri34671573693760>
+        a       owl:Class .
+
+<urn:tests#uri34671573693938>
+        a       owl:Class .
+
+<urn:tests#uri34671573693479>
+        a       owl:Class .
+
+<urn:tests#uri34671573693773>
+        a       owl:Class .
+
+<urn:tests#uri34671573693520>
+        a       owl:Class .
+
+<urn:tests#uri34671573694170>
+        a       owl:Class .
+
+<urn:tests#uri34671573693786>
+        a       owl:Class .
+
+<urn:tests#uri34671573693533>
+        a       owl:Class .
+
+<urn:tests#uri34671573694183>
+        a       owl:Class .
+
+<urn:tests#uri34671573693799>
+        a       owl:Class .
+
+<urn:tests#uri34671573694108>
+        a       owl:Class .
+
+<urn:tests#uri34671573693546>
+        a       owl:Class .
+
+<urn:tests#uri34671573693840>
+        a       owl:Class .
+
+<urn:tests#uri34671573694196>
+        a       owl:Class .
+
+<urn:tests#uri34671573693381>
+        a       owl:Class .
+
+<urn:tests#uri34671573693559>
+        a       owl:Class .
+
+<urn:tests#uri34671573693853>
+        a       owl:Class .
+
+<urn:tests#uri34671573693306>
+        a       owl:Class .
+
+<urn:tests#uri34671573693600>
+        a       owl:Class .
+
+<urn:tests#uri34671573693394>
+        a       owl:Class .
+
+<urn:tests#uri34671573693866>
+        a       owl:Class .
+
+<urn:tests#uri34671573693319>
+        a       owl:Class .
+
+<urn:tests#uri34671573693613>
+        a       owl:Class .
+
+<urn:tests#uri34671573694010>
+        a       owl:Class .
+
+<urn:tests#uri34671573693879>
+        a       owl:Class .
+
+<urn:tests#uri34671573693626>
+        a       owl:Class .
+
+<urn:tests#uri34671573693920>
+        a       owl:Class .
+
+<urn:tests#uri34671573694023>
+        a       owl:Class .
+
+<urn:tests#uri34671573693461>
+        a       owl:Class .
+
+<urn:tests#uri34671573693639>
+        a       owl:Class .
+
+<urn:tests#uri34671573693933>
+        a       owl:Class .
+
+<urn:tests#uri34671573694036>
+        a       owl:Class .
+
+<urn:tests#uri34671573693474>
+        a       owl:Class .
+
+<urn:tests#uri34671573693946>
+        a       owl:Class .
+
+<urn:tests#uri34671573694049>
+        a       owl:Class .
+
+<urn:tests#uri34671573693487>
+        a       owl:Class .
+
+<urn:tests#uri34671573693781>
+        a       owl:Class .
+
+<urn:tests#uri34671573693959>
+        a       owl:Class .
+
+<urn:tests#uri34671573693706>
+        a       owl:Class .
+
+<urn:tests#uri34671573693794>
+        a       owl:Class .
+
+<urn:tests#uri34671573694103>
+        a       owl:Class .
+
+<urn:tests#uri34671573693541>
+        a       owl:Class .
+
+<urn:tests#uri34671573693719>
+        a       owl:Class .
+
+<urn:tests#uri34671573694191>
+        a       owl:Class .
+
+<urn:tests#uri34671573694116>
+        a       owl:Class .
+
+<urn:tests#uri34671573693554>
+        a       owl:Class .
+
+<urn:tests#uri34671573693301>
+        a       owl:Class .
+
+<urn:tests#uri34671573694129>
+        a       owl:Class .
+
+<urn:tests#uri34671573693567>
+        a       owl:Class .
+
+<urn:tests#uri34671573693861>
+        a       owl:Class .
+
+<urn:tests#uri34671573693314>
+        a       owl:Class .
+
+<urn:tests#uri34671573693327>
+        a       owl:Class .
+
+<urn:tests#uri34671573693874>
+        a       owl:Class .
+
+<urn:tests#uri34671573693621>
+        a       owl:Class .
+
+[ a            owl:AllDisjointClasses ;
+  owl:members  ( <urn:tests#uri34671573693550> <urn:tests#uri34671573693793> <urn:tests#uri34671573693551> <urn:tests#uri34671573693792> <urn:tests#uri34671573693791> <urn:tests#uri34671573693790> <urn:tests#uri34671573693312> <urn:tests#uri34671573693554> <urn:tests#uri34671573693797> <urn:tests#uri34671573693313> <urn:tests#uri34671573693555> <urn:tests#uri34671573693796> <urn:tests#uri34671573693310> <urn:tests#uri34671573693552> <urn:tests#uri34671573693795> <urn:tests#uri34671573693311> <urn:tests#uri34671573693553> <urn:tests#uri34671573693794> <urn:tests#uri34671573693316> <urn:tests#uri34671573693558> <urn:tests#uri34671573693317> <urn:tests#uri34671573693559> <urn:tests#uri34671573693314> <urn:tests#uri34671573693556> <urn:tests#uri34671573693799> <urn:tests#uri34671573693315> <urn:tests#uri34671573693557> <urn:tests#uri34671573693798> <urn:tests#uri34671573693318> <urn:tests#uri34671573693319> <urn:tests#uri34671573693561> <urn:tests#uri34671573693320> <urn:tests#uri34671573693562> <urn:tests#uri34671573693560> <urn:tests#uri34671573693323> <urn:tests#uri34671573693565> <urn:tests#uri34671573693324> <urn:tests#uri34671573693566> <urn:tests#uri34671573693321> <urn:tests#uri34671573693563> <urn:tests#uri34671573693322> <urn:tests#uri34671573693564> <urn:tests#uri34671573693327> <urn:tests#uri34671573693569> <urn:tests#uri34671573693328> <urn:tests#uri34671573693325> <urn:tests#uri34671573693567> <urn:tests#uri34671573693326> <urn:tests#uri34671573693568> <urn:tests#uri34671573693329> <urn:tests#uri34671573693330> <urn:tests#uri34671573693572> <urn:tests#uri34671573693331> <urn:tests#uri34671573693573> <urn:tests#uri34671573693570> <urn:tests#uri34671573693571> <urn:tests#uri34671573693334> <urn:tests#uri34671573693576> <urn:tests#uri34671573693335> <urn:tests#uri34671573693577> <urn:tests#uri34671573693332> <urn:tests#uri34671573693574> <urn:tests#uri34671573693333> <urn:tests#uri34671573693575> <urn:tests#uri34671573693338> <urn:tests#uri34671573693339> <urn:tests#uri34671573693336> <urn:tests#uri34671573693578> <urn:tests#uri34671573693337> <urn:tests#uri34671573693579> <urn:tests#uri34671573693580> <urn:tests#uri34671573693341> <urn:tests#uri34671573693583> <urn:tests#uri34671573693342> <urn:tests#uri34671573693584> <urn:tests#uri34671573693581> <urn:tests#uri34671573693340> <urn:tests#uri34671573693582> <urn:tests#uri34671573693345> <urn:tests#uri34671573693587> <urn:tests#uri34671573693346> <urn:tests#uri34671573693588> <urn:tests#uri34671573693343> <urn:tests#uri34671573693585> <urn:tests#uri34671573693344> <urn:tests#uri34671573693586> <urn:tests#uri34671573693349> <urn:tests#uri34671573693347> <urn:tests#uri34671573693589> <urn:tests#uri34671573693348> <urn:tests#uri34671573693991> <urn:tests#uri34671573693990> <urn:tests#uri34671573693510> <urn:tests#uri34671573693753> <urn:tests#uri34671573693995> <urn:tests#uri34671573693511> <urn:tests#uri34671573693752> <urn:tests#uri34671573693994> <urn:tests#uri34671573693751> <urn:tests#uri34671573693993> <urn:tests#uri34671573693750> <urn:tests#uri34671573693992> <urn:tests#uri34671573693514> <urn:tests#uri34671573693757> <urn:tests#uri34671573693999> <urn:tests#uri34671573693515> <urn:tests#uri34671573693756> <urn:tests#uri34671573693998> <urn:tests#uri34671573693512> <urn:tests#uri34671573693755> <urn:tests#uri34671573693997> <urn:tests#uri34671573693513> <urn:tests#uri34671573693754> <urn:tests#uri34671573693996> <urn:tests#uri34671573693518> <urn:tests#uri34671573693519> <urn:tests#uri34671573693516> <urn:tests#uri34671573693759> <urn:tests#uri34671573693517> <urn:tests#uri34671573693758> <urn:tests#uri34671573693760> <urn:tests#uri34671573693521> <urn:tests#uri34671573693764> <urn:tests#uri34671573693522> <urn:tests#uri34671573693763> <urn:tests#uri34671573693762> <urn:tests#uri34671573693520> <urn:tests#uri34671573693761> <urn:tests#uri34671573693525> <urn:tests#uri34671573693768> <urn:tests#uri34671573693526> <urn:tests#uri34671573693767> <urn:tests#uri34671573693523> <urn:tests#uri34671573693766> <urn:tests#uri34671573693524> <urn:tests#uri34671573693765> <urn:tests#uri34671573693529> <urn:tests#uri34671573693527> <urn:tests#uri34671573693528> <urn:tests#uri34671573693769> <urn:tests#uri34671573693771> <urn:tests#uri34671573693770> <urn:tests#uri34671573693532> <urn:tests#uri34671573693775> <urn:tests#uri34671573693533> <urn:tests#uri34671573693774> <urn:tests#uri34671573693530> <urn:tests#uri34671573693773> <urn:tests#uri34671573693531> <urn:tests#uri34671573693772> <urn:tests#uri34671573693536> <urn:tests#uri34671573693779> <urn:tests#uri34671573693537> <urn:tests#uri34671573693778> <urn:tests#uri34671573693534> <urn:tests#uri34671573693777> <urn:tests#uri34671573693535> <urn:tests#uri34671573693776> <urn:tests#uri34671573693538> <urn:tests#uri34671573693539> <urn:tests#uri34671573693782> <urn:tests#uri34671573693540> <urn:tests#uri34671573693781> <urn:tests#uri34671573693780> <urn:tests#uri34671573693301> <urn:tests#uri34671573693543> <urn:tests#uri34671573693786> <urn:tests#uri34671573693302> <urn:tests#uri34671573693544> <urn:tests#uri34671573693785> <urn:tests#uri34671573693541> <urn:tests#uri34671573693784> <urn:tests#uri34671573693300> <urn:tests#uri34671573693542> <urn:tests#uri34671573693783> <urn:tests#uri34671573693305> <urn:tests#uri34671573693547> <urn:tests#uri34671573693306> <urn:tests#uri34671573693548> <urn:tests#uri34671573693789> <urn:tests#uri34671573693303> <urn:tests#uri34671573693545> <urn:tests#uri34671573693788> <urn:tests#uri34671573693304> <urn:tests#uri34671573693546> <urn:tests#uri34671573693787> <urn:tests#uri34671573693309> <urn:tests#uri34671573693307> <urn:tests#uri34671573693549> <urn:tests#uri34671573693308> <urn:tests#uri34671573693951> <urn:tests#uri34671573693950> <urn:tests#uri34671573693713> <urn:tests#uri34671573693955> <urn:tests#uri34671573693712> <urn:tests#uri34671573693954> <urn:tests#uri34671573693711> <urn:tests#uri34671573693953> <urn:tests#uri34671573693710> <urn:tests#uri34671573693952> <urn:tests#uri34671573693717> <urn:tests#uri34671573693959> <urn:tests#uri34671573693716> <urn:tests#uri34671573693958> <urn:tests#uri34671573693715> <urn:tests#uri34671573693957> <urn:tests#uri34671573693714> <urn:tests#uri34671573693956> <urn:tests#uri34671573693719> <urn:tests#uri34671573693718> <urn:tests#uri34671573693720> <urn:tests#uri34671573693962> <urn:tests#uri34671573693961> <urn:tests#uri34671573693960> <urn:tests#uri34671573693724> <urn:tests#uri34671573693966> <urn:tests#uri34671573693723> <urn:tests#uri34671573693965> <urn:tests#uri34671573693722> <urn:tests#uri34671573693964> <urn:tests#uri34671573693721> <urn:tests#uri34671573693963> <urn:tests#uri34671573693728> <urn:tests#uri34671573693727> <urn:tests#uri34671573693969> <urn:tests#uri34671573693726> <urn:tests#uri34671573693968> <urn:tests#uri34671573693725> <urn:tests#uri34671573693967> <urn:tests#uri34671573693729> <urn:tests#uri34671573693731> <urn:tests#uri34671573693973> <urn:tests#uri34671573693730> <urn:tests#uri34671573693972> <urn:tests#uri34671573693971> <urn:tests#uri34671573693970> <urn:tests#uri34671573693735> <urn:tests#uri34671573693977> <urn:tests#uri34671573693734> <urn:tests#uri34671573693976> <urn:tests#uri34671573693733> <urn:tests#uri34671573693975> <urn:tests#uri34671573693732> <urn:tests#uri34671573693974> <urn:tests#uri34671573693739> <urn:tests#uri34671573693738> <urn:tests#uri34671573693737> <urn:tests#uri34671573693979> <urn:tests#uri34671573693736> <urn:tests#uri34671573693978> <urn:tests#uri34671573693980> <urn:tests#uri34671573693742> <urn:tests#uri34671573693984> <urn:tests#uri34671573693500> <urn:tests#uri34671573693741> <urn:tests#uri34671573693983> <urn:tests#uri34671573693740> <urn:tests#uri34671573693982> <urn:tests#uri34671573693981> <urn:tests#uri34671573693503> <urn:tests#uri34671573693746> <urn:tests#uri34671573693988> <urn:tests#uri34671573693504> <urn:tests#uri34671573693745> <urn:tests#uri34671573693987> <urn:tests#uri34671573693501> <urn:tests#uri34671573693744> <urn:tests#uri34671573693986> <urn:tests#uri34671573693502> <urn:tests#uri34671573693743> <urn:tests#uri34671573693985> <urn:tests#uri34671573693507> <urn:tests#uri34671573693508> <urn:tests#uri34671573693749> <urn:tests#uri34671573693505> <urn:tests#uri34671573693748> <urn:tests#uri34671573693506> <urn:tests#uri34671573693747> <urn:tests#uri34671573693989> <urn:tests#uri34671573693509> <urn:tests#uri34671573693911> <urn:tests#uri34671573693910> <urn:tests#uri34671573693915> <urn:tests#uri34671573693914> <urn:tests#uri34671573693913> <urn:tests#uri34671573693912> <urn:tests#uri34671573693919> <urn:tests#uri34671573693918> <urn:tests#uri34671573693917> <urn:tests#uri34671573693916> <urn:tests#uri34671573693922> <urn:tests#uri34671573693921> <urn:tests#uri34671573693920> <urn:tests#uri34671573693926> <urn:tests#uri34671573693925> <urn:tests#uri34671573693924> <urn:tests#uri34671573693923> <urn:tests#uri34671573693929> <urn:tests#uri34671573693928> <urn:tests#uri34671573693927> <urn:tests#uri34671573693933> <urn:tests#uri34671573693932> <urn:tests#uri34671573693931> <urn:tests#uri34671573693930> <urn:tests#uri34671573693937> <urn:tests#uri34671573693936> <urn:tests#uri34671573693935> <urn:tests#uri34671573693934> <urn:tests#uri34671573693939> <urn:tests#uri34671573693938> <urn:tests#uri34671573693940> <urn:tests#uri34671573693702> <urn:tests#uri34671573693944> <urn:tests#uri34671573693701> <urn:tests#uri34671573693943> <urn:tests#uri34671573693700> <urn:tests#uri34671573693942> <urn:tests#uri34671573693941> <urn:tests#uri34671573693706> <urn:tests#uri34671573693948> <urn:tests#uri34671573693705> <urn:tests#uri34671573693947> <urn:tests#uri34671573693704> <urn:tests#uri34671573693946> <urn:tests#uri34671573693703> <urn:tests#uri34671573693945> <urn:tests#uri34671573693709> <urn:tests#uri34671573693708> <urn:tests#uri34671573693707> <urn:tests#uri34671573693949> <urn:tests#uri34671573693900> <urn:tests#uri34671573693904> <urn:tests#uri34671573693903> <urn:tests#uri34671573693902> <urn:tests#uri34671573693901> <urn:tests#uri34671573693908> <urn:tests#uri34671573693907> <urn:tests#uri34671573693906> <urn:tests#uri34671573693905> <urn:tests#uri34671573693909> <urn:tests#uri34671573694163> <urn:tests#uri34671573694162> <urn:tests#uri34671573694161> <urn:tests#uri34671573694160> <urn:tests#uri34671573694167> <urn:tests#uri34671573694166> <urn:tests#uri34671573694165> <urn:tests#uri34671573694164> <urn:tests#uri34671573694169> <urn:tests#uri34671573694168> <urn:tests#uri34671573694170> <urn:tests#uri34671573694174> <urn:tests#uri34671573694173> <urn:tests#uri34671573694172> <urn:tests#uri34671573694171> <urn:tests#uri34671573694178> <urn:tests#uri34671573694177> <urn:tests#uri34671573694176> <urn:tests#uri34671573694175> <urn:tests#uri34671573694179> <urn:tests#uri34671573694181> <urn:tests#uri34671573694180> <urn:tests#uri34671573694185> <urn:tests#uri34671573694184> <urn:tests#uri34671573694183> <urn:tests#uri34671573694182> <urn:tests#uri34671573694189> <urn:tests#uri34671573694188> <urn:tests#uri34671573694187> <urn:tests#uri34671573694186> <urn:tests#uri34671573694192> <urn:tests#uri34671573694191> <urn:tests#uri34671573694190> <urn:tests#uri34671573694196> <urn:tests#uri34671573694195> <urn:tests#uri34671573694194> <urn:tests#uri34671573694193> <urn:tests#uri34671573694199> <urn:tests#uri34671573694198> <urn:tests#uri34671573694197> <urn:tests#uri34671573693271> <urn:tests#uri34671573693272> <urn:tests#uri34671573693270> <urn:tests#uri34671573693275> <urn:tests#uri34671573694123> <urn:tests#uri34671573693276> <urn:tests#uri34671573694122> <urn:tests#uri34671573693273> <urn:tests#uri34671573694121> <urn:tests#uri34671573693274> <urn:tests#uri34671573694120> <urn:tests#uri34671573693279> <urn:tests#uri34671573694127> <urn:tests#uri34671573694126> <urn:tests#uri34671573693277> <urn:tests#uri34671573694125> <urn:tests#uri34671573693278> <urn:tests#uri34671573694124> <urn:tests#uri34671573694129> <urn:tests#uri34671573694128> <urn:tests#uri34671573693282> <urn:tests#uri34671573694130> <urn:tests#uri34671573693283> <urn:tests#uri34671573693280> <urn:tests#uri34671573693281> <urn:tests#uri34671573693286> <urn:tests#uri34671573694134> <urn:tests#uri34671573693287> <urn:tests#uri34671573694133> <urn:tests#uri34671573693284> <urn:tests#uri34671573694132> <urn:tests#uri34671573693285> <urn:tests#uri34671573694131> <urn:tests#uri34671573694138> <urn:tests#uri34671573694137> <urn:tests#uri34671573693288> <urn:tests#uri34671573694136> <urn:tests#uri34671573693289> <urn:tests#uri34671573694135> <urn:tests#uri34671573694139> <urn:tests#uri34671573693290> <urn:tests#uri34671573693293> <urn:tests#uri34671573694141> <urn:tests#uri34671573693294> <urn:tests#uri34671573694140> <urn:tests#uri34671573693291> <urn:tests#uri34671573693292> <urn:tests#uri34671573693297> <urn:tests#uri34671573694145> <urn:tests#uri34671573693298> <urn:tests#uri34671573694144> <urn:tests#uri34671573693295> <urn:tests#uri34671573694143> <urn:tests#uri34671573693296> <urn:tests#uri34671573694142> <urn:tests#uri34671573694149> <urn:tests#uri34671573694148> <urn:tests#uri34671573693299> <urn:tests#uri34671573694147> <urn:tests#uri34671573694146> <urn:tests#uri34671573694152> <urn:tests#uri34671573694151> <urn:tests#uri34671573694150> <urn:tests#uri34671573694156> <urn:tests#uri34671573694155> <urn:tests#uri34671573694154> <urn:tests#uri34671573694153> <urn:tests#uri34671573694159> <urn:tests#uri34671573694158> <urn:tests#uri34671573694157> <urn:tests#uri34671573693470> <urn:tests#uri34671573693473> <urn:tests#uri34671573693474> <urn:tests#uri34671573693471> <urn:tests#uri34671573693472> <urn:tests#uri34671573693477> <urn:tests#uri34671573693478> <urn:tests#uri34671573693475> <urn:tests#uri34671573693476> <urn:tests#uri34671573693479> <urn:tests#uri34671573693480> <urn:tests#uri34671573693481> <urn:tests#uri34671573693484> <urn:tests#uri34671573693485> <urn:tests#uri34671573693482> <urn:tests#uri34671573693483> <urn:tests#uri34671573693488> <urn:tests#uri34671573693489> <urn:tests#uri34671573693486> <urn:tests#uri34671573693487> <urn:tests#uri34671573693249> <urn:tests#uri34671573693491> <urn:tests#uri34671573693250> <urn:tests#uri34671573693492> <urn:tests#uri34671573693490> <urn:tests#uri34671573693253> <urn:tests#uri34671573693495> <urn:tests#uri34671573694101> <urn:tests#uri34671573693254> <urn:tests#uri34671573693496> <urn:tests#uri34671573694100> <urn:tests#uri34671573693251> <urn:tests#uri34671573693493> <urn:tests#uri34671573693252> <urn:tests#uri34671573693494> <urn:tests#uri34671573693257> <urn:tests#uri34671573693499> <urn:tests#uri34671573694105> <urn:tests#uri34671573693258> <urn:tests#uri34671573694104> <urn:tests#uri34671573693255> <urn:tests#uri34671573693497> <urn:tests#uri34671573694103> <urn:tests#uri34671573693256> <urn:tests#uri34671573693498> <urn:tests#uri34671573694102> <urn:tests#uri34671573694109> <urn:tests#uri34671573694108> <urn:tests#uri34671573693259> <urn:tests#uri34671573694107> <urn:tests#uri34671573694106> <urn:tests#uri34671573693260> <urn:tests#uri34671573693261> <urn:tests#uri34671573693264> <urn:tests#uri34671573694112> <urn:tests#uri34671573693265> <urn:tests#uri34671573694111> <urn:tests#uri34671573693262> <urn:tests#uri34671573694110> <urn:tests#uri34671573693263> <urn:tests#uri34671573693268> <urn:tests#uri34671573694116> <urn:tests#uri34671573693269> <urn:tests#uri34671573694115> <urn:tests#uri34671573693266> <urn:tests#uri34671573694114> <urn:tests#uri34671573693267> <urn:tests#uri34671573694113> <urn:tests#uri34671573694119> <urn:tests#uri34671573694118> <urn:tests#uri34671573694117> <urn:tests#uri34671573693672> <urn:tests#uri34671573693430> <urn:tests#uri34671573693671> <urn:tests#uri34671573693670> <urn:tests#uri34671573693433> <urn:tests#uri34671573693676> <urn:tests#uri34671573693434> <urn:tests#uri34671573693675> <urn:tests#uri34671573693431> <urn:tests#uri34671573693674> <urn:tests#uri34671573693432> <urn:tests#uri34671573693673> <urn:tests#uri34671573693437> <urn:tests#uri34671573693438> <urn:tests#uri34671573693679> <urn:tests#uri34671573693435> <urn:tests#uri34671573693678> <urn:tests#uri34671573693436> <urn:tests#uri34671573693677> <urn:tests#uri34671573693439> <urn:tests#uri34671573693440> <urn:tests#uri34671573693683> <urn:tests#uri34671573693441> <urn:tests#uri34671573693682> <urn:tests#uri34671573693681> <urn:tests#uri34671573693680> <urn:tests#uri34671573693444> <urn:tests#uri34671573693687> <urn:tests#uri34671573693445> <urn:tests#uri34671573693686> <urn:tests#uri34671573693442> <urn:tests#uri34671573693685> <urn:tests#uri34671573693443> <urn:tests#uri34671573693684> <urn:tests#uri34671573693448> <urn:tests#uri34671573693449> <urn:tests#uri34671573693446> <urn:tests#uri34671573693689> <urn:tests#uri34671573693447> <urn:tests#uri34671573693688> <urn:tests#uri34671573693690> <urn:tests#uri34671573693451> <urn:tests#uri34671573693694> <urn:tests#uri34671573693452> <urn:tests#uri34671573693693> <urn:tests#uri34671573693692> <urn:tests#uri34671573693450> <urn:tests#uri34671573693691> <urn:tests#uri34671573693455> <urn:tests#uri34671573693698> <urn:tests#uri34671573693456> <urn:tests#uri34671573693697> <urn:tests#uri34671573693453> <urn:tests#uri34671573693696> <urn:tests#uri34671573693454> <urn:tests#uri34671573693695> <urn:tests#uri34671573693459> <urn:tests#uri34671573693457> <urn:tests#uri34671573693458> <urn:tests#uri34671573693699> <urn:tests#uri34671573693462> <urn:tests#uri34671573693463> <urn:tests#uri34671573693460> <urn:tests#uri34671573693461> <urn:tests#uri34671573693466> <urn:tests#uri34671573693467> <urn:tests#uri34671573693464> <urn:tests#uri34671573693465> <urn:tests#uri34671573693468> <urn:tests#uri34671573693469> <urn:tests#uri34671573693870> <urn:tests#uri34671573693632> <urn:tests#uri34671573693874> <urn:tests#uri34671573693631> <urn:tests#uri34671573693873> <urn:tests#uri34671573693630> <urn:tests#uri34671573693872> <urn:tests#uri34671573693871> <urn:tests#uri34671573693636> <urn:tests#uri34671573693878> <urn:tests#uri34671573693635> <urn:tests#uri34671573693877> <urn:tests#uri34671573693634> <urn:tests#uri34671573693876> <urn:tests#uri34671573693633> <urn:tests#uri34671573693875> <urn:tests#uri34671573693639> <urn:tests#uri34671573693638> <urn:tests#uri34671573693637> <urn:tests#uri34671573693879> <urn:tests#uri34671573693881> <urn:tests#uri34671573693880> <urn:tests#uri34671573693400> <urn:tests#uri34671573693643> <urn:tests#uri34671573693885> <urn:tests#uri34671573693401> <urn:tests#uri34671573693642> <urn:tests#uri34671573693884> <urn:tests#uri34671573693641> <urn:tests#uri34671573693883> <urn:tests#uri34671573693640> <urn:tests#uri34671573693882> <urn:tests#uri34671573693404> <urn:tests#uri34671573693647> <urn:tests#uri34671573693889> <urn:tests#uri34671573693405> <urn:tests#uri34671573693646> <urn:tests#uri34671573693888> <urn:tests#uri34671573693402> <urn:tests#uri34671573693645> <urn:tests#uri34671573693887> <urn:tests#uri34671573693403> <urn:tests#uri34671573693644> <urn:tests#uri34671573693886> <urn:tests#uri34671573693408> <urn:tests#uri34671573693409> <urn:tests#uri34671573693406> <urn:tests#uri34671573693649> <urn:tests#uri34671573693407> <urn:tests#uri34671573693648> <urn:tests#uri34671573693650> <urn:tests#uri34671573693892> <urn:tests#uri34671573693891> <urn:tests#uri34671573693890> <urn:tests#uri34671573693411> <urn:tests#uri34671573693654> <urn:tests#uri34671573693896> <urn:tests#uri34671573693412> <urn:tests#uri34671573693653> <urn:tests#uri34671573693895> <urn:tests#uri34671573693652> <urn:tests#uri34671573693894> <urn:tests#uri34671573693410> <urn:tests#uri34671573693651> <urn:tests#uri34671573693893> <urn:tests#uri34671573693415> <urn:tests#uri34671573693658> <urn:tests#uri34671573693416> <urn:tests#uri34671573693657> <urn:tests#uri34671573693899> <urn:tests#uri34671573693413> <urn:tests#uri34671573693656> <urn:tests#uri34671573693898> <urn:tests#uri34671573693414> <urn:tests#uri34671573693655> <urn:tests#uri34671573693897> <urn:tests#uri34671573693419> <urn:tests#uri34671573693417> <urn:tests#uri34671573693418> <urn:tests#uri34671573693659> <urn:tests#uri34671573693661> <urn:tests#uri34671573693660> <urn:tests#uri34671573693422> <urn:tests#uri34671573693665> <urn:tests#uri34671573693423> <urn:tests#uri34671573693664> <urn:tests#uri34671573693420> <urn:tests#uri34671573693663> <urn:tests#uri34671573693421> <urn:tests#uri34671573693662> <urn:tests#uri34671573693426> <urn:tests#uri34671573693669> <urn:tests#uri34671573693427> <urn:tests#uri34671573693668> <urn:tests#uri34671573693424> <urn:tests#uri34671573693667> <urn:tests#uri34671573693425> <urn:tests#uri34671573693666> <urn:tests#uri34671573693428> <urn:tests#uri34671573693429> <urn:tests#uri34671573693830> <urn:tests#uri34671573693834> <urn:tests#uri34671573693833> <urn:tests#uri34671573693832> <urn:tests#uri34671573693831> <urn:tests#uri34671573693838> <urn:tests#uri34671573693837> <urn:tests#uri34671573693836> <urn:tests#uri34671573693835> <urn:tests#uri34671573693839> <urn:tests#uri34671573693841> <urn:tests#uri34671573693840> <urn:tests#uri34671573693603> <urn:tests#uri34671573693845> <urn:tests#uri34671573693602> <urn:tests#uri34671573693844> <urn:tests#uri34671573693601> <urn:tests#uri34671573693843> <urn:tests#uri34671573693600> <urn:tests#uri34671573693842> <urn:tests#uri34671573693607> <urn:tests#uri34671573693849> <urn:tests#uri34671573693606> <urn:tests#uri34671573693848> <urn:tests#uri34671573693605> <urn:tests#uri34671573693847> <urn:tests#uri34671573693604> <urn:tests#uri34671573693846> <urn:tests#uri34671573693609> <urn:tests#uri34671573693608> <urn:tests#uri34671573693610> <urn:tests#uri34671573693852> <urn:tests#uri34671573693851> <urn:tests#uri34671573693850> <urn:tests#uri34671573693614> <urn:tests#uri34671573693856> <urn:tests#uri34671573693613> <urn:tests#uri34671573693855> <urn:tests#uri34671573693612> <urn:tests#uri34671573693854> <urn:tests#uri34671573693611> <urn:tests#uri34671573693853> <urn:tests#uri34671573693618> <urn:tests#uri34671573693617> <urn:tests#uri34671573693859> <urn:tests#uri34671573693616> <urn:tests#uri34671573693858> <urn:tests#uri34671573693615> <urn:tests#uri34671573693857> <urn:tests#uri34671573693619> <urn:tests#uri34671573693621> <urn:tests#uri34671573693863> <urn:tests#uri34671573693620> <urn:tests#uri34671573693862> <urn:tests#uri34671573693861> <urn:tests#uri34671573693860> <urn:tests#uri34671573693625> <urn:tests#uri34671573693867> <urn:tests#uri34671573693624> <urn:tests#uri34671573693866> <urn:tests#uri34671573693623> <urn:tests#uri34671573693865> <urn:tests#uri34671573693622> <urn:tests#uri34671573693864> <urn:tests#uri34671573693629> <urn:tests#uri34671573693628> <urn:tests#uri34671573693627> <urn:tests#uri34671573693869> <urn:tests#uri34671573693626> <urn:tests#uri34671573693868> <urn:tests#uri34671573693801> <urn:tests#uri34671573693800> <urn:tests#uri34671573693805> <urn:tests#uri34671573693804> <urn:tests#uri34671573693803> <urn:tests#uri34671573693802> <urn:tests#uri34671573693809> <urn:tests#uri34671573693808> <urn:tests#uri34671573693807> <urn:tests#uri34671573693806> <urn:tests#uri34671573693812> <urn:tests#uri34671573693811> <urn:tests#uri34671573693810> <urn:tests#uri34671573693816> <urn:tests#uri34671573693815> <urn:tests#uri34671573693814> <urn:tests#uri34671573693813> <urn:tests#uri34671573693819> <urn:tests#uri34671573693818> <urn:tests#uri34671573693817> <urn:tests#uri34671573693823> <urn:tests#uri34671573693822> <urn:tests#uri34671573693821> <urn:tests#uri34671573693820> <urn:tests#uri34671573693827> <urn:tests#uri34671573693826> <urn:tests#uri34671573693825> <urn:tests#uri34671573693824> <urn:tests#uri34671573693829> <urn:tests#uri34671573693828> <urn:tests#uri34671573694082> <urn:tests#uri34671573694081> <urn:tests#uri34671573694080> <urn:tests#uri34671573694086> <urn:tests#uri34671573694085> <urn:tests#uri34671573694084> <urn:tests#uri34671573694083> <urn:tests#uri34671573694089> <urn:tests#uri34671573694088> <urn:tests#uri34671573694087> <urn:tests#uri34671573694093> <urn:tests#uri34671573694092> <urn:tests#uri34671573694091> <urn:tests#uri34671573694090> <urn:tests#uri34671573694097> <urn:tests#uri34671573694096> <urn:tests#uri34671573694095> <urn:tests#uri34671573694094> <urn:tests#uri34671573694099> <urn:tests#uri34671573694098> <urn:tests#uri34671573694042> <urn:tests#uri34671573694041> <urn:tests#uri34671573694040> <urn:tests#uri34671573694046> <urn:tests#uri34671573694045> <urn:tests#uri34671573694044> <urn:tests#uri34671573694043> <urn:tests#uri34671573694049> <urn:tests#uri34671573694048> <urn:tests#uri34671573694047> <urn:tests#uri34671573694053> <urn:tests#uri34671573694052> <urn:tests#uri34671573694051> <urn:tests#uri34671573694050> <urn:tests#uri34671573694057> <urn:tests#uri34671573694056> <urn:tests#uri34671573694055> <urn:tests#uri34671573694054> <urn:tests#uri34671573694059> <urn:tests#uri34671573694058> <urn:tests#uri34671573694060> <urn:tests#uri34671573694064> <urn:tests#uri34671573694063> <urn:tests#uri34671573694062> <urn:tests#uri34671573694061> <urn:tests#uri34671573694068> <urn:tests#uri34671573694067> <urn:tests#uri34671573694066> <urn:tests#uri34671573694065> <urn:tests#uri34671573694069> <urn:tests#uri34671573694071> <urn:tests#uri34671573694070> <urn:tests#uri34671573694075> <urn:tests#uri34671573694074> <urn:tests#uri34671573694073> <urn:tests#uri34671573694072> <urn:tests#uri34671573694079> <urn:tests#uri34671573694078> <urn:tests#uri34671573694077> <urn:tests#uri34671573694076> <urn:tests#uri34671573693392> <urn:tests#uri34671573694240> <urn:tests#uri34671573693393> <urn:tests#uri34671573693390> <urn:tests#uri34671573693391> <urn:tests#uri34671573693396> <urn:tests#uri34671573694002> <urn:tests#uri34671573694244> <urn:tests#uri34671573693397> <urn:tests#uri34671573694001> <urn:tests#uri34671573694243> <urn:tests#uri34671573693394> <urn:tests#uri34671573694000> <urn:tests#uri34671573694242> <urn:tests#uri34671573693395> <urn:tests#uri34671573694241> <urn:tests#uri34671573694006> <urn:tests#uri34671573694248> <urn:tests#uri34671573694005> <urn:tests#uri34671573694247> <urn:tests#uri34671573693398> <urn:tests#uri34671573694004> <urn:tests#uri34671573694246> <urn:tests#uri34671573693399> <urn:tests#uri34671573694003> <urn:tests#uri34671573694245> <urn:tests#uri34671573694009> <urn:tests#uri34671573694008> <urn:tests#uri34671573694007> <urn:tests#uri34671573694013> <urn:tests#uri34671573694012> <urn:tests#uri34671573694011> <urn:tests#uri34671573694010> <urn:tests#uri34671573694017> <urn:tests#uri34671573694016> <urn:tests#uri34671573694015> <urn:tests#uri34671573694014> <urn:tests#uri34671573694019> <urn:tests#uri34671573694018> <urn:tests#uri34671573694020> <urn:tests#uri34671573694024> <urn:tests#uri34671573694023> <urn:tests#uri34671573694022> <urn:tests#uri34671573694021> <urn:tests#uri34671573694028> <urn:tests#uri34671573694027> <urn:tests#uri34671573694026> <urn:tests#uri34671573694025> <urn:tests#uri34671573694029> <urn:tests#uri34671573694031> <urn:tests#uri34671573694030> <urn:tests#uri34671573694035> <urn:tests#uri34671573694034> <urn:tests#uri34671573694033> <urn:tests#uri34671573694032> <urn:tests#uri34671573694039> <urn:tests#uri34671573694038> <urn:tests#uri34671573694037> <urn:tests#uri34671573694036> <urn:tests#uri34671573693591> <urn:tests#uri34671573693590> <urn:tests#uri34671573693352> <urn:tests#uri34671573693595> <urn:tests#uri34671573694200> <urn:tests#uri34671573693353> <urn:tests#uri34671573693594> <urn:tests#uri34671573693350> <urn:tests#uri34671573693593> <urn:tests#uri34671573693351> <urn:tests#uri34671573693592> <urn:tests#uri34671573693356> <urn:tests#uri34671573693599> <urn:tests#uri34671573694204> <urn:tests#uri34671573693357> <urn:tests#uri34671573693598> <urn:tests#uri34671573694203> <urn:tests#uri34671573693354> <urn:tests#uri34671573693597> <urn:tests#uri34671573694202> <urn:tests#uri34671573693355> <urn:tests#uri34671573693596> <urn:tests#uri34671573694201> <urn:tests#uri34671573694208> <urn:tests#uri34671573694207> <urn:tests#uri34671573693358> <urn:tests#uri34671573694206> <urn:tests#uri34671573693359> <urn:tests#uri34671573694205> <urn:tests#uri34671573694209> <urn:tests#uri34671573693360> <urn:tests#uri34671573693363> <urn:tests#uri34671573694211> <urn:tests#uri34671573693364> <urn:tests#uri34671573694210> <urn:tests#uri34671573693361> <urn:tests#uri34671573693362> <urn:tests#uri34671573693367> <urn:tests#uri34671573694215> <urn:tests#uri34671573693368> <urn:tests#uri34671573694214> <urn:tests#uri34671573693365> <urn:tests#uri34671573694213> <urn:tests#uri34671573693366> <urn:tests#uri34671573694212> <urn:tests#uri34671573694219> <urn:tests#uri34671573694218> <urn:tests#uri34671573693369> <urn:tests#uri34671573694217> <urn:tests#uri34671573694216> <urn:tests#uri34671573693370> <urn:tests#uri34671573693371> <urn:tests#uri34671573693374> <urn:tests#uri34671573694222> <urn:tests#uri34671573693375> <urn:tests#uri34671573694221> <urn:tests#uri34671573693372> <urn:tests#uri34671573694220> <urn:tests#uri34671573693373> <urn:tests#uri34671573693378> <urn:tests#uri34671573694226> <urn:tests#uri34671573693379> <urn:tests#uri34671573694225> <urn:tests#uri34671573693376> <urn:tests#uri34671573694224> <urn:tests#uri34671573693377> <urn:tests#uri34671573694223> <urn:tests#uri34671573694229> <urn:tests#uri34671573694228> <urn:tests#uri34671573694227> <urn:tests#uri34671573693381> <urn:tests#uri34671573693382> <urn:tests#uri34671573693380> <urn:tests#uri34671573693385> <urn:tests#uri34671573694233> <urn:tests#uri34671573693386> <urn:tests#uri34671573694232> <urn:tests#uri34671573693383> <urn:tests#uri34671573694231> <urn:tests#uri34671573693384> <urn:tests#uri34671573694230> <urn:tests#uri34671573693389> <urn:tests#uri34671573694237> <urn:tests#uri34671573694236> <urn:tests#uri34671573693387> <urn:tests#uri34671573694235> <urn:tests#uri34671573693388> <urn:tests#uri34671573694234> <urn:tests#uri34671573694239> <urn:tests#uri34671573694238> )
+] .
+
+<urn:tests#uri34671573693887>
+        a       owl:Class .
+
+<urn:tests#uri34671573693634>
+        a       owl:Class .
+
+<urn:tests#uri34671573694031>
+        a       owl:Class .
+
+<urn:tests#uri34671573694209>
+        a       owl:Class .
+
+<urn:tests#uri34671573693647>
+        a       owl:Class .
+
+<urn:tests#uri34671573693941>
+        a       owl:Class .
+
+<urn:tests#uri34671573694044>
+        a       owl:Class .
+
+<urn:tests#uri34671573693482>
+        a       owl:Class .
+
+<urn:tests#uri34671573693407>
+        a       owl:Class .
+
+<urn:tests#uri34671573693954>
+        a       owl:Class .
+
+<urn:tests#uri34671573693701>
+        a       owl:Class .
+
+<urn:tests#uri34671573694057>
+        a       owl:Class .
+
+<urn:tests#uri34671573693495>
+        a       owl:Class .
+
+<urn:tests#uri34671573693967>
+        a       owl:Class .
+
+<urn:tests#uri34671573693714>
+        a       owl:Class .
+
+<urn:tests#uri34671573693255>
+        a       owl:Class .
+
+<urn:tests#uri34671573694111>
+        a       owl:Class .
+
+<urn:tests#uri34671573693727>
+        a       owl:Class .
+
+<urn:tests#uri34671573693268>
+        a       owl:Class .
+
+<urn:tests#uri34671573694124>
+        a       owl:Class .
+
+<urn:tests#uri34671573693562>
+        a       owl:Class .
+
+<urn:tests#uri34671573694137>
+        a       owl:Class .
+
+<urn:tests#uri34671573693575>
+        a       owl:Class .
+
+<urn:tests#uri34671573693322>
+        a       owl:Class .
+
+<urn:tests#uri34671573693588>
+        a       owl:Class .
+
+<urn:tests#uri34671573693882>
+        a       owl:Class .
+
+<urn:tests#uri34671573693335>
+        a       owl:Class .
+
+<urn:tests#uri34671573693807>
+        a       owl:Class .
+
+<urn:tests#uri34671573693895>
+        a       owl:Class .
+
+<urn:tests#uri34671573693348>
+        a       owl:Class .
+
+<urn:tests#uri34671573694204>
+        a       owl:Class .
+
+<urn:tests#uri34671573693642>
+        a       owl:Class .
+
+<urn:tests#uri34671573694217>
+        a       owl:Class .
+
+<urn:tests#uri34671573693655>
+        a       owl:Class .
+
+<urn:tests#uri34671573693402>
+        a       owl:Class .
+
+<urn:tests#uri34671573694052>
+        a       owl:Class .
+
+<urn:tests#uri34671573693490>
+        a       owl:Class .
+
+<urn:tests#uri34671573693668>
+        a       owl:Class .
+
+<urn:tests#uri34671573693415>
+        a       owl:Class .
+
+<urn:tests#uri34671573693962>
+        a       owl:Class .
+
+<urn:tests#uri34671573694065>
+        a       owl:Class .
+
+<urn:tests#uri34671573693250>
+        a       owl:Class .
+
+<urn:tests#uri34671573693428>
+        a       owl:Class .
+
+<urn:tests#uri34671573693975>
+        a       owl:Class .
+
+<urn:tests#uri34671573693722>
+        a       owl:Class .
+
+<urn:tests#uri34671573694078>
+        a       owl:Class .
+
+<urn:tests#uri34671573693263>
+        a       owl:Class .
+
+<urn:tests#uri34671573693988>
+        a       owl:Class .
+
+<urn:tests#uri34671573693735>
+        a       owl:Class .
+
+<urn:tests#uri34671573693276>
+        a       owl:Class .
+
+<urn:tests#uri34671573694132>
+        a       owl:Class .
+
+<urn:tests#uri34671573693570>
+        a       owl:Class .
+
+<urn:tests#uri34671573693748>
+        a       owl:Class .
+
+<urn:tests#uri34671573693289>
+        a       owl:Class .
+
+<urn:tests#uri34671573694145>
+        a       owl:Class .
+
+<urn:tests#uri34671573693583>
+        a       owl:Class .
+
+<urn:tests#uri34671573693330>
+        a       owl:Class .
+
+<urn:tests#uri34671573693508>
+        a       owl:Class .
+
+<urn:tests#uri34671573693802>
+        a       owl:Class .
+
+<urn:tests#uri34671573694158>
+        a       owl:Class .
+
+<urn:tests#uri34671573693596>
+        a       owl:Class .
+
+<urn:tests#uri34671573693890>
+        a       owl:Class .
+
+<urn:tests#uri34671573693343>
+        a       owl:Class .
+
+<urn:tests#uri34671573693815>
+        a       owl:Class .
+
+<urn:tests#uri34671573693356>
+        a       owl:Class .
+
+<urn:tests#uri34671573694212>
+        a       owl:Class .
+
+<urn:tests#uri34671573693650>
+        a       owl:Class .
+
+<urn:tests#uri34671573693828>
+        a       owl:Class .
+
+<urn:tests#uri34671573693369>
+        a       owl:Class .
+
+<urn:tests#uri34671573694225>
+        a       owl:Class .
+
+<urn:tests#uri34671573693663>
+        a       owl:Class .
+
+<urn:tests#uri34671573693410>
+        a       owl:Class .
+
+<urn:tests#uri34671573694060>
+        a       owl:Class .
+
+<urn:tests#uri34671573694238>
+        a       owl:Class .
+
+<urn:tests#uri34671573693676>
+        a       owl:Class .
+
+<urn:tests#uri34671573693423>
+        a       owl:Class .
+
+<urn:tests#uri34671573693970>
+        a       owl:Class .
+
+<urn:tests#uri34671573694073>
+        a       owl:Class .
+
+<urn:tests#uri34671573693689>
+        a       owl:Class .
+
+<urn:tests#uri34671573693436>
+        a       owl:Class .
+
+<urn:tests#uri34671573693983>
+        a       owl:Class .
+
+<urn:tests#uri34671573693730>
+        a       owl:Class .
+
+<urn:tests#uri34671573694086>
+        a       owl:Class .
+
+<urn:tests#uri34671573693908>
+        a       owl:Class .
+
+<urn:tests#uri34671573693271>
+        a       owl:Class .
+
+<urn:tests#uri34671573693449>
+        a       owl:Class .
+
+<urn:tests#uri34671573693996>
+        a       owl:Class .
+
+<urn:tests#uri34671573693743>
+        a       owl:Class .
+
+<urn:tests#uri34671573694099>
+        a       owl:Class .
+
+<urn:tests#uri34671573693284>
+        a       owl:Class .
+
+<urn:tests#uri34671573694140>
+        a       owl:Class .
+
+<urn:tests#uri34671573693756>
+        a       owl:Class .
+
+<urn:tests#uri34671573693503>
+        a       owl:Class .
+
+<urn:tests#uri34671573693297>
+        a       owl:Class .
+
+<urn:tests#uri34671573694153>
+        a       owl:Class .
+
+<urn:tests#uri34671573693591>
+        a       owl:Class .
+
+<urn:tests#uri34671573693769>
+        a       owl:Class .
+
+<urn:tests#uri34671573693516>
+        a       owl:Class .
+
+<urn:tests#uri34671573693810>
+        a       owl:Class .
+
+<urn:tests#uri34671573694166>
+        a       owl:Class .
+
+<urn:tests#uri34671573693351>
+        a       owl:Class .
+
+<urn:tests#uri34671573693529>
+        a       owl:Class .
+
+<urn:tests#uri34671573693823>
+        a       owl:Class .
+
+<urn:tests#uri34671573694179>
+        a       owl:Class .
+
+<urn:tests#uri34671573693364>
+        a       owl:Class .
+
+<urn:tests#uri34671573694220>
+        a       owl:Class .
+
+<urn:tests#uri34671573693836>
+        a       owl:Class .
+
+<urn:tests#uri34671573693377>
+        a       owl:Class .
+
+<urn:tests#uri34671573694233>
+        a       owl:Class .
+
+<urn:tests#uri34671573693671>
+        a       owl:Class .
+
+<urn:tests#uri34671573693849>
+        a       owl:Class .
+
+<urn:tests#uri34671573694246>
+        a       owl:Class .
+
+<urn:tests#uri34671573693684>
+        a       owl:Class .
+
+<urn:tests#uri34671573693431>
+        a       owl:Class .
+
+<urn:tests#uri34671573693609>
+        a       owl:Class .
+
+<urn:tests#uri34671573694081>
+        a       owl:Class .
+
+<urn:tests#uri34671573693903>
+        a       owl:Class .
+
+<urn:tests#uri34671573694006>
+        a       owl:Class .
+
+<urn:tests#uri34671573693697>
+        a       owl:Class .
+
+<urn:tests#uri34671573693444>
+        a       owl:Class .
+
+<urn:tests#uri34671573693991>
+        a       owl:Class .
+
+<urn:tests#uri34671573694094>
+        a       owl:Class .
+
+<urn:tests#uri34671573693916>
+        a       owl:Class .
+
+<urn:tests#uri34671573694019>
+        a       owl:Class .
+
+<urn:tests#uri34671573693457>
+        a       owl:Class .
+
+<urn:tests#uri34671573693751>
+        a       owl:Class .
+
+<urn:tests#uri34671573693929>
+        a       owl:Class .
+
+<urn:tests#uri34671573693292>
+        a       owl:Class .
+
+<urn:tests#uri34671573693764>
+        a       owl:Class .
+
+<urn:tests#uri34671573693511>
+        a       owl:Class .
+
+<urn:tests#uri34671573694161>
+        a       owl:Class .
+
+<urn:tests#uri34671573693777>
+        a       owl:Class .
+
+<urn:tests#uri34671573693524>
+        a       owl:Class .
+
+<urn:tests#uri34671573694174>
+        a       owl:Class .
+
+<urn:tests#uri34671573693537>
+        a       owl:Class .
+
+<urn:tests#uri34671573693831>
+        a       owl:Class .
+
+<urn:tests#uri34671573694187>
+        a       owl:Class .
+
+<urn:tests#uri34671573693372>
+        a       owl:Class .
+
+<urn:tests#uri34671573693844>
+        a       owl:Class .
+
+<urn:tests#uri34671573693385>
+        a       owl:Class .
+
+<urn:tests#uri34671573694241>
+        a       owl:Class .
+
+<urn:tests#uri34671573693857>
+        a       owl:Class .
+
+<urn:tests#uri34671573693604>
+        a       owl:Class .
+
+<urn:tests#uri34671573693398>
+        a       owl:Class .
+
+<urn:tests#uri34671573693692>
+        a       owl:Class .
+
+<urn:tests#uri34671573694001>
+        a       owl:Class .
+
+<urn:tests#uri34671573693617>
+        a       owl:Class .
+
+<urn:tests#uri34671573693911>
+        a       owl:Class .
+
+<urn:tests#uri34671573694014>
+        a       owl:Class .
+
+<urn:tests#uri34671573693452>
+        a       owl:Class .
+
+<urn:tests#uri34671573693924>
+        a       owl:Class .
+
+<urn:tests#uri34671573694027>
+        a       owl:Class .
+
+<urn:tests#uri34671573693465>
+        a       owl:Class .
+
+<urn:tests#uri34671573693937>
+        a       owl:Class .
+
+<urn:tests#uri34671573693478>
+        a       owl:Class .
+
+<urn:tests#uri34671573693772>
+        a       owl:Class .
+
+<urn:tests#uri34671573693785>
+        a       owl:Class .
+
+<urn:tests#uri34671573693532>
+        a       owl:Class .
+
+<urn:tests#uri34671573694182>
+        a       owl:Class .
+
+<urn:tests#uri34671573693798>
+        a       owl:Class .
+
+<urn:tests#uri34671573694107>
+        a       owl:Class .
+
+<urn:tests#uri34671573693545>
+        a       owl:Class .
+
+<urn:tests#uri34671573694195>
+        a       owl:Class .
+
+<urn:tests#uri34671573693380>
+        a       owl:Class .
+
+<urn:tests#uri34671573693558>
+        a       owl:Class .
+
+<urn:tests#uri34671573693852>
+        a       owl:Class .
+
+<urn:tests#uri34671573693305>
+        a       owl:Class .
+
+<urn:tests#uri34671573693393>
+        a       owl:Class .
+
+<urn:tests#uri34671573693865>
+        a       owl:Class .
+
+<urn:tests#uri34671573693318>
+        a       owl:Class .
+
+<urn:tests#uri34671573693612>
+        a       owl:Class .
+
+<urn:tests#uri34671573693878>
+        a       owl:Class .
+
+<urn:tests#uri34671573693625>
+        a       owl:Class .
+
+<urn:tests#uri34671573694022>
+        a       owl:Class .
+
+<urn:tests#uri34671573693460>
+        a       owl:Class .
+
+<urn:tests#uri34671573693638>
+        a       owl:Class .
+
+<urn:tests#uri34671573693932>
+        a       owl:Class .
+
+<urn:tests#uri34671573694035>
+        a       owl:Class .
+
+<urn:tests#uri34671573693473>
+        a       owl:Class .
+
+<urn:tests#uri34671573693945>
+        a       owl:Class .
+
+<urn:tests#uri34671573694048>
+        a       owl:Class .
+
+<urn:tests#uri34671573693486>
+        a       owl:Class .
+
+<urn:tests#uri34671573693780>
+        a       owl:Class .
+
+<urn:tests#uri34671573693958>
+        a       owl:Class .
+
+<urn:tests#uri34671573693705>
+        a       owl:Class .
+
+<urn:tests#uri34671573693499>
+        a       owl:Class .
+
+<urn:tests#uri34671573693793>
+        a       owl:Class .
+
+<urn:tests#uri34671573694102>
+        a       owl:Class .
+
+<urn:tests#uri34671573693540>
+        a       owl:Class .
+
+<urn:tests#uri34671573693718>
+        a       owl:Class .
+
+<urn:tests#uri34671573694190>
+        a       owl:Class .
+
+<urn:tests#uri34671573693259>
+        a       owl:Class .
+
+<urn:tests#uri34671573694115>
+        a       owl:Class .
+
+<urn:tests#uri34671573693553>
+        a       owl:Class .
+
+<urn:tests#uri34671573693300>
+        a       owl:Class .
+
+<urn:tests#uri34671573694128>
+        a       owl:Class .
+
+<urn:tests#uri34671573693566>
+        a       owl:Class .
+
+<urn:tests#uri34671573693860>
+        a       owl:Class .
+
+<urn:tests#uri34671573693313>
+        a       owl:Class .
+
+<urn:tests#uri34671573693579>
+        a       owl:Class .
+
+<urn:tests#uri34671573693326>
+        a       owl:Class .
+
+<urn:tests#uri34671573693873>
+        a       owl:Class .
+
+<urn:tests#uri34671573693620>
+        a       owl:Class .
+
+<urn:tests#uri34671573693886>
+        a       owl:Class .
+
+<urn:tests#uri34671573693339>
+        a       owl:Class .
+
+<urn:tests#uri34671573693633>
+        a       owl:Class .
+
+<urn:tests#uri34671573694030>
+        a       owl:Class .
+
+<urn:tests#uri34671573693899>
+        a       owl:Class .
+
+<urn:tests#uri34671573694208>
+        a       owl:Class .
+
+<urn:tests#uri34671573693646>
+        a       owl:Class .
+
+<urn:tests#uri34671573693940>
+        a       owl:Class .
+
+<urn:tests#uri34671573694043>
+        a       owl:Class .
+
+<urn:tests#uri34671573693481>
+        a       owl:Class .
+
+<urn:tests#uri34671573693659>
+        a       owl:Class .
+
+<urn:tests#uri34671573693406>
+        a       owl:Class .
+
+<urn:tests#uri34671573693953>
+        a       owl:Class .
+
+<urn:tests#uri34671573693700>
+        a       owl:Class .
+
+<urn:tests#uri34671573694056>
+        a       owl:Class .
+
+<urn:tests#uri34671573693494>
+        a       owl:Class .
+
+<urn:tests#uri34671573693419>
+        a       owl:Class .
+
+<urn:tests#uri34671573693966>
+        a       owl:Class .
+
+<urn:tests#uri34671573693713>
+        a       owl:Class .
+
+<urn:tests#uri34671573694069>
+        a       owl:Class .
+
+<urn:tests#uri34671573693254>
+        a       owl:Class .
+
+<urn:tests#uri34671573694110>
+        a       owl:Class .
+
+<urn:tests#uri34671573693979>
+        a       owl:Class .
+
+<urn:tests#uri34671573693726>
+        a       owl:Class .
+
+<urn:tests#uri34671573693267>
+        a       owl:Class .
+
+<urn:tests#uri34671573694123>
+        a       owl:Class .
+
+<urn:tests#uri34671573693561>
+        a       owl:Class .
+
+<urn:tests#uri34671573693739>
+        a       owl:Class .
+
+<urn:tests#uri34671573694136>
+        a       owl:Class .
+
+<urn:tests#uri34671573693574>
+        a       owl:Class .
+
+<urn:tests#uri34671573693321>
+        a       owl:Class .
+
+<urn:tests#uri34671573694149>
+        a       owl:Class .
+
+<urn:tests#uri34671573693587>
+        a       owl:Class .
+
+<urn:tests#uri34671573693334>
+        a       owl:Class .
+
+<urn:tests#uri34671573693881>
+        a       owl:Class .
+
+<urn:tests#uri34671573693806>
+        a       owl:Class .
+
+<urn:tests#uri34671573693894>
+        a       owl:Class .
+
+<urn:tests#uri34671573693347>
+        a       owl:Class .
+
+<urn:tests#uri34671573694203>
+        a       owl:Class .
+
+<urn:tests#uri34671573693641>
+        a       owl:Class .
+
+<urn:tests#uri34671573693819>
+        a       owl:Class .
+
+<urn:tests#uri34671573694216>
+        a       owl:Class .
+
+<urn:tests#uri34671573693654>
+        a       owl:Class .
+
+<urn:tests#uri34671573693401>
+        a       owl:Class .
+
+<urn:tests#uri34671573694051>
+        a       owl:Class .
+
+<urn:tests#uri34671573694229>
+        a       owl:Class .
+
+<urn:tests#uri34671573693667>
+        a       owl:Class .
+
+<urn:tests#uri34671573693414>
+        a       owl:Class .
+
+<urn:tests#uri34671573693961>
+        a       owl:Class .
+
+<urn:tests#uri34671573694064>
+        a       owl:Class .
+
+<urn:tests#uri34671573693427>
+        a       owl:Class .
+
+<urn:tests#uri34671573693974>
+        a       owl:Class .
+
+<urn:tests#uri34671573693721>
+        a       owl:Class .
+
+<urn:tests#uri34671573694077>
+        a       owl:Class .
+
+<urn:tests#uri34671573693262>
+        a       owl:Class .
+
+<urn:tests#uri34671573693987>
+        a       owl:Class .
+
+<urn:tests#uri34671573693734>
+        a       owl:Class .
+
+<urn:tests#uri34671573693275>
+        a       owl:Class .
+
+<urn:tests#uri34671573694131>
+        a       owl:Class .
+
+<urn:tests#uri34671573693747>
+        a       owl:Class .
+
+<urn:tests#uri34671573693288>
+        a       owl:Class .
+
+<urn:tests#uri34671573694144>
+        a       owl:Class .
+
+<urn:tests#uri34671573693582>
+        a       owl:Class .
+
+<urn:tests#uri34671573693507>
+        a       owl:Class .
+
+<urn:tests#uri34671573693801>
+        a       owl:Class .
+
+<urn:tests#uri34671573694157>
+        a       owl:Class .
+
+<urn:tests#uri34671573693595>
+        a       owl:Class .
+
+<urn:tests#uri34671573693342>
+        a       owl:Class .
+
+<urn:tests#uri34671573693814>
+        a       owl:Class .
+
+<urn:tests#uri34671573693355>
+        a       owl:Class .
+
+<urn:tests#uri34671573694211>
+        a       owl:Class .
+
+<urn:tests#uri34671573693827>
+        a       owl:Class .
+
+<urn:tests#uri34671573693368>
+        a       owl:Class .
+
+<urn:tests#uri34671573694224>
+        a       owl:Class .
+
+<urn:tests#uri34671573693662>
+        a       owl:Class .
+
+<urn:tests#uri34671573694237>
+        a       owl:Class .
+
+<urn:tests#uri34671573693675>
+        a       owl:Class .
+
+<urn:tests#uri34671573693422>
+        a       owl:Class .
+
+<urn:tests#uri34671573694072>
+        a       owl:Class .
+
+<urn:tests#uri34671573693688>
+        a       owl:Class .
+
+<urn:tests#uri34671573693435>
+        a       owl:Class .
+
+<urn:tests#uri34671573693982>
+        a       owl:Class .
+
+<urn:tests#uri34671573694085>
+        a       owl:Class .
+
+<urn:tests#uri34671573693907>
+        a       owl:Class .
+
+<urn:tests#uri34671573693270>
+        a       owl:Class .
+
+<urn:tests#uri34671573693448>
+        a       owl:Class .
+
+<urn:tests#uri34671573693995>
+        a       owl:Class .
+
+<urn:tests#uri34671573693742>
+        a       owl:Class .
+
+<urn:tests#uri34671573694098>
+        a       owl:Class .
+
+<urn:tests#uri34671573693283>
+        a       owl:Class .
+
+<urn:tests#uri34671573693755>
+        a       owl:Class .
+
+<urn:tests#uri34671573693502>
+        a       owl:Class .
+
+<urn:tests#uri34671573693296>
+        a       owl:Class .
+
+<urn:tests#uri34671573694152>
+        a       owl:Class .
+
+<urn:tests#uri34671573693590>
+        a       owl:Class .
+
+<urn:tests#uri34671573693768>
+        a       owl:Class .
+
+<urn:tests#uri34671573693515>
+        a       owl:Class .
+
+<urn:tests#uri34671573694165>
+        a       owl:Class .
+
+<urn:tests#uri34671573693350>
+        a       owl:Class .
+
+<urn:tests#uri34671573693528>
+        a       owl:Class .
+
+<urn:tests#uri34671573693822>
+        a       owl:Class .
+
+<urn:tests#uri34671573694178>
+        a       owl:Class .
+
+<urn:tests#uri34671573693363>
+        a       owl:Class .
+
+<urn:tests#uri34671573693835>
+        a       owl:Class .
+
+<urn:tests#uri34671573693376>
+        a       owl:Class .
+
+<urn:tests#uri34671573694232>
+        a       owl:Class .
+
+<urn:tests#uri34671573693670>
+        a       owl:Class .
+
+<urn:tests#uri34671573693848>
+        a       owl:Class .
+
+<urn:tests#uri34671573693389>
+        a       owl:Class .
+
+<urn:tests#uri34671573694245>
+        a       owl:Class .
+
+<urn:tests#uri34671573693683>
+        a       owl:Class .
+
+<urn:tests#uri34671573693430>
+        a       owl:Class .
+
+<urn:tests#uri34671573693608>
+        a       owl:Class .
+
+<urn:tests#uri34671573694080>
+        a       owl:Class .
+
+<urn:tests#uri34671573693902>
+        a       owl:Class .
+
+<urn:tests#uri34671573693696>
+        a       owl:Class .
+
+<urn:tests#uri34671573694005>
+        a       owl:Class .
+
+<urn:tests#uri34671573693443>
+        a       owl:Class .
+
+<urn:tests#uri34671573693990>
+        a       owl:Class .
+
+<urn:tests#uri34671573694093>
+        a       owl:Class .
+
+<urn:tests#uri34671573693915>
+        a       owl:Class .
+
+<urn:tests#uri34671573694018>
+        a       owl:Class .
+
+<urn:tests#uri34671573693456>
+        a       owl:Class .
+
+<urn:tests#uri34671573693750>
+        a       owl:Class .
+
+<urn:tests#uri34671573693928>
+        a       owl:Class .
+
+<urn:tests#uri34671573693291>
+        a       owl:Class .
+
+<urn:tests#uri34671573693469>
+        a       owl:Class .
+
+<urn:tests#uri34671573693763>
+        a       owl:Class .
+
+<urn:tests#uri34671573693510>
+        a       owl:Class .
+
+<urn:tests#uri34671573694160>
+        a       owl:Class .
+
+<urn:tests#uri34671573693776>
+        a       owl:Class .
+
+<urn:tests#uri34671573693523>
+        a       owl:Class .
+
+<urn:tests#uri34671573694173>
+        a       owl:Class .
+
+<urn:tests#uri34671573693789>
+        a       owl:Class .
+
+<urn:tests#uri34671573693536>
+        a       owl:Class .
+
+<urn:tests#uri34671573693830>
+        a       owl:Class .
+
+<urn:tests#uri34671573694186>
+        a       owl:Class .
+
+<urn:tests#uri34671573693371>
+        a       owl:Class .
+
+<urn:tests#uri34671573693549>
+        a       owl:Class .
+
+<urn:tests#uri34671573693843>
+        a       owl:Class .
+
+<urn:tests#uri34671573694199>
+        a       owl:Class .
+
+<urn:tests#uri34671573693384>
+        a       owl:Class .
+
+<urn:tests#uri34671573694240>
+        a       owl:Class .
+
+<urn:tests#uri34671573693856>
+        a       owl:Class .
+
+<urn:tests#uri34671573693309>
+        a       owl:Class .
+
+<urn:tests#uri34671573693603>
+        a       owl:Class .
+
+<urn:tests#uri34671573693397>
+        a       owl:Class .
+
+<urn:tests#uri34671573693691>
+        a       owl:Class .
+
+<urn:tests#uri34671573694000>
+        a       owl:Class .
+
+<urn:tests#uri34671573693869>
+        a       owl:Class .
+
+<urn:tests#uri34671573693616>
+        a       owl:Class .
+
+<urn:tests#uri34671573693910>
+        a       owl:Class .
+
+<urn:tests#uri34671573694013>
+        a       owl:Class .
+
+<urn:tests#uri34671573693451>
+        a       owl:Class .
+
+<urn:tests#uri34671573693629>
+        a       owl:Class .
+
+<urn:tests#uri34671573693923>
+        a       owl:Class .
+
+<urn:tests#uri34671573694026>
+        a       owl:Class .
+
+<urn:tests#uri34671573693464>
+        a       owl:Class .
+
+<urn:tests#uri34671573693936>
+        a       owl:Class .
+
+<urn:tests#uri34671573694039>
+        a       owl:Class .
+
+<urn:tests#uri34671573693477>
+        a       owl:Class .
+
+<urn:tests#uri34671573693771>
+        a       owl:Class .
+
+<urn:tests#uri34671573693949>
+        a       owl:Class .
+
+<urn:tests#uri34671573693784>
+        a       owl:Class .
+
+<urn:tests#uri34671573693531>
+        a       owl:Class .
+
+<urn:tests#uri34671573693709>
+        a       owl:Class .
+
+<urn:tests#uri34671573694181>
+        a       owl:Class .
+
+<urn:tests#uri34671573693797>
+        a       owl:Class .
+
+<urn:tests#uri34671573694106>
+        a       owl:Class .
+
+<urn:tests#uri34671573693544>
+        a       owl:Class .
+
+<urn:tests#uri34671573694194>
+        a       owl:Class .
+
+<urn:tests#uri34671573694119>
+        a       owl:Class .
+
+<urn:tests#uri34671573693557>
+        a       owl:Class .
+
+<urn:tests#uri34671573693851>
+        a       owl:Class .
+
+<urn:tests#uri34671573693304>
+        a       owl:Class .
+
+<urn:tests#uri34671573693392>
+        a       owl:Class .
+
+<urn:tests#uri34671573693864>
+        a       owl:Class .
+
+<urn:tests#uri34671573693317>
+        a       owl:Class .
+
+<urn:tests#uri34671573693611>
+        a       owl:Class .
+
+<urn:tests#uri34671573693877>
+        a       owl:Class .
+
+<urn:tests#uri34671573693624>
+        a       owl:Class .
+
+<urn:tests#uri34671573694021>
+        a       owl:Class .
+
+<urn:tests#uri34671573693637>
+        a       owl:Class .
+
+<urn:tests#uri34671573693931>
+        a       owl:Class .
+
+<urn:tests#uri34671573694034>
+        a       owl:Class .
+
+<urn:tests#uri34671573693472>
+        a       owl:Class .
+
+<urn:tests#uri34671573693944>
+        a       owl:Class .
+
+<urn:tests#uri34671573694047>
+        a       owl:Class .
+
+<urn:tests#uri34671573693485>
+        a       owl:Class .
+
+<urn:tests#uri34671573693957>
+        a       owl:Class .
+
+<urn:tests#uri34671573693704>
+        a       owl:Class .
+
+<urn:tests#uri34671573693498>
+        a       owl:Class .
+
+<urn:tests#uri34671573693792>
+        a       owl:Class .
+
+<urn:tests#uri34671573694101>
+        a       owl:Class .
+
+<urn:tests#uri34671573693717>
+        a       owl:Class .
+
+<urn:tests#uri34671573693258>
+        a       owl:Class .
+
+<urn:tests#uri34671573694114>
+        a       owl:Class .
+
+<urn:tests#uri34671573693552>
+        a       owl:Class .
+
+<urn:tests#uri34671573694127>
+        a       owl:Class .
+
+<urn:tests#uri34671573693565>
+        a       owl:Class .
+
+<urn:tests#uri34671573693312>
+        a       owl:Class .
+
+<urn:tests#uri34671573693578>
+        a       owl:Class .
+
+<urn:tests#uri34671573693872>
+        a       owl:Class .
+
+<urn:tests#uri34671573693325>
+        a       owl:Class .
+
+<urn:tests#uri34671573693885>
+        a       owl:Class .
+
+<urn:tests#uri34671573693338>
+        a       owl:Class .
+
+<urn:tests#uri34671573693632>
+        a       owl:Class .
+
+<urn:tests#uri34671573693898>
+        a       owl:Class .
+
+<urn:tests#uri34671573694207>
+        a       owl:Class .
+
+<urn:tests#uri34671573693645>
+        a       owl:Class .
+
+<urn:tests#uri34671573694042>
+        a       owl:Class .
+
+<urn:tests#uri34671573693480>
+        a       owl:Class .
+
+<urn:tests#uri34671573693658>
+        a       owl:Class .
+
+<urn:tests#uri34671573693405>
+        a       owl:Class .
+
+<urn:tests#uri34671573693952>
+        a       owl:Class .
+
+<urn:tests#uri34671573694055>
+        a       owl:Class .
+
+<urn:tests#uri34671573693493>
+        a       owl:Class .
+
+<urn:tests#uri34671573693418>
+        a       owl:Class .
+
+<urn:tests#uri34671573693965>
+        a       owl:Class .
+
+<urn:tests#uri34671573693712>
+        a       owl:Class .
+
+<urn:tests#uri34671573694068>
+        a       owl:Class .
+
+<urn:tests#uri34671573693253>
+        a       owl:Class .
+
+<urn:tests#uri34671573693978>
+        a       owl:Class .
+
+<urn:tests#uri34671573693725>
+        a       owl:Class .
+
+<urn:tests#uri34671573693266>
+        a       owl:Class .
+
+<urn:tests#uri34671573694122>
+        a       owl:Class .
+
+<urn:tests#uri34671573693560>
+        a       owl:Class .
+
+<urn:tests#uri34671573693738>
+        a       owl:Class .
+
+<urn:tests#uri34671573693279>
+        a       owl:Class .
+
+<urn:tests#uri34671573694135>
+        a       owl:Class .
+
+<urn:tests#uri34671573693573>
+        a       owl:Class .
+
+<urn:tests#uri34671573693320>
+        a       owl:Class .
+
+<urn:tests#uri34671573694148>
+        a       owl:Class .
+
+<urn:tests#uri34671573693586>
+        a       owl:Class .
+
+<urn:tests#uri34671573693333>
+        a       owl:Class .
+
+<urn:tests#uri34671573693880>
+        a       owl:Class .
+
+<urn:tests#uri34671573693805>
+        a       owl:Class .
+
+<urn:tests#uri34671573693599>
+        a       owl:Class .
+
+<urn:tests#uri34671573694202>
+        a       owl:Class .
+
+<urn:tests#uri34671573693893>
+        a       owl:Class .
+
+<urn:tests#uri34671573693346>
+        a       owl:Class .
+
+<urn:tests#uri34671573693640>
+        a       owl:Class .
+
+<urn:tests#uri34671573693818>
+        a       owl:Class .
+
+<urn:tests#uri34671573693359>
+        a       owl:Class .
+
+<urn:tests#uri34671573694215>
+        a       owl:Class .
+
+<urn:tests#uri34671573693653>
+        a       owl:Class .
+
+<urn:tests#uri34671573693400>
+        a       owl:Class .
+
+<urn:tests#uri34671573694050>
+        a       owl:Class .
+
+<urn:tests#uri34671573694228>
+        a       owl:Class .
+
+<urn:tests#uri34671573693666>
+        a       owl:Class .
+
+<urn:tests#uri34671573693413>
+        a       owl:Class .
+
+<urn:tests#uri34671573693960>
+        a       owl:Class .
+
+<urn:tests#uri34671573694063>
+        a       owl:Class .
+
+<urn:tests#uri34671573693679>
+        a       owl:Class .
+
+<urn:tests#uri34671573693426>
+        a       owl:Class .
+
+<urn:tests#uri34671573693973>
+        a       owl:Class .
+
+<urn:tests#uri34671573693720>
+        a       owl:Class .
+
+<urn:tests#uri34671573694076>
+        a       owl:Class .
+
+<urn:tests#uri34671573693261>
+        a       owl:Class .
+
+<urn:tests#uri34671573693439>
+        a       owl:Class .
+
+<urn:tests#uri34671573693986>
+        a       owl:Class .
+
+<urn:tests#uri34671573693733>
+        a       owl:Class .
+
+<urn:tests#uri34671573694089>
+        a       owl:Class .
+
+<urn:tests#uri34671573693274>
+        a       owl:Class .
+
+<urn:tests#uri34671573694130>
+        a       owl:Class .
+
+<urn:tests#uri34671573693999>
+        a       owl:Class .
+
+<urn:tests#uri34671573693746>
+        a       owl:Class .
+
+<urn:tests#uri34671573693287>
+        a       owl:Class .
+
+<urn:tests#uri34671573694143>
+        a       owl:Class .
+
+<urn:tests#uri34671573693581>
+        a       owl:Class .
+
+<urn:tests#uri34671573693759>
+        a       owl:Class .
+
+<urn:tests#uri34671573693506>
+        a       owl:Class .
+
+<urn:tests#uri34671573693800>
+        a       owl:Class .
+
+<urn:tests#uri34671573694156>
+        a       owl:Class .
+
+<urn:tests#uri34671573693594>
+        a       owl:Class .
+
+<http://www.semanticweb.org/owlapi/test34671573693248>
+        a       owl:Ontology .
+
+<urn:tests#uri34671573693341>
+        a       owl:Class .
+
+<urn:tests#uri34671573693519>
+        a       owl:Class .
+
+<urn:tests#uri34671573693813>
+        a       owl:Class .
+
+<urn:tests#uri34671573694169>
+        a       owl:Class .
+
+<urn:tests#uri34671573693354>
+        a       owl:Class .
+
+<urn:tests#uri34671573694210>
+        a       owl:Class .
+
+<urn:tests#uri34671573693826>
+        a       owl:Class .
+
+<urn:tests#uri34671573693367>
+        a       owl:Class .
+
+<urn:tests#uri34671573694223>
+        a       owl:Class .
+
+<urn:tests#uri34671573693661>
+        a       owl:Class .
+
+<urn:tests#uri34671573693839>
+        a       owl:Class .
+
+<urn:tests#uri34671573694236>
+        a       owl:Class .
+
+<urn:tests#uri34671573693674>
+        a       owl:Class .
+
+<urn:tests#uri34671573693421>
+        a       owl:Class .
+
+<urn:tests#uri34671573694071>
+        a       owl:Class .
+
+<urn:tests#uri34671573693687>
+        a       owl:Class .
+
+<urn:tests#uri34671573693434>
+        a       owl:Class .
+
+<urn:tests#uri34671573693981>
+        a       owl:Class .
+
+<urn:tests#uri34671573694084>
+        a       owl:Class .
+
+<urn:tests#uri34671573693906>
+        a       owl:Class .
+
+<urn:tests#uri34671573694009>
+        a       owl:Class .
+
+<urn:tests#uri34671573693447>
+        a       owl:Class .
+
+<urn:tests#uri34671573693994>
+        a       owl:Class .
+
+<urn:tests#uri34671573693741>
+        a       owl:Class .
+
+<urn:tests#uri34671573694097>
+        a       owl:Class .
+
+<urn:tests#uri34671573693919>
+        a       owl:Class .
+
+<urn:tests#uri34671573693282>
+        a       owl:Class .
+
+<urn:tests#uri34671573693754>
+        a       owl:Class .
+
+<urn:tests#uri34671573693501>
+        a       owl:Class .
+
+<urn:tests#uri34671573693295>
+        a       owl:Class .
+
+<urn:tests#uri34671573694151>
+        a       owl:Class .
+
+<urn:tests#uri34671573693767>
+        a       owl:Class .
+
+<urn:tests#uri34671573693514>
+        a       owl:Class .
+
+<urn:tests#uri34671573694164>
+        a       owl:Class .
+
+<urn:tests#uri34671573693527>
+        a       owl:Class .
+
+<urn:tests#uri34671573693821>
+        a       owl:Class .
+
+<urn:tests#uri34671573694177>
+        a       owl:Class .
+
+<urn:tests#uri34671573693362>
+        a       owl:Class .
+
+<urn:tests#uri34671573693834>
+        a       owl:Class .
+
+<urn:tests#uri34671573693375>
+        a       owl:Class .
+
+<urn:tests#uri34671573694231>
+        a       owl:Class .
+
+<urn:tests#uri34671573693847>
+        a       owl:Class .
+
+<urn:tests#uri34671573693388>
+        a       owl:Class .
+
+<urn:tests#uri34671573694244>
+        a       owl:Class .
+
+<urn:tests#uri34671573693682>
+        a       owl:Class .
+
+<urn:tests#uri34671573693607>
+        a       owl:Class .
+
+<urn:tests#uri34671573693901>
+        a       owl:Class .
+
+<urn:tests#uri34671573693695>
+        a       owl:Class .
+
+<urn:tests#uri34671573694004>
+        a       owl:Class .
+
+<urn:tests#uri34671573693442>
+        a       owl:Class .
+
+<urn:tests#uri34671573694092>
+        a       owl:Class .
+
+<urn:tests#uri34671573693914>
+        a       owl:Class .
+
+<urn:tests#uri34671573694017>
+        a       owl:Class .
+
+<urn:tests#uri34671573693455>
+        a       owl:Class .
+
+<urn:tests#uri34671573693927>
+        a       owl:Class .
+
+<urn:tests#uri34671573693290>
+        a       owl:Class .
+
+<urn:tests#uri34671573693468>
+        a       owl:Class .
+
+<urn:tests#uri34671573693762>
+        a       owl:Class .
+
+<urn:tests#uri34671573693775>
+        a       owl:Class .
+
+<urn:tests#uri34671573693522>
+        a       owl:Class .
+
+<urn:tests#uri34671573694172>
+        a       owl:Class .
+
+<urn:tests#uri34671573693788>
+        a       owl:Class .
+
+<urn:tests#uri34671573693535>
+        a       owl:Class .
+
+<urn:tests#uri34671573694185>
+        a       owl:Class .
+
+<urn:tests#uri34671573693370>
+        a       owl:Class .
+
+<urn:tests#uri34671573693548>
+        a       owl:Class .
+
+<urn:tests#uri34671573693842>
+        a       owl:Class .
+
+<urn:tests#uri34671573694198>
+        a       owl:Class .
+
+<urn:tests#uri34671573693383>
+        a       owl:Class .
+
+<urn:tests#uri34671573693855>
+        a       owl:Class .
+
+<urn:tests#uri34671573693308>
+        a       owl:Class .
+
+<urn:tests#uri34671573693602>
+        a       owl:Class .
+
+<urn:tests#uri34671573693396>
+        a       owl:Class .
+
+<urn:tests#uri34671573693690>
+        a       owl:Class .
+
+<urn:tests#uri34671573693868>
+        a       owl:Class .
+
+<urn:tests#uri34671573693615>
+        a       owl:Class .
+
+<urn:tests#uri34671573694012>
+        a       owl:Class .
+
+<urn:tests#uri34671573693450>
+        a       owl:Class .
+
+<urn:tests#uri34671573693628>
+        a       owl:Class .
+
+<urn:tests#uri34671573693922>
+        a       owl:Class .
+
+<urn:tests#uri34671573694025>
+        a       owl:Class .
+
+<urn:tests#uri34671573693463>
+        a       owl:Class .
+
+<urn:tests#uri34671573693935>
+        a       owl:Class .
+
+<urn:tests#uri34671573694038>
+        a       owl:Class .
+
+<urn:tests#uri34671573693476>
+        a       owl:Class .
+
+<urn:tests#uri34671573693770>
+        a       owl:Class .
+
+<urn:tests#uri34671573693948>
+        a       owl:Class .
+
+<urn:tests#uri34671573693489>
+        a       owl:Class .
+
+<urn:tests#uri34671573693783>
+        a       owl:Class .
+
+<urn:tests#uri34671573693530>
+        a       owl:Class .
+
+<urn:tests#uri34671573693708>
+        a       owl:Class .
+
+<urn:tests#uri34671573694180>
+        a       owl:Class .
+
+<urn:tests#uri34671573693249>
+        a       owl:Class .
+
+<urn:tests#uri34671573693796>
+        a       owl:Class .
+
+<urn:tests#uri34671573694105>
+        a       owl:Class .
+
+<urn:tests#uri34671573693543>
+        a       owl:Class .
+
+<urn:tests#uri34671573694193>
+        a       owl:Class .
+
+<urn:tests#uri34671573694118>
+        a       owl:Class .
+
+<urn:tests#uri34671573693556>
+        a       owl:Class .
+
+<urn:tests#uri34671573693850>
+        a       owl:Class .
+
+<urn:tests#uri34671573693303>
+        a       owl:Class .
+
+<urn:tests#uri34671573693391>
+        a       owl:Class .
+
+<urn:tests#uri34671573693569>
+        a       owl:Class .
+
+<urn:tests#uri34671573693863>
+        a       owl:Class .
+
+<urn:tests#uri34671573693316>
+        a       owl:Class .
+
+<urn:tests#uri34671573693610>
+        a       owl:Class .
+
+<urn:tests#uri34671573693329>
+        a       owl:Class .
+
+<urn:tests#uri34671573693876>
+        a       owl:Class .
+
+<urn:tests#uri34671573693623>
+        a       owl:Class .

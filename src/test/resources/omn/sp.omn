@@ -1,0 +1,1376 @@
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+
+
+
+Ontology: <http://spinrdf.org/sp>
+
+
+Annotations: 
+    owl:versionInfo "1.5.0",
+    rdfs:label "SPIN SPARQL Syntax",
+    rdfs:comment "An RDF schema to syntactically represent SPARQL queries and update commands as RDF triples."
+
+AnnotationProperty: <http://spinrdf.org/sp#all>
+
+    Annotations: 
+        rdfs:comment "Used in DROP and CLEAR.",
+        rdfs:label "all"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#arg1>
+
+    Annotations: 
+        rdfs:comment "The first argument of a function call.",
+        rdfs:label "arg1"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#arg>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#arg2>
+
+    Annotations: 
+        rdfs:comment "The second argument of a function call.",
+        rdfs:label "arg2"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#arg>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#arg3>
+
+    Annotations: 
+        rdfs:comment "The third argument of a function call.",
+        rdfs:label "arg3"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#arg>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#arg4>
+
+    Annotations: 
+        rdfs:comment "The forth argument of a function call.",
+        rdfs:label "arg4"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#arg>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#arg5>
+
+    Annotations: 
+        rdfs:comment "The fifth argument of a function call. Further arguments are not common in SPARQL, therefore no sp:arg6, etc are defined here. However, they can be created if needed.",
+        rdfs:label "arg5"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#arg>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#arg>
+
+    Annotations: 
+        rdfs:comment "Abstract superproperty for the enumerated arg1, arg2 etc.",
+        rdfs:label "arg"
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#as>
+
+    Annotations: 
+        rdfs:comment "Points to a Variable used in an AS statement such as COUNT aggregates.",
+        rdfs:label "as"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://spinrdf.org/sp#Variable>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#bindings>
+
+    Annotations: 
+        rdfs:comment "The actual bindings of a sp:Values element.",
+        rdfs:label "bindings"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Values>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#default>
+
+    Annotations: 
+        rdfs:comment "Used in DROP and CLEAR.",
+        rdfs:label "default"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#deletePattern>
+
+    Annotations: 
+        rdfs:comment "Points to a list of sp:TripleTemplates and sp:NamedGraphs in a modify operation.",
+        rdfs:label "delete pattern"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Update>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#distinct>
+
+    Annotations: 
+        rdfs:comment "A marker property to indicate that a Select query is of type SELECT DISTINCT.",
+        rdfs:label "distinct"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Select>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#document>
+
+    Annotations: 
+        rdfs:comment "The URI of the document to load using a LOAD Update operation.",
+        rdfs:label "document"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Load>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#elements>
+
+    Annotations: 
+        rdfs:comment "Points to an ElementList, for example in an Optional element.",
+        rdfs:label "elements"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://spinrdf.org/sp#ElementList>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#expression>
+
+    Annotations: 
+        rdfs:comment "Points to an expression, for example in a Filter or Assignment.",
+        rdfs:label "expression"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#from>
+
+    Annotations: 
+        rdfs:comment "Specifies an RDF Dataset used by a Query (FROM syntax in SPARQL). Values of this property must be URI resources.",
+        rdfs:label "from"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Query>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#fromNamed>
+
+    Annotations: 
+        rdfs:comment "Specifies a named RDF Dataset used by a Query (FROM NAMED syntax in SPARQL). Values of this property must be URI resources.",
+        rdfs:label "from named"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Query>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#graphIRI>
+
+    Annotations: 
+        rdfs:comment "Points to graph names (IRIs) in various sp:Update operations.",
+        rdfs:label "graph IRI"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#graphNameNode>
+
+    Annotations: 
+        rdfs:comment "The name (URI or Variable) of a NamedGraph.",
+        rdfs:label "graph name node"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#NamedGraph>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#groupBy>
+
+    Annotations: 
+        rdfs:comment "Points from a Query to the list of GROUP BY expressions.",
+        rdfs:label "group by"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Select>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#having>
+
+    Annotations: 
+        rdfs:comment "Points from a SELECT query to a list of HAVING expressions.",
+        rdfs:label "having"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Select>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#insertPattern>
+
+    Annotations: 
+        rdfs:comment "Points to a list of sp:TripleTemplates or sp:NamedGraphs in a modify command.",
+        rdfs:label "insert pattern"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Modify>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#into>
+
+    Annotations: 
+        rdfs:comment "The (optional) target of a LOAD Update operation.",
+        rdfs:label "into"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Load>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#limit>
+
+    Annotations: 
+        rdfs:comment "The LIMIT solution modifier of a Query.",
+        rdfs:label "limit"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Query>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#long>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#modMax>
+
+    Annotations: 
+        rdfs:label "mod max"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#ModPath>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#integer>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#modMin>
+
+    Annotations: 
+        rdfs:label "mod min"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#ModPath>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#integer>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#named>
+
+    Annotations: 
+        rdfs:comment "Used in DROP and CLEAR.",
+        rdfs:label "named"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#node>
+
+    Annotations: 
+        rdfs:label "node"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#ReverseLinkPath>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#object>
+
+    Annotations: 
+        rdfs:comment "An RDF Node or Variable describing the object of a triple.",
+        rdfs:label "object"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Tuple>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#offset>
+
+    Annotations: 
+        rdfs:comment "The OFFSET solution modifier of a Query.",
+        rdfs:label "offset"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Query>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#long>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#orderBy>
+
+    Annotations: 
+        rdfs:comment "Links a query with an ORDER BY clause where the values are rdf:List containing OrderByConditions or expressions. While the domain of this property is sp:Query, only Describe and Select queries can have values of it.",
+        rdfs:label "order by"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Query>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#path1>
+
+    Annotations: 
+        rdfs:comment "The first child path of a property path. Used by sp:AltPath and sp:SeqPath.",
+        rdfs:label "path1"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://spinrdf.org/sp#Path>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#path2>
+
+    Annotations: 
+        rdfs:comment "The second child path of a property path. Used by sp:AltPath and sp:SeqPath.",
+        rdfs:label "path2"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://spinrdf.org/sp#Path>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#path>
+
+    Annotations: 
+        rdfs:comment "Points from a TriplePath to its path.",
+        rdfs:label "path"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#TriplePath>
+    
+    Range: 
+        <http://spinrdf.org/sp#Path>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#predicate>
+
+    Annotations: 
+        rdfs:comment "A resource or Variable describing the predicate of a triple.",
+        rdfs:label "predicate"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Triple>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#query>
+
+    Annotations: 
+        rdfs:comment "Links a SubQuery resource with the nested Query.",
+        rdfs:label "query"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#SubQuery>
+    
+    Range: 
+        <http://spinrdf.org/sp#Query>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#reduced>
+
+    Annotations: 
+        rdfs:comment "A property with true to indicate that a Select query has a REDUCED flag.",
+        rdfs:label "reduced"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Select>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#resultNodes>
+
+    Annotations: 
+        rdfs:comment "Contains the result nodes (URI resources or Variables) of a Describe query.",
+        rdfs:label "result nodes"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Describe>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#resultVariables>
+
+    Annotations: 
+        rdfs:comment "An rdf:List of variables that are returned by a Select query.",
+        rdfs:label "result variables"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Select>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#separator>
+
+    Annotations: 
+        rdfs:comment "Stores the separator=\"...\" value of a GROUP_CONCAT (sp:GroupConcat) aggregation.",
+        rdfs:label "separator"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#GroupConcat>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#string>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#serviceURI>
+
+    Annotations: 
+        rdfs:comment "Used by sp:Service to specify the URI of the SPARQL end point to invoke. Must point to a URI node.",
+        rdfs:label "service URI"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Service>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#silent>
+
+    Annotations: 
+        rdfs:label "silent"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#boolean>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#subPath>
+
+    Annotations: 
+        rdfs:comment "The child path of a property path expression. This is used by ReversePath and ModPath.",
+        rdfs:label "sub path"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#subject>
+
+    Annotations: 
+        rdfs:comment "A resource or Variable describing the subject of a triple.",
+        rdfs:label "subject"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Tuple>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#systemProperty>
+
+    Annotations: 
+        rdfs:comment "An abstract base proprerty that groups together the SP system properties. Users typically don't need to see them anyway.",
+        rdfs:label "SP system property"
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#templates>
+
+    Annotations: 
+        rdfs:comment "Points to a list of TripleTemplates that form the head of a Construct query.",
+        rdfs:label "templates"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Construct>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#text>
+
+    Annotations: 
+        rdfs:comment "Can be attached to sp:Queries to store a textual representation of the query. This can be useful for tools that do not have a complete SPIN Syntax parser available.",
+        rdfs:label "text"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#string>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#using>
+
+    Annotations: 
+        rdfs:label "using"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Modify>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#usingNamed>
+
+    Annotations: 
+        rdfs:label "using named"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Modify>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#values>
+
+    Annotations: 
+        rdfs:comment "The VALUES block at the end of a query. The object may just be an untyped blank node, i.e. the sp:Values type triple is optional.",
+        rdfs:label "values"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Query>
+    
+    Range: 
+        <http://spinrdf.org/sp#Values>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#varName>
+
+    Annotations: 
+        rdfs:comment "The name of a Variable.",
+        rdfs:label "varName"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Variable>
+    
+    Range: 
+        <http://www.w3.org/2001/XMLSchema#string>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#varNames>
+
+    Annotations: 
+        rdfs:comment "The names of the variables (xsd:strings) of the variables declared for a VALUES element.",
+        rdfs:label "var names"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Values>
+    
+    Range: 
+        <http://www.w3.org/1999/02/22-rdf-syntax-ns#List>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#variable>
+
+    Annotations: 
+        rdfs:comment "The variable of a Bind element.",
+        rdfs:label "variable"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Bind>
+    
+    Range: 
+        <http://spinrdf.org/sp#Variable>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#where>
+
+    Annotations: 
+        rdfs:comment "The WHERE clause of a Query.",
+        rdfs:label "where"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Range: 
+        <http://spinrdf.org/sp#ElementList>
+    
+    
+AnnotationProperty: <http://spinrdf.org/sp#with>
+
+    Annotations: 
+        rdfs:label "with"
+    
+    SubPropertyOf: 
+        <http://spinrdf.org/sp#systemProperty>
+    
+    Domain: 
+        <http://spinrdf.org/sp#Modify>
+    
+    Range: 
+        <http://www.w3.org/2000/01/rdf-schema#Resource>
+    
+    
+AnnotationProperty: owl:versionInfo
+
+    
+AnnotationProperty: rdfs:comment
+
+    
+AnnotationProperty: rdfs:label
+
+    
+Datatype: xsd:string
+
+    
+Class: <http://spinrdf.org/sp#Aggregation>
+
+    Annotations: 
+        rdfs:comment "Base class of aggregation types (not part of the SPARQL 1.0 standard but supported by ARQ and other engines).",
+        rdfs:label "Aggregation"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#SystemClass>
+    
+    
+Class: <http://spinrdf.org/sp#AltPath>
+
+    Annotations: 
+        rdfs:comment "An alternative path with the union of sp:path1 and sp:path2.",
+        rdfs:label "Alt path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Path>
+    
+    
+Class: <http://spinrdf.org/sp#Asc>
+
+    Annotations: 
+        rdfs:comment "Marker to indicate ascending order.",
+        rdfs:label "Asc"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#OrderByCondition>
+    
+    
+Class: <http://spinrdf.org/sp#Ask>
+
+    Annotations: 
+        rdfs:comment "An ASK query that returns true if the condition in the body is met by at least one result set.",
+        rdfs:label "Ask"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Query>
+    
+    
+Class: <http://spinrdf.org/sp#Avg>
+
+    Annotations: 
+        rdfs:comment "Represents AVG aggregations.",
+        rdfs:label "AVG"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Aggregation>
+    
+    
+Class: <http://spinrdf.org/sp#Bind>
+
+    Annotations: 
+        rdfs:comment "A BIND element.",
+        rdfs:label "Bind"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Element>
+    
+    
+Class: <http://spinrdf.org/sp#Clear>
+
+    Annotations: 
+        rdfs:comment "An Update operation that removes all triples from a specified graph. Must specify the graph using sp:graphIRI, or sp:default, sp:named or sp:all. May have the SILENT flag, encoded using sp:silent.",
+        rdfs:label "Clear"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Update>
+    
+    
+Class: <http://spinrdf.org/sp#Command>
+
+    Annotations: 
+        rdfs:comment "A shared superclass for sp:Query and sp:Update that can be used to specify that the range of property can be either one.",
+        rdfs:label "Command"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#SystemClass>
+    
+    
+Class: <http://spinrdf.org/sp#Construct>
+
+    Annotations: 
+        rdfs:comment "A CONSTRUCT-type query that can be used to construct new triples from template triples (head) that use variable bindings from the match patterns (body).",
+        rdfs:label "Construct"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Query>
+    
+    
+Class: <http://spinrdf.org/sp#Count>
+
+    Annotations: 
+        rdfs:comment "Counts the number of times a variable is used. The variable is stored in the variable property. This might be left blank to indicate COUNT(*).",
+        rdfs:label "COUNT"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Aggregation>
+    
+    
+Class: <http://spinrdf.org/sp#Create>
+
+    Annotations: 
+        rdfs:comment "An Update operation that creates a new empty graph with a name specified by sp:graphIRI. May have sp:silent set to true.",
+        rdfs:label "Create"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Update>
+    
+    
+Class: <http://spinrdf.org/sp#Delete>
+
+    Annotations: 
+        rdfs:comment "Deprecated - use sp:Modify instead.
+
+Represents a DELETE FROM (part of SPARQL UPDATE language). The graph IRIs are stored in sp:graphIRI. The template patterns to delete are stored in sp:deletePattern. The WHERE clause is represented using sp:where.",
+        rdfs:label "Delete"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Modify>
+    
+    
+Class: <http://spinrdf.org/sp#DeleteData>
+
+    Annotations: 
+        rdfs:comment "An Update operation to delete specific triples. The graph triples are represented using sp:data, which points to an rdf:List of sp:Triples or sp:NamedGraphs.",
+        rdfs:label "Delete data"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Update>
+    
+    
+Class: <http://spinrdf.org/sp#DeleteWhere>
+
+    Annotations: 
+        rdfs:comment "An Update operation where the triples matched by the WHERE clause (sp:where) will be the triples deleted.",
+        rdfs:label "Delete where"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Update>
+    
+    
+Class: <http://spinrdf.org/sp#Desc>
+
+    Annotations: 
+        rdfs:comment "Marker to indicate descending order.",
+        rdfs:label "Desc"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#OrderByCondition>
+    
+    
+Class: <http://spinrdf.org/sp#Describe>
+
+    Annotations: 
+        rdfs:comment "A DESCRIBE-type Query.",
+        rdfs:label "Describe"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Query>
+    
+    
+Class: <http://spinrdf.org/sp#Drop>
+
+    Annotations: 
+        rdfs:comment "An Update operation that removes a specified graph from the Graph Store. Must specify the graph using sp:graphIRI, or sp:default, sp:named or sp:all. May have the SILENT flag, encoded using sp:silent.",
+        rdfs:label "Drop"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Update>
+    
+    
+Class: <http://spinrdf.org/sp#Element>
+
+    Annotations: 
+        rdfs:comment "An abstract base class for all pattern elements.",
+        rdfs:label "Element"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#SystemClass>
+    
+    
+Class: <http://spinrdf.org/sp#ElementGroup>
+
+    Annotations: 
+        rdfs:comment "Abstract base class of group patterns.",
+        rdfs:label "Element group"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Element>
+    
+    
+Class: <http://spinrdf.org/sp#ElementList>
+
+    Annotations: 
+        rdfs:comment "A list of Elements. This class is never instantiated directly as SPIN will use plain rdf:Lists to store element lists.",
+        rdfs:label "Element list"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#ElementGroup>,
+        rdf:List
+    
+    
+Class: <http://spinrdf.org/sp#Exists>
+
+    Annotations: 
+        rdfs:comment "An EXISTS element group.",
+        rdfs:label "Exists"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#ElementGroup>
+    
+    
+Class: <http://spinrdf.org/sp#Filter>
+
+    Annotations: 
+        rdfs:comment "A constraint element that evaluates a given expression to true or false.",
+        rdfs:label "Filter"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Element>
+    
+    
+Class: <http://spinrdf.org/sp#GroupConcat>
+
+    Annotations: 
+        rdfs:comment "Represents GROUP_CONCAT aggregations.",
+        rdfs:label "GROUP_CONCAT"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Aggregation>
+    
+    
+Class: <http://spinrdf.org/sp#Insert>
+
+    Annotations: 
+        rdfs:comment "Deprecated - use sp:Modify instead.
+
+Represents a INSERT INTO (part of SPARQL UPDATE language). The graph IRIs are stored in sp:graphIRI. The template patterns to delete are stored in sp:insertPattern. The WHERE clause is represented using sp:where.",
+        rdfs:label "Insert"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Modify>
+    
+    
+Class: <http://spinrdf.org/sp#InsertData>
+
+    Annotations: 
+        rdfs:comment "An Update operation to insert specific triples. The graph triples are represented using sp:data, which points to an rdf:List of sp:Triples or sp:NamedGraphs.",
+        rdfs:label "Insert data"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Update>
+    
+    
+Class: <http://spinrdf.org/sp#Let>
+
+    Annotations: 
+        rdfs:comment "Deprecated: use sp:Bind instead.
+
+A variable assignment (LET (?<varName> := <expression>)). Not part of the SPARQL 1.0 standard, but (for example) ARQ.",
+        rdfs:label "Let"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Bind>
+    
+    
+Class: <http://spinrdf.org/sp#Load>
+
+    Annotations: 
+        rdfs:comment "A LOAD Update operation. The document to load is specified using sp:document, and the (optional) target graph using sp:into.",
+        rdfs:label "Load"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Update>
+    
+    
+Class: <http://spinrdf.org/sp#Max>
+
+    Annotations: 
+        rdfs:comment "Represents MAX aggregations.",
+        rdfs:label "MAX"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Aggregation>
+    
+    
+Class: <http://spinrdf.org/sp#Min>
+
+    Annotations: 
+        rdfs:comment "Represents MIN aggregations.",
+        rdfs:label "MIN"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Aggregation>
+    
+    
+Class: <http://spinrdf.org/sp#Minus>
+
+    Annotations: 
+        rdfs:comment "A MINUS element group.",
+        rdfs:label "Minus"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#ElementGroup>
+    
+    
+Class: <http://spinrdf.org/sp#ModPath>
+
+    Annotations: 
+        rdfs:comment "A modified path such as rdfs:subClassOf*.",
+        rdfs:label "Mod path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Path>
+    
+    
+Class: <http://spinrdf.org/sp#Modify>
+
+    Annotations: 
+        rdfs:comment "Represents a MODIFY (part of SPARQL UPDATE language). The graph IRIs are stored in sp:graphIRI. The template patterns are stored in sp:deletePattern and sp:insertPattern. The WHERE clause is represented using sp:where.",
+        rdfs:label "Modify"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Update>
+    
+    
+Class: <http://spinrdf.org/sp#NamedGraph>
+
+    Annotations: 
+        rdfs:comment "A named Graph element such as GRAPH <uri> {...}.",
+        rdfs:label "Named graph"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#ElementGroup>
+    
+    
+Class: <http://spinrdf.org/sp#NotExists>
+
+    Annotations: 
+        rdfs:comment "A NOT EXISTS element group.",
+        rdfs:label "Not exists"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#ElementGroup>
+    
+    
+Class: <http://spinrdf.org/sp#Optional>
+
+    Annotations: 
+        rdfs:comment "An optional element in a query.",
+        rdfs:label "Optional"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#ElementGroup>
+    
+    
+Class: <http://spinrdf.org/sp#OrderByCondition>
+
+    Annotations: 
+        rdfs:comment "An abstract base class for ascending or descending order conditions. Instances of this class (typically bnodes) must have a value for expression to point to the actual values.",
+        rdfs:label "Order by condition"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#SystemClass>
+    
+    
+Class: <http://spinrdf.org/sp#Path>
+
+    Annotations: 
+        rdfs:comment "The base class of SPARQL property path expressions. Paths are used by sp:TriplePath triple paths.",
+        rdfs:label "Path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#SystemClass>
+    
+    
+Class: <http://spinrdf.org/sp#Query>
+
+    Annotations: 
+        rdfs:comment "Abstract base class of the various types of supported queries. Common to all types of queries is that they can have a body (\"WHERE clause\").",
+        rdfs:label "Query"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Command>
+    
+    
+Class: <http://spinrdf.org/sp#ReverseLinkPath>
+
+    Annotations: 
+        rdfs:label "Reverse link path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Path>
+    
+    
+Class: <http://spinrdf.org/sp#ReversePath>
+
+    Annotations: 
+        rdfs:comment "A path with reversed direction.",
+        rdfs:label "Reverse path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Path>
+    
+    
+Class: <http://spinrdf.org/sp#Sample>
+
+    Annotations: 
+        rdfs:comment "Represents SAMPLE aggregations",
+        rdfs:label "SAMPLE"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Aggregation>
+    
+    
+Class: <http://spinrdf.org/sp#Select>
+
+    Annotations: 
+        rdfs:comment "A SELECT-type query that returns variable bindings as its result.",
+        rdfs:label "Select query"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Query>
+    
+    
+Class: <http://spinrdf.org/sp#SeqPath>
+
+    Annotations: 
+        rdfs:comment "A sequence of multiple paths.",
+        rdfs:label "Seq path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Path>
+    
+    
+Class: <http://spinrdf.org/sp#Service>
+
+    Annotations: 
+        rdfs:comment "A SERVICE call that matches a nested sub-pattern against a SPARQL end point specified by a URI.",
+        rdfs:label "Service"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#ElementGroup>
+    
+    
+Class: <http://spinrdf.org/sp#SubQuery>
+
+    Annotations: 
+        rdfs:comment "A nested SELECT query inside of an element list. The query is stored in sp:query.",
+        rdfs:label "Sub query"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Element>
+    
+    
+Class: <http://spinrdf.org/sp#Sum>
+
+    Annotations: 
+        rdfs:comment "Represents sum aggregations, e.g. SELECT SUM(?varName)...",
+        rdfs:label "SUM"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Aggregation>
+    
+    
+Class: <http://spinrdf.org/sp#SystemClass>
+
+    Annotations: 
+        rdfs:comment "An \"artificial\" root class that groups all SP classes. This makes them look much less overwhelming in UI tools. Typical end users don't need to see those classes anyway.",
+        rdfs:label "SP System class"
+    
+    SubClassOf: 
+        rdfs:Resource
+    
+    
+Class: <http://spinrdf.org/sp#Triple>
+
+    Annotations: 
+        rdfs:comment "A base class for TriplePattern and TripleTemplate. This basically specifies that subject, predicate and object must be present.",
+        rdfs:label "Triple"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Tuple>
+    
+    
+Class: <http://spinrdf.org/sp#TriplePath>
+
+    Annotations: 
+        rdfs:comment "Similar to a TriplePattern, but with a path expression as its predicate. For example, this can be used to express transitive sub-class relationships (?subClass rdfs:subClassOf* ?superClass).",
+        rdfs:label "Triple path"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Element>,
+        <http://spinrdf.org/sp#Tuple>
+    
+    
+Class: <http://spinrdf.org/sp#TriplePattern>
+
+    Annotations: 
+        rdfs:comment "A triple pattern used in the body of a query.",
+        rdfs:label "Triple pattern"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Element>,
+        <http://spinrdf.org/sp#Triple>
+    
+    
+Class: <http://spinrdf.org/sp#TripleTemplate>
+
+    Annotations: 
+        rdfs:comment "A prototypical triple used as template in the head of a Construct query. May contain variables.",
+        rdfs:label "Triple template"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Triple>
+    
+    
+Class: <http://spinrdf.org/sp#Tuple>
+
+    Annotations: 
+        rdfs:comment "Abstract base class for things that have subject and object.",
+        rdfs:label "Tuple"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#SystemClass>
+    
+    
+Class: <http://spinrdf.org/sp#Union>
+
+    Annotations: 
+        rdfs:comment "A UNION group.",
+        rdfs:label "Union"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#ElementGroup>
+    
+    
+Class: <http://spinrdf.org/sp#Update>
+
+    Annotations: 
+        rdfs:comment "Abstract base class to group the various SPARQL UPDATE commands.",
+        rdfs:label "Update"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Command>
+    
+    
+Class: <http://spinrdf.org/sp#Values>
+
+    Annotations: 
+        rdfs:comment "A VALUES element. sp:varNames points to an rdf:List of strings for the variables, sp:values to an rdf:List of rdf:Lists with nodes for each variable, in the order defined by the variables list.",
+        rdfs:label "Values"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#Element>
+    
+    
+Class: <http://spinrdf.org/sp#Variable>
+
+    Annotations: 
+        rdfs:comment "A variable mentioned in a Triple or expression. Variables are often blank nodes with the variable name stored in ts:name. Variables can also be supplied with a URI in which case the system will attempt to reuse the same variable instance across multiple query definitions.",
+        rdfs:label "Variable"
+    
+    SubClassOf: 
+        <http://spinrdf.org/sp#SystemClass>
+    
+    
+Class: rdf:List
+
+    
+Class: rdfs:Resource
+
+    

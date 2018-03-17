@@ -1,0 +1,6 @@
+# no prefixes.
+
+[ a owl:Ontology ;
+     owl:imports <http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-amy> ,
+                 <http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-sue>
+] .
