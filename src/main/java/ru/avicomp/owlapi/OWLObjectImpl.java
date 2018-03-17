@@ -19,7 +19,6 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.semanticweb.owlapi.io.ToStringRenderer;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
-import uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
