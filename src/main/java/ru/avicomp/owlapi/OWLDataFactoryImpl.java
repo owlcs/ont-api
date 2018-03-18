@@ -123,7 +123,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
         Objects.requireNonNull(o, ANNOTATIONS_CANNOT_BE_NULL);
     }
 
-    private static boolean asBoolean(String str) {
+    public static boolean asBoolean(String str) {
         return Boolean.parseBoolean(str) || "1".equals(str.trim());
     }
 

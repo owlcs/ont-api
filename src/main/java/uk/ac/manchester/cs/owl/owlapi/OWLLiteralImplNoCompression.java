@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import ru.avicomp.owlapi.OWL2DatatypeImpl;
+import ru.avicomp.owlapi.OWLDataFactoryImpl;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nullable;
@@ -108,7 +109,7 @@ public class OWLLiteralImplNoCompression extends OWLObjectImpl implements OWLLit
 
     @Override
     public boolean parseBoolean() {
-        return OWLLiteralImpl.asBoolean(literal);
+        return OWLDataFactoryImpl.asBoolean(literal);
     }
 
     @Override
