@@ -14,6 +14,7 @@
 package uk.ac.manchester.cs.owl.owlapi;
 
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.owlapi.OWL2DatatypeImpl;
 
 import java.util.Collection;
 import java.util.stream.Stream;

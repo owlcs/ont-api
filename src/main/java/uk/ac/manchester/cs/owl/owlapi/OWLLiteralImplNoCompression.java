@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import ru.avicomp.owlapi.OWL2DatatypeImpl;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nullable;
@@ -29,9 +30,9 @@ import javax.annotation.Nullable;
 public class OWLLiteralImplNoCompression extends OWLObjectImpl implements OWLLiteral {
 
     private static final OWLDatatype RDF_PLAIN_LITERAL =
-        new OWL2DatatypeImpl(OWL2Datatype.RDF_PLAIN_LITERAL);
+            new ru.avicomp.owlapi.OWL2DatatypeImpl(OWL2Datatype.RDF_PLAIN_LITERAL);
     private static final OWLDatatype RDF_LANG_STRING =
-        new OWL2DatatypeImpl(OWL2Datatype.RDF_LANG_STRING);
+            new ru.avicomp.owlapi.OWL2DatatypeImpl(OWL2Datatype.RDF_LANG_STRING);
     private static final OWLDatatype XSD_STRING = new OWL2DatatypeImpl(OWL2Datatype.XSD_STRING);
     private final String literal;
     private final OWLDatatype datatype;

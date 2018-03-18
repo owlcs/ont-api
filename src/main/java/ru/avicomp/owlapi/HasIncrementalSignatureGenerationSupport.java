@@ -18,7 +18,6 @@ import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.util.OWLEntityCollector;
-import uk.ac.manchester.cs.owl.owlapi.AnonymousIndividualCollector;
 
 import java.util.Set;
 
