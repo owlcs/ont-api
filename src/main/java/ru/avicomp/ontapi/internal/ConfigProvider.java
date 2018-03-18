@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -82,7 +82,7 @@ public interface ConfigProvider {
      * Default (dummy) implementation of {@link Config}.
      */
     class Dummy implements Config {
-        private static final OWLDataFactory DATA_FACTORY = OntManagers.Profile.DEFAULT_DATA_FACTORY;
+        private static final OWLDataFactory DATA_FACTORY = OntManagers.getDataFactory();
         private static final OntConfig GLOBAL_CONFIG = new OntConfig();
         private static final OntLoaderConfiguration LOADER_CONFIGURATION = GLOBAL_CONFIG.buildLoaderConfiguration();
         private static final OntWriterConfiguration WRITER_CONFIGURATION = GLOBAL_CONFIG.buildWriterConfiguration();

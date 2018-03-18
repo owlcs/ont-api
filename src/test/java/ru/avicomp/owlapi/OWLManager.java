@@ -79,7 +79,7 @@ public class OWLManager {
     public static OWLOntologyManager newManager(OWLDataFactory df, ReadWriteLock lock) {
         LOGGER.debug("New {}", typeName("OntologyManager"));
         return DEBUG_USE_OWL ?
-                new uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl(df, lock) :
+                new OntManagers.OWLAPIImplProfile().create(df, lock) :
                 new ru.avicomp.ontapi.OntologyManagerImpl(df, lock);
     }
 
@@ -90,15 +90,15 @@ public class OWLManager {
     public static OWLDataFactory newOWLDataFactory(boolean withCompression) {
         LOGGER.debug("New {}", typeName("DataFactory"));
         return DEBUG_USE_OWL ?
-                new uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl(withCompression) :
-                new ru.avicomp.owlapi.OWLDataFactoryImpl();
+                new OntManagers.OWLAPIImplProfile().createDataFactory(withCompression) :
+                OntManagers.getDataFactory();
     }
 
     public static OWLOntologyFactory newOWLLoadFactory(OWLOntologyBuilder builder) {
         LOGGER.debug("New {}", typeName("LoadFactory"));
         return DEBUG_USE_OWL ?
-                new uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl(builder) :
-                new ru.avicomp.owlapi.OWLOntologyFactoryImpl(builder);
+                new OntManagers.OWLAPIImplProfile().createLoadFactory(builder) :
+                OntManagers.createOWLOntologyLoadFactory(builder);
     }
 
     public static OntologyConfigurator newConfig() {
@@ -124,7 +124,7 @@ public class OWLManager {
      */
     public static OWLOntologyBuilder createOntologyBuilder() {
         return OWLManager.DEBUG_USE_OWL ?
-                (OWLOntologyBuilder) uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl::new :
+                (OWLOntologyBuilder) (m, i) -> new OntManagers.OWLAPIImplProfile().createOWLOntologyImpl(m, i) :
                 new OntologyFactoryImpl.ONTBuilderImpl();
     }
 
