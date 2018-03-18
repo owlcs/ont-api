@@ -1,12 +1,12 @@
-# ONT-API (ver. 1.0.1)
+# ONT-API (ver. 1.1.0)
 
 ## Summary
-The ONT-API is the OWL-API over Apache Jena.
+ONT-API is an implementation of OWL-API over Apache Jena.
 For more info see [wiki](https://github.com/avicomp/ont-api/wiki) page.
  
 ## Dependencies
-- **[Apache Jena](https://github.com/apache/jena)**, current version: **3.0.1**
-- **[OWL-API](https://github.com/owlcs/owlapi)**, current version: **5.0.5**
+- **[Apache Jena](https://github.com/apache/jena)**, version **3.6.0**
+- **[OWL-API](https://github.com/owlcs/owlapi)**, version **5.1.4**
 
 ## License
 * Apache License Version 2.0
