@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,9 +14,6 @@
 
 package org.semanticweb.owlapi.api.test.swrl;
 
-import javax.annotation.Nonnull;
-import java.util.*;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,8 +21,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.SWRLAtom;
+import ru.avicomp.owlapi.axioms.SWRLRuleImpl;
 
-import uk.ac.manchester.cs.owl.owlapi.SWRLRuleImpl;
+import javax.annotation.Nonnull;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
