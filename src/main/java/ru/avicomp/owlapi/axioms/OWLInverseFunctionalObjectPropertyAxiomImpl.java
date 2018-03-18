@@ -14,7 +14,7 @@
 package ru.avicomp.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectMaxCardinalityImpl;
+import ru.avicomp.owlapi.objects.ce.OWLObjectMaxCardinalityImpl;
 
 import java.util.Collection;
 import java.util.stream.Stream;

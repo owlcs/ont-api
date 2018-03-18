@@ -14,9 +14,9 @@
 package ru.avicomp.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectComplementOfImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectHasValueImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectOneOfImpl;
+import ru.avicomp.owlapi.objects.ce.OWLObjectComplementOfImpl;
+import ru.avicomp.owlapi.objects.ce.OWLObjectHasValueImpl;
+import ru.avicomp.owlapi.objects.ce.OWLObjectOneOfImpl;
 
 import java.util.Collection;
 import java.util.stream.Stream;

@@ -14,7 +14,7 @@
 package ru.avicomp.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectOneOfImpl;
+import ru.avicomp.owlapi.objects.ce.OWLObjectOneOfImpl;
 
 import java.util.Collection;
 import java.util.stream.Stream;

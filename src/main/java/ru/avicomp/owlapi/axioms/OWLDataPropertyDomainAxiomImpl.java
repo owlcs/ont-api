@@ -15,7 +15,7 @@ package ru.avicomp.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.owlapi.OWL2DatatypeImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataSomeValuesFromImpl;
+import ru.avicomp.owlapi.objects.ce.OWLDataSomeValuesFromImpl;
 
 import java.util.Collection;
 import java.util.stream.Stream;

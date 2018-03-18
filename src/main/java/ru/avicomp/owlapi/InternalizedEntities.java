@@ -10,14 +10,17 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.owlapi;
 
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-import uk.ac.manchester.cs.owl.owlapi.*;
+import ru.avicomp.owlapi.objects.entity.OWLAnnotationPropertyImpl;
+import ru.avicomp.owlapi.objects.entity.OWLClassImpl;
+import ru.avicomp.owlapi.objects.entity.OWLDataPropertyImpl;
+import ru.avicomp.owlapi.objects.entity.OWLObjectPropertyImpl;
+import ru.avicomp.owlapi.objects.literal.OWLLiteralImplBoolean;
 
 import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
 
@@ -30,20 +33,20 @@ import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
  */
 public class InternalizedEntities {
 
-    public static final OWLClass OWL_THING = new OWLClassImpl(OWLRDFVocabulary.OWL_THING.getIRI());
+    public static final OWLClass OWL_THING = new ru.avicomp.owlapi.objects.entity.OWLClassImpl(OWLRDFVocabulary.OWL_THING.getIRI());
     public static final OWLClass OWL_NOTHING = new OWLClassImpl(OWLRDFVocabulary.OWL_NOTHING.getIRI());
-    public static final OWLObjectProperty OWL_TOP_OBJECT_PROPERTY = new OWLObjectPropertyImpl(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI());
+    public static final OWLObjectProperty OWL_TOP_OBJECT_PROPERTY = new ru.avicomp.owlapi.objects.entity.OWLObjectPropertyImpl(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI());
     public static final OWLObjectProperty OWL_BOTTOM_OBJECT_PROPERTY = new OWLObjectPropertyImpl(OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI());
-    public static final OWLDataProperty OWL_TOP_DATA_PROPERTY = new OWLDataPropertyImpl(OWLRDFVocabulary.OWL_TOP_DATA_PROPERTY.getIRI());
+    public static final OWLDataProperty OWL_TOP_DATA_PROPERTY = new ru.avicomp.owlapi.objects.entity.OWLDataPropertyImpl(OWLRDFVocabulary.OWL_TOP_DATA_PROPERTY.getIRI());
     public static final OWLDataProperty OWL_BOTTOM_DATA_PROPERTY = new OWLDataPropertyImpl(OWLRDFVocabulary.OWL_BOTTOM_DATA_PROPERTY.getIRI());
     public static final OWLDatatype RDFSLITERAL = new OWL2DatatypeImpl(RDFS_LITERAL);
-    public static final OWLAnnotationProperty RDFS_LABEL = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_LABEL.getIRI());
-    public static final OWLAnnotationProperty RDFS_COMMENT = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_COMMENT.getIRI());
-    public static final OWLAnnotationProperty RDFS_SEE_ALSO = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_SEE_ALSO.getIRI());
-    public static final OWLAnnotationProperty RDFS_IS_DEFINED_BY = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_IS_DEFINED_BY.getIRI());
-    public static final OWLAnnotationProperty OWL_BACKWARD_COMPATIBLE_WITH = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_BACKWARD_COMPATIBLE_WITH.getIRI());
-    public static final OWLAnnotationProperty OWL_INCOMPATIBLE_WITH = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_INCOMPATIBLE_WITH.getIRI());
-    public static final OWLAnnotationProperty OWL_VERSION_INFO = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_VERSION_INFO.getIRI());
+    public static final OWLAnnotationProperty RDFS_LABEL = new ru.avicomp.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_LABEL.getIRI());
+    public static final OWLAnnotationProperty RDFS_COMMENT = new ru.avicomp.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_COMMENT.getIRI());
+    public static final OWLAnnotationProperty RDFS_SEE_ALSO = new ru.avicomp.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_SEE_ALSO.getIRI());
+    public static final OWLAnnotationProperty RDFS_IS_DEFINED_BY = new ru.avicomp.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_IS_DEFINED_BY.getIRI());
+    public static final OWLAnnotationProperty OWL_BACKWARD_COMPATIBLE_WITH = new ru.avicomp.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_BACKWARD_COMPATIBLE_WITH.getIRI());
+    public static final OWLAnnotationProperty OWL_INCOMPATIBLE_WITH = new ru.avicomp.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_INCOMPATIBLE_WITH.getIRI());
+    public static final OWLAnnotationProperty OWL_VERSION_INFO = new ru.avicomp.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_VERSION_INFO.getIRI());
     public static final OWLAnnotationProperty OWL_DEPRECATED = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_DEPRECATED.getIRI());
     public static final OWLDatatype PLAIN = new OWL2DatatypeImpl(RDF_PLAIN_LITERAL);
     public static final OWLDatatype LANGSTRING = new OWL2DatatypeImpl(RDF_LANG_STRING);
@@ -52,6 +55,6 @@ public class InternalizedEntities {
     public static final OWLDatatype XSDFLOAT = new OWL2DatatypeImpl(XSD_FLOAT);
     public static final OWLDatatype XSDINTEGER = new OWL2DatatypeImpl(XSD_INTEGER);
     public static final OWLDatatype XSDSTRING = new OWL2DatatypeImpl(XSD_STRING);
-    public static final OWLLiteral TRUELITERAL = new OWLLiteralImplBoolean(true);
+    public static final OWLLiteral TRUELITERAL = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplBoolean(true);
     public static final OWLLiteral FALSELITERAL = new OWLLiteralImplBoolean(false);
 }
