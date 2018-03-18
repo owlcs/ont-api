@@ -42,7 +42,7 @@ public class OWLLiteralImplString extends OWLObjectImpl implements OWLLiteral {
 
     @Override
     public OWLDatatype getDatatype() {
-        return InternalizedEntities.XSDSTRING;
+        return ru.avicomp.owlapi.InternalizedEntities.XSDSTRING;
     }
 
     @Override

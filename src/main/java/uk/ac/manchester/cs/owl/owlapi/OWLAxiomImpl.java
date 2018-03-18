@@ -71,6 +71,6 @@ public abstract class OWLAxiomImpl extends OWLObjectImpl implements OWLAxiom {
 
     @Override
     public OWLAxiom getNNF() {
-        return accept(new NNF(new OWLDataFactoryImpl()));
+        return accept(new NNF(new ru.avicomp.owlapi.OWLDataFactoryImpl()));
     }
 }

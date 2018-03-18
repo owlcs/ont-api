@@ -40,10 +40,10 @@ public class OWLLiteralImplPlain extends OWLObjectImpl implements OWLLiteral {
         this.literal = literal;
         if (lang == null || lang.isEmpty()) {
             this.lang = "";
-            datatype = InternalizedEntities.XSDSTRING;
+            datatype = ru.avicomp.owlapi.InternalizedEntities.XSDSTRING;
         } else {
             this.lang = lang.trim();
-            datatype = InternalizedEntities.LANGSTRING;
+            datatype = ru.avicomp.owlapi.InternalizedEntities.LANGSTRING;
         }
     }
 

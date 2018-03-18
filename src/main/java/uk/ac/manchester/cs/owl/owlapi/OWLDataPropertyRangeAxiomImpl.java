@@ -52,6 +52,6 @@ public class OWLDataPropertyRangeAxiomImpl extends
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
         OWLClassExpression sup = new OWLDataAllValuesFromImpl(getProperty(), getRange());
-        return new OWLSubClassOfAxiomImpl(InternalizedEntities.OWL_THING, sup, NO_ANNOTATIONS);
+        return new OWLSubClassOfAxiomImpl(ru.avicomp.owlapi.InternalizedEntities.OWL_THING, sup, NO_ANNOTATIONS);
     }
 }

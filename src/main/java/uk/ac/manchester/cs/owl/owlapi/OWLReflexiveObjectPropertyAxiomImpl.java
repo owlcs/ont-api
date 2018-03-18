@@ -18,7 +18,7 @@ import org.semanticweb.owlapi.model.*;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static uk.ac.manchester.cs.owl.owlapi.InternalizedEntities.OWL_THING;
+import static ru.avicomp.owlapi.InternalizedEntities.OWL_THING;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group

@@ -59,6 +59,6 @@ public class OWLLiteralImplBoolean extends OWLObjectImpl implements OWLLiteral {
 
     @Override
     public OWLDatatype getDatatype() {
-        return InternalizedEntities.XSDBOOLEAN;
+        return ru.avicomp.owlapi.InternalizedEntities.XSDBOOLEAN;
     }
 }

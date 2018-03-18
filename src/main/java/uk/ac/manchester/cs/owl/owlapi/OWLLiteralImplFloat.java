@@ -59,6 +59,6 @@ public class OWLLiteralImplFloat extends OWLObjectImpl implements OWLLiteral {
 
     @Override
     public OWLDatatype getDatatype() {
-        return InternalizedEntities.XSDFLOAT;
+        return ru.avicomp.owlapi.InternalizedEntities.XSDFLOAT;
     }
 }

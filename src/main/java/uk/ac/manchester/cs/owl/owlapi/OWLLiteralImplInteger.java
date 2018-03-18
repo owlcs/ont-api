@@ -59,6 +59,6 @@ public class OWLLiteralImplInteger extends OWLObjectImpl implements OWLLiteral {
 
     @Override
     public OWLDatatype getDatatype() {
-        return InternalizedEntities.XSDINTEGER;
+        return ru.avicomp.owlapi.InternalizedEntities.XSDINTEGER;
     }
 }
