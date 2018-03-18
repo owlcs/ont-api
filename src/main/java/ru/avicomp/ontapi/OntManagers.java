@@ -54,8 +54,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
         OntModelFactory.init();
     }
 
-    public static final ONTManagerProfile DEFAULT_PROFILE = new ONTManagerProfile(false);
-    private static Profile<? extends OWLOntologyManager> profile = DEFAULT_PROFILE;
+    public static final ONTManagerProfile DEFAULT_PROFILE = new ONTManagerProfile();
+    private static OWLOntologyManagerFactory delegate = () -> DEFAULT_PROFILE.create(false);
 
     /**
      * Gets the global data factory that can be used to create OWL API objects.
@@ -72,16 +72,16 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @return {@link OntologyManager} the new manager instance.
      */
     public static OntologyManager createONT() {
-        return DEFAULT_PROFILE.create();
+        return DEFAULT_PROFILE.create(false);
     }
 
     /**
-     * Creates an ONT-API ontology manager with default settings and locking for concurrent access.
+     * Creates an ONT-API ontology manager with default settings and locking to work in a concurrent environment.
      *
      * @return {@link OntologyManager} the new manager instance.
      */
     public static OntologyManager createConcurrentONT() {
-        return new ONTManagerProfile(true).create();
+        return DEFAULT_PROFILE.create(true);
     }
 
     /**
@@ -99,11 +99,11 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/apibinding/src/main/java/org/semanticweb/owlapi/apibinding/OWLManager.java#L43'>org.semanticweb.owlapi.apibinding.OWLManager#createOWLOntologyManager()</a>
      */
     public static OWLOntologyManager createOWL() {
-        return createOWLProfile(false).create();
+        return createOWLProfile().create(false);
     }
 
     /**
-     * Provides an original pure OWL-API ontology manager with instance default settings and locking for concurrent access.
+     * Provides an original pure OWL-API ontology manager instance with default settings and locking to work in a concurrent environment.
      * Notes:
      * <ul>
      * <li>This method is not a direct part of ONT-API, it is for convenience and/or test purposes only.
@@ -117,30 +117,30 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/apibinding/src/main/java/org/semanticweb/owlapi/apibinding/OWLManager.java#L53'>org.semanticweb.owlapi.apibinding.OWLManager#createConcurrentOWLOntologyManager()</a>
      */
     public static OWLOntologyManager createConcurrentOWL() {
-        return createOWLProfile(true).create();
+        return createOWLProfile().create(true);
     }
 
     /**
-     * Gets a default global {@link Profile profile}
+     * Returns a default static {@link OWLOntologyManagerFactory factory}.
      *
      * @return profile
      */
-    public static Profile<? extends OWLOntologyManager> getProfile() {
-        return profile;
+    public static OWLOntologyManagerFactory getFactory() {
+        return delegate;
     }
 
     /**
-     * Sets new default global {@link Profile profile}
+     * Changes a default static {@link OWLOntologyManagerFactory factory}.
      *
      * @param p profile object, not null
      */
-    public static void setProfile(Profile<? extends OWLOntologyManager> p) {
-        profile = OntApiException.notNull(p, "Null manager profile specified.");
+    public static void setFactory(OWLOntologyManagerFactory p) {
+        delegate = OntApiException.notNull(p, "Null manager profile specified.");
     }
 
     @Override
     public OWLOntologyManager get() {
-        return profile.create();
+        return delegate.get();
     }
 
     /**
@@ -152,70 +152,55 @@ public class OntManagers implements OWLOntologyManagerFactory {
      */
     @SuppressWarnings("ConstantConditions")
     @Nullable
-    static OWLOntologyFactory createOWLOntologyLoadFactory(OWLOntologyBuilder builder) {
+    public static OWLOntologyFactory createOWLOntologyLoadFactory(OWLOntologyBuilder builder) {
         return new OWLOntologyFactoryImpl(builder);
     }
 
     /**
-     * The provider for manager and data-factory.
-     *
-     * @param <M> a subtype of {@link OWLOntologyManager}
+     * A factory to provide manager and data-factory.
      */
-    @FunctionalInterface
-    public interface Profile<M extends OWLOntologyManager> {
-        OWLDataFactory DEFAULT_DATA_FACTORY = new OWLDataFactoryImpl();
+    public interface Profile {
 
         /**
          * Creates a new OWLOntologyManager instance.
          *
+         * @param concurrent boolean, if true the result manager expected to be thread-safe
          * @return {@link OWLOntologyManager}
          */
-        M create();
+        OWLOntologyManager create(boolean concurrent);
 
         /**
          * Provides OWLDataFactory instance.
          *
          * @return {@link OWLDataFactory}
          */
-        default OWLDataFactory dataFactory() {
-            return DEFAULT_DATA_FACTORY;
-        }
-    }
-
-    /**
-     * Abstract Profile which supports concurrency mode.
-     */
-    protected static abstract class BaseProfile {
-        final boolean concurrency;
-
-        private BaseProfile(boolean concurrent) {
-            this.concurrency = concurrent;
-        }
-
-        public boolean isConcurrent() {
-            return concurrency;
-        }
-
+        OWLDataFactory dataFactory();
     }
 
     /**
      * The ONT-API impl of the {@link Profile}.
      */
-    public static class ONTManagerProfile extends BaseProfile implements Profile<OntologyManager> {
+    public static class ONTManagerProfile implements Profile {
 
-        public ONTManagerProfile(boolean concurrent) {
-            super(concurrent);
-        }
+        public static final OWLDataFactory DEFAULT_DATA_FACTORY = new OWLDataFactoryImpl();
 
         @Override
-        public OntologyManager create() {
+        public OntologyManager create(boolean concurrent) {
             Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
             Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
-            ReadWriteLock lock = isConcurrent() ? new ReentrantReadWriteLock() : new NoOpReadWriteLock();
-            OntologyManager res = new OntologyManagerImpl(this.dataFactory(), lock);
+            OntologyManager res = create(this.dataFactory(), concurrent ? new ReentrantReadWriteLock() : new NoOpReadWriteLock());
             res.setOntologyStorers(storers);
             res.setOntologyParsers(parsers);
             return res;
+        }
+
+        public OntologyManager create(OWLDataFactory factory, ReadWriteLock lock) {
+            return new OntologyManagerImpl(factory, lock);
+        }
+
+        @Override
+        public OWLDataFactory dataFactory() {
+            return DEFAULT_DATA_FACTORY;
         }
     }
 
@@ -224,7 +209,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
             return Class.forName(name);
         } catch (ClassNotFoundException e) {
             throw new OntApiException("No " + name + " in class-path found. " +
-                    "Please include corresponding module to maven dependencies.", e);
+                    "Please include corresponding library to maven dependencies.", e);
         }
     }
 
@@ -234,16 +219,15 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryImpl.java'>data factory</a> instances from OWL-API supply
      * (i.e. from owlapi-apibinding or owlapi-impl) using reflection.
      *
-     * @param concurrency boolean
      * @return Profile
      * @throws OntApiException in case no owlapi-* in class-path
      */
-    public static Profile<OWLOntologyManager> createOWLProfile(boolean concurrency) throws OntApiException {
+    public static Profile createOWLProfile() throws OntApiException {
         try {
-            return new OWLAPIBindingProfile(concurrency);
+            return new OWLAPIBindingProfile();
         } catch (OntApiException i) {
             try {
-                return new OWLAPIImplProfile(concurrency);
+                return new OWLAPIImplProfile();
             } catch (OntApiException j) {
                 i.addSuppressed(j);
             }
@@ -255,13 +239,12 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * The OWL-API impl of {@link Profile}.
      * The owlapi-apibinding
      * (class <a href='https://github.com/owlcs/owlapi/blob/version5/apibinding/src/main/java/org/semanticweb/owlapi/apibinding/OWLManager.java'>org.semanticweb.owlapi.apibinding.OWLManager</a>)
-     * must be in class-path.
+     * must be in class-path otherwise OntApiException is expected while initialization.
      */
-    private static class OWLAPIBindingProfile extends BaseProfile implements Profile<OWLOntologyManager> {
+    public static class OWLAPIBindingProfile implements Profile {
         private final Class<?> provider;
 
-        private OWLAPIBindingProfile(boolean concurrent) throws OntApiException, IllegalStateException {
-            super(concurrent);
+        public OWLAPIBindingProfile() throws OntApiException {
             this.provider = findClass("org.semanticweb.owlapi.apibinding.OWLManager");
         }
 
@@ -274,8 +257,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         @Override
-        public OWLOntologyManager create() throws IllegalStateException {
-            Method manager = findStaticMethod(provider, isConcurrent() ? "createConcurrentOWLOntologyManager" : "createOWLOntologyManager");
+        public OWLOntologyManager create(boolean concurrent) throws IllegalStateException {
+            Method manager = findStaticMethod(provider, concurrent ? "createConcurrentOWLOntologyManager" : "createOWLOntologyManager");
             try {
                 return (OWLOntologyManager) manager.invoke(null);
             } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
@@ -296,7 +279,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
 
     /**
      * The OWL-API impl of {@link Profile} based on straightforward reflection.
-     * The dependency owlapi-impl must be in class-path.
+     * The dependency owlapi-impl must be in class-path otherwise OntApiException is expected while initialization.
      *
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl</a>
@@ -306,16 +289,15 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl</a>
      */
-    private static class OWLAPIImplProfile extends BaseProfile implements Profile<OWLOntologyManager> {
+    public static class OWLAPIImplProfile implements Profile {
         private final Class<?> managerClass;
-        private ReadWriteLock lock;
+        public static final ReadWriteLock NO_OP = new NoOpReadWriteLock();
 
-        private OWLAPIImplProfile(boolean concurrent) {
-            super(concurrent);
+        public OWLAPIImplProfile() throws OntApiException {
             this.managerClass = findClass("uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl");
         }
 
-        public OWLOntologyBuilder createOWLOntologyBuilder() throws IllegalStateException {
+        public OWLOntologyBuilder createOWLOntologyBuilder(ReadWriteLock lock) throws IllegalStateException {
             Class<?> owlOntologyImplementationFactoryType = findClass("uk.ac.manchester.cs.owl.owlapi.OWLOntologyImplementationFactory");
             Object owlOntologyImplementationFactoryInstance = Reflection.newProxy(owlOntologyImplementationFactoryType,
                     (proxy, method, args) -> {
@@ -334,10 +316,10 @@ public class OntManagers implements OWLOntologyManagerFactory {
             nonConcurrentParams.put(owlOntologyImplementationFactoryType, owlOntologyImplementationFactoryInstance);
             OWLOntologyBuilder res = (OWLOntologyBuilder) newInstance("uk.ac.manchester.cs.owl.owlapi.concurrent.NonConcurrentOWLOntologyBuilder",
                     nonConcurrentParams);
-            if (!concurrency) return res;
+            if (lock == null || NO_OP.equals(lock)) return res;
             LinkedListMultimap<Class<?>, Object> concurrentParams = LinkedListMultimap.create();
             concurrentParams.put(OWLOntologyBuilder.class, res);
-            concurrentParams.put(ReadWriteLock.class, lock());
+            concurrentParams.put(ReadWriteLock.class, lock);
             return (OWLOntologyBuilder) newInstance("uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyBuilder", concurrentParams);
         }
 
@@ -348,37 +330,32 @@ public class OntManagers implements OWLOntologyManagerFactory {
             return (OWLOntology) newInstance("uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl", params);
         }
 
-        public ReadWriteLock lock() {
-            if (lock != null) return lock;
-            synchronized (this) {
-                if (lock != null) return lock;
-                return lock = isConcurrent() ? new ReentrantReadWriteLock() : new NoOpReadWriteLock();
-            }
+        @Override
+        public OWLOntologyManager create(boolean concurrent) {
+            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NO_OP;
+            OWLDataFactory dataFactory = createDataFactory(false);
+            OWLOntologyFactory loadFactory = createLoadFactory(createOWLOntologyBuilder(lock));
+            OWLOntologyManager res = create(dataFactory, lock);
+            Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
+            Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
+            res.setOntologyStorers(storers);
+            res.setOntologyParsers(parsers);
+            res.setOntologyFactories(Collections.singleton(loadFactory));
+            return res;
         }
 
-        @Override
-        public OWLOntologyManager create() {
+        public OWLOntologyManager create(OWLDataFactory dataFactory, ReadWriteLock lock) {
             Constructor<?> constructor;
             try {
                 constructor = managerClass.getConstructor(OWLDataFactory.class, ReadWriteLock.class);
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException(managerClass.getName() + ": can't find constructor", e);
             }
-            OWLDataFactory dataFactory = createDataFactory(false);
-            OWLOntologyFactory loadFactory = createLoadFactory(createOWLOntologyBuilder());
-            OWLOntologyManager res;
             try {
-                res = (OWLOntologyManager) constructor.newInstance(dataFactory, lock());
+                return (OWLOntologyManager) constructor.newInstance(dataFactory, lock);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new IllegalStateException(managerClass.getName() + ": can't create new instance", e);
             }
-            Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
-            Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
-
-            res.setOntologyStorers(storers);
-            res.setOntologyParsers(parsers);
-            res.setOntologyFactories(Collections.singleton(loadFactory));
-            return res;
         }
 
         @Override
