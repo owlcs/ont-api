@@ -13,9 +13,6 @@
  */
 package ru.avicomp.owlapi;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.semanticweb.owlapi.io.ToStringRenderer;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.AbstractCollectorEx;
@@ -25,9 +22,6 @@ import org.semanticweb.owlapi.util.OWLEntityCollector;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -45,6 +39,10 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected static final Set<OWLAnnotation> NO_ANNOTATIONS = Collections.emptySet();
 
+    // WARNING: the cache is disabled since we have our own cache inside InternalModel,
+    // which should guarantee that internal objects are not be duplicated in different containers collected for the same ontology graph.
+    // maybe it is temporary solution...
+    /*
     protected static LoadingCache<OWLObjectImpl, Set<OWLEntity>> signatures = build(key -> key.addSignatureEntitiesToSet(new TreeSet<>()));
     protected static LoadingCache<OWLObjectImpl, Set<OWLAnonymousIndividual>> anonCaches = build(key -> key.addAnonymousIndividualsToSet(new TreeSet<>()));
     protected static LoadingCache<OWLObjectImpl, List<OWLClass>> classesSignatures = build(key -> cacheSig(key, OWLEntity::isOWLClass, OWLEntity::asOWLClass));
@@ -62,55 +60,65 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     static <T> List<T> cacheSig(OWLObject o, Predicate<OWLEntity> p, Function<OWLEntity, T> f) {
         return o.signature().filter(p).map(f).collect(Collectors.toList());
     }
+    */
 
     protected int hashCode = 0;
 
     @SuppressWarnings("ConstantConditions")
     @Override
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
-        return anonCaches.get(this).stream();
+        return addAnonymousIndividualsToSet(new TreeSet<>()).stream();
+        //return anonCaches.get(this).stream();
     }
 
     @SuppressWarnings("ConstantConditions")
     @Override
     public Stream<OWLEntity> signature() {
-        return signatures.get(this).stream();
+        return addSignatureEntitiesToSet(new TreeSet<>()).stream();
+        //return signatures.get(this).stream();
     }
 
     @SuppressWarnings("ConstantConditions")
     @Override
     public boolean containsEntityInSignature(OWLEntity owlEntity) {
-        return signatures.get(this).contains(owlEntity);
+        return signature().anyMatch(o -> Objects.equals(o, owlEntity));
+        //return signatures.get(this).contains(owlEntity);
     }
 
     @Override
     public Stream<OWLClass> classesInSignature() {
-        return streamFromSorted(classesSignatures.get(this));
+        return signature().filter(OWLEntity::isOWLClass).map(OWLEntity::asOWLClass);
+        //return streamFromSorted(classesSignatures.get(this));
     }
 
     @Override
     public Stream<OWLDataProperty> dataPropertiesInSignature() {
-        return streamFromSorted(dataPropertySignatures.get(this));
+        return signature().filter(OWLEntity::isOWLDataProperty).map(OWLEntity::asOWLDataProperty);
+        //return streamFromSorted(dataPropertySignatures.get(this));
     }
 
     @Override
     public Stream<OWLObjectProperty> objectPropertiesInSignature() {
-        return streamFromSorted(objectPropertySignatures.get(this));
+        return signature().filter(OWLEntity::isOWLObjectProperty).map(OWLEntity::asOWLObjectProperty);
+        //return streamFromSorted(objectPropertySignatures.get(this));
     }
 
     @Override
     public Stream<OWLNamedIndividual> individualsInSignature() {
-        return streamFromSorted(individualSignatures.get(this));
+        return signature().filter(OWLEntity::isOWLNamedIndividual).map(OWLEntity::asOWLNamedIndividual);
+        //return streamFromSorted(individualSignatures.get(this));
     }
 
     @Override
     public Stream<OWLDatatype> datatypesInSignature() {
-        return streamFromSorted(datatypeSignatures.get(this));
+        return signature().filter(OWLEntity::isOWLDatatype).map(OWLEntity::asOWLDatatype);
+        //return streamFromSorted(datatypeSignatures.get(this));
     }
 
     @Override
     public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
-        return streamFromSorted(annotationPropertiesSignatures.get(this));
+        return signature().filter(OWLEntity::isOWLAnnotationProperty).map(OWLEntity::asOWLAnnotationProperty);
+        //return streamFromSorted(annotationPropertiesSignatures.get(this));
     }
 
     @Override
@@ -154,7 +162,6 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     public String toString() {
         return ToStringRenderer.getRendering(this);
     }
-
 
     /**
      * Moved from uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport.
