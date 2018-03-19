@@ -31,6 +31,7 @@ import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
  * @author ignazio
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/InternalizedEntities.java'>uk.ac.manchester.cs.owl.owlapi.InternalizedEntities</a>
  */
+@SuppressWarnings("WeakerAccess")
 public class InternalizedEntities {
 
     public static final OWLClass OWL_THING = new ru.avicomp.owlapi.objects.entity.OWLClassImpl(OWLRDFVocabulary.OWL_THING.getIRI());

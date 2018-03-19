@@ -19,26 +19,21 @@ import org.semanticweb.owlapi.model.OWLDisjointObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.util.CollectionFactory;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLDisjointObjectPropertiesAxiomImpl extends
-        OWLNaryPropertyAxiomImpl<OWLObjectPropertyExpression>
-    implements OWLDisjointObjectPropertiesAxiom {
+public class OWLDisjointObjectPropertiesAxiomImpl extends OWLNaryPropertyAxiomImpl<OWLObjectPropertyExpression> implements OWLDisjointObjectPropertiesAxiom {
 
     /**
-     * @param properties disjoint properties
+     * @param properties  disjoint properties
      * @param annotations annotations
      */
-    public OWLDisjointObjectPropertiesAxiomImpl(
-        Collection<? extends OWLObjectPropertyExpression> properties,
-        Collection<OWLAnnotation> annotations) {
+    public OWLDisjointObjectPropertiesAxiomImpl(Collection<? extends OWLObjectPropertyExpression> properties, Collection<OWLAnnotation> annotations) {
         super(properties, annotations);
     }
 
@@ -50,6 +45,7 @@ public class OWLDisjointObjectPropertiesAxiomImpl extends
         return new OWLDisjointObjectPropertiesAxiomImpl(properties, NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLDisjointObjectPropertiesAxiomImpl(properties, mergeAnnos(anns));
@@ -60,8 +56,7 @@ public class OWLDisjointObjectPropertiesAxiomImpl extends
         if (properties.size() == 2) {
             return CollectionFactory.createSet(this);
         }
-        return walkPairwise((a, b) -> new OWLDisjointObjectPropertiesAxiomImpl(
-            sorted(OWLObjectPropertyExpression.class, a, b), NO_ANNOTATIONS));
+        return walkPairwise((a, b) -> new OWLDisjointObjectPropertiesAxiomImpl(Arrays.asList(a, b), NO_ANNOTATIONS));
     }
 
     @Override
@@ -69,7 +64,6 @@ public class OWLDisjointObjectPropertiesAxiomImpl extends
         if (properties.size() == 2) {
             return CollectionFactory.createSet(this);
         }
-        return walkPairwise((a, b) -> new OWLDisjointObjectPropertiesAxiomImpl(
-            sorted(OWLObjectPropertyExpression.class, a, b), annotations));
+        return walkPairwise((a, b) -> new OWLDisjointObjectPropertiesAxiomImpl(Arrays.asList(a, b), annotations));
     }
 }

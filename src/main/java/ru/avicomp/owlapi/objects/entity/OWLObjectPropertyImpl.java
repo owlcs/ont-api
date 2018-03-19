@@ -20,11 +20,11 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import ru.avicomp.owlapi.OWLObjectImpl;
 import ru.avicomp.owlapi.objects.OWLObjectInverseOfImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLObjectPropertyImpl extends OWLObjectImpl implements OWLObjectProperty {
 
@@ -35,9 +35,9 @@ public class OWLObjectPropertyImpl extends OWLObjectImpl implements OWLObjectPro
      * @param iri property iri
      */
     public OWLObjectPropertyImpl(IRI iri) {
-        this.iri = checkNotNull(iri, "iri cannot be null");
+        this.iri = Objects.requireNonNull(iri, "iri cannot be null");
         builtin = iri.equals(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI()) || iri.equals(
-            OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI());
+                OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI());
     }
 
     @Override

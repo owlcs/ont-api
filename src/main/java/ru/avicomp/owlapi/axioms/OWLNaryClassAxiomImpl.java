@@ -16,20 +16,14 @@ package ru.avicomp.owlapi.axioms;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNaryClassAxiom;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public abstract class OWLNaryClassAxiomImpl extends OWLClassAxiomImpl implements OWLNaryClassAxiom {
 
@@ -37,18 +31,18 @@ public abstract class OWLNaryClassAxiomImpl extends OWLClassAxiomImpl implements
 
     /**
      * @param classExpressions classes
-     * @param annotations annotations
+     * @param annotations      annotations
      */
-    public OWLNaryClassAxiomImpl(Collection<? extends OWLClassExpression> classExpressions,
-        Collection<OWLAnnotation> annotations) {
+    public OWLNaryClassAxiomImpl(Collection<? extends OWLClassExpression> classExpressions, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        checkNotNull(classExpressions, "classExpressions cannot be null");
-        this.classExpressions = sorted(OWLClassExpression.class, classExpressions);
+        this.classExpressions = Objects.requireNonNull(classExpressions, "classExpressions cannot be null")
+                .stream()
+                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     @Override
     public Stream<OWLClassExpression> classExpressions() {
-        return streamFromSorted(classExpressions);
+        return classExpressions.stream();
     }
 
     @Override

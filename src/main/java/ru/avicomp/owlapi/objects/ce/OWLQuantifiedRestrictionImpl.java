@@ -16,16 +16,14 @@ package ru.avicomp.owlapi.objects.ce;
 import org.semanticweb.owlapi.model.OWLPropertyRange;
 import org.semanticweb.owlapi.model.OWLQuantifiedRestriction;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @param <F> range type
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLQuantifiedRestrictionImpl<F extends OWLPropertyRange> extends
-        OWLAnonymousClassExpressionImpl
-    implements OWLQuantifiedRestriction<F> {
+public abstract class OWLQuantifiedRestrictionImpl<F extends OWLPropertyRange> extends OWLAnonymousClassExpressionImpl implements OWLQuantifiedRestriction<F> {
 
     private final F filler;
 
@@ -33,7 +31,7 @@ public abstract class OWLQuantifiedRestrictionImpl<F extends OWLPropertyRange> e
      * @param filler filler
      */
     public OWLQuantifiedRestrictionImpl(F filler) {
-        this.filler = checkNotNull(filler, "filler cannot be null");
+        this.filler = Objects.requireNonNull(filler, "filler cannot be null");
     }
 
     @Override

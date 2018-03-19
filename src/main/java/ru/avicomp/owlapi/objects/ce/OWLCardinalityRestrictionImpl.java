@@ -16,23 +16,21 @@ package ru.avicomp.owlapi.objects.ce;
 import org.semanticweb.owlapi.model.OWLCardinalityRestriction;
 import org.semanticweb.owlapi.model.OWLPropertyRange;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @param <F> filler type
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLCardinalityRestrictionImpl<F extends OWLPropertyRange> extends
-        OWLAnonymousClassExpressionImpl
-    implements OWLCardinalityRestriction<F> {
+public abstract class OWLCardinalityRestrictionImpl<F extends OWLPropertyRange> extends OWLAnonymousClassExpressionImpl implements OWLCardinalityRestriction<F> {
 
     private final int cardinality;
     private final F filler;
 
     protected OWLCardinalityRestrictionImpl(int cardinality, F filler) {
         this.cardinality = cardinality;
-        this.filler = checkNotNull(filler, "filler cannot be null");
+        this.filler = Objects.requireNonNull(filler, "filler cannot be null");
     }
 
     @Override

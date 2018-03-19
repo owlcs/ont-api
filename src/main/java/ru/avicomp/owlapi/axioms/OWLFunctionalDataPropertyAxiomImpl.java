@@ -24,18 +24,15 @@ import static ru.avicomp.owlapi.InternalizedEntities.RDFSLITERAL;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLFunctionalDataPropertyAxiomImpl extends
-        OWLDataPropertyCharacteristicAxiomImpl implements
-    OWLFunctionalDataPropertyAxiom {
+public class OWLFunctionalDataPropertyAxiomImpl extends OWLDataPropertyCharacteristicAxiomImpl implements OWLFunctionalDataPropertyAxiom {
 
     /**
-     * @param property property
+     * @param property    property
      * @param annotations annotations
      */
-    public OWLFunctionalDataPropertyAxiomImpl(OWLDataPropertyExpression property,
-        Collection<OWLAnnotation> annotations) {
+    public OWLFunctionalDataPropertyAxiomImpl(OWLDataPropertyExpression property, Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 
@@ -47,6 +44,7 @@ public class OWLFunctionalDataPropertyAxiomImpl extends
         return new OWLFunctionalDataPropertyAxiomImpl(getProperty(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLFunctionalDataPropertyAxiomImpl(getProperty(), mergeAnnos(anns));
@@ -55,7 +53,7 @@ public class OWLFunctionalDataPropertyAxiomImpl extends
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
         return new OWLSubClassOfAxiomImpl(OWL_THING,
-            new OWLDataMaxCardinalityImpl(getProperty(), 1, RDFSLITERAL),
-            NO_ANNOTATIONS);
+                new OWLDataMaxCardinalityImpl(getProperty(), 1, RDFSLITERAL),
+                NO_ANNOTATIONS);
     }
 }

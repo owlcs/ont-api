@@ -19,13 +19,12 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLSubClassOfAxiomImpl extends OWLClassAxiomImpl implements OWLSubClassOfAxiom {
 
@@ -33,17 +32,18 @@ public class OWLSubClassOfAxiomImpl extends OWLClassAxiomImpl implements OWLSubC
     private final OWLClassExpression superClass;
 
     /**
-     * @param subClass subclass
-     * @param superClass superclass
+     * @param subClass    subclass
+     * @param superClass  superclass
      * @param annotations annotations
      */
     public OWLSubClassOfAxiomImpl(OWLClassExpression subClass, OWLClassExpression superClass,
-        Collection<OWLAnnotation> annotations) {
+                                  Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.subClass = checkNotNull(subClass, "subClass cannot be null");
-        this.superClass = checkNotNull(superClass, "superClass cannot be null");
+        this.subClass = Objects.requireNonNull(subClass, "subClass cannot be null");
+        this.superClass = Objects.requireNonNull(superClass, "superClass cannot be null");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLSubClassOfAxiomImpl(subClass, superClass, mergeAnnos(anns));

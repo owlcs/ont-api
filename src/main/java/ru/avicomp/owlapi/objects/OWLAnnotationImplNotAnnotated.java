@@ -22,13 +22,12 @@ import ru.avicomp.owlapi.OWLObjectImpl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLAnnotationImplNotAnnotated extends OWLObjectImpl implements OWLAnnotation {
 
@@ -37,11 +36,11 @@ public class OWLAnnotationImplNotAnnotated extends OWLObjectImpl implements OWLA
 
     /**
      * @param property annotation property
-     * @param value annotation value
+     * @param value    annotation value
      */
     public OWLAnnotationImplNotAnnotated(OWLAnnotationProperty property, OWLAnnotationValue value) {
-        this.property = checkNotNull(property, "property cannot be null");
-        this.value = checkNotNull(value, "value cannot be null");
+        this.property = Objects.requireNonNull(property, "property cannot be null");
+        this.value = Objects.requireNonNull(value, "value cannot be null");
     }
 
     @Override
@@ -75,6 +74,6 @@ public class OWLAnnotationImplNotAnnotated extends OWLObjectImpl implements OWLA
     @Override
     public boolean isDeprecatedIRIAnnotation() {
         return property.isDeprecated() && value instanceof OWLLiteral
-            && ((OWLLiteral) value).isBoolean() && ((OWLLiteral) value).parseBoolean();
+                && ((OWLLiteral) value).isBoolean() && ((OWLLiteral) value).parseBoolean();
     }
 }

@@ -23,18 +23,15 @@ import static ru.avicomp.owlapi.InternalizedEntities.OWL_THING;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLInverseFunctionalObjectPropertyAxiomImpl extends
-        OWLObjectPropertyCharacteristicAxiomImpl implements
-    OWLInverseFunctionalObjectPropertyAxiom {
+public class OWLInverseFunctionalObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLInverseFunctionalObjectPropertyAxiom {
 
     /**
-     * @param property property
+     * @param property    property
      * @param annotations annotations
      */
-    public OWLInverseFunctionalObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
-        Collection<OWLAnnotation> annotations) {
+    public OWLInverseFunctionalObjectPropertyAxiomImpl(OWLObjectPropertyExpression property, Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 
@@ -46,6 +43,7 @@ public class OWLInverseFunctionalObjectPropertyAxiomImpl extends
         return new OWLInverseFunctionalObjectPropertyAxiomImpl(getProperty(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLInverseFunctionalObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));
@@ -53,8 +51,7 @@ public class OWLInverseFunctionalObjectPropertyAxiomImpl extends
 
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        return new OWLSubClassOfAxiomImpl(OWL_THING,
-            new OWLObjectMaxCardinalityImpl(getProperty().getInverseProperty()
+        return new OWLSubClassOfAxiomImpl(OWL_THING, new OWLObjectMaxCardinalityImpl(getProperty().getInverseProperty()
                 .getSimplified(), 1, OWL_THING), NO_ANNOTATIONS);
     }
 }

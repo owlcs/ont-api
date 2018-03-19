@@ -26,26 +26,23 @@ import javax.annotation.Nullable;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLLiteralImplNoCompression extends OWLObjectImpl implements OWLLiteral {
+public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
 
-    private static final OWLDatatype RDF_PLAIN_LITERAL =
-            new ru.avicomp.owlapi.OWL2DatatypeImpl(OWL2Datatype.RDF_PLAIN_LITERAL);
-    private static final OWLDatatype RDF_LANG_STRING =
-            new ru.avicomp.owlapi.OWL2DatatypeImpl(OWL2Datatype.RDF_LANG_STRING);
+    private static final OWLDatatype RDF_PLAIN_LITERAL = new ru.avicomp.owlapi.OWL2DatatypeImpl(OWL2Datatype.RDF_PLAIN_LITERAL);
+    private static final OWLDatatype RDF_LANG_STRING = new ru.avicomp.owlapi.OWL2DatatypeImpl(OWL2Datatype.RDF_LANG_STRING);
     private static final OWLDatatype XSD_STRING = new OWL2DatatypeImpl(OWL2Datatype.XSD_STRING);
     private final String literal;
     private final OWLDatatype datatype;
     private final String language;
 
     /**
-     * @param literal actual literal form
-     * @param lang language for literal, can be null
+     * @param literal  actual literal form
+     * @param lang     language for literal, can be null
      * @param datatype datatype for literal
      */
-    public OWLLiteralImplNoCompression(String literal, @Nullable String lang,
-        @Nullable OWLDatatype datatype) {
+    public OWLLiteralImpl(String literal, @Nullable String lang, @Nullable OWLDatatype datatype) {
         this.literal = literal;
         if (lang == null || lang.isEmpty()) {
             language = "";
@@ -55,12 +52,11 @@ public class OWLLiteralImplNoCompression extends OWLObjectImpl implements OWLLit
                 this.datatype = datatype;
             }
         } else {
-            if (datatype != null
-                && !(datatype.equals(RDF_LANG_STRING) || datatype.equals(RDF_PLAIN_LITERAL))) {
+            if (datatype != null && !(RDF_LANG_STRING.equals(datatype) || RDF_PLAIN_LITERAL.equals(datatype))) {
                 // ERROR: attempting to build a literal with a language tag and
                 // type different from RDF_LANG_STRING or RDF_PLAIN_LITERAL
                 throw new OWLRuntimeException("Error: cannot build a literal with type: "
-                    + datatype.getIRI() + " and language: " + lang);
+                        + datatype.getIRI() + " and language: " + lang);
             }
             language = lang;
             this.datatype = RDF_LANG_STRING;
@@ -168,7 +164,7 @@ public class OWLLiteralImplNoCompression extends OWLObjectImpl implements OWLLit
             if (isBoolean()) {
                 return parseBoolean() ? 1 : 0;
             }
-        } catch (@SuppressWarnings("unused") NumberFormatException e) {
+        } catch (NumberFormatException e) {
             // it is possible that a literal does not have a value that's valid
             // for its datatype; not very useful for a consistent ontology but
             // some W3C reasoner tests use them

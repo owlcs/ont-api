@@ -23,6 +23,9 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+/**
+ * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/AcceptHeaderBuilder.java'>uk.ac.manchester.cs.AcceptHeaderBuilder</a>
+ */
 public class AcceptHeaderBuilder {
     public static String headersFromParsers(PriorityCollection<OWLParserFactory> parsers) {
         Map<String, TreeSet<Integer>> map = new HashMap<>();
@@ -43,8 +46,7 @@ public class AcceptHeaderBuilder {
         return String.format("%s; q=%.1f", e.getKey(), 1D / e.getValue().first());
     }
 
-    private static int compare(Map.Entry<String, TreeSet<Integer>> a,
-                               Map.Entry<String, TreeSet<Integer>> b) {
+    private static int compare(Map.Entry<String, TreeSet<Integer>> a, Map.Entry<String, TreeSet<Integer>> b) {
         return a.getValue().first().compareTo(b.getValue().first());
     }
 }

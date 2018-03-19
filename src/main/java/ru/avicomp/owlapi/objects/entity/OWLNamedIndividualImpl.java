@@ -17,11 +17,11 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import ru.avicomp.owlapi.objects.OWLIndividualImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
 public class OWLNamedIndividualImpl extends OWLIndividualImpl implements OWLNamedIndividual {
 
@@ -31,7 +31,7 @@ public class OWLNamedIndividualImpl extends OWLIndividualImpl implements OWLName
      * @param iri the iri
      */
     public OWLNamedIndividualImpl(IRI iri) {
-        this.iri = checkNotNull(iri, "iri cannot be null");
+        this.iri = Objects.requireNonNull(iri, "iri cannot be null");
     }
 
     @Override

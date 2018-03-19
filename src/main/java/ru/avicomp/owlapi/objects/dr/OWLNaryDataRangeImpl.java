@@ -15,37 +15,34 @@ package ru.avicomp.owlapi.objects.dr;
 
 import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLNaryDataRange;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
 public abstract class OWLNaryDataRangeImpl extends OWLObjectImpl implements OWLNaryDataRange {
 
     private final List<OWLDataRange> operands;
 
     protected OWLNaryDataRangeImpl(Collection<OWLDataRange> operands) {
-        checkNotNull(operands, "operands cannot be null");
-        this.operands = sorted(OWLDataRange.class, operands);
+        this(operands.stream());
     }
 
     protected OWLNaryDataRangeImpl(Stream<OWLDataRange> operands) {
-        checkNotNull(operands, "operands cannot be null");
-        this.operands = sorted(OWLDataRange.class, operands);
+        this.operands = Objects.requireNonNull(operands, "operands cannot be null")
+                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     @Override
     public Stream<OWLDataRange> operands() {
-        return streamFromSorted(operands);
+        return operands.stream();
     }
 
     @Override

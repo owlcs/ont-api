@@ -23,20 +23,18 @@ import static ru.avicomp.owlapi.InternalizedEntities.OWL_THING;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLObjectPropertyDomainAxiomImpl extends
-        OWLPropertyDomainAxiomImpl<OWLObjectPropertyExpression> implements
-    OWLObjectPropertyDomainAxiom {
+public class OWLObjectPropertyDomainAxiomImpl extends OWLPropertyDomainAxiomImpl<OWLObjectPropertyExpression> implements OWLObjectPropertyDomainAxiom {
 
     /**
-     * @param property property
-     * @param domain domain
+     * @param property    property
+     * @param domain      domain
      * @param annotations annotations
      */
     public OWLObjectPropertyDomainAxiomImpl(OWLObjectPropertyExpression property,
-        OWLClassExpression domain,
-        Collection<OWLAnnotation> annotations) {
+                                            OWLClassExpression domain,
+                                            Collection<OWLAnnotation> annotations) {
         super(property, domain, annotations);
     }
 
@@ -48,10 +46,10 @@ public class OWLObjectPropertyDomainAxiomImpl extends
         return new OWLObjectPropertyDomainAxiomImpl(getProperty(), getDomain(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
-        return (T) new OWLObjectPropertyDomainAxiomImpl(getProperty(), getDomain(),
-            mergeAnnos(anns));
+        return (T) new OWLObjectPropertyDomainAxiomImpl(getProperty(), getDomain(), mergeAnnos(anns));
     }
 
     @Override

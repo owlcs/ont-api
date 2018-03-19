@@ -18,24 +18,23 @@ import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObjectHasValue;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLObjectHasValueImpl extends OWLValueRestrictionImpl<OWLIndividual> implements
-    OWLObjectHasValue {
+public class OWLObjectHasValueImpl extends OWLValueRestrictionImpl<OWLIndividual> implements OWLObjectHasValue {
 
     private final OWLObjectPropertyExpression property;
 
     /**
      * @param property property
-     * @param value value
+     * @param value    value
      */
     public OWLObjectHasValueImpl(OWLObjectPropertyExpression property, OWLIndividual value) {
         super(value);
-        this.property = checkNotNull(property, "property cannot be null");
+        this.property = Objects.requireNonNull(property, "property cannot be null");
     }
 
     @Override

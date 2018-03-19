@@ -19,18 +19,17 @@ import org.semanticweb.owlapi.model.OWLDataRange;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLDataMinCardinalityImpl extends OWLDataCardinalityRestrictionImpl implements
-    OWLDataMinCardinality {
+public class OWLDataMinCardinalityImpl extends OWLDataCardinalityRestrictionImpl implements OWLDataMinCardinality {
 
     /**
-     * @param property property
+     * @param property    property
      * @param cardinality cardinality
-     * @param filler filler
+     * @param filler      filler
      */
     public OWLDataMinCardinalityImpl(OWLDataPropertyExpression property, int cardinality,
-        OWLDataRange filler) {
+                                     OWLDataRange filler) {
         super(property, cardinality, filler);
     }
 }

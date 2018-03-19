@@ -23,20 +23,18 @@ import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLSubDataPropertyOfAxiomImpl extends
-        OWLSubPropertyAxiomImpl<OWLDataPropertyExpression> implements
-    OWLSubDataPropertyOfAxiom {
+public class OWLSubDataPropertyOfAxiomImpl extends OWLSubPropertyAxiomImpl<OWLDataPropertyExpression> implements OWLSubDataPropertyOfAxiom {
 
     /**
-     * @param subProperty subproperty
+     * @param subProperty   subproperty
      * @param superProperty superproperty
-     * @param annotations annotations
+     * @param annotations   annotations
      */
     public OWLSubDataPropertyOfAxiomImpl(OWLDataPropertyExpression subProperty,
-        OWLDataPropertyExpression superProperty,
-        Collection<OWLAnnotation> annotations) {
+                                         OWLDataPropertyExpression superProperty,
+                                         Collection<OWLAnnotation> annotations) {
         super(subProperty, superProperty, annotations);
     }
 
@@ -45,13 +43,12 @@ public class OWLSubDataPropertyOfAxiomImpl extends
         if (!isAnnotated()) {
             return this;
         }
-        return new OWLSubDataPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(),
-            NO_ANNOTATIONS);
+        return new OWLSubDataPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
-        return (T) new OWLSubDataPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(),
-            mergeAnnos(anns));
+        return (T) new OWLSubDataPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(), mergeAnnos(anns));
     }
 }

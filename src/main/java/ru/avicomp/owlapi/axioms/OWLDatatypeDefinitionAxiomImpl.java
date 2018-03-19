@@ -16,30 +16,27 @@ package ru.avicomp.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
-public class OWLDatatypeDefinitionAxiomImpl extends OWLAxiomImpl implements
-    OWLDatatypeDefinitionAxiom {
+public class OWLDatatypeDefinitionAxiomImpl extends OWLAxiomImpl implements OWLDatatypeDefinitionAxiom {
 
     private final OWLDatatype datatype;
     private final OWLDataRange dataRange;
 
     /**
-     * @param datatype datatype
-     * @param dataRange datarange
+     * @param datatype    datatype
+     * @param dataRange   datarange
      * @param annotations annotations on the axiom
      */
-    public OWLDatatypeDefinitionAxiomImpl(OWLDatatype datatype, OWLDataRange dataRange,
-        Collection<OWLAnnotation> annotations) {
+    public OWLDatatypeDefinitionAxiomImpl(OWLDatatype datatype, OWLDataRange dataRange, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.datatype = checkNotNull(datatype, "datatype cannot be null");
-        this.dataRange = checkNotNull(dataRange, "dataRange cannot be null");
+        this.datatype = Objects.requireNonNull(datatype, "datatype cannot be null");
+        this.dataRange = Objects.requireNonNull(dataRange, "dataRange cannot be null");
     }
 
     @Override
@@ -50,10 +47,10 @@ public class OWLDatatypeDefinitionAxiomImpl extends OWLAxiomImpl implements
         return new OWLDatatypeDefinitionAxiomImpl(getDatatype(), getDataRange(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
-        return (T) new OWLDatatypeDefinitionAxiomImpl(getDatatype(), getDataRange(),
-            mergeAnnos(anns));
+        return (T) new OWLDatatypeDefinitionAxiomImpl(getDatatype(), getDataRange(), mergeAnnos(anns));
     }
 
     @Override

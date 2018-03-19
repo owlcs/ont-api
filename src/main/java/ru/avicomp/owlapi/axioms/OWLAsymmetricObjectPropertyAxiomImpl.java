@@ -23,18 +23,15 @@ import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLAsymmetricObjectPropertyAxiomImpl extends
-        OWLObjectPropertyCharacteristicAxiomImpl implements
-    OWLAsymmetricObjectPropertyAxiom {
+public class OWLAsymmetricObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLAsymmetricObjectPropertyAxiom {
 
     /**
-     * @param property property
+     * @param property    property
      * @param annotations annotations
      */
-    public OWLAsymmetricObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
-        Collection<OWLAnnotation> annotations) {
+    public OWLAsymmetricObjectPropertyAxiomImpl(OWLObjectPropertyExpression property, Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 
@@ -46,6 +43,7 @@ public class OWLAsymmetricObjectPropertyAxiomImpl extends
         return new OWLAsymmetricObjectPropertyAxiomImpl(getProperty(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLAsymmetricObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));

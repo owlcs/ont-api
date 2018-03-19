@@ -16,19 +16,17 @@ package ru.avicomp.owlapi.axioms;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.util.NNF;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public abstract class OWLAxiomImpl extends OWLObjectImpl implements OWLAxiom {
 
@@ -38,13 +36,14 @@ public abstract class OWLAxiomImpl extends OWLObjectImpl implements OWLAxiom {
      * @param annotations annotations on the axiom
      */
     public OWLAxiomImpl(Collection<OWLAnnotation> annotations) {
-        checkNotNull(annotations, "annotations cannot be null");
-        this.annotations = sorted(OWLAnnotation.class, annotations);
+        this.annotations = Objects.requireNonNull(annotations, "annotations cannot be null")
+                .stream()
+                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     @Override
     public Stream<OWLAnnotation> annotations() {
-        return streamFromSorted(annotations);
+        return annotations.stream();
     }
 
     @Override
@@ -66,7 +65,7 @@ public abstract class OWLAxiomImpl extends OWLObjectImpl implements OWLAxiom {
      * @return The annotations
      */
     protected Collection<OWLAnnotation> mergeAnnos(Stream<OWLAnnotation> annos) {
-        return sorted(OWLAnnotation.class, Stream.concat(annos, annotations()));
+        return Stream.concat(annos, annotations()).filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     @Override

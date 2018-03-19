@@ -18,12 +18,11 @@ import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLImportsDeclarationImpl implements OWLImportsDeclaration, Serializable {
 
@@ -33,7 +32,7 @@ public class OWLImportsDeclarationImpl implements OWLImportsDeclaration, Seriali
      * @param iri iri to import
      */
     public OWLImportsDeclarationImpl(IRI iri) {
-        this.iri = checkNotNull(iri, "iri cannot be null");
+        this.iri = Objects.requireNonNull(iri, "iri cannot be null");
     }
 
     @Override
@@ -60,7 +59,7 @@ public class OWLImportsDeclarationImpl implements OWLImportsDeclaration, Seriali
 
     @Override
     public int compareTo(@Nullable OWLImportsDeclaration o) {
-        return iri.compareTo(checkNotNull(o).getIRI());
+        return iri.compareTo(Objects.requireNonNull(o).getIRI());
     }
 
     @Override

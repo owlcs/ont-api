@@ -16,17 +16,15 @@ package ru.avicomp.owlapi.objects.ce;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObjectOneOf;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLObjectOneOfImpl extends OWLAnonymousClassExpressionImpl implements OWLObjectOneOf {
 
@@ -36,8 +34,7 @@ public class OWLObjectOneOfImpl extends OWLAnonymousClassExpressionImpl implemen
      * @param values values for oneof
      */
     public OWLObjectOneOfImpl(Stream<OWLIndividual> values) {
-        checkNotNull(values, "values cannot be null");
-        this.values = sorted(OWLIndividual.class, values);
+        this.values = Objects.requireNonNull(values, "values cannot be null").filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     /**
@@ -56,7 +53,7 @@ public class OWLObjectOneOfImpl extends OWLAnonymousClassExpressionImpl implemen
 
     @Override
     public Stream<OWLIndividual> individuals() {
-        return streamFromSorted(values);
+        return values.stream();
     }
 
     @Override

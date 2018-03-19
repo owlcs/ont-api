@@ -19,14 +19,13 @@ import org.semanticweb.owlapi.model.OWLDataRange;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLDataAllValuesFromImpl extends OWLQuantifiedDataRestrictionImpl implements
-    OWLDataAllValuesFrom {
+public class OWLDataAllValuesFromImpl extends OWLQuantifiedDataRestrictionImpl implements OWLDataAllValuesFrom {
 
     /**
      * @param property property
-     * @param filler filler
+     * @param filler   filler
      */
     public OWLDataAllValuesFromImpl(OWLDataPropertyExpression property, OWLDataRange filler) {
         super(property, filler);

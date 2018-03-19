@@ -20,18 +20,16 @@ import org.semanticweb.owlapi.model.SWRLIArgument;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class SWRLDataPropertyAtomImpl extends SWRLBinaryAtomImpl<SWRLIArgument, SWRLDArgument>
-    implements SWRLDataPropertyAtom {
+public class SWRLDataPropertyAtomImpl extends SWRLBinaryAtomImpl<SWRLIArgument, SWRLDArgument> implements SWRLDataPropertyAtom {
 
     /**
      * @param predicate predicate
-     * @param arg0 subject
-     * @param arg1 object
+     * @param arg0      subject
+     * @param arg1      object
      */
-    public SWRLDataPropertyAtomImpl(OWLDataPropertyExpression predicate, SWRLIArgument arg0,
-        SWRLDArgument arg1) {
+    public SWRLDataPropertyAtomImpl(OWLDataPropertyExpression predicate, SWRLIArgument arg0, SWRLDArgument arg1) {
         super(predicate, arg0, arg1);
     }
 

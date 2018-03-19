@@ -16,24 +16,21 @@ package ru.avicomp.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl implements
-    OWLEquivalentClassesAxiom {
+public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl implements OWLEquivalentClassesAxiom {
 
     /**
      * @param classExpressions equivalent classes
-     * @param annotations annotations
+     * @param annotations      annotations
      */
-    public OWLEquivalentClassesAxiomImpl(Collection<? extends OWLClassExpression> classExpressions,
-        Collection<OWLAnnotation> annotations) {
+    public OWLEquivalentClassesAxiomImpl(Collection<? extends OWLClassExpression> classExpressions, Collection<OWLAnnotation> annotations) {
         super(classExpressions, annotations);
     }
 
@@ -49,6 +46,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
         return new OWLEquivalentClassesAxiomImpl(classExpressions, NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLEquivalentClassesAxiomImpl(classExpressions, mergeAnnos(anns));
@@ -59,8 +57,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
         if (classExpressions.size() == 2) {
             return CollectionFactory.createSet(this);
         }
-        return walkPairwise((a, b) -> new OWLEquivalentClassesAxiomImpl(
-            sorted(OWLClassExpression.class, a, b), NO_ANNOTATIONS));
+        return walkPairwise((a, b) -> new OWLEquivalentClassesAxiomImpl(Arrays.asList(a, b), NO_ANNOTATIONS));
     }
 
     @Override
@@ -68,8 +65,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
         if (classExpressions.size() == 2) {
             return CollectionFactory.createSet(this);
         }
-        return walkPairwise((a, b) -> new OWLEquivalentClassesAxiomImpl(
-            sorted(OWLClassExpression.class, a, b), annotations));
+        return walkPairwise((a, b) -> new OWLEquivalentClassesAxiomImpl(Arrays.asList(a, b), annotations));
     }
 
     @Override
@@ -90,7 +86,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
     @Override
     public Stream<OWLClass> namedClasses() {
         return classExpressions().filter(OWLEquivalentClassesAxiomImpl::named)
-            .map(OWLClassExpression::asOWLClass);
+                .map(OWLClassExpression::asOWLClass);
     }
 
     @Override

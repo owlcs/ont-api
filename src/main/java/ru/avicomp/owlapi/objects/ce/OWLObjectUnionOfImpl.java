@@ -17,17 +17,16 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLObjectUnionOfImpl extends OWLNaryBooleanClassExpressionImpl
-    implements OWLObjectUnionOf {
+public class OWLObjectUnionOfImpl extends OWLNaryBooleanClassExpressionImpl implements OWLObjectUnionOf {
 
     /**
      * @param operands operands
@@ -45,7 +44,7 @@ public class OWLObjectUnionOfImpl extends OWLNaryBooleanClassExpressionImpl
 
     @Override
     public Set<OWLClassExpression> asDisjunctSet() {
-        return asSet(disjunctSet());
+        return disjunctSet().collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override

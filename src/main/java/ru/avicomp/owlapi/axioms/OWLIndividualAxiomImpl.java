@@ -20,10 +20,9 @@ import java.util.Collection;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLIndividualAxiomImpl extends OWLLogicalAxiomImpl implements
-    OWLIndividualAxiom {
+public abstract class OWLIndividualAxiomImpl extends OWLLogicalAxiomImpl implements OWLIndividualAxiom {
 
     /**
      * @param annotations annotations on the axiom

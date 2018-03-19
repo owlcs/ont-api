@@ -17,25 +17,20 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.SWRLDifferentIndividualsAtom;
 import org.semanticweb.owlapi.model.SWRLIArgument;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class SWRLDifferentIndividualsAtomImpl extends
-    SWRLBinaryAtomImpl<SWRLIArgument, SWRLIArgument>
-    implements SWRLDifferentIndividualsAtom {
+public class SWRLDifferentIndividualsAtomImpl extends SWRLBinaryAtomImpl<SWRLIArgument, SWRLIArgument> implements SWRLDifferentIndividualsAtom {
 
     /**
      * @param property property
-     * @param arg0 first individual
-     * @param arg1 second individual
+     * @param arg0     first individual
+     * @param arg1     second individual
      */
-    public SWRLDifferentIndividualsAtomImpl(OWLObjectProperty property, SWRLIArgument arg0,
-        SWRLIArgument arg1) {
-        super(checkNotNull(property, "property cannot be null"),
-            checkNotNull(arg0, "arg0 cannot be null"),
-            checkNotNull(arg1, "arg1 cannot be null"));
+    public SWRLDifferentIndividualsAtomImpl(OWLObjectProperty property, SWRLIArgument arg0, SWRLIArgument arg1) {
+        super(Objects.requireNonNull(property, "property cannot be null"), Objects.requireNonNull(arg0, "arg0 cannot be null"), Objects.requireNonNull(arg1, "arg1 cannot be null"));
     }
 }

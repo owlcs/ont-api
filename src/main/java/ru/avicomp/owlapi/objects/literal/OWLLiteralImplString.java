@@ -22,7 +22,7 @@ import ru.avicomp.owlapi.OWLObjectImpl;
  * An OWLLiteral with xsd:string datatype and no language tag.
  *
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group, Date:
- *         26-Oct-2006
+ * 26-Oct-2006
  */
 public class OWLLiteralImplString extends OWLObjectImpl implements OWLLiteral {
 
@@ -52,6 +52,5 @@ public class OWLLiteralImplString extends OWLObjectImpl implements OWLLiteral {
         hash = OWLObject.hashIteration(hash, getLiteral().hashCode() * 65536);
         return OWLObject.hashIteration(hash, getLang().hashCode());
     }
-
 
 }

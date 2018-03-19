@@ -18,63 +18,66 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.semanticweb.owlapi.io.ToStringRenderer;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.AbstractCollectorEx;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
+import org.semanticweb.owlapi.util.OWLEntityCollector;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.*;
+import static java.util.Spliterator.*;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLObjectImpl
-    implements OWLObject, Serializable, HasIncrementalSignatureGenerationSupport {
+@SuppressWarnings("WeakerAccess")
+public abstract class OWLObjectImpl implements OWLObject, Serializable {
 
     /**
      * a convenience reference for an empty annotation set, saves on typing.
      */
     protected static final Set<OWLAnnotation> NO_ANNOTATIONS = Collections.emptySet();
 
-    // @formatter:off
-    protected static LoadingCache<OWLObjectImpl, Set<OWLEntity>>              signatures =                      build(key -> key.addSignatureEntitiesToSet(new TreeSet<>()));
-    protected static LoadingCache<OWLObjectImpl, Set<OWLAnonymousIndividual>> anonCaches =                      build(key -> key.addAnonymousIndividualsToSet(new TreeSet<>()));
-    protected static LoadingCache<OWLObjectImpl, List<OWLClass>>              classesSignatures =               build(key -> cacheSig(key, OWLEntity::isOWLClass,               OWLEntity::asOWLClass));
-    protected static LoadingCache<OWLObjectImpl, List<OWLDataProperty>>       dataPropertySignatures =          build(key -> cacheSig(key, OWLEntity::isOWLDataProperty,        OWLEntity::asOWLDataProperty));
-    protected static LoadingCache<OWLObjectImpl, List<OWLObjectProperty>>     objectPropertySignatures =        build(key -> cacheSig(key, OWLEntity::isOWLObjectProperty,      OWLEntity::asOWLObjectProperty));
-    protected static LoadingCache<OWLObjectImpl, List<OWLDatatype>>           datatypeSignatures =              build(key -> cacheSig(key, OWLEntity::isOWLDatatype,            OWLEntity::asOWLDatatype));
-    protected static LoadingCache<OWLObjectImpl, List<OWLNamedIndividual>>    individualSignatures =            build(key -> cacheSig(key, OWLEntity::isOWLNamedIndividual,     OWLEntity::asOWLNamedIndividual));
-    protected static LoadingCache<OWLObjectImpl, List<OWLAnnotationProperty>> annotationPropertiesSignatures =  build(key -> cacheSig(key, OWLEntity::isOWLAnnotationProperty,  OWLEntity::asOWLAnnotationProperty));
-    // @formatter:on
+    protected static LoadingCache<OWLObjectImpl, Set<OWLEntity>> signatures = build(key -> key.addSignatureEntitiesToSet(new TreeSet<>()));
+    protected static LoadingCache<OWLObjectImpl, Set<OWLAnonymousIndividual>> anonCaches = build(key -> key.addAnonymousIndividualsToSet(new TreeSet<>()));
+    protected static LoadingCache<OWLObjectImpl, List<OWLClass>> classesSignatures = build(key -> cacheSig(key, OWLEntity::isOWLClass, OWLEntity::asOWLClass));
+    protected static LoadingCache<OWLObjectImpl, List<OWLDataProperty>> dataPropertySignatures = build(key -> cacheSig(key, OWLEntity::isOWLDataProperty, OWLEntity::asOWLDataProperty));
+    protected static LoadingCache<OWLObjectImpl, List<OWLObjectProperty>> objectPropertySignatures = build(key -> cacheSig(key, OWLEntity::isOWLObjectProperty, OWLEntity::asOWLObjectProperty));
+    protected static LoadingCache<OWLObjectImpl, List<OWLDatatype>> datatypeSignatures = build(key -> cacheSig(key, OWLEntity::isOWLDatatype, OWLEntity::asOWLDatatype));
+    protected static LoadingCache<OWLObjectImpl, List<OWLNamedIndividual>> individualSignatures = build(key -> cacheSig(key, OWLEntity::isOWLNamedIndividual, OWLEntity::asOWLNamedIndividual));
+    protected static LoadingCache<OWLObjectImpl, List<OWLAnnotationProperty>> annotationPropertiesSignatures = build(key -> cacheSig(key, OWLEntity::isOWLAnnotationProperty, OWLEntity::asOWLAnnotationProperty));
+
+
     static <Q, T> LoadingCache<Q, T> build(CacheLoader<Q, T> c) {
         return Caffeine.newBuilder().weakKeys().softValues().build(c);
     }
 
     static <T> List<T> cacheSig(OWLObject o, Predicate<OWLEntity> p, Function<OWLEntity, T> f) {
-        return asList(o.signature().filter(p).map(f));
+        return o.signature().filter(p).map(f).collect(Collectors.toList());
     }
 
     protected int hashCode = 0;
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
         return anonCaches.get(this).stream();
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public Stream<OWLEntity> signature() {
         return signatures.get(this).stream();
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public boolean containsEntityInSignature(OWLEntity owlEntity) {
         return signatures.get(this).contains(owlEntity);
@@ -127,24 +130,19 @@ public abstract class OWLObjectImpl
             return false;
         }
         OWLObject other = (OWLObject) obj;
-        if (typeIndex() != other.typeIndex() || hashCode() != other.hashCode()) {
-            return false;
-        }
-        return equalStreams(components(), other.components());
+        return typeIndex() == other.typeIndex()
+                && hashCode() == other.hashCode()
+                && equalIterators(components().iterator(), other.components().iterator());
     }
 
     @Override
     public int hashCode() {
-        if (hashCode == 0) {
-            hashCode = initHashCode();
-        }
-        return hashCode;
+        return hashCode == 0 ? hashCode = initHashCode() : hashCode;
     }
 
     @Override
     public int compareTo(@Nullable OWLObject o) {
-        checkNotNull(o);
-        assert o != null;
+        Objects.requireNonNull(o);
         int diff = Integer.compare(typeIndex(), o.typeIndex());
         if (diff != 0) {
             return diff;
@@ -152,28 +150,130 @@ public abstract class OWLObjectImpl
         return compareIterators(components().iterator(), o.components().iterator());
     }
 
-    protected int compareAnnotations(List<OWLAnnotation> l1, List<OWLAnnotation> l2) {
-        int i = 0;
-        for (; i < l1.size() && i < l2.size(); i++) {
-            int diff = l1.get(i).compareTo(l2.get(i));
+    @Override
+    public String toString() {
+        return ToStringRenderer.getRendering(this);
+    }
+
+
+    /**
+     * Moved from uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport.
+     *
+     * @param entities entity set where entities will be added
+     * @return the modified input entities
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/HasIncrementalSignatureGenerationSupport.java'>uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport</a>
+     */
+    protected Set<OWLEntity> addSignatureEntitiesToSet(Set<OWLEntity> entities) {
+        accept(new OWLEntityCollector(entities));
+        return entities;
+    }
+
+    /**
+     * Moved from uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport.
+     *
+     * @param anons anonymous individuals set where individuals will be added
+     * @return the modified input individuals
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/HasIncrementalSignatureGenerationSupport.java'>uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport</a>
+     */
+    protected Set<OWLAnonymousIndividual> addAnonymousIndividualsToSet(Set<OWLAnonymousIndividual> anons) {
+        accept(new AnonymousIndividualCollector(anons));
+        return anons;
+    }
+
+    /**
+     * A method to be used on collections that are sorted, immutable and do not contain nulls.
+     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
+     *
+     * @param c   sorted collection of distinct, nonnull elements; the collection must be immutable
+     * @param <T> element type
+     * @return stream that won't cause sorted() calls to sort the collection again
+     * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#streamFromSorted(Collection)
+     */
+    protected static <T> Stream<T> streamFromSorted(Collection<T> c) {
+        return StreamSupport.stream(Spliterators.spliterator(c, DISTINCT | IMMUTABLE | NONNULL | SORTED | SIZED), false);
+    }
+
+    /**
+     * Check iterator contents for equality (sensitive to order).
+     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
+     *
+     * @param set1 iterator to compare
+     * @param set2 iterator to compare
+     * @return true if the iterators have the same content, false otherwise.
+     * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#equalIterators(Iterator, Iterator)
+     */
+    protected static boolean equalIterators(Iterator set1, Iterator set2) {
+        while (set1.hasNext() && set2.hasNext()) {
+            Object o1 = set1.next();
+            Object o2 = set2.next();
+            if (o1 instanceof Stream && o2 instanceof Stream) {
+                if (!equalIterators(((Stream) o1).iterator(), ((Stream) o2).iterator())) {
+                    return false;
+                }
+            } else {
+                if (!o1.equals(o2)) {
+                    return false;
+                }
+            }
+        }
+        return set1.hasNext() == set2.hasNext();
+    }
+
+    /**
+     * Compare iterators element by element (sensitive to order).
+     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
+     *
+     * @param set1 iterator to compare
+     * @param set2 iterator to compare
+     * @return negative value if set1 comes before set2, positive value if set2 comes before set1, 0 if the two sets are equal or incomparable.
+     * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#compareIterators(Iterator, Iterator)
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected static int compareIterators(Iterator<?> set1, Iterator<?> set2) {
+        while (set1.hasNext() && set2.hasNext()) {
+            Object o1 = set1.next();
+            Object o2 = set2.next();
+            int diff;
+            if (o1 instanceof Stream && o2 instanceof Stream) {
+                diff = compareIterators(((Stream<?>) o1).iterator(), ((Stream<?>) o2).iterator());
+            } else if (o1 instanceof Collection && o2 instanceof Collection) {
+                diff = compareIterators(((Collection<?>) o1).iterator(),
+                        ((Collection<?>) o2).iterator());
+            } else if (o1 instanceof Comparable && o2 instanceof Comparable) {
+                diff = ((Comparable) o1).compareTo(o2);
+            } else {
+                throw new IllegalArgumentException(String.format("Incomparable types: '%s' with class %s, '%s' with class %s found while comparing iterators",
+                        o1, o1.getClass(), o2, o2.getClass()));
+            }
             if (diff != 0) {
                 return diff;
             }
         }
-        if (i < l2.size()) {
-            // l1 is shorter and a sublist of l2
-            return -1;
-        }
-        if (i < l1.size()) {
-            // l2 is shorter and a sublist of l1
-            return 1;
-        }
-        // lists are identical
-        return 0;
+        return Boolean.compare(set1.hasNext(), set2.hasNext());
     }
 
-    @Override
-    public String toString() {
-        return ToStringRenderer.getRendering(this);
+    /**
+     * A utility class that visits axioms, class expressions etc. and accumulates
+     * the anonymous individuals referred.
+     *
+     * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/AnonymousIndividualCollector.java'>uk.ac.manchester.cs.owl.owlapi.AnonymousIndividualCollector</a>
+     * @since 1.2.0
+     */
+    protected static class AnonymousIndividualCollector extends AbstractCollectorEx<OWLAnonymousIndividual> {
+
+        /**
+         * @param anonsToReturn the set that will contain the anon individuals
+         */
+        public AnonymousIndividualCollector(Collection<OWLAnonymousIndividual> anonsToReturn) {
+            super(anonsToReturn);
+        }
+
+        @SuppressWarnings("NullableProblems")
+        @Override
+        public Collection<OWLAnonymousIndividual> visit(OWLAnonymousIndividual individual) {
+            objects.add(individual);
+            return objects;
+        }
     }
 }

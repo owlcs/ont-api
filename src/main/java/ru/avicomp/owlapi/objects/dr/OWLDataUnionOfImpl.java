@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
 public class OWLDataUnionOfImpl extends OWLNaryDataRangeImpl implements OWLDataUnionOf {
 

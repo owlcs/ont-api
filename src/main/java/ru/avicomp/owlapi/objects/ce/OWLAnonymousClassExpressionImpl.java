@@ -24,10 +24,9 @@ import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLAnonymousClassExpressionImpl extends OWLClassExpressionImpl
-    implements OWLAnonymousClassExpression {
+public abstract class OWLAnonymousClassExpressionImpl extends OWLClassExpressionImpl implements OWLAnonymousClassExpression {
 
     @Override
     public boolean isOWLThing() {

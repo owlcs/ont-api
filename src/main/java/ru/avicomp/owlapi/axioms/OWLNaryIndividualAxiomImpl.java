@@ -16,21 +16,18 @@ package ru.avicomp.owlapi.axioms;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNaryIndividualAxiom;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLNaryIndividualAxiomImpl extends OWLIndividualAxiomImpl
-    implements OWLNaryIndividualAxiom {
+public abstract class OWLNaryIndividualAxiomImpl extends OWLIndividualAxiomImpl implements OWLNaryIndividualAxiom {
 
     protected final List<OWLIndividual> individuals;
 
@@ -38,16 +35,17 @@ public abstract class OWLNaryIndividualAxiomImpl extends OWLIndividualAxiomImpl
      * @param individuals individuals
      * @param annotations annotations on the axiom
      */
-    public OWLNaryIndividualAxiomImpl(Collection<? extends OWLIndividual> individuals,
-        Collection<OWLAnnotation> annotations) {
+    public OWLNaryIndividualAxiomImpl(Collection<? extends OWLIndividual> individuals, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        checkNotNull(individuals, "individuals cannot be null");
-        this.individuals = sorted(OWLIndividual.class, individuals);
+        this.individuals = Objects.requireNonNull(individuals, "individuals cannot be null")
+                .stream()
+                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
+
     }
 
     @Override
     public Stream<OWLIndividual> individuals() {
-        return streamFromSorted(individuals);
+        return individuals.stream();
     }
 
     @Override

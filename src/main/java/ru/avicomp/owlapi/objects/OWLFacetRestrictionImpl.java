@@ -18,11 +18,11 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLFacetRestrictionImpl extends OWLObjectImpl implements OWLFacetRestriction {
 
@@ -30,12 +30,12 @@ public class OWLFacetRestrictionImpl extends OWLObjectImpl implements OWLFacetRe
     private final OWLLiteral facetValue;
 
     /**
-     * @param facet facet
+     * @param facet      facet
      * @param facetValue value
      */
     public OWLFacetRestrictionImpl(OWLFacet facet, OWLLiteral facetValue) {
-        this.facet = checkNotNull(facet, "facet cannot be null");
-        this.facetValue = checkNotNull(facetValue, "facetValue cannot be null");
+        this.facet = Objects.requireNonNull(facet, "facet cannot be null");
+        this.facetValue = Objects.requireNonNull(facetValue, "facetValue cannot be null");
     }
 
     @Override

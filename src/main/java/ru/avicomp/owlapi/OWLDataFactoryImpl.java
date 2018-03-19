@@ -21,18 +21,13 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import ru.avicomp.owlapi.axioms.*;
-import ru.avicomp.owlapi.objects.OWLObjectInverseOfImpl;
+import ru.avicomp.owlapi.objects.*;
 import ru.avicomp.owlapi.objects.ce.*;
-import ru.avicomp.owlapi.objects.dr.OWLDataIntersectionOfImpl;
-import ru.avicomp.owlapi.objects.dr.OWLDataOneOfImpl;
-import ru.avicomp.owlapi.objects.dr.OWLDataUnionOfImpl;
-import ru.avicomp.owlapi.objects.dr.OWLDatatypeRestrictionImpl;
+import ru.avicomp.owlapi.objects.dr.*;
 import ru.avicomp.owlapi.objects.entity.*;
-import ru.avicomp.owlapi.objects.literal.OWLLiteralImplString;
-import ru.avicomp.owlapi.objects.swrl.SWRLVariableImpl;
+import ru.avicomp.owlapi.objects.literal.*;
+import ru.avicomp.owlapi.objects.swrl.*;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -227,12 +222,12 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     @Override
     public OWLAnonymousIndividual getOWLAnonymousIndividual(String nodeId) {
         Objects.requireNonNull(nodeId, ID_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.OWLAnonymousIndividualImpl(NodeID.getNodeID(nodeId));
+        return new OWLAnonymousIndividualImpl(NodeID.getNodeID(nodeId));
     }
 
     @Override
     public OWLAnonymousIndividual getOWLAnonymousIndividual() {
-        return new ru.avicomp.owlapi.objects.OWLAnonymousIndividualImpl(NodeID.getNodeID(null));
+        return new OWLAnonymousIndividualImpl(NodeID.getNodeID(null));
     }
 
     @Override
@@ -254,7 +249,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     @Override
     public OWLDataComplementOf getOWLDataComplementOf(OWLDataRange dataRange) {
         Objects.requireNonNull(dataRange, DATA_RANGE_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.dr.OWLDataComplementOfImpl(dataRange);
+        return new OWLDataComplementOfImpl(dataRange);
     }
 
     @Override
@@ -276,7 +271,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLDatatypeRestriction getOWLDatatypeRestriction(OWLDatatype dataType, Collection<OWLFacetRestriction> facetRestrictions) {
         Objects.requireNonNull(dataType, DATATYPE_CANNOT_BE_NULL);
         Objects.requireNonNull(facetRestrictions, "facets");
-        return new ru.avicomp.owlapi.objects.dr.OWLDatatypeRestrictionImpl(dataType, facetRestrictions);
+        return new OWLDatatypeRestrictionImpl(dataType, facetRestrictions);
     }
 
     @Override
@@ -291,12 +286,12 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet, OWLLiteral facetValue) {
         Objects.requireNonNull(facet, FACET_CANNOT_BE_NULL);
         Objects.requireNonNull(facetValue, FACET_VALUE_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.OWLFacetRestrictionImpl(facet, facetValue);
+        return new OWLFacetRestrictionImpl(facet, facetValue);
     }
 
     @Override
     public OWLObjectIntersectionOf getOWLObjectIntersectionOf(Stream<? extends OWLClassExpression> operands) {
-        return new ru.avicomp.owlapi.objects.ce.OWLObjectIntersectionOfImpl(operands.map(x -> x));
+        return new OWLObjectIntersectionOfImpl(operands.map(x -> x));
     }
 
     @Override
@@ -321,7 +316,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLDataExactCardinality getOWLDataExactCardinality(int cardinality, OWLDataPropertyExpression property) {
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.ce.OWLDataExactCardinalityImpl(property, cardinality, getTopDatatype());
+        return new OWLDataExactCardinalityImpl(property, cardinality, getTopDatatype());
     }
 
     @Override
@@ -341,7 +336,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLDataMaxCardinality getOWLDataMaxCardinality(int cardinality, OWLDataPropertyExpression property) {
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.ce.OWLDataMaxCardinalityImpl(property, cardinality, getTopDatatype());
+        return new OWLDataMaxCardinalityImpl(property, cardinality, getTopDatatype());
     }
 
     @Override
@@ -349,7 +344,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         Objects.requireNonNull(dataRange, DATA_RANGE_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.ce.OWLDataMaxCardinalityImpl(property, cardinality, dataRange);
+        return new OWLDataMaxCardinalityImpl(property, cardinality, dataRange);
     }
 
     @Override
@@ -361,7 +356,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLDataMinCardinality getOWLDataMinCardinality(int cardinality, OWLDataPropertyExpression property) {
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.ce.OWLDataMinCardinalityImpl(property, cardinality, getTopDatatype());
+        return new OWLDataMinCardinalityImpl(property, cardinality, getTopDatatype());
     }
 
     @Override
@@ -418,7 +413,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLObjectExactCardinality getOWLObjectExactCardinality(int cardinality, OWLObjectPropertyExpression property) {
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.ce.OWLObjectExactCardinalityImpl(property, cardinality, OWL_THING);
+        return new OWLObjectExactCardinalityImpl(property, cardinality, OWL_THING);
     }
 
     @Override
@@ -426,14 +421,14 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
         Objects.requireNonNull(classExpression, CLASS_EXPRESSION_CANNOT_BE_NULL);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
-        return new ru.avicomp.owlapi.objects.ce.OWLObjectExactCardinalityImpl(property, cardinality, classExpression);
+        return new OWLObjectExactCardinalityImpl(property, cardinality, classExpression);
     }
 
     @Override
     public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality, OWLObjectPropertyExpression property) {
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.ce.OWLObjectMinCardinalityImpl(property, cardinality, OWL_THING);
+        return new OWLObjectMinCardinalityImpl(property, cardinality, OWL_THING);
     }
 
     @Override
@@ -441,14 +436,14 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
         Objects.requireNonNull(classExpression, CLASS_EXPRESSION_CANNOT_BE_NULL);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
-        return new ru.avicomp.owlapi.objects.ce.OWLObjectMinCardinalityImpl(property, cardinality, classExpression);
+        return new OWLObjectMinCardinalityImpl(property, cardinality, classExpression);
     }
 
     @Override
     public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality, OWLObjectPropertyExpression property) {
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.ce.OWLObjectMaxCardinalityImpl(property, cardinality, OWL_THING);
+        return new OWLObjectMaxCardinalityImpl(property, cardinality, OWL_THING);
     }
 
     @Override
@@ -456,7 +451,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
         checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
         Objects.requireNonNull(classExpression, CLASS_EXPRESSION_CANNOT_BE_NULL);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.ce.OWLObjectMaxCardinalityImpl(property, cardinality, classExpression);
+        return new OWLObjectMaxCardinalityImpl(property, cardinality, classExpression);
     }
 
     @Override
@@ -476,12 +471,12 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLObjectHasValue getOWLObjectHasValue(OWLObjectPropertyExpression property, OWLIndividual individual) {
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         Objects.requireNonNull(individual, INDIVIDUAL_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.ce.OWLObjectHasValueImpl(property, individual);
+        return new OWLObjectHasValueImpl(property, individual);
     }
 
     @Override
     public OWLObjectUnionOf getOWLObjectUnionOf(Stream<? extends OWLClassExpression> operands) {
-        return new ru.avicomp.owlapi.objects.ce.OWLObjectUnionOfImpl(operands.map(x -> x));
+        return new OWLObjectUnionOfImpl(operands.map(x -> x));
     }
 
     @Override
@@ -801,7 +796,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
 
     @Override
     public OWLAnnotation getOWLAnnotation(OWLAnnotationProperty property, OWLAnnotationValue value) {
-        return new ru.avicomp.owlapi.objects.OWLAnnotationImplNotAnnotated(property, value);
+        return new OWLAnnotationImplNotAnnotated(property, value);
     }
 
     @Override
@@ -809,7 +804,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         Objects.requireNonNull(value, VALUE_CANNOT_BE_NULL);
         Objects.requireNonNull(annotations, ANNOTATIONS_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.OWLAnnotationImpl(property, value, annotations);
+        return new OWLAnnotationImpl(property, value, annotations);
     }
 
     @Override
@@ -876,14 +871,14 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public SWRLClassAtom getSWRLClassAtom(OWLClassExpression predicate, SWRLIArgument arg) {
         Objects.requireNonNull(predicate, PREDICATE_CANNOT_BE_NULL);
         Objects.requireNonNull(arg, ARG_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.swrl.SWRLClassAtomImpl(predicate, arg);
+        return new SWRLClassAtomImpl(predicate, arg);
     }
 
     @Override
     public SWRLDataRangeAtom getSWRLDataRangeAtom(OWLDataRange predicate, SWRLDArgument arg) {
         Objects.requireNonNull(predicate, PREDICATE_CANNOT_BE_NULL);
         Objects.requireNonNull(arg, ARG_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.swrl.SWRLDataRangeAtomImpl(predicate, arg);
+        return new SWRLDataRangeAtomImpl(predicate, arg);
     }
 
     @Override
@@ -897,7 +892,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         Objects.requireNonNull(arg0, ARG0_CANNOT_BE_NULL);
         Objects.requireNonNull(arg1, ARG1_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.swrl.SWRLObjectPropertyAtomImpl(property, arg0, arg1);
+        return new SWRLObjectPropertyAtomImpl(property, arg0, arg1);
     }
 
     @Override
@@ -905,52 +900,45 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         Objects.requireNonNull(arg0, ARG0_CANNOT_BE_NULL);
         Objects.requireNonNull(arg1, ARG1_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.swrl.SWRLDataPropertyAtomImpl(property, arg0, arg1);
+        return new SWRLDataPropertyAtomImpl(property, arg0, arg1);
     }
 
     @Override
     public SWRLBuiltInAtom getSWRLBuiltInAtom(IRI builtInIRI, List<SWRLDArgument> args) {
         Objects.requireNonNull(builtInIRI, BUILT_IN_IRI_CANNOT_BE_NULL);
         Objects.requireNonNull(args, ARGS_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.swrl.SWRLBuiltInAtomImpl(builtInIRI, args);
+        return new SWRLBuiltInAtomImpl(builtInIRI, args);
     }
 
     @Override
     public SWRLVariable getSWRLVariable(IRI var) {
-        Objects.requireNonNull(var, VAR_CANNOT_BE_NULL);
-        try {
-            Constructor<ru.avicomp.owlapi.objects.swrl.SWRLVariableImpl> res = SWRLVariableImpl.class.getDeclaredConstructor(IRI.class);
-            res.setAccessible(true);
-            return res.newInstance(var);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
-            throw new IllegalStateException("Can't init SWRLVariable", e);
-        }
+        return new SWRLVariableImpl(Objects.requireNonNull(var, VAR_CANNOT_BE_NULL));
     }
 
     @Override
     public SWRLIndividualArgument getSWRLIndividualArgument(OWLIndividual individual) {
         Objects.requireNonNull(individual, INDIVIDUAL_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.swrl.SWRLIndividualArgumentImpl(individual);
+        return new SWRLIndividualArgumentImpl(individual);
     }
 
     @Override
     public SWRLLiteralArgument getSWRLLiteralArgument(OWLLiteral literal) {
         Objects.requireNonNull(literal, LITERAL_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.swrl.SWRLLiteralArgumentImpl(literal);
+        return new SWRLLiteralArgumentImpl(literal);
     }
 
     @Override
     public SWRLDifferentIndividualsAtom getSWRLDifferentIndividualsAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
         Objects.requireNonNull(arg0, ARG0_CANNOT_BE_NULL);
         Objects.requireNonNull(arg1, ARG1_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.swrl.SWRLDifferentIndividualsAtomImpl(getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM), arg0, arg1);
+        return new SWRLDifferentIndividualsAtomImpl(getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM), arg0, arg1);
     }
 
     @Override
     public SWRLSameIndividualAtom getSWRLSameIndividualAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
         Objects.requireNonNull(arg0, ARG0_CANNOT_BE_NULL);
         Objects.requireNonNull(arg1, ARG1_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.swrl.SWRLSameIndividualAtomImpl(getOWLObjectProperty(OWLRDFVocabulary.OWL_SAME_AS), arg0, arg1);
+        return new SWRLSameIndividualAtomImpl(getOWLObjectProperty(OWLRDFVocabulary.OWL_SAME_AS), arg0, arg1);
     }
 
     @Override
@@ -985,7 +973,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     }
 
     private static OWLLiteral getBasicLiteral(String lexicalValue, String lang, OWLDatatype datatype) {
-        return new ru.avicomp.owlapi.objects.literal.OWLLiteralImplNoCompression(lexicalValue, lang, datatype);
+        return new OWLLiteralImpl(lexicalValue, lang, datatype);
     }
 
     private static OWLLiteral getBasicLiteral(String lexicalValue, OWLDatatype datatype) {
@@ -1022,7 +1010,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
             return NEGATIVE_FLOAT_ZERO;
         }
         try {
-            return new ru.avicomp.owlapi.objects.literal.OWLLiteralImplFloat(Float.parseFloat(lexicalValue));
+            return new OWLLiteralImplFloat(Float.parseFloat(lexicalValue));
         } catch (NumberFormatException e) {
             return getBasicLiteral(lexicalValue, datatype);
         }
@@ -1038,7 +1026,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
             try {
                 // this is fine for values that can be parsed as
                 // ints - not all values are
-                literal = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplInteger(Integer.parseInt(lexicalValue));
+                literal = new OWLLiteralImplInteger(Integer.parseInt(lexicalValue));
             } catch (NumberFormatException ex) {
                 // try as a big decimal
                 literal = getBasicLiteral(lexicalValue, datatype);
@@ -1049,23 +1037,23 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
 
     @Override
     public OWLLiteral getOWLLiteral(int value) {
-        return new ru.avicomp.owlapi.objects.literal.OWLLiteralImplInteger(value);
+        return new OWLLiteralImplInteger(value);
     }
 
     @Override
     public OWLLiteral getOWLLiteral(double value) {
-        return new ru.avicomp.owlapi.objects.literal.OWLLiteralImplDouble(value);
+        return new OWLLiteralImplDouble(value);
     }
 
     @Override
     public OWLLiteral getOWLLiteral(float value) {
-        return new ru.avicomp.owlapi.objects.literal.OWLLiteralImplFloat(value);
+        return new OWLLiteralImplFloat(value);
     }
 
     @Override
     public OWLLiteral getOWLLiteral(String value) {
         Objects.requireNonNull(value, VALUE_CANNOT_BE_NULL);
-        return new ru.avicomp.owlapi.objects.literal.OWLLiteralImplString(value);
+        return new OWLLiteralImplString(value);
     }
 
     @Override
@@ -1079,9 +1067,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
         }
         if (normalisedLang.isEmpty()) {
             return new OWLLiteralImplString(literal);
-        } else {
-            return new ru.avicomp.owlapi.objects.literal.OWLLiteralImplPlain(literal, normalisedLang);
-        }
+        } else return new OWLLiteralImplPlain(literal, normalisedLang);
     }
 
     @Override

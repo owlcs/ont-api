@@ -17,16 +17,16 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.stream.Stream;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
 
 /**
  * An optimised implementation of OWLDatatype for OWL2Datatypes.
  *
  * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
- * @since 3.2.0
+ * @since 1.2.0
  */
 public class OWL2DatatypeImpl implements OWLDatatype {
 
@@ -41,7 +41,7 @@ public class OWL2DatatypeImpl implements OWLDatatype {
      * @throws NullPointerException if {@code owl2Datatype} is {@code null}.
      */
     public OWL2DatatypeImpl(OWL2Datatype owl2Datatype) {
-        this.owl2Datatype = checkNotNull(owl2Datatype, "owl2Datatype must not be null");
+        this.owl2Datatype = Objects.requireNonNull(owl2Datatype, "owl2Datatype must not be null");
         hashCode = initHashCode();
     }
 

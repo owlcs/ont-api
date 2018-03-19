@@ -16,34 +16,32 @@ package ru.avicomp.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @param <P> the property expression
  * @param <O> the object
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public abstract class OWLIndividualRelationshipAxiomImpl<P extends OWLPropertyExpression, O extends OWLPropertyAssertionObject>
-    extends OWLLogicalAxiomImpl implements OWLPropertyAssertionAxiom<P, O> {
+        extends OWLLogicalAxiomImpl implements OWLPropertyAssertionAxiom<P, O> {
 
     private final OWLIndividual subject;
     private final P property;
     private final O o;
 
     /**
-     * @param subject the subject
-     * @param property the property
-     * @param object the object
+     * @param subject     the subject
+     * @param property    the property
+     * @param object      the object
      * @param annotations the annotations
      */
-    public OWLIndividualRelationshipAxiomImpl(OWLIndividual subject, P property, O object,
-        Collection<OWLAnnotation> annotations) {
+    public OWLIndividualRelationshipAxiomImpl(OWLIndividual subject, P property, O object, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.subject = checkNotNull(subject, "subject cannot be null");
-        this.property = checkNotNull(property, "property cannot be null");
-        this.o = checkNotNull(object, "object cannot be null");
+        this.subject = Objects.requireNonNull(subject, "subject cannot be null");
+        this.property = Objects.requireNonNull(property, "property cannot be null");
+        this.o = Objects.requireNonNull(object, "object cannot be null");
     }
 
     @Override

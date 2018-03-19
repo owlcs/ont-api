@@ -18,11 +18,11 @@ import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLDataPropertyImpl extends OWLObjectImpl implements OWLDataProperty {
 
@@ -33,9 +33,9 @@ public class OWLDataPropertyImpl extends OWLObjectImpl implements OWLDataPropert
      * @param iri property iri
      */
     public OWLDataPropertyImpl(IRI iri) {
-        this.iri = checkNotNull(iri, "iri cannot be null");
+        this.iri = Objects.requireNonNull(iri, "iri cannot be null");
         builtin = iri.equals(OWLRDFVocabulary.OWL_TOP_DATA_PROPERTY.getIRI()) || iri.equals(
-            OWLRDFVocabulary.OWL_BOTTOM_DATA_PROPERTY.getIRI());
+                OWLRDFVocabulary.OWL_BOTTOM_DATA_PROPERTY.getIRI());
     }
 
     @Override

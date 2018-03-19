@@ -17,19 +17,13 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SWRLVariableExtractor;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
 
@@ -39,15 +33,15 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
     private final boolean containsAnonymousClassExpressions;
 
     /**
-     * @param body rule body
-     * @param head rule head
+     * @param body        rule body
+     * @param head        rule head
      * @param annotations annotations on the axiom
      */
     public SWRLRuleImpl(Collection<? extends SWRLAtom> body, Collection<? extends SWRLAtom> head,
-        Collection<OWLAnnotation> annotations) {
+                        Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.head = new LinkedHashSet<>(checkNotNull(head, "head cannot be null"));
-        this.body = new LinkedHashSet<>(checkNotNull(body, "body cannot be null"));
+        this.head = new LinkedHashSet<>(Objects.requireNonNull(head, "head cannot be null"));
+        this.body = new LinkedHashSet<>(Objects.requireNonNull(body, "body cannot be null"));
         containsAnonymousClassExpressions = hasAnon();
     }
 
@@ -67,6 +61,7 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
         return new SWRLRuleImpl(body, head, NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new SWRLRuleImpl(body, head, mergeAnnos(anns));
@@ -89,7 +84,7 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
     @Override
     public Stream<OWLClassExpression> classAtomPredicates() {
         return Stream.concat(head(), body()).filter(c -> c instanceof SWRLClassAtom)
-            .map(c -> ((SWRLClassAtom) c).getPredicate()).distinct().sorted();
+                .map(c -> ((SWRLClassAtom) c).getPredicate()).distinct().sorted();
     }
 
     @Override
@@ -132,12 +127,13 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
         if (obj instanceof SWRLRuleImpl) {
             SWRLRuleImpl other = (SWRLRuleImpl) obj;
             return body.equals(other.body) && head.equals(other.head)
-                && annotations.equals(other.annotationsAsList());
+                    && annotations.equals(other.annotationsAsList());
         }
         // For different implementations, just use sets, do not sort
         SWRLRule other = (SWRLRule) obj;
-        return body.equals(asSet(other.body())) && head.equals(asSet(other.head()))
-            && annotations.equals(other.annotationsAsList());
+        return body.equals(other.body().collect(Collectors.toCollection(LinkedHashSet::new)))
+                && head.equals(other.head().collect(Collectors.toCollection(LinkedHashSet::new)))
+                && annotations.equals(other.annotationsAsList());
     }
 
     @Override
@@ -154,8 +150,8 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
 
         @Override
         public SWRLRule visit(SWRLRule node) {
-            List<SWRLAtom> nodebody = asList(node.body().map(a -> (SWRLAtom) a.accept(this)));
-            List<SWRLAtom> nodehead = asList(node.head().map(a -> (SWRLAtom) a.accept(this)));
+            List<SWRLAtom> nodebody = node.body().map(a -> (SWRLAtom) a.accept(this)).collect(Collectors.toList());
+            List<SWRLAtom> nodehead = node.head().map(a -> (SWRLAtom) a.accept(this)).collect(Collectors.toList());
             return new SWRLRuleImpl(nodebody, nodehead, NO_ANNOTATIONS);
         }
 

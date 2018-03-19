@@ -19,29 +19,26 @@ import org.semanticweb.owlapi.model.OWLPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import java.util.Collection;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @param <P> property type
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLPropertyDomainAxiomImpl<P extends OWLPropertyExpression> extends
-        OWLUnaryPropertyAxiomImpl<P>
-    implements OWLPropertyDomainAxiom<P> {
+public abstract class OWLPropertyDomainAxiomImpl<P extends OWLPropertyExpression> extends OWLUnaryPropertyAxiomImpl<P> implements OWLPropertyDomainAxiom<P> {
 
     private final OWLClassExpression domain;
 
     /**
-     * @param property property
-     * @param domain domain
+     * @param property    property
+     * @param domain      domain
      * @param annotations annotations
      */
     public OWLPropertyDomainAxiomImpl(P property, OWLClassExpression domain,
-        Collection<OWLAnnotation> annotations) {
+                                      Collection<OWLAnnotation> annotations) {
         super(property, annotations);
-        this.domain = checkNotNull(domain, "domain cannot be null");
+        this.domain = Objects.requireNonNull(domain, "domain cannot be null");
     }
 
     @Override

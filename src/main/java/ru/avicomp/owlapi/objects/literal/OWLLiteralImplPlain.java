@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
  * An OWLLiteral whose datatype is RDF_LANG_STRING or XSD_STRING
  *
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group, Date:
- *         26-Oct-2006
+ * 26-Oct-2006
  */
 public class OWLLiteralImplPlain extends OWLObjectImpl implements OWLLiteral {
 
@@ -34,7 +34,7 @@ public class OWLLiteralImplPlain extends OWLObjectImpl implements OWLLiteral {
 
     /**
      * @param literal the lexical form
-     * @param lang the language; can be null or empty
+     * @param lang    the language; can be null or empty
      */
     public OWLLiteralImplPlain(String literal, @Nullable String lang) {
         this.literal = literal;

@@ -16,19 +16,17 @@ package ru.avicomp.owlapi.objects.ce;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLObjectIntersectionOfImpl extends OWLNaryBooleanClassExpressionImpl
-    implements OWLObjectIntersectionOf {
+public class OWLObjectIntersectionOfImpl extends OWLNaryBooleanClassExpressionImpl implements OWLObjectIntersectionOf {
 
     /**
      * @param operands operands
@@ -44,16 +42,9 @@ public class OWLObjectIntersectionOfImpl extends OWLNaryBooleanClassExpressionIm
         super(operands);
     }
 
-    /**
-     * @param operands operands
-     */
-    public OWLObjectIntersectionOfImpl(OWLClassExpression... operands) {
-        super(Arrays.asList(operands));
-    }
-
     @Override
     public Set<OWLClassExpression> asConjunctSet() {
-        return asSet(operands().flatMap(OWLClassExpression::conjunctSet));
+        return operands().flatMap(OWLClassExpression::conjunctSet).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
@@ -63,9 +54,6 @@ public class OWLObjectIntersectionOfImpl extends OWLNaryBooleanClassExpressionIm
 
     @Override
     public boolean containsConjunct(OWLClassExpression ce) {
-        if (ce.equals(this)) {
-            return true;
-        }
-        return operands().anyMatch(op -> op.containsConjunct(ce));
+        return ce.equals(this) || operands().anyMatch(op -> op.containsConjunct(ce));
     }
 }

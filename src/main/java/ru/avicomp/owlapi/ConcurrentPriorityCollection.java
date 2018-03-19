@@ -21,10 +21,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
+import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.verifyNotNull;
 
 /**
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 09/04/15
@@ -35,8 +33,7 @@ import static org.semanticweb.owlapi.util.OWLAPIPreconditions.verifyNotNull;
  */
 public class ConcurrentPriorityCollection<T extends Serializable> extends PriorityCollection<T> {
 
-    private final Lock readLock;
-    private final Lock writeLock;
+    protected final ReadWriteLock lock;
 
     /**
      * Constructs a {@link ConcurrentPriorityCollection} using the specified
@@ -49,108 +46,106 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
     public ConcurrentPriorityCollection(ReadWriteLock readWriteLock,
                                         PriorityCollectionSorting sorting) {
         super(sorting);
-        verifyNotNull(readWriteLock);
-        this.readLock = readWriteLock.readLock();
-        this.writeLock = readWriteLock.writeLock();
+        this.lock = Objects.requireNonNull(readWriteLock);
     }
 
     @Override
     public boolean isEmpty() {
-        readLock.lock();
+        lock.readLock().lock();
         try {
             return super.isEmpty();
         } finally {
-            readLock.unlock();
+            lock.readLock().unlock();
         }
     }
 
     @Override
     public int size() {
-        readLock.lock();
+        lock.readLock().lock();
         try {
             return super.size();
         } finally {
-            readLock.unlock();
+            lock.readLock().unlock();
         }
     }
 
     @Override
     public void set(Iterable<T> c) {
-        writeLock.lock();
+        lock.writeLock().lock();
         try {
             super.set(c);
         } finally {
-            writeLock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     @Override
     public void add(Iterable<T> c) {
-        writeLock.lock();
+        lock.writeLock().lock();
         try {
             super.add(c);
         } finally {
-            writeLock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     @Override
     public void set(@SuppressWarnings("unchecked") T... c) {
-        writeLock.lock();
+        lock.writeLock().lock();
         try {
             super.set(c);
         } finally {
-            writeLock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     @Override
     public void add(@SuppressWarnings("unchecked") T... c) {
-        writeLock.lock();
+        lock.writeLock().lock();
         try {
             super.add(c);
         } finally {
-            writeLock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     @Override
     public void add(T c) {
-        writeLock.lock();
+        lock.writeLock().lock();
         try {
             super.add(c);
         } finally {
-            writeLock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     @Override
     public void remove(@SuppressWarnings("unchecked") T... c) {
-        writeLock.lock();
+        lock.writeLock().lock();
         try {
             super.remove(c);
         } finally {
-            writeLock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     @Override
     public void remove(T c) {
-        writeLock.lock();
+        lock.writeLock().lock();
         try {
             super.remove(c);
         } finally {
-            writeLock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     @Override
     public void clear() {
-        writeLock.lock();
+        lock.writeLock().lock();
         try {
             super.clear();
         } finally {
-            writeLock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
@@ -161,26 +156,26 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
 
     @Override
     public PriorityCollection<T> getByMIMEType(String mimeType) {
-        readLock.lock();
+        lock.readLock().lock();
         try {
             return super.getByMIMEType(mimeType);
         } finally {
-            readLock.unlock();
+            lock.readLock().unlock();
         }
     }
 
     @Override
     public String toString() {
-        readLock.lock();
+        lock.readLock().lock();
         try {
             return super.toString();
         } finally {
-            readLock.unlock();
+            lock.readLock().unlock();
         }
     }
 
     private Iterable<T> copyIterable() {
-        readLock.lock();
+        lock.readLock().lock();
         try {
             List<T> copy = new ArrayList<>();
             for (Iterator<T> it = super.iterator(); it.hasNext(); ) {
@@ -189,7 +184,7 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
             }
             return copy;
         } finally {
-            readLock.unlock();
+            lock.readLock().unlock();
         }
     }
 }

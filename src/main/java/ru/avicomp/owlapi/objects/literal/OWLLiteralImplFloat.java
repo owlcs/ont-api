@@ -20,7 +20,7 @@ import ru.avicomp.owlapi.OWLObjectImpl;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLLiteralImplFloat extends OWLObjectImpl implements OWLLiteral {
 
@@ -40,7 +40,6 @@ public class OWLLiteralImplFloat extends OWLObjectImpl implements OWLLiteral {
         hash = OWLObject.hashIteration(hash, (int) literal * 65536);
         return OWLObject.hashIteration(hash, getLang().hashCode());
     }
-
 
     @Override
     public String getLiteral() {

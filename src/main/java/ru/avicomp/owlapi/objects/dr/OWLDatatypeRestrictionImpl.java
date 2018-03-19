@@ -16,19 +16,17 @@ package ru.avicomp.owlapi.objects.dr;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDatatypeRestriction;
 import org.semanticweb.owlapi.model.OWLFacetRestriction;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLDatatypeRestrictionImpl extends OWLObjectImpl implements OWLDatatypeRestriction {
 
@@ -36,14 +34,14 @@ public class OWLDatatypeRestrictionImpl extends OWLObjectImpl implements OWLData
     private final List<OWLFacetRestriction> facetRestrictions;
 
     /**
-     * @param datatype datatype
+     * @param datatype          datatype
      * @param facetRestrictions facet restriction
      */
-    public OWLDatatypeRestrictionImpl(OWLDatatype datatype,
-        Collection<OWLFacetRestriction> facetRestrictions) {
-        this.datatype = checkNotNull(datatype, "datatype cannot be null");
-        checkNotNull(facetRestrictions, "facetRestrictions cannot be null");
-        this.facetRestrictions = sorted(OWLFacetRestriction.class, facetRestrictions);
+    public OWLDatatypeRestrictionImpl(OWLDatatype datatype, Collection<OWLFacetRestriction> facetRestrictions) {
+        this.datatype = Objects.requireNonNull(datatype, "datatype cannot be null");
+        this.facetRestrictions = Objects.requireNonNull(facetRestrictions, "facetRestrictions cannot be null")
+                .stream().filter(Objects::nonNull).distinct().sorted()
+                .collect(Iter.toUnmodifiableList());
     }
 
     @Override
@@ -53,7 +51,7 @@ public class OWLDatatypeRestrictionImpl extends OWLObjectImpl implements OWLData
 
     @Override
     public Stream<OWLFacetRestriction> facetRestrictions() {
-        return streamFromSorted(facetRestrictions);
+        return facetRestrictions.stream();
     }
 
     @Override

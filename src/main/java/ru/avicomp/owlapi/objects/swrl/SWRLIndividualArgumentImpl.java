@@ -17,11 +17,11 @@ import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.SWRLIndividualArgument;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class SWRLIndividualArgumentImpl extends OWLObjectImpl implements SWRLIndividualArgument {
 
@@ -31,7 +31,7 @@ public class SWRLIndividualArgumentImpl extends OWLObjectImpl implements SWRLInd
      * @param individual individual for argument
      */
     public SWRLIndividualArgumentImpl(OWLIndividual individual) {
-        this.individual = checkNotNull(individual, "individual cannot be null");
+        this.individual = Objects.requireNonNull(individual, "individual cannot be null");
     }
 
     @Override

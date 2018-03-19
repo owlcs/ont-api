@@ -17,11 +17,11 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
 public class OWLAnnotationPropertyImpl extends OWLObjectImpl implements OWLAnnotationProperty {
 
@@ -31,7 +31,7 @@ public class OWLAnnotationPropertyImpl extends OWLObjectImpl implements OWLAnnot
      * @param i iri for property
      */
     public OWLAnnotationPropertyImpl(IRI i) {
-        iri = checkNotNull(i, "i cannot be null");
+        iri = Objects.requireNonNull(i, "i cannot be null");
     }
 
     @Override

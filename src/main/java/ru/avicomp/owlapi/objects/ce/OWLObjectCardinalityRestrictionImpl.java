@@ -17,23 +17,19 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectCardinalityRestriction;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLObjectCardinalityRestrictionImpl extends
-        OWLCardinalityRestrictionImpl<OWLClassExpression>
-    implements OWLObjectCardinalityRestriction {
+public abstract class OWLObjectCardinalityRestrictionImpl extends OWLCardinalityRestrictionImpl<OWLClassExpression> implements OWLObjectCardinalityRestriction {
 
     private final OWLObjectPropertyExpression property;
 
-    protected OWLObjectCardinalityRestrictionImpl(OWLObjectPropertyExpression property,
-        int cardinality,
-        OWLClassExpression filler) {
+    protected OWLObjectCardinalityRestrictionImpl(OWLObjectPropertyExpression property, int cardinality, OWLClassExpression filler) {
         super(cardinality, filler);
-        this.property = checkNotNull(property, "property cannot be null");
+        this.property = Objects.requireNonNull(property, "property cannot be null");
     }
 
     @Override

@@ -208,13 +208,13 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      */
     @SuppressWarnings("WeakerAccess")
     public static class Concurrent extends ConcurrentOWLOntologyImpl implements OntologyModel, ConfigProvider, InternalModelHolder {
-        protected OntologyModelImpl delegate;
-        protected ReadWriteLock lock;
 
         protected Concurrent(OntologyModelImpl delegate, ReadWriteLock lock) {
             super(delegate, lock);
-            this.delegate = delegate;
-            this.lock = lock;
+        }
+
+        public OntologyModelImpl delegate() {
+            return (OntologyModelImpl) delegate;
         }
 
         public ReadWriteLock getLock() {
@@ -248,7 +248,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         public void clearCache() {
             lock.readLock().lock();
             try {
-                delegate.clearCache();
+                delegate().clearCache();
             } finally {
                 lock.readLock().unlock();
             }
@@ -258,7 +258,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         public ConfigProvider.Config getConfig() {
             lock.readLock().lock();
             try {
-                return delegate.getConfig();
+                return delegate().getConfig();
             } finally {
                 lock.readLock().unlock();
             }
@@ -271,12 +271,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         @Override
         public InternalModel getBase() {
-            return delegate.getBase();
+            return delegate().getBase();
         }
 
         @Override
         public void setBase(InternalModel m) {
-            delegate.setBase(m);
+            delegate().setBase(m);
         }
 
     }

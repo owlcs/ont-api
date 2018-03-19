@@ -23,18 +23,15 @@ import static ru.avicomp.owlapi.InternalizedEntities.OWL_THING;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLReflexiveObjectPropertyAxiomImpl extends
-        OWLObjectPropertyCharacteristicAxiomImpl implements
-    OWLReflexiveObjectPropertyAxiom {
+public class OWLReflexiveObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLReflexiveObjectPropertyAxiom {
 
     /**
-     * @param property property
+     * @param property    property
      * @param annotations annotations
      */
-    public OWLReflexiveObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
-        Collection<OWLAnnotation> annotations) {
+    public OWLReflexiveObjectPropertyAxiomImpl(OWLObjectPropertyExpression property, Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 
@@ -48,10 +45,10 @@ public class OWLReflexiveObjectPropertyAxiomImpl extends
 
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        return new OWLSubClassOfAxiomImpl(OWL_THING, new OWLObjectHasSelfImpl(getProperty()),
-            NO_ANNOTATIONS);
+        return new OWLSubClassOfAxiomImpl(OWL_THING, new OWLObjectHasSelfImpl(getProperty()), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLReflexiveObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));

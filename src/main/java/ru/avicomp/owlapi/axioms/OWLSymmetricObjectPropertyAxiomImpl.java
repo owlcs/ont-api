@@ -22,33 +22,27 @@ import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLSymmetricObjectPropertyAxiomImpl extends
-        OWLObjectPropertyCharacteristicAxiomImpl implements
-    OWLSymmetricObjectPropertyAxiom {
+public class OWLSymmetricObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLSymmetricObjectPropertyAxiom {
 
     /**
-     * @param property property
+     * @param property    property
      * @param annotations annotations
      */
-    public OWLSymmetricObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
-        Collection<OWLAnnotation> annotations) {
+    public OWLSymmetricObjectPropertyAxiomImpl(OWLObjectPropertyExpression property, Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 
     @Override
     public Set<OWLSubObjectPropertyOfAxiom> asSubPropertyAxioms() {
         Set<OWLSubObjectPropertyOfAxiom> result = new HashSet<>(5);
-        result.add(
-            new OWLSubObjectPropertyOfAxiomImpl(getProperty(), getProperty().getInverseProperty()
-                .getSimplified(), NO_ANNOTATIONS));
-        result.add(
-            new OWLSubObjectPropertyOfAxiomImpl(getProperty().getInverseProperty().getSimplified(),
-                getProperty(), NO_ANNOTATIONS));
+        result.add(new OWLSubObjectPropertyOfAxiomImpl(getProperty(), getProperty().getInverseProperty().getSimplified(), NO_ANNOTATIONS));
+        result.add(new OWLSubObjectPropertyOfAxiomImpl(getProperty().getInverseProperty().getSimplified(), getProperty(), NO_ANNOTATIONS));
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLSymmetricObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));

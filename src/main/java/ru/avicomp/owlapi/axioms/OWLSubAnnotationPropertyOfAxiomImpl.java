@@ -19,37 +19,35 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
-public class OWLSubAnnotationPropertyOfAxiomImpl extends OWLAxiomImpl implements
-    OWLSubAnnotationPropertyOfAxiom {
+public class OWLSubAnnotationPropertyOfAxiomImpl extends OWLAxiomImpl implements OWLSubAnnotationPropertyOfAxiom {
 
     private final OWLAnnotationProperty subProperty;
     private final OWLAnnotationProperty superProperty;
 
     /**
-     * @param subProperty sub property
+     * @param subProperty   sub property
      * @param superProperty super property
-     * @param annotations annotations on the axiom
+     * @param annotations   annotations on the axiom
      */
     public OWLSubAnnotationPropertyOfAxiomImpl(OWLAnnotationProperty subProperty,
-        OWLAnnotationProperty superProperty,
-        Collection<OWLAnnotation> annotations) {
+                                               OWLAnnotationProperty superProperty,
+                                               Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.subProperty = checkNotNull(subProperty, "subProperty cannot be null");
-        this.superProperty = checkNotNull(superProperty, "superProperty cannot be null");
+        this.subProperty = Objects.requireNonNull(subProperty, "subProperty cannot be null");
+        this.superProperty = Objects.requireNonNull(superProperty, "superProperty cannot be null");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
-        return (T) new OWLSubAnnotationPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(),
-            mergeAnnos(anns));
+        return (T) new OWLSubAnnotationPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(), mergeAnnos(anns));
     }
 
     @Override
@@ -58,7 +56,7 @@ public class OWLSubAnnotationPropertyOfAxiomImpl extends OWLAxiomImpl implements
             return this;
         }
         return new OWLSubAnnotationPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(),
-            NO_ANNOTATIONS);
+                NO_ANNOTATIONS);
     }
 
     @Override

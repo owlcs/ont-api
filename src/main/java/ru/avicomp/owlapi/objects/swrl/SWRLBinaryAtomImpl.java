@@ -17,27 +17,24 @@ import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLBinaryAtom;
 import org.semanticweb.owlapi.model.SWRLPredicate;
 
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * @param <A> atom type
  * @param <B> atom type
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class SWRLBinaryAtomImpl<A extends SWRLArgument, B extends SWRLArgument> extends
-    SWRLAtomImpl implements
-    SWRLBinaryAtom<A, B> {
+public abstract class SWRLBinaryAtomImpl<A extends SWRLArgument, B extends SWRLArgument> extends SWRLAtomImpl implements SWRLBinaryAtom<A, B> {
 
     private final A arg0;
     private final B arg1;
 
     protected SWRLBinaryAtomImpl(SWRLPredicate predicate, A arg0, B arg1) {
         super(predicate);
-        this.arg0 = checkNotNull(arg0, "arg0 cannot be null");
-        this.arg1 = checkNotNull(arg1, "arg1 cannot be null");
+        this.arg0 = Objects.requireNonNull(arg0, "arg0 cannot be null");
+        this.arg1 = Objects.requireNonNull(arg1, "arg1 cannot be null");
     }
 
     @Override

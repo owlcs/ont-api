@@ -17,18 +17,18 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class SWRLVariableImpl extends OWLObjectImpl implements SWRLVariable {
 
     private final IRI iri;
 
-    protected SWRLVariableImpl(IRI iri) {
-        this.iri = checkNotNull(iri, "iri cannot be null");
+    public SWRLVariableImpl(IRI iri) {
+        this.iri = Objects.requireNonNull(iri, "iri cannot be null");
     }
 
     @Override

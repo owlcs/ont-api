@@ -93,9 +93,19 @@ public class OWLManagerTestCase {
     }
 
     private static Object getField(String field, Class<?> type, Object instance) throws IllegalAccessException, NoSuchFieldException {
-        Field ontologyManagerField = type.getDeclaredField(field);
-        ontologyManagerField.setAccessible(true);
-        return ontologyManagerField.get(instance);
+        Field f;
+        try {
+            f = type.getDeclaredField(field);
+        } catch (NoSuchFieldException e1) {
+            try {
+                f = instance.getClass().getSuperclass().getDeclaredField(field);
+            } catch (NoSuchFieldException e2) {
+                e1.addSuppressed(e2);
+                throw e1;
+            }
+        }
+        f.setAccessible(true);
+        return f.get(instance);
     }
 
 }

@@ -16,38 +16,34 @@ package ru.avicomp.owlapi.objects;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLAnnotationImpl extends OWLAnnotationImplNotAnnotated {
 
     private final List<OWLAnnotation> anns;
 
     /**
-     * @param property annotation property
-     * @param value annotation value
+     * @param property    annotation property
+     * @param value       annotation value
      * @param annotations annotations on the axiom
      */
-    public OWLAnnotationImpl(OWLAnnotationProperty property, OWLAnnotationValue value,
-        Stream<OWLAnnotation> annotations) {
+    public OWLAnnotationImpl(OWLAnnotationProperty property, OWLAnnotationValue value, Stream<OWLAnnotation> annotations) {
         super(property, value);
-        checkNotNull(annotations, "annotations cannot be null");
-        anns = sorted(OWLAnnotation.class, annotations);
+        anns = Objects.requireNonNull(annotations, "annotations cannot be null").filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     @Override
     public Stream<OWLAnnotation> annotations() {
-        return streamFromSorted(anns);
+        return anns.stream();
     }
 
     @Override
@@ -61,7 +57,7 @@ public class OWLAnnotationImpl extends OWLAnnotationImplNotAnnotated {
     @Override
     public OWLAnnotation getAnnotatedAnnotation(Stream<OWLAnnotation> annotations) {
         return new OWLAnnotationImpl(getProperty(), getValue(),
-            Stream.concat(annotations(), annotations));
+                Stream.concat(annotations(), annotations));
     }
 
     @Override

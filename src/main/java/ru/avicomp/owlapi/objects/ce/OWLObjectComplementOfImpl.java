@@ -16,14 +16,13 @@ package ru.avicomp.owlapi.objects.ce;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectComplementOf;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLObjectComplementOfImpl extends OWLAnonymousClassExpressionImpl implements
-    OWLObjectComplementOf {
+public class OWLObjectComplementOfImpl extends OWLAnonymousClassExpressionImpl implements OWLObjectComplementOf {
 
     private final OWLClassExpression operand;
 
@@ -31,7 +30,7 @@ public class OWLObjectComplementOfImpl extends OWLAnonymousClassExpressionImpl i
      * @param operand class to complement
      */
     public OWLObjectComplementOfImpl(OWLClassExpression operand) {
-        this.operand = checkNotNull(operand, "operand cannot be null");
+        this.operand = Objects.requireNonNull(operand, "operand cannot be null");
     }
 
     @Override

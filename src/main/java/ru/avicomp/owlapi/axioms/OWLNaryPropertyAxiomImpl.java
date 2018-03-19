@@ -16,58 +16,41 @@ package ru.avicomp.owlapi.axioms;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLNaryPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @param <P> the property expression
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLNaryPropertyAxiomImpl<P extends OWLPropertyExpression>
-    extends OWLPropertyAxiomImpl implements OWLNaryPropertyAxiom<P> {
+public abstract class OWLNaryPropertyAxiomImpl<P extends OWLPropertyExpression> extends OWLPropertyAxiomImpl implements OWLNaryPropertyAxiom<P> {
 
     protected final List<P> properties;
 
     /**
-     * @param properties properties
+     * @param properties  properties
      * @param annotations annotations
      */
-    public OWLNaryPropertyAxiomImpl(Collection<? extends P> properties,
-        Collection<OWLAnnotation> annotations) {
-        super(annotations);
-        checkNotNull(properties, "properties cannot be null");
-        this.properties = (List<P>) sorted(OWLPropertyExpression.class, properties);
+    public OWLNaryPropertyAxiomImpl(Collection<? extends P> properties, Collection<OWLAnnotation> annotations) {
+        this(Objects.requireNonNull(properties, "properties cannot be null").stream(), annotations);
     }
 
     /**
-     * @param properties properties
+     * @param properties  properties
      * @param annotations annotations
      */
     @SuppressWarnings("unchecked")
-    public OWLNaryPropertyAxiomImpl(Stream<? extends P> properties,
-        Collection<OWLAnnotation> annotations) {
+    private OWLNaryPropertyAxiomImpl(Stream<? extends P> properties, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        checkNotNull(properties, "properties cannot be null");
-        this.properties = (List<P>) sorted(OWLPropertyExpression.class, properties);
-    }
-
-    @SafeVarargs
-    OWLNaryPropertyAxiomImpl(Collection<OWLAnnotation> annotations, P... properties) {
-        this(Stream.of(properties), annotations);
+        this.properties = Objects.requireNonNull(properties, "properties cannot be null").filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     @Override
     public Stream<P> properties() {
-        return streamFromSorted(properties);
+        return properties.stream();
     }
 
     @Override

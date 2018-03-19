@@ -23,18 +23,16 @@ import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLTransitiveObjectPropertyAxiomImpl extends
-        OWLObjectPropertyCharacteristicAxiomImpl implements
-    OWLTransitiveObjectPropertyAxiom {
+public class OWLTransitiveObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLTransitiveObjectPropertyAxiom {
 
     /**
-     * @param property property
+     * @param property    property
      * @param annotations annotations
      */
     public OWLTransitiveObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
-        Collection<OWLAnnotation> annotations) {
+                                                Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 
@@ -46,6 +44,7 @@ public class OWLTransitiveObjectPropertyAxiomImpl extends
         return new OWLTransitiveObjectPropertyAxiomImpl(getProperty(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLTransitiveObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));

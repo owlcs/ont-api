@@ -17,30 +17,27 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.owlapi.objects.ce.OWLObjectOneOfImpl;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLClassAssertionAxiomImpl extends OWLIndividualAxiomImpl
-    implements OWLClassAssertionAxiom {
+public class OWLClassAssertionAxiomImpl extends OWLIndividualAxiomImpl implements OWLClassAssertionAxiom {
 
     private final OWLIndividual individual;
     private final OWLClassExpression classExpression;
 
     /**
-     * @param individual individual
+     * @param individual      individual
      * @param classExpression class
-     * @param annotations annotations on the axiom
+     * @param annotations     annotations on the axiom
      */
-    public OWLClassAssertionAxiomImpl(OWLIndividual individual, OWLClassExpression classExpression,
-        Collection<OWLAnnotation> annotations) {
+    public OWLClassAssertionAxiomImpl(OWLIndividual individual, OWLClassExpression classExpression, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.individual = checkNotNull(individual, "individual cannot be null");
-        this.classExpression = checkNotNull(classExpression, "classExpression cannot be null");
+        this.individual = Objects.requireNonNull(individual, "individual cannot be null");
+        this.classExpression = Objects.requireNonNull(classExpression, "classExpression cannot be null");
     }
 
     @Override
@@ -51,10 +48,10 @@ public class OWLClassAssertionAxiomImpl extends OWLIndividualAxiomImpl
         return new OWLClassAssertionAxiomImpl(getIndividual(), getClassExpression(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
-        return (T) new OWLClassAssertionAxiomImpl(getIndividual(), getClassExpression(),
-            mergeAnnos(anns));
+        return (T) new OWLClassAssertionAxiomImpl(getIndividual(), getClassExpression(), mergeAnnos(anns));
     }
 
     @Override
@@ -69,7 +66,6 @@ public class OWLClassAssertionAxiomImpl extends OWLIndividualAxiomImpl
 
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        return new OWLSubClassOfAxiomImpl(new OWLObjectOneOfImpl(getIndividual()),
-            getClassExpression(), NO_ANNOTATIONS);
+        return new OWLSubClassOfAxiomImpl(new OWLObjectOneOfImpl(getIndividual()), getClassExpression(), NO_ANNOTATIONS);
     }
 }

@@ -17,11 +17,11 @@ import org.semanticweb.owlapi.model.OWLDataComplementOf;
 import org.semanticweb.owlapi.model.OWLDataRange;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLDataComplementOfImpl extends OWLObjectImpl implements OWLDataComplementOf {
 
@@ -31,7 +31,7 @@ public class OWLDataComplementOfImpl extends OWLObjectImpl implements OWLDataCom
      * @param dataRange datarange
      */
     public OWLDataComplementOfImpl(OWLDataRange dataRange) {
-        this.dataRange = checkNotNull(dataRange, "dataRange cannot be null");
+        this.dataRange = Objects.requireNonNull(dataRange, "dataRange cannot be null");
     }
 
     @Override

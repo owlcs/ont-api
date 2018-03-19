@@ -19,18 +19,16 @@ import org.semanticweb.owlapi.model.OWLDataRange;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLDataMaxCardinalityImpl extends OWLDataCardinalityRestrictionImpl implements
-    OWLDataMaxCardinality {
+public class OWLDataMaxCardinalityImpl extends OWLDataCardinalityRestrictionImpl implements OWLDataMaxCardinality {
 
     /**
-     * @param property property
+     * @param property    property
      * @param cardinality cardinality
-     * @param filler filler
+     * @param filler      filler
      */
-    public OWLDataMaxCardinalityImpl(OWLDataPropertyExpression property, int cardinality,
-        OWLDataRange filler) {
+    public OWLDataMaxCardinalityImpl(OWLDataPropertyExpression property, int cardinality, OWLDataRange filler) {
         super(property, cardinality, filler);
     }
 }

@@ -23,20 +23,18 @@ import static ru.avicomp.owlapi.InternalizedEntities.OWL_THING;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLObjectPropertyRangeAxiomImpl extends
-        OWLPropertyRangeAxiomImpl<OWLObjectPropertyExpression, OWLClassExpression> implements
-    OWLObjectPropertyRangeAxiom {
+public class OWLObjectPropertyRangeAxiomImpl extends OWLPropertyRangeAxiomImpl<OWLObjectPropertyExpression, OWLClassExpression> implements OWLObjectPropertyRangeAxiom {
 
     /**
-     * @param property property
-     * @param range range
+     * @param property    property
+     * @param range       range
      * @param annotations annotations
      */
     public OWLObjectPropertyRangeAxiomImpl(OWLObjectPropertyExpression property,
-        OWLClassExpression range,
-        Collection<OWLAnnotation> annotations) {
+                                           OWLClassExpression range,
+                                           Collection<OWLAnnotation> annotations) {
         super(property, range, annotations);
     }
 
@@ -48,6 +46,7 @@ public class OWLObjectPropertyRangeAxiomImpl extends
         return new OWLObjectPropertyRangeAxiomImpl(getProperty(), getRange(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLObjectPropertyRangeAxiomImpl(getProperty(), getRange(), mergeAnnos(anns));

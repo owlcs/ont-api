@@ -22,13 +22,12 @@ import org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class SWRLBuiltInAtomImpl extends SWRLAtomImpl implements SWRLBuiltInAtom {
 
@@ -36,12 +35,12 @@ public class SWRLBuiltInAtomImpl extends SWRLAtomImpl implements SWRLBuiltInAtom
 
     /**
      * @param predicate predicate
-     * @param args builtin argument
+     * @param args      builtin argument
      */
     public SWRLBuiltInAtomImpl(IRI predicate, List<SWRLDArgument> args) {
         super(predicate);
         this.args = Collections
-            .unmodifiableList(new ArrayList<>(checkNotNull(args, "args cannot be null")));
+                .unmodifiableList(new ArrayList<>(Objects.requireNonNull(args, "args cannot be null")));
         // Do not sort these. They are arguments for builtins and they are order sensitive.
     }
 

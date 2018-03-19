@@ -25,6 +25,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 /**
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 13/04/15
  */
+@SuppressWarnings({"NullableProblems", "WeakerAccess"})
 public class NoOpReadWriteLock implements ReadWriteLock, Serializable {
 
     private static final NoOpLock NO_OP_LOCK = new NoOpLock();

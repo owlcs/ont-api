@@ -16,26 +16,23 @@ package ru.avicomp.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLEquivalentDataPropertiesAxiomImpl extends
-        OWLNaryPropertyAxiomImpl<OWLDataPropertyExpression> implements
-    OWLEquivalentDataPropertiesAxiom {
+public class OWLEquivalentDataPropertiesAxiomImpl extends OWLNaryPropertyAxiomImpl<OWLDataPropertyExpression> implements OWLEquivalentDataPropertiesAxiom {
 
     /**
-     * @param properties properties
+     * @param properties  properties
      * @param annotations annotations
      */
     public OWLEquivalentDataPropertiesAxiomImpl(
-        Collection<? extends OWLDataPropertyExpression> properties,
-        Collection<OWLAnnotation> annotations) {
+            Collection<? extends OWLDataPropertyExpression> properties,
+            Collection<OWLAnnotation> annotations) {
         super(properties, annotations);
     }
 
@@ -47,6 +44,7 @@ public class OWLEquivalentDataPropertiesAxiomImpl extends
         return new OWLEquivalentDataPropertiesAxiomImpl(properties, NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLEquivalentDataPropertiesAxiomImpl(properties, mergeAnnos(anns));
@@ -57,8 +55,7 @@ public class OWLEquivalentDataPropertiesAxiomImpl extends
         if (properties.size() == 2) {
             return CollectionFactory.createSet(this);
         }
-        return walkPairwise((a, b) -> new OWLEquivalentDataPropertiesAxiomImpl(
-            sorted(OWLDataPropertyExpression.class, a, b), NO_ANNOTATIONS));
+        return walkPairwise((a, b) -> new OWLEquivalentDataPropertiesAxiomImpl(Arrays.asList(a, b), NO_ANNOTATIONS));
     }
 
     @Override
@@ -66,8 +63,7 @@ public class OWLEquivalentDataPropertiesAxiomImpl extends
         if (properties.size() == 2) {
             return CollectionFactory.createSet(this);
         }
-        return walkPairwise((a, b) -> new OWLEquivalentDataPropertiesAxiomImpl(
-            sorted(OWLDataPropertyExpression.class, a, b), annotations));
+        return walkPairwise((a, b) -> new OWLEquivalentDataPropertiesAxiomImpl(Arrays.asList(a, b), annotations));
     }
 
     @Override

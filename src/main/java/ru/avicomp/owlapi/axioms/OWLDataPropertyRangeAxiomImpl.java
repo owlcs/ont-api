@@ -21,19 +21,16 @@ import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLDataPropertyRangeAxiomImpl extends
-        OWLPropertyRangeAxiomImpl<OWLDataPropertyExpression, OWLDataRange>
-    implements OWLDataPropertyRangeAxiom {
+public class OWLDataPropertyRangeAxiomImpl extends OWLPropertyRangeAxiomImpl<OWLDataPropertyExpression, OWLDataRange> implements OWLDataPropertyRangeAxiom {
 
     /**
-     * @param property property
-     * @param range range
+     * @param property    property
+     * @param range       range
      * @param annotations annotations
      */
-    public OWLDataPropertyRangeAxiomImpl(OWLDataPropertyExpression property, OWLDataRange range,
-        Collection<OWLAnnotation> annotations) {
+    public OWLDataPropertyRangeAxiomImpl(OWLDataPropertyExpression property, OWLDataRange range, Collection<OWLAnnotation> annotations) {
         super(property, range, annotations);
     }
 
@@ -45,6 +42,7 @@ public class OWLDataPropertyRangeAxiomImpl extends
         return new OWLDataPropertyRangeAxiomImpl(getProperty(), getRange(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLDataPropertyRangeAxiomImpl(getProperty(), getRange(), mergeAnnos(anns));

@@ -21,16 +21,14 @@ import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLSubPropertyChainAxiomImpl extends OWLPropertyAxiomImpl implements
-    OWLSubPropertyChainOfAxiom {
+public class OWLSubPropertyChainAxiomImpl extends OWLPropertyAxiomImpl implements OWLSubPropertyChainOfAxiom {
 
     private final List<OWLObjectPropertyExpression> propertyChain;
     private final OWLObjectPropertyExpression superProperty;
@@ -38,20 +36,20 @@ public class OWLSubPropertyChainAxiomImpl extends OWLPropertyAxiomImpl implement
     /**
      * @param propertyChain property chain
      * @param superProperty superproperty
-     * @param annotations annotations
+     * @param annotations   annotations
      */
     public OWLSubPropertyChainAxiomImpl(List<? extends OWLObjectPropertyExpression> propertyChain,
-        OWLObjectPropertyExpression superProperty, Collection<OWLAnnotation> annotations) {
+                                        OWLObjectPropertyExpression superProperty, Collection<OWLAnnotation> annotations) {
         super(annotations);
         this.propertyChain = new ArrayList<>(
-            checkNotNull(propertyChain, "propertyChain cannot be null"));
-        this.superProperty = checkNotNull(superProperty, "superProperty cannot be null");
+                Objects.requireNonNull(propertyChain, "propertyChain cannot be null"));
+        this.superProperty = Objects.requireNonNull(superProperty, "superProperty cannot be null");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
-        return (T) new OWLSubPropertyChainAxiomImpl(getPropertyChain(), getSuperProperty(),
-            mergeAnnos(anns));
+        return (T) new OWLSubPropertyChainAxiomImpl(getPropertyChain(), getSuperProperty(), mergeAnnos(anns));
     }
 
     @Override
@@ -59,8 +57,7 @@ public class OWLSubPropertyChainAxiomImpl extends OWLPropertyAxiomImpl implement
         if (!isAnnotated()) {
             return this;
         }
-        return new OWLSubPropertyChainAxiomImpl(getPropertyChain(), getSuperProperty(),
-            NO_ANNOTATIONS);
+        return new OWLSubPropertyChainAxiomImpl(getPropertyChain(), getSuperProperty(), NO_ANNOTATIONS);
     }
 
     @Override
@@ -75,11 +72,6 @@ public class OWLSubPropertyChainAxiomImpl extends OWLPropertyAxiomImpl implement
 
     @Override
     public boolean isEncodingOfTransitiveProperty() {
-        if (propertyChain.size() == 2) {
-            return superProperty.equals(propertyChain.get(0)) && superProperty
-                .equals(propertyChain.get(1));
-        } else {
-            return false;
-        }
+        return propertyChain.size() == 2 && superProperty.equals(propertyChain.get(0)) && superProperty.equals(propertyChain.get(1));
     }
 }

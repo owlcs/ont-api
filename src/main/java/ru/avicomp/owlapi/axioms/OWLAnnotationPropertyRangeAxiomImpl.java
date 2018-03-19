@@ -16,30 +16,27 @@ package ru.avicomp.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
-public class OWLAnnotationPropertyRangeAxiomImpl extends OWLAxiomImpl implements
-    OWLAnnotationPropertyRangeAxiom {
+public class OWLAnnotationPropertyRangeAxiomImpl extends OWLAxiomImpl implements OWLAnnotationPropertyRangeAxiom {
 
     protected final IRI range;
     private final OWLAnnotationProperty property;
 
     /**
-     * @param property property
-     * @param range range
+     * @param property    property
+     * @param range       range
      * @param annotations annotations on the axiom
      */
-    public OWLAnnotationPropertyRangeAxiomImpl(OWLAnnotationProperty property, IRI range,
-        Collection<OWLAnnotation> annotations) {
+    public OWLAnnotationPropertyRangeAxiomImpl(OWLAnnotationProperty property, IRI range, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.property = checkNotNull(property, "property cannot be null");
-        this.range = checkNotNull(range, "range cannot be null");
+        this.property = Objects.requireNonNull(property, "property cannot be null");
+        this.range = Objects.requireNonNull(range, "range cannot be null");
     }
 
     @Override
@@ -53,7 +50,7 @@ public class OWLAnnotationPropertyRangeAxiomImpl extends OWLAxiomImpl implements
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLAnnotationPropertyRangeAxiomImpl(getProperty(), getRange(),
-            mergeAnnos(anns));
+                mergeAnnos(anns));
     }
 
     @Override

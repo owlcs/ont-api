@@ -14,18 +14,16 @@
 package ru.avicomp.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
 public class OWLHasKeyAxiomImpl extends OWLLogicalAxiomImpl implements OWLHasKeyAxiom {
 
@@ -33,17 +31,18 @@ public class OWLHasKeyAxiomImpl extends OWLLogicalAxiomImpl implements OWLHasKey
     private final List<OWLPropertyExpression> propertyExpressions;
 
     /**
-     * @param expression class expression
+     * @param expression          class expression
      * @param propertyExpressions properties
-     * @param annotations annotations on the axiom
+     * @param annotations         annotations on the axiom
      */
     public OWLHasKeyAxiomImpl(OWLClassExpression expression,
-        Collection<? extends OWLPropertyExpression> propertyExpressions,
-        Collection<OWLAnnotation> annotations) {
+                              Collection<? extends OWLPropertyExpression> propertyExpressions,
+                              Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.expression = checkNotNull(expression, "expression cannot be null");
-        checkNotNull(propertyExpressions, "propertyExpressions cannot be null");
-        this.propertyExpressions = sorted(OWLPropertyExpression.class, propertyExpressions);
+        this.expression = Objects.requireNonNull(expression, "expression cannot be null");
+        this.propertyExpressions = Objects.requireNonNull(propertyExpressions, "propertyExpressions cannot be null")
+                .stream()
+                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     @Override
@@ -54,10 +53,10 @@ public class OWLHasKeyAxiomImpl extends OWLLogicalAxiomImpl implements OWLHasKey
         return new OWLHasKeyAxiomImpl(getClassExpression(), propertyExpressions, NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
-        return (T) new OWLHasKeyAxiomImpl(getClassExpression(), propertyExpressions,
-            mergeAnnos(anns));
+        return (T) new OWLHasKeyAxiomImpl(getClassExpression(), propertyExpressions, mergeAnnos(anns));
     }
 
     @Override
@@ -67,7 +66,7 @@ public class OWLHasKeyAxiomImpl extends OWLLogicalAxiomImpl implements OWLHasKey
 
     @Override
     public Stream<OWLPropertyExpression> propertyExpressions() {
-        return streamFromSorted(propertyExpressions);
+        return propertyExpressions.stream();
     }
 
     @Override

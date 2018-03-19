@@ -17,11 +17,11 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.SWRLLiteralArgument;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class SWRLLiteralArgumentImpl extends OWLObjectImpl implements SWRLLiteralArgument {
 
@@ -31,7 +31,7 @@ public class SWRLLiteralArgumentImpl extends OWLObjectImpl implements SWRLLitera
      * @param literal literal for argument
      */
     public SWRLLiteralArgumentImpl(OWLLiteral literal) {
-        this.literal = checkNotNull(literal, "literal cannot be null");
+        this.literal = Objects.requireNonNull(literal, "literal cannot be null");
     }
 
     @Override

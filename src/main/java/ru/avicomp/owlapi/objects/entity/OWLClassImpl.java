@@ -21,14 +21,13 @@ import ru.avicomp.owlapi.objects.OWLClassExpressionImpl;
 import ru.avicomp.owlapi.objects.ce.OWLObjectComplementOfImpl;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public class OWLClassImpl extends OWLClassExpressionImpl implements OWLClass, Serializable {
 
@@ -40,7 +39,7 @@ public class OWLClassImpl extends OWLClassExpressionImpl implements OWLClass, Se
      * @param iri class iri
      */
     public OWLClassImpl(IRI iri) {
-        this.iri = checkNotNull(iri, "iri cannot be null");
+        this.iri = Objects.requireNonNull(iri, "iri cannot be null");
         isThing = getIRI().isThing();
         isNothing = getIRI().isNothing();
     }

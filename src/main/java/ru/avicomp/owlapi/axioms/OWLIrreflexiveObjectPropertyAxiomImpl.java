@@ -24,18 +24,15 @@ import static ru.avicomp.owlapi.InternalizedEntities.OWL_THING;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLIrreflexiveObjectPropertyAxiomImpl extends
-        OWLObjectPropertyCharacteristicAxiomImpl implements
-    OWLIrreflexiveObjectPropertyAxiom {
+public class OWLIrreflexiveObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLIrreflexiveObjectPropertyAxiom {
 
     /**
-     * @param property property
+     * @param property    property
      * @param annotations annotations
      */
-    public OWLIrreflexiveObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
-        Collection<OWLAnnotation> annotations) {
+    public OWLIrreflexiveObjectPropertyAxiomImpl(OWLObjectPropertyExpression property, Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 
@@ -54,8 +51,6 @@ public class OWLIrreflexiveObjectPropertyAxiomImpl extends
 
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        return new OWLSubClassOfAxiomImpl(OWL_THING,
-            new OWLObjectComplementOfImpl(new OWLObjectHasSelfImpl(
-                getProperty())), NO_ANNOTATIONS);
+        return new OWLSubClassOfAxiomImpl(OWL_THING, new OWLObjectComplementOfImpl(new OWLObjectHasSelfImpl(getProperty())), NO_ANNOTATIONS);
     }
 }

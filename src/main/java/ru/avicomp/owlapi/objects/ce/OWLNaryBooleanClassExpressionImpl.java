@@ -15,43 +15,38 @@ package ru.avicomp.owlapi.objects.ce;
 
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNaryBooleanClassExpression;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.streamFromSorted;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLNaryBooleanClassExpressionImpl extends OWLAnonymousClassExpressionImpl
-    implements OWLNaryBooleanClassExpression {
+public abstract class OWLNaryBooleanClassExpressionImpl extends OWLAnonymousClassExpressionImpl implements OWLNaryBooleanClassExpression {
 
     private final List<OWLClassExpression> operands;
 
     /**
      * @param operands operands
      */
-    public OWLNaryBooleanClassExpressionImpl(Stream<OWLClassExpression> operands) {
-        checkNotNull(operands, "operands cannot be null");
-        this.operands = sorted(OWLClassExpression.class, operands);
+    protected OWLNaryBooleanClassExpressionImpl(Stream<OWLClassExpression> operands) {
+        this.operands = Objects.requireNonNull(operands, "operands cannot be null").filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     /**
      * @param operands operands
      */
     public OWLNaryBooleanClassExpressionImpl(Collection<? extends OWLClassExpression> operands) {
-        checkNotNull(operands, "operands cannot be null");
-        this.operands = sorted(OWLClassExpression.class, operands);
+        this(Objects.requireNonNull(operands, "operands cannot be null").stream().map(OWLClassExpression.class::cast));
     }
 
     @Override
     public Stream<OWLClassExpression> operands() {
-        return streamFromSorted(operands);
+        return operands.stream();
     }
 
     @Override

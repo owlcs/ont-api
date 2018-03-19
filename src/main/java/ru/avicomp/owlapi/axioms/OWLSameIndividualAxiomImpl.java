@@ -20,21 +20,17 @@ import ru.avicomp.owlapi.objects.ce.OWLObjectOneOfImpl;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.sorted;
-
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl implements
-    OWLSameIndividualAxiom {
+public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl implements OWLSameIndividualAxiom {
 
     /**
      * @param individuals individuals
      * @param annotations annotations on the axiom
      */
-    public OWLSameIndividualAxiomImpl(Collection<? extends OWLIndividual> individuals,
-        Collection<OWLAnnotation> annotations) {
+    public OWLSameIndividualAxiomImpl(Collection<? extends OWLIndividual> individuals, Collection<OWLAnnotation> annotations) {
         super(individuals, annotations);
     }
 
@@ -46,6 +42,7 @@ public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl imple
         return new OWLSameIndividualAxiomImpl(individuals, NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLSameIndividualAxiomImpl(individuals, mergeAnnos(anns));
@@ -56,8 +53,7 @@ public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl imple
         if (individuals.size() == 2) {
             return CollectionFactory.createSet(this);
         }
-        return walkPairwise((a, b) -> new OWLSameIndividualAxiomImpl(
-            sorted(OWLIndividual.class, a, b), NO_ANNOTATIONS));
+        return walkPairwise((a, b) -> new OWLSameIndividualAxiomImpl(Arrays.asList(a, b), NO_ANNOTATIONS));
     }
 
     @Override
@@ -65,8 +61,7 @@ public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl imple
         if (individuals.size() == 2) {
             return CollectionFactory.createSet(this);
         }
-        return walkPairwise((a,
-            b) -> new OWLSameIndividualAxiomImpl(sorted(OWLIndividual.class, a, b), annotations));
+        return walkPairwise((a, b) -> new OWLSameIndividualAxiomImpl(Arrays.asList(a, b), annotations));
     }
 
     @Override

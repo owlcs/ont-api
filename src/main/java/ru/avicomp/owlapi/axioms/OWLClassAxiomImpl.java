@@ -20,7 +20,7 @@ import java.util.Collection;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
 public abstract class OWLClassAxiomImpl extends OWLLogicalAxiomImpl implements OWLClassAxiom {
 

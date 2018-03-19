@@ -16,17 +16,14 @@ package ru.avicomp.owlapi.objects;
 import org.semanticweb.owlapi.model.NodeID;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 
+import java.util.Objects;
 import java.util.Optional;
-
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
-public class OWLAnonymousIndividualImpl extends OWLIndividualImpl implements
-    OWLAnonymousIndividual {
+public class OWLAnonymousIndividualImpl extends OWLIndividualImpl implements OWLAnonymousIndividual {
 
     private final NodeID nodeId;
 
@@ -34,7 +31,7 @@ public class OWLAnonymousIndividualImpl extends OWLIndividualImpl implements
      * @param nodeID node id
      */
     public OWLAnonymousIndividualImpl(NodeID nodeID) {
-        nodeId = checkNotNull(nodeID, "nodeID cannot be null");
+        nodeId = Objects.requireNonNull(nodeID, "nodeID cannot be null");
     }
 
     @Override
@@ -54,6 +51,6 @@ public class OWLAnonymousIndividualImpl extends OWLIndividualImpl implements
 
     @Override
     public Optional<OWLAnonymousIndividual> asAnonymousIndividual() {
-        return optional(this);
+        return Optional.of(this);
     }
 }

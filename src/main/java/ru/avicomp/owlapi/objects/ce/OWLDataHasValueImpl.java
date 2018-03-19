@@ -19,24 +19,23 @@ import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import ru.avicomp.owlapi.objects.dr.OWLDataOneOfImpl;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLDataHasValueImpl extends OWLValueRestrictionImpl<OWLLiteral> implements
-    OWLDataHasValue {
+public class OWLDataHasValueImpl extends OWLValueRestrictionImpl<OWLLiteral> implements OWLDataHasValue {
 
     private final OWLDataPropertyExpression property;
 
     /**
      * @param property property
-     * @param value value
+     * @param value    value
      */
     public OWLDataHasValueImpl(OWLDataPropertyExpression property, OWLLiteral value) {
         super(value);
-        this.property = checkNotNull(property, "property cannot be null");
+        this.property = Objects.requireNonNull(property, "property cannot be null");
     }
 
     @Override

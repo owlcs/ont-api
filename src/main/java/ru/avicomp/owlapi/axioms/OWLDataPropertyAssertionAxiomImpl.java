@@ -22,28 +22,26 @@ import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public class OWLDataPropertyAssertionAxiomImpl extends
-        OWLIndividualRelationshipAxiomImpl<OWLDataPropertyExpression, OWLLiteral> implements
-    OWLDataPropertyAssertionAxiom {
+public class OWLDataPropertyAssertionAxiomImpl extends OWLIndividualRelationshipAxiomImpl<OWLDataPropertyExpression, OWLLiteral> implements OWLDataPropertyAssertionAxiom {
 
     /**
-     * @param subject subject
-     * @param property property
-     * @param value value
+     * @param subject     subject
+     * @param property    property
+     * @param value       value
      * @param annotations annotations
      */
     public OWLDataPropertyAssertionAxiomImpl(OWLIndividual subject,
-        OWLDataPropertyExpression property,
-        OWLLiteral value, Collection<OWLAnnotation> annotations) {
+                                             OWLDataPropertyExpression property,
+                                             OWLLiteral value, Collection<OWLAnnotation> annotations) {
         super(subject, property, value, annotations);
     }
 
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
         return new OWLSubClassOfAxiomImpl(new OWLObjectOneOfImpl(getSubject()),
-            new OWLDataHasValueImpl(getProperty(), getObject()), NO_ANNOTATIONS);
+                new OWLDataHasValueImpl(getProperty(), getObject()), NO_ANNOTATIONS);
     }
 
     @Override
@@ -57,6 +55,6 @@ public class OWLDataPropertyAssertionAxiomImpl extends
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
         return (T) new OWLDataPropertyAssertionAxiomImpl(getSubject(), getProperty(), getObject(),
-            mergeAnnos(anns));
+                mergeAnnos(anns));
     }
 }

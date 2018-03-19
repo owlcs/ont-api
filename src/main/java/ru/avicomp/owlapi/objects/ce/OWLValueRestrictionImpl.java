@@ -16,21 +16,19 @@ package ru.avicomp.owlapi.objects.ce;
 import org.semanticweb.owlapi.model.OWLHasValueRestriction;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import java.util.Objects;
 
 /**
  * @param <V> the value
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
+ * @since 1.2.0
  */
-public abstract class OWLValueRestrictionImpl<V extends OWLObject> extends
-        OWLAnonymousClassExpressionImpl implements
-    OWLHasValueRestriction<V> {
+public abstract class OWLValueRestrictionImpl<V extends OWLObject> extends OWLAnonymousClassExpressionImpl implements OWLHasValueRestriction<V> {
 
     protected final V value;
 
     protected OWLValueRestrictionImpl(V value) {
-        this.value = checkNotNull(value, "value cannot be null");
+        this.value = Objects.requireNonNull(value, "value cannot be null");
     }
 
     @Override

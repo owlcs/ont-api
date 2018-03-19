@@ -18,10 +18,9 @@ import ru.avicomp.owlapi.OWLObjectImpl;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
+ * @since 1.2.0
  */
-public abstract class OWLClassExpressionImpl extends OWLObjectImpl implements
-    OWLClassExpression {
+public abstract class OWLClassExpressionImpl extends OWLObjectImpl implements OWLClassExpression {
 
     protected OWLClassExpressionImpl() {
     }
