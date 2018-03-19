@@ -19,7 +19,6 @@ import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.*;
 
@@ -35,7 +34,6 @@ public class OWLOntologyFactoryImpl implements OWLOntologyFactory {
     /**
      * @param ontologyBuilder ontology builder
      */
-    @Inject
     public OWLOntologyFactoryImpl(OWLOntologyBuilder ontologyBuilder) {
         this.ontologyBuilder = Objects.requireNonNull(ontologyBuilder);
     }
@@ -106,8 +104,7 @@ public class OWLOntologyFactoryImpl implements OWLOntologyFactory {
 
     @Override
     public boolean canAttemptLoading(OWLOntologyDocumentSource source) {
-        return !source.hasAlredyFailedOnStreams() || !source.hasAlredyFailedOnIRIResolution()
-                && parsableSchemes.contains(source.getDocumentIRI().getScheme());
+        return !source.hasAlredyFailedOnStreams() || !source.hasAlredyFailedOnIRIResolution() && parsableSchemes.contains(source.getDocumentIRI().getScheme());
     }
 
     @Override

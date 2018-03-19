@@ -24,7 +24,7 @@ import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.owlapi.ConcurrentOWLOntologyImpl;
+import ru.avicomp.owlapi.OWLOntologyWrapper;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -207,7 +207,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      * Created by szuev on 22.12.2016.
      */
     @SuppressWarnings("WeakerAccess")
-    public static class Concurrent extends ConcurrentOWLOntologyImpl implements OntologyModel, ConfigProvider, InternalModelHolder {
+    public static class Concurrent extends OWLOntologyWrapper implements OntologyModel, ConfigProvider, InternalModelHolder {
 
         protected Concurrent(OntologyModelImpl delegate, ReadWriteLock lock) {
             super(delegate, lock);
