@@ -10,17 +10,112 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.owlapi;
 
-/**
- * A stopgap to get rid of owlapi-impl usage.
- * A temporary solution.
- * <p>
- * Created by @szuev on 02.03.2018.
- */
-public class NoOpReadWriteLock extends uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock {
+import javax.annotation.Nullable;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
+/**
+ * Matthew Horridge Stanford Center for Biomedical Informatics Research 13/04/15
+ */
+public class NoOpReadWriteLock implements ReadWriteLock, Serializable {
+
+    private static final NoOpLock NO_OP_LOCK = new NoOpLock();
+
+    @Override
+    public Lock readLock() {
+        return NO_OP_LOCK;
+    }
+
+    @Override
+    public Lock writeLock() {
+        return NO_OP_LOCK;
+    }
+
+    /**
+     * Matthew Horridge Stanford Center for Biomedical Informatics Research 13/04/15
+     */
+    public static class NoOpLock implements Lock, Serializable {
+
+        public static final NoOpCondition NO_OP_CONDITION = new NoOpCondition();
+
+        @Override
+        public void lock() {
+            // nothing to do
+        }
+
+        @Override
+        public void lockInterruptibly() {
+            // nothing to do
+        }
+
+        @Override
+        public boolean tryLock() {
+            return true;
+        }
+
+        @Override
+        public boolean tryLock(long time, @Nullable TimeUnit unit) {
+            return true;
+        }
+
+        @Override
+        public void unlock() {
+            // nothing to do
+        }
+
+        @Override
+        public Condition newCondition() {
+            return NO_OP_CONDITION;
+        }
+
+        private static class NoOpCondition implements Condition, Serializable {
+
+            public NoOpCondition() {
+                // nothing to do
+            }
+
+            @Override
+            public void await() {
+                // nothing to do
+            }
+
+            @Override
+            public void awaitUninterruptibly() {
+                // nothing to do
+            }
+
+            @Override
+            public long awaitNanos(long nanosTimeout) {
+                return 0;
+            }
+
+            @Override
+            public boolean await(long time, @Nullable TimeUnit unit) {
+                return true;
+            }
+
+            @Override
+            public boolean awaitUntil(@Nullable Date deadline) {
+                return true;
+            }
+
+            @Override
+            public void signal() {
+                // nothing to do
+            }
+
+            @Override
+            public void signalAll() {
+                // nothing to do
+            }
+        }
+    }
 }

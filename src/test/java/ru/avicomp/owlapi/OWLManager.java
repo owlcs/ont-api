@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 package ru.avicomp.owlapi;
 
@@ -80,7 +79,7 @@ public class OWLManager {
     public static OWLOntologyManager newManager(OWLDataFactory df, ReadWriteLock lock) {
         LOGGER.debug("New {}", typeName("OntologyManager"));
         return DEBUG_USE_OWL ?
-                new uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl(df, lock) :
+                new OntManagers.OWLAPIImplProfile().create(df, lock) :
                 new ru.avicomp.ontapi.OntologyManagerImpl(df, lock);
     }
 
@@ -91,15 +90,15 @@ public class OWLManager {
     public static OWLDataFactory newOWLDataFactory(boolean withCompression) {
         LOGGER.debug("New {}", typeName("DataFactory"));
         return DEBUG_USE_OWL ?
-                new uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl(withCompression) :
-                new ru.avicomp.owlapi.OWLDataFactoryImpl();
+                new OntManagers.OWLAPIImplProfile().createDataFactory(withCompression) :
+                OntManagers.getDataFactory();
     }
 
     public static OWLOntologyFactory newOWLLoadFactory(OWLOntologyBuilder builder) {
         LOGGER.debug("New {}", typeName("LoadFactory"));
         return DEBUG_USE_OWL ?
-                new uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl(builder) :
-                new ru.avicomp.owlapi.OWLOntologyFactoryImpl(builder);
+                new OntManagers.OWLAPIImplProfile().createLoadFactory(builder) :
+                OntManagers.createOWLOntologyLoadFactory(builder);
     }
 
     public static OntologyConfigurator newConfig() {
@@ -125,8 +124,15 @@ public class OWLManager {
      */
     public static OWLOntologyBuilder createOntologyBuilder() {
         return OWLManager.DEBUG_USE_OWL ?
-                (OWLOntologyBuilder) uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl::new :
+                (OWLOntologyBuilder) (m, i) -> new OntManagers.OWLAPIImplProfile().createOWLOntologyImpl(m, i) :
                 new OntologyFactoryImpl.ONTBuilderImpl();
     }
 
+    public static Class<?> findClass(String name) {
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException e) {
+            throw new AssertionError("Unable to find " + name, e);
+        }
+    }
 }

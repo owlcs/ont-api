@@ -10,16 +10,170 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
-
 package ru.avicomp.owlapi;
 
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import org.semanticweb.owlapi.io.ToStringRenderer;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
+
+import javax.annotation.Nullable;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import static org.semanticweb.owlapi.util.OWLAPIPreconditions.checkNotNull;
+import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.*;
+
 /**
- * A stopgap to get rid of owlapi-impl usage.
- * A temporary solution.
- * <p>
- * Created by @szuev on 02.03.2018.
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
+ * @since 2.0.0
  */
-public abstract class OWLObjectImpl extends uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl {
+public abstract class OWLObjectImpl
+    implements OWLObject, Serializable, HasIncrementalSignatureGenerationSupport {
+
+    /**
+     * a convenience reference for an empty annotation set, saves on typing.
+     */
+    protected static final Set<OWLAnnotation> NO_ANNOTATIONS = Collections.emptySet();
+
+    // @formatter:off
+    protected static LoadingCache<OWLObjectImpl, Set<OWLEntity>>              signatures =                      build(key -> key.addSignatureEntitiesToSet(new TreeSet<>()));
+    protected static LoadingCache<OWLObjectImpl, Set<OWLAnonymousIndividual>> anonCaches =                      build(key -> key.addAnonymousIndividualsToSet(new TreeSet<>()));
+    protected static LoadingCache<OWLObjectImpl, List<OWLClass>>              classesSignatures =               build(key -> cacheSig(key, OWLEntity::isOWLClass,               OWLEntity::asOWLClass));
+    protected static LoadingCache<OWLObjectImpl, List<OWLDataProperty>>       dataPropertySignatures =          build(key -> cacheSig(key, OWLEntity::isOWLDataProperty,        OWLEntity::asOWLDataProperty));
+    protected static LoadingCache<OWLObjectImpl, List<OWLObjectProperty>>     objectPropertySignatures =        build(key -> cacheSig(key, OWLEntity::isOWLObjectProperty,      OWLEntity::asOWLObjectProperty));
+    protected static LoadingCache<OWLObjectImpl, List<OWLDatatype>>           datatypeSignatures =              build(key -> cacheSig(key, OWLEntity::isOWLDatatype,            OWLEntity::asOWLDatatype));
+    protected static LoadingCache<OWLObjectImpl, List<OWLNamedIndividual>>    individualSignatures =            build(key -> cacheSig(key, OWLEntity::isOWLNamedIndividual,     OWLEntity::asOWLNamedIndividual));
+    protected static LoadingCache<OWLObjectImpl, List<OWLAnnotationProperty>> annotationPropertiesSignatures =  build(key -> cacheSig(key, OWLEntity::isOWLAnnotationProperty,  OWLEntity::asOWLAnnotationProperty));
+    // @formatter:on
+    static <Q, T> LoadingCache<Q, T> build(CacheLoader<Q, T> c) {
+        return Caffeine.newBuilder().weakKeys().softValues().build(c);
+    }
+
+    static <T> List<T> cacheSig(OWLObject o, Predicate<OWLEntity> p, Function<OWLEntity, T> f) {
+        return asList(o.signature().filter(p).map(f));
+    }
+
+    protected int hashCode = 0;
+
+    @Override
+    public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
+        return anonCaches.get(this).stream();
+    }
+
+    @Override
+    public Stream<OWLEntity> signature() {
+        return signatures.get(this).stream();
+    }
+
+    @Override
+    public boolean containsEntityInSignature(OWLEntity owlEntity) {
+        return signatures.get(this).contains(owlEntity);
+    }
+
+    @Override
+    public Stream<OWLClass> classesInSignature() {
+        return streamFromSorted(classesSignatures.get(this));
+    }
+
+    @Override
+    public Stream<OWLDataProperty> dataPropertiesInSignature() {
+        return streamFromSorted(dataPropertySignatures.get(this));
+    }
+
+    @Override
+    public Stream<OWLObjectProperty> objectPropertiesInSignature() {
+        return streamFromSorted(objectPropertySignatures.get(this));
+    }
+
+    @Override
+    public Stream<OWLNamedIndividual> individualsInSignature() {
+        return streamFromSorted(individualSignatures.get(this));
+    }
+
+    @Override
+    public Stream<OWLDatatype> datatypesInSignature() {
+        return streamFromSorted(datatypeSignatures.get(this));
+    }
+
+    @Override
+    public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
+        return streamFromSorted(annotationPropertiesSignatures.get(this));
+    }
+
+    @Override
+    public Stream<OWLClassExpression> nestedClassExpressions() {
+        return accept(new OWLClassExpressionCollector()).stream();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof OWLObject)) {
+            return false;
+        }
+        OWLObject other = (OWLObject) obj;
+        if (typeIndex() != other.typeIndex() || hashCode() != other.hashCode()) {
+            return false;
+        }
+        return equalStreams(components(), other.components());
+    }
+
+    @Override
+    public int hashCode() {
+        if (hashCode == 0) {
+            hashCode = initHashCode();
+        }
+        return hashCode;
+    }
+
+    @Override
+    public int compareTo(@Nullable OWLObject o) {
+        checkNotNull(o);
+        assert o != null;
+        int diff = Integer.compare(typeIndex(), o.typeIndex());
+        if (diff != 0) {
+            return diff;
+        }
+        return compareIterators(components().iterator(), o.components().iterator());
+    }
+
+    protected int compareAnnotations(List<OWLAnnotation> l1, List<OWLAnnotation> l2) {
+        int i = 0;
+        for (; i < l1.size() && i < l2.size(); i++) {
+            int diff = l1.get(i).compareTo(l2.get(i));
+            if (diff != 0) {
+                return diff;
+            }
+        }
+        if (i < l2.size()) {
+            // l1 is shorter and a sublist of l2
+            return -1;
+        }
+        if (i < l1.size()) {
+            // l2 is shorter and a sublist of l1
+            return 1;
+        }
+        // lists are identical
+        return 0;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringRenderer.getRendering(this);
+    }
 }

@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.tests.formats;
@@ -24,6 +23,7 @@ import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntFormat;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 import ru.avicomp.owlapi.OWLManager;
@@ -49,9 +49,9 @@ public class OntFormatsChecker {
 
     @Test
     public void testDocumentFormatFactories() throws OWLOntologyCreationException {
-        // from owlapi-apibinding.
+        // from owlapi-impl to compare.
         // use the simplest ontology to avoid any deep parsing exceptions
-        OWLOntology ontology = OWLManager.createOWLOntologyManager().createOntology(IRI.create("http://test.org/empty"));
+        OWLOntology ontology = OntManagers.createOWL().createOntology(IRI.create("http://test.org/empty"));
         LOGGER.info("{}", ontology);
         Set<OntFormat> writeNotSupported = new HashSet<>();
         Set<OntFormat> readNotSupported = new HashSet<>();
@@ -65,7 +65,7 @@ public class OntFormatsChecker {
             }
             try {
                 OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(p.toUri()), f.createOwlFormat(), null);
-                OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(source);
+                OntManagers.createOWL().loadOntologyFromOntologyDocument(source);
             } catch (UnparsableOntologyException e) {
                 LOGGER.error("Can't read " + p, e);
                 readNotSupported.add(f);

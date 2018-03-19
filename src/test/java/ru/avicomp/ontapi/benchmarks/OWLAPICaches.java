@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.benchmarks;
@@ -19,6 +18,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.junit.Assert;
 import ru.avicomp.ontapi.OntologyManagerImpl;
+import ru.avicomp.owlapi.OWLManager;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -37,13 +37,13 @@ import java.util.stream.Collectors;
 public class OWLAPICaches {
 
     public static void clearDataFactoryCaches() {
-        List<LoadingCache> caches = getGlobalCaches(uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl.class);
+        List<LoadingCache> caches = getGlobalCaches(OWLManager.findClass("uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl"));
         Assert.assertEquals(7, caches.size());
         caches.forEach(Cache::invalidateAll);
     }
 
     public static void clearObjectCaches() {
-        List<LoadingCache> caches = getGlobalCaches(uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl.class);
+        List<LoadingCache> caches = getGlobalCaches(OWLManager.findClass("uk.ac.manchester.cs.owl.owlapi.OWLObjectImpl"));
         Assert.assertEquals(8, caches.size());
         caches.forEach(Cache::invalidateAll);
     }
@@ -51,6 +51,10 @@ public class OWLAPICaches {
     public static void clearAll() {
         clearDataFactoryCaches();
         clearObjectCaches();
+        clearONTAPICaches();
+    }
+
+    public static void clearONTAPICaches() {
         OntologyManagerImpl.getIRICache().invalidateAll();
     }
 

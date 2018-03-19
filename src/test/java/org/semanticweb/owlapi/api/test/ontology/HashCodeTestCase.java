@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,14 +13,14 @@
  */
 package org.semanticweb.owlapi.api.test.ontology;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl;
+import ru.avicomp.owlapi.objects.literal.OWLLiteralImplNoCompression;
 
-import uk.ac.manchester.cs.owl.owlapi.*;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -35,13 +35,13 @@ public class HashCodeTestCase {
 
     @Test
     public void testSetContainsInt() {
-        OWLDatatypeImpl datatype = new OWLDatatypeImpl(
+        ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl datatype = new ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl(
                 OWL2Datatype.XSD_INTEGER.getIRI());
-        OWLLiteral litNoComp = new OWLLiteralImplNoCompression("3", null,
+        OWLLiteral litNoComp = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplNoCompression("3", null,
                 datatype);
-        OWLLiteral litNoComp2 = new OWLLiteralImplNoCompression("3", null,
+        OWLLiteral litNoComp2 = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplNoCompression("3", null,
                 datatype);
-        OWLLiteral litIntImpl = new OWLLiteralImplInteger(3);
+        OWLLiteral litIntImpl = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplInteger(3);
         assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
@@ -51,13 +51,13 @@ public class HashCodeTestCase {
 
     @Test
     public void testSetContainsDouble() {
-        OWLDatatypeImpl datatype = new OWLDatatypeImpl(
+        ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl datatype = new ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl(
                 OWL2Datatype.XSD_DOUBLE.getIRI());
-        OWLLiteral litNoComp = new OWLLiteralImplNoCompression("3.0", null,
+        OWLLiteral litNoComp = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplNoCompression("3.0", null,
                 datatype);
-        OWLLiteral litNoComp2 = new OWLLiteralImplNoCompression("3.0", null,
+        OWLLiteral litNoComp2 = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplNoCompression("3.0", null,
                 datatype);
-        OWLLiteral litIntImpl = new OWLLiteralImplDouble(3.0D);
+        OWLLiteral litIntImpl = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplDouble(3.0D);
         assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
@@ -67,13 +67,13 @@ public class HashCodeTestCase {
 
     @Test
     public void testSetContainsFloat() {
-        OWLDatatypeImpl datatype = new OWLDatatypeImpl(
+        ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl datatype = new ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl(
                 OWL2Datatype.XSD_FLOAT.getIRI());
-        OWLLiteral litNoComp = new OWLLiteralImplNoCompression("3.0", null,
+        OWLLiteral litNoComp = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplNoCompression("3.0", null,
                 datatype);
-        OWLLiteral litNoComp2 = new OWLLiteralImplNoCompression("3.0", null,
+        OWLLiteral litNoComp2 = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplNoCompression("3.0", null,
                 datatype);
-        OWLLiteral litIntImpl = new OWLLiteralImplFloat(3.0F);
+        OWLLiteral litIntImpl = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplFloat(3.0F);
         assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
@@ -83,13 +83,13 @@ public class HashCodeTestCase {
 
     @Test
     public void testSetContainsBoolean() {
-        OWLDatatypeImpl datatype = new OWLDatatypeImpl(
+        ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl datatype = new OWLDatatypeImpl(
                 OWL2Datatype.XSD_BOOLEAN.getIRI());
-        OWLLiteral litNoComp = new OWLLiteralImplNoCompression("true", null,
+        OWLLiteral litNoComp = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplNoCompression("true", null,
                 datatype);
         OWLLiteral litNoComp2 = new OWLLiteralImplNoCompression("true", null,
                 datatype);
-        OWLLiteral litIntImpl = new OWLLiteralImplBoolean(true);
+        OWLLiteral litIntImpl = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplBoolean(true);
         assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
