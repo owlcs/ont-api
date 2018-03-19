@@ -10,13 +10,10 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.atlas.iterator.Iter;
@@ -91,8 +88,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected final OWLDataFactory dataFactory;
     // the collection of ontologies:
     protected final OntologyCollection content;
-    // global IRI cache:
-    private static LoadingCache<String, IRI> iriCache = Caffeine.newBuilder().weakKeys().softValues().build(IRI::create);
 
     protected OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock, PriorityCollectionSorting sorting) {
         this.dataFactory = OntApiException.notNull(dataFactory, "Null OWLDataFactory specified.");
@@ -104,14 +99,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         ontologyStorers = new ConcurrentPriorityCollection<>(lock, sorting);
         configProvider = new OntConfig();
         content = new OntologyCollection(isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet());
-    }
-
-    public static LoadingCache<String, IRI> getIRICache() {
-        return iriCache;
-    }
-
-    public static void setIRICache(LoadingCache<String, IRI> cache) {
-        iriCache = OntApiException.notNull(cache, "Null cache");
     }
 
     protected OntologyManagerImpl(OWLDataFactory dataFactory, OntologyFactory loadFactory, ReadWriteLock readWriteLock) {

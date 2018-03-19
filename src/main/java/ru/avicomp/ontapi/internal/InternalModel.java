@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -801,16 +800,23 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         protected final LoadingCache<OntOPE, InternalObject<? extends OWLObjectPropertyExpression>> objectProperties;
         protected final LoadingCache<OntIndividual, InternalObject<? extends OWLIndividual>> individuals;
         protected final LoadingCache<Literal, InternalObject<OWLLiteral>> literals;
+        protected final LoadingCache<String, IRI> iris;
 
+        /**
+         * @param config {@link ConfigProvider.Config}
+         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternalsImpl.java#L63'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl#builder(CacheLoader)</a>
+         */
         public CacheDataFactory(ConfigProvider.Config config) {
             super(config);
-            this.classExpressions = build(super::get);
-            this.dataRanges = build(super::get);
-            this.annotationProperties = build(super::get);
-            this.datatypeProperties = build(super::get);
-            this.objectProperties = build(super::get);
-            this.individuals = build(super::get);
-            this.literals = build(super::get);
+            int size = 2048; // this number is taken from OWL-API DataFactory impl
+            this.classExpressions = buildSync(size, super::get);
+            this.dataRanges = buildSync(size, super::get);
+            this.annotationProperties = build(size, super::get);
+            this.datatypeProperties = build(size, super::get);
+            this.objectProperties = build(size, super::get);
+            this.individuals = build(size, super::get);
+            this.literals = build(size, super::get);
+            this.iris = build(size, IRI::create);
         }
 
         @Override
@@ -861,23 +867,42 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
         @Override
         public IRI toIRI(String str) { // use global cache
-            return ru.avicomp.ontapi.OntologyManagerImpl.getIRICache().get(str);
+            return iris.get(str);
         }
 
         /**
-         * Builds synchronized caffeine LoadingCache since
-         * <a href='https://github.com/ben-manes/caffeine/issues/209'>a recursive computation is not supported in Java’s maps</a>
+         * Builds a synchronized caffeine LoadingCache since
+         * <a href='https://github.com/ben-manes/caffeine/issues/209'>a recursive computation is not supported in Java’s maps</a>.
          *
-         * @param parser {@link CacheLoader}
-         * @param <K>    key type
-         * @param <V>    value type
+         * @param maxSize, int, the maximum size of the cache
+         * @param loader  {@link CacheLoader}
+         * @param <K>     key type
+         * @param <V>     value type
          * @return {@link LoadingCache}
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternalsImpl.java#L63'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl#builder(CacheLoader)</a>
          */
-        private static <K, V> LoadingCache<K, V> build(CacheLoader<K, V> parser) {
-            return Caffeine.newBuilder() // the number from OWL-API DataFactory impl:
-                    .maximumSize(2048)
-                    .buildAsync(parser).synchronous();
+        private static <K, V> LoadingCache<K, V> buildSync(long maxSize, CacheLoader<K, V> loader) {
+            Caffeine<Object, Object> res = Caffeine.newBuilder();
+            if (maxSize > 0) {
+                res = res.maximumSize(maxSize);
+            }
+            return res.buildAsync(loader).synchronous();
+        }
+
+        /**
+         * Builds a standard caffeine LoadingCache.
+         *
+         * @param maxSize, int, the maximum size of the cache
+         * @param loader   {@link CacheLoader}
+         * @param <K>      key type
+         * @param <V>      value type
+         * @return {@link LoadingCache}
+         */
+        private static <K, V> LoadingCache<K, V> build(long maxSize, CacheLoader<K, V> loader) {
+            Caffeine<Object, Object> res = Caffeine.newBuilder();
+            if (maxSize > 0) {
+                res = res.maximumSize(maxSize);
+            }
+            return res.build(loader);
         }
 
         @Override
