@@ -81,23 +81,35 @@
     </distributionManagement>
 
     <dependencies>
-        <!-- apache-jena: -->
+        <!-- Apache Jena: -->
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-arq</artifactId>
             <version>${version.jena}</version>
         </dependency>
-        <!-- owl-api: -->
+        <!-- OWL-API: -->
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
             <artifactId>owlapi-api</artifactId>
             <version>${version.owlapi}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.ben-manes.caffeine</groupId>
+                    <artifactId>caffeine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- other: -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.22</version>
+        </dependency>
+        <!-- the same version as in OWL-API supply: -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>2.5.6</version>
         </dependency>
         <!-- tests: -->
         <dependency>
@@ -118,6 +130,10 @@
             <version>1.9.5</version>
             <scope>test</scope>
         </dependency>
+        <!--
+        net.sourceforge.owlapi:owlapi-impl is required by tests on OWL-API reasoner and by OWL-API-tests (org.semanticweb) in comparing mode
+        (i.e. with -Ddebug.use.owl=true, see ru.avicomp.owlapi.OWLManager)
+        -->
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
             <artifactId>owlapi-impl</artifactId>
