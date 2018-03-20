@@ -17,7 +17,7 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.util.CollectionFactory;
-import ru.avicomp.owlapi.objects.OWLClassExpressionImpl;
+import ru.avicomp.owlapi.OWLObjectImpl;
 import ru.avicomp.owlapi.objects.ce.OWLObjectComplementOfImpl;
 
 import java.io.Serializable;
@@ -29,7 +29,7 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
-public class OWLClassImpl extends OWLClassExpressionImpl implements OWLClass, Serializable {
+public class OWLClassImpl extends OWLObjectImpl implements OWLClass, Serializable {
 
     private final IRI iri;
     private final boolean isThing;

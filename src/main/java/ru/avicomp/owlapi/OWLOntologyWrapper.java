@@ -525,7 +525,7 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public int compareTo(@Nullable OWLObject o) {
+    public int compareTo(OWLObject o) {
         lock.readLock().lock();
         try {
             return delegate.compareTo(o);

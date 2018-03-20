@@ -84,17 +84,17 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * Provides an original pure OWL-API ontology manager instance with default settings.
+     * Creates an original (pure) OWL-API ontology manager instance with default settings.
      * Notes:
      * <ul>
      * <li>This method is not a direct part of ONT-API, it is for convenience and/or test purposes only.
-     * Better to use the original solution from OWL-API supply.</li>
+     * Better to use a similar method from OWL-API(apibinding) supply, if it is available.</li>
      * <li><a href='https://github.com/owlcs/owlapi/blob/version5/impl/'>owlapi-impl</a> must be in class-path</li>
      * </ul>
      *
      * @return {@link OWLOntologyManager}
      * @throws OntApiException       if there is no owlapi-impl in class-path
-     * @throws IllegalStateException if unable to find factories methods inside owlapi-apibinding manager provider
+     * @throws IllegalStateException some unexpected exception while constructing manager using reflection
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/apibinding/src/main/java/org/semanticweb/owlapi/apibinding/OWLManager.java#L43'>org.semanticweb.owlapi.apibinding.OWLManager#createOWLOntologyManager()</a>
      */
     public static OWLOntologyManager createOWL() {
@@ -102,17 +102,17 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * Provides an original pure OWL-API ontology manager instance with default settings and locking to work in a concurrent environment.
+     * Creates an original (pure) OWL-API ontology manager instance with default settings and locking to work in a concurrent environment.
      * Notes:
      * <ul>
      * <li>This method is not a direct part of ONT-API, it is for convenience and/or test purposes only.
-     * Better to use the original solution from OWL-API supply.</li>
+     * Better to use a similar method from OWL-API(apibinding) supply, if it is available.</li>
      * <li><a href='https://github.com/owlcs/owlapi/blob/version5/impl/'>owlapi-impl</a> must be in class-path</li>
      * </ul>
      *
      * @return {@link OWLOntologyManager}
-     * @throws OntApiException       if there is no owlapi-apibinding in class-path
-     * @throws IllegalStateException if unable to find factories methods inside owlapi-apibinding manager provider
+     * @throws OntApiException       if there is no owlapi-impl in class-path
+     * @throws IllegalStateException some unexpected exception while constructing manager using reflection
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/apibinding/src/main/java/org/semanticweb/owlapi/apibinding/OWLManager.java#L53'>org.semanticweb.owlapi.apibinding.OWLManager#createConcurrentOWLOntologyManager()</a>
      */
     public static OWLOntologyManager createConcurrentOWL() {

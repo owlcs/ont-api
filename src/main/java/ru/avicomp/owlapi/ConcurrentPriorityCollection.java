@@ -25,10 +25,8 @@ import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
+ * A priority collection that supports concurrent reading and writing through a {@link ReadWriteLock}.
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 09/04/15
- * A priority collection that supports concurrent reading and writing through a
- * {@link ReadWriteLock}
- *
  * @param <T> type in the collection
  */
 public class ConcurrentPriorityCollection<T extends Serializable> extends PriorityCollection<T> {
@@ -36,17 +34,14 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
     protected final ReadWriteLock lock;
 
     /**
-     * Constructs a {@link ConcurrentPriorityCollection} using the specified
-     * {@link ReadWriteLock}
+     * Constructs a {@link ConcurrentPriorityCollection} using the specified {@link ReadWriteLock}
      *
-     * @param readWriteLock The {@link java.util.concurrent.locks.ReadWriteLock} that should be used
-     *                      for locking.
-     * @param sorting       sorting criterion
+     * @param lock The {@link java.util.concurrent.locks.ReadWriteLock} that should be used for locking.
+     * @param sorting sorting criterion
      */
-    public ConcurrentPriorityCollection(ReadWriteLock readWriteLock,
-                                        PriorityCollectionSorting sorting) {
+    public ConcurrentPriorityCollection(ReadWriteLock lock, PriorityCollectionSorting sorting) {
         super(sorting);
-        this.lock = Objects.requireNonNull(readWriteLock);
+        this.lock = Objects.requireNonNull(lock);
     }
 
     @Override

@@ -101,7 +101,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         content = new OntologyCollection(isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet());
     }
 
-    protected OntologyManagerImpl(OWLDataFactory dataFactory, OntologyFactory loadFactory, ReadWriteLock readWriteLock) {
+    public OntologyManagerImpl(OWLDataFactory dataFactory, OntologyFactory loadFactory, ReadWriteLock readWriteLock) {
         this(dataFactory, readWriteLock, PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
         this.ontologyFactories.add(loadFactory);
     }

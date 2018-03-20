@@ -17,7 +17,7 @@ import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.util.NNF;
-import ru.avicomp.owlapi.objects.OWLClassExpressionImpl;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Set;
 import java.util.stream.Stream;
@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
-public abstract class OWLAnonymousClassExpressionImpl extends OWLClassExpressionImpl implements OWLAnonymousClassExpression {
+public abstract class OWLAnonymousClassExpressionImpl extends OWLObjectImpl implements OWLAnonymousClassExpression {
 
     @Override
     public boolean isOWLThing() {

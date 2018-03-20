@@ -25,9 +25,8 @@ import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static java.util.Spliterator.*;
-
 /**
+ * A base for any OWLObject in ONT-API.
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
@@ -39,28 +38,27 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected static final Set<OWLAnnotation> NO_ANNOTATIONS = Collections.emptySet();
 
-    // WARNING: the cache is disabled since we have our own cache inside InternalModel,
-    // which should guarantee that internal objects are not be duplicated in different containers collected for the same ontology graph.
-    // maybe it is temporary solution...
-    /*
-    protected static LoadingCache<OWLObjectImpl, Set<OWLEntity>> signatures = build(key -> key.addSignatureEntitiesToSet(new TreeSet<>()));
-    protected static LoadingCache<OWLObjectImpl, Set<OWLAnonymousIndividual>> anonCaches = build(key -> key.addAnonymousIndividualsToSet(new TreeSet<>()));
-    protected static LoadingCache<OWLObjectImpl, List<OWLClass>> classesSignatures = build(key -> cacheSig(key, OWLEntity::isOWLClass, OWLEntity::asOWLClass));
-    protected static LoadingCache<OWLObjectImpl, List<OWLDataProperty>> dataPropertySignatures = build(key -> cacheSig(key, OWLEntity::isOWLDataProperty, OWLEntity::asOWLDataProperty));
-    protected static LoadingCache<OWLObjectImpl, List<OWLObjectProperty>> objectPropertySignatures = build(key -> cacheSig(key, OWLEntity::isOWLObjectProperty, OWLEntity::asOWLObjectProperty));
-    protected static LoadingCache<OWLObjectImpl, List<OWLDatatype>> datatypeSignatures = build(key -> cacheSig(key, OWLEntity::isOWLDatatype, OWLEntity::asOWLDatatype));
-    protected static LoadingCache<OWLObjectImpl, List<OWLNamedIndividual>> individualSignatures = build(key -> cacheSig(key, OWLEntity::isOWLNamedIndividual, OWLEntity::asOWLNamedIndividual));
-    protected static LoadingCache<OWLObjectImpl, List<OWLAnnotationProperty>> annotationPropertiesSignatures = build(key -> cacheSig(key, OWLEntity::isOWLAnnotationProperty, OWLEntity::asOWLAnnotationProperty));
+    // The cache is disabled since we have our own cache inside ru.avicomp.ontapi.internal.InternalModel,
+    // which should make sure that internal objects are not be duplicated in different object containers collected for the same ontology graph.
+/*
+    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, Set<OWLEntity>> signatures = build(key -> key.addSignatureEntitiesToSet(new TreeSet<>()));
+    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, Set<OWLAnonymousIndividual>> anonCaches = build(key -> key.addAnonymousIndividualsToSet(new TreeSet<>()));
+    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLClass>> classesSignatures = build(key -> cacheSig(key, OWLEntity::isOWLClass, OWLEntity::asOWLClass));
+    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLDataProperty>> dataPropertySignatures = build(key -> cacheSig(key, OWLEntity::isOWLDataProperty, OWLEntity::asOWLDataProperty));
+    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLObjectProperty>> objectPropertySignatures = build(key -> cacheSig(key, OWLEntity::isOWLObjectProperty, OWLEntity::asOWLObjectProperty));
+    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLDatatype>> datatypeSignatures = build(key -> cacheSig(key, OWLEntity::isOWLDatatype, OWLEntity::asOWLDatatype));
+    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLNamedIndividual>> individualSignatures = build(key -> cacheSig(key, OWLEntity::isOWLNamedIndividual, OWLEntity::asOWLNamedIndividual));
+    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLAnnotationProperty>> annotationPropertiesSignatures = build(key -> cacheSig(key, OWLEntity::isOWLAnnotationProperty, OWLEntity::asOWLAnnotationProperty));
 
 
-    static <Q, T> LoadingCache<Q, T> build(CacheLoader<Q, T> c) {
-        return Caffeine.newBuilder().weakKeys().softValues().build(c);
+    static <Q, T> com.github.benmanes.caffeine.cache.LoadingCache<Q, T> build(com.github.benmanes.caffeine.cache.CacheLoader<Q, T> c) {
+        return com.github.benmanes.caffeine.cache.Caffeine.newBuilder().weakKeys().softValues().build(c);
     }
 
     static <T> List<T> cacheSig(OWLObject o, Predicate<OWLEntity> p, Function<OWLEntity, T> f) {
         return o.signature().filter(p).map(f).collect(Collectors.toList());
     }
-    */
+*/
 
     protected int hashCode = 0;
 
@@ -197,7 +195,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#streamFromSorted(Collection)
      */
     protected static <T> Stream<T> streamFromSorted(Collection<T> c) {
-        return StreamSupport.stream(Spliterators.spliterator(c, DISTINCT | IMMUTABLE | NONNULL | SORTED | SIZED), false);
+        return StreamSupport.stream(Spliterators.spliterator(c, Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.SORTED | Spliterator.SIZED), false);
     }
 
     /**

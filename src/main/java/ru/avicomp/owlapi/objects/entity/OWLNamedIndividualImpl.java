@@ -15,7 +15,7 @@ package ru.avicomp.owlapi.objects.entity;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import ru.avicomp.owlapi.objects.OWLIndividualImpl;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Objects;
 
@@ -23,7 +23,7 @@ import java.util.Objects;
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  * @since 1.2.0
  */
-public class OWLNamedIndividualImpl extends OWLIndividualImpl implements OWLNamedIndividual {
+public class OWLNamedIndividualImpl extends OWLObjectImpl implements OWLNamedIndividual {
 
     private final IRI iri;
 

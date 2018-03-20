@@ -15,6 +15,7 @@ package ru.avicomp.owlapi.objects;
 
 import org.semanticweb.owlapi.model.NodeID;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
+import ru.avicomp.owlapi.OWLObjectImpl;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -23,7 +24,7 @@ import java.util.Optional;
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  * @since 1.2.0
  */
-public class OWLAnonymousIndividualImpl extends OWLIndividualImpl implements OWLAnonymousIndividual {
+public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymousIndividual {
 
     private final NodeID nodeId;
 
