@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,22 +14,20 @@
 
 package ru.avicomp.ontapi.utils;
 
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.topbraid.spin.model.*;
-import org.topbraid.spin.vocabulary.SP;
-
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.transforms.Transform;
+
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * To replace spin queries with its string representations (it is alternative way to describe spin-sparql-query).
@@ -71,14 +69,13 @@ import ru.avicomp.ontapi.transforms.Transform;
  * <p>
  * Note(1): For test purposes only.
  * Note(2): before processing add links to {@link org.apache.jena.util.FileManager} to avoid recourse to web.
- * Note(3): Be warned: Spin-API (through {@link SP}) modifies standard personality {@link org.apache.jena.enhanced.BuiltinPersonalities#model}
- * (and that's why it is possible to find queries without specifying correct model personality).
  * <p>
  * Created by szuev on 21.04.2017.
  */
 @SuppressWarnings("WeakerAccess")
 public class SpinTransform extends Transform {
-
+    private Model model;
+    private Model base;
 
     public SpinTransform(Graph graph) {
         super(graph);
@@ -104,6 +101,22 @@ public class SpinTransform extends Transform {
                     .forEach(statement -> getBaseModel().remove(statement));
             getBaseModel().add(query, SP.text, literal);
         });
+    }
+
+    @Override
+    public boolean test() {
+        return Stream.concat(getGraph().getPrefixMapping().getNsPrefixMap().values().stream(),
+                Graphs.getImports(getGraph()).stream()).anyMatch(u -> u.startsWith(SP.SPIN_URI));
+    }
+
+    @Override
+    public Model getModel() {
+        return this.model == null ? (this.model = SP.createModel(this.getGraph())) : this.model;
+    }
+
+    @Override
+    public Model getBaseModel() {
+        return this.base == null ? (this.base = SP.createModel(this.getBaseGraph())) : this.base;
     }
 
     public Stream<Query> queries() {

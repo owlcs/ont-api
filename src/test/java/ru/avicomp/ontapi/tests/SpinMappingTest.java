@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,11 +14,6 @@
 
 package ru.avicomp.ontapi.tests;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
@@ -29,19 +24,19 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.topbraid.spin.inference.SPINInferences;
 import org.topbraid.spin.system.SPINModuleRegistry;
-import org.topbraid.spin.vocabulary.SP;
 import org.topbraid.spin.vocabulary.SPIN;
 import org.topbraid.spin.vocabulary.SPINMAP;
-
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
-import ru.avicomp.ontapi.utils.ReadWriteUtils;
-import ru.avicomp.ontapi.utils.SPINMAPL;
-import ru.avicomp.ontapi.utils.SpinModels;
-import ru.avicomp.ontapi.utils.TestUtils;
+import ru.avicomp.ontapi.utils.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * To test SPIN inferences under ONT-API.
@@ -173,7 +168,7 @@ public class SpinMappingTest {
      *
      * @return {@link OntGraphModel} the model.
      */
-    public OntGraphModel createSourceModel() throws Exception {
+    public OntGraphModel createSourceModel() {
         LOGGER.info("Create the source model.");
         String uri = "http://source.avicomp.ru";
         String ns = uri + "#";
@@ -205,7 +200,7 @@ public class SpinMappingTest {
      *
      * @return {@link OntGraphModel} the model.
      */
-    public OntGraphModel createTargetModel() throws Exception {
+    public OntGraphModel createTargetModel() {
         LOGGER.info("Create the target model.");
         String uri = "http://target.avicomp.ru";
         String ns = uri + "#";

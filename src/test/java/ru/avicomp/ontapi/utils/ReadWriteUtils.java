@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,10 +17,11 @@ package ru.avicomp.ontapi.utils;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
@@ -43,7 +44,7 @@ import java.util.Objects;
  */
 @SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
 public class ReadWriteUtils {
-    private static final Logger LOGGER = Logger.getLogger(ReadWriteUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReadWriteUtils.class);
 
     private static final String DESTINATION_DIR = "out";
 
@@ -119,12 +120,12 @@ public class ReadWriteUtils {
     public static Model load(URI file, OntFormat f) {
         String format = f == null ? "ttl" : f.getID();
         Model m = ModelFactory.createDefaultModel();
-        LOGGER.debug("Load model from " + file);
+        LOGGER.debug("Load model from {}", file);
         try (InputStream in = file.toURL().openStream()) {
             m.read(in, null, format);
             return m;
         } catch (IOException e) {
-            LOGGER.fatal("Can't read model", e);
+            LOGGER.error("Can't read model", e);
             throw new AssertionError(e);
         }
     }
@@ -149,19 +150,20 @@ public class ReadWriteUtils {
      * Utilitarian method to get the File from '/resources' directory.
      * Can work with jar file as well.
      *
-     * @param projectDirName String, project dir, nullable
+     * @param dirName String, project dir, nullable
      * @param fileName       String resource file name
      * @return {@link Path} to resource
      * @throws Exception if something wrong
      */
-    public static Path getResourcePath(String projectDirName, String fileName) throws Exception {
+    public static Path getResourcePath(String dirName, String fileName) throws Exception {
         if (Objects.requireNonNull(fileName, "Null resource file name").isEmpty()) {
             throw new IllegalArgumentException("Empty resource file name");
         }
-        String dir = projectDirName == null ? "/" : projectDirName.startsWith("/") ? projectDirName : ("/" + projectDirName);
-        URL url = ReadWriteUtils.class.getResource(dir);
+        String dir = dirName == null ? "/" : dirName.startsWith("/") ? dirName : ("/" + dirName);
+        String file = (dir + "/" + fileName).replaceAll("/+", "/");
+        URL url = ReadWriteUtils.class.getResource(file);
         if (url == null) {
-            throw new IllegalArgumentException("Can't find project " + projectDirName + ".");
+            throw new IllegalArgumentException("Can't find file " + file + ".");
         } else if ("jar".equalsIgnoreCase(url.toURI().getScheme())) {
             FileSystem jar;
             try {
@@ -170,15 +172,15 @@ public class ReadWriteUtils {
                 jar = FileSystems.newFileSystem(url.toURI(), new HashMap<>());
             }
             Path source = jar.getPath(dir).resolve(fileName);
-            Path res = Paths.get(ReadWriteUtils.TemporaryResourcesHolder.DIR + dir + "/" + fileName);
+            Path res = Paths.get(ReadWriteUtils.TemporaryResourcesHolder.DIR + file);
             if (!Files.exists(res)) {
-                LOGGER.debug("Unpack " + source + " -> " + res);
+                LOGGER.debug("Unpack {}:{} -> {}", jar, source, res);
                 Files.createDirectories(res.getParent());
                 Files.copy(source, res);
             }
             return res;
         }
-        Path res = Paths.get(url.toURI()).resolve(fileName);
+        Path res = Paths.get(url.toURI());
         if (!Files.exists(res)) {
             throw new NoSuchFileException(res.toString());
         }
@@ -228,7 +230,7 @@ public class ReadWriteUtils {
         try (Writer out = Files.newBufferedWriter(dst)) {
             model.write(out, type.getID());
         } catch (IOException e) {
-            LOGGER.fatal("Unable to save model " + dst, e);
+            LOGGER.error("Unable to save model " + dst, e);
             return null;
         }
         return dst;
@@ -241,7 +243,7 @@ public class ReadWriteUtils {
         try (OutputStream out = Files.newOutputStream(dst)) {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
         } catch (OWLOntologyStorageException | IOException | UnsupportedOperationException e) {
-            LOGGER.fatal("Unable to print owl-ontology " + ontology, e);
+            LOGGER.error("Unable to print owl-ontology " + ontology, e);
             return null;
         }
         return dst;
