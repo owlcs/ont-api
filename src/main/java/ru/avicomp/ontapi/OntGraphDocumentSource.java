@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,96 +14,145 @@
 
 package ru.avicomp.ontapi;
 
-import javax.annotation.Nullable;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.PrefixManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.jena.utils.Graphs;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
- * This is an extended {@link OWLOntologyDocumentSource} to provide possibility of passing any graph as is.
- * There are also default implementations of {@link #getInputStream()} and {@link #getReader()},
- * so you can use this document source in pure OWL-API too.
- * These methods are not used in ONT-API, instead it there is access to direct link ({@link #getGraph()}).
+ * This is an extended {@link OWLOntologyDocumentSource} to provide possibility to pass any graph as is.
+ * <p>
+ * There are default implementations of {@link #getInputStream()} and {@link #getReader()} methods,
+ * so you can use this document-source with the original OWL-API impl as well.
+ * But these methods are not used by ONT-API; instead, the method {@link #getGraph()} (which provides a direct link to the graph) is used.
+ * <p>
  * Note: you may want to disable transformations (see {@link ru.avicomp.ontapi.config.OntConfig#setPerformTransformation(boolean)},
  * {@link ru.avicomp.ontapi.config.OntLoaderConfiguration#setPerformTransformation(boolean)})
- * while loading, otherwise the encapsulated graph may still have some changes due to tuning by transformations.
+ * while loading, otherwise the encapsulated graph may still have some changes due to tuning by {@link OntologyFactory loading factory}.
  * <p>
  * Created by szuev on 22.02.2017.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSource {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(OntGraphDocumentSource.class);
 
-    protected List<Exception> exceptions = new ArrayList<>();
+    protected AtomicReference<IOException> exception = new AtomicReference<>();
 
     /**
-     * Gets Graph as is.
+     * Returns encapsulated graph.
      *
      * @return {@link Graph}
      */
     public abstract Graph getGraph();
 
     @Override
+    public IRI getDocumentIRI() {
+        return IRI.create("graph:" + Graphs.getName(getGraph()));
+    }
+
+    /**
+     * Gets a reader which an ontology can be read from.
+     * This method may be called multiple times and each invocation will return a new reader.
+     * This method is not used by ONT-API, but it can be used by OWL-API-impl.
+     *
+     * @return Optional around {@link Reader}
+     */
+    @Override
     public Optional<Reader> getReader() {
         return getInputStream().map(is -> new InputStreamReader(is, StandardCharsets.UTF_8));
     }
 
+    /**
+     * Gets an input stream which an ontology can be read from.
+     * This method may be called multiple times and each invocation will return a new input stream.
+     * There are no direct usages in ONT-API, but it can be used by OWL-API-impl.
+     *
+     * @return Optional around {@link InputStream}
+     */
     @Override
     public Optional<InputStream> getInputStream() {
-        return format().map(OntFormat::getLang).map(this::toInputStream);
+        return format().map(OntFormat::getLang).map(lang -> toInputStream(getGraph(), lang, exception));
     }
 
-    @Nullable
-    protected InputStream toInputStream(Lang lang) {
-        try {
-            return toInputStream(getGraph(), lang);
-        } catch (Exception e) {
-            LOGGER.error("Can't get InputStream.", e);
-            exceptions.add(e);
-            return null;
-        }
-    }
+    /**
+     * Creates a new InputStream from a Graph.
+     *
+     * @param graph  {@link Graph} a graph to read from
+     * @param lang   {@link Lang} format syntax
+     * @param holder {@link AtomicReference}, a container that will contain an IOException if it occurs
+     * @return InputStream
+     */
+    public static InputStream toInputStream(Graph graph, Lang lang, AtomicReference<IOException> holder) {
+        PipedInputStream in = new PipedInputStream();
+        FilterInputStream res = new FilterInputStream(in) {
+            private volatile boolean closed;
 
-    public static InputStream toInputStream(Graph graph, Lang lang) { // move to graph utils?
-        PipedInputStream res = new PipedInputStream();
+            @Override
+            public void close() throws IOException {
+                if (closed) return;
+                try {
+                    IOException e = holder.get();
+                    if (e != null) {
+                        throw new IOException(String.format("Convert output->input. Graph: %s, %s.", Graphs.getName(graph), lang), e);
+                    }
+                } finally {
+                    super.close();
+                    closed = true;
+                }
+            }
+        };
+        CountDownLatch complete = new CountDownLatch(1);
         new Thread(() -> {
-            IOException ex = null;
-            try (PipedOutputStream out = new PipedOutputStream(res)) {
+            try (PipedOutputStream out = new PipedOutputStream(in)) {
+                complete.countDown();
                 RDFDataMgr.write(out, graph, lang);
             } catch (IOException e) {
-                LOGGER.error("Can't write.", e);
-                ex = e;
+                holder.set(e);
             }
-            if (ex != null) throw new OntApiException("Exception while converting output->input", ex);
         }).start();
+        try {
+            complete.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         return res;
     }
 
+    /**
+     * Returns an OWLDocumentFormat with prefixes from the graph (if it is supported by returned format).
+     *
+     * @return Optional around {@link OWLDocumentFormat}
+     */
     @Override
     public Optional<OWLDocumentFormat> getFormat() {
         PrefixMapping pm = getGraph().getPrefixMapping();
         return format().map(OntFormat::createOwlFormat)
                 .map(f -> {
-                    PrefixManager res = PrefixManager.class.cast(f);
-                    pm.getNsPrefixMap().forEach(res::setPrefix);
+                    if (f.isPrefixOWLDocumentFormat()) {
+                        PrefixManager res = f.asPrefixOWLDocumentFormat();
+                        pm.getNsPrefixMap().forEach(res::setPrefix);
+                    }
                     return f;
                 });
     }
 
+    /**
+     * Returns an ONT-Format
+     *
+     * @return {@link OntFormat}
+     */
     public OntFormat getOntFormat() {
         return OntFormat.TURTLE;
     }
@@ -119,7 +168,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
 
     @Override
     public boolean hasAlredyFailedOnStreams() {
-        return !exceptions.isEmpty();
+        return exception.get() != null;
     }
 
     @Override
@@ -129,6 +178,6 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
 
     @Override
     public void setIRIResolutionFailed(boolean value) {
-        throw new OntApiException.Unsupported(getClass(), "setIRIResolutionFailed");
+        throw new OntApiException.Unsupported("#setIRIResolutionFailed is not supported.");
     }
 }
