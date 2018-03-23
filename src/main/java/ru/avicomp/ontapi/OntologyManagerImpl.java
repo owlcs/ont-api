@@ -663,22 +663,13 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @param graph {@link Graph}
+     * @param graph             {@link Graph}
+     * @param  conf {@link OntLoaderConfiguration} the config with settings
      * @return {@link OntologyModel}
-     * @since 1.0.1
+     * @since 1.2.0
      */
     @Override
-    public OntologyModel addOntology(@Nonnull Graph graph) {
-        return addOntology(graph, false);
-    }
-
-    /**
-     * @param graph             {@link Graph}
-     * @param doTransformation, boolean. to turn off/on graph transformation mechanism.
-     * @return {@link OntologyModel}
-     * @since 1.0.1
-     */
-    public OntologyModel addOntology(@Nonnull Graph graph, boolean doTransformation) {
+    public OntologyModel addOntology(@Nonnull Graph graph, @Nonnull OntLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
             OWLOntologyID id = OntGraphUtils.ontologyID(graph).orElse(null);
@@ -700,7 +691,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                             }).findFirst().orElse(null);
             try {
                 addDocumentSourceMapper(mapping);
-                return loadOntologyFromOntologyDocument(mapping.map(id), getOntologyLoaderConfiguration().setPerformTransformation(doTransformation));
+                return loadOntologyFromOntologyDocument(mapping.map(id), conf);
             } finally {
                 removeDocumentSourceMapper(mapping);
             }

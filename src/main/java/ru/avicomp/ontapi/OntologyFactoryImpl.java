@@ -93,10 +93,10 @@ public class OntologyFactoryImpl implements OntologyFactory {
     }
 
     @Override
-    public OntologyModel createOWLOntology(OWLOntologyManager manager,
-                                           OWLOntologyID id,
-                                           IRI documentIRI,
-                                           OWLOntologyCreationHandler handler) {
+    public OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager,
+                                           @Nonnull OWLOntologyID id,
+                                           @Nonnull IRI documentIRI,
+                                           @Nonnull OWLOntologyCreationHandler handler) {
         return ontologyBuilder.create(asONT(manager), id);
     }
 
