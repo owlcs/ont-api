@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi;
@@ -646,6 +645,9 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     @SuppressWarnings("unchecked")
     @Override
     public <A extends OWLAxiom> Stream<A> axioms(@Nonnull Class<A> type, @Nullable Class<? extends OWLObject> view, @Nonnull OWLObject object, @Nullable Navigation position) {
+        if (OWLDeclarationAxiom.class.equals(type) && OWLEntity.class.isInstance(object) && Navigation.IN_SUB_POSITION.equals(position)) {
+            return (Stream<A>) base.axioms(OWLDeclarationAxiom.class).filter(a -> object.equals(a.getEntity()));
+        }
         if (OWLSubObjectPropertyOfAxiom.class.equals(type) && OWLObjectPropertyExpression.class.isInstance(object)) {
             return (Stream<A>) base.axioms(OWLSubObjectPropertyOfAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
@@ -674,9 +676,13 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
             return (Stream<A>) base.axioms(OWLNegativeObjectPropertyAssertionAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getObject() : a.getSubject()));
         }
-        if (OWLAnnotationAssertionAxiom.class.equals(type) && OWLAnnotationObject.class.isInstance(object)) {
-            return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class)
-                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getValue() : a.getSubject()));
+        if (OWLAnnotationAssertionAxiom.class.equals(type)) {
+            if (Navigation.IN_SUPER_POSITION.equals(position) && OWLAnnotationObject.class.isInstance(object)) {
+                return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class).filter(a -> object.equals(a.getValue()));
+            }
+            if (Navigation.IN_SUB_POSITION.equals(position) && OWLAnnotationSubject.class.isInstance(object)) {
+                return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class).filter(a -> object.equals(a.getSubject()));
+            }
         }
         if (OWLDisjointUnionAxiom.class.equals(type) && OWLClassExpression.class.isInstance(object)) {
             return (Stream<A>) base.axioms(OWLDisjointUnionAxiom.class)
@@ -699,8 +705,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
             return (Stream<A>) axioms((OWLIndividual) object);
         }
         if (OWLNaryAxiom.class.isAssignableFrom(type)) {
-            return base.axioms(type)
-                    .filter(a -> ((OWLNaryAxiom) a).operands().anyMatch(o -> Objects.equals(o, object)));
+            return base.axioms(type).filter(a -> ((OWLNaryAxiom) a).operands().anyMatch(o -> Objects.equals(o, object)));
         }
         // default:
         return base.axioms(type).filter(a -> OwlObjects.objects(object.getClass(), a).anyMatch(object::equals));

@@ -396,7 +396,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     @SuppressWarnings("unchecked")
     public <A extends OWLAxiom> Stream<A> axioms(AxiomType<A> type) {
-        return axioms(Collections.singleton(type)).map(x -> (A) x);
+        return (Stream<A>) getAxiomTripleStore(type).objects();
+        //return axioms(Collections.singleton(type)).map(x -> (A) x);
     }
 
     /**
@@ -808,7 +809,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
          */
         public CacheDataFactory(ConfigProvider.Config config) {
             super(config);
-            int size = 2048; // this number is taken from OWL-API DataFactory impl
+            // '2048' is from OWL-API DataFactory impl:
+            int size = 2048;
             this.classExpressions = buildSync(size, super::get);
             this.dataRanges = buildSync(size, super::get);
             this.annotationProperties = build(size, super::get);
