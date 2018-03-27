@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,18 +14,17 @@
 
 package ru.avicomp.ontapi.config;
 
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.vocab.Namespaces;
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.OntFormat;
+import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
+
 import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
-
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.vocab.Namespaces;
-
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
-import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 /**
  * This is an extended {@link OWLOntologyLoaderConfiguration} with ONT-API specific settings.

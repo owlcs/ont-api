@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,14 @@
 
 package ru.avicomp.ontapi.config;
 
+import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
+import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
+import org.semanticweb.owlapi.model.PriorityCollectionSorting;
+import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.impl.conf.Configurable;
+import ru.avicomp.ontapi.transforms.*;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -21,15 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
-import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
-import org.semanticweb.owlapi.model.PriorityCollectionSorting;
-import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
-
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
-import ru.avicomp.ontapi.transforms.*;
 
 /**
  * Enum of all ONT-API settings (20 origin OWL-API options + 9 new ONT-API options + ignored imports)

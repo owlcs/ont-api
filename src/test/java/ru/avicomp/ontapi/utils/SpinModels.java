@@ -27,9 +27,9 @@ import org.topbraid.spin.model.update.impl.*;
 import org.topbraid.spin.util.SimpleImplementation;
 import org.topbraid.spin.util.SimpleImplementation2;
 import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.jena.impl.configuration.Configurable;
-import ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig;
-import ru.avicomp.ontapi.jena.impl.configuration.OntPersonality;
+import ru.avicomp.ontapi.jena.impl.conf.Configurable;
+import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
+import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
 /**
  * Collection of all spin models (located in resources)

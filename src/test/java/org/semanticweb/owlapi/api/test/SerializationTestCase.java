@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,13 +13,6 @@
  */
 package org.semanticweb.owlapi.api.test;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,15 +23,22 @@ import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @ru.avicomp.ontapi.utils.ModifiedForONTApi
 @SuppressWarnings({"javadoc"})
 public class SerializationTestCase extends TestBase {
 
     /**
      * Invite {@link #TEST_STRING_1}, it is to avoid illegal punning Class <-> Datatype
-     * (default {@link ru.avicomp.ontapi.jena.impl.configuration.OntPersonality} does not allow such things,
-     * mode = {@link ru.avicomp.ontapi.jena.impl.configuration.Configurable.Mode#MEDIUM}).
-     * And NOTE: neither {@link ru.avicomp.ontapi.jena.impl.configuration.OntPersonality} and
+     * (default {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality} does not allow such things,
+     * mode = {@link ru.avicomp.ontapi.jena.impl.conf.Configurable.Mode#MEDIUM}).
+     * And NOTE: neither {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality} and
      * {@link OWLOntologyLoaderConfiguration} in the manager (OWL-5.0.5) are not serializable.
      * So the list of axioms from origin and copy ontologies could be different.
      */

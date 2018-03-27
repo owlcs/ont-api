@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package org.semanticweb.owlapi.profiles;
@@ -54,7 +53,7 @@ public class ProfileFullTestCase extends ProfileBase {
      * And one more thing: it seems that tested mechanism does not work always correct,
      * sometimes you can see strange errors about things that are not true in the graph.
      * ONT-API comment(2):
-     * Also there is a {@link ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig#ONT_PERSONALITY_LAX}
+     * Also there is a {@link ru.avicomp.ontapi.jena.impl.conf.OntModelConfig#ONT_PERSONALITY_LAX}
      * to allow illegal punnings. One of the test-ontologies contains such things.
      * It is also a 'hack' to match OWL-API behaviour.
      */
@@ -65,7 +64,7 @@ public class ProfileFullTestCase extends ProfileBase {
             OWLOntologyLoaderConfiguration conf = ((ru.avicomp.ontapi.config.OntLoaderConfiguration) manager
                     .getOntologyLoaderConfiguration())
                     .setAllowReadDeclarations(false)
-                    .setPersonality(ru.avicomp.ontapi.jena.impl.configuration.OntModelConfig.ONT_PERSONALITY_LAX);
+                    .setPersonality(ru.avicomp.ontapi.jena.impl.conf.OntModelConfig.ONT_PERSONALITY_LAX);
             manager.setOntologyLoaderConfiguration(conf);
         }
         test(manager, premise, false, false, false, false);
