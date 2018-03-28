@@ -22,6 +22,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.PrefixMapping;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
@@ -35,6 +36,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -46,6 +48,7 @@ import java.util.stream.Stream;
  * This is our analogue of {@link org.apache.jena.ontology.impl.OntModelImpl} to work in accordance with OWL2 DL specification.
  * <p>
  * Created by @szuev on 27.10.2016.
+ *
  * @see UnionGraph
  */
 @SuppressWarnings("WeakerAccess")
@@ -233,13 +236,53 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         }
     }
 
+    /**
+     * Answer an enhanced node that wraps the given node and conforms to the given interface type.
+     *
+     * @param node A node (assumed to be in this graph)
+     * @param view A type denoting the enhanced facet desired
+     * @param <N>  A subtype of {@link RDFNode}
+     * @return An enhanced node, not null
+     * @throws JenaException in case no RDFNode match found.
+     */
     @Override
-    public <N extends RDFNode> N getNodeAs(Node n, Class<N> view) {
+    public <N extends RDFNode> N getNodeAs(Node node, Class<N> view) {
         try {
-            return super.getNodeAs(OntJenaException.notNull(n, "Null node"), OntJenaException.notNull(view, "Null class view."));
+            return getNodeAsInternal(node, view);
         } catch (ConversionException e) {
-            throw new OntJenaException.Conversion(String.format("Failed to convert node <%s> to <%s>", n, view), e);
+            throw new OntJenaException.Conversion(String.format("Failed to convert node <%s> to <%s>", node, view), e);
         }
+    }
+
+    protected Set<Node> visited = new HashSet<>();
+
+    /**
+     * Answer an enhanced node that wraps the given node and conforms to the given interface type with allowance for graph recursions.
+     *
+     * @param node A node (assumed to be in this graph)
+     * @param view A type denoting the enhanced facet desired
+     * @param <N>  A subtype of {@link RDFNode}
+     * @return An enhanced node or {@code null} if no match found.
+     * @throws OntJenaException.Recursion if graph recursion is indicated
+     */
+    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> view) {
+        try {
+            if (visited.contains(node)) {
+                throw new OntJenaException.Recursion("Can't cast to " + view.getSimpleName() + ": graph contains a recursion for node <" + node + ">");
+            }
+            visited.add(node);
+            return getNodeAsInternal(node, view);
+        } catch (OntJenaException.Recursion r) {
+            throw r;
+        } catch (JenaException e) {
+            return null;
+        } finally {
+            visited.remove(node);
+        }
+    }
+
+    protected <N extends RDFNode> N getNodeAsInternal(Node node, Class<N> view) {
+        return super.getNodeAs(OntJenaException.notNull(node, "Null node"), OntJenaException.notNull(view, "Null class view."));
     }
 
     /**
@@ -247,7 +290,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
      *
      * @param type Class
      * @param uri  String
-     * @param <T> class-type of {@link OntObject}
+     * @param <T>  class-type of {@link OntObject}
      * @return OntObject
      */
     public <T extends OntObject> T createOntObject(Class<T> type, String uri) {

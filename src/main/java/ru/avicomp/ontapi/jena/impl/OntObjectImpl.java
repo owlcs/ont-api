@@ -228,7 +228,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     public <T extends RDFNode> T getRequiredObject(Property predicate, Class<T> view) {
         return object(predicate, view)
-                .orElseThrow(OntJenaException.supplier(String.format("Can't find required object [%s @%s %s]", this, predicate, view)));
+                .orElseThrow(() -> new OntJenaException(String.format("Can't find required object [%s @%s %s]", this, predicate, view)));
     }
 
     public Stream<RDFNode> objects(Property predicate) {
@@ -263,7 +263,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public String toString() {
         Class<? extends RDFNode> view = getActualClass();
-        return view == null ? super.toString() : String.format("%s(%s)", asNode(), toString(view));
+        return view == null ? super.toString() : String.format("[%s]%s", toString(view), asNode());
     }
 
     public static Node checkNamed(Node res) {
@@ -288,6 +288,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @SafeVarargs
     protected static Configurable<MultiOntObjectFactory> createMultiFactory(OntFinder finder, OntFilter filter, Configurable<? extends OntObjectFactory>... factories) {
         return mode -> new MultiOntObjectFactory(finder, filter, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
+    }
+
+    protected static boolean canAs(Class<? extends RDFNode> view, Node node, EnhGraph graph) {
+        return ((OntGraphModelImpl) graph).fetchNodeAs(node, view) != null;
     }
 
 }

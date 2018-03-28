@@ -44,6 +44,11 @@ import java.util.Objects;
  */
 @SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
 public class ReadWriteUtils {
+    public static final PrintStream NULL_OUT = new PrintStream(new OutputStream() {
+        @Override
+        public void write(int b) {
+        }
+    });
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadWriteUtils.class);
 
     private static final String DESTINATION_DIR = "out";

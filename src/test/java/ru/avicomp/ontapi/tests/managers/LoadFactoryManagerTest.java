@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.tests.managers;
@@ -117,19 +116,6 @@ public class LoadFactoryManagerTest {
     }
 
     @Test
-    public void testLoadWithIgnoreReadAxiomsErrors() throws OWLOntologyCreationException {
-        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
-        LOGGER.debug("The file: {}", iri);
-        OntologyManager m = OntManagers.createONT();
-        m.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true).setPerformTransformation(false);
-        OntologyModel o = m.loadOntology(iri);
-        o.asGraphModel().write(System.out, "ttl");
-        o.axioms().forEach(a -> LOGGER.debug("{}", a));
-        Assert.assertEquals("Wrong axioms count", 4, o.getAxiomCount());
-        Assert.assertEquals(0, o.axioms(AxiomType.SUBCLASS_OF).count());
-    }
-
-    @Test
     public void testLoadRecursiveGraphWithTransform() throws OWLOntologyCreationException {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
@@ -139,7 +125,7 @@ public class LoadFactoryManagerTest {
                     .getGraphTransformers().addFirst(OWLRecursiveTransform::new));
         }
         OntologyModel o = m.loadOntology(iri);
-        o.asGraphModel().write(System.out, "ttl");
+        ReadWriteUtils.print(o.asGraphModel());
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
         Assert.assertEquals("Wrong axioms count", 5, o.getAxiomCount());
         Assert.assertEquals(1, o.axioms(AxiomType.SUBCLASS_OF).count());

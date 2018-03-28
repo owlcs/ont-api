@@ -44,16 +44,16 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     public static final OntFinder PROPERTIES_FINDER = new OntFinder.ByType(OWL.AllDisjointProperties);
 
     public static Configurable<OntObjectFactory> disjointClassesFactory =
-            createFactory(ClassesImpl.class, OWL.AllDisjointClasses, OntCEImpl.abstractCEFactory, true, OWL.members);
+            createFactory(ClassesImpl.class, OWL.AllDisjointClasses, OntCE.class, true, OWL.members);
 
     public static Configurable<OntObjectFactory> differentIndividualsFactory =
-            createFactory(IndividualsImpl.class, OWL.AllDifferent, OntIndividualImpl.abstractIndividualFactory, true, OWL.members, OWL.distinctMembers);
+            createFactory(IndividualsImpl.class, OWL.AllDifferent, OntIndividual.class, true, OWL.members, OWL.distinctMembers);
 
     public static Configurable<OntObjectFactory> objectPropertiesFactory =
-            createFactory(ObjectPropertiesImpl.class, OWL.AllDisjointProperties, OntPEImpl.abstractOPEFactory, false, OWL.members);
+            createFactory(ObjectPropertiesImpl.class, OWL.AllDisjointProperties, OntOPE.class, false, OWL.members);
 
     public static Configurable<OntObjectFactory> dataPropertiesFactory =
-            createFactory(DataPropertiesImpl.class, OWL.AllDisjointProperties, Entities.DATA_PROPERTY, false, OWL.members);
+            createFactory(DataPropertiesImpl.class, OWL.AllDisjointProperties, OntNDP.class, false, OWL.members);
 
     public static Configurable<MultiOntObjectFactory> abstractPropertiesFactory =
             createMultiFactory(PROPERTIES_FINDER, objectPropertiesFactory, dataPropertiesFactory);
@@ -84,7 +84,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
 
     private static Configurable<OntObjectFactory> createFactory(Class<? extends OntDisjointImpl> impl,
                                                                 Resource type,
-                                                                Configurable<? extends OntObjectFactory> memberFactory,
+                                                                Class<? extends RDFNode> view,
                                                                 boolean allowEmptyList,
                                                                 Property... predicates) {
         OntMaker maker = new OntMaker.WithType(impl, type);
@@ -92,7 +92,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(type));
         return m -> new CommonOntObjectFactory(maker, finder, filter
                 .and(getHasPredicatesFilter(predicates))
-                .and(getHasMembersOfFilter(memberFactory.get(m), allowEmptyList, predicates)));
+                .and(getHasMembersOfFilter(view, allowEmptyList, predicates)));
     }
 
     private static OntFilter getHasPredicatesFilter(Property... predicates) {
@@ -103,10 +103,10 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         return res;
     }
 
-    private static OntFilter getHasMembersOfFilter(OntObjectFactory memberFactory, boolean allowEmptyList, Property... predicates) {
+    private static OntFilter getHasMembersOfFilter(Class<? extends RDFNode> view, boolean allowEmptyList, Property... predicates) {
         return (node, eg) -> {
             try (Stream<Node> nodes = listRoots(node, eg.asGraph(), predicates)) {
-                return nodes.anyMatch(n -> testList(n, eg, memberFactory, allowEmptyList));
+                return nodes.anyMatch(n -> testList(n, eg, view, allowEmptyList));
             }
         };
     }
@@ -117,11 +117,11 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
                 .flatMap(Function.identity());
     }
 
-    private static boolean testList(Node node, EnhGraph graph, OntObjectFactory factory, boolean allowEmptyList) {
+    private static boolean testList(Node node, EnhGraph graph, Class<? extends RDFNode> view, boolean allowEmptyList) {
         if (!RDFListImpl.factory.canWrap(node, graph)) return false;
-        if (factory == null) return true;
+        if (view == null) return true;
         List<RDFNode> list = RDFListImpl.factory.wrap(node, graph).as(RDFList.class).asJavaList();
-        return (list.isEmpty() && allowEmptyList) || list.stream().map(RDFNode::asNode).anyMatch(n -> factory.canWrap(n, graph));
+        return (list.isEmpty() && allowEmptyList) || list.stream().map(RDFNode::asNode).anyMatch(n -> OntObjectImpl.canAs(view, n, graph));
     }
 
     public static Classes createDisjointClasses(OntGraphModelImpl model, Stream<OntCE> classes) {

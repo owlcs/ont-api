@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,17 @@
 
 package ru.avicomp.ontapi.tests;
 
+import org.junit.Test;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.OntologyManager;
+import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,16 +33,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.junit.Test;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-
-import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.OntologyModel;
 
 /**
  * Test for ontology edition racing:
@@ -42,7 +43,7 @@ import ru.avicomp.ontapi.OntologyModel;
 public class RaceTest {
     // constants for test tuning:
     private static final long TIMEOUT = 15_000;
-    private static final PrintStream OUT = System.out;
+    private static final PrintStream OUT = LoggerFactory.getLogger(RaceTest.class).isDebugEnabled() ? System.out : ReadWriteUtils.NULL_OUT;
     private static final boolean ADD_WITH_ANNOTATIONS = true;
     private static final int ADD_THREADS_NUM = 1;
     private static final int REMOVE_THREADS_NUM = 6;

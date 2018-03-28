@@ -19,9 +19,11 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
@@ -30,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -455,6 +458,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return res;
     }
 
+    @Override
+    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> view) {
+        try {
+            return super.fetchNodeAs(node, view);
+        } catch (OntJenaException e) {
+            if (!getConfig().loaderConfig().isIgnoreAxiomsReadErrors()) {
+                throw new OntApiException(e);
+            }
+            LOGGER.warn("Found a problem inside ontology <{}>: {}", getID(), e.getMessage());
+            return null;
+        }
+    }
+
     /**
      * Reads OWLAxioms and triples by specified type.
      *
@@ -463,7 +479,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return {@link InternalObject}
      */
     protected <A extends OWLAxiom> InternalObjectTriplesMap<A> readAxiomTriples(Class<A> type) {
-        return new InternalObjectTriplesMap<>(type, AxiomParserProvider.get(type).read(InternalModel.this));
+        return new InternalObjectTriplesMap<>(type, AxiomParserProvider.get(type).axioms(InternalModel.this).collect(Collectors.toSet()));
     }
 
     /**

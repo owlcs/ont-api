@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,7 +20,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
@@ -50,7 +49,7 @@ public class ExampleTest {
     }
 
     @Test
-    public void test() throws OWLOntologyCreationException {
+    public void test() {
         OntIRI owlURI = OntIRI.create("http://test.test/example");
         int statementsNumber = 15;
         OntologyManager manager = OntManagers.createONT();
@@ -82,7 +81,6 @@ public class ExampleTest {
         manager.applyChange(new AddAxiom(ontology, factory.getOWLClassAssertionAxiom(owlClass, individual)));
         manager.applyChange(new AddAxiom(ontology, factory.getOWLDataPropertyAssertionAxiom(owlProperty, individual, factory.getOWLLiteral("TheName"))));
 
-        //System.out.println(ontology.directImports().collect(Collectors.toList()));
         ReadWriteUtils.print(ontology, OntFormat.TURTLE);
 
         ontology.axioms().forEach(LOGGER::debug);

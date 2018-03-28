@@ -94,7 +94,7 @@ public class SpinTransform extends Transform {
                     .map(Statement::getObject)
                     .filter(RDFNode::isURIResource)
                     .map(RDFNode::asResource)
-                    .findFirst().orElseThrow(OntJenaException.supplier("No type for " + literal));
+                    .findFirst().orElseThrow(() -> new OntJenaException("No type for " + literal));
             Set<Statement> remove = Models.getAssociatedStatements(query);
             remove.stream()
                     .filter(s -> !(RDF.type.equals(s.getPredicate()) && type.equals(s.getObject())))

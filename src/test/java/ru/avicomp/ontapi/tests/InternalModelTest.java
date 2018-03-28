@@ -44,11 +44,9 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
 import java.net.URI;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -70,9 +68,7 @@ public class InternalModelTest {
         types.forEach(view -> check(model, view));
 
         Map<OWLAxiom, Set<Triple>> axioms = types.stream()
-                .map(view -> AxiomParserProvider.get(view).read(model))
-                .map(Collection::stream)
-                .flatMap(Function.identity())
+                .flatMap(view -> AxiomParserProvider.get(view).axioms(model))
                 .collect(Collectors.toMap(InternalObject::getObject, i -> i.triples().collect(Collectors.toSet())));
 
         LOGGER.info("Recreate model");
@@ -187,8 +183,7 @@ public class InternalModelTest {
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {
         LOGGER.debug("=========================");
         LOGGER.info(view.getSimpleName() + ":");
-        Set<InternalObject<Axiom>> axioms = AxiomParserProvider.get(view).read(model);
-        axioms.forEach(e -> {
+        AxiomParserProvider.get(view).axioms(model).forEach(e -> {
             Axiom axiom = e.getObject();
             Set<Triple> triples = e.triples().collect(Collectors.toSet());
             Assert.assertNotNull("Null axiom", axiom);

@@ -16,11 +16,9 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
@@ -30,8 +28,9 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -49,10 +48,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     public static final OntFilter CE_FITTING_FILTER = new OntFilter.OneOf(Entities.CLASS.builtInURIs())
             .or(new OntFilter.HasType(OWL.Class).or(new OntFilter.HasType(OWL.Restriction)));
 
-    public static Configurable<OntObjectFactory> unionOfCEFactory = createCEFactory(UnionOfImpl.class, OWL.unionOf);
-    public static Configurable<OntObjectFactory> intersectionOfCEFactory = createCEFactory(IntersectionOfImpl.class, OWL.intersectionOf);
-    public static Configurable<OntObjectFactory> oneOfCEFactory = createCEFactory(OneOfImpl.class, OWL.oneOf);
-    public static Configurable<OntObjectFactory> complementOfCEFactory = createCEFactory(ComplementOfImpl.class, OWL.complementOf);
+    public static Configurable<OntObjectFactory> unionOfCEFactory = createCEFactory(UnionOfImpl.class, OWL.unionOf, RDFList.class);
+    public static Configurable<OntObjectFactory> intersectionOfCEFactory = createCEFactory(IntersectionOfImpl.class, OWL.intersectionOf, RDFList.class);
+    public static Configurable<OntObjectFactory> oneOfCEFactory = createCEFactory(OneOfImpl.class, OWL.oneOf, RDFList.class);
+    public static Configurable<OntObjectFactory> complementOfCEFactory = createCEFactory(ComplementOfImpl.class, OWL.complementOf, OntCE.class);
 
     public static Configurable<OntObjectFactory> objectSomeValuesOfCEFactory = createRestrictionFactory(ObjectSomeValuesFromImpl.class,
             RestrictionType.OBJECT, ObjectRestrictionType.CLASS, OWL.someValuesFrom);
@@ -624,55 +623,47 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    // a hack to avoid a recursion with restrictions when graph has a recursion also
-    private static Map<EnhGraph, Set<Node>> visited = new ConcurrentHashMap<>();
-
     protected enum ObjectRestrictionType implements PredicateFilterProvider {
         CLASS {
             @Override
-            public OntObjectFactory getObjectFactory(Configurable.Mode m) {
-                return abstractCEFactory.get(m);
+            public Class<OntCE> view() {
+                return OntCE.class;
             }
         },
         DATA_RANGE {
             @Override
-            public OntObjectFactory getObjectFactory(Configurable.Mode m) {
-                return OntDRImpl.abstractDRFactory.get(m);
+            public Class<OntDR> view() {
+                return OntDR.class;
             }
         },
         INDIVIDUAL {
             @Override
-            public OntObjectFactory getObjectFactory(Configurable.Mode m) {
-                return OntIndividualImpl.abstractIndividualFactory.get(m);
+            public Class<OntIndividual> view() {
+                return OntIndividual.class;
             }
         },
         LITERAL {
             @Override
-            public Implementation getObjectFactory(Configurable.Mode m) {
-                return LiteralImpl.factory;
+            public Class<Literal> view() {
+                return Literal.class;
             }
-        },;
 
-        @Override
-        public abstract Implementation getObjectFactory(Configurable.Mode m);
+        },;
     }
 
     protected enum RestrictionType implements PredicateFilterProvider {
         DATA {
             @Override
-            public Implementation getObjectFactory(Configurable.Mode m) {
-                return Entities.DATA_PROPERTY.get(m);
+            public Class<OntNDP> view() {
+                return OntNDP.class;
             }
         },
         OBJECT {
             @Override
-            public Implementation getObjectFactory(Configurable.Mode m) {
-                return OntPEImpl.abstractOPEFactory.get(m);
+            public Class<OntOPE> view() {
+                return OntOPE.class;
             }
         },;
-
-        @Override
-        public abstract Implementation getObjectFactory(Configurable.Mode m);
 
         public Configurable<OntFilter> getFilter() {
             return getFilter(OWL.onProperty);
@@ -683,31 +674,17 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
      * Technical interface to make predicate filter for restrictions
      */
     private interface PredicateFilterProvider {
-        Implementation getObjectFactory(Configurable.Mode m);
+
+        Class<? extends RDFNode> view();
 
         default Configurable<OntFilter> getFilter(Property predicate) {
-            return mode -> (node, graph) -> {
-                Set<Node> nodes = OntCEImpl.visited.get(graph);
-                if (nodes != null && nodes.contains(node)) {
-                    throw new OntJenaException("Graph contains a recursion for node <" + node + ">");
-                }
-                nodes = OntCEImpl.visited.computeIfAbsent(graph, g -> new HashSet<>());
-                nodes.add(node);
-                try {
-                    return testObjects(mode, predicate, node, graph);
-                } finally {
-                    nodes.remove(node);
-                    if (nodes.isEmpty()) {
-                        OntCEImpl.visited.remove(graph);
-                    }
-                }
-            };
+            return mode -> (node, graph) -> testObjects(mode, predicate, node, graph);
         }
 
         default boolean testObjects(Configurable.Mode mode, Property predicate, Node node, EnhGraph graph) {
-            Implementation f = getObjectFactory(mode);
+            Class<? extends RDFNode> v = view();
             try (Stream<Node> objects = Iter.asStream(graph.asGraph().find(node, predicate.asNode(), Node.ANY)).map(Triple::getObject)) {
-                return objects.anyMatch(o -> f.canWrap(o, graph));
+                return objects.anyMatch(o -> OntObjectImpl.canAs(v, o, graph));
             }
         }
     }
@@ -751,9 +728,21 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
+    @Deprecated
     protected static Configurable<OntObjectFactory> createCEFactory(Class<? extends OntCEImpl> impl, Property predicate) {
         OntMaker maker = new OntMaker.WithType(impl, OWL.Class);
         OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Class)).and(new OntFilter.HasPredicate(predicate));
+        return mode -> new CommonOntObjectFactory(maker, CLASS_FINDER, filter);
+    }
+
+    protected static Configurable<OntObjectFactory> createCEFactory(Class<? extends OntCEImpl> impl, Property predicate, Class<? extends RDFNode> view) {
+        OntMaker maker = new OntMaker.WithType(impl, OWL.Class);
+        OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Class))
+                .and((n, g) -> {
+                    try (Stream<Triple> s = Iter.asStream(g.asGraph().find(n, predicate.asNode(), Node.ANY))) {
+                        return s.map(Triple::getObject).anyMatch(o -> OntObjectImpl.canAs(view, o, g));
+                    }
+                });
         return mode -> new CommonOntObjectFactory(maker, CLASS_FINDER, filter);
     }
 

@@ -200,7 +200,7 @@ public class CopyManagerTest {
         from.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("owlapi/importscyclic", "reprMath.owl")));
         from.ontologies().forEach(o -> LOGGER.info("{}:{}", o.getOntologyID(), o.getAxiomCount()));
         OntologyManager to = CopyManagerTest.copyManager(from);
-        to.ontologies().forEach(System.out::println);
+        to.ontologies().forEach(x -> LOGGER.debug("{}", x));
         compareManagersContentTest(from, to);
     }
 

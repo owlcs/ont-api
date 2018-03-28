@@ -45,11 +45,10 @@ import java.util.stream.Stream;
  */
 public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
-    public static Configurable<OntObjectFactory> anonymousIndividualFactory = mode -> new CommonOntObjectFactory(
-            new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, AnonymousImpl.FILTER.get(mode));
+    public static Configurable<OntObjectFactory> anonymousIndividualFactory = mode ->
+            new CommonOntObjectFactory(new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, AnonymousImpl.FILTER.get(mode));
 
-    public static Configurable<MultiOntObjectFactory> abstractIndividualFactory = createMultiFactory(OntFinder.ANY_SUBJECT_AND_OBJECT,
-            Entities.INDIVIDUAL, anonymousIndividualFactory);
+    public static Configurable<? extends OntObjectFactory> abstractIndividualFactory = createMultiFactory(OntFinder.ANY_SUBJECT_AND_OBJECT, Entities.INDIVIDUAL, anonymousIndividualFactory);
 
 
     public OntIndividualImpl(Node n, EnhGraph m) {
@@ -148,7 +147,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
                 return false;
             }
             Set<Node> types = Iter.asStream(eg.asGraph().find(node, RDF.type.asNode(), Node.ANY)).map(Triple::getObject).collect(Collectors.toSet());
-            if (types.stream().anyMatch(o -> OntCEImpl.abstractCEFactory.get(mode).canWrap(o, eg))) { // class assertion:
+            if (types.stream().anyMatch(o -> OntObjectImpl.canAs(OntCE.class, o, eg))) { // class assertion:
                 return true;
             }
             if (!types.isEmpty()) { // any other typed statement,
@@ -182,7 +181,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
         protected static ExtendedIterator<Triple> getDeclarations(Node node, EnhGraph eg, Configurable.Mode mode) {
             return eg.asGraph().find(node, RDF.type.asNode(), Node.ANY).
-                    filterKeep(t -> OntCEImpl.abstractCEFactory.get(mode).canWrap(t.getObject(), eg));
+                    filterKeep(t -> OntObjectImpl.canAs(OntCE.class, t.getObject(), eg));
         }
 
         protected static Stream<Node> negativeAssertionAnonIndividuals(EnhGraph eg) {

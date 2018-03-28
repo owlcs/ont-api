@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,12 +14,10 @@
 
 package ru.avicomp.ontapi.jena;
 
-import java.util.function.Supplier;
-
 import org.apache.jena.shared.JenaException;
 
 /**
- * To use inside ont-jena subsystem (package {@link ru.avicomp.ontapi.jena}).
+ * A base jena exception to use inside ont subsystem (i.e. package {@link ru.avicomp.ontapi.jena}).
  * <p>
  * Created by @szuev on 24.11.2016.
  */
@@ -46,12 +44,8 @@ public class OntJenaException extends JenaException {
         return obj;
     }
 
-    public static Supplier<OntJenaException> supplier(String msg) {
-        return () -> new OntJenaException(msg);
-    }
-
     /**
-     * this is an analogue of {@link org.apache.jena.ontology.ConversionException},
+     * This is an analogue of {@link org.apache.jena.ontology.ConversionException},
      * used inside top level api ({@link ru.avicomp.ontapi.jena.model.OntGraphModel} and maybe {@link ru.avicomp.ontapi.jena.model.OntObject}).
      */
     public static class Conversion extends OntJenaException {
@@ -64,6 +58,9 @@ public class OntJenaException extends JenaException {
         }
     }
 
+    /**
+     * Exception, which may happen while creation of ont-object.
+     */
     public static class Creation extends OntJenaException {
         public Creation(String message, Throwable cause) {
             super(message, cause);
@@ -74,12 +71,27 @@ public class OntJenaException extends JenaException {
         }
     }
 
+    /**
+     * Exception to indicate that a feature is not supported right now.
+     */
     public static class Unsupported extends OntJenaException {
         public Unsupported() {
             super();
         }
 
         public Unsupported(String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * Exception that is thrown if a recursion is found in the graph.
+     * Example of such graph recursion:
+     * <pre>{@code  _:b0 a owl:Class ; owl:complementOf  _:b0 .}</pre>
+     */
+    public static class Recursion extends OntJenaException {
+
+        public Recursion(String message) {
             super(message);
         }
     }

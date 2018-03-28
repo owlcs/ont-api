@@ -80,7 +80,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
             if (!n.isBlank()) return false;
             Set<Node> nodes = g.asGraph().find(n, OWL.inverseOf.asNode(), Node.ANY)
                     .mapWith(Triple::getObject)
-                    .filterKeep(o -> Entities.OBJECT_PROPERTY.get(mode).canWrap(o, g))
+                    .filterKeep(o -> OntObjectImpl.canAs(OntNOP.class, o, g))
                     .toSet();
             return !nodes.isEmpty();
         };
@@ -98,7 +98,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
             try (Stream<OntStatement> statements = getModel().statements(this, OWL.inverseOf, null)) {
                 return statements.findFirst()
                         .map(Statement::getObject).map(RDFNode::asResource)
-                        .orElseThrow(OntJenaException.supplier("Can't find owl:inverseOf object prop."));
+                        .orElseThrow(() -> new OntJenaException("Can't find owl:inverseOf object prop."));
             }
         }
 

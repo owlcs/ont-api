@@ -45,7 +45,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
                     OntFinder.ANY_SUBJECT_AND_OBJECT, VAR_SWRL_FILTER.or(LiteralImpl.factory::canWrap));
     public static Configurable<OntObjectFactory> iArgSWRLFactory = m ->
             new CommonOntObjectFactory(new OntMaker.Default(IArgImpl.class),
-                    OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or((n, g) -> OntIndividualImpl.abstractIndividualFactory.get(m).canWrap(n, g)));
+                    OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or((n, g) -> OntObjectImpl.canAs(OntIndividual.class, n, g)));
     public static Configurable<MultiOntObjectFactory> abstractArgSWRLFactory = createMultiFactory(OntFinder.ANY_SUBJECT_AND_OBJECT, dArgSWRLFactory, iArgSWRLFactory);
 
     public static Configurable<OntObjectFactory> builtInAtomSWRLFactory = makeAtomFactory(BuiltInAtomImpl.class, SWRL.BuiltinAtom);
