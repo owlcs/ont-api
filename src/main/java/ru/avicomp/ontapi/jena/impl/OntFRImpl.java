@@ -32,30 +32,30 @@ import ru.avicomp.ontapi.jena.vocabulary.XSD;
  * Created by @szuev on 16.11.2016.
  */
 public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
-    public static Configurable<OntObjectFactory> lengthFRFactory = m ->
+    public static OntObjectFactory lengthFRFactory =
             new CommonOntObjectFactory(makeMaker(LengthImpl.class), makeFinder(XSD.length), makeFilter(XSD.length));
-    public static Configurable<OntObjectFactory> minLengthFRFactory = m ->
+    public static OntObjectFactory minLengthFRFactory =
             new CommonOntObjectFactory(makeMaker(MinLengthImpl.class), makeFinder(XSD.minLength), makeFilter(XSD.minLength));
-    public static Configurable<OntObjectFactory> maxLengthFRFactory = m ->
+    public static OntObjectFactory maxLengthFRFactory =
             new CommonOntObjectFactory(makeMaker(MaxLengthImpl.class), makeFinder(XSD.maxLength), makeFilter(XSD.maxLength));
-    public static Configurable<OntObjectFactory> minInclusiveFRFactory = m ->
+    public static OntObjectFactory minInclusiveFRFactory =
             new CommonOntObjectFactory(makeMaker(MinInclusiveImpl.class), makeFinder(XSD.minInclusive), makeFilter(XSD.minInclusive));
-    public static Configurable<OntObjectFactory> maxInclusiveFRFactory = m ->
+    public static OntObjectFactory maxInclusiveFRFactory =
             new CommonOntObjectFactory(makeMaker(MaxInclusiveImpl.class), makeFinder(XSD.maxInclusive), makeFilter(XSD.maxInclusive));
-    public static Configurable<OntObjectFactory> minExclusiveFRFactory = m ->
+    public static OntObjectFactory minExclusiveFRFactory =
             new CommonOntObjectFactory(makeMaker(MinExclusiveImpl.class), makeFinder(XSD.minExclusive), makeFilter(XSD.minExclusive));
-    public static Configurable<OntObjectFactory> maxExclusiveFRFactory = m ->
+    public static OntObjectFactory maxExclusiveFRFactory =
             new CommonOntObjectFactory(makeMaker(MaxExclusiveImpl.class), makeFinder(XSD.maxExclusive), makeFilter(XSD.maxExclusive));
-    public static Configurable<OntObjectFactory> totalDigitsFRFactory = m ->
+    public static OntObjectFactory totalDigitsFRFactory =
             new CommonOntObjectFactory(makeMaker(TotalDigitsImpl.class), makeFinder(XSD.totalDigits), makeFilter(XSD.totalDigits));
-    public static Configurable<OntObjectFactory> fractionDigitsFRFactory = m ->
+    public static OntObjectFactory fractionDigitsFRFactory =
             new CommonOntObjectFactory(makeMaker(FractionDigitsImpl.class), makeFinder(XSD.fractionDigits), makeFilter(XSD.fractionDigits));
-    public static Configurable<OntObjectFactory> patternFRFactory = m ->
+    public static OntObjectFactory patternFRFactory =
             new CommonOntObjectFactory(makeMaker(PatternImpl.class), makeFinder(XSD.pattern), makeFilter(XSD.pattern));
-    public static Configurable<OntObjectFactory> langRangeFRFactory = m ->
+    public static OntObjectFactory langRangeFRFactory =
             new CommonOntObjectFactory(makeMaker(LangRangeImpl.class), makeFinder(XSD.langRange), makeFilter(XSD.langRange));
 
-    public static Configurable<MultiOntObjectFactory> abstractFRFactory = createMultiFactory(OntFinder.ANY_SUBJECT,
+    public static OntObjectFactory abstractFRFactory = new MultiOntObjectFactory(OntFinder.ANY_SUBJECT, null,
             lengthFRFactory, minLengthFRFactory, maxLengthFRFactory,
             minInclusiveFRFactory, maxInclusiveFRFactory, minExclusiveFRFactory, maxExclusiveFRFactory,
             totalDigitsFRFactory, fractionDigitsFRFactory, patternFRFactory, langRangeFRFactory);

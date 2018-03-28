@@ -24,7 +24,6 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
-import ru.avicomp.ontapi.jena.impl.conf.Configurable;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -63,7 +62,7 @@ public class SimpleLoadTest {
         OntGraphModel model = ont.asGraphModel();
         ReadWriteUtils.print(model);
 
-        Set<Resource> illegalPunningURIs = TestUtils.getIllegalPunnings(model, Configurable.Mode.STRICT);
+        Set<Resource> illegalPunningURIs = TestUtils.getIllegalPunnings(model, OntModelConfig.StdMode.STRICT);
         LOGGER.debug("There are following illegal punnins inside original graph: " + illegalPunningURIs);
         List<OntEntity> illegalPunnings = model.ontEntities().filter(illegalPunningURIs::contains).collect(Collectors.toList());
         Assert.assertTrue("Has illegal punnings: " + illegalPunnings, illegalPunnings.isEmpty());

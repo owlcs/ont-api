@@ -23,7 +23,6 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.CommonOntObjectFactory;
-import ru.avicomp.ontapi.jena.impl.conf.Configurable;
 import ru.avicomp.ontapi.jena.impl.conf.OntMaker;
 import ru.avicomp.ontapi.jena.impl.conf.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
@@ -59,8 +58,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static final Set<Node> EXTRA_ROOT_TYPES_AS_NODES = EXTRA_ROOT_TYPES.stream()
             .map(FrontsNode::asNode)
             .collect(Iter.toUnmodifiableSet());
-    public static Configurable<OntObjectFactory> annotationFactory = m -> new CommonOntObjectFactory(
-            new OntMaker.Default(OntAnnotationImpl.class),
+    public static OntObjectFactory annotationFactory = new CommonOntObjectFactory(new OntMaker.Default(OntAnnotationImpl.class),
             OntAnnotationImpl::findRootAnnotations,
             OntAnnotationImpl::testAnnotation);
 

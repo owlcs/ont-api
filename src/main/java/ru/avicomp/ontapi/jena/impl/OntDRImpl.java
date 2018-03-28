@@ -37,25 +37,26 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 16.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntDRImpl extends OntObjectImpl implements OntDR {
     private static final OntFinder DR_FINDER = new OntFinder.ByType(RDFS.Datatype);
     private static final OntFilter DR_FILTER = OntFilter.BLANK.and(new OntFilter.HasType(RDFS.Datatype));
 
-    public static Configurable<OntObjectFactory> oneOfDRFactory = m ->
+    public static OntObjectFactory oneOfDRFactory =
             new CommonOntObjectFactory(new OntMaker.Default(OneOfImpl.class), DR_FINDER, DR_FILTER.and(new OntFilter.HasPredicate(OWL.oneOf)));
-    public static Configurable<OntObjectFactory> restrictionDRFactory = m ->
+    public static OntObjectFactory restrictionDRFactory =
             new CommonOntObjectFactory(new OntMaker.Default(RestrictionImpl.class), DR_FINDER, DR_FILTER.and(new OntFilter.HasPredicate(OWL.onDatatype)).and(new OntFilter.HasPredicate(OWL.withRestrictions)));
-    public static Configurable<OntObjectFactory> complementOfDRFactory = m ->
+    public static OntObjectFactory complementOfDRFactory =
             new CommonOntObjectFactory(new OntMaker.Default(ComplementOfImpl.class), DR_FINDER, DR_FILTER.and(new OntFilter.HasPredicate(OWL.datatypeComplementOf)));
-    public static Configurable<OntObjectFactory> unionOfDRFactory = m ->
+    public static OntObjectFactory unionOfDRFactory =
             new CommonOntObjectFactory(new OntMaker.Default(UnionOfImpl.class), DR_FINDER, DR_FILTER.and(new OntFilter.HasPredicate(OWL.unionOf)));
-    public static Configurable<OntObjectFactory> intersectionOfDRFactory = m ->
+    public static OntObjectFactory intersectionOfDRFactory =
             new CommonOntObjectFactory(new OntMaker.Default(IntersectionOfImpl.class), DR_FINDER, DR_FILTER.and(new OntFilter.HasPredicate(OWL.intersectionOf)));
 
-    public static Configurable<MultiOntObjectFactory> abstractAnonDRFactory = createMultiFactory(DR_FINDER,
+    public static OntObjectFactory abstractAnonDRFactory = new MultiOntObjectFactory(DR_FINDER, null,
             oneOfDRFactory, restrictionDRFactory, complementOfDRFactory, unionOfDRFactory, intersectionOfDRFactory);
 
-    public static Configurable<MultiOntObjectFactory> abstractDRFactory = createMultiFactory(DR_FINDER, Entities.DATATYPE, abstractAnonDRFactory);
+    public static Configurable<OntObjectFactory> abstractDRFactory = buildMultiFactory(DR_FINDER, null, Entities.DATATYPE, abstractAnonDRFactory);
 
     public OntDRImpl(Node n, EnhGraph m) {
         super(n, m);

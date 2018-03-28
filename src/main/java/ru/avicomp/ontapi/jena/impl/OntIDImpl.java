@@ -32,8 +32,7 @@ import java.util.stream.Stream;
  * Created by szuev on 09.11.2016.
  */
 public class OntIDImpl extends OntObjectImpl implements OntID {
-    public static Configurable<OntObjectFactory> idFactory = m ->
-            new CommonOntObjectFactory(new OntMaker.Default(OntIDImpl.class), new OntFinder.ByType(OWL.Ontology), new OntFilter.HasType(OWL.Ontology));
+    public static OntObjectFactory idFactory = new CommonOntObjectFactory(new OntMaker.Default(OntIDImpl.class), new OntFinder.ByType(OWL.Ontology), new OntFilter.HasType(OWL.Ontology));
 
     public OntIDImpl(Node n, EnhGraph m) {
         super(n, m);

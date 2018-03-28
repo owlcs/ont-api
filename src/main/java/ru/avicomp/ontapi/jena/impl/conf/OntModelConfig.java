@@ -150,7 +150,7 @@ public class OntModelConfig {
     /**
      * Personalities which don't care about the owl-entities "punnings" (no restriction on the type declarations)
      */
-    public static final OntPersonality ONT_PERSONALITY_LAX = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.LAX);
+    public static final OntPersonality ONT_PERSONALITY_LAX = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, StdMode.LAX);
     /**
      * Personality with four kinds of restriction on type intersection (i.e. "illegal punnings"):
      * <ul>
@@ -161,7 +161,7 @@ public class OntModelConfig {
      * </ul>
      * each of the pairs above can't exist in the corresponding model at the same time for the same node.
      */
-    public static final OntPersonality ONT_PERSONALITY_STRICT = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.STRICT);
+    public static final OntPersonality ONT_PERSONALITY_STRICT = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, StdMode.STRICT);
     /**
      * The week variant of previous one - two forbidden intersections:
      * <ul>
@@ -169,7 +169,7 @@ public class OntModelConfig {
      * <li>{@link OntNOP} &lt;-&gt; {@link OntNDP}</li>
      * </ul>
      */
-    public static final OntPersonality ONT_PERSONALITY_MEDIUM = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, Configurable.Mode.MEDIUM);
+    public static final OntPersonality ONT_PERSONALITY_MEDIUM = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, StdMode.MEDIUM);
 
     private static OntPersonality personality = ONT_PERSONALITY_MEDIUM;
 
@@ -181,12 +181,44 @@ public class OntModelConfig {
         personality = OntJenaException.notNull(p, "Null personality specified.");
     }
 
+    /**
+     * A standard personality mode.
+     */
+    public enum StdMode implements Configurable.Mode {
+        /**
+         * The following punnings are considered as illegal and are excluded:
+         * <ul>
+         * <li>owl:Class &lt;-&gt; rdfs:Datatype</li>
+         * <li>owl:ObjectProperty &lt;-&gt; owl:DatatypeProperty</li>
+         * <li>owl:ObjectProperty &lt;-&gt; owl:AnnotationProperty</li>
+         * <li>owl:AnnotationProperty &lt;-&gt; owl:DatatypeProperty</li>
+         * </ul>
+         */
+        STRICT,
+        /**
+         * Forbidden intersections of declarations:
+         * <ul>
+         * <li>Class &lt;-&gt; Datatype</li>
+         * <li>ObjectProperty &lt;-&gt; DataProperty</li>
+         * </ul>
+         */
+        MEDIUM,
+        /**
+         * Allow everything.
+         */
+        LAX,
+    }
+
     public static class PersonalityBuilder {
         private final Map<Class<? extends OntObject>, Configurable<? extends OntObjectFactory>> map = new LinkedHashMap<>();
 
         public PersonalityBuilder add(Class<? extends OntObject> key, Configurable<? extends OntObjectFactory> value) {
             map.put(key, value);
             return this;
+        }
+
+        public PersonalityBuilder add(Class<? extends OntObject> key, OntObjectFactory value) {
+            return add(key, m -> value);
         }
 
         public OntPersonality build(Personality<RDFNode> init, Configurable.Mode mode) {
@@ -196,4 +228,6 @@ public class OntModelConfig {
             return res;
         }
     }
+
+
 }

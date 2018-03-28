@@ -16,17 +16,13 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.conf.Configurable;
-import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -34,6 +30,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 03.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     public OntOPEImpl(Node n, EnhGraph g) {
@@ -75,15 +72,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     public static class InversePropertyImpl extends OntOPEImpl implements OntOPE.Inverse {
-
-        public static final Configurable<OntFilter> FILTER = mode -> (n, g) -> {
-            if (!n.isBlank()) return false;
-            Set<Node> nodes = g.asGraph().find(n, OWL.inverseOf.asNode(), Node.ANY)
-                    .mapWith(Triple::getObject)
-                    .filterKeep(o -> OntObjectImpl.canAs(OntNOP.class, o, g))
-                    .toSet();
-            return !nodes.isEmpty();
-        };
 
         public InversePropertyImpl(Node n, EnhGraph g) {
             super(n, g);

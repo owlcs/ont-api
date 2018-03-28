@@ -782,7 +782,9 @@ public class OntConfig extends OntologyConfigurator {
 
     public static OntPersonality getDefaultPersonality() {
         Configurable.Mode mode = (Configurable.Mode) OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE.getDefaultValue();
-        switch (mode) {
+        if (!(mode instanceof OntModelConfig.StdMode))
+            throw new OntApiException.Unsupported("Not supported: " + mode);
+        switch ((OntModelConfig.StdMode) mode) {
             case LAX:
                 return OntModelConfig.ONT_PERSONALITY_LAX;
             case MEDIUM:

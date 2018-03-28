@@ -14,15 +14,25 @@
 
 package ru.avicomp.ontapi.tests;
 
+import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.EnhNode;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.PrefixMapping;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
+import ru.avicomp.ontapi.jena.impl.Entities;
+import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
+import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
@@ -51,7 +61,7 @@ public class PersonalityTest {
         Assert.assertEquals(2, m.listClasses().count());
         Assert.assertEquals(1, m.ontObjects(OntDisjoint.Individuals.class).count());
         Assert.assertEquals(3, m.ontObjects(OntCE.class).count());
-        LOGGER.info("===================");
+        LOGGER.debug("===================");
 
         // add punn:
         m.createOntEntity(OntDT.class, ns + "class1");
@@ -70,7 +80,7 @@ public class PersonalityTest {
         Assert.assertEquals(1, m2.ontObjects(OntDisjoint.Individuals.class).count());
         List<OntCE> ces = m2.ontObjects(OntCE.class).collect(Collectors.toList());
         Assert.assertEquals("Wrong ces list: " + ces, 1, ces.size());
-        LOGGER.info("===================");
+        LOGGER.debug("===================");
 
         OntGraphModel m3 = OntModelFactory.createModel(m2.getBaseGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
         Assert.assertEquals(1, m3.listDatatypes().count());
@@ -100,7 +110,7 @@ public class PersonalityTest {
         Assert.assertEquals(1, m.listClasses().count());
         Assert.assertEquals(4, m.ontObjects(OntIndividual.class).count());
         Assert.assertEquals(4, m.ontObjects(OntCE.class).count());
-        LOGGER.info("===================");
+        LOGGER.debug("===================");
 
         // add punns:
         m.createOntEntity(OntNDP.class, ns + "prop1");
@@ -121,7 +131,7 @@ public class PersonalityTest {
         List<OntCE> ces = m2.ontObjects(OntCE.class).collect(Collectors.toList());
         // no ObjectSomeValuesFrom, no ObjectCardinality
         Assert.assertEquals("Wrong ces list: " + ces, 2, ces.size());
-        LOGGER.info("===================");
+        LOGGER.debug("===================");
 
         OntGraphModel m3 = OntModelFactory.createModel(m2.getBaseGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
         Assert.assertEquals(1, m3.listDataProperties().count());
@@ -129,5 +139,101 @@ public class PersonalityTest {
         Assert.assertEquals(2, m3.listObjectProperties().count());
         Assert.assertEquals(1, m3.ontObjects(OntDisjoint.Individuals.class).count());
         Assert.assertEquals(4, m3.ontObjects(OntCE.class).count());
+    }
+
+    @Test
+    public void testCustomPersonality() {
+        OntPersonality personality = buildCustomPersonality();
+
+        String ns = "http://ex.com#";
+        OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
+        m.setNsPrefixes(PrefixMapping.Standard);
+        OntCE c1 = m.createOntEntity(OntClass.class, ns + "class1");
+        OntNDP p1 = m.createOntEntity(OntNDP.class, ns + "prop1");
+        OntDT d1 = m.createOntEntity(OntDT.class, ns + "dt1");
+        c1.createIndividual();
+        c1.createIndividual(ns + "indi1");
+        OntCE c2 = m.createDataAllValuesFrom(p1, d1);
+        c2.createIndividual(ns + "indi2");
+        m.createResource(ns + "indi3", c2);
+        m.createResource(ns + "inid4", c1);
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(2, m.listNamedIndividuals().count());
+        Assert.assertEquals(3, m.ontObjects(OntIndividual.class).count());
+
+        LOGGER.debug("===================");
+
+        OntGraphModel m2 = OntModelFactory.createModel(m.getGraph(), personality);
+        Assert.assertEquals(4, m2.listNamedIndividuals().count());
+        Assert.assertEquals(5, m2.ontObjects(OntIndividual.class).count());
+        m.createResource(ns + "inid5", c2);
+        Assert.assertEquals(6, m2.ontObjects(OntIndividual.class).count());
+
+        OntDisjoint.Individuals disjoint2 = m2.createDifferentIndividuals(m2.ontObjects(OntIndividual.class).collect(Collectors.toList()));
+        ReadWriteUtils.print(m2);
+        Assert.assertEquals(6, disjoint2.members().count());
+
+        LOGGER.debug("===================");
+
+        OntGraphModel m3 = OntModelFactory.createModel(m2.getGraph(), OntModelConfig.ONT_PERSONALITY_MEDIUM);
+        Assert.assertEquals(2, m3.listNamedIndividuals().count());
+        Assert.assertEquals(3, m3.ontObjects(OntIndividual.class).count());
+        OntDisjoint.Individuals disjoint3 = m3.ontObjects(OntDisjoint.Individuals.class).findFirst().orElseThrow(AssertionError::new);
+        Assert.assertEquals(3, disjoint3.members().count());
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        LOGGER.info("Unregister '{}'", NAMED_INDIVIDUAL);
+        Assert.assertNotNull(Entities.INDIVIDUAL.unregister(NAMED_INDIVIDUAL));
+    }
+
+    public static final Configurable.Mode NAMED_INDIVIDUAL = new Configurable.Mode() {
+        @Override
+        public String toString() {
+            return "NamedIndividualFactory";
+        }
+    };
+
+    public static OntPersonality buildCustomPersonality() {
+        OntPersonality from = OntModelConfig.ONT_PERSONALITY_LAX;
+        LOGGER.info("Register '{}'", NAMED_INDIVIDUAL);
+        Entities.INDIVIDUAL.register(NAMED_INDIVIDUAL, createNamedIndividualFactory(from.getOntImplementation(OntCE.class)));
+        Assert.assertEquals(1, Entities.INDIVIDUAL.keys().size());
+        Arrays.stream(Entities.values())
+                .filter(v -> !v.equals(Entities.INDIVIDUAL))
+                .forEach(e -> Assert.assertTrue("Wrong custom factories list:" + e, e.keys().isEmpty()));
+        return OntModelConfig.ONT_PERSONALITY_BUILDER.build(from, NAMED_INDIVIDUAL);
+    }
+
+    private static OntObjectFactory createNamedIndividualFactory(OntObjectFactory ce) {
+        OntMaker maker = new OntMaker.Default(IndividualImpl.class) {
+
+            @Override
+            public EnhNode instance(Node node, EnhGraph eg) {
+                return new IndividualImpl(node, eg);
+            }
+        };
+        OntFinder finder = new OntFinder.ByPredicate(RDF.type);
+        OntFilter filter = OntFilter.URI
+                .and(new OntFilter.HasPredicate(RDF.type))
+                .and((s, g) -> Iter.asStream(g.asGraph().find(s, RDF.type.asNode(), Node.ANY)).map(Triple::getObject)
+                        .anyMatch(o -> ce.canWrap(o, g)));
+        return new CommonOntObjectFactory(maker, finder, filter);
+    }
+
+    /**
+     * Named individual which does not required explicit {@code _:x rdf:type owl:NamedIndividual} declaration, just only class.
+     */
+    public static class IndividualImpl extends OntIndividualImpl.NamedImpl {
+        private IndividualImpl(Node n, EnhGraph m) {
+            super(n, m);
+        }
+
+        public OntStatement getRoot() {
+            OntStatement res = getRoot(RDF.type, OWL.NamedIndividual);
+            return res == null ? types().map(r -> getRoot(RDF.type, r)).findFirst().orElse(null) : res;
+        }
     }
 }

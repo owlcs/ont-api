@@ -36,20 +36,12 @@ public class MultiOntObjectFactory extends OntObjectFactory {
     private OntFinder finder;
     private OntFilter fittingFilter;
 
-    protected MultiOntObjectFactory(OntObjectFactory... factories) {
-        this(null, null, factories);
-    }
-
-    private MultiOntObjectFactory(OntFinder finder, Stream<OntObjectFactory> factories) {
-        this(finder, null, factories.toArray(OntObjectFactory[]::new));
-    }
-
     /**
      * The main constructor
      *
      * @param finder        {@link OntFinder}, optional. if null then uses only array of sub-factories to search
      * @param fittingFilter {@link OntFilter}, optional. to trim searching
-     * @param factories     the Array of factories, not null, not empty.
+     * @param factories     the array of factories to combine, not null, not empty.
      */
     public MultiOntObjectFactory(OntFinder finder, OntFilter fittingFilter, OntObjectFactory... factories) {
         this.finder = finder;
@@ -102,7 +94,4 @@ public class MultiOntObjectFactory extends OntObjectFactory {
         return factories.stream();
     }
 
-    public MultiOntObjectFactory concat(OntObjectFactory... factories) {
-        return new MultiOntObjectFactory(finder, Stream.concat(factories(), unbend(factories).stream()));
-    }
 }

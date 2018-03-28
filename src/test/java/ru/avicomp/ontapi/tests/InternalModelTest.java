@@ -33,7 +33,6 @@ import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalObject;
 import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.impl.conf.Configurable;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -153,7 +152,7 @@ public class InternalModelTest {
         OWLObjectProperty creator = factory.getOWLObjectProperty(IRI.create("http://purl.org/dc/terms/creator"));
         expectedObjectProperties.add(creator);
 
-        Configurable.Mode mode = TestUtils.getMode(profile);
+        OntModelConfig.StdMode mode = TestUtils.getMode(profile);
         // remove all illegal punnings from OWL-API output:
         Set<Resource> illegalPunnings = TestUtils.getIllegalPunnings(jena, mode);
         LOGGER.debug("Illegal punnings inside graph: " + illegalPunnings);

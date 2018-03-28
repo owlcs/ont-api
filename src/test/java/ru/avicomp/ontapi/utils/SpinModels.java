@@ -27,7 +27,6 @@ import org.topbraid.spin.model.update.impl.*;
 import org.topbraid.spin.util.SimpleImplementation;
 import org.topbraid.spin.util.SimpleImplementation2;
 import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.jena.impl.conf.Configurable;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
@@ -92,7 +91,7 @@ public enum SpinModels {
             .add(Values.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Values.asNode(), ValuesImpl.class))
             .add(Variable.class, new SimpleImplementation(org.topbraid.spin.vocabulary.SP.Variable.asNode(), VariableImpl.class));
 
-    public static final OntPersonality ONT_SPIN_PERSONALITY = OntModelConfig.ONT_PERSONALITY_BUILDER.build(SPIN_PERSONALITY, Configurable.Mode.LAX);
+    public static final OntPersonality ONT_SPIN_PERSONALITY = OntModelConfig.ONT_PERSONALITY_BUILDER.build(SPIN_PERSONALITY, OntModelConfig.StdMode.LAX);
 
     private final String file, uri;
 

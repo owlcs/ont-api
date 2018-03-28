@@ -15,19 +15,17 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
-import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -43,16 +41,63 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 09.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
-    public static Configurable<OntObjectFactory> anonymousIndividualFactory = mode ->
-            new CommonOntObjectFactory(new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, AnonymousImpl.FILTER.get(mode));
+    public static final OntFilter ANONYMOUS_FILTER = OntIndividualImpl::testAnonymousIndividual;
+    public static final Set<Node> ALLOWED_IN_SUBJECT_PREDICATES =
+            Stream.concat(Entities.BUILTIN.properties().stream(), Stream.of(OWL.sameAs, OWL.differentFrom))
+                    .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
 
-    public static Configurable<? extends OntObjectFactory> abstractIndividualFactory = createMultiFactory(OntFinder.ANY_SUBJECT_AND_OBJECT, Entities.INDIVIDUAL, anonymousIndividualFactory);
+    public static final Set<Node> BUILT_IN_SUBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
+            .map(FrontsNode::asNode)
+            .filter(n -> !ALLOWED_IN_SUBJECT_PREDICATES.contains(n))
+            .collect(Iter.toUnmodifiableSet());
+    public static final Set<Node> ALLOWED_IN_OBJECT_PREDICATES =
+            Stream.concat(Entities.BUILTIN.properties().stream(),
+                    Stream.of(OWL.sameAs, OWL.differentFrom, OWL.sourceIndividual, OWL.hasValue, RDF.first))
+                    .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
+    public static final Set<Node> BUILT_IN_OBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
+            .map(FrontsNode::asNode)
+            .filter(n -> !ALLOWED_IN_OBJECT_PREDICATES.contains(n))
+            .collect(Iter.toUnmodifiableSet());
+
+    public static OntObjectFactory anonymousIndividualFactory =
+            new CommonOntObjectFactory(new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, ANONYMOUS_FILTER);
+
+    public static Configurable<OntObjectFactory> abstractIndividualFactory = buildMultiFactory(OntFinder.ANY_SUBJECT_AND_OBJECT, null,
+            Entities.INDIVIDUAL, anonymousIndividualFactory);
 
 
     public OntIndividualImpl(Node n, EnhGraph m) {
         super(n, m);
+    }
+
+    public static boolean testAnonymousIndividual(Node node, EnhGraph eg) {
+        if (!node.isBlank()) {
+            return false;
+        }
+        Set<Node> types = Iter.asStream(eg.asGraph().find(node, RDF.type.asNode(), Node.ANY)).map(Triple::getObject).collect(Collectors.toSet());
+        if (types.stream().anyMatch(o -> OntObjectImpl.canAs(OntCE.class, o, eg))) { // class assertion:
+            return true;
+        }
+        if (!types.isEmpty()) { // any other typed statement,
+            return false;
+        }
+        // _:x @built-in-predicate @any
+        try (Stream<Triple> triples = Iter.asStream(eg.asGraph().find(node, Node.ANY, Node.ANY))) {
+            if (triples.map(Triple::getPredicate).anyMatch(BUILT_IN_SUBJECT_PREDICATE_SET::contains)) {
+                return false;
+            }
+        }
+        // @any @built-in-predicate _:x
+        try (Stream<Triple> triples = Iter.asStream(eg.asGraph().find(Node.ANY, Node.ANY, node))) {
+            if (triples.map(Triple::getPredicate).anyMatch(BUILT_IN_OBJECT_PREDICATE_SET::contains)) {
+                return false;
+            }
+        }
+        // any other blank node could be treated as anonymous individual.
+        return true;
     }
 
     @Override
@@ -101,16 +146,15 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
      * but not object, data or annotation built-in property
      * and not owl:sameAs, owl:differentFrom, owl:hasValue, owl:sourceIndividual and rdf:first.</li>
      * </ul>
-     *
+     * <p>
      * for notations and self-education see our main <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Quick Refs</a>
      */
-    @SuppressWarnings("WeakerAccess")
     public static class AnonymousImpl extends OntIndividualImpl implements OntIndividual.Anonymous {
 
         // old way:
-        public static final Configurable<OntFilter> _FILTER = mode -> (OntFilter) (node, graph) -> node.isBlank() &&
-                (!getDeclarations(node, graph, mode).mapWith(Triple::getObject).toSet().isEmpty() ||
-                        positiveAssertionAnonIndividuals(graph, mode).anyMatch(node::equals) ||
+        public static final OntFilter FILTER = (node, graph) -> node.isBlank() &&
+                (!getDeclarations(node, graph).mapWith(Triple::getObject).toSet().isEmpty() ||
+                        positiveAssertionAnonIndividuals(graph).anyMatch(node::equals) ||
                         negativeAssertionAnonIndividuals(graph).anyMatch(node::equals) ||
                         hasValueOPEAnonIndividuals(graph).anyMatch(node::equals) ||
                         sameAnonIndividuals(graph).anyMatch(node::equals) ||
@@ -118,55 +162,8 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
                         oneOfAnonIndividuals(graph).anyMatch(node::equals) ||
                         disjointAnonIndividuals(graph).anyMatch(node::equals));
 
-        public static final Configurable<OntFilter> FILTER = mode -> (OntFilter) (node, graph) -> testAnonymousIndividual(node, graph, mode);
-
         public AnonymousImpl(Node n, EnhGraph m) {
             super(n, m);
-        }
-
-        public static final Set<Node> ALLOWED_IN_SUBJECT_PREDICATES =
-                Stream.concat(Entities.BUILTIN.properties().stream(),
-                        Stream.of(OWL.sameAs, OWL.differentFrom))
-                        .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
-        public static final Set<Node> ALLOWED_IN_OBJECT_PREDICATES =
-                Stream.concat(Entities.BUILTIN.properties().stream(),
-                        Stream.of(OWL.sameAs, OWL.differentFrom, OWL.sourceIndividual, OWL.hasValue, RDF.first))
-                        .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
-
-        public static final Set<Node> BUILT_IN_SUBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
-                .map(FrontsNode::asNode)
-                .filter(n -> !ALLOWED_IN_SUBJECT_PREDICATES.contains(n))
-                .collect(Iter.toUnmodifiableSet());
-        public static final Set<Node> BUILT_IN_OBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
-                .map(FrontsNode::asNode)
-                .filter(n -> !ALLOWED_IN_OBJECT_PREDICATES.contains(n))
-                .collect(Iter.toUnmodifiableSet());
-
-        public static boolean testAnonymousIndividual(Node node, EnhGraph eg, Configurable.Mode mode) {
-            if (!node.isBlank()) {
-                return false;
-            }
-            Set<Node> types = Iter.asStream(eg.asGraph().find(node, RDF.type.asNode(), Node.ANY)).map(Triple::getObject).collect(Collectors.toSet());
-            if (types.stream().anyMatch(o -> OntObjectImpl.canAs(OntCE.class, o, eg))) { // class assertion:
-                return true;
-            }
-            if (!types.isEmpty()) { // any other typed statement,
-                return false;
-            }
-            // _:x @built-in-predicate @any
-            try (Stream<Triple> triples = Iter.asStream(eg.asGraph().find(node, Node.ANY, Node.ANY))) {
-                if (triples.map(Triple::getPredicate).anyMatch(BUILT_IN_SUBJECT_PREDICATE_SET::contains)) {
-                    return false;
-                }
-            }
-            // @any @built-in-predicate _:x
-            try (Stream<Triple> triples = Iter.asStream(eg.asGraph().find(Node.ANY, Node.ANY, node))) {
-                if (triples.map(Triple::getPredicate).anyMatch(BUILT_IN_OBJECT_PREDICATE_SET::contains)) {
-                    return false;
-                }
-            }
-            // any other blank node could be treated as anonymous individual.
-            return true;
         }
 
         @Override
@@ -179,7 +176,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
             super.detachClass(clazz);
         }
 
-        protected static ExtendedIterator<Triple> getDeclarations(Node node, EnhGraph eg, Configurable.Mode mode) {
+        protected static ExtendedIterator<Triple> getDeclarations(Node node, EnhGraph eg) {
             return eg.asGraph().find(node, RDF.type.asNode(), Node.ANY).
                     filterKeep(t -> OntObjectImpl.canAs(OntCE.class, t.getObject(), eg));
         }
@@ -219,28 +216,26 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         /**
-         * returns stream of blank nodes ("_:a"), where blank node is an object in a triple
+         * Returns stream of blank nodes ("_:a"), where blank node is an object in a triple
          * which corresponds object property assertion "_:a1 PN _:a2" or annotation property assertion "s A t"
-         * TODO: "a1 PN a2", "a R v", "s A t"
-         * t = 	IRI, anonymous individual, or literal
+         * All assertions: "a1 PN a2", "a R v", "s A t"
+         * t = IRI, anonymous individual, or literal
          * s = IRI or anonymous individual
          *
          * @param eg {@link OntGraphModelImpl}
-         * @param m {@link Configurable.Mode}
          * @return Stream of {@link Node}
          */
-        protected static Stream<Node> positiveAssertionAnonIndividuals(EnhGraph eg, Configurable.Mode m) {
-            return positiveAssertionProperties(eg, m)
-                    .map(EnhNode::asNode)
+        protected static Stream<Node> positiveAssertionAnonIndividuals(EnhGraph eg) {
+            return positiveAssertionProperties((OntGraphModelImpl) eg)
+                    .map(FrontsNode::asNode)
                     .map(node -> anonAssertionObjects(eg.asGraph(), node))
                     .flatMap(Function.identity());
         }
 
-        private static Stream<EnhNode> positiveAssertionProperties(EnhGraph eg, Configurable.Mode mode) {
-            return Stream.of(Entities.ANNOTATION_PROPERTY, Entities.OBJECT_PROPERTY)
-                    .map(c -> c.get(mode))
-                    .map(f -> f.find(eg))
-                    .flatMap(Function.identity());
+        private static Stream<OntPE> positiveAssertionProperties(OntGraphModelImpl eg) {
+            return Iter.asStream(eg.listStatements().mapWith(Statement::getPredicate))
+                    .filter(p -> Stream.of(OntNAP.class, OntOPE.class).anyMatch(v -> OntObjectImpl.canAs(v, p.asNode(), eg)))
+                    .map(p -> p.as(OntPE.class));
         }
 
         private static Stream<Node> anonAssertionObjects(Graph graph, Node predicate) {

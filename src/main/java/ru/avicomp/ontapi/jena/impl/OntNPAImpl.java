@@ -33,17 +33,18 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 15.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends OntObjectImpl implements OntNPA<P, T> {
     private static OntFinder NPA_FINDER = new OntFinder.ByType(OWL.NegativePropertyAssertion);
     private static OntFilter NPA_FILTER = OntFilter.BLANK
             .and(new OntFilter.HasPredicate(OWL.sourceIndividual))
             .and(new OntFilter.HasPredicate(OWL.assertionProperty));
 
-    public static Configurable<OntObjectFactory> objectNPAFactory = m ->
-            new CommonOntObjectFactory(new OntMaker.Default(ObjectAssertionImpl.class), NPA_FINDER, NPA_FILTER, new OntFilter.HasPredicate(OWL.targetIndividual));
-    public static Configurable<OntObjectFactory> dataNPAFactory = m ->
+    public static OntObjectFactory objectNPAFactory = new CommonOntObjectFactory(new OntMaker.Default(ObjectAssertionImpl.class),
+            NPA_FINDER, NPA_FILTER, new OntFilter.HasPredicate(OWL.targetIndividual));
+    public static OntObjectFactory dataNPAFactory =
             new CommonOntObjectFactory(new OntMaker.Default(DataAssertionImpl.class), NPA_FINDER, NPA_FILTER, new OntFilter.HasPredicate(OWL.targetValue));
-    public static Configurable<MultiOntObjectFactory> abstractNPAFactory = createMultiFactory(NPA_FINDER, objectNPAFactory, dataNPAFactory);
+    public static OntObjectFactory abstractNPAFactory = new MultiOntObjectFactory(NPA_FINDER, null, objectNPAFactory, dataNPAFactory);
 
     public OntNPAImpl(Node n, EnhGraph m) {
         super(n, m);

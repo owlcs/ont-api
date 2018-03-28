@@ -19,7 +19,7 @@ import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
 import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.impl.conf.Configurable;
+import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.transforms.*;
 
 import java.io.IOException;
@@ -46,7 +46,7 @@ public enum OntSettings implements OntConfig.OptionSetting {
             RDFSTransform.class, OWLCommonTransform.class, OWLDeclarationTransform.class)
             .collect(Collectors.toCollection(ArrayList::new))),
     ONT_API_LOAD_CONF_SUPPORTED_SCHEMES(OntConfig.DefaultScheme.all().collect(Collectors.toCollection(ArrayList::new))),
-    ONT_API_LOAD_CONF_PERSONALITY_MODE(Configurable.Mode.MEDIUM),
+    ONT_API_LOAD_CONF_PERSONALITY_MODE(OntModelConfig.StdMode.MEDIUM),
     ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS(true),
     ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS(true),
     ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS(true),

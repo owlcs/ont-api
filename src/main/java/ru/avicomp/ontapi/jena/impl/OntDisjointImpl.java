@@ -43,23 +43,20 @@ import java.util.stream.Stream;
 public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl implements OntDisjoint<O> {
     public static final OntFinder PROPERTIES_FINDER = new OntFinder.ByType(OWL.AllDisjointProperties);
 
-    public static Configurable<OntObjectFactory> disjointClassesFactory =
+    public static OntObjectFactory disjointClassesFactory =
             createFactory(ClassesImpl.class, OWL.AllDisjointClasses, OntCE.class, true, OWL.members);
 
-    public static Configurable<OntObjectFactory> differentIndividualsFactory =
+    public static OntObjectFactory differentIndividualsFactory =
             createFactory(IndividualsImpl.class, OWL.AllDifferent, OntIndividual.class, true, OWL.members, OWL.distinctMembers);
 
-    public static Configurable<OntObjectFactory> objectPropertiesFactory =
+    public static OntObjectFactory objectPropertiesFactory =
             createFactory(ObjectPropertiesImpl.class, OWL.AllDisjointProperties, OntOPE.class, false, OWL.members);
 
-    public static Configurable<OntObjectFactory> dataPropertiesFactory =
+    public static OntObjectFactory dataPropertiesFactory =
             createFactory(DataPropertiesImpl.class, OWL.AllDisjointProperties, OntNDP.class, false, OWL.members);
 
-    public static Configurable<MultiOntObjectFactory> abstractPropertiesFactory =
-            createMultiFactory(PROPERTIES_FINDER, objectPropertiesFactory, dataPropertiesFactory);
-    public static Configurable<MultiOntObjectFactory> abstractDisjointFactory =
-            createMultiFactory(OntFinder.TYPED, abstractPropertiesFactory, disjointClassesFactory, differentIndividualsFactory);
-
+    public static OntObjectFactory abstractPropertiesFactory = new MultiOntObjectFactory(PROPERTIES_FINDER, null, objectPropertiesFactory, dataPropertiesFactory);
+    public static OntObjectFactory abstractDisjointFactory = new MultiOntObjectFactory(OntFinder.TYPED, null, abstractPropertiesFactory, disjointClassesFactory, differentIndividualsFactory);
 
     public OntDisjointImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -82,15 +79,15 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         return Stream.of(thisDeclaration, listDeclaration, listContent).flatMap(Function.identity());
     }
 
-    private static Configurable<OntObjectFactory> createFactory(Class<? extends OntDisjointImpl> impl,
-                                                                Resource type,
-                                                                Class<? extends RDFNode> view,
-                                                                boolean allowEmptyList,
-                                                                Property... predicates) {
+    private static OntObjectFactory createFactory(Class<? extends OntDisjointImpl> impl,
+                                                  Resource type,
+                                                  Class<? extends RDFNode> view,
+                                                  boolean allowEmptyList,
+                                                  Property... predicates) {
         OntMaker maker = new OntMaker.WithType(impl, type);
         OntFinder finder = new OntFinder.ByType(type);
         OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(type));
-        return m -> new CommonOntObjectFactory(maker, finder, filter
+        return new CommonOntObjectFactory(maker, finder, filter
                 .and(getHasPredicatesFilter(predicates))
                 .and(getHasMembersOfFilter(view, allowEmptyList, predicates)));
     }

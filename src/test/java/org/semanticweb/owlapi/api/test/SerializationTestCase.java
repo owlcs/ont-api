@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
+import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class SerializationTestCase extends TestBase {
     /**
      * Invite {@link #TEST_STRING_1}, it is to avoid illegal punning Class <-> Datatype
      * (default {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality} does not allow such things,
-     * mode = {@link ru.avicomp.ontapi.jena.impl.conf.Configurable.Mode#MEDIUM}).
+     * mode = {@link OntModelConfig.StdMode#MEDIUM}).
      * And NOTE: neither {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality} and
      * {@link OWLOntologyLoaderConfiguration} in the manager (OWL-5.0.5) are not serializable.
      * So the list of axioms from origin and copy ontologies could be different.

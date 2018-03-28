@@ -17,11 +17,14 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -33,7 +36,7 @@ import java.util.stream.Stream;
 public enum Entities implements Configurable<OntObjectFactory> {
     CLASS(OntClassImpl.class, OWL.Class) {
         @Override
-        Stream<Resource> bannedTypes(Configurable.Mode mode) {
+        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case MEDIUM:
                 case STRICT:
@@ -50,7 +53,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
     },
     DATATYPE(OntDatatypeImpl.class, RDFS.Datatype) {
         @Override
-        Stream<Resource> bannedTypes(Configurable.Mode mode) {
+        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case MEDIUM:
                 case STRICT:
@@ -67,7 +70,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
     },
     ANNOTATION_PROPERTY(OntAPropertyImpl.class, OWL.AnnotationProperty) {
         @Override
-        Stream<Resource> bannedTypes(Configurable.Mode mode) {
+        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case STRICT:
                     return Stream.of(OWL.ObjectProperty, OWL.DatatypeProperty);
@@ -83,7 +86,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
     },
     DATA_PROPERTY(OntDPropertyImpl.class, OWL.DatatypeProperty) {
         @Override
-        Stream<Resource> bannedTypes(Configurable.Mode mode) {
+        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case STRICT:
                     return Stream.of(OWL.ObjectProperty, OWL.AnnotationProperty);
@@ -101,7 +104,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
     },
     OBJECT_PROPERTY(OntOPEImpl.NamedPropertyImpl.class, OWL.ObjectProperty) {
         @Override
-        Stream<Resource> bannedTypes(Configurable.Mode mode) {
+        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case STRICT:
                     return Stream.of(OWL.DatatypeProperty, OWL.AnnotationProperty);
@@ -121,11 +124,11 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
     public static final BuiltIn.Vocabulary BUILTIN = BuiltIn.get();
 
-    public static final Configurable<MultiOntObjectFactory> ALL = m -> new MultiOntObjectFactory(OntFinder.TYPED, null,
-            Stream.of(values()).map(c -> c.get(m)).toArray(OntObjectFactory[]::new));
+    public static final Configurable<OntObjectFactory> ALL = OntObjectImpl.concatFactories(OntFinder.TYPED, values());
 
     private final Class<? extends OntObjectImpl> impl;
     private final Resource type;
+    private final Map<Mode, OntObjectFactory> registry = new HashMap<>();
 
     Entities(Class<? extends OntObjectImpl> impl, Resource type) {
         this.impl = impl;
@@ -136,7 +139,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
         return type;
     }
 
-    Stream<Resource> bannedTypes(Configurable.Mode mode) {
+    Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
         return Stream.empty();
     }
 
@@ -144,8 +147,42 @@ public enum Entities implements Configurable<OntObjectFactory> {
         return Collections.emptySet();
     }
 
+    /**
+     * Registers a custom entity factory.
+     *
+     * @param key     {@link Configurable.Mode} key, not null.
+     * @param factory {@link OntObjectFactory}, the factory for selected entity, not null.
+     */
+    public void register(Mode key, OntObjectFactory factory) {
+        registry.put(OntJenaException.notNull(key, "Null mode-key"), OntJenaException.notNull(factory, "Null factory-value"));
+    }
+
+    /**
+     * Unregisters a custom factory.
+     *
+     * @param key {@link Configurable.Mode} key, not null.
+     * @return a {@link OntObjectFactory} previously associated with the {@code key}
+     */
+    public OntObjectFactory unregister(Mode key) {
+        return registry.remove(key);
+    }
+
+    /**
+     * Returns all custom factories keys
+     *
+     * @return Set of {@link Mode}s.
+     */
+    public Set<Mode> keys() {
+        return registry.keySet();
+    }
+
     @Override
     public OntObjectFactory select(Mode m) {
+        return registry.getOrDefault(m, makeDefault(m));
+    }
+
+    private OntObjectFactory makeDefault(Mode mode) {
+        OntModelConfig.StdMode m = mode instanceof OntModelConfig.StdMode ? (OntModelConfig.StdMode) mode : OntModelConfig.StdMode.LAX;
         OntFinder finder = new OntFinder.ByType(type);
 
         OntFilter illegalPunningsFilter = OntFilter.TRUE.accumulate(bannedTypes(m)
@@ -156,4 +193,5 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
         return new CommonOntObjectFactory(maker, finder, filter);
     }
+
 }

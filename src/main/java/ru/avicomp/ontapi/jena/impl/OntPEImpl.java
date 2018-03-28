@@ -16,27 +16,43 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import ru.avicomp.ontapi.jena.impl.conf.*;
+import ru.avicomp.ontapi.jena.model.OntNOP;
+import ru.avicomp.ontapi.jena.model.OntPE;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.stream.Stream;
+
 /**
- * Property Expression base class.
+ * Property Expression base impl-class.
+ * No functionality, just a collection of factories related to all OWL property-expressions.
  * <p>
  * Created by @szuev on 08.11.2016.
  */
-public abstract class OntPEImpl extends OntObjectImpl {
+@SuppressWarnings("WeakerAccess")
+public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
 
-    public static Configurable<MultiOntObjectFactory> abstractNamedPropertyFactory = createMultiFactory(OntFinder.TYPED,
+    public static final OntFilter INVERSE_OF_FILTER = (n, g) -> {
+        if (!n.isBlank()) return false;
+        try (Stream<Node> objects = Iter.asStream(g.asGraph().find(n, OWL.inverseOf.asNode(), Node.ANY))
+                .map(Triple::getObject)) {
+            return objects.anyMatch(o -> OntObjectImpl.canAs(OntNOP.class, o, g));
+        }
+    };
+
+    public static OntObjectFactory inversePropertyFactory = new CommonOntObjectFactory(new OntMaker.Default(OntOPEImpl.InversePropertyImpl.class),
+            new OntFinder.ByPredicate(OWL.inverseOf), INVERSE_OF_FILTER);
+
+    public static Configurable<OntObjectFactory> abstractNamedPropertyFactory = concatFactories(OntFinder.TYPED,
             Entities.OBJECT_PROPERTY, Entities.DATA_PROPERTY, Entities.ANNOTATION_PROPERTY);
-    public static Configurable<OntObjectFactory> inversePropertyFactory = m -> new CommonOntObjectFactory(
-            new OntMaker.Default(OntOPEImpl.InversePropertyImpl.class),
-            new OntFinder.ByPredicate(OWL.inverseOf),
-            OntOPEImpl.InversePropertyImpl.FILTER.get(m));
 
-    public static Configurable<MultiOntObjectFactory> abstractOPEFactory = createMultiFactory(OntFinder.TYPED,
+    public static Configurable<OntObjectFactory> abstractOPEFactory = buildMultiFactory(OntFinder.TYPED, null,
             Entities.OBJECT_PROPERTY, inversePropertyFactory);
-    public static Configurable<MultiOntObjectFactory> abstractPEFactory =
-            createMultiFactory(OntFinder.ANY_SUBJECT, abstractNamedPropertyFactory, inversePropertyFactory);
+
+    public static Configurable<OntObjectFactory> abstractPEFactory =
+            buildMultiFactory(OntFinder.ANY_SUBJECT, null, abstractNamedPropertyFactory, inversePropertyFactory);
 
     public OntPEImpl(Node n, EnhGraph m) {
         super(n, m);

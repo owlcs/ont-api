@@ -30,6 +30,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -42,8 +43,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OntObjectImpl extends ResourceImpl implements OntObject {
 
-    public static Configurable<OntObjectFactory> objectFactory = m ->
-            new CommonOntObjectFactory(new OntMaker.Default(OntObjectImpl.class), OntFinder.ANY_SUBJECT, OntFilter.URI.or(OntFilter.BLANK));
+    public static OntObjectFactory objectFactory = new CommonOntObjectFactory(new OntMaker.Default(OntObjectImpl.class), OntFinder.ANY_SUBJECT, OntFilter.URI.or(OntFilter.BLANK));
 
     public OntObjectImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -156,7 +156,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * gets rdf:List content as Stream of RDFNode's.
      * if the object is not rdf:List then empty stream expected.
-     * if there are several lists with the same predicate the contents of all will be merged.
+     * if there are several lists with the same predicate then contents all of them will be merged.
      * <p>
      * Note: here we use the "tolerant" approach.
      * Generally speaking, the case when we have several lists on a single predicate is _not_ correct (in terms of OWL2).
@@ -176,8 +176,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * gets the stream of nodes with the specified type from rdf:List.
+     * Returns stream of nodes with the specified type from rdf:List.
      * Note: In OWL2 the type of rdf:List members is always the same (with except of owl:hasKey construction).
+     * Note: this method will skip all members which can not be casted to the specified type.
      *
      * @param predicate to search for rdf:Lists
      * @param view      Class, the type of returned nodes.
@@ -185,11 +186,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link RDFNode} with specified type.
      */
     public <O extends RDFNode> Stream<O> rdfListMembers(Property predicate, Class<O> view) {
-        return rdfListMembers(predicate).map(n -> getModel().getNodeAs(n.asNode(), view));
+        return rdfListMembers(predicate).map(n -> getModel().fetchNodeAs(n.asNode(), view)).filter(Objects::nonNull);
     }
 
     /**
-     * gets content of list in view of OntStatement streams.
+     * Gets content of list in view of OntStatement streams.
      * Note: if there are several rdf:List objects the contents will be merged.
      *
      * @param property predicate
@@ -280,14 +281,18 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         throw new OntJenaException("Not uri resource " + res);
     }
 
-    @SafeVarargs
-    protected static Configurable<MultiOntObjectFactory> createMultiFactory(OntFinder finder, Configurable<? extends OntObjectFactory>... factories) {
-        return createMultiFactory(finder, null, factories);
+    protected static Configurable<OntObjectFactory> buildMultiFactory(OntFinder finder,
+                                                                      OntFilter filter,
+                                                                      Configurable<? extends OntObjectFactory> configurable,
+                                                                      OntObjectFactory... other) {
+        return mode -> new MultiOntObjectFactory(finder, filter,
+                Stream.concat(Stream.of(configurable.get(mode)), Arrays.stream(other)).toArray(OntObjectFactory[]::new));
     }
 
-    @SafeVarargs
-    protected static Configurable<MultiOntObjectFactory> createMultiFactory(OntFinder finder, OntFilter filter, Configurable<? extends OntObjectFactory>... factories) {
-        return mode -> new MultiOntObjectFactory(finder, filter, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
+    @SuppressWarnings("unchecked")
+    protected static Configurable<OntObjectFactory> concatFactories(OntFinder finder,
+                                                                    Configurable<? extends OntObjectFactory>... factories) {
+        return mode -> new MultiOntObjectFactory(finder, null, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
     }
 
     protected static boolean canAs(Class<? extends RDFNode> view, Node node, EnhGraph graph) {
