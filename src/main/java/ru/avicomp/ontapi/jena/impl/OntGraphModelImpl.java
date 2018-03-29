@@ -254,30 +254,34 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         }
     }
 
-    protected Set<Node> visited = new HashSet<>();
+    protected ThreadLocal<Set<Node>> visited = ThreadLocal.withInitial(HashSet::new);
 
     /**
-     * Answer an enhanced node that wraps the given node and conforms to the given interface type with allowance for graph recursions.
+     * Answer an enhanced node that wraps the given node and conforms to the given interface type,
+     * taking into account possible graph recursions.
+     * For internal usage only.
      *
      * @param node A node (assumed to be in this graph)
      * @param view A type denoting the enhanced facet desired
      * @param <N>  A subtype of {@link RDFNode}
-     * @return An enhanced node or {@code null} if no match found.
-     * @throws OntJenaException.Recursion if graph recursion is indicated
+     * @return An enhanced node or {@code null} if no match found
+     * @throws OntJenaException.Recursion if a graph recursion is indicated
+     * @see #getNodeAs(Node, Class)
      */
     public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> view) {
+        Set<Node> nodes = visited.get();
         try {
-            if (visited.contains(node)) {
+            if (nodes.contains(node)) {
                 throw new OntJenaException.Recursion("Can't cast to " + view.getSimpleName() + ": graph contains a recursion for node <" + node + ">");
             }
-            visited.add(node);
+            nodes.add(node);
             return getNodeAsInternal(node, view);
         } catch (OntJenaException.Recursion r) {
             throw r;
         } catch (JenaException e) {
             return null;
         } finally {
-            visited.remove(node);
+            nodes.remove(node);
         }
     }
 

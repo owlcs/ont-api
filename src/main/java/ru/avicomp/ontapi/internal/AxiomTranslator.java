@@ -14,26 +14,21 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Models;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The base class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
- * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>
- * How to annotate see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>
- * One more helpful link: <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick Reference Guide</a>
+ * The base abstract class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
+ * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>.
+ * Additional info about annotations translation <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>.
+ * One more (and most useful) link: <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick Reference Guide</a>.
+ * To get particular instance of this class the method {@link AxiomParserProvider#get(AxiomType)} can be used.
  * <p>
  * Created by @szuev on 28.09.2016.
  *
@@ -41,47 +36,21 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AxiomTranslator.class);
 
     /**
-     * Writes axiom to model.
+     * Writes an axiom in a model.
      *
-     * @param axiom {@link OWLAxiom}
-     * @param model {@link OntGraphModel}
+     * @param axiom {@link OWLAxiom OWL-API axiom object}
+     * @param model {@link OntGraphModel ONT-API Jena Model}
      */
     public abstract void write(Axiom axiom, OntGraphModel model);
 
     /**
-     * Reads axioms and triples from model.
+     * Reads all model axioms in form of stream.
      *
-     * @param model {@link OntGraphModel}
-     * @return Set of {@link InternalObject} with {@link OWLAxiom} as key and Set of {@link Triple} as value
-     * @throws OntApiException if something is wrong and 'ont.api.load.conf.ignore.axioms.read.errors' is false.
-     * @deprecated use {@link #axioms(OntGraphModel)}
-     */
-    @Deprecated
-    public Set<InternalObject<Axiom>> read(OntGraphModel model) throws OntApiException {
-        try {
-            try {
-                return axioms(model).collect(Collectors.toSet());
-            } catch (JenaException e) {
-                throw new OntApiException(String.format("Can't process reading. Translator <%s>.", getClass()), e);
-            }
-        } catch (OntApiException e) {
-            if (!getConfig(model).loaderConfig().isIgnoreAxiomsReadErrors()) {
-                throw e;
-            }
-            LOGGER.warn("{}: ontology <{}> contains unparsable axioms", getClass().getSimpleName(), model.getID(), e);
-            return Collections.emptySet();
-        }
-    }
-
-    /**
-     * Reads all axioms as stream.
-     *
-     * @param model {@link OntGraphModel jena-model}
-     * @return Stream of {@link InternalObject}
-     * @throws JenaException unable to read axioms for this type.
+     * @param model {@link OntGraphModel ONT-API Jena Model}
+     * @return Stream of {@link InternalObject} around {@link OWLAxiom}
+     * @throws JenaException unable to read axioms of this type.
      */
     public Stream<InternalObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
         return statements(model)
@@ -93,15 +62,15 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     }
 
     /**
-     * Returns the stream of statements defining the axiom in the base graph of the specified model.
+     * Returns a stream of statements defining the axiom in the base graph of the specified model.
      *
-     * @param model {@link OntGraphModel} the model
+     * @param model {@link OntGraphModel ONT-API Jena Model}
      * @return Stream of {@link OntStatement}, always local (not from imports)
      */
     public abstract Stream<OntStatement> statements(OntGraphModel model);
 
     /**
-     * Tests if the specified statement answers the axiom's definition.
+     * Tests if the specified statement answers the axiom definition.
      *
      * @param statement {@link OntStatement} any statement, not necessarily local.
      * @return true if the statement corresponds axiom type.
@@ -112,7 +81,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * Creates an OWL Axiom from a statement.
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
-     * @return {@link InternalObject} around the {@link OWLAxiom}
+     * @return {@link InternalObject} around {@link OWLAxiom}
      */
     public abstract InternalObject<Axiom> toAxiom(OntStatement statement);
 
