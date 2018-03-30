@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 
 /**
  * Immutable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple}s.
+ * TODO: going to rename: will be used as external resource.
  * <p>
  * Created by @szuev on 27.11.2016.
  */

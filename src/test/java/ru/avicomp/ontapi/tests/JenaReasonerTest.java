@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,12 +13,6 @@
  */
 
 package ru.avicomp.ontapi.tests;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URI;
-import java.util.Iterator;
-import java.util.List;
 
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.reasoner.Derivation;
@@ -32,7 +26,6 @@ import org.apache.jena.vocabulary.ReasonerVocabulary;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
-
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -41,15 +34,21 @@ import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URI;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * The simplest reasoner test.
  * Modified copy-paste from jena-core-tests (org.apache.jena.reasoner.test.ManualExample)
  * <p>
  * Created by szuev on 26.04.2017.
  */
-public class ReasonerTest {
+public class JenaReasonerTest {
 
-    public static final Logger LOGGER = Logger.getLogger(ReasonerTest.class);
+    public static final Logger LOGGER = Logger.getLogger(JenaReasonerTest.class);
 
     /**
      * Illustrate different ways of finding a reasoner

@@ -131,6 +131,11 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
             // todo: what about not local statements and individuals with attached to several classes?
             return statements(RDF.type);
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return OntIndividual.Named.class;
+        }
     }
 
     /**
@@ -164,6 +169,11 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
         public AnonymousImpl(Node n, EnhGraph m) {
             super(n, m);
+        }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return OntIndividual.Anonymous.class;
         }
 
         @Override

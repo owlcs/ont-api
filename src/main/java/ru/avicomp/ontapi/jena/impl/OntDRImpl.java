@@ -22,10 +22,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
-import ru.avicomp.ontapi.jena.model.OntDR;
-import ru.avicomp.ontapi.jena.model.OntDT;
-import ru.avicomp.ontapi.jena.model.OntFR;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -123,6 +120,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         public Stream<OntStatement> content() {
             return Stream.concat(super.content(), listStatements(OWL.oneOf));
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return OneOf.class;
+        }
     }
 
     public static class RestrictionImpl extends OntDRImpl implements Restriction {
@@ -167,6 +169,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         public Stream<OntStatement> content() {
             return Stream.concat(super.content(), statement(OWL.datatypeComplementOf).map(Stream::of).orElse(Stream.empty()));
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return ComplementOf.class;
+        }
     }
 
     public static class UnionOfImpl extends OntDRImpl implements UnionOf {
@@ -183,6 +190,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         public Stream<OntStatement> content() {
             return Stream.concat(super.content(), listStatements(OWL.unionOf));
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return UnionOf.class;
+        }
     }
 
     public static class IntersectionOfImpl extends OntDRImpl implements IntersectionOf {
@@ -198,6 +210,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         @Override
         public Stream<OntStatement> content() {
             return Stream.concat(super.content(), listStatements(OWL.intersectionOf));
+        }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return IntersectionOf.class;
         }
 
     }
