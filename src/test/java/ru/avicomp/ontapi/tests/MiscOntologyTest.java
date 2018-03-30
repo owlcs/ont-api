@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -141,5 +142,24 @@ public class MiscOntologyTest {
         Assert.assertEquals(OntFormat.RDF_XML.createOwlFormat(), format2);
         //noinspection ConstantConditions
         Assert.assertEquals("Wrong prefix", model.getNsPrefixURI(prefName), format2.asPrefixOWLDocumentFormat().getPrefix(prefName + ":"));
+    }
+
+    @Test
+    public void testOntGraphDocumentSource() throws OWLOntologyCreationException {
+        IRI pizza = IRI.create(MiscOntologyTest.class.getResource("/pizza.ttl"));
+        LOGGER.info("File: {}", pizza);
+        OntologyModel ont = OntManagers.createONT().loadOntology(pizza);
+        OWLOntologyDocumentSource src = new OntGraphDocumentSource() {
+            @Override
+            public Graph getGraph() {
+                return ont.asGraphModel().getBaseGraph();
+            }
+        };
+        LOGGER.info("Load using pipes");
+        OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(src);
+        Set<OWLAxiom> ontAxioms = ont.axioms().collect(Collectors.toSet());
+        Set<OWLAxiom> owlAxioms = owl.axioms().collect(Collectors.toSet());
+        LOGGER.debug("OWL Axioms Count={}, ONT Axioms Count={}", owlAxioms.size(), ontAxioms.size());
+        Assert.assertEquals(ontAxioms, owlAxioms);
     }
 }
