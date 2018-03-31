@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.benchmarks;
 
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
@@ -34,18 +35,24 @@ import java.util.function.Supplier;
 public class HermitTester {
     private static final Logger LOGGER = LoggerFactory.getLogger(HermitTester.class);
 
+    @BeforeClass
+    public static void before() throws Exception {
+        processTest(1, OntManagers::createONT);
+        processTest(1, OntManagers::createOWL);
+        LOGGER.info("==============");
+    }
+
     @Test
     public void test01OWL() throws Exception {
-        processTest(OntManagers::createOWL);
+        processTest(100, OntManagers::createOWL);
     }
 
     @Test
     public void test02ONT() throws Exception {
-        processTest(OntManagers::createONT);
+        processTest(100, OntManagers::createONT);
     }
 
-    private static void processTest(Supplier<OWLOntologyManager> manager) throws Exception {
-        int num = 100;
+    private static void processTest(int num, Supplier<OWLOntologyManager> manager) throws Exception {
         IRI file = IRI.create(HermitTester.class.getResource("/pizza.ttl"));
         LOGGER.info("Ontology file {}", file);
         OWLOntologyManager m = manager.get();

@@ -14,7 +14,6 @@
 
 package ru.avicomp.ontapi.utils;
 
-import org.apache.jena.enhanced.BuiltinPersonalities;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
@@ -28,10 +27,11 @@ import org.topbraid.spin.util.SimpleImplementation;
 import org.topbraid.spin.util.SimpleImplementation2;
 import org.topbraid.spin.vocabulary.SPIN;
 import org.topbraid.spin.vocabulary.SPL;
+import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 
 /**
  * A copy-paste from {@link org.topbraid.spin.vocabulary.SP}.
- * The difference: it does not modify standard global jena personalities.
+ * The difference: it does not modify {@link org.apache.jena.enhanced.BuiltinPersonalities#model the standard global jena personalities}.
  * <p>
  * Created by @szuev on 20.03.2018.
  */
@@ -167,12 +167,17 @@ public class SP {
         return ResourceFactory.createProperty(NS + local);
     }
 
-    public static Personality<RDFNode> SPIN_PERSONALITY = init(BuiltinPersonalities.model.copy());
+    public static Personality<RDFNode> SPIN_PERSONALITY = init(OntModelConfig.STANDARD_PERSONALITY.copy());
 
     public static Model createModel(Graph graph) {
         return new ModelCom(graph, SPIN_PERSONALITY);
     }
 
+    /**
+     * @param p {@link Personality} to modify
+     * @return {@link Personality} the same instance
+     * @see org.topbraid.spin.vocabulary.SP#init(Personality)
+     */
     public static Personality<RDFNode> init(Personality<RDFNode> p) {
         p.add(org.topbraid.spin.model.Aggregation.class, new SimpleImplementation(SPL.Argument.asNode(), AggregationImpl.class));
         p.add(Argument.class, new SimpleImplementation(SPL.Argument.asNode(), ArgumentImpl.class));
