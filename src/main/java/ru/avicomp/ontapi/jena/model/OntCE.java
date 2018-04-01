@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -168,14 +168,13 @@ public interface OntCE extends OntObject {
         void setCardinality(int cardinality);
 
         /**
-         * Determines if this restriction is qualified. Qualified cardinality
-         * restrictions are defined to be cardinality restrictions that have fillers
-         * which aren't TOP (owl:Thing or rdfs:Literal). An object restriction is
-         * unqualified if it has a filler that is owl:Thing. A data restriction is
-         * unqualified if it has a filler which is the top data type (rdfs:Literal).
+         * Determines if this restriction is qualified.
+         * Qualified cardinality restrictions are defined to be cardinality restrictions
+         * that have fillers which aren't TOP (owl:Thing or rdfs:Literal).
+         * An object restriction is unqualified if it has a filler that is owl:Thing.
+         * A data restriction is unqualified if it has a filler which is the top data type (rdfs:Literal).
          *
-         * @return {@code true} if this restriction is qualified, or {@code false}
-         * if this restriction is unqualified.
+         * @return {@code true} if this restriction is qualified, or {@code false} if this restriction is unqualified.
          */
         boolean isQualified();
     }

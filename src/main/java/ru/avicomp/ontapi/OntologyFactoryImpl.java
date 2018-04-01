@@ -353,7 +353,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
                     OntologyManagerImpl.setDefaultPrefix(pm, res);
                 }
                 if (isPrimary) {
-                    // todo: pass stats from transforms. add config param
+                    // todo: pass stats from transforms
                     OWLOntologyLoaderMetaData fake = new RDFParserMetaData(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, 0,
                             Collections.emptySet(), ArrayListMultimap.create());
                     owlFormat.setOntologyLoaderMetaData(fake);

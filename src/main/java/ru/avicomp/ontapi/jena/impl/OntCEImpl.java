@@ -774,7 +774,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static boolean isQualified(OntObject c) {
-        return c != null && !OWL.Thing.equals(c) && !RDFS.Literal.equals(c);
+        return c != null && !(OWL.Thing.equals(c) || RDFS.Literal.equals(c));
     }
 
     protected static CardinalityType getCardinalityType(Class<? extends CardinalityRestrictionCE> view) {

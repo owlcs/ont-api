@@ -114,6 +114,15 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         }
     }
 
+    /**
+     * Returns an ont-statement with given subject and property.
+     * If more than one statement with the given subject and property exists in the model, it is undefined which will be returned.
+     * If none exist, an exception is thrown.
+     *
+     * @param property {@link Property}, the predicate
+     * @return {@link OntStatement}
+     * @throws PropertyNotFoundException no statement are found
+     */
     @Override
     public OntStatement getRequiredProperty(Property property) {
         return statement(property).orElseThrow(() -> new PropertyNotFoundException(property));
@@ -154,7 +163,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * gets rdf:List content as Stream of RDFNode's.
+     * Gets rdf:List content as Stream of RDFNode's.
      * if the object is not rdf:List then empty stream expected.
      * if there are several lists with the same predicate then contents all of them will be merged.
      * <p>
@@ -211,7 +220,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * removes all objects for predicate (if object is rdf:List removes all content)
+     * Removes all objects for predicate (if object is rdf:List removes all content)
      *
      * @param predicate Property
      */
@@ -227,9 +236,21 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return object(predicate, view).orElse(null);
     }
 
+    /**
+     * Returns an object from a first found statement with specified predicate.
+     * Since the order in the graph is undefined
+     * in case there are more then one statement for a property the result is unpredictable.
+     *
+     * @param predicate {@link Property}
+     * @param view      Class
+     * @param <T>       {@link RDFNode} type
+     * @return an object from statement
+     * @throws OntJenaException in case no object by predicate has been found
+     * @see #getRequiredProperty(Property)
+     */
     public <T extends RDFNode> T getRequiredObject(Property predicate, Class<T> view) {
         return object(predicate, view)
-                .orElseThrow(() -> new OntJenaException(String.format("Can't find required object [%s @%s %s]", this, predicate, view)));
+                .orElseThrow(() -> new OntJenaException(String.format("Can't find required object [%s @%s %s]", this, predicate, viewAsString(view))));
     }
 
     public Stream<RDFNode> objects(Property predicate) {
@@ -257,14 +278,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return Arrays.stream(getClass().getInterfaces()).filter(OntObject.class::isAssignableFrom).map(c -> (Class<? extends OntObject>) c).findFirst().orElse(null);
     }
 
-    public static String toString(Class<? extends RDFNode> view) {
+    static String viewAsString(Class<? extends RDFNode> view) {
         return view.getName().replace(OntObject.class.getPackage().getName() + ".", "");
     }
 
     @Override
     public String toString() {
         Class<? extends RDFNode> view = getActualClass();
-        return view == null ? super.toString() : String.format("[%s]%s", toString(view), asNode());
+        return view == null ? super.toString() : String.format("[%s]%s", viewAsString(view), asNode());
     }
 
     public static Node checkNamed(Node res) {
@@ -289,7 +310,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 Stream.concat(Stream.of(configurable.get(mode)), Arrays.stream(other)).toArray(OntObjectFactory[]::new));
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "SameParameterValue"})
     protected static Configurable<OntObjectFactory> concatFactories(OntFinder finder,
                                                                     Configurable<? extends OntObjectFactory>... factories) {
         return mode -> new MultiOntObjectFactory(finder, null, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
