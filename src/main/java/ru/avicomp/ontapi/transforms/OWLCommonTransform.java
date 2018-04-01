@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,14 +21,13 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.transforms.vocabulary.WRONG_OWL;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * To convert OWL 1 DL =&gt; OWL 2 DL
+ * The transformer to convert OWL 1 DL =&gt; OWL 2 DL
  * <p>
  * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_RDF_Graphs_to_the_Structural_Specification'>Chapter 3</a>
  * also <a href='https://www.w3.org/TR/owl2-quick-reference/'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
@@ -36,6 +35,13 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OWLCommonTransform extends Transform {
     protected static final boolean PROCESS_INDIVIDUALS_DEFAULT = false;
+    private static final Map<Property, Property> CARDINALITY_PREDICATES = Collections.unmodifiableMap(new HashMap<Property, Property>() {
+        {
+            put(OWL.cardinality, OWL.qualifiedCardinality);
+            put(OWL.maxCardinality, OWL.maxQualifiedCardinality);
+            put(OWL.minCardinality, OWL.minQualifiedCardinality);
+        }
+    });
     private boolean processIndividuals;
 
     public OWLCommonTransform(Graph graph) {
@@ -148,6 +154,7 @@ public class OWLCommonTransform extends Transform {
                             .collect(Collectors.toSet());
                     classes.forEach(c -> moveToEquivalentClass(c, property));
                 });
+        fixCardinalityRestrictions();
     }
 
     protected void moveToEquivalentClass(Resource subject, Property predicate) {
@@ -158,6 +165,26 @@ public class OWLCommonTransform extends Transform {
         m.add(subject, OWL.equivalentClass, newRoot);
         statements.forEach(s -> newRoot.addProperty(s.getPredicate(), s.getObject()));
         m.remove(statements);
+    }
+
+    /**
+     * OWL1 does not support Qualified Cardinality restrictions.
+     * Note that {@link org.apache.jena.vocabulary.OWL Jena OWL vocabulary} does not contain {@code owl:onClass} and {@code owl:onDataRange}.
+     * Bug? or there is also a difference between OWL1 and OWL1.1? Anyway it should be fixed here.
+     *
+     * @see OWL OWL2 vocabulary
+     */
+    protected void fixCardinalityRestrictions() {
+        Stream.concat(statements(null, OWL.onClass, null).filter(s -> !OWL.Thing.equals(s.getObject())),
+                statements(null, OWL.onDataRange, null).filter(s -> !RDFS.Literal.equals(s.getObject())))
+                .map(Statement::getSubject)
+                .filter(s -> s.hasProperty(RDF.type, OWL.Restriction))
+                .forEach(r -> CARDINALITY_PREDICATES.forEach((a, b) -> {
+                    Statement del = r.getProperty(a, null);
+                    if (del == null) return;
+                    r.addProperty(b, del.getObject());
+                    r.getModel().remove(del);
+                }));
     }
 
     protected void fixNamedIndividuals() {
