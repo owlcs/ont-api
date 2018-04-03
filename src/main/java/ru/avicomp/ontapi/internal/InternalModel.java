@@ -74,6 +74,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     protected final InternalDataFactory cacheDataFactory;
     // OWL objects store to improve performance (working with OWL-API 'signature' methods)
     // Any change in the graph must reset these caches.
+    // TODO: better to remove this cache at all (replace with cacheDataFactory)
     protected LoadingCache<Class<? extends OWLObject>, Set<? extends OWLObject>> objects =
             Caffeine.newBuilder().softValues().build(this::readObjects);
 
@@ -512,6 +513,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     protected <O extends OWLObject> void add(O object, InternalObjectTriplesMap<O> store, Consumer<O> writer) {
         OwlObjectListener<O> listener = createListener(store, object);
+        clearObjectsCaches();
         try {
             getGraph().getEventManager().register(listener);
             writer.accept(object);
