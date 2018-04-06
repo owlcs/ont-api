@@ -19,12 +19,13 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDFS;
-import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
@@ -55,7 +56,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 30.10.2016.
  */
 public class GraphTransformersTest {
-    private static final Logger LOGGER = Logger.getLogger(GraphTransformersTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GraphTransformersTest.class);
 
     @Test
     public void testLoadSpinLibraries() throws Exception {
@@ -65,6 +66,10 @@ public class GraphTransformersTest {
 
         IRI iri = SpinModels.SPINMAPL.getIRI();
         OntologyModel spinmapl = m.loadOntology(iri);
+        String actualTree = Graphs.importsTreeAsString(spinmapl.asGraphModel().getGraph());
+        LOGGER.debug("Tree:\n{}", actualTree);
+        Assert.assertEquals(27, actualTree.split("\n").length);
+
         OntologyModel spl = m.getOntology(SpinModels.SPL.getIRI());
         Assert.assertNotNull("Can't find SPL", spl);
 
@@ -82,7 +87,7 @@ public class GraphTransformersTest {
         Assert.assertTrue("No literal", literal.isPresent());
         Assert.assertTrue("No individual", individual.isPresent());
         LOGGER.info("Axioms related to query <" + literal.get().getLiteral().replace("\n", " ") + ">");
-        spl.referencingAxioms(individual.get()).forEach(LOGGER::debug);
+        spl.referencingAxioms(individual.get()).map(String::valueOf).forEach(LOGGER::debug);
     }
 
     public static OntologyManager setUpSpinManager(OntologyManager m) {
@@ -146,7 +151,7 @@ public class GraphTransformersTest {
         LOGGER.info("SPL-SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPL);
         LOGGER.info("SPL-SPIN(Jena) All entities: ");
-        jenaSPL.ontEntities().forEach(LOGGER::debug);
+        jenaSPL.ontEntities().map(String::valueOf).forEach(LOGGER::debug);
     }
 
     @Test
@@ -159,7 +164,7 @@ public class GraphTransformersTest {
         Assert.assertTrue("No ontology", m.contains(iri));
 
         ReadWriteUtils.print(o);
-        o.axioms().forEach(LOGGER::info);
+        o.axioms().map(String::valueOf).forEach(LOGGER::info);
 
         Assert.assertNull("rdfs:Literal should not be class", o.asGraphModel().getOntEntity(OntClass.class, RDFS.Literal));
         Assert.assertEquals("Should be DataAllValuesFrom", 1, o.asGraphModel().ontObjects(OntCE.DataAllValuesFrom.class).count());

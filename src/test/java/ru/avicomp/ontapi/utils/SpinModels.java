@@ -59,6 +59,14 @@ public enum SpinModels {
         }
     }
 
+    public String uri() {
+        return uri;
+    }
+
+    public String file() {
+        return file;
+    }
+
     public IRI getIRI() {
         return IRI.create(uri);
     }

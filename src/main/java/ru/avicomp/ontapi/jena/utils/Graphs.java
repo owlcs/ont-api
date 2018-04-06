@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,25 +14,23 @@
 
 package ru.avicomp.ontapi.jena.utils;
 
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.compose.Dyadic;
+import org.apache.jena.graph.compose.Polyadic;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
 import java.io.StringWriter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.graph.compose.Dyadic;
-import org.apache.jena.graph.compose.Polyadic;
-import org.apache.jena.riot.RDFDataMgr;
-
-import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Helper to work with jena {@link Graph} (generally with our {@link UnionGraph})
@@ -93,14 +91,14 @@ public class Graphs {
      * Builds union-graph using specified comonents
      * Note: this is a recursive method.
      *
-     * @param primary {@link Graph} the base graph (root)
+     * @param base {@link Graph} the base graph (root)
      * @param other   collection of depended {@link Graph graphs}
      * @return {@link UnionGraph}
      * @since 1.0.1
      */
-    public static UnionGraph toUnion(Graph primary, Collection<Graph> other) {
-        UnionGraph res = primary instanceof UnionGraph ? (UnionGraph) primary : new UnionGraph(primary);
-        Set<String> imports = getImports(primary);
+    public static UnionGraph toUnion(Graph base, Collection<Graph> other) {
+        UnionGraph res = base instanceof UnionGraph ? (UnionGraph) base : new UnionGraph(base);
+        Set<String> imports = getImports(base);
         other.stream().filter(g -> imports.contains(getURI(g))).forEach(g -> res.addGraph(toUnion(g, other)));
         return res;
     }
@@ -173,44 +171,53 @@ public class Graphs {
     }
 
     /**
-     * just for debugging.
+     * Prints a hierarchy tree.
+     * For a valid ontology it should be an imports ({@code owl:imports}) tree also.
+     * For debugging.
+     * <p>
      * Examples of output:
      * <pre> {@code
      * <http://imports.test.Main.ttl>
-     *  <http://imports.test.C.ttl>
-     *      <http://imports.test.A.ttl>
-     *      <http://imports.test.B.ttl>
-     *  <http://imports.test.D.ttl>
+     *      <http://imports.test.C.ttl>
+     *          <http://imports.test.A.ttl>
+     *          <http://imports.test.B.ttl>
+     *      <http://imports.test.D.ttl>
      * }, {@code
      * <http://imports.test.D.ttl>
-     *  <http://imports.test.C.ttl>
-     *      <http://imports.test.A.ttl>
-     *      <http://imports.test.B.ttl>
+     *      <http://imports.test.C.ttl>
+     *          <http://imports.test.A.ttl>
+     *          <http://imports.test.B.ttl>
      *              <http://imports.test.Main.ttl>
      * } </pre>
      *
      * @param graph {@link Graph}
-     * @return String
+     * @return hierarchy tree as String
      */
     public static String importsTreeAsString(Graph graph) {
-        return makeImportsTree(graph, "\t", new HashSet<>()).toString();
+        return makeImportsTree(graph, "\t", "\t", new HashSet<>()).toString();
     }
 
-    private static StringBuilder makeImportsTree(Graph graph, String sep, Set<Graph> seen) {
-        StringBuilder sb = new StringBuilder();
+    private static StringBuilder makeImportsTree(Graph graph, String indent, String step, Set<Graph> seen) {
+        StringBuilder res = new StringBuilder();
         Graph base = getBase(graph);
-        if (seen.contains(base)) {
-            throw new OntJenaException("Unexpected recursion cycle for graph " + graph);
+        try {
+            String name = getName(base);
+            if (seen.contains(base)) {
+                return res.append("Recursion: ").append(name);
+            }
+            seen.add(base);
+            res.append(name).append("\n");
+            subGraphs(graph)
+                    .sorted(Comparator.comparingLong(o -> subGraphs(o).count()))
+                    .forEach(sub -> res.append(indent).append(makeImportsTree(sub, indent + step, step, seen)));
+            return res;
+        } finally {
+            seen.remove(base);
         }
-        seen.add(base);
-        sb.append("<").append(getURI(graph)).append(">");
-        sb.append("\n");
-        subGraphs(graph).forEach(sub -> sb.append(sep).append(makeImportsTree(sub, sep + sep, seen)));
-        return sb;
     }
 
     /**
-     * Returns Graph as Turtle String.
+     * Returns a Graph as Turtle String.
      * For debugging.
      *
      * @param g {@link Graph}
@@ -218,7 +225,7 @@ public class Graphs {
      */
     public static String toTurtleString(Graph g) {
         StringWriter sw = new StringWriter();
-        RDFDataMgr.write(sw, g, OntFormat.TURTLE.getLang());
+        RDFDataMgr.write(sw, g, Lang.TURTLE);
         return sw.toString();
     }
 

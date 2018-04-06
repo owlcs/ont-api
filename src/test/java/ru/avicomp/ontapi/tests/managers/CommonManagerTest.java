@@ -164,7 +164,7 @@ public class CommonManagerTest {
     @Test
     public void testLoadAnnotationsOption() {
         OntologyManager m = OntManagers.createONT();
-        Assert.assertEquals("Incorrect default settings", true, m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
+        Assert.assertTrue("Incorrect default settings", m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
         OWLDataFactory df = m.getOWLDataFactory();
 
         OntologyModel o1 = m.createOntology();
@@ -185,7 +185,7 @@ public class CommonManagerTest {
 
         LOGGER.info("Change Load Annotation settings");
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadAnnotationAxioms(false));
-        Assert.assertEquals("Incorrect settings", false, m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
+        Assert.assertFalse("Incorrect settings", m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
         // check the axioms changed.
         List<OWLAxiom> axioms1 = o1.axioms().collect(Collectors.toList());
         axioms1.forEach(a -> LOGGER.debug("{}", a));
@@ -207,7 +207,7 @@ public class CommonManagerTest {
     @Test
     public void testBulkAnnotationsSetting() throws Exception {
         OntologyManager m = OntManagers.createONT();
-        Assert.assertEquals("Incorrect default settings", true, m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
+        Assert.assertTrue("Incorrect default settings", m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
         OWLDataFactory df = m.getOWLDataFactory();
 
         OntologyModel o1 = m.createOntology();

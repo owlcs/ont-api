@@ -153,7 +153,6 @@ public class SimpleLoadTest {
 
     }
 
-
     private void test(String fileName, AxiomType... toExclude) throws Exception {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.info("The file " + fileIRI);

@@ -18,6 +18,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -205,6 +206,17 @@ public interface OntCE extends OntObject {
      * Default common methods:
      * =======================
      */
+
+
+    /**
+     * Returns all individuals.
+     *
+     * @return Stream of {@link OntIndividual}s
+     */
+    default Stream<OntIndividual> individuals() {
+        return getModel().statements(null, RDF.type, this)
+                .map(OntStatement::getSubject).map(s -> s.as(OntIndividual.class));
+    }
 
     /**
      * Returns all super classes.

@@ -121,8 +121,8 @@ public class SpinMappingTest {
      */
     public OntGraphModel composeMapping(OntGraphModel source, OntGraphModel target) {
         LOGGER.info("Compose mapping.");
-        OntClass sourceClass = source.listClasses().findFirst().orElse(null);
-        OntClass targetClass = target.listClasses().findFirst().orElse(null);
+        OntClass sourceClass = source.listClasses().findFirst().orElseThrow(AssertionError::new);
+        OntClass targetClass = target.listClasses().findFirst().orElseThrow(AssertionError::new);
         List<OntNDP> sourceProperties = source.listDataProperties().collect(Collectors.toList());
         OntNDP targetProperty = target.listDataProperties().findFirst().orElse(null);
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -12,21 +12,17 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.tests;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+package ru.avicomp.ontapi.tests.jena;
 
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.RDFS;
-import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.model.*;
@@ -37,13 +33,18 @@ import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
- * to test {@link OntGraphModel}
+ * To test {@link OntGraphModel}.
  *
  * Created by szuev on 07.11.2016.
  */
-public class GraphModelJenaTest {
-    private static final Logger LOGGER = Logger.getLogger(GraphModelJenaTest.class);
+public class OntModelTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntModelTest.class);
 
     @Test
     public void testLoadCE() {
@@ -54,15 +55,15 @@ public class GraphModelJenaTest {
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
         int expectedClassesCount = m.listStatements(null, RDF.type, OWL.Class).mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).toSet().size();
         int actualClassesCount = classes.size();
-        LOGGER.info("Classes Count = " + actualClassesCount);
+        LOGGER.info("Classes Count = {}", actualClassesCount);
         Assert.assertEquals("Incorrect Classes count", expectedClassesCount, actualClassesCount);
 
         LOGGER.info("Class Expressions:");
         List<OntCE> ces = m.ontObjects(OntCE.class).collect(Collectors.toList());
-        ces.forEach(LOGGER::debug);
+        ces.forEach(x -> LOGGER.debug("{}", x));
         int expectedCEsCount = m.listStatements(null, RDF.type, OWL.Class).andThen(m.listStatements(null, RDF.type, OWL.Restriction)).toSet().size();
         int actualCEsCount = ces.size();
-        LOGGER.info("Class Expressions Count = " + actualCEsCount);
+        LOGGER.info("Class Expressions Count = {}", actualCEsCount);
         Assert.assertEquals("Incorrect CE's count", expectedCEsCount, actualCEsCount);
 
         List<OntCE.RestrictionCE> restrictionCEs = m.ontObjects(OntCE.RestrictionCE.class).collect(Collectors.toList());
@@ -92,7 +93,7 @@ public class GraphModelJenaTest {
         LOGGER.info("load pizza");
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
-        actual.forEach(LOGGER::debug);
+        actual.forEach(x -> LOGGER.debug("{}", x));
         Set<Resource> expected = new HashSet<>();
         Stream.of(OWL.AnnotationProperty, OWL.DatatypeProperty, OWL.ObjectProperty)
                 .forEach(r -> expected.addAll(m.listStatements(null, RDF.type, r).mapWith(Statement::getSubject).toSet()));
@@ -104,7 +105,10 @@ public class GraphModelJenaTest {
         LOGGER.info("load pizza");
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
-        individuals.forEach(i -> LOGGER.debug(i + " classes: " + i.classes().collect(Collectors.toSet())));
+        Map<OntIndividual, Set<OntCE>> classes = individuals.stream()
+                .collect(Collectors.toMap(Function.identity(), i -> i.classes().collect(Collectors.toSet())));
+        classes.forEach((i, c) -> LOGGER.debug("Individual: {}, Classes: {}", i, c));
+        classes.forEach((i, c) -> c.forEach(_c -> Assert.assertEquals(1, _c.individuals().filter(_i -> Objects.equals(_i, i)).count())));
 
         Set<Resource> namedIndividuals = m.listSubjectsWithProperty(RDF.type, OWL.NamedIndividual).toSet();
         Set<Resource> anonIndividuals = m.listStatements(null, RDF.type, (RDFNode) null)
@@ -133,7 +137,7 @@ public class GraphModelJenaTest {
         LOGGER.info("1) Assign version-iri and ontology comment.");
         m.setID(uri).setVersionIRI(ns + "1.0.1");
         m.getID().addComment("Some comment", "fr");
-        m.getID().annotations().forEach(LOGGER::debug);
+        m.getID().annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Should be one header annotation", 1, m.getID().annotations().count());
 
         LOGGER.info("2) Create class with two labels.");
@@ -141,18 +145,18 @@ public class GraphModelJenaTest {
         cl.addLabel("some label", null);
         OntStatement label2 = cl.addLabel("another label", "de");
         ReadWriteUtils.print(m);
-        cl.annotations().forEach(LOGGER::debug);
+        cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect count of labels.", 2, m.listObjectsOfProperty(cl, RDFS.label).toList().size());
 
-        LOGGER.info("3) Annotate annotation " + label2);
+        LOGGER.info("3) Annotate annotation {}", label2);
         OntStatement seeAlsoForLabel2 = label2.addAnnotation(m.getAnnotationProperty(RDFS.seeAlso), ResourceFactory.createResource("http://see.also/1"));
         OntStatement labelForLabel2 = label2.addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label"));
         ReadWriteUtils.print(m);
-        cl.annotations().forEach(LOGGER::debug);
+        cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertTrue("Can't find owl:Axiom section.", m.contains(null, RDF.type, OWL.Axiom));
         Assert.assertFalse("There is owl:Annotation section.", m.contains(null, RDF.type, OWL.Annotation));
 
-        LOGGER.info("4) Create annotation property and annotate " + seeAlsoForLabel2 + " and " + labelForLabel2);
+        LOGGER.info("4) Create annotation property and annotate {} and {}", seeAlsoForLabel2, labelForLabel2);
         OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "annotation-prop-1");
         seeAlsoForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see also"));
         OntStatement annotationForLabelForLabel2 = labelForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see label"));
@@ -162,7 +166,7 @@ public class GraphModelJenaTest {
         Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
         Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
-        LOGGER.info("5) Delete annotations for " + labelForLabel2);
+        LOGGER.info("5) Delete annotations for {}", labelForLabel2);
         labelForLabel2.deleteAnnotation(annotationForLabelForLabel2.getPredicate().as(OntNAP.class), annotationForLabelForLabel2.getObject());
         ReadWriteUtils.print(m);
         Assert.assertEquals("Expected one root with owl:Annotation.", 1, m.listStatements(null, RDF.type, OWL.Annotation)
@@ -171,7 +175,7 @@ public class GraphModelJenaTest {
         Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
 
-        LOGGER.info("6) Delete all annotations for " + label2);
+        LOGGER.info("6) Delete all annotations for {}", label2);
         label2.clearAnnotations();
         ReadWriteUtils.print(m);
         Assert.assertEquals("Incorrect count of labels.", 2, m.listObjectsOfProperty(cl, RDFS.label).toList().size());
@@ -186,15 +190,15 @@ public class GraphModelJenaTest {
                 .addAnnotation(m.getRDFSComment(), ResourceFactory.createPlainLiteral("test3"));
 
         ReadWriteUtils.print(m);
-        cl.annotations().forEach(LOGGER::debug);
+        cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
         Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
         Assert.assertEquals("Expected 3 root annotations for class " + cl, 3, cl.annotations().count());
 
-        LOGGER.info("8) Deleter all annotations for class " + cl);
+        LOGGER.info("8) Deleter all annotations for class {}", cl);
         cl.clearAnnotations();
         ReadWriteUtils.print(m);
-        cl.annotations().forEach(LOGGER::debug);
+        cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Found annotations for class " + cl, 0, cl.annotations().count());
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
         Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL.Annotation));
@@ -351,9 +355,9 @@ public class GraphModelJenaTest {
 
         ReadWriteUtils.print(m);
         LOGGER.debug("All D-Args");
-        m.ontObjects(OntSWRL.DArg.class).forEach(LOGGER::debug);
+        m.ontObjects(OntSWRL.DArg.class).map(String::valueOf).forEach(LOGGER::debug);
         LOGGER.debug("All I-Args");
-        m.ontObjects(OntSWRL.IArg.class).forEach(LOGGER::debug);
+        m.ontObjects(OntSWRL.IArg.class).map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect count of atoms", 3, m.ontObjects(OntSWRL.Atom.class).count());
         Assert.assertEquals("Incorrect count of variables", 1, m.ontObjects(OntSWRL.Variable.class).count());
         Assert.assertEquals("Incorrect count of SWRL:Imp", 1, m.ontObjects(OntSWRL.Imp.class).count());

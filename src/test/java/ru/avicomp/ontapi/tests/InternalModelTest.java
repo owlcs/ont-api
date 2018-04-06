@@ -73,9 +73,7 @@ public class InternalModelTest {
         LOGGER.info("Recreate model");
         Model m2 = ModelFactory.createDefaultModel();
         model.getID().statements().forEach(m2::add);
-        axioms.forEach((axiom, triples) -> {
-            triples.forEach(triple -> m2.getGraph().add(triple));
-        });
+        axioms.forEach((axiom, triples) -> triples.forEach(triple -> m2.getGraph().add(triple)));
         m2.setNsPrefixes(m.getNsPrefixMap());
 
         ReadWriteUtils.print(m2);

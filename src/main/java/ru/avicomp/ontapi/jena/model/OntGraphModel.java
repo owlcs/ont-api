@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.jena.model;
@@ -26,25 +25,27 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- * This is our analogue of {@link org.apache.jena.ontology.OntModel} to work with Ontology graph in accordance with OWL2 DL specification.
- * See <a href='https://www.w3.org/TR/owl2-mapping-to-rdf'>OWL2 RDF mapping</a> and <a href='https://www.w3.org/TR/owl2-quick-reference/'>A Quick Guide</a>.
+ * This is an analogue of {@link org.apache.jena.ontology.OntModel} to work with Ontology graph in accordance with OWL2 DL specification.
  * Encapsulates {@link org.apache.jena.graph.Graph} and extends {@link Model}.
  * <p>
  * Created by @szuev on 11.11.2016.
+ * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf'>OWL2 RDF mapping</a>
+ * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>A Quick Guide</a>
  */
 public interface OntGraphModel extends Model {
 
     /**
      * Returns the base Graph, i.e. the primary Graph without any sub graphs.
-     * to get whole graph use {@link #getGraph()}.
+     * Only base graph is editable in this interface.
+     * To get whole union graph use method {@link #getGraph()}.
      *
      * @return {@link Graph}
      */
     Graph getBaseGraph();
 
     /**
-     * Returns the standard model which corresponds the base graph {@link #getBaseGraph()}
-     * Note: there is a jena-builtin personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}) inside the result model.
+     * Returns the standard model that corresponds the base graph (see {@link #getBaseGraph()}).
+     * Note: there is a Jena-builtin Personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}) inside the result model.
      *
      * @return {@link Model}
      */
@@ -61,10 +62,11 @@ public interface OntGraphModel extends Model {
     InfModel getInferenceModel(Reasoner reasoner);
 
     /**
-     * Gets ontology ID {@link OntObject}.
-     * Since OWL2 graph must have only the one '_:x rdf:type owl:Ontology' section inside,
+     * Gets ontology ID object.
+     * Since OWL2 graph can only contain the one {@code _:x rdf:type owl:Ontology} triple inside,
      * this method creates such statement if it absent;
-     * in case there are more than one resource with owl:Ontology type it chooses the most bulky section.
+     * in case there are more than one ont-resource with {@code owl:Ontology} type it chooses the most bulky one
+     * (i.e. the one that contains the most number of associated statements).
      *
      * @return {@link OntID} an existing or new one {@link Resource} with root statement '_:x rdf:type owl:Ontology'
      * @see ru.avicomp.ontapi.jena.utils.Graphs#ontologyNode
@@ -72,8 +74,8 @@ public interface OntGraphModel extends Model {
     OntID getID();
 
     /**
-     * Creates a new owl:Ontology declaration for the specified uri.
-     * All extra ontologies will be removed and all their content will be moved to the new one.
+     * Creates a new {@code uri rdf:type owl:Ontology} statement for the specified uri.
+     * All extra ontology objects will be removed and all their content will be moved to the new one.
      *
      * @param uri String, could be null for anonymous ontology.
      * @return the new {@link OntID} object.
@@ -82,9 +84,9 @@ public interface OntGraphModel extends Model {
     OntID setID(String uri);
 
     /**
-     * Adds sub model to owl:import and to graph hierarchy.
+     * Adds a sub model to {@code owl:import} and to the graph hierarchy.
      *
-     * @param m {@link OntGraphModel}, other model, not null.
+     * @param m {@link OntGraphModel ont jena model} to add, not null.
      * @return this model
      * @throws OntJenaException if it is anonymous ontology
      * @see OntID#addImport(String)
@@ -92,18 +94,18 @@ public interface OntGraphModel extends Model {
     OntGraphModel addImport(OntGraphModel m);
 
     /**
-     * Removes sub-model from owl:import and from graph hierarchy.
+     * Removes a sub-model from {@code owl:import} and from the graph hierarchy.
      *
-     * @param m {@link OntGraphModel}, other model, not null.
+     * @param m {@link OntGraphModel ont jena model} to remove, not null
      * @return this model
      * @see OntID#removeImport(String)
      */
     OntGraphModel removeImport(OntGraphModel m);
 
     /**
-     * Returns top-level imported models which have owl:import reference inside base graph.
+     * Returns top-level imported models which have {@code owl:import} reference inside the base graph.
      *
-     * @return Stream of {@link OntGraphModel}s.
+     * @return Stream of {@link OntGraphModel}s
      * @see OntID#imports()
      */
     Stream<OntGraphModel> imports();
@@ -111,9 +113,9 @@ public interface OntGraphModel extends Model {
     /**
      * Lists all ont-objects for the specified type.
      *
-     * @param type {@link Class}, the type of {@link OntObject}, not null.
-     * @param <O> type of ont-object
-     * @return Stream of {@link OntObject}s.
+     * @param type {@link Class} the type of {@link OntObject}, not null
+     * @param <O>  ont-object subtype
+     * @return Stream of {@link OntObject}s
      * @see #ontEntities()
      */
     <O extends OntObject> Stream<O> ontObjects(Class<O> type);
@@ -137,7 +139,7 @@ public interface OntGraphModel extends Model {
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not null.
      * @param uri, String, not null.
-     * @param <E> type of ont-entity
+     * @param <E>  type of ont-entity
      * @return {@link OntEntity} or null
      */
     <E extends OntEntity> E getOntEntity(Class<E> type, String uri);
@@ -191,11 +193,11 @@ public interface OntGraphModel extends Model {
     /**
      * Creates an owl-entity by type and uri.
      *
-     * @param type {@link Class}, the type of {@link OntEntity}, not null.
-     * @param uri, String, not null.
-     * @param <E> type of ont-entity.
-     * @return {@link OntEntity}.
-     * @throws OntJenaException.Creation in case something is wrong.
+     * @param type {@link Class}, the type of {@link OntEntity}, not null
+     * @param uri, String, not null
+     * @param <E>  type of ont-entity
+     * @return {@link OntEntity}
+     * @throws OntJenaException.Creation in case something is wrong
      * @see #getOntEntity(Class, String)
      */
     <E extends OntEntity> E createOntEntity(Class<E> type, String uri);
@@ -203,10 +205,10 @@ public interface OntGraphModel extends Model {
     /**
      * Creates a facet restriction by the type and literal.
      *
-     * @param type    {@link Class}, the type of {@link OntFR}, not null.
-     * @param literal {@link Literal}, not null.
-     * @param <F> type of ont-facet-restriction.
-     * @return {@link OntFR}.
+     * @param type    {@link Class}, the type of {@link OntFR}, not null
+     * @param literal {@link Literal}, not null
+     * @param <F>     type of ont-facet-restriction
+     * @return {@link OntFR}
      */
     <F extends OntFR> F createFacetRestriction(Class<F> type, Literal literal);
 
