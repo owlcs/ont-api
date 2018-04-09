@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- * Common interface for Class Expressions (both named and anonymous).
+ * Common interface for any Class Expressions (both named and anonymous).
  * See for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
  * <p>
  * Created by szuev on 01.11.2016.
@@ -50,14 +50,17 @@ public interface OntCE extends OntObject {
     OntIndividual.Named createIndividual(String uri);
 
     /**
-     * Returns all object and data properties which belong to the "C owl:hasKey (P1 ... Pm R1 ... Rn)" statements.
+     * Lists all key properties.
+     * I.e. returns all object- and datatype- properties which belong to
+     * the {@code C owl:hasKey (P1 ... Pm R1 ... Rn)} statements,
+     * where {@code C} - this class expression, {@code P} is a property expression, and {@code R} is a data(-type) property.
      *
-     * @return distinct Stream of {@link OntPE}s
+     * @return distinct Stream of {@link OntOPE}s and {@link OntNDP}s.
      */
     Stream<OntPE> hasKey();
 
     /**
-     * Creates owl:hasKey statement.
+     * Creates an {@code owl:hasKey} statement.
      *
      * @param objectProperties the collection of {@link OntOPE}s/
      * @param dataProperties   the collection of {@link OntNDP}s.
@@ -66,7 +69,8 @@ public interface OntCE extends OntObject {
     OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties);
 
     /**
-     * Removes all statements with their content for predicate owl:hasKey
+     * Removes all key properties.
+     * I.e. removes all statements with their content from a {@code owl:hasKey} axiom.
      */
     void removeHasKey();
 
@@ -207,15 +211,33 @@ public interface OntCE extends OntObject {
      * =======================
      */
 
-
     /**
-     * Returns all individuals.
+     * Lists all individuals,
+     * i.e. subjects from class-assertion statements {@code a rdf:type C}.
      *
      * @return Stream of {@link OntIndividual}s
      */
     default Stream<OntIndividual> individuals() {
         return getModel().statements(null, RDF.type, this)
                 .map(OntStatement::getSubject).map(s -> s.as(OntIndividual.class));
+    }
+
+    /**
+     * Lists all properties attached to the class.
+     * The property is considered as attached if
+     * it and the class expression are both included in property domain axiom description:
+     * <ul>
+     * <li>{@code R rdfs:domain C} - {@code R} is a data property {@code C} - this class expression</li>
+     * <li>{@code P rdfs:domain C} - {@code P} is an object property expression, {@code C} - this class expression</li>
+     * <li>{@code A rdfs:domain U} - {@code A} is annotation property, {@code U} is IRI, this class expression</li>
+     * </ul>
+     *
+     * @return Stream of {@link OntPE}s
+     * @see OntPE#domain()
+     */
+    default Stream<OntPE> properties() {
+        return getModel().statements(null, RDFS.domain, this)
+                .map(OntStatement::getSubject).map(s -> s.as(OntPE.class));
     }
 
     /**
@@ -228,7 +250,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Adds super class.
+     * Adds a super class.
      *
      * @param superClass {@link OntCE}
      * @return {@link OntStatement}
@@ -238,7 +260,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Removes super class.
+     * Removes a super class.
      *
      * @param superClass {@link OntCE}
      */
@@ -247,7 +269,8 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Returns all disjoint classes. The statement patter to search for is "C1 owl:disjointWith C2"
+     * Returns all disjoint classes.
+     * The statement patter to search for is {@code C1 owl:disjointWith C2}.
      *
      * @return Stream of {@link OntCE}s
      * @see OntDisjoint.Classes
@@ -257,7 +280,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Adds disjoint class.
+     * Adds a disjoint class.
      *
      * @param other {@link OntCE}
      * @return {@link OntStatement}
@@ -268,7 +291,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Removes disjoint class-expression reference.
+     * Removes a disjoint class.
      *
      * @param other {@link OntCE}
      * @see OntDisjoint.Classes
@@ -299,7 +322,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Removes equivalent class.
+     * Removes an equivalent class.
      *
      * @param other {@link OntCE}
      * @see OntDT#removeEquivalentClass(OntDR)

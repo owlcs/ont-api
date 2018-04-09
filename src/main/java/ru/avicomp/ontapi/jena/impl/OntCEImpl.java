@@ -147,7 +147,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
     @Override
     public Stream<OntPE> hasKey() {
-        return rdfListMembers(OWL.hasKey, OntPE.class);
+        return listHasKey(this);
     }
 
     @Override
@@ -846,6 +846,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         model.add(res, RDF.type, source);
         model.add(res, RDF.type, OWL.NamedIndividual);
         return model.getNodeAs(res.asNode(), OntIndividual.Named.class);
+    }
+
+    public static <C extends OntObjectImpl & OntCE> Stream<OntPE> listHasKey(C clazz) {
+        return Stream.concat(clazz.rdfListMembers(OWL.hasKey, OntOPE.class), clazz.rdfListMembers(OWL.hasKey, OntNDP.class)).distinct();
     }
 
     public static OntStatement addHasKey(OntCE clazz, Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {

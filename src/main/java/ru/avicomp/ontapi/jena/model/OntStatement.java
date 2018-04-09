@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.jena.model;
@@ -21,6 +20,7 @@ import org.apache.jena.rdf.model.Statement;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,7 +32,6 @@ import java.util.stream.Stream;
  * This is not a {@link org.apache.jena.rdf.model.Resource}.
  * OWL2 Annotations can be attached to this statement recursively.
  * Created by @szuev on 13.11.2016.
- *
  * @see OntAnnotation
  * @see Statement
  */
@@ -145,6 +144,26 @@ public interface OntStatement extends Statement {
     Optional<OntAnnotation> asAnnotationResource();
 
     /**
+     * Lists all annotations by property.
+     * @param property {@link OntNAP} the property
+     * @return Stream of {@link OntStatement}s.
+     */
+    default Stream<OntStatement> annotations(OntNAP property) {
+        return annotations().filter(s -> Objects.equals(property, s.getPredicate()));
+    }
+
+    /**
+     * Deletes all annotations by property.
+     *
+     * @param property {@link OntNAP}.
+     */
+    default void deleteAnnotation(OntNAP property) {
+        Set<RDFNode> obj = annotations(property).map(Statement::getObject).collect(Collectors.toSet());
+        obj.forEach(s -> deleteAnnotation(property, s));
+    }
+
+    /**
+     * Answers iff this statement is a declaration: {@code @any rdf:type @any}.
      * @return true if predicate is rdf:type
      */
     default boolean isDeclaration() {
@@ -153,6 +172,10 @@ public interface OntStatement extends Statement {
 
     /**
      * Answers iff this is an annotation assertion.
+     * Annotation assertion is a statement {@code s A t}, where
+     * {@code s} is IRI or anonymous individual,
+     * {@code t} is IRI, anonymous individual, or literal,
+     * and {@code A} is annotation property.
      *
      * @return true if predicate is {@link OntNAP}
      */
@@ -161,7 +184,11 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Answers iff this statement is a data-property assertion.
+     * Answers iff the predicate is a data(-type) property and
+     * therefore this statement is likely a positive data property assertion.
+     * A positive data property assertion if a statement {@code a R v},
+     * where {@code a} is an individual (both named and anonymous),
+     * {@code v} is a literal and {@code R} is a data property.
      *
      * @return true if predicate is {@link OntNDP}
      */
@@ -170,7 +197,8 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Answers iff this statement is an object-property assertion.
+     * Answers iff the is a object property and
+     * therefore this statement is likely a positive object property assertion {@code a1 PN a2}.
      *
      * @return true if predicate is {@link OntNOP}
      */
@@ -202,13 +230,13 @@ public interface OntStatement extends Statement {
      * Adds lang annotation assertion.
      *
      * @param predicate {@link OntNAP}, not null
-     * @param message   String, the text message, not null.
+     * @param text   String, the text message, not null.
      * @param lang      String, language, optional
      * @return {@link OntStatement}
      * @see OntObject#addAnnotation(OntNAP, String, String)
      */
-    default OntStatement addAnnotation(OntNAP predicate, String message, String lang) {
-        return addAnnotation(predicate, ResourceFactory.createLangLiteral(message, lang));
+    default OntStatement addAnnotation(OntNAP predicate, String text, String lang) {
+        return addAnnotation(predicate, ResourceFactory.createLangLiteral(text, lang));
     }
 
 }

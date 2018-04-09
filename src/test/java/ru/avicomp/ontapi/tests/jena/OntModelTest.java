@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.tests.jena;
 
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.RDFS;
@@ -30,9 +31,12 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
+import ru.avicomp.ontapi.thinking.TmpCEs;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -47,7 +51,7 @@ public class OntModelTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntModelTest.class);
 
     @Test
-    public void testLoadCE() {
+    public void testPizzaLoadCE() {
         LOGGER.info("load pizza");
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         LOGGER.info("Ontology: " + m.getID());
@@ -89,7 +93,7 @@ public class OntModelTest {
     }
 
     @Test
-    public void testLoadProperties() {
+    public void testPizzaLoadProperties() {
         LOGGER.info("load pizza");
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
@@ -101,7 +105,7 @@ public class OntModelTest {
     }
 
     @Test
-    public void testLoadIndividuals() {
+    public void testPizzaLoadIndividuals() {
         LOGGER.info("load pizza");
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
@@ -123,6 +127,74 @@ public class OntModelTest {
     private static void testPizzaCEs(Model m, Property predicate, List<? extends OntCE> ces) {
         String type = ces.isEmpty() ? null : ((OntCEImpl) ces.get(0)).getActualClass().getSimpleName();
         Assert.assertEquals("Incorrect count of " + type, m.listSubjectsWithProperty(predicate).toSet().size(), ces.size());
+    }
+
+    @Test
+    public void testKoalaLoad() throws IOException {
+        OntGraphModel m = OntModelFactory.createModel();
+        try (InputStream in = TmpCEs.class.getResourceAsStream("/owlapi/koala.owl")) {
+            m.read(in, null, Lang.RDFXML.getName());
+        }
+        ReadWriteUtils.print(m);
+
+        long statementsCount = m.statements().count();
+
+        Map<OntCE, Set<OntPE>> props = new HashMap<>();
+        m.ontObjects(OntCE.class)
+                .forEach(x -> props.computeIfAbsent(x, c -> new HashSet<>())
+                        .addAll(x.properties().collect(Collectors.toSet())));
+        props.forEach((c, ps) -> LOGGER.debug("{} => {}", c, ps));
+
+        Assert.assertEquals(36, props.keySet().size());
+        Assert.assertEquals(5, props.values().stream().mapToLong(Collection::size).sum());
+
+        String ns = m.getID().getURI() + "#";
+        OntClass animal = m.getOntEntity(OntClass.class, ns + "Animal");
+        Assert.assertNotNull(animal);
+        Assert.assertEquals("Wrong #Animal attached properties count", 3, animal.properties().count());
+        OntClass person = m.getOntEntity(OntClass.class, ns + "Person");
+        Assert.assertNotNull(person);
+        Assert.assertEquals("Wrong #Person attached properties count", 2, person.properties().count());
+
+        OntNDP isHardWorking = m.getOntEntity(OntNDP.class, ns + "isHardWorking");
+        Assert.assertNotNull(isHardWorking);
+        Set<OntOPE> objProperties = m.ontObjects(OntNOP.class).collect(Collectors.toSet());
+        Assert.assertEquals(4, objProperties.size());
+
+        OntStatement statement = person.addHasKey(objProperties, Collections.singleton(isHardWorking));
+        Assert.assertTrue(statement.getObject().canAs(RDFList.class));
+        statement.addAnnotation(m.getRDFSComment(), "These are keys", "xz");
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(5, person.hasKey().count());
+        Assert.assertEquals(36, m.ontObjects(OntCE.class).distinct().count());
+        Assert.assertEquals(statementsCount + 16, m.statements().count());
+        statement.deleteAnnotation(m.getRDFSComment());
+
+        Assert.assertEquals(statementsCount + 11, m.statements().count());
+        person.removeHasKey();
+        Assert.assertEquals(statementsCount, m.statements().count());
+
+        OntClass marsupials = m.getOntEntity(OntClass.class, ns + "Marsupials");
+        Assert.assertNotNull(marsupials);
+        Assert.assertEquals(marsupials, person.disjointWith().findFirst().orElse(null));
+        Assert.assertEquals(person, marsupials.disjointWith().findAny().orElse(null));
+
+        marsupials.addDisjointWith(animal);
+        Assert.assertEquals(2, marsupials.disjointWith().count());
+        Assert.assertEquals(0, animal.disjointWith().count());
+        Assert.assertEquals(1, person.disjointWith().count());
+        marsupials.removeDisjointWith(animal);
+        Assert.assertEquals(1, marsupials.disjointWith().count());
+        Assert.assertEquals(0, animal.disjointWith().count());
+        Assert.assertEquals(1, person.disjointWith().count());
+
+        person.addSubClassOf(marsupials);
+        Assert.assertEquals(2, person.subClassOf().count());
+        person.removeSubClassOf(marsupials);
+        Assert.assertEquals(1, person.subClassOf().count());
+
+        Assert.assertEquals(statementsCount, m.statements().count());
     }
 
     @Test
