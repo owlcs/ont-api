@@ -30,7 +30,6 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
-import ru.avicomp.ontapi.thinking.TmpCEs;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.io.IOException;
@@ -130,7 +129,7 @@ public class OntModelTest {
     @Test
     public void testKoalaLoad() throws IOException {
         OntGraphModel m = OntModelFactory.createModel();
-        try (InputStream in = TmpCEs.class.getResourceAsStream("/owlapi/koala.owl")) {
+        try (InputStream in = OntModelTest.class.getResourceAsStream("/owlapi/koala.owl")) {
             m.read(in, null, Lang.RDFXML.getName());
         }
         ReadWriteUtils.print(m);
