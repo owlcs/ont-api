@@ -29,9 +29,13 @@ import org.topbraid.spin.vocabulary.SPINMAP;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
-import ru.avicomp.ontapi.utils.*;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.SP;
+import ru.avicomp.ontapi.utils.SPINMAPL;
+import ru.avicomp.ontapi.utils.SpinModels;
 
 import java.util.List;
 import java.util.Optional;
@@ -131,7 +135,7 @@ public class SpinMappingTest {
 
         mapping.addImport(spinmapl).addImport(source).addImport(target);
 
-        TestUtils.setDefaultPrefixes(mapping);
+        mapping.setNsPrefixes(OntModelFactory.STANDARD);
         Stream.of(SpinModels.SP, SpinModels.SPIN, SpinModels.SPINMAP, SpinModels.SPINMAPL)
                 .forEach(m -> mapping.setNsPrefix(m.name().toLowerCase(), m.getIRI() + "#"));
 
@@ -173,7 +177,7 @@ public class SpinMappingTest {
         String uri = "http://source.avicomp.ru";
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri);
-        TestUtils.setDefaultPrefixes(res);
+        res.setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntEntity(OntClass.class, ns + "ClassSource");
         OntNDP prop1 = res.createOntEntity(OntNDP.class, ns + "prop1");
         OntNDP prop2 = res.createOntEntity(OntNDP.class, ns + "prop2");
@@ -205,7 +209,7 @@ public class SpinMappingTest {
         String uri = "http://target.avicomp.ru";
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri);
-        TestUtils.setDefaultPrefixes(res);
+        res.setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntEntity(OntClass.class, ns + "ClassTarget");
         OntNDP prop = res.createOntEntity(OntNDP.class, ns + "targetProperty");
         prop.addRange(res.getOntEntity(OntDT.class, XSD.xstring));

@@ -18,16 +18,20 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.impl.ModelCom;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.system.JenaSystem;
+import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * Access point to {@link OntGraphModel}, common {@link Model} and {@link Graph}.
- * The our analogue of {@link org.apache.jena.rdf.model.ModelFactory}.
- * Please use it to avoid ExceptionInInitializerError during JenaSystem.init()
+ * A factory to produce different kinds of {@link OntGraphModel OWL2 model}s, {@link Model Common model}s and {@link Graph graph}s.
+ * It is an ONT-API analogue of {@link org.apache.jena.rdf.model.ModelFactory}.
  * <p>
  * Created by szuev on 14.02.2017.
  */
@@ -36,6 +40,16 @@ public class OntModelFactory {
     static {
         init();
     }
+
+    /**
+     * A standard prefixes map for any OWL2 ontology. Just for convenience.
+     */
+    public static final PrefixMapping STANDARD = PrefixMapping.Factory.create()
+            .setNsPrefix("owl", OWL.NS)
+            .setNsPrefix("rdfs", RDFS.uri)
+            .setNsPrefix("rdf", RDF.uri)
+            .setNsPrefix("xsd", XSD.NS)
+            .lock();
 
     /**
      * force init before any ont-model initializations here due to bug(?) in jena-arq-3.2.0 (found in upgrade 3.1.0 -&gt; 3.2.0)
@@ -66,16 +80,4 @@ public class OntModelFactory {
         return new OntGraphModelImpl(graph, personality);
     }
 
-    /**
-     * Returns ont-personality.
-     * It is here, since i'm not sure it is good to be placed in {@link OntGraphModel}: personality is an internal object originally.
-     *
-     * @param model {@link OntGraphModel}
-     * @return {@link OntPersonality}
-     * @throws OntJenaException   checking for null
-     * @throws ClassCastException in case it's not default implementation.
-     */
-    public static OntPersonality getPersonality(OntGraphModel model) {
-        return ((OntGraphModelImpl) OntJenaException.notNull(model, "Null model")).getPersonality();
-    }
 }

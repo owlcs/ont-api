@@ -25,15 +25,11 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.owlapi.objects.OWLAnonymousIndividualImpl;
 
 import java.util.*;
@@ -62,27 +58,6 @@ public class TestUtils {
     public static OntologyModel createModel(OntologyManager manager, OWLOntologyID id) {
         LOGGER.info("Create ontology " + id);
         return manager.createOntology(id);
-    }
-
-    public static OntGraphModel copyOntModel(OntGraphModel original, String newURI) {
-        String oldURI = getURI(original);
-        if (newURI == null) newURI = oldURI != null ? oldURI + ".copy" : null;
-        UnionGraph copy = new UnionGraph(original.getBaseGraph());
-        original.imports().forEach(model -> copy.addGraph(model.getGraph()));
-        OntGraphModel res = OntModelFactory.createModel(copy, OntModelFactory.getPersonality(original));
-        if (newURI != null) {
-            res.setNsPrefix("", newURI + "#");
-        }
-        res.add(original.getBaseModel().listStatements());
-        res.setID(newURI);
-        return res;
-    }
-
-    public static void setDefaultPrefixes(Model m) {
-        m.setNsPrefix("owl", OWL.getURI());
-        m.setNsPrefix("rdfs", RDFS.getURI());
-        m.setNsPrefix("rdf", RDF.getURI());
-        m.setNsPrefix("xsd", XSD.getURI());
     }
 
     public static String getURI(Model model) {

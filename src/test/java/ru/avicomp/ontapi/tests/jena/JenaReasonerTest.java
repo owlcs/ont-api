@@ -32,7 +32,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
-import ru.avicomp.ontapi.utils.TestUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -64,7 +63,7 @@ public class JenaReasonerTest {
         p.addSubPropertyOf(q);
         example.createOntEntity(OntIndividual.Named.class, NS + "a").addProperty(p, "foo");
         LOGGER.info("Example model:");
-        TestUtils.setDefaultPrefixes(example);
+        example.setNsPrefixes(OntModelFactory.STANDARD);
         ReadWriteUtils.print(example);
 
         Resource config = OntModelFactory.createDefaultModel()

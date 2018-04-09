@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.tests;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.OWL;
 import org.junit.Assert;
 import org.junit.Test;
@@ -96,7 +95,7 @@ public class MiscOntologyTest {
 
     private Graph makeGraphWithRecursion() {
         Model m = OntModelFactory.createDefaultModel();
-        m.setNsPrefixes(PrefixMapping.Standard);
+        m.setNsPrefixes(OntModelFactory.STANDARD);
         Resource anon = m.createResource().addProperty(RDF.type, OWL.Class);
         anon.addProperty(OWL.complementOf, anon);
         return m.getGraph();

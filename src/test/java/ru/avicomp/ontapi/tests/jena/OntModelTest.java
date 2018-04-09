@@ -16,7 +16,6 @@ package ru.avicomp.ontapi.tests.jena;
 
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.Lang;
-import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.RDFS;
 import org.hamcrest.core.IsEqual;
@@ -33,7 +32,6 @@ import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.thinking.TmpCEs;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
-import ru.avicomp.ontapi.utils.TestUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -204,7 +202,7 @@ public class OntModelTest {
 
         OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefix("test", ns);
-        TestUtils.setDefaultPrefixes(m);
+        m.setNsPrefixes(OntModelFactory.STANDARD);
 
         LOGGER.info("1) Assign version-iri and ontology comment.");
         m.setID(uri).setVersionIRI(ns + "1.0.1");
@@ -283,7 +281,7 @@ public class OntModelTest {
 
         OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefix("test", ns);
-        TestUtils.setDefaultPrefixes(m);
+        m.setNsPrefixes(OntModelFactory.STANDARD);
         m.setID(uri);
 
         OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
@@ -330,7 +328,7 @@ public class OntModelTest {
     public void testRemoveAnnotations() {
         LOGGER.info("Create a model");
         OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(PrefixMapping.Standard);
+        m.setNsPrefixes(OntModelFactory.STANDARD);
         m.getID().addAnnotation(m.getAnnotationProperty(org.apache.jena.vocabulary.OWL.versionInfo), "anonymous ontology", "en");
 
         OntNDP p = m.createOntEntity(OntNDP.class, "x");
@@ -360,7 +358,7 @@ public class OntModelTest {
 
         OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefix("test", ns);
-        TestUtils.setDefaultPrefixes(m);
+        m.setNsPrefixes(OntModelFactory.STANDARD);
         m.setID(uri);
 
         OntNDP ndp1 = m.createOntEntity(OntNDP.class, ns + "dataProperty1");
@@ -406,7 +404,7 @@ public class OntModelTest {
         m.setID(uri);
         m.setNsPrefix("test", ns);
         m.setNsPrefix("SWRL", SWRL.NS);
-        TestUtils.setDefaultPrefixes(m);
+        m.setNsPrefixes(OntModelFactory.STANDARD);
 
         OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
         OntClass cl2 = m.createOntEntity(OntClass.class, ns + "Class2");
@@ -445,7 +443,7 @@ public class OntModelTest {
         String baseURI = "http://test.com/graph/5";
         String baseNS = baseURI + "#";
         OntGraphModel base = OntModelFactory.createModel();
-        TestUtils.setDefaultPrefixes(base);
+        base.setNsPrefixes(OntModelFactory.STANDARD);
         base.setID(baseURI);
         OntClass cl1 = base.createOntEntity(OntClass.class, baseNS + "Class1");
         OntClass cl2 = base.createOntEntity(OntClass.class, baseNS + "Class2");
@@ -453,7 +451,7 @@ public class OntModelTest {
         String childURI = "http://test.com/graph/6";
         String childNS = childURI + "#";
         OntGraphModel child = OntModelFactory.createModel();
-        TestUtils.setDefaultPrefixes(child);
+        child.setNsPrefixes(OntModelFactory.STANDARD);
         child.setID(childURI);
         child.addImport(base);
         OntClass cl3 = child.createOntEntity(OntClass.class, childNS + "Class3");
