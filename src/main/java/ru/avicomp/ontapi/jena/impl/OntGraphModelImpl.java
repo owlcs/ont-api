@@ -23,7 +23,6 @@ import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.JenaException;
-import org.apache.jena.shared.PrefixMapping;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -149,7 +148,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public PrefixMapping setNsPrefix(String prefix, String uri) {
+    public OntGraphModelImpl setNsPrefix(String prefix, String uri) {
         getBaseGraph().getPrefixMapping().setNsPrefix(prefix, uri);
         return this;
     }
