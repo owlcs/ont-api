@@ -63,10 +63,20 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
         super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntJenaException.notNull(personality, "Null personality"));
     }
 
+    /**
+     * Synchronizes imports with graph hierarchy.
+     * Underling graph tree may content named graphs which are not included to {@code owl:imports}.
+     * This method tries to fix such situation by modifying base graph.
+     */
     public void syncImports() {
         syncImports(getPersonality());
     }
 
+    /**
+     * Synchronizes imports with graph hierarchy with personality.
+     *
+     * @param personality {@link OntPersonality}
+     */
     protected void syncImports(OntPersonality personality) {
         OntID id = getID();
         id.removeAll(OWL.imports);
@@ -86,19 +96,35 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
 
     @Override
     public OntID setID(String uri) {
-        List<Statement> prev = Iter.asStream(getBaseModel().listResourcesWithProperty(RDF.type, OWL.Ontology))
-                .map(s -> Iter.asStream(s.listProperties())).flatMap(Function.identity()).collect(Collectors.toList());
-        if (prev.stream().filter(s -> OWL.imports.equals(s.getPredicate()))
+        return getNodeAs(createOntologyID(getBaseModel(), uri).asNode(), OntID.class);
+    }
+
+    /**
+     * Creates a fresh ontology resource (i.e. {@code @uri rdf:type owl:Ontology} triple)
+     * and moves to it all content from existing ontology resources (if they present).
+     *
+     * @param model {@link Model} graph holder
+     * @param uri   String an ontology iri, null for anonymous ontology
+     * @return {@link Resource}
+     * @throws OntJenaException if creation is not possible by some reason.
+     */
+    public static Resource createOntologyID(Model model, String uri) throws OntJenaException {
+        List<Statement> prev = Iter.asStream(model.listResourcesWithProperty(RDF.type, OWL.Ontology))
+                .map(s -> Iter.asStream(s.listProperties()))
+                .flatMap(Function.identity())
+                .collect(Collectors.toList());
+        if (prev.stream()
+                .filter(s -> OWL.imports.equals(s.getPredicate()))
                 .map(Statement::getObject)
                 .filter(RDFNode::isURIResource)
                 .map(RDFNode::asResource)
                 .map(Resource::getURI).anyMatch(u -> u.equals(uri))) {
-            throw new OntJenaException("Can't create ontology: <" + uri + "> is present in the imports.");
+            throw new OntJenaException("Can't create ontology: specified uri (<" + uri + ">) is present in the imports.");
         }
-        remove(prev);
-        Resource res = createResource(uri).addProperty(RDF.type, OWL.Ontology);
+        model.remove(prev);
+        Resource res = model.createResource(uri).addProperty(RDF.type, OWL.Ontology);
         prev.forEach(s -> res.addProperty(s.getPredicate(), s.getObject()));
-        return getNodeAs(res.asNode(), OntID.class);
+        return res;
     }
 
     @Override

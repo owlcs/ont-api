@@ -19,6 +19,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntID;
@@ -54,7 +55,7 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
     }
 
     @Override
-    public void addImport(String uri) {
+    public void addImport(String uri) throws OntApiException {
         if (OntJenaException.notNull(uri, "Null uri specified.").equals(getURI())) {
             throw new OntJenaException("Can't import itself: " + uri);
         }

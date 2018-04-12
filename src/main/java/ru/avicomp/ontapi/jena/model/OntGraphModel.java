@@ -63,7 +63,7 @@ public interface OntGraphModel extends Model {
 
     /**
      * Gets ontology ID object.
-     * Since OWL2 graph can only contain the one {@code _:x rdf:type owl:Ontology} triple inside,
+     * Since OWL2 graph can only contain the one {@code @uri rdf:type owl:Ontology} triple inside,
      * this method creates such statement if it absent;
      * in case there are more than one ont-resource with {@code owl:Ontology} type it chooses the most bulky one
      * (i.e. the one that contains the most number of associated statements).
@@ -74,8 +74,8 @@ public interface OntGraphModel extends Model {
     OntID getID();
 
     /**
-     * Creates a new {@code uri rdf:type owl:Ontology} statement for the specified uri.
-     * All extra ontology objects will be removed and all their content will be moved to the new one.
+     * Creates a new {@code @uri rdf:type owl:Ontology} statement for the specified uri.
+     * Note: all extra ontology objects will be removed and all their content will be moved to the new one.
      *
      * @param uri String, could be null for anonymous ontology.
      * @return the new {@link OntID} object.

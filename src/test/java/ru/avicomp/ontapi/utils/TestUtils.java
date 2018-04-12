@@ -18,10 +18,11 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
@@ -43,7 +44,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 16.10.2016.
  */
 public class TestUtils {
-    private static final Logger LOGGER = Logger.getLogger(TestUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestUtils.class);
 
     private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(NodeID.getNodeID());
 
@@ -56,7 +57,7 @@ public class TestUtils {
     }
 
     public static OntologyModel createModel(OntologyManager manager, OWLOntologyID id) {
-        LOGGER.info("Create ontology " + id);
+        LOGGER.info("Create ontology {}", id);
         return manager.createOntology(id);
     }
 
@@ -71,9 +72,9 @@ public class TestUtils {
 
     public static void compareAxioms(Map<AxiomType, List<OWLAxiom>> expected, Map<AxiomType, List<OWLAxiom>> actual) {
         LOGGER.debug("[Compare] Expected axioms: ");
-        expected.values().forEach(LOGGER::debug);
+        expected.values().forEach(x -> LOGGER.debug("{}", x));
         LOGGER.debug("[Compare] Actual axioms: ");
-        actual.values().forEach(LOGGER::debug);
+        actual.values().forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect axiom types:", expected.keySet(), actual.keySet());
         List<String> errors = new ArrayList<>();
         for (AxiomType type : expected.keySet()) {

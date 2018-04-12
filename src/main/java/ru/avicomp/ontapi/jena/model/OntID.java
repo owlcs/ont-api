@@ -14,6 +14,8 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import ru.avicomp.ontapi.OntApiException;
+
 import java.util.stream.Stream;
 
 /**
@@ -24,14 +26,38 @@ import java.util.stream.Stream;
  */
 public interface OntID extends OntObject {
 
+    /**
+     * Returns an iri from {@code @this owl:versionIRI @iri} statement.
+     *
+     * @return String, iri or null
+     */
     String getVersionIRI();
 
+    /**
+     * Assigns a new version iri to this ontology id object.
+     * Null argument means that current version iri should be deleted.
+     * @param uri String, can be null.
+     */
     void setVersionIRI(String uri);
 
-    void addImport(String uri);
+    /**
+     * Adds a triple {@code @this owl:import @uri}.
+     *
+     * @param uri String, not null
+     * @throws OntApiException if input is wrong
+     */
+    void addImport(String uri) throws OntApiException;
 
+    /**
+     * Removes a triple {@code this @owl:import @uri} from this resource.
+     * @param uri String, not null
+     */
     void removeImport(String uri);
 
+    /**
+     * Lists all {@code owl:import}s.
+     * @return Stream of Strings
+     */
     Stream<String> imports();
 
 }
