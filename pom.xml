@@ -20,18 +20,18 @@
 
     <groupId>ru.avicomp</groupId>
     <artifactId>ontapi</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>ONT-API is an OWL-API over Apache Jena</description>
+    <description>ONT-API is an OWL-API impl over Apache Jena</description>
     <url>https://github.com/avicomp/ont-api</url>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.jena>3.6.0</version.jena>
+        <version.jena>3.7.0</version.jena>
         <version.owlapi>5.1.4</version.owlapi>
     </properties>
 
