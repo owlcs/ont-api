@@ -164,14 +164,14 @@ public interface OntGraphModel extends Model {
     Stream<OntStatement> statements(Resource s, Property p, RDFNode o);
 
     /**
-     * Answers if the statement belongs to the base graph
+     * Answers iff the statement belongs to the base graph.
      *
      * @param statement {@link Statement}
      * @return true if statement is local.
      * @see OntStatement#isLocal()
      * @see OntObject#isLocal()
      */
-    boolean isInBaseModel(Statement statement);
+    boolean isLocal(Statement statement);
 
     /**
      * Removes ont-object from the graph-model.

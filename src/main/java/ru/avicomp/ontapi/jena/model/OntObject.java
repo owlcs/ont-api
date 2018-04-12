@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.jena.model;
@@ -28,15 +27,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A base Ont RDF Resource, a common super-type for all of the abstractions in the {@link OntGraphModel ontology}.
- * The analogue of {@link org.apache.jena.ontology.OntResource}
+ * A base Ontology RDF Resource, a common super-type for all of the abstractions in the {@link OntGraphModel ontology}.
+ * It is the analogue of {@link org.apache.jena.ontology.OntResource}.
  * <p>
  * Created by szuev on 01.11.2016.
  */
 public interface OntObject extends Resource {
 
     /**
-     * Returns reference to the attached model.
+     * Return the model associated with this resource.
+     * If the Resource was not created by a Model, the result may be null.
      *
      * @return {@link OntGraphModel}
      */
@@ -44,22 +44,22 @@ public interface OntObject extends Resource {
     OntGraphModel getModel();
 
     /**
-     * Determines is ont-object resource local defined (i.e. does not belong to any graph from imports).
+     * Determines is this resource local defined (i.e. does not belong to any graph from imports).
      *
      * @return true if this resource is local to the base graph.
      */
     boolean isLocal();
 
     /**
-     * Returns the root statement, i.e. the main triple in model which determines this object.
-     * usually it is declaration (statement with predicate rdf:type)
+     * Returns a root statement, i.e. the main triple in the model which determines this object.
+     * Usually it is declaration (statement with predicate {@code rdf:type}).
      *
      * @return OntStatement or null
      */
     OntStatement getRoot();
 
     /**
-     * todo: unclear method name, better to rename
+     * todo: unclear method name, will be renamed.
      * Returns the content of object: all characteristic statements,
      * i.e. all those statements which determine this object.
      * For non-composite objects the result might contain only the root statement.
@@ -71,7 +71,7 @@ public interface OntObject extends Resource {
     Stream<OntStatement> content();
 
     /**
-     * Adds ont-statement
+     * Adds an ont-statement by attaching predicate and object.
      *
      * @param property {@link Property} predicate, not null
      * @param value,   {@link RDFNode} object, not null
@@ -81,7 +81,7 @@ public interface OntObject extends Resource {
     OntStatement addStatement(Property property, RDFNode value);
 
     /**
-     * Removes statement
+     * Removes a statement by predicate and object.
      *
      * @param property {@link Property} predicate, not null
      * @param object,  {@link RDFNode} object, not null
@@ -91,6 +91,8 @@ public interface OntObject extends Resource {
 
     /**
      * Returns the <b>first</b> statement for specified property and object.
+     * What is the first triple is defined at the level of graph.
+     * Also note, that common jena implementation of in-memory graph does not allow duplicated triples.
      *
      * @param property {@link Property}, the predicate
      * @param object   {@link RDFNode}, the object
@@ -100,6 +102,7 @@ public interface OntObject extends Resource {
 
     /**
      * Returns the <b>first</b> statement for specified property.
+     * What is the first triple is defined at the level of graph.
      *
      * @param property {@link Property}
      * @return {@link Optional} around {@link OntStatement}
@@ -109,17 +112,17 @@ public interface OntObject extends Resource {
 
 
     /**
-     * Returns ont-statements by predicate
+     * Returns ont-statements by predicate.
      *
      * @param property {@link Property}, predicate
-     * @return Stream of {@link OntStatement}s.
+     * @return Stream of {@link OntStatement}s
      */
     Stream<OntStatement> statements(Property property);
 
     /**
      * Returns all statements related to this object (i.e. with subject=this)
      *
-     * @return Stream of all statements.
+     * @return Stream of all statements
      */
     Stream<OntStatement> statements();
 
@@ -134,7 +137,8 @@ public interface OntObject extends Resource {
     <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view);
 
     /**
-     * Returns the <b>first</b> for specified property
+     * Returns the <b>first</b> statement for specified property.
+     * What is the first triple is defined at the level of graph.
      *
      * @param property {@link Property}, the predicate
      * @return {@link OntStatement}
@@ -145,14 +149,14 @@ public interface OntObject extends Resource {
     OntStatement getRequiredProperty(Property property);
 
     /**
-     * Returns all declarations (statements with rdf:type predicate)
+     * Returns all declarations (statements with {@code rdf:type} predicate).
      *
      * @return Stream of {@link Resource}s
      */
     Stream<Resource> types();
 
     /**
-     * Answers if this object has specified rdf:type
+     * Answers iff this object has declaration triple {@code @this rdf:type @any}.
      *
      * @param type {@link Resource} to test
      * @return true if it has.
@@ -160,8 +164,8 @@ public interface OntObject extends Resource {
     boolean hasType(Resource type);
 
     /**
-     * Returns the stream of all annotations attached to this object (not only to main-triple).
-     * Each annotation could be plain (assertion) or bulk annotation (with/without sub-annotations).
+     * Returns a stream of all annotations attached to this object (not only to the main-triple).
+     * Each annotation could be plain (assertion) or bulk (with/without sub-annotations).
      * Sub-annotations are not included to this stream.
      * <p>
      * According to OWL2-DL specification OntObject should be an uri-resource (i.e. not anonymous),
@@ -174,8 +178,8 @@ public interface OntObject extends Resource {
     }
 
     /**
-     * Adds annotation assertion.
-     * it could be expanded to bulk form by adding sub-annotation.
+     * Adds an annotation assertion.
+     * It could be expanded to bulk form by adding sub-annotation.
      *
      * @param property {@link OntNAP}, Named annotation property.
      * @param value    {@link RDFNode} the value: uri-resource, literal or anonymous individual.
@@ -187,7 +191,7 @@ public interface OntObject extends Resource {
     }
 
     /**
-     * Adds lang-string annotation assertion
+     * Adds lang-string annotation assertion.
      *
      * @param predicate {@link OntNAP} predicate
      * @param message   String, text message
@@ -199,8 +203,8 @@ public interface OntObject extends Resource {
     }
 
     /**
-     * Adds text annotation with builtin rdfs:comment predicate.
-     * for simplification.
+     * Adds text annotation with builtin {@code rdfs:comment} predicate.
+     * For simplification.
      *
      * @param txt,  String, the message
      * @param lang, String, the language, nullable.
@@ -211,8 +215,8 @@ public interface OntObject extends Resource {
     }
 
     /**
-     * Adds text annotation with builtin rdfs:comment predicate.
-     * for simplification.
+     * Adds text annotation with builtin {@code rdfs:comment} predicate.
+     * For simplification.
      *
      * @param txt,  String, the message
      * @param lang, String, the language, nullable.
@@ -223,7 +227,7 @@ public interface OntObject extends Resource {
     }
 
     /**
-     * Removes all associated annotations included nested.
+     * Removes all associated annotations including nested.
      */
     default void clearAnnotations() {
         Set<OntStatement> annotated = statements().filter(OntStatement::hasAnnotations).collect(Collectors.toSet());

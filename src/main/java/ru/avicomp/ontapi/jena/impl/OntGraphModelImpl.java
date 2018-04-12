@@ -17,12 +17,9 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.InfModelImpl;
-import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.reasoner.Reasoner;
-import org.apache.jena.shared.JenaException;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -32,10 +29,7 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.io.OutputStream;
-import java.io.Writer;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -51,7 +45,7 @@ import java.util.stream.Stream;
  * @see UnionGraph
  */
 @SuppressWarnings("WeakerAccess")
-public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
+public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     /**
      * The main constructor.
@@ -60,7 +54,7 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
      * @param personality {@link OntPersonality}
      */
     public OntGraphModelImpl(Graph graph, OntPersonality personality) {
-        super(graph instanceof UnionGraph ? graph : new UnionGraph(graph), OntJenaException.notNull(personality, "Null personality"));
+        super(graph, OntJenaException.notNull(personality, "Null personality"));
     }
 
     /**
@@ -154,68 +148,8 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     @Override
-    public UnionGraph getGraph() {
-        return (UnionGraph) super.getGraph();
-    }
-
-    @Override
-    public Graph getBaseGraph() {
-        return getGraph().getBaseGraph();
-    }
-
-    @Override
-    public Model getBaseModel() {
-        return new ModelCom(getBaseGraph());
-    }
-
-    @Override
     public InfModel getInferenceModel(Reasoner reasoner) {
         return new InfModelImpl(OntJenaException.notNull(reasoner, "Null reasoner.").bind(getGraph()));
-    }
-
-    @Override
-    public OntGraphModelImpl setNsPrefix(String prefix, String uri) {
-        getBaseGraph().getPrefixMapping().setNsPrefix(prefix, uri);
-        return this;
-    }
-
-    @Override
-    public Model write(Writer writer) {
-        return getBaseModel().write(writer);
-    }
-
-    @Override
-    public Model write(Writer writer, String lang) {
-        return getBaseModel().write(writer, lang);
-    }
-
-    @Override
-    public Model write(Writer writer, String lang, String base) {
-        return getBaseModel().write(writer, lang, base);
-    }
-
-    @Override
-    public Model write(OutputStream out) {
-        return getBaseModel().write(out);
-    }
-
-    @Override
-    public Model write(OutputStream out, String lang) {
-        return getBaseModel().write(out, lang);
-    }
-
-    @Override
-    public Model write(OutputStream out, String lang, String base) {
-        return getBaseModel().write(out, lang, base);
-    }
-
-    @Override
-    public boolean isInBaseModel(Statement stmt) {
-        return isInBaseModel(OntJenaException.notNull(stmt, "Null statement.").getSubject(), stmt.getPredicate(), stmt.getObject());
-    }
-
-    protected boolean isInBaseModel(Resource s, Property p, RDFNode o) {
-        return getBaseGraph().contains(s.asNode(), p.asNode(), o.asNode());
     }
 
     /**
@@ -262,63 +196,10 @@ public class OntGraphModelImpl extends ModelCom implements OntGraphModel {
     }
 
     /**
-     * Answer an enhanced node that wraps the given node and conforms to the given interface type.
+     * Creates any ontology object resource by type and uri.
      *
-     * @param node A node (assumed to be in this graph)
-     * @param view A type denoting the enhanced facet desired
-     * @param <N>  A subtype of {@link RDFNode}
-     * @return An enhanced node, not null
-     * @throws JenaException in case no RDFNode match found.
-     */
-    @Override
-    public <N extends RDFNode> N getNodeAs(Node node, Class<N> view) {
-        try {
-            return getNodeAsInternal(node, view);
-        } catch (ConversionException e) {
-            throw new OntJenaException.Conversion(String.format("Failed to convert node <%s> to <%s>", node, view), e);
-        }
-    }
-
-    protected ThreadLocal<Set<Node>> visited = ThreadLocal.withInitial(HashSet::new);
-
-    /**
-     * Answer an enhanced node that wraps the given node and conforms to the given interface type,
-     * taking into account possible graph recursions.
-     * For internal usage only.
-     *
-     * @param node A node (assumed to be in this graph)
-     * @param view A type denoting the enhanced facet desired
-     * @param <N>  A subtype of {@link RDFNode}
-     * @return An enhanced node or {@code null} if no match found
-     * @throws OntJenaException.Recursion if a graph recursion is indicated
-     * @see #getNodeAs(Node, Class)
-     */
-    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> view) {
-        Set<Node> nodes = visited.get();
-        try {
-            if (nodes.contains(node)) {
-                throw new OntJenaException.Recursion("Can't cast to " + view.getSimpleName() + ": graph contains a recursion for node <" + node + ">");
-            }
-            nodes.add(node);
-            return getNodeAsInternal(node, view);
-        } catch (OntJenaException.Recursion r) {
-            throw r;
-        } catch (JenaException e) {
-            return null;
-        } finally {
-            nodes.remove(node);
-        }
-    }
-
-    protected <N extends RDFNode> N getNodeAsInternal(Node node, Class<N> view) {
-        return super.getNodeAs(OntJenaException.notNull(node, "Null node"), OntJenaException.notNull(view, "Null class view."));
-    }
-
-    /**
-     * to create any OntObject resource.
-     *
-     * @param type Class
-     * @param uri  String
+     * @param type Class, type
+     * @param uri  String, null for anonymous resource
      * @param <T>  class-type of {@link OntObject}
      * @return OntObject
      */
