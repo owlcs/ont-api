@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * To test {@link Graphs} utility.
+ *
  * Created by @szuev on 06.04.2018.
  */
 public class GraphsTest {

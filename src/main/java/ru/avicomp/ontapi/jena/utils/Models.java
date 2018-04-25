@@ -10,11 +10,12 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.jena.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
@@ -139,8 +140,56 @@ public class Models {
     }
 
     /**
+     * Lists all literal string values with specified lang found by subject and predicate.
+     *
+     * @param subject   {@link Resource}
+     * @param predicate {@link Property}
+     * @param lang      String lang, maybe null or empty
+     * @return Stream of Strings
+     */
+    public static Stream<String> langValues(Resource subject, Property predicate, String lang) {
+        return Iter.asStream(subject.listProperties(predicate))
+                .map(Statement::getObject)
+                .filter(RDFNode::isLiteral)
+                .map(RDFNode::asLiteral)
+                .filter(l -> filterByLang(l, lang))
+                .map(Literal::getString);
+    }
+
+    private static boolean filterByLang(Literal literal, String lang) {
+        String other = literal.getLanguage();
+        if (StringUtils.isEmpty(lang))
+            return StringUtils.isEmpty(other);
+        return lang.trim().equalsIgnoreCase(other);
+    }
+
+    /**
+     * Recursively deletes all resource children.
+     *
+     * @param inModel Resource from a model
+     */
+    public static void deleteAll(Resource inModel) {
+        deleteAll(inModel, new HashSet<>());
+    }
+
+    private static void deleteAll(Resource r, Set<Node> viewed) {
+        if (viewed.contains(r.asNode())) {
+            return;
+        }
+        viewed.add(r.asNode());
+        Set<Statement> props = r.listProperties().toSet();
+        props.forEach(s -> {
+            RDFNode o = s.getObject();
+            if (o.isAnon()) {
+                deleteAll(o.asResource(), viewed);
+            }
+            r.getModel().remove(s);
+        });
+    }
+
+    /**
      * Recursively gets all statements related to the specified subject.
-     * Note: rdf:List may content a large number of members (1000+).
+     * Note: {@code rdf:List} may content a large number of members (1000+).
      *
      * @param inModel Resource with associated model inside.
      * @return the Set of {@link Statement}
