@@ -26,7 +26,6 @@ import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.thinking.Tmp_Delete;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
@@ -44,7 +43,7 @@ public class ModelsTest {
     @Test
     public void testDelete() {
         OntGraphModel m = OntModelFactory.createModel();
-        m.read(Tmp_Delete.class.getResourceAsStream("/recursive-graph.ttl"), null, "ttl");
+        m.read(ModelsTest.class.getResourceAsStream("/recursive-graph.ttl"), null, "ttl");
         String ns = m.getID().getURI() + "#";
         OntObject d = m.createDisjointClasses(Arrays.asList(
                 m.createOntEntity(OntClass.class, ns + "CL1"),
@@ -79,7 +78,7 @@ public class ModelsTest {
 
         LOGGER.debug("---------------");
         ReadWriteUtils.print(m);
-        System.out.println(m.statements().count()); // 10
+        Assert.assertEquals(10, m.statements().count());
     }
 
     @Test
@@ -94,7 +93,7 @@ public class ModelsTest {
         id.addLabel("lab4", "e2");
         id.addLabel("lab5", "e2");
         id.addLabel("lab5", null);
-        m.write(System.out, "ttl");
+        ReadWriteUtils.print(m);
         Assert.assertEquals(2, Models.langValues(id, RDFS.label, null).count());
         Assert.assertEquals(3, Models.langValues(id, RDFS.label, "e2").count());
         Assert.assertEquals(1, Models.langValues(id, RDFS.label, "language3").count());
