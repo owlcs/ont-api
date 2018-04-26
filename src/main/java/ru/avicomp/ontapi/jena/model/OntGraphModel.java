@@ -379,8 +379,4 @@ public interface OntGraphModel extends Model {
         return getOntEntity(OntClass.class, OWL.Nothing);
     }
 
-    default OntDT getRDFSLiteral() {
-        return getOntEntity(OntDT.class, RDFS.Literal);
-    }
-
 }

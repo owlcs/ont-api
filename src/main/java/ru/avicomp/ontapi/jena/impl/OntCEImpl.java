@@ -543,10 +543,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public void setCardinality(int cardinality) {
-            Property p = getCardinalityPredicate();
-            clearProperty(p);
-            Literal l = ResourceFactory.createTypedLiteral(String.valueOf(cardinality), XSDDatatype.XSDnonNegativeInteger);
-            addLiteral(p, l);
+            Literal value = createNonNegativeIntegerLiteral(cardinality);
+            Property property = getCardinalityPredicate();
+            clearProperty(property);
+            addLiteral(property, value);
         }
 
         protected Property getCardinalityPredicate() {
@@ -787,6 +787,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return CardinalityType.EXACTLY;
     }
 
+    protected static Literal createNonNegativeIntegerLiteral(int n) {
+        if (n < 0) throw new IllegalArgumentException("Can't accept negative value.");
+        return ResourceFactory.createTypedLiteral(String.valueOf(n), XSDDatatype.XSDnonNegativeInteger);
+    }
+
     protected static Resource createOnPropertyRestriction(OntGraphModelImpl model, OntPE onProperty) {
         OntJenaException.notNull(onProperty, "Null property.");
         Resource res = model.createResource();
@@ -803,8 +808,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static <CE extends CardinalityRestrictionCE> CE createCardinalityRestrictionCE(OntGraphModelImpl model, Class<CE> view, OntPE onProperty, int cardinality, OntObject object) {
+        Literal value = createNonNegativeIntegerLiteral(cardinality);
         Resource res = createOnPropertyRestriction(model, onProperty);
-        Literal value = ResourceFactory.createTypedLiteral(String.valueOf(cardinality), XSDDatatype.XSDnonNegativeInteger);
         boolean qualified = isQualified(object);
         model.add(res, getCardinalityType(view).getPredicate(qualified), value);
         if (qualified) {

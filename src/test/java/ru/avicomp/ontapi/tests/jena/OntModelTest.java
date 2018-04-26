@@ -332,7 +332,8 @@ public class OntModelTest {
 
         OntNDP p = m.createOntEntity(OntNDP.class, "x");
         OntClass c = m.createOntEntity(OntClass.class, "c");
-        p.addRange(m.getRDFSLiteral()).addAnnotation(m.getRDFSComment(), "This is a range", null);
+        OntDT dt = m.getOntEntity(OntDT.class, RDFS.Literal);
+        p.addRange(dt).addAnnotation(m.getRDFSComment(), "This is a range", null);
         p.addDomain(c).addAnnotation(m.getRDFSLabel(), "This is a domain", null).addAnnotation(m.getRDFSLabel(), "label", "hg");
 
         OntIndividual i = c.createIndividual("i");
@@ -467,6 +468,50 @@ public class OntModelTest {
         Assert.assertThat("Incorrect imports", imports, IsEqual.equalTo(Stream.of(baseURI).collect(Collectors.toSet())));
         Assert.assertEquals("Incorrect count of entities", 4, child.ontEntities().count());
         Assert.assertEquals("Incorrect count of local entities", 2, child.ontEntities().filter(OntEntity::isLocal).count());
+    }
+
+    @Test
+    public void testAssemblySimplestOntology() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        m.setID("http://example.com/xxx");
+
+        String schemaNS = m.getID().getURI() + "#";
+        String dataNS = m.getID().getURI() + "/data#";
+        m.setNsPrefix("schema", schemaNS);
+        m.setNsPrefix("data", dataNS);
+
+        OntDT email = m.createOntEntity(OntDT.class, schemaNS + "email");
+        OntDT phone = m.createOntEntity(OntDT.class, schemaNS + "phone");
+        OntDT skype = m.createOntEntity(OntDT.class, schemaNS + "skype");
+        OntNDP contactInfo = m.createOntEntity(OntNDP.class, schemaNS + "info");
+        OntClass contact = m.createOntEntity(OntClass.class, schemaNS + "Contact");
+        OntClass person = m.createOntEntity(OntClass.class, schemaNS + "Person");
+        OntNOP hasContact = m.createOntEntity(OntNOP.class, schemaNS + "contact");
+
+        hasContact.addDomain(person);
+        hasContact.addRange(contact);
+
+        contactInfo.addDomain(contact);
+        contactInfo.addRange(email);
+        contactInfo.addRange(phone);
+        contactInfo.addRange(skype);
+
+        // data:
+        OntIndividual bobs = contact.createIndividual(dataNS + "bobs");
+        bobs.addAssertion(contactInfo, email.createLiteral("bob@x-email.com"))
+                .addAssertion(m.getRDFSLabel(), m.createLiteral("Bob's contacts"))
+                .addAssertion(contactInfo, phone.createLiteral(98_968_78_98_792L));
+        OntIndividual bob = person.createIndividual(dataNS + "Bob").addAssertion(hasContact, bobs)
+                .addAssertion(m.getRDFSLabel(), m.createLiteral("Bob Label"));
+
+        OntIndividual jhons = contact.createIndividual(dataNS + "jhons")
+                .addAssertion(contactInfo, skype.createLiteral("jhon-skype-id"));
+        person.createIndividual(dataNS + "Jhon").addAssertion(hasContact, jhons);
+        bob.addNegativeAssertion(hasContact, jhons);
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(33, m.statements().count());
     }
 
 }

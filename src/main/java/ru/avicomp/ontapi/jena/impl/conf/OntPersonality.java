@@ -61,6 +61,11 @@ public class OntPersonality extends Personality<RDFNode> {
         return (OntObjectFactory) OntJenaException.notNull(getImplementation(view), "Can't find factory for object " + view);
     }
 
+    @Override
+    public OntPersonality add(Personality<RDFNode> other) {
+        super.add(other);
+        return this;
+    }
 
     @Override
     public OntPersonality copy() {

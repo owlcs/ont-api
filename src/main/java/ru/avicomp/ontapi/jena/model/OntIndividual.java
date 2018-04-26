@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,10 +14,12 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.stream.Stream;
-
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.stream.Stream;
 
 /**
  * For named and anonymous individuals
@@ -27,7 +29,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 public interface OntIndividual extends OntObject {
 
     /**
-     * Adds a type (class expression) to this individual
+     * Adds a type (class expression) to this individual.
      *
      * @param clazz {@link OntCE}
      * @return {@link OntStatement}
@@ -35,7 +37,7 @@ public interface OntIndividual extends OntObject {
     OntStatement attachClass(OntCE clazz);
 
     /**
-     * Removes class assertion for the specified class expression
+     * Removes class assertion for the specified class expression.
      *
      * @param clazz {@link OntCE}
      * @throws ru.avicomp.ontapi.jena.OntJenaException in case it is anonymous individual and there is no more class-assertions.
@@ -43,7 +45,7 @@ public interface OntIndividual extends OntObject {
     void detachClass(OntCE clazz);
 
     /**
-     * Returns all class types
+     * Returns all class types.
      *
      * @return Stream of {@link OntCE}s
      */
@@ -61,7 +63,7 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * Adds same individual reference
+     * Adds same individual reference.
      *
      * @param other {@link OntIndividual}
      * @return {@link OntStatement}
@@ -90,7 +92,7 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * Adds different individual
+     * Adds different individual.
      *
      * @param other {@link OntIndividual}
      * @return {@link OntStatement}
@@ -111,7 +113,90 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * Named Individual here.
+     * Adds annotation assertion {@code AnnotationAssertion(A s t)}.
+     * In general case it is {@code s A t}, where {@code s} is IRI or anonymous individual,
+     * {@code A} - annotation property, and {@code t} - IRI, anonymous individual, or literal.
+     *
+     * @param property {@link OntNAP}
+     * @param value    {@link RDFNode} (IRI, anonymous individual, or literal)
+     * @return this individual to allow cascading calls
+     * @see #addAnnotation(OntNAP, RDFNode)
+     */
+    default OntIndividual addAssertion(OntNAP property, RDFNode value) {
+        addProperty(property, value);
+        return this;
+    }
+
+    /**
+     * Adds a positive data property assertion {@code a R v}.
+     *
+     * @param property {@link OntNDP}
+     * @param value    {@link Literal}
+     * @return this individual to allow cascading calls
+     */
+    default OntIndividual addAssertion(OntNDP property, Literal value) {
+        addProperty(property, value);
+        return this;
+    }
+
+    /**
+     * Adds a positive object property assertion {@code a1 PN a2}.
+     *
+     * @param property {@link OntNOP} named object property
+     * @param value    {@link OntIndividual} other individual
+     * @return this individual to allow cascading calls
+     */
+    default OntIndividual addAssertion(OntNOP property, OntIndividual value) {
+        addProperty(property, value);
+        return this;
+    }
+
+    /**
+     * Adds a negative object property assertion.
+     * <pre>
+     * Functional syntax: {@code NegativeObjectPropertyAssertion(P a1 a2)}
+     * RDF Syntax:
+     * {@code
+     * _:x rdf:type owl:NegativePropertyAssertion .
+     * _:x owl:sourceIndividual a1 .
+     * _:x owl:assertionProperty P .
+     * _:x owl:targetIndividual a2 .
+     * }
+     * </pre>
+     *
+     * @param property {@link OntOPE}
+     * @param value    {@link OntIndividual} other individual
+     * @return this individual to allow cascading calls
+     */
+    default OntIndividual addNegativeAssertion(OntOPE property, OntIndividual value) {
+        property.addNegativeAssertion(this, value);
+        return this;
+    }
+
+    /**
+     * Adds a negative data property assertion.
+     * <pre>
+     * Functional syntax: {@code NegativeDataPropertyAssertion(R a v)}
+     * RDF Syntax:
+     * {@code
+     * _:x rdf:type owl:NegativePropertyAssertion.
+     * _:x owl:sourceIndividual a .
+     * _:x owl:assertionProperty R .
+     * _:x owl:targetValue v.
+     * }
+     * </pre>
+     *
+     * @param property {@link OntNDP}
+     * @param value    {@link Literal}
+     * @return this individual to allow cascading calls
+     */
+    default OntIndividual addNegativeAssertion(OntNDP property, Literal value) {
+        property.addNegativeAssertion(this, value);
+        return this;
+    }
+
+    /**
+     * An interface for Named Individual.
      * <p>
      * Created by szuev on 01.11.2016.
      */
@@ -119,7 +204,7 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * Class for Anonymous Individuals.
+     * An interface for Anonymous Individuals.
      * The anonymous individual is a blank node ("_:a") which satisfies one of the following conditions:
      * <ul>
      * <li>it has a class declaration (i.e. there is a triple "_:a rdf:type C", where C is a class expression)</li>

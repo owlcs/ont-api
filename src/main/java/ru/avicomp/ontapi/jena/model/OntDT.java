@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,9 +14,12 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.stream.Stream;
-
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.datatypes.TypeMapper;
+import org.apache.jena.rdf.model.Literal;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+
+import java.util.stream.Stream;
 
 /**
  * The datatype resource (both anonymous and named).
@@ -29,7 +32,7 @@ public interface OntDT extends OntEntity, OntDR {
      * Returns all equivalent data ranges.
      * The pattern "DN owl:equivalentClass D" to search.
      *
-     * @return Stream of {@link OntDR}s.
+     * @return Stream of {@link OntDR}s
      * @see OntCE#equivalentClass()
      */
     default Stream<OntDR> equivalentClass() {
@@ -37,9 +40,9 @@ public interface OntDT extends OntEntity, OntDR {
     }
 
     /**
-     * Creates an equivalent class statement
+     * Creates an equivalent class statement.
      *
-     * @param other {@link OntDR}, not null.
+     * @param other {@link OntDR}, not null
      * @return {@link OntStatement}
      * @see OntCE#addEquivalentClass(OntCE)
      */
@@ -48,12 +51,31 @@ public interface OntDT extends OntEntity, OntDR {
     }
 
     /**
-     * Removes equivalent data range
+     * Removes equivalent data range.
      *
      * @param other {@link OntDR}
      * @see OntCE#removeEquivalentClass(OntCE)
      */
     default void removeEquivalentClass(OntDR other) {
         remove(OWL.equivalentClass, other);
+    }
+
+    /**
+     * Creates a jena-datatype.
+     *
+     * @return {@link RDFDatatype}
+     */
+    default RDFDatatype toRDFDatatype() {
+        return TypeMapper.getInstance().getSafeTypeByName(getURI());
+    }
+
+    /**
+     * Build a typed literal from its value form.
+     *
+     * @param value the value of the literal
+     * @return {@link Literal}
+     */
+    default Literal createLiteral(Object value) {
+        return getModel().createTypedLiteral(value, toRDFDatatype());
     }
 }

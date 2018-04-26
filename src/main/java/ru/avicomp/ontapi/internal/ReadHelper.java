@@ -10,12 +10,12 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.OntApiException;
@@ -365,7 +365,7 @@ public class ReadHelper {
                 OntCE.DataCardinality.class.equals(view)) {
             OntCE.CardinalityRestrictionCE<OntDR, OntNDP> _ce = (OntCE.CardinalityRestrictionCE<OntDR, OntNDP>) ce;
             InternalObject<OWLDataProperty> p = df.get(_ce.getOnProperty());
-            InternalObject<? extends OWLDataRange> d = df.get(_ce.getValue() == null ? _ce.getModel().getRDFSLiteral() : _ce.getValue());
+            InternalObject<? extends OWLDataRange> d = df.get(_ce.getValue() == null ? _ce.getModel().getOntEntity(OntDT.class, RDFS.Literal) : _ce.getValue());
             OWLDataCardinalityRestriction owl;
             if (OntCE.DataMinCardinality.class.equals(view))
                 owl = df.getOWLDataFactory().getOWLDataMinCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
