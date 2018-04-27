@@ -29,6 +29,7 @@ import java.util.stream.Stream;
  * Encapsulates {@link org.apache.jena.graph.Graph} and extends {@link Model}.
  * <p>
  * Created by @szuev on 11.11.2016.
+ *
  * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf'>OWL2 RDF mapping</a>
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>A Quick Guide</a>
  */
@@ -86,12 +87,13 @@ public interface OntGraphModel extends Model {
     /**
      * Adds a sub model to {@code owl:import} and to the graph hierarchy.
      *
-     * @param m {@link OntGraphModel ont jena model} to add, not null.
-     * @return this model
-     * @throws OntJenaException if it is anonymous ontology
+     * @param m {@link OntGraphModel ont jena model} to add, not null
+     * @return this model to allow cascading calls
+     * @throws OntJenaException if specified ontology is anonymous
+     *                          or already present in the imports (both as graph and in owl-declaration)
      * @see OntID#addImport(String)
      */
-    OntGraphModel addImport(OntGraphModel m);
+    OntGraphModel addImport(OntGraphModel m) throws OntJenaException;
 
     /**
      * Removes a sub-model from {@code owl:import} and from the graph hierarchy.

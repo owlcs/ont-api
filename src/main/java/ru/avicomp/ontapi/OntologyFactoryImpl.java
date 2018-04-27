@@ -345,6 +345,16 @@ public class OntologyFactoryImpl implements OntologyFactory {
                 if (manager.contains(res)) {
                     throw new OWLOntologyAlreadyExistsException(res.getOntologyID());
                 }
+                // Restore possible missed import links between this ontology and existing.
+                // Such situation may occur if some ontology has been added with unresolved imports,
+                // which is possible if org.semanticweb.owlapi.model.MissingImportHandlingStrategy#SILENT was specified.
+                if (!info.isAnonymous()) {
+                    String u = info.getURI();
+                    manager.models()
+                            .filter(m -> m.getID().imports().anyMatch(i -> Objects.equals(i, u)))
+                            .filter(m -> m.imports().noneMatch(i -> Objects.equals(i.getID().getURI(), u)))
+                            .forEach(m -> m.addImport(res.asGraphModel()));
+                }
                 impl.ontologyCreated(res);
                 OWLDocumentFormat owlFormat = format.createOwlFormat();
                 if (PrefixManager.class.isInstance(owlFormat)) {
@@ -460,7 +470,9 @@ public class OntologyFactoryImpl implements OntologyFactory {
             }
             OWLOntologyID id = new OWLOntologyID(ontologyIRI);
             OWLOntologyDocumentSource source = manager.documentSourceMappers()
-                    .map(f -> f.map(id)).findFirst()
+                    .map(f -> f.map(id))
+                    .filter(Objects::nonNull)
+                    .findFirst()
                     .orElse(new IRIDocumentSource(documentIRI));
             return loadGraph(source, manager, config);
         }

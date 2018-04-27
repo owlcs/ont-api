@@ -31,6 +31,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -123,8 +124,12 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public OntGraphModelImpl addImport(OntGraphModel m) {
-        if (!OntJenaException.notNull(m, "Null model.").getID().isURIResource()) {
+        if (OntJenaException.notNull(m, "Null model.").getID().isAnon()) {
             throw new OntJenaException("Anonymous sub models are not allowed.");
+        }
+        if (imports().map(OntGraphModel::getID).map(Resource::getURI)
+                .anyMatch(i -> Objects.equals(i, m.getID().getURI()))) {
+            throw new OntJenaException("Ontology " + m.getID().getURI() + " is already in imports.");
         }
         getGraph().addGraph(m.getGraph());
         getID().addImport(m.getID().getURI());
