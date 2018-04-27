@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.tests.managers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSourceBase;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.UnparsableOntologyException;
 import org.semanticweb.owlapi.model.*;
@@ -27,15 +28,19 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntClass;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.transforms.OWLRecursiveTransform;
 import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -272,7 +277,6 @@ public class LoadFactoryManagerTest {
         checkForMissedImportsTest(b);
         String sA = ReadWriteUtils.toString(a, OntFormat.TURTLE);
         String sB = ReadWriteUtils.toString(b, OntFormat.TURTLE);
-
         // direct:
         OntologyManager m2 = OntManagers.createONT();
         m2.loadOntologyFromOntologyDocument(new StringDocumentSource(sA));
@@ -292,7 +296,53 @@ public class LoadFactoryManagerTest {
                 m4.getOntologyLoaderConfiguration().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
         m4.addOntology(a.asGraphModel().getBaseGraph());
         checkForMissedImportsTest(b4);
+    }
 
+    @Test
+    public void testDocumentSourceMapping() throws OWLOntologyCreationException {
+        // create data:
+        OntGraphModel a = OntModelFactory.createModel();
+        a.setID("urn:a");
+        a.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel b = OntModelFactory.createModel();
+        b.setID("urn:b");
+        b.setNsPrefixes(OntModelFactory.STANDARD);
+        a.createOntEntity(OntClass.class, "urn:a#A");
+        b.createOntEntity(OntClass.class, "urn:b#B");
+        b.addImport(a);
+        Map<String, String> data = new HashMap<>();
+        data.put("store://a", ReadWriteUtils.toString(a, OntFormat.TURTLE));
+        data.put("store://b", ReadWriteUtils.toString(b, OntFormat.TURTLE));
+
+        data.forEach((iri, txt) -> LOGGER.debug("Document iri: <{}>\nData:\n{}", iri, txt));
+
+        OWLOntologyIRIMapper iriMapper = iri -> {
+            switch (iri.toString()) {
+                case "urn:a":
+                    return IRI.create("store://a");
+                case "urn:b":
+                    return IRI.create("store://b");
+            }
+            return null;
+        };
+        OntologyManager.DocumentSourceMapping docMapper = id -> id.getOntologyIRI()
+                .map(iriMapper::getDocumentIRI)
+                .map(doc -> new OWLOntologyDocumentSourceBase(doc, OntFormat.TURTLE.createOwlFormat(), null) {
+
+                    @Override
+                    public Optional<InputStream> getInputStream() { // every time create a new InputStream
+                        return Optional.of(ReadWriteUtils.toInputStream(data.get(doc.getIRIString())));
+                    }
+                })
+                .orElse(null);
+
+        OntologyManager m = OntManagers.createONT();
+        //m.getOntologyConfigurator().setSupportedSchemes(Collections.singletonList(() -> "store"));
+        //m.setIRIMappers(Collections.singleton(iriMapper));
+        m.addDocumentSourceMapper(docMapper);
+        OntologyModel o = m.loadOntologyFromOntologyDocument(docMapper.map(new OWLOntologyID(IRI.create("urn:b"))));
+        Assert.assertNotNull(o);
+        Assert.assertEquals(2, m.ontologies().count());
     }
 
     private static void checkForMissedImportsTest(OntologyModel b) {

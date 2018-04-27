@@ -819,11 +819,6 @@ public class OntConfig extends OntologyConfigurator {
             return name().toLowerCase();
         }
 
-        @Override
-        public boolean same(IRI iri) {
-            return Objects.equals(key(), iri.getScheme());
-        }
-
         public static Stream<DefaultScheme> all() {
             return Stream.of(values());
         }
@@ -832,7 +827,15 @@ public class OntConfig extends OntologyConfigurator {
     public interface Scheme extends Serializable {
         String key();
 
-        boolean same(IRI iri);
+        /**
+         * Answers iff IRI schema is the same.
+         *
+         * @param iri {@link IRI}
+         * @return boolean
+         */
+        default boolean same(IRI iri) {
+            return iri != null && Objects.equals(key(), iri.getScheme());
+        }
     }
 
     public interface OptionSetting {
