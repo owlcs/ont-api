@@ -58,6 +58,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 22.12.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class CommonManagerTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonManagerTest.class);
@@ -232,7 +233,7 @@ public class CommonManagerTest {
 
         LOGGER.info("Change Allow Bulk Annotation Assertion setting");
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setAllowBulkAnnotationAssertions(false));
-        Assert.assertEquals("Incorrect settings", false, m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
+        Assert.assertFalse("Incorrect settings", m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
         o1.axioms().forEach(a -> LOGGER.debug("{}", a));
         Set<OWLAxiom> axioms2 = Stream.of(
                 df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1),

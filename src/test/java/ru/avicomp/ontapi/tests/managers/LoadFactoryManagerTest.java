@@ -17,14 +17,17 @@ package ru.avicomp.ontapi.tests.managers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.UnparsableOntologyException;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.transforms.OWLRecursiveTransform;
 import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -256,6 +259,52 @@ public class LoadFactoryManagerTest {
         // todo: it would be nice to validate the result ontologie
     }
 
+    @Test
+    public void testMissedImports() throws OWLOntologyCreationException {
+        // create data:
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel a = m.createOntology(IRI.create("urn:a"));
+        OntologyModel b = m.createOntology(IRI.create("urn:b"));
+        a.asGraphModel().createOntEntity(OntClass.class, "A");
+        b.asGraphModel().createOntEntity(OntClass.class, "B");
+        b.asGraphModel().addImport(a.asGraphModel());
+        // check data:
+        checkForMissedImportsTest(b);
+        String sA = ReadWriteUtils.toString(a, OntFormat.TURTLE);
+        String sB = ReadWriteUtils.toString(b, OntFormat.TURTLE);
+
+        // direct:
+        OntologyManager m2 = OntManagers.createONT();
+        m2.loadOntologyFromOntologyDocument(new StringDocumentSource(sA));
+        OntologyModel b2 = m2.loadOntologyFromOntologyDocument(new StringDocumentSource(sB));
+        checkForMissedImportsTest(b2);
+
+        // reverse through stream:
+        OntologyManager m3 = OntManagers.createONT();
+        OntologyModel b3 = m3.loadOntologyFromOntologyDocument(new StringDocumentSource(sB),
+                m3.getOntologyLoaderConfiguration().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
+        m3.loadOntologyFromOntologyDocument(new StringDocumentSource(sA));
+        checkForMissedImportsTest(b3);
+
+        // reverse through graph
+        OntologyManager m4 = OntManagers.createONT();
+        OntologyModel b4 = m4.addOntology(b.asGraphModel().getBaseGraph(),
+                m4.getOntologyLoaderConfiguration().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
+        m4.addOntology(a.asGraphModel().getBaseGraph());
+        checkForMissedImportsTest(b4);
+
+    }
+
+    private static void checkForMissedImportsTest(OntologyModel b) {
+        checkForMissedImportsTest((OWLOntology) b);
+        Assert.assertEquals(1, b.asGraphModel().imports().count());
+    }
+
+    private static void checkForMissedImportsTest(OWLOntology b) {
+        Assert.assertEquals(1, b.imports().count());
+        Assert.assertEquals(1, b.axioms(Imports.EXCLUDED).filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
+        Assert.assertEquals(2, b.axioms(Imports.INCLUDED).filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
+    }
 
     private static void loadLoopedOntologyFamily(OWLOntologyManager m) throws Exception {
         IRI amyIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-amy");
