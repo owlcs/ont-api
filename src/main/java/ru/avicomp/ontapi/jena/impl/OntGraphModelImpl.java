@@ -31,7 +31,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -124,16 +123,35 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public OntGraphModelImpl addImport(OntGraphModel m) {
-        if (OntJenaException.notNull(m, "Null model.").getID().isAnon()) {
+        if (OntJenaException.notNull(m, "Null model specified.").getID().isAnon()) {
             throw new OntJenaException("Anonymous sub models are not allowed.");
         }
-        if (imports().map(OntGraphModel::getID).map(Resource::getURI)
-                .anyMatch(i -> Objects.equals(i, m.getID().getURI()))) {
-            throw new OntJenaException("Ontology " + m.getID().getURI() + " is already in imports.");
+        if (hasOntologyImport(m)) {
+            throw new OntJenaException("Ontology <" + m.getID().getURI() + "> is already in imports.");
         }
         getGraph().addGraph(m.getGraph());
         getID().addImport(m.getID().getURI());
         return this;
+    }
+
+    /**
+     * Answers iff there is a graph with URI same as in the specified ontology.
+     *
+     * @param other {@link OntGraphModel}
+     * @return boolean
+     */
+    public boolean hasOntologyImport(OntGraphModel other) {
+        return hasOntologyImport(other.getID().getURI());
+    }
+
+    /**
+     * Answers iff there is a graph with the specified URI.
+     *
+     * @param uri String
+     * @return boolean
+     */
+    public boolean hasOntologyImport(String uri) {
+        return uri != null && imports().map(OntGraphModel::getID).map(Resource::getURI).anyMatch(uri::equals);
     }
 
     @Override
