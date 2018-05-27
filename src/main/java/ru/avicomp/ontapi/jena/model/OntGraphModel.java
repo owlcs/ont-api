@@ -99,7 +99,7 @@ public interface OntGraphModel extends Model {
      * Removes a sub-model from {@code owl:import} and from the graph hierarchy.
      *
      * @param m {@link OntGraphModel ont jena model} to remove, not null
-     * @return this model
+     * @return this model to allow cascading calls
      * @see OntID#removeImport(String)
      */
     OntGraphModel removeImport(OntGraphModel m);
@@ -166,12 +166,36 @@ public interface OntGraphModel extends Model {
     Stream<OntStatement> statements(Resource s, Property p, RDFNode o);
 
     /**
+     * Lists all statements which belongs to the base graph.
+     * Equivalent to {@code model.statements().filter(OntStatement::isLocal)}
+     *
+     * @return Stream of {@link OntStatement}
+     * @see OntGraphModel#statements()
+     * @see OntStatement#isLocal()
+     */
+    Stream<OntStatement> localStatements();
+
+    /**
+     * Lists all statements for the specified subject, predicate and object which belongs to the base graph.
+     * Equivalent to {@code model.statements(s, p, o).filter(OntStatement::isLocal)}
+     *
+     * @param s {@link Resource}, the subject
+     * @param p {@link Property}, the predicate
+     * @param o {@link RDFNode}, the object
+     * @return Stream of {@link OntStatement}
+     * @see OntGraphModel#statements(Resource, Property, RDFNode)
+     * @see OntStatement#isLocal()
+     */
+    Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o);
+
+    /**
      * Answers iff the statement belongs to the base graph.
      *
      * @param statement {@link Statement}
      * @return true if statement is local.
      * @see OntStatement#isLocal()
      * @see OntObject#isLocal()
+     * @see OntGraphModel#localStatements()
      */
     boolean isLocal(Statement statement);
 

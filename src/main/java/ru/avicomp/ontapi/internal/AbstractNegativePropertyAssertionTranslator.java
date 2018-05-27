@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,15 +14,14 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.stream.Stream;
-
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLPropertyAssertionAxiom;
-
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+
+import java.util.stream.Stream;
 
 /**
  * for data and object negative property assertion
@@ -45,8 +44,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.statements(null, RDF.type, OWL.NegativePropertyAssertion)
-                .filter(OntStatement::isLocal)
+        return model.localStatements(null, RDF.type, OWL.NegativePropertyAssertion)
                 .filter(s -> s.getSubject().canAs(getView()));
     }
 

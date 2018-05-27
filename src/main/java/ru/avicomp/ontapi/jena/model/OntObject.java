@@ -84,10 +84,11 @@ public interface OntObject extends Resource {
      * Removes a statement by predicate and object.
      *
      * @param property {@link Property} predicate, not null
-     * @param object,  {@link RDFNode} object, not null
+     * @param object  {@link RDFNode} object, not null
+     * @return this object to allow cascading calls
      * @see #addStatement(Property, RDFNode)
      */
-    void remove(Property property, RDFNode object);
+    OntObject remove(Property property, RDFNode object);
 
     /**
      * Returns the <b>first</b> statement for specified property and object.
@@ -228,10 +229,12 @@ public interface OntObject extends Resource {
 
     /**
      * Removes all associated annotations including nested.
+     * @return this object to allow cascading calls
      */
-    default void clearAnnotations() {
+    default OntObject clearAnnotations() {
         Set<OntStatement> annotated = statements().filter(OntStatement::hasAnnotations).collect(Collectors.toSet());
         annotated.forEach(OntStatement::clearAnnotations);
         annotations().forEach(a -> removeAll(a.getPredicate()));
+        return this;
     }
 }

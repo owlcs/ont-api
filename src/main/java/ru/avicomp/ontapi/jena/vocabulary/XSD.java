@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,15 +25,19 @@ import org.apache.jena.rdf.model.ResourceFactory;
  */
 public class XSD extends org.apache.jena.vocabulary.XSD {
 
-    public static final Property length = ResourceFactory.createProperty(NS + "length");
-    public static final Property minLength = ResourceFactory.createProperty(NS + "minLength");
-    public static final Property maxLength = ResourceFactory.createProperty(NS + "maxLength");
-    public static final Property pattern = ResourceFactory.createProperty(NS + "pattern");
-    public static final Property minInclusive = ResourceFactory.createProperty(NS + "minInclusive");
-    public static final Property minExclusive = ResourceFactory.createProperty(NS + "minExclusive");
-    public static final Property maxInclusive = ResourceFactory.createProperty(NS + "maxInclusive");
-    public static final Property maxExclusive = ResourceFactory.createProperty(NS + "maxExclusive");
-    public static final Property totalDigits = ResourceFactory.createProperty(NS + "totalDigits");
-    public static final Property fractionDigits = ResourceFactory.createProperty(NS + "fractionDigits");
-    public static final Property langRange = ResourceFactory.createProperty(NS + "langRange");
+    public static final Property length = property("length");
+    public static final Property minLength = property("minLength");
+    public static final Property maxLength = property("maxLength");
+    public static final Property pattern = property("pattern");
+    public static final Property minInclusive = property("minInclusive");
+    public static final Property minExclusive = property("minExclusive");
+    public static final Property maxInclusive = property("maxInclusive");
+    public static final Property maxExclusive = property("maxExclusive");
+    public static final Property totalDigits = property("totalDigits");
+    public static final Property fractionDigits = property("fractionDigits");
+    public static final Property langRange = property("langRange");
+
+    private static Property property(String name) {
+        return ResourceFactory.createProperty(NS + name);
+    }
 }

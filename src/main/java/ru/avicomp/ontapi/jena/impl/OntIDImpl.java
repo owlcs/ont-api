@@ -47,24 +47,27 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
     }
 
     @Override
-    public void setVersionIRI(String uri) {
+    public OntIDImpl setVersionIRI(String uri) {
         removeAll(OWL.versionIRI);
         if (uri != null) {
             addProperty(OWL.versionIRI, getModel().createResource(uri));
         }
+        return this;
     }
 
     @Override
-    public void addImport(String uri) throws OntApiException {
+    public OntIDImpl addImport(String uri) throws OntApiException {
         if (OntJenaException.notNull(uri, "Null uri specified.").equals(getURI())) {
             throw new OntJenaException("Can't import itself: " + uri);
         }
         addImportResource(getModel().createResource(uri));
+        return this;
     }
 
     @Override
-    public void removeImport(String uri) {
+    public OntIDImpl removeImport(String uri) {
         removeImportResource(getModel().createResource(uri));
+        return this;
     }
 
     @Override

@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.internal;
 import org.apache.jena.shared.JenaException;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Models;
@@ -56,7 +57,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         return statements(model)
                 // CacheStatement helps to speed up a little if ontology has a lot of annotations,
                 // otherwise, it may even slow down the process of axioms collecting ...
-                .map(Models::createCachedStatement)
+                .map(OntStatementImpl::createCachedStatement)
                 .flatMap(Models::split)
                 .map(this::toAxiom);
     }

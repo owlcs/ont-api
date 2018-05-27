@@ -34,6 +34,7 @@ import java.util.stream.Stream;
  * Such structure allows to build graph hierarchy which is used to reference between different models.
  * <p>
  * Created by szuev on 28.10.2016.
+ * @see ru.avicomp.ontapi.jena.impl.UnionModel
  */
 public class UnionGraph extends Union {
 

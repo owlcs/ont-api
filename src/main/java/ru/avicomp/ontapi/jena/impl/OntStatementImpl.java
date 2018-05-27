@@ -54,6 +54,17 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         this(statement.getSubject(), statement.getPredicate(), statement.getObject(), (OntGraphModel) statement.getModel());
     }
 
+    /**
+     * Creates a wrapper for ont-statement with in-memory caches.
+     * Currently just for debugging.
+     *
+     * @param delegate {@link OntStatement}
+     * @return {@link OntStatement}
+     */
+    public static OntStatement createCachedStatement(OntStatement delegate) {
+        return delegate instanceof CachedStatementImpl ? delegate : new CachedStatementImpl(delegate);
+    }
+
     @Override
     public OntGraphModelImpl getModel() {
         return (OntGraphModelImpl) super.getModel();

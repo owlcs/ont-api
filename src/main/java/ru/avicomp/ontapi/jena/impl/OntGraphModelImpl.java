@@ -255,6 +255,11 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     @Override
+    public Stream<OntStatement> localStatements() {
+        return Iter.asStream(getBaseModel().listStatements()).map(st -> toOntStatement(null, st));
+    }
+
+    @Override
     public Stream<OntStatement> statements() {
         return Iter.asStream(listStatements()).map(st -> toOntStatement(null, st));
     }
@@ -262,6 +267,11 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     @Override
     public Stream<OntStatement> statements(Resource s, Property p, RDFNode o) {
         return Iter.asStream(listStatements(s, p, o)).map(st -> toOntStatement(null, st));
+    }
+
+    @Override
+    public Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o) {
+        return Iter.asStream(getBaseModel().listStatements(s, p, o)).map(st -> toOntStatement(null, st));
     }
 
     /**

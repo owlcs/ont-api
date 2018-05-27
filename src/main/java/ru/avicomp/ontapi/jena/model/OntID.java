@@ -37,22 +37,25 @@ public interface OntID extends OntObject {
      * Assigns a new version iri to this ontology id object.
      * Null argument means that current version iri should be deleted.
      * @param uri String, can be null.
+     * @return this id-object to allow cascading calls
      */
-    void setVersionIRI(String uri);
+    OntID setVersionIRI(String uri);
 
     /**
      * Adds a triple {@code @this owl:import @uri}.
      *
      * @param uri String, not null
+     * @return this id-object to allow cascading calls
      * @throws OntApiException if input is wrong
      */
-    void addImport(String uri) throws OntApiException;
+    OntID addImport(String uri) throws OntApiException;
 
     /**
      * Removes a triple {@code this @owl:import @uri} from this resource.
      * @param uri String, not null
+     * @return this id-object to allow cascading calls
      */
-    void removeImport(String uri);
+    OntID removeImport(String uri);
 
     /**
      * Lists all {@code owl:import}s.

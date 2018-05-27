@@ -24,7 +24,6 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.CachedStatementImpl;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -41,7 +40,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 20.10.2016.
  */
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "unused"})
 public class Models {
     public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (r1, r2) -> NodeUtils.compareRDFTerms(r1.asNode(), r2.asNode());
     public static final Comparator<Statement> STATEMENT_COMPARATOR = Comparator
@@ -55,6 +54,7 @@ public class Models {
             .thenComparing(s -> s.getObject().isAnon() ? BLANK : s.getObject(), RDF_NODE_COMPARATOR);
 
     public static final Literal TRUE = ResourceFactory.createTypedLiteral(Boolean.TRUE);
+    public static final Literal FALSE = ResourceFactory.createTypedLiteral(Boolean.FALSE);
 
     /**
      * Creates typed list: the anonymous section which is built using the same rules as true rdf:List {@link RDFListImpl},
@@ -265,18 +265,6 @@ public class Models {
      */
     public static Stream<OntStatement> split(OntStatement statement) {
         return ((OntStatementImpl) statement).split();
-    }
-
-
-    /**
-     * Creates a wrapper for ont-statement with in-memory caches.
-     * Currently just for debugging.
-     *
-     * @param delegate {@link OntStatement}
-     * @return {@link OntStatement}
-     */
-    public static OntStatement createCachedStatement(OntStatement delegate) {
-        return delegate instanceof CachedStatementImpl ? delegate : new CachedStatementImpl(delegate);
     }
 
 }

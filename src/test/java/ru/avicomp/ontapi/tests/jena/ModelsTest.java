@@ -55,7 +55,7 @@ public class ModelsTest {
                 m.createOntEntity(OntClass.class, ns + "CL3")));
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(40, m.statements().count());
+        Assert.assertEquals(40, m.localStatements().count());
 
         Resource r = m.statements(null, RDFS.subClassOf, null)
                 .map(Statement::getObject)

@@ -138,8 +138,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
-    public void remove(Property property, RDFNode value) {
+    public OntObjectImpl remove(Property property, RDFNode value) {
         getModel().removeAll(this, OntJenaException.notNull(property, "Null property."), OntJenaException.notNull(value, "Null value."));
+        return this;
     }
 
     @Override

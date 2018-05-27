@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,16 +14,15 @@
 
 package ru.avicomp.ontapi.internal;
 
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.HasProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
-
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.stream.Stream;
 
 /**
  * Base class to read and write axiom which is related to simple typed triple associated with object or data property.
@@ -51,8 +50,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.statements(null, RDF.type, getType())
-                .filter(OntStatement::isLocal)
+        return model.localStatements(null, RDF.type, getType())
                 .filter(s -> s.getSubject().canAs(getView()));
     }
 
