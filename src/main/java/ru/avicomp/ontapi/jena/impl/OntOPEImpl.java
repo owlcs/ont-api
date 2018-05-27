@@ -69,6 +69,11 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         public OntStatement getRoot() {
             return getRoot(RDF.type, OWL.ObjectProperty);
         }
+
+        @Override
+        public Property asProperty() {
+            return as(Property.class);
+        }
     }
 
     public static class InversePropertyImpl extends OntOPEImpl implements OntOPE.Inverse {
@@ -94,6 +99,11 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         public OntOPE getDirect() {
             Resource res = getRequiredDirectProperty();
             return res.as(OntOPE.class);
+        }
+
+        @Override
+        public Property asProperty() {
+            return getRequiredDirectProperty().as(Property.class);
         }
     }
 

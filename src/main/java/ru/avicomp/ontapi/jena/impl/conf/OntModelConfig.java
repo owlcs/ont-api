@@ -159,7 +159,11 @@ public class OntModelConfig {
      * <li>{@link OntNOP} &lt;-&gt; {@link OntNDP}</li>
      * <li>{@link OntNDP} &lt;-&gt; {@link OntNAP}</li>
      * </ul>
-     * each of the pairs above can't exist in the corresponding model at the same time for the same node.
+     * each of the pairs above can't exist in form of OWL-Entity in the same model at the same time.
+     * From specification: "OWL 2 DL imposes certain restrictions:
+     * it requires that a name cannot be used for both a class and a datatype and
+     * that a name can only be used for one kind of property."
+     * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
      */
     public static final OntPersonality ONT_PERSONALITY_STRICT = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, StdMode.STRICT);
     /**
@@ -171,6 +175,8 @@ public class OntModelConfig {
      */
     public static final OntPersonality ONT_PERSONALITY_MEDIUM = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, StdMode.MEDIUM);
 
+    // Use MEDIUM by default as a trade-off between the specification and the number of checks,
+    // which are usually not necessary and only load the system.
     private static OntPersonality personality = ONT_PERSONALITY_MEDIUM;
 
     public static OntPersonality getPersonality() {

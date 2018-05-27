@@ -93,12 +93,7 @@ public class OntModelTest {
     public void testPizzaLoadProperties() {
         LOGGER.info("load pizza");
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
-        List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
-        actual.forEach(x -> LOGGER.debug("{}", x));
-        Set<Resource> expected = new HashSet<>();
-        Stream.of(OWL.AnnotationProperty, OWL.DatatypeProperty, OWL.ObjectProperty)
-                .forEach(r -> expected.addAll(m.listStatements(null, RDF.type, r).mapWith(Statement::getSubject).toSet()));
-        Assert.assertEquals("Incorrect number of properties", expected.size(), actual.size());
+        simplePropertiesTest(m);
     }
 
     @Test
@@ -127,7 +122,7 @@ public class OntModelTest {
     }
 
     @Test
-    public void testKoalaLoad() throws IOException {
+    public void testKoalaCommon() throws IOException {
         OntGraphModel m = OntModelFactory.createModel();
         try (InputStream in = OntModelTest.class.getResourceAsStream("/owlapi/koala.owl")) {
             m.read(in, null, Lang.RDFXML.getName());
@@ -192,6 +187,31 @@ public class OntModelTest {
         Assert.assertEquals(1, person.subClassOf().count());
 
         Assert.assertEquals(statementsCount, m.statements().count());
+    }
+
+    @Test
+    public void testKoalaProperties() throws IOException {
+        OntGraphModel m = OntModelFactory.createModel();
+        try (InputStream in = OntModelTest.class.getResourceAsStream("/owlapi/koala.owl")) {
+            m.read(in, null, Lang.RDFXML.getName());
+        }
+        simplePropertiesTest(m);
+        OntOPE p1 = m.listObjectProperties().findFirst().orElseThrow(AssertionError::new);
+        Assert.assertNull(p1.getInverseOf());
+        OntOPE p2 = m.createResource().addProperty(OWL.inverseOf, p1).as(OntOPE.class);
+        Assert.assertNotNull(p2.getInverseOf());
+        Assert.assertEquals(p1.asProperty(), p2.asProperty());
+        Assert.assertEquals(p1, p2.getInverseOf());
+        Assert.assertEquals(1, m.ontObjects(OntOPE.Inverse.class).count());
+    }
+
+    private void simplePropertiesTest(OntGraphModel m) {
+        List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
+        actual.forEach(x -> LOGGER.debug("{}", x));
+        Set<Resource> expected = new HashSet<>();
+        Stream.of(OWL.AnnotationProperty, OWL.DatatypeProperty, OWL.ObjectProperty)
+                .forEach(r -> expected.addAll(m.listStatements(null, RDF.type, r).mapWith(Statement::getSubject).toSet()));
+        Assert.assertEquals("Incorrect number of properties", expected.size(), actual.size());
     }
 
     @Test
@@ -501,17 +521,22 @@ public class OntModelTest {
         OntIndividual bobs = contact.createIndividual(dataNS + "bobs");
         bobs.addAssertion(contactInfo, email.createLiteral("bob@x-email.com"))
                 .addAssertion(m.getRDFSLabel(), m.createLiteral("Bob's contacts"))
-                .addAssertion(contactInfo, phone.createLiteral(98_968_78_98_792L));
+                .addAssertion(contactInfo, phone.createLiteral(String.valueOf(98_968_78_98_792L)));
         OntIndividual bob = person.createIndividual(dataNS + "Bob").addAssertion(hasContact, bobs)
                 .addAssertion(m.getRDFSLabel(), m.createLiteral("Bob Label"));
 
         OntIndividual jhons = contact.createIndividual(dataNS + "jhons")
                 .addAssertion(contactInfo, skype.createLiteral("jhon-skype-id"));
         person.createIndividual(dataNS + "Jhon").addAssertion(hasContact, jhons);
-        bob.addNegativeAssertion(hasContact, jhons);
+        bob.addNegativeAssertion(hasContact, jhons)
+                .addNegativeAssertion(contactInfo, phone.createLiteral("212 85 06"))
+                .addNegativeAssertion(hasContact.createInverse(), bobs);
+
+        Assert.assertEquals(2, bob.positiveAssertions().count());
+        Assert.assertEquals(3, bob.negativeAssertions().count());
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(33, m.statements().count());
+        Assert.assertEquals(42, m.statements().count());
     }
 
 }

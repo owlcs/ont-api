@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,10 +14,11 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.stream.Stream;
-
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
+
+import java.util.stream.Stream;
 
 /**
  * Common interface for any Property Expressions (DataProperty, ObjectProperty(Entity and InverseOf), AnnotationProperty).
@@ -58,6 +59,13 @@ public interface OntPE extends OntObject {
      * @see OntNDP#subPropertyOf()
      */
     Stream<? extends Resource> subPropertyOf();
+
+    /**
+     * Returns a named part of this property expression.
+     *
+     * @return {@link Property}
+     */
+    Property asProperty();
 
     /**
      * Removes specified rdfs:domain.

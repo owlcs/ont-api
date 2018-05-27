@@ -33,7 +33,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -62,10 +61,11 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
             .filter(n -> !ALLOWED_IN_OBJECT_PREDICATES.contains(n))
             .collect(Iter.toUnmodifiableSet());
 
+    public static OntFinder FINDER = OntFinder.ANY_SUBJECT_AND_OBJECT;
     public static OntObjectFactory anonymousIndividualFactory =
-            new CommonOntObjectFactory(new OntMaker.Default(AnonymousImpl.class), OntFinder.ANY_SUBJECT_AND_OBJECT, ANONYMOUS_FILTER);
+            new CommonOntObjectFactory(new OntMaker.Default(AnonymousImpl.class), FINDER, ANONYMOUS_FILTER);
 
-    public static Configurable<OntObjectFactory> abstractIndividualFactory = buildMultiFactory(OntFinder.ANY_SUBJECT_AND_OBJECT, null,
+    public static Configurable<OntObjectFactory> abstractIndividualFactory = buildMultiFactory(FINDER, null,
             Entities.INDIVIDUAL, anonymousIndividualFactory);
 
 
@@ -77,7 +77,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         if (!node.isBlank()) {
             return false;
         }
-        Set<Node> types = Iter.asStream(eg.asGraph().find(node, RDF.type.asNode(), Node.ANY)).map(Triple::getObject).collect(Collectors.toSet());
+        Set<Node> types = eg.asGraph().find(node, RDF.type.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
         if (types.stream().anyMatch(o -> OntObjectImpl.canAs(OntCE.class, o, eg))) { // class assertion:
             return true;
         }

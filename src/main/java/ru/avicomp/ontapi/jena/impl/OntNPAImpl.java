@@ -51,16 +51,12 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
     }
 
     public static DataAssertion create(OntGraphModelImpl model, OntIndividual source, OntNDP property, Literal target) {
-        Resource res = create(model, source);
-        res.addProperty(OWL.assertionProperty, property);
-        res.addProperty(OWL.targetValue, target);
+        Resource res = create(model, source).addProperty(OWL.assertionProperty, property).addProperty(OWL.targetValue, target);
         return model.getNodeAs(res.asNode(), DataAssertion.class);
     }
 
     public static ObjectAssertion create(OntGraphModelImpl model, OntIndividual source, OntOPE property, OntIndividual target) {
-        Resource res = create(model, source);
-        res.addProperty(OWL.assertionProperty, property);
-        res.addProperty(OWL.targetIndividual, target);
+        Resource res = create(model, source).addProperty(OWL.assertionProperty, property).addProperty(OWL.targetIndividual, target);
         return model.getNodeAs(res.asNode(), ObjectAssertion.class);
     }
 

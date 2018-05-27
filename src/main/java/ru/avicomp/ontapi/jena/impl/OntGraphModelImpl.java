@@ -243,8 +243,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     @Override
     public OntGraphModelImpl removeOntObject(OntObject obj) {
         obj.clearAnnotations();
-        Set<OntStatement> content = obj.content().collect(Collectors.toSet());
-        content.forEach(this::remove);
+        obj.content().collect(Collectors.toSet()).forEach(this::remove);
         return this;
     }
 

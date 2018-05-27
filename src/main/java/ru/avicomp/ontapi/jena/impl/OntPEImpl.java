@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.jena.model.OntPE;
@@ -57,4 +58,10 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
     public OntPEImpl(Node n, EnhGraph m) {
         super(n, m);
     }
+
+    @Override
+    public Property asProperty() {
+        return as(Property.class);
+    }
+
 }

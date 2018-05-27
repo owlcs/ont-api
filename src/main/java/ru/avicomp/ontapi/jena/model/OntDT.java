@@ -70,12 +70,13 @@ public interface OntDT extends OntEntity, OntDR {
     }
 
     /**
-     * Build a typed literal from its value form.
+     * Builds a typed literal from its value form.
      *
-     * @param value the value of the literal
+     * @param lex String, lexical form of the result literal
      * @return {@link Literal}
+     * @see org.apache.jena.rdf.model.Model#createTypedLiteral(String, RDFDatatype)
      */
-    default Literal createLiteral(Object value) {
-        return getModel().createTypedLiteral(value, toRDFDatatype());
+    default Literal createLiteral(String lex) {
+        return getModel().createTypedLiteral(lex, toRDFDatatype());
     }
 }

@@ -787,6 +787,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             return getGraph().getEventManager().hasListeners(OwlObjectListener.class);
         }
 
+        private void invalidate() {
+            if (hasObjectListener()) return;
+            clearCache();
+        }
+
         /**
          * if at the moment there is an {@link OwlObjectListener} then it's called from {@link InternalModel#add(OWLAxiom)} =&gt; don't clear cache;
          * otherwise it is direct call and cache must be reset to have correct list of axioms.
@@ -795,15 +800,24 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
          */
         @Override
         protected void addEvent(Triple t) {
-            if (hasObjectListener()) return;
             // we don't know which axiom would own this triple, so we clear whole cache.
-            clearCache();
+            invalidate();
         }
 
         @Override
         protected void deleteEvent(Triple t) {
             if (hasObjectListener()) return;
             clearCacheOnDelete(t);
+        }
+
+        @Override
+        public void notifyAddGraph(Graph g, Graph other) {
+            invalidate();
+        }
+
+        @Override
+        public void notifyDeleteGraph(Graph g, Graph other) {
+            invalidate();
         }
     }
 

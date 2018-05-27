@@ -223,7 +223,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Lists all properties attached to the class.
+     * Lists all properties attached to the class in a {@code rdfs:domain} statement.
      * The property is considered as attached if
      * it and the class expression are both included in property domain axiom description:
      * <ul>
@@ -237,7 +237,9 @@ public interface OntCE extends OntObject {
      */
     default Stream<OntPE> properties() {
         return getModel().statements(null, RDFS.domain, this)
-                .map(OntStatement::getSubject).map(s -> s.as(OntPE.class));
+                .map(OntStatement::getSubject)
+                .filter(s -> s.canAs(OntPE.class))
+                .map(s -> s.as(OntPE.class));
     }
 
     /**

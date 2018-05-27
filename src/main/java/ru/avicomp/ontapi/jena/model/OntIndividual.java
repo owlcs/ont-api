@@ -45,7 +45,7 @@ public interface OntIndividual extends OntObject {
     void detachClass(OntCE clazz);
 
     /**
-     * Returns all class types.
+     * Returns all direct class types.
      *
      * @return Stream of {@link OntCE}s
      */
@@ -193,6 +193,24 @@ public interface OntIndividual extends OntObject {
     default OntIndividual addNegativeAssertion(OntNDP property, Literal value) {
         property.addNegativeAssertion(this, value);
         return this;
+    }
+
+    /**
+     * Lists all positive assertions.
+     *
+     * @return Stream of {@link OntStatement}s
+     */
+    default Stream<OntStatement> positiveAssertions() {
+        return statements().filter(s -> s.getPredicate().canAs(OntPE.class));
+    }
+
+    /**
+     * Lists all negative property assertions.
+     *
+     * @return Stream of {@link OntNPA negative property assertions}
+     */
+    default Stream<OntNPA> negativeAssertions() {
+        return getModel().ontObjects(OntNPA.class).filter(s -> OntIndividual.this.equals(s.getSource()));
     }
 
     /**

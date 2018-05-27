@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,15 +14,14 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.Collection;
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
-
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+
+import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * Object Property Expression (i.e. for iri-object property entity and for inverseOf anonymous property expression)
@@ -32,7 +31,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 public interface OntOPE extends OntPE {
 
     /**
-     * Adds negative property assertion object.
+     * Adds a negative property assertion object.
      *
      * @param source {@link OntIndividual}
      * @param target {@link OntIndividual}
