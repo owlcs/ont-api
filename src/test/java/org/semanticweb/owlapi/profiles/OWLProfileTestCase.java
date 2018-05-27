@@ -16,7 +16,7 @@ package org.semanticweb.owlapi.profiles;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
+import org.semanticweb.owlapi.api.baseclasses.TestBase;
 import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
@@ -35,7 +35,7 @@ import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Class
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Double;
 import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.Integer;
 
-@ru.avicomp.ontapi.utils.ModifiedForONTApi
+
 @SuppressWarnings({"javadoc", "rawtypes"})
 public class OWLProfileTestCase extends TestBase {
 

@@ -15,7 +15,7 @@ package org.semanticweb.owlapi.profiles;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.api.test.baseclasses.TestBase;
+import org.semanticweb.owlapi.api.baseclasses.TestBase;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.search.Searcher;
@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  *         Management Group
  * @since 3.0.0
  */
-@ru.avicomp.ontapi.utils.ModifiedForONTApi
+
 @SuppressWarnings("javadoc")
 public class ProfileValidationTestCase extends TestBase {
     private static final String ALL_NS = "http://www.w3.org/2007/OWL/testOntology#";

@@ -26,7 +26,7 @@ import ru.avicomp.owlapi.OWLManager;
 import java.util.Arrays;
 import java.util.List;
 
-@ru.avicomp.ontapi.utils.ModifiedForONTApi
+
 @SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class ProfileFullTestCase extends ProfileBase {
