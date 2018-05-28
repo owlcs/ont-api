@@ -31,6 +31,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -208,13 +209,34 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     @Override
-    public <T extends OntEntity> T getOntEntity(Class<T> type, String uri) {
-        Node n = NodeFactory.createURI(OntJenaException.notNull(uri, "Null uri."));
+    public Stream<OntIndividual> classAssertions() {
+        return statements(null, RDF.type, null)
+                .filter(s -> s.getObject().canAs(OntCE.class))
+                .map(OntStatement::getSubject)
+                .map(s -> getObject(OntIndividual.class, s.asNode()))
+                .filter(Objects::nonNull);
+    }
+
+    @Override
+    public <E extends OntEntity> E getOntEntity(Class<E> type, String uri) {
+        return getObject(type, NodeFactory.createURI(OntJenaException.notNull(uri, "Null uri.")));
+    }
+
+    public <O extends OntObject> O getObject(Class<O> type, Node node) {
         try { // returns not null in case it is present in graph or built-in.
-            return getNodeAs(n, type);
+            return getNodeAs(node, type);
         } catch (OntJenaException.Conversion ignore) {
             // ignore
             return null;
+        }
+    }
+
+    @Override
+    public <T extends OntEntity> T createOntEntity(Class<T> type, String uri) {
+        try {
+            return createOntObject(type, uri);
+        } catch (OntJenaException.Creation e) { // illegal punning:
+            throw new OntJenaException(String.format("Can't add entity [%s: %s]: perhaps it's illegal punning.", type.getSimpleName(), uri), e);
         }
     }
 
@@ -232,15 +254,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     @Override
-    public <T extends OntEntity> T createOntEntity(Class<T> type, String uri) {
-        try {
-            return createOntObject(type, uri);
-        } catch (OntJenaException.Creation e) { // illegal punning:
-            throw new OntJenaException(String.format("Can't add entity [%s: %s]: perhaps it's illegal punning.", type.getSimpleName(), uri), e);
-        }
-    }
-
-    @Override
     public OntGraphModelImpl removeOntObject(OntObject obj) {
         obj.clearAnnotations();
         obj.content().collect(Collectors.toSet()).forEach(this::remove);
@@ -252,11 +265,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
         statement.clearAnnotations();
         remove(statement);
         return this;
-    }
-
-    @Override
-    public Stream<OntStatement> localStatements() {
-        return Iter.asStream(getBaseModel().listStatements()).map(st -> toOntStatement(null, st));
     }
 
     @Override

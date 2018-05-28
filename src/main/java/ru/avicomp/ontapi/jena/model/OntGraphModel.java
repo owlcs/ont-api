@@ -136,6 +136,18 @@ public interface OntGraphModel extends Model {
     Stream<OntEntity> ontEntities();
 
     /**
+     * Lists all typed individuals from a model.
+     * Notice that the method {@link OntGraphModel#ontObjects(Class)} called with parameter {@code OntIndividual.class}
+     * (i.e. {@code model.ontObject(OntIndividual.class)}) will return all individuals from a model,
+     * even those which have no explicit declarations (e.g. any part of {@code owl:sameAs} is an individual),
+     * while this method returns only class-assertion individuals.
+     *
+     * @return Stream of {@link OntIndividual}s
+     * @see OntGraphModel#listNamedIndividuals()
+     */
+    Stream<OntIndividual> classAssertions();
+
+    /**
      * Returns the ont-entity for the specified type and uri.
      * This method can be used to wrap builtin entities, which are not belong to the graph in fact.
      *
@@ -166,17 +178,7 @@ public interface OntGraphModel extends Model {
     Stream<OntStatement> statements(Resource s, Property p, RDFNode o);
 
     /**
-     * Lists all statements which belongs to the base graph.
-     * Equivalent to {@code model.statements().filter(OntStatement::isLocal)}
-     *
-     * @return Stream of {@link OntStatement}
-     * @see OntGraphModel#statements()
-     * @see OntStatement#isLocal()
-     */
-    Stream<OntStatement> localStatements();
-
-    /**
-     * Lists all statements for the specified subject, predicate and object which belongs to the base graph.
+     * Lists all statements from the base graph for the specified subject, predicate and object.
      * Equivalent to {@code model.statements(s, p, o).filter(OntStatement::isLocal)}
      *
      * @param s {@link Resource}, the subject
@@ -195,7 +197,7 @@ public interface OntGraphModel extends Model {
      * @return true if statement is local.
      * @see OntStatement#isLocal()
      * @see OntObject#isLocal()
-     * @see OntGraphModel#localStatements()
+     * @see OntGraphModel#localStatements(Resource, Property, RDFNode)
      */
     boolean isLocal(Statement statement);
 
@@ -341,6 +343,10 @@ public interface OntGraphModel extends Model {
      * Default methods for simplification:
      * ===================================
      */
+
+    default Stream<OntStatement> localStatements() {
+        return localStatements(null, null, null);
+    }
 
     default <E extends OntEntity> Stream<E> ontEntities(Class<E> type) {
         return ontObjects(type);

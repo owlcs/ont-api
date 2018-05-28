@@ -190,16 +190,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns named and anonymous individuals.
+     * Lists named and anonymous individuals in form of OWL-API objects.
      *
      * @return Stream of {@link OWLIndividual}s
+     * @see OntGraphModel#classAssertions()
      */
     public Stream<OWLIndividual> individuals() {
         return objects(OWLIndividual.class);
     }
 
     /**
-     * Returns anonymous individuals.
+     * Returns anonymous individuals in form of OWL-API objects.
      *
      * @return Stream of {@link OWLAnonymousIndividual}s
      */
@@ -208,7 +209,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns named individuals.
+     * Lists named individuals in form of OWL-API objects.
      *
      * @return Stream of {@link OWLNamedIndividual}s
      */
@@ -217,7 +218,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns owl-classes
+     * Lists OWL classes in form of OWL-API objects.
      *
      * @return Stream of {@link OWLClass}es.
      */
@@ -226,7 +227,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns data properties.
+     * Lists data properties in form of OWL-API objects.
      *
      * @return Stream of {@link OWLDataProperty}s
      */
@@ -235,7 +236,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns object properties.
+     * Lists object properties in form of OWL-API objects.
      *
      * @return Stream of {@link OWLObjectProperty}s
      */
@@ -244,7 +245,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns annotation properties.
+     * Lists annotation properties in form of OWL-API objects.
      *
      * @return Stream of {@link OWLAnnotationProperty}s
      */
@@ -253,7 +254,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns named data ranges (datatypes)
+     * Lists named data ranges (datatypes) in form of OWL-API objects.
      *
      * @return Stream of {@link OWLDatatype}s.
      */

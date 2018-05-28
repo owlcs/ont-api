@@ -168,6 +168,7 @@ public class PersonalityTest {
         Assert.assertEquals(5, m2.ontObjects(OntIndividual.class).count());
         m.createResource(ns + "inid5", c2);
         Assert.assertEquals(6, m2.ontObjects(OntIndividual.class).count());
+        Assert.assertEquals(6, m2.classAssertions().count());
 
         OntDisjoint.Individuals disjoint2 = m2.createDifferentIndividuals(m2.ontObjects(OntIndividual.class).collect(Collectors.toList()));
         ReadWriteUtils.print(m2);
