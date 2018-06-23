@@ -72,7 +72,8 @@ public class Graphs {
      * @return Stream of {@link Graph}
      */
     public static Stream<Graph> flat(Graph graph) {
-        return Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).map(Graphs::flat).flatMap(Function.identity()));
+        return graph == null ? Stream.empty() :
+                Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).map(Graphs::flat).flatMap(Function.identity()));
     }
 
     /**

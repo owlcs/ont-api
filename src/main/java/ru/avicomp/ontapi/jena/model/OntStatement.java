@@ -239,4 +239,16 @@ public interface OntStatement extends Statement {
         return addAnnotation(predicate, ResourceFactory.createLangLiteral(text, lang));
     }
 
+    /**
+     * Gets typed subject.
+     *
+     * @param type Class
+     * @param <S>  subtype of {@link OntObject}
+     * @return {@link OntObject}
+     * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException if subject node and type are incompatible
+     */
+    default <S extends OntObject> S getSubject(Class<S> type) {
+        return getSubject().as(type);
+    }
+
 }

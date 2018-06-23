@@ -411,4 +411,20 @@ public interface OntGraphModel extends Model {
         return getOntEntity(OntClass.class, OWL.Nothing);
     }
 
+    default OntNOP getOWLTopObjectProperty() {
+        return getOntEntity(OntNOP.class, OWL.topObjectProperty);
+    }
+
+    default OntNOP getOWLBottomObjectProperty() {
+        return getOntEntity(OntNOP.class, OWL.bottomObjectProperty);
+    }
+
+    default OntNDP getOWLTopDataProperty() {
+        return getOntEntity(OntNDP.class, OWL.topDataProperty);
+    }
+
+    default OntNDP getOWLBottomDataProperty() {
+        return getOntEntity(OntNDP.class, OWL.bottomDataProperty);
+    }
+
 }

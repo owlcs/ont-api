@@ -672,23 +672,14 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel addOntology(@Nonnull Graph graph, @Nonnull OntLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
-            OWLOntologyID id = OntGraphUtils.ontologyID(graph).orElse(null);
+            OWLOntologyID id = OntGraphUtils.getOntologyID(graph);
+            // this map can contain null for top-level anonymous graph:
             Map<OWLOntologyID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
-            DocumentSourceMapping mapping = _id ->
-                    graphs.entrySet()
-                            .stream()
-                            .filter(e -> Objects.equals(_id, e.getKey()))
-                            .map(e -> new OntGraphDocumentSource() {
-                                @Override
-                                public Graph getGraph() {
-                                    return e.getValue();
-                                }
-
-                                @Override
-                                public IRI getDocumentIRI() {
-                                    return IRI.create("graph:", _id == null ? "anonymous" : _id.getOntologyIRI().map(IRI::getIRIString).orElse("null"));
-                                }
-                            }).findFirst().orElse(null);
+            DocumentSourceMapping mapping = _id -> graphs.entrySet()
+                    .stream()
+                    .filter(e -> e.getKey().match(_id))
+                    .map(e -> OntGraphDocumentSource.wrap(e.getValue()))
+                    .findFirst().orElse(null);
             try {
                 addDocumentSourceMapper(mapping);
                 return loadOntologyFromOntologyDocument(mapping.map(id), conf);

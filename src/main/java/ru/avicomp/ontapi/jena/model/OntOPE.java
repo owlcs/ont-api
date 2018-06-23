@@ -264,42 +264,42 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * To add or remove "P rdf:type owl:ReflexiveProperty" statement.
+     * To add or remove {@code P rdf:type owl:ReflexiveProperty} statement.
      *
      * @param reflexive true if should be reflexive
      */
     void setReflexive(boolean reflexive);
 
     /**
-     * To add or remove "P rdf:type owl:IrreflexiveProperty" statement.
+     * To add or remove {@code P rdf:type owl:IrreflexiveProperty} statement.
      *
      * @param irreflexive true if should be irreflexive
      */
     void setIrreflexive(boolean irreflexive);
 
     /**
-     * To add or remove "P rdf:type owl:SymmetricProperty" statement.
+     * To add or remove {@code P rdf:type owl:SymmetricProperty} statement.
      *
      * @param symmetric true if should be symmetric
      */
     void setSymmetric(boolean symmetric);
 
     /**
-     * To add or remove "P rdf:type owl:AsymmetricProperty" statement.
+     * To add or remove {@code P rdf:type owl:AsymmetricProperty} statement.
      *
      * @param asymmetric true if should be asymmetric
      */
     void setAsymmetric(boolean asymmetric);
 
     /**
-     * To add or remove "P rdf:type owl:TransitiveProperty" statement.
+     * To add or remove {@code P rdf:type owl:TransitiveProperty} statement.
      *
      * @param transitive true if should be transitive
      */
     void setTransitive(boolean transitive);
 
     /**
-     * To add or remove "P rdf:type owl:FunctionalProperty" statement.
+     * To add or remove {@code P rdf:type owl:FunctionalProperty} statement.
      *
      * @param functional true if should be functional
      * @see OntNDP#setFunctional(boolean)
@@ -307,7 +307,7 @@ public interface OntOPE extends OntPE {
     void setFunctional(boolean functional);
 
     /**
-     * To add or remove "P rdf:type owl:InverseFunctionalProperty" statement.
+     * To add or remove {@code P rdf:type owl:InverseFunctionalProperty} statement.
      *
      * @param inverseFunctional true if should be inverse functional
      */

@@ -284,7 +284,7 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param iri     String, nullable
      * @param version String, nullable
-     * @return {@link OntGraphModel}
+     * @return {@link OntGraphModel} or {@code null} if no ontology found
      */
     default OntGraphModel getGraphModel(@Nullable String iri, @Nullable String version) {
         OWLOntologyID id = new OWLOntologyID(Optional.ofNullable(iri).map(IRI::create), Optional.ofNullable(version).map(IRI::create));
@@ -296,7 +296,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * Gets {@link OntGraphModel} by the ontology iri
      *
      * @param iri String, nullable
-     * @return {@link OntGraphModel}
+     * @return {@link OntGraphModel} or {@code null} if no ontology found
      */
     default OntGraphModel getGraphModel(@Nullable String iri) {
         return getGraphModel(iri, null);
