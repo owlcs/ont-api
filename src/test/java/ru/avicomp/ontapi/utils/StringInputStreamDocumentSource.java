@@ -14,15 +14,16 @@
 
 package ru.avicomp.ontapi.utils;
 
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSourceBase;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
+import ru.avicomp.ontapi.OntFormat;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSourceBase;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
 
 /**
  * The {@link org.semanticweb.owlapi.io.OWLOntologyDocumentSource DocumentSource} providing InputStream.
@@ -32,6 +33,10 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 public class StringInputStreamDocumentSource extends OWLOntologyDocumentSourceBase {
     private final String txt;
     private final Charset charset;
+
+    public StringInputStreamDocumentSource(String txt, OntFormat format) {
+        this(txt, format.createOwlFormat());
+    }
 
     public StringInputStreamDocumentSource(String txt, OWLDocumentFormat format) {
         this(txt, IRI.create("string:" + format.getClass().getSimpleName()), format, null, StandardCharsets.UTF_8);
@@ -47,4 +52,5 @@ public class StringInputStreamDocumentSource extends OWLOntologyDocumentSourceBa
     public Optional<InputStream> getInputStream() {
         return Optional.of(new ByteArrayInputStream(txt.getBytes(charset)));
     }
+
 }

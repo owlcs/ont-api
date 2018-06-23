@@ -27,6 +27,7 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -179,5 +180,21 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
     @Override
     public void setIRIResolutionFailed(boolean value) {
         throw new OntApiException.Unsupported("#setIRIResolutionFailed is not supported.");
+    }
+
+    /**
+     * A factory method to produce simple {@link OWLOntologyDocumentSource} wrapper around the given graph.
+     *
+     * @param graph {@link Graph}
+     * @return {@link OntGraphDocumentSource}
+     */
+    public static OntGraphDocumentSource wrap(Graph graph) {
+        Objects.requireNonNull(graph, "Null graph");
+        return new OntGraphDocumentSource() {
+            @Override
+            public Graph getGraph() {
+                return graph;
+            }
+        };
     }
 }

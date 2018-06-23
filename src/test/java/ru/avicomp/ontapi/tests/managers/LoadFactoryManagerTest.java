@@ -345,6 +345,19 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(2, m.ontologies().count());
     }
 
+    @Test
+    public void testAddGraphWithVersionIRI() {
+        OntGraphModel a = OntModelFactory.createModel();
+        OntGraphModel b = OntModelFactory.createModel();
+        b.setID("http://b").setVersionIRI("http://ver1");
+        a.addImport(b);
+
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().disableWebAccess();
+        m.addOntology(a.getGraph());
+        Assert.assertEquals(2, m.ontologies().count());
+    }
+
     private static void checkForMissedImportsTest(OntologyModel b) {
         checkForMissedImportsTest((OWLOntology) b);
         Assert.assertEquals(1, b.asGraphModel().imports().count());
