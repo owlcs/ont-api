@@ -41,11 +41,11 @@ public interface OntOPE extends OntPE {
     OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
 
     /**
-     * Returns all members the right part of statement 'P owl:propertyChainAxiom (P1 ... Pn)'
+     * Returns all members the right part of statement {@code P owl:propertyChainAxiom (P1 ... Pn)}
      * Note(1): in the result there could be repetitions.
-     * Example: SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )
+     * Example: {@code SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )}
      * Note(2): there could be several chains, it gets first,
-     * there is also {@link #propertyChains()} method for such cases.
+     * there is also {@link #propertyChains()} method to handle all chains.
      *
      * @return Stream of {@link OntOPE}s.
      */
@@ -62,12 +62,12 @@ public interface OntOPE extends OntPE {
      * Adds new sub-property-of chain.
      *
      * @param chain Collection of {@link OntOPE}s
-     * @return the {@link OntStatement} ('_:this owl:propertyChainAxiom ( ... )')
+     * @return the {@link OntStatement} ({@code _:this owl:propertyChainAxiom ( ... )})
      */
     OntStatement addSuperPropertyOf(Collection<OntOPE> chain);
 
     /**
-     * Removes all statements with predicate owl:propertyChainAxiom ('_:this owl:propertyChainAxiom ( ... )')
+     * Removes all statements with predicate {@code owl:propertyChainAxiom} (i.e. {@code _:this owl:propertyChainAxiom ( ... )})
      */
     void removeSuperPropertyOf();
 

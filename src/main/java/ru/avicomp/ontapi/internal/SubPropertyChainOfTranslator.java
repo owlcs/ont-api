@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -22,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.stream.Collectors;
@@ -65,9 +65,10 @@ public class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<O
                 reader::get,
                 ope -> {
                     RDFList list = statement.getObject().as(RDFList.class);
-                    return list.asJavaList().stream()
+                    return Iter.asStream(list.iterator())
                             .map(p -> p.as(OntOPE.class))
-                            .map(reader::get).collect(Collectors.toList());
+                            .map(reader::get)
+                            .collect(Collectors.toList());
                 },
                 (subject, members, annotations) ->
                         reader.getOWLDataFactory()

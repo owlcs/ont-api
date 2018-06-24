@@ -30,7 +30,6 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -271,9 +270,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
                     .filter(node -> RDFListImpl.factory.canWrap(node, eg))
                     .map(node -> RDFListImpl.factory.wrap(node, eg))
                     .map(enhNode -> enhNode.as(RDFList.class))
-                    .map(RDFList::asJavaList)
-                    .map(Collection::stream)
-                    .flatMap(Function.identity())
+                    .flatMap(l -> Iter.asStream(l.iterator()))
                     .map(FrontsNode::asNode)
                     .filter(Node::isBlank);
 

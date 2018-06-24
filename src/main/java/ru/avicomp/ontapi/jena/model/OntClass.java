@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -18,14 +18,16 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- * The Class Entity (named class expression)
+ * An OWL Class Entity (i.e. named class expression).
+ * An analogue of {@link org.apache.jena.ontology.OntClass}, but for OWL2.
  * <p>
  * Created by szuev on 01.11.2016.
  */
 public interface OntClass extends OntEntity, OntCE {
 
     /**
-     * Creates a disjoint-union section. The pattern: "CN owl:disjointUnionOf (C1 ... CN)"
+     * Creates a disjoint-union section.
+     * The pattern: {@code CN owl:disjointUnionOf (C1 ... CN)}
      *
      * @param classes the collection of {@link OntCE}s
      * @return {@link OntStatement}
@@ -33,12 +35,14 @@ public interface OntClass extends OntEntity, OntCE {
     OntStatement addDisjointUnionOf(Collection<OntCE> classes);
 
     /**
-     * Removes all statements with predicate owl:disjointUnionOf including their content.
+     * Removes all statements with predicate {@code owl:disjointUnionOf} including their content.
      */
     void removeDisjointUnionOf();
 
     /**
-     * Returns all class expressions from the right part of owl:disjointUnionOf construction.
+     * Returns all class expressions from the right part of {@code owl:disjointUnionOf} construction.
+     * If there are several lists with predicate @code owl:disjointUnionOf} and this class as subject,
+     * all their content will be merged into one distinct stream.
      * @return distinct stream of {@link OntCE}s.
      */
     Stream<OntCE> disjointUnionOf();

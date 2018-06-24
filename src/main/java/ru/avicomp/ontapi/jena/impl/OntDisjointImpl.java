@@ -30,7 +30,6 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -117,8 +116,10 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     private static boolean testList(Node node, EnhGraph graph, Class<? extends RDFNode> view, boolean allowEmptyList) {
         if (!RDFListImpl.factory.canWrap(node, graph)) return false;
         if (view == null) return true;
-        List<RDFNode> list = RDFListImpl.factory.wrap(node, graph).as(RDFList.class).asJavaList();
-        return (list.isEmpty() && allowEmptyList) || list.stream().map(RDFNode::asNode).anyMatch(n -> OntObjectImpl.canAs(view, n, graph));
+        RDFList list = RDFListImpl.factory.wrap(node, graph).as(RDFList.class);
+        return (list.isEmpty() && allowEmptyList) || Iter.asStream(list.iterator())
+                .map(RDFNode::asNode)
+                .anyMatch(n -> OntObjectImpl.canAs(view, n, graph));
     }
 
     public static Classes createDisjointClasses(OntGraphModelImpl model, Stream<OntCE> classes) {

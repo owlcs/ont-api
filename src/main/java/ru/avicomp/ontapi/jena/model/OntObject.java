@@ -44,9 +44,9 @@ public interface OntObject extends Resource {
     OntGraphModel getModel();
 
     /**
-     * Determines is this resource local defined (i.e. does not belong to any graph from imports).
+     * Determines if this Resource is local defined (i.e. does not belong to any other graphs from the model imports).
      *
-     * @return true if this resource is local to the base graph.
+     * @return {@code true} if this resource is local to the base model graph.
      */
     boolean isLocal();
 
@@ -54,24 +54,24 @@ public interface OntObject extends Resource {
      * Returns a root statement, i.e. the main triple in the model which determines this object.
      * Usually it is declaration (statement with predicate {@code rdf:type}).
      *
-     * @return OntStatement or null
+     * @return OntStatement or {@code null}
      */
     OntStatement getRoot();
 
     /**
-     * todo: unclear method name, will be renamed.
-     * Returns the content of object: all characteristic statements,
+     * Lists the content of object: all characteristic statements,
      * i.e. all those statements which determine this object.
      * For non-composite objects the result might contain only the root statement.
      * For composite (usually anonymous, e.g. disjoint section, class expression, etc) objects
      * the result would contain all statements in the graph but without statements related to the components.
+     * todo: unclear method name, better to renamed.
      *
      * @return Stream of associated with this object statements
      */
     Stream<OntStatement> content();
 
     /**
-     * Adds an ont-statement by attaching predicate and object.
+     * Adds an ont-statement by attaching predicate and object (value).
      *
      * @param property {@link Property} predicate, not null
      * @param value,   {@link RDFNode} object, not null
@@ -84,7 +84,7 @@ public interface OntObject extends Resource {
      * Removes a statement by predicate and object.
      *
      * @param property {@link Property} predicate, not null
-     * @param object  {@link RDFNode} object, not null
+     * @param object   {@link RDFNode} object, not null
      * @return this object to allow cascading calls
      * @see #addStatement(Property, RDFNode)
      */
@@ -92,7 +92,7 @@ public interface OntObject extends Resource {
 
     /**
      * Returns the <b>first</b> statement for specified property and object.
-     * What is the first triple is defined at the level of graph.
+     * What exactly is the first triple is defined at the level of graph; in general it is unpredictable.
      * Also note, that common jena implementation of in-memory graph does not allow duplicated triples.
      *
      * @param property {@link Property}, the predicate
@@ -113,7 +113,7 @@ public interface OntObject extends Resource {
 
 
     /**
-     * Returns ont-statements by predicate.
+     * Lists ont-statements by predicate.
      *
      * @param property {@link Property}, predicate
      * @return Stream of {@link OntStatement}s
@@ -121,25 +121,25 @@ public interface OntObject extends Resource {
     Stream<OntStatement> statements(Property property);
 
     /**
-     * Returns all statements related to this object (i.e. with subject=this)
+     * Lists all statements related to this object (i.e. with subject={@code this}).
      *
      * @return Stream of all statements
      */
     Stream<OntStatement> statements();
 
     /**
-     * Gets the stream of all objects attached on property to this ont-object.
+     * Lists all objects attached on property to this OntObject.
      *
      * @param predicate {@link Property} predicate
      * @param view      Interface to find and cast
-     * @param <O> a class-type of rdf-node
+     * @param <O>       a class-type of rdf-node
      * @return Stream of objects ({@link RDFNode}s)
      */
     <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view);
 
     /**
      * Returns the <b>first</b> statement for specified property.
-     * What is the first triple is defined at the level of graph.
+     * What exactly is the first triple is defined at the level of graph; in general it is unpredictable.
      *
      * @param property {@link Property}, the predicate
      * @return {@link OntStatement}
@@ -150,7 +150,7 @@ public interface OntObject extends Resource {
     OntStatement getRequiredProperty(Property property);
 
     /**
-     * Returns all declarations (statements with {@code rdf:type} predicate).
+     * Lists all declarations (statements with {@code rdf:type} predicate).
      *
      * @return Stream of {@link Resource}s
      */
@@ -196,7 +196,7 @@ public interface OntObject extends Resource {
      *
      * @param predicate {@link OntNAP} predicate
      * @param message   String, text message
-     * @param lang      String, language, nullable.
+     * @param lang      String, language, nullable
      * @return {@link OntStatement}
      */
     default OntStatement addAnnotation(OntNAP predicate, String message, String lang) {
@@ -204,8 +204,17 @@ public interface OntObject extends Resource {
     }
 
     /**
-     * Adds text annotation with builtin {@code rdfs:comment} predicate.
-     * For simplification.
+     * Creates {@code _:this rdfs:comment "txt"^^xsd:string} statement.
+     *
+     * @param txt String
+     * @return {@link OntStatement}
+     */
+    default OntStatement addComment(String txt) {
+        return addComment(txt, null);
+    }
+
+    /**
+     * Adds text lang annotation with builtin {@code rdfs:comment} predicate.
      *
      * @param txt,  String, the message
      * @param lang, String, the language, nullable.
@@ -215,9 +224,19 @@ public interface OntObject extends Resource {
         return addAnnotation(getModel().getRDFSComment(), txt, lang);
     }
 
+
     /**
-     * Adds text annotation with builtin {@code rdfs:comment} predicate.
-     * For simplification.
+     * Creates {@code _:this rdfs:label "txt"^^xsd:string} statement.
+     *
+     * @param txt String
+     * @return {@link OntStatement}
+     */
+    default OntStatement addLabel(String txt) {
+        return addLabel(txt, null);
+    }
+
+    /**
+     * Adds text lang annotation with builtin {@code rdfs:label} predicate.
      *
      * @param txt,  String, the message
      * @param lang, String, the language, nullable.
@@ -229,6 +248,7 @@ public interface OntObject extends Resource {
 
     /**
      * Removes all associated annotations including nested.
+     *
      * @return this object to allow cascading calls
      */
     default OntObject clearAnnotations() {

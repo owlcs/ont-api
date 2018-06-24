@@ -21,6 +21,7 @@ import org.apache.jena.rdf.model.impl.LiteralImpl;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -338,7 +339,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
                 // special case of list. empty list would be like this: "[ a  swrl:AtomList ]"
                 return Stream.empty();
             }
-            return list.as(RDFList.class).asJavaList().stream().filter(n -> n.canAs(Atom.class)).map(n -> n.as(Atom.class)).distinct();
+            return Iter.asStream(list.as(RDFList.class).iterator()).filter(n -> n.canAs(Atom.class)).map(n -> n.as(Atom.class)).distinct();
         }
 
         @Override

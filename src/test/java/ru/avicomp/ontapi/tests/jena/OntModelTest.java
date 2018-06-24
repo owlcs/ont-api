@@ -231,7 +231,7 @@ public class OntModelTest {
 
         LOGGER.info("2) Create class with two labels.");
         OntClass cl = m.createOntEntity(OntClass.class, ns + "ClassN1");
-        cl.addLabel("some label", null);
+        cl.addLabel("some label");
         OntStatement label2 = cl.addLabel("another label", "de");
         ReadWriteUtils.print(m);
         cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
@@ -326,7 +326,7 @@ public class OntModelTest {
         ind2.addComment("anonymous individual", "ru");
         OntNPA.ObjectAssertion nopa = nop1.addNegativeAssertion(ind1, ind2);
         Assert.assertEquals("Incorrect owl:NegativePropertyAssertion number", 1, nop1.negativeAssertions().count());
-        nopa.addLabel("label1", null)
+        nopa.addLabel("label1")
                 .addAnnotation(m.getRDFSLabel(), ResourceFactory.createTypedLiteral("label2"))
                 .addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label3"));
         Assert.assertEquals("Should be 3 owl:Annotation", 3, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
@@ -441,7 +441,7 @@ public class OntModelTest {
         OntSWRL.Atom.OntClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
         OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class), var1.as(OntSWRL.IArg.class));
         OntSWRL.Imp imp = m.createSWRLImp(Collections.singletonList(atom1), Arrays.asList(atom2, atom3));
-        imp.addComment("This is SWRL Imp", null).addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
+        imp.addComment("This is SWRL Imp").addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
 
         ReadWriteUtils.print(m);
         LOGGER.debug("All D-Args");

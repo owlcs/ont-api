@@ -86,13 +86,13 @@ public class ModelsTest {
         OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefixes(OntModelFactory.STANDARD);
         OntID id = m.getID();
-        id.addLabel("lab1", null);
+        id.addLabel("lab1");
         id.addLabel("lab1", "e1");
         id.addLabel("lab2", "e2");
         id.addLabel("lab3", "language3");
         id.addLabel("lab4", "e2");
         id.addLabel("lab5", "e2");
-        id.addLabel("lab5", null);
+        id.addLabel("lab5");
         ReadWriteUtils.print(m);
         Assert.assertEquals(2, Models.langValues(id, RDFS.label, null).count());
         Assert.assertEquals(3, Models.langValues(id, RDFS.label, "e2").count());

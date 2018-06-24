@@ -180,9 +180,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .mapWith(Statement::getObject)
                 .filterKeep(n -> n.canAs(RDFList.class))
                 .mapWith(n -> n.as(RDFList.class)))
-                .map(RDFList::asJavaList)
-                .map(Collection::stream)
-                .flatMap(Function.identity()).distinct();
+                .flatMap(l -> Iter.asStream(l.iterator()))
+                .distinct();
     }
 
     /**

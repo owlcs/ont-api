@@ -25,8 +25,13 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- * This is an analogue of {@link org.apache.jena.ontology.OntModel} to work with Ontology graph in accordance with OWL2 DL specification.
- * Encapsulates {@link org.apache.jena.graph.Graph} and extends {@link Model}.
+ * An enhanced view of a {@link Model Jena model} that is known to contain <b>OWL2</b> ontology data.
+ * This is an analogue of {@link org.apache.jena.ontology.OntModel jena ont model}
+ * to work with Ontology graph in accordance with OWL2 DL specification.
+ * Note: since this model is only for OWL2 semantics, it does not support {@link org.apache.jena.ontology.Profile jena profiles},
+ * and model configuration is delegated directly to {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality Ont Personality}.
+ * Also note: it does not extends {@link InfModel} interface,
+ * although encapsulated graph always can be wrapped as {@link InfModel} (see {@link OntGraphModel#getInferenceModel(Reasoner)}).
  * <p>
  * Created by @szuev on 11.11.2016.
  *
@@ -37,7 +42,7 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the base Graph, i.e. the primary Graph without any sub graphs.
-     * Only base graph is editable in this interface.
+     * Only the base graph is allowed to be edited from this interface.
      * To get whole union graph use method {@link #getGraph()}.
      *
      * @return {@link Graph}
@@ -46,7 +51,8 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the standard model that corresponds the base graph (see {@link #getBaseGraph()}).
-     * Note: there is a Jena-builtin Personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}) inside the result model.
+     * Note: there is a Jena-builtin Personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model})
+     * inside the returned model.
      *
      * @return {@link Model}
      */
@@ -54,8 +60,9 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the inference model shadow.
-     * Note(1): there is a jena-builtin personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model}) inside the result model.
-     * Note(2): changes in {@link org.apache.jena.reasoner.InfGraph} inside result model do not affect on this graph ({@link #getGraph()}).
+     * Note(1): there is a jena-builtin personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model})
+     * inside the returned model.
+     * Note(2): any changes in the returned {@link InfModel inf model} do not affect on this model.
      *
      * @param reasoner {@link Reasoner}, not null.
      * @return {@link InfModel}
@@ -63,11 +70,12 @@ public interface OntGraphModel extends Model {
     InfModel getInferenceModel(Reasoner reasoner);
 
     /**
-     * Gets ontology ID object.
+     * Gets an Ontology ID object.
      * Since OWL2 graph can only contain the one {@code @uri rdf:type owl:Ontology} triple inside,
      * this method creates such statement if it absent;
-     * in case there are more than one ont-resource with {@code owl:Ontology} type it chooses the most bulky one
-     * (i.e. the one that contains the most number of associated statements).
+     * in case there are more than one Resource with type equaled to {@code owl:Ontology},
+     * it chooses the most bulky one (i.e. those that contains the most number of associated statements)
+     * and all the others leave intact.
      *
      * @return {@link OntID} an existing or new one {@link Resource} with root statement '_:x rdf:type owl:Ontology'
      * @see ru.avicomp.ontapi.jena.utils.Graphs#ontologyNode
@@ -75,12 +83,14 @@ public interface OntGraphModel extends Model {
     OntID getID();
 
     /**
-     * Creates a new {@code @uri rdf:type owl:Ontology} statement for the specified uri.
-     * Note: all extra ontology objects will be removed and all their content will be moved to the new one.
+     * Creates a new {@code @uri rdf:type owl:Ontology} statement for the specified {@code uri}
+     * and wraps it as Ontology ID Resource.
+     * Removes all extra ontology objects if they are present and moves their content to the new one,
+     * as it is required by OWL2 specification.
      *
-     * @param uri String, could be null for anonymous ontology.
-     * @return the new {@link OntID} object.
-     * @throws OntJenaException if ontology can't be added (e.g. due to collision with imports).
+     * @param uri String, can be null to make anonymous ontology
+     * @return the new {@link OntID} instance
+     * @throws OntJenaException if ontology can't be added (e.g. due to collision with imports)
      */
     OntID setID(String uri);
 
@@ -105,7 +115,7 @@ public interface OntGraphModel extends Model {
     OntGraphModel removeImport(OntGraphModel m);
 
     /**
-     * Returns top-level imported models which have {@code owl:import} reference inside the base graph.
+     * Lists all top-level imported models which have {@code owl:import} reference inside the base graph.
      *
      * @return Stream of {@link OntGraphModel}s
      * @see OntID#imports()
@@ -126,8 +136,8 @@ public interface OntGraphModel extends Model {
      * Lists all entities declared in the model.
      * Builtins are not included.
      * The retrieved entities can belong to the underlying graphs also.
-     * Note: this method returns not distinct stream -
-     * the duplicate elements means that it is so called 'puns'.
+     * Note: this method returns non-distinct stream - the duplicate elements (by equals and hasCode, not by real type)
+     * means that there is so called punning.
      *
      * @return Stream of {@link OntEntity}
      * @see #ontObjects(Class)
@@ -149,7 +159,7 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the ont-entity for the specified type and uri.
-     * This method can be used to wrap builtin entities, which are not belong to the graph in fact.
+     * This method can be used to wrap builtin entities, which are not belonging to the graph in fact.
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not null.
      * @param uri, String, not null.
@@ -159,7 +169,7 @@ public interface OntGraphModel extends Model {
     <E extends OntEntity> E getOntEntity(Class<E> type, String uri);
 
     /**
-     * Lists all statements.
+     * Lists all ont-statements.
      *
      * @return Stream of {@link OntStatement}
      * @see Model#listStatements()
@@ -178,7 +188,8 @@ public interface OntGraphModel extends Model {
     Stream<OntStatement> statements(Resource s, Property p, RDFNode o);
 
     /**
-     * Lists all statements from the base graph for the specified subject, predicate and object.
+     * Lists all statements from the {@link OntGraphModel#getBaseGraph() base graph}
+     * for the specified subject, predicate and object.
      * Equivalent to {@code model.statements(s, p, o).filter(OntStatement::isLocal)}
      *
      * @param s {@link Resource}, the subject
@@ -211,7 +222,7 @@ public interface OntGraphModel extends Model {
     OntGraphModel removeOntObject(OntObject obj);
 
     /**
-     * Removes ont-statement with its annotations.
+     * Removes ont-statement including its annotations.
      *
      * @param statement {@link OntStatement}
      * @return this model

@@ -19,6 +19,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -125,7 +126,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     @Override
     public Stream<OntOPE> superPropertyOf() {
-        return getRequiredProperty(OWL.propertyChainAxiom).getObject().as(RDFList.class).asJavaList().stream().map(r -> r.as(OntOPE.class));
+        return Iter.asStream(getRequiredProperty(OWL.propertyChainAxiom).getObject().as(RDFList.class).iterator()).map(r -> r.as(OntOPE.class));
     }
 
     @Override
