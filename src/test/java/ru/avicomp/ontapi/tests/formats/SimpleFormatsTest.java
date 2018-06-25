@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,12 +14,6 @@
 
 package ru.avicomp.ontapi.tests.formats;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -28,12 +22,18 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Test loading from different formats.
@@ -44,7 +44,7 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
  */
 @RunWith(Parameterized.class)
 public class SimpleFormatsTest {
-    private static final Logger LOGGER = Logger.getLogger(SimpleFormatsTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleFormatsTest.class);
     private OntFormat format;
     private static final String fileName = "test2";
     private static List<OWLAxiom> expected;
@@ -82,7 +82,7 @@ public class SimpleFormatsTest {
     @Test
     public void test() {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName + "." + format.getExt()));
-        LOGGER.info("Load ontology " + fileIRI + ". Format: " + format);
+        LOGGER.debug("Load ontology {}. Format: {}", fileIRI, format);
         OntologyModel o;
         try {
             o = OntManagers.createONT().loadOntology(fileIRI);
@@ -90,7 +90,7 @@ public class SimpleFormatsTest {
             throw new AssertionError("Can't load " + fileIRI + "[" + format + "] :: ", e);
         }
         ReadWriteUtils.print(o);
-        o.axioms().forEach(LOGGER::info);
+        o.axioms().map(String::valueOf).forEach(LOGGER::debug);
 
         List<OWLAxiom> actual = o.axioms()
                 .filter(axiom -> !AxiomType.ANNOTATION_ASSERTION.equals(axiom.getAxiomType()))

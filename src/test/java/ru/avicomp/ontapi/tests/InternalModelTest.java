@@ -21,11 +21,12 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
-import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.internal.AxiomParserProvider;
@@ -55,7 +56,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 27.11.2016.
  */
 public class InternalModelTest {
-    private static final Logger LOGGER = Logger.getLogger(InternalModelTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InternalModelTest.class);
 
     @Test
     public void testAxiomRead() {
@@ -70,7 +71,7 @@ public class InternalModelTest {
                 .flatMap(view -> AxiomParserProvider.get(view).axioms(model))
                 .collect(Collectors.toMap(InternalObject::getObject, i -> i.triples().collect(Collectors.toSet())));
 
-        LOGGER.info("Recreate model");
+        LOGGER.debug("Recreate model");
         Model m2 = ModelFactory.createDefaultModel();
         model.getID().statements().forEach(m2::add);
         axioms.forEach((axiom, triples) -> triples.forEach(triple -> m2.getGraph().add(triple)));
@@ -89,33 +90,33 @@ public class InternalModelTest {
         InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), ConfigProvider.DEFAULT_CONFIG);
 
         Set<OWLAnnotation> annotations = model.annotations().collect(Collectors.toSet());
-        annotations.forEach(LOGGER::debug);
+        annotations.forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
 
-        LOGGER.info("Create bulk annotation.");
+        LOGGER.debug("Create bulk annotation.");
         OWLAnnotation bulk = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("the label"),
                 Stream.of(factory.getRDFSComment("just comment to ontology annotation")));
         model.add(bulk);
         annotations = model.annotations().collect(Collectors.toSet());
-        annotations.forEach(LOGGER::debug);
+        annotations.forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect annotations count", 5, annotations.size());
 
-        LOGGER.info("Create plain(assertion) annotation.");
+        LOGGER.debug("Create plain(assertion) annotation.");
         OWLAnnotation plain = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), IRI.create("http://please.click.me/"));
         model.add(plain);
         annotations = model.annotations().collect(Collectors.toSet());
-        annotations.forEach(LOGGER::debug);
+        annotations.forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect annotations count", 6, annotations.size());
 
-        LOGGER.info("Remove annotations.");
+        LOGGER.debug("Remove annotations.");
         OWLAnnotation comment = annotations.stream().filter(a -> a.getProperty().getIRI().toString().equals(RDFS.comment.getURI())).findFirst().orElse(null);
-        LOGGER.info("Delete " + bulk);
+        LOGGER.debug("Delete {}", bulk);
         model.remove(bulk);
-        LOGGER.info("Delete " + comment);
+        LOGGER.debug("Delete {}", comment);
         model.remove(comment);
 
         annotations = model.annotations().collect(Collectors.toSet());
-        annotations.forEach(LOGGER::debug);
+        annotations.forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
     }
 
@@ -153,7 +154,7 @@ public class InternalModelTest {
         OntModelConfig.StdMode mode = TestUtils.getMode(profile);
         // remove all illegal punnings from OWL-API output:
         Set<Resource> illegalPunnings = TestUtils.getIllegalPunnings(jena, mode);
-        LOGGER.debug("Illegal punnings inside graph: " + illegalPunnings);
+        LOGGER.debug("Illegal punnings inside graph: {}", illegalPunnings);
         Set<OWLAnnotationProperty> illegalAnnotationProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
                 .filter(r -> r.hasProperty(RDF.type, OWL.AnnotationProperty))
                 .map(Resource::getURI).map(IRI::create).map(factory::getOWLAnnotationProperty).collect(Collectors.toSet());
@@ -179,13 +180,13 @@ public class InternalModelTest {
 
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {
         LOGGER.debug("=========================");
-        LOGGER.info(view.getSimpleName() + ":");
+        LOGGER.debug("{}:", view.getSimpleName());
         AxiomParserProvider.get(view).axioms(model).forEach(e -> {
             Axiom axiom = e.getObject();
             Set<Triple> triples = e.triples().collect(Collectors.toSet());
             Assert.assertNotNull("Null axiom", axiom);
             Assert.assertTrue("No associated triples", triples != null && !triples.isEmpty());
-            LOGGER.debug(axiom + " " + triples);
+            LOGGER.debug("{} {}", axiom, triples);
         });
     }
 
@@ -210,10 +211,10 @@ public class InternalModelTest {
     }
 
     private <T extends OWLObject> void test(Class<T> view, Stream<T> ont, Stream<T> owl) {
-        LOGGER.info("Test <" + view.getSimpleName() + ">:");
+        LOGGER.debug("Test <{}>:", view.getSimpleName());
         List<T> actual = ont.sorted().collect(Collectors.toList());
         List<T> expected = owl.sorted().collect(Collectors.toList());
-        LOGGER.debug(expected.size() + "(owl, expected) ::: " + actual.size() + "(ont, actual)");
+        LOGGER.debug("{} (owl, expected) ::: {} (ont, actual)", expected.size(), actual.size());
         if (OWLAnonymousIndividual.class.equals(view)) {
             Assert.assertEquals("Incorrect anonymous individuals count ", actual.size(), expected.size());
         } else {
@@ -224,13 +225,13 @@ public class InternalModelTest {
     private OWLOntology loadOWLOntology(String file) {
         URI fileURI = ReadWriteUtils.getResourceURI(file);
         OWLOntologyManager manager = OntManagers.createOWL();
-        LOGGER.info("Load pure owl from " + fileURI);
+        LOGGER.debug("Load pure owl from {}", fileURI);
         return ReadWriteUtils.loadOWLOntology(manager, IRI.create(fileURI));
     }
 
     private InternalModel loadInternalModel(String file, OntFormat format) {
         URI fileURI = ReadWriteUtils.getResourceURI(file);
-        LOGGER.info("Load jena model from " + fileURI);
+        LOGGER.debug("Load jena model from {}", fileURI);
         Model init = ReadWriteUtils.load(fileURI, format);
         Graph graph = GraphTransformers.convert(init.getGraph());
         return new InternalModel(graph, ConfigProvider.DEFAULT_CONFIG);

@@ -40,13 +40,11 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.Transform;
+import ru.avicomp.ontapi.transforms.TransformException;
 import ru.avicomp.ontapi.utils.*;
 
 import java.io.InputStream;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -86,11 +84,11 @@ public class GraphTransformersTest {
         Optional<OWLAnonymousIndividual> individual = axiom.getSubject().asAnonymousIndividual();
         Assert.assertTrue("No literal", literal.isPresent());
         Assert.assertTrue("No individual", individual.isPresent());
-        LOGGER.info("Axioms related to query <" + literal.get().getLiteral().replace("\n", " ") + ">");
+        LOGGER.debug("Axioms related to query <{}>", literal.get().getLiteral().replace("\n", " "));
         spl.referencingAxioms(individual.get()).map(String::valueOf).forEach(LOGGER::debug);
     }
 
-    public static OntologyManager setUpSpinManager(OntologyManager m) {
+    private static OntologyManager setUpSpinManager(OntologyManager m) {
         m.getOntologyConfigurator()
                 .setGraphTransformers(GraphTransformers.getTransformers().addFirst(SpinTransform::new))
                 .setPersonality(SpinModels.ONT_SPIN_PERSONALITY)
@@ -106,7 +104,7 @@ public class GraphTransformersTest {
         GraphTransformers.getTransformers().add(g -> new Transform(g) {
             @Override
             public void perform() {
-                LOGGER.info("Finish transformation (" + Graphs.getName(g) + ").");
+                LOGGER.debug("Finish transformation ({}).", Graphs.getName(g));
             }
         });
 
@@ -115,13 +113,13 @@ public class GraphTransformersTest {
 
         OntGraphModel jenaSP = OntModelFactory.createModel(GraphTransformers.convert(load("etc/sp.ttl").getGraph()), OntModelConfig.ONT_PERSONALITY_LAX);
         OWLOntology owlSP = load(manager, "etc/sp.ttl");
-        LOGGER.info("SP(Jena): ");
+        LOGGER.debug("SP(Jena): ");
         ReadWriteUtils.print(jenaSP);
         //LOGGER.info("SP(OWL): ");
         //ReadWriteUtils.print(owlSP);
         signatureTest(owlSP, jenaSP);
         OWLOntology testSP = testManager.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(jenaSP, OntFormat.TURTLE));
-        LOGGER.info("SP signature:");
+        LOGGER.debug("SP signature:");
         testSP.signature().forEach(entity -> LOGGER.debug(String.format("%s(%s)", entity, entity.getEntityType())));
 
         // WARNING:
@@ -133,24 +131,24 @@ public class GraphTransformersTest {
         spinGraph.addGraph(jenaSP.getBaseGraph());
         OntGraphModel jenaSPIN = OntModelFactory.createModel(GraphTransformers.convert(spinGraph));
         OWLOntology owlSPIN = load(manager, "etc/spin.ttl");
-        LOGGER.info("SPIN(Jena): ");
+        LOGGER.debug("SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPIN);
-        LOGGER.info("SPIN(OWL): ");
+        LOGGER.debug("SPIN(OWL): ");
         ReadWriteUtils.print(owlSPIN);
 
         //testSignature(owlSPIN, jenaSPIN);
         OWLOntology testSPIN = testManager.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(jenaSPIN, OntFormat.TURTLE));
-        LOGGER.info("SPIN signature:");
+        LOGGER.debug("SPIN signature:");
         testSPIN.signature().forEach(entity -> LOGGER.debug(String.format("%s(%s)", entity, entity.getEntityType())));
-        LOGGER.info("Origin SPIN signature:");
+        LOGGER.debug("Origin SPIN signature:");
         owlSPIN.signature().forEach(e -> LOGGER.debug(String.format("%s(%s)", e, e.getEntityType())));
 
         UnionGraph splGraph = new UnionGraph(load("etc/spl.spin.ttl").getGraph());
         splGraph.addGraph(jenaSPIN.getBaseGraph());
         OntGraphModel jenaSPL = OntModelFactory.createModel(GraphTransformers.convert(splGraph));
-        LOGGER.info("SPL-SPIN(Jena): ");
+        LOGGER.debug("SPL-SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPL);
-        LOGGER.info("SPL-SPIN(Jena) All entities: ");
+        LOGGER.debug("SPL-SPIN(Jena) All entities: ");
         jenaSPL.ontEntities().map(String::valueOf).forEach(LOGGER::debug);
     }
 
@@ -164,7 +162,7 @@ public class GraphTransformersTest {
         Assert.assertTrue("No ontology", m.contains(iri));
 
         ReadWriteUtils.print(o);
-        o.axioms().map(String::valueOf).forEach(LOGGER::info);
+        o.axioms().map(String::valueOf).forEach(LOGGER::debug);
 
         Assert.assertNull("rdfs:Literal should not be class", o.asGraphModel().getOntEntity(OntClass.class, RDFS.Literal));
         Assert.assertEquals("Should be DataAllValuesFrom", 1, o.asGraphModel().ontObjects(OntCE.DataAllValuesFrom.class).count());
@@ -232,5 +230,47 @@ public class GraphTransformersTest {
 
     private static OWLOntology load(OWLOntologyManager manager, String file) throws Exception {
         return manager.loadOntology(OntIRI.create(ReadWriteUtils.getResourceURI(file)));
+    }
+
+    @Test
+    public void testTransformsOnLoad() throws OWLOntologyCreationException {
+        List<String> iris = Arrays.asList("http://a", "http://b", "http://c", "http://d");
+        OntologyManager m = OntManagers.createONT();
+
+        Set<String> processed = new HashSet<>();
+        GraphTransformers.Store st = m.getOntologyConfigurator().getGraphTransformers().addFirst(g -> new Transform(g) {
+            @Override
+            public void perform() throws TransformException {
+                String graph = Graphs.getName(g);
+                LOGGER.debug("Test {} on {}", name(), graph);
+                Assert.assertTrue("Already processed: " + graph, processed.add(graph));
+            }
+
+            @Override
+            public String name() {
+                return "Test Checker";
+            }
+        });
+        m.getOntologyConfigurator().setGraphTransformers(st);
+
+        iris.stream().limit(2).map(IRI::create).forEach(iri -> {
+            LOGGER.debug("Create {}", iri);
+            processed.add(Graphs.getName(m.createOntology(iri).asGraphModel().getGraph()));
+        });
+
+        OntGraphModel c = OntModelFactory.createModel();
+        c.setID(iris.get(2)).addImport(iris.get(0)).addImport(iris.get(1));
+        String c_txt = ReadWriteUtils.toString(c, OntFormat.TURTLE);
+        OntGraphModel d = OntModelFactory.createModel();
+        d.setID(iris.get(3)).addImport(c.getID().getURI());
+        String d_txt = ReadWriteUtils.toString(d, OntFormat.TURTLE);
+
+        m.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(c_txt, OntFormat.TURTLE));
+        Assert.assertEquals(3, m.ontologies().count());
+
+        m.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(d_txt, OntFormat.TURTLE));
+        Assert.assertEquals(4, m.ontologies().count());
+
+        iris.forEach(i -> Assert.assertNotNull(m.getGraphModel(i)));
     }
 }

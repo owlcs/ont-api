@@ -33,12 +33,10 @@ public abstract class AbstractFileRoundTrippingTestCase extends AbstractRoundTri
 
     @Override
     protected OWLOntology createOntology() {
-        LOGGER.info("Load ontology from file <" + fileName + ">");
+        LOGGER.debug("Load ontology from file <{}>", fileName);
         OWLOntology o = ontologyFromClasspathFile(fileName);
-        if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("ontology as parsed from input file:");
             o.axioms().forEach(ax -> LOGGER.debug(ax.toString()));
-        }
         return o;
     }
 }

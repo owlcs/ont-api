@@ -137,8 +137,8 @@ public class SerializationTestCase extends TestBase {
         o.add(df.getOWLAnnotationAssertionAxiom(iri, df.getOWLAnnotation(ap, owlannotationvalue)));
         o.add(df.getOWLAnnotationAssertionAxiom(df.getOWLNamedIndividual(iri).getIRI(), df.getOWLAnnotation(ap, owlannotationvalue)));
 
-        LOGGER.info("Total axioms(pizza) count: " + o.getAxiomCount());
-        LOGGER.info("Total ontologies count: " + m.ontologies().count());
+        LOGGER.debug("Total axioms(pizza) count: {}", o.getAxiomCount());
+        LOGGER.debug("Total ontologies count: {}", m.ontologies().count());
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ObjectOutputStream stream = new ObjectOutputStream(out);
@@ -151,7 +151,7 @@ public class SerializationTestCase extends TestBase {
 
         copy.ontologies().forEach(ont -> {
             OWLOntologyID id = ont.getOntologyID();
-            LOGGER.debug("Test " + id);
+            LOGGER.debug("Test {}", id);
             OWLOntology init = m.getOntology(id);
             Assert.assertNotNull("Can't find init ontology with id " + id, init);
 

@@ -87,17 +87,17 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
 
     private void testApplyChanges(OWLOntologyManager m, ApplyChangesWrapper p) throws Exception {
         String msg = "Test[" + (m instanceof OntologyManager ? "ONT" : "OWL") + "] " + p;
-        LOGGER.info(msg);
+        LOGGER.debug(msg);
         IRI x = IRI.create("x");
         OWLOntology o = m.createOntology(x);
         OWLOntologyID id1 = o.getOntologyID();
-        LOGGER.info("1)iri=<" + x + ">, id=<" + id1 + ">");
+        LOGGER.debug("2)iri=<{}>, id=<{}>", x, id1);
         Assert.assertTrue("can't find " + x, m.contains(x));
         Assert.assertTrue("can't find " + id1, m.contains(id1));
         IRI y = IRI.create("y");
         p.process(o, y);
         OWLOntologyID id2 = o.getOntologyID();
-        LOGGER.info("2)iri=<" + y + ">, id=<" + id2 + ">");
+        LOGGER.debug("2)iri=<{}>, id=<{}>", y, id2);
         Assert.assertFalse("still " + x, m.contains(x));
         Assert.assertFalse("still " + id1, m.contains(id1));
         Assert.assertTrue("can't find " + y, m.contains(y));
@@ -113,7 +113,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         OntologyModel anon = manager.createOntology();
         Assert.assertEquals("Should be one ontology inside jena-graph", 1, anon.asGraphModel().listStatements(null, RDF.type, OWL.Ontology).toList().size());
 
-        LOGGER.info("Create owl ontology.");
+        LOGGER.debug("Create owl ontology.");
         OntIRI iri = OntIRI.create("http://test.test/change-id");
         OntIRI clazz = iri.addFragment("SomeClass1");
         List<Resource> imports = Stream.of(ResourceFactory.createResource("http://test.test/some-import")).collect(Collectors.toList());
@@ -124,7 +124,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
 
         OWLDataFactory factory = manager.getOWLDataFactory();
         OWLOntologyID id = iri.toOwlOntologyID();
-        LOGGER.debug("Create ontology, ID=" + id);
+        LOGGER.debug("Create ontology, ID={}", id);
         OntologyModel owl = manager.createOntology(id);
         createOntologyProperties(owl, imports, annotations);
         OWLAnnotationProperty ap1 = factory.getOWLAnnotationProperty(iri.addFragment("annotation-property-1"));
@@ -136,14 +136,14 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         long numOfOnt = manager.ontologies().count();
 
         OWLOntologyID test1 = iri.addPath("test1").toOwlOntologyID(OntIRI.create("http://version/1.0"));
-        LOGGER.info("1)Change ontology iri to " + test1 + " through owl-api.");
+        LOGGER.debug("1)Change ontology iri to {} through owl-api.", test1);
         owl.applyChanges(new SetOntologyID(owl, test1));
         testIRIChanged(manager, owl, jena, test1, imports, annotations);
         testHasClass(owl, jena, clazz);
         Resource ontology = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
 
         OWLOntologyID test2 = iri.addPath("test2").toOwlOntologyID(test1.getVersionIRI().orElse(null));
-        LOGGER.info("2)Change ontology iri to " + test2 + " through jena.");
+        LOGGER.debug("2)Change ontology iri to {} through jena.", test2);
         ResourceUtils.renameResource(ontology, OntIRI.toStringIRI(test2));
         testIRIChanged(manager, owl, jena, test2, imports, annotations);
         testHasClass(owl, jena, clazz);
@@ -151,20 +151,20 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
 
         // anon:
         OWLOntologyID test3 = new OWLOntologyID(); //iri.addPath("test3").toOwlOntologyID();
-        LOGGER.info("3)Change ontology iri to " + test3 + " through jena.");
+        LOGGER.debug("3)Change ontology iri to {} through jena.", test3);
         ResourceUtils.renameResource(ontology, OntIRI.toStringIRI(test3));
         testIRIChanged(manager, owl, jena, test3, imports, annotations);
         testHasClass(owl, jena, clazz);
 
         OWLOntologyID test4 = iri.addPath("test4").toOwlOntologyID();
-        LOGGER.info("4)Change ontology iri to " + test4 + " through owl-api.");
+        LOGGER.debug("4)Change ontology iri to {} through owl-api.", test4);
         manager.applyChange(new SetOntologyID(owl, test4));
         testIRIChanged(manager, owl, jena, test4, imports, annotations);
         testHasClass(owl, jena, clazz);
 
         //anon:
         OWLOntologyID test5 = new OWLOntologyID();
-        LOGGER.info("5)Change ontology iri to " + test5 + " through owl-api.");
+        LOGGER.debug("5)Change ontology iri to {} through owl-api.", test5);
         manager.applyChange(new SetOntologyID(owl, test5));
         testIRIChanged(manager, owl, jena, test5, imports, annotations);
         testHasClass(owl, jena, clazz);
@@ -182,7 +182,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
             Assert.assertTrue("Can't find " + id.getOntologyIRI().get() + " in manager", manager.contains(id.getOntologyIRI().get()));
         }
 
-        String iri = id.getOntologyIRI().isPresent() ? id.getOntologyIRI().orElse(null).getIRIString() : null;
+        String iri = id.getOntologyIRI().isPresent() ? id.getOntologyIRI().orElseThrow(AssertionError::new).getIRIString() : null;
         OntID ontID = jena.getID();
         Assert.assertNotNull("Can't find new ontology for iri " + id, ontID);
         Assert.assertNotNull("Can't find new ontology in jena", owl.asGraphModel().getID());

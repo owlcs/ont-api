@@ -43,9 +43,9 @@ public class NoQNameTestCase extends TestBase {
             roundTripOntology(createOntology());
             Assert.fail("Expected an exception specifying that a QName could not be generated");
         } catch (OWLOntologyStorageException e) {
-            LOGGER.info("Exception:::" + e);
+            LOGGER.debug("Exception:::{}", e);
             Throwable cause = e.getCause();
-            LOGGER.info("Cause:::" + cause);
+            LOGGER.debug("Cause:::{}", cause);
             if (!expectedCause.isInstance(cause)) {
                 throw e;
             }

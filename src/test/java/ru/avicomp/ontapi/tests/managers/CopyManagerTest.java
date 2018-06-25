@@ -48,7 +48,7 @@ public class CopyManagerTest {
 
     @Test
     public void testSimpleMoving() throws Exception {
-        LOGGER.info("1) Move OWL -> ONT");
+        LOGGER.debug("1) Move OWL -> ONT");
         OWLDataFactory df = OntManagers.getDataFactory();
         OWLOntologyManager m1 = OntManagers.createOWL();
         OWLOntologyManager m2 = OntManagers.createONT();
@@ -60,12 +60,12 @@ public class CopyManagerTest {
             m2.copyOntology(o1, OntologyCopy.MOVE);
             Assert.fail("Moving from OWL to ONT should be disabled");
         } catch (OWLOntologyCreationException e) {
-            LOGGER.info("Expected.", e);
+            LOGGER.debug("Expected.", e);
         }
         Assert.assertEquals("Incorrect ont-count in source", 1, m1.ontologies().count());
         Assert.assertEquals("Incorrect ont-count in destinaction", 0, m2.ontologies().count());
 
-        LOGGER.info("2) Move ONT -> OWL");
+        LOGGER.debug("2) Move ONT -> OWL");
         IRI iri2 = IRI.create("http://test/2");
         IRI docIRI = IRI.create("file://nothing");
         OWLDocumentFormat format = OntFormat.JSON_LD.createOwlFormat();
@@ -78,7 +78,7 @@ public class CopyManagerTest {
             m1.copyOntology(o2, OntologyCopy.MOVE);
             Assert.fail("Expected exception while moving from ONT -> OWL");
         } catch (OntApiException a) {
-            LOGGER.info("Expected.", a);
+            LOGGER.debug("Expected.", a);
         }
         // check ONT manager
         // And don't care about OWL manager, we can't help him anymore.
@@ -88,7 +88,7 @@ public class CopyManagerTest {
         Assert.assertEquals("Incorrect document IRI", docIRI, m2.getOntologyDocumentIRI(o2));
         Assert.assertEquals("Incorrect format", format, m2.getOntologyFormat(o2));
 
-        LOGGER.info("3) Move ONT -> ONT");
+        LOGGER.debug("3) Move ONT -> ONT");
         Assert.assertSame("Not same ontology!", o2, m3.copyOntology(o2, OntologyCopy.MOVE));
         Assert.assertTrue("Can't find " + iri2, m3.contains(iri2));
         Assert.assertFalse("There is still " + iri2, m2.contains(iri2));
@@ -102,7 +102,7 @@ public class CopyManagerTest {
         try {
             Assert.fail("Expected exception, but found some doc iri " + m2.getOntologyDocumentIRI(o2));
         } catch (UnknownOWLOntologyException u) {
-            LOGGER.info("Expected.", u);
+            LOGGER.debug("Expected.", u);
         }
     }
 
@@ -132,12 +132,12 @@ public class CopyManagerTest {
             from.loadOntologyFromOntologyDocument(doc2);
             Assert.fail(doc2 + " has been successfully loaded.");
         } catch (OWLOntologyAlreadyExistsException e) {
-            LOGGER.info("It is ok : {}", e.getMessage());
+            LOGGER.debug("It is ok : {}", e.getMessage());
         }
         Assert.assertEquals(4, from.ontologies().count());
 
 
-        LOGGER.info("Copy manager");
+        LOGGER.debug("Copy manager");
         OntologyManager to = CopyManagerTest.copyManager(from);
         Assert.assertEquals(4, to.ontologies().count());
 
@@ -176,7 +176,7 @@ public class CopyManagerTest {
         from.loadOntologyFromOntologyDocument(iri2);
         Assert.assertEquals(2, from.ontologies().count());
 
-        LOGGER.info("Copy manager");
+        LOGGER.debug("Copy manager");
         OntologyManager to = CopyManagerTest.copyManager(from);
         Assert.assertEquals(2, to.ontologies().count());
 
@@ -198,7 +198,7 @@ public class CopyManagerTest {
         from.getOntologyConfigurator().disableWebAccess().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
         from.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("owlapi/importscyclic", "relaMath.owl")));
         from.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("owlapi/importscyclic", "reprMath.owl")));
-        from.ontologies().forEach(o -> LOGGER.info("{}:{}", o.getOntologyID(), o.getAxiomCount()));
+        from.ontologies().forEach(o -> LOGGER.debug("{}:{}", o.getOntologyID(), o.getAxiomCount()));
         OntologyManager to = CopyManagerTest.copyManager(from);
         to.ontologies().forEach(x -> LOGGER.debug("{}", x));
         compareManagersContentTest(from, to);
@@ -241,7 +241,7 @@ public class CopyManagerTest {
     }
 
     private static void simpleCopyTest(OWLOntologyManager from, OWLOntologyManager to, OntologyCopy mode) throws Exception {
-        LOGGER.info("Copy (" + mode + ") " + from.getClass().getInterfaces()[0].getSimpleName() + " -> " + to.getClass().getInterfaces()[0].getSimpleName());
+        LOGGER.debug("Copy (" + mode + ") " + from.getClass().getInterfaces()[0].getSimpleName() + " -> " + to.getClass().getInterfaces()[0].getSimpleName());
         long fromCount = from.ontologies().count();
         long toCount = to.ontologies().count();
 

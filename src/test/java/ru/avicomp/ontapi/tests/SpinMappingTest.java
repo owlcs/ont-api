@@ -58,7 +58,7 @@ public class SpinMappingTest {
 
     @Before
     public void before() {
-        LOGGER.info("Set up manager.");
+        LOGGER.debug("Set up manager.");
         manager = OntManagers.createONT();
         setUpManager(manager);
     }
@@ -72,7 +72,7 @@ public class SpinMappingTest {
     }
 
     public void loadSpinModels() throws OWLOntologyCreationException {
-        LOGGER.info("Load spin models to manager.");
+        LOGGER.debug("Load spin models to manager.");
         manager.loadOntology(SpinModels.SPINMAPL.getIRI()).asGraphModel();
         List<IRI> actual = manager.ontologies().map(HasOntologyID::getOntologyID).map(OWLOntologyID::getOntologyIRI).
                 filter(Optional::isPresent).map(Optional::get).sorted().collect(Collectors.toList());
@@ -97,7 +97,7 @@ public class SpinMappingTest {
     }
 
     public void validate(OntGraphModel source, OntGraphModel target) {
-        LOGGER.info("Validate.");
+        LOGGER.debug("Validate.");
         OntClass targetClass = target.listClasses().findFirst().orElse(null);
         OntNDP targetProperty = target.listDataProperties().findFirst().orElse(null);
         List<OntIndividual> sourceIndividuals = source.listNamedIndividuals().collect(Collectors.toList());
@@ -124,7 +124,7 @@ public class SpinMappingTest {
      * @return {@link OntGraphModel} mapping model.
      */
     public OntGraphModel composeMapping(OntGraphModel source, OntGraphModel target) {
-        LOGGER.info("Compose mapping.");
+        LOGGER.debug("Compose mapping.");
         OntClass sourceClass = source.listClasses().findFirst().orElseThrow(AssertionError::new);
         OntClass targetClass = target.listClasses().findFirst().orElseThrow(AssertionError::new);
         List<OntNDP> sourceProperties = source.listDataProperties().collect(Collectors.toList());
@@ -173,7 +173,7 @@ public class SpinMappingTest {
      * @return {@link OntGraphModel} the model.
      */
     public OntGraphModel createSourceModel() {
-        LOGGER.info("Create the source model.");
+        LOGGER.debug("Create the source model.");
         String uri = "http://source.avicomp.ru";
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri);
@@ -205,7 +205,7 @@ public class SpinMappingTest {
      * @return {@link OntGraphModel} the model.
      */
     public OntGraphModel createTargetModel() {
-        LOGGER.info("Create the target model.");
+        LOGGER.debug("Create the target model.");
         String uri = "http://target.avicomp.ru";
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri);
@@ -224,7 +224,7 @@ public class SpinMappingTest {
     public void runInferences(OntologyModel mapping, Model target) {
         // recreate model since there is spin specific personalities inside org.topbraid.spin.vocabulary.SP#init
         Model source = ModelFactory.createModelForGraph(mapping.asGraphModel().getGraph());
-        LOGGER.info("Run Inferences");
+        LOGGER.debug("Run Inferences");
         SPINModuleRegistry.get().init();
         SPINModuleRegistry.get().registerAll(source, null);
         SPINInferences.run(source, target, null, null, false, null);

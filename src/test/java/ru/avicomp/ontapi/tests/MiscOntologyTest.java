@@ -131,7 +131,7 @@ public class MiscOntologyTest {
         format.asPrefixOWLDocumentFormat().setPrefixManager(format1.asPrefixOWLDocumentFormat());
         manager1.saveOntology(ontology1, format, iri);
 
-        LOGGER.info("Reload");
+        LOGGER.debug("Reload");
         OWLOntologyDocumentSource source = new FileDocumentSource(file.toFile(), OntFormat.RDF_XML.createOwlFormat());
         OntologyManager manager2 = OntManagers.createONT();
         OntologyModel ontology2 = manager2.loadOntologyFromOntologyDocument(source);
@@ -147,10 +147,10 @@ public class MiscOntologyTest {
     @Test
     public void testOntGraphDocumentSourceInOWL() throws OWLOntologyCreationException {
         IRI pizza = IRI.create(MiscOntologyTest.class.getResource("/pizza.ttl"));
-        LOGGER.info("File: {}", pizza);
+        LOGGER.debug("File: {}", pizza);
         OntologyModel ont = OntManagers.createONT().loadOntology(pizza);
         OWLOntologyDocumentSource src = OntGraphDocumentSource.wrap(ont.asGraphModel().getBaseGraph());
-        LOGGER.info("Load using pipes");
+        LOGGER.debug("Load using pipes");
         OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(src);
         Set<OWLAxiom> ontAxioms = ont.axioms().collect(Collectors.toSet());
         Set<OWLAxiom> owlAxioms = owl.axioms().collect(Collectors.toSet());

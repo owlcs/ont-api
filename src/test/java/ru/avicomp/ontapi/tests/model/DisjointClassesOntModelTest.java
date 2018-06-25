@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.tests.model;
@@ -59,11 +58,11 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
     public void testDisjointAddRemove() throws OWLOntologyCreationException {
         OWLDataFactory factory = OntManagers.getDataFactory();
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("test1.ttl"));
-        LOGGER.info("Load ontology from file " + fileIRI);
+        LOGGER.debug("Load ontology from file {}", fileIRI);
         OWLOntology original = OntManagers.createONT().loadOntology(fileIRI);
         debug(original);
 
-        LOGGER.info("Assemble new ontology with the same content.");
+        LOGGER.debug("Assemble new ontology with the same content.");
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
         OntologyModel result = OntManagers.createONT().createOntology(iri.toOwlOntologyID());
@@ -96,12 +95,12 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
 
         debug(result);
 
-        LOGGER.info("Compare axioms.");
+        LOGGER.debug("Compare axioms.");
         List<OWLAxiom> actual = result.axioms().sorted().collect(Collectors.toList());
         List<OWLAxiom> expected = original.axioms().sorted().collect(Collectors.toList());
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
-        LOGGER.info("Remove OWL:disjointWith for " + ontComplex1 + " & " + ontSimple1 + " pair.");
+        LOGGER.debug("Remove OWL:disjointWith for {} & {} pair.", ontComplex1, ontSimple1);
         jena.removeAll(ontComplex1, OWL.disjointWith, null);
         ReadWriteUtils.print(result.asGraphModel(), OntFormat.TURTLE);
         actual = result.axioms().sorted().collect(Collectors.toList());
@@ -111,14 +110,14 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         expected.stream().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
-        LOGGER.info("Remove OWL:AllDisjointClasses");
+        LOGGER.debug("Remove OWL:AllDisjointClasses");
         anon = jena.listResourcesWithProperty(RDF.type, OWL.AllDisjointClasses).toList().get(0);
         RDFList list = jena.listObjectsOfProperty(anon, OWL.members).mapWith(n -> n.as(RDFList.class)).toList().get(0);
         list.removeList();
         jena.removeAll(anon, null, null);
 
         debug(result);
-        LOGGER.info("Compare axioms.");
+        LOGGER.debug("Compare axioms.");
         actual = result.axioms().sorted().collect(Collectors.toList());
         expected = original.axioms().filter(axiom -> !AxiomType.DISJOINT_CLASSES.equals(axiom.getAxiomType())).sorted().collect(Collectors.toList());
 

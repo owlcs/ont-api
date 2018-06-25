@@ -23,9 +23,10 @@ import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.RDFSRuleReasonerFactory;
 import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -47,7 +48,7 @@ import java.util.List;
  */
 public class JenaReasonerTest {
 
-    public static final Logger LOGGER = Logger.getLogger(JenaReasonerTest.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(JenaReasonerTest.class);
 
     /**
      * Illustrate different ways of finding a reasoner
@@ -62,7 +63,7 @@ public class JenaReasonerTest {
         OntNDP q = example.createOntEntity(OntNDP.class, NS + "q");
         p.addSubPropertyOf(q);
         example.createOntEntity(OntIndividual.Named.class, NS + "a").addProperty(p, "foo");
-        LOGGER.info("Example model:");
+        LOGGER.debug("Example model:");
         example.setNsPrefixes(OntModelFactory.STANDARD);
         ReadWriteUtils.print(example);
 
@@ -72,12 +73,12 @@ public class JenaReasonerTest {
         Reasoner reasoner = RDFSRuleReasonerFactory.theInstance().create(config);
 
         InfModel inf = example.getInferenceModel(reasoner);
-        LOGGER.info("Inf model:");
+        LOGGER.debug("Inf model:");
         ReadWriteUtils.print(inf);
 
         Resource a = inf.getResource(NS + "a");
         Statement s = a.getProperty(q);
-        LOGGER.debug("Statement: " + s);
+        LOGGER.debug("Statement: {}", s);
         Assert.assertNotNull("Null statement", s);
     }
 
@@ -101,17 +102,17 @@ public class JenaReasonerTest {
      */
     private void validationTest(String file, boolean result) {
         URI uri = ReadWriteUtils.getResourceURI(file);
-        LOGGER.info("Testing " + uri);
+        LOGGER.debug("Testing {}", uri);
         OntGraphModel data = OntModelFactory.createModel(ReadWriteUtils.load(uri, OntFormat.NTRIPLES).getGraph());
         InfModel inf = data.getInferenceModel(ReasonerRegistry.getRDFSReasoner());
         ValidityReport validity = inf.validate();
         if (validity.isValid()) {
-            LOGGER.info("OK");
+            LOGGER.debug("OK");
         } else {
-            LOGGER.info("Conflicts");
+            LOGGER.debug("Conflicts");
             for (Iterator<ValidityReport.Report> i = validity.getReports(); i.hasNext(); ) {
                 ValidityReport.Report report = i.next();
-                LOGGER.info(" - " + report);
+                LOGGER.debug(" - {}", report);
             }
         }
         Assert.assertEquals("Wrong result", result, validity.isValid());
@@ -141,7 +142,7 @@ public class JenaReasonerTest {
         InfModel inf = rawData.getInferenceModel(reasoner);
 
         List<Statement> statements = inf.listStatements(A, p, D).toList();
-        LOGGER.debug(statements);
+        LOGGER.debug("{}", statements);
         Assert.assertEquals("Incorrect statements", 1, statements.size());
         StringWriter res = new StringWriter();
         PrintWriter out = new PrintWriter(res, true);
@@ -149,7 +150,7 @@ public class JenaReasonerTest {
         while (id.hasNext()) {
             id.next().printTrace(out, true);
         }
-        LOGGER.info(res);
+        LOGGER.debug("{}", res);
         String expected = "Rule rule1 concluded (eg:A eg:p eg:D) <-\n" +
                 "    Rule rule1 concluded (eg:A eg:p eg:C) <-\n" +
                 "        Fact (eg:A eg:p eg:B)\n" +
@@ -186,9 +187,9 @@ public class JenaReasonerTest {
         Reasoner reasoner = new GenericRuleReasoner(Rule.parseRules(rules));
         InfModel inf = rawData.getInferenceModel(reasoner);
         Iterator<Statement> list = inf.listStatements(A, null, (RDFNode) null);
-        LOGGER.info("A * * =>");
+        LOGGER.debug("A * * =>");
         while (list.hasNext()) {
-            LOGGER.info(" - " + list.next());
+            LOGGER.debug(" - {}", list.next());
         }
         Assert.assertTrue(inf.contains(A, p, B));
         Assert.assertTrue(inf.contains(A, r, C));

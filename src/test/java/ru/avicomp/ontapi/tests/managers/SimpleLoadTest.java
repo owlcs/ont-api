@@ -15,11 +15,12 @@
 package ru.avicomp.ontapi.tests.managers;
 
 import org.apache.jena.rdf.model.Resource;
-import org.apache.log4j.Logger;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 30.09.2016.
  */
 public class SimpleLoadTest {
-    private static final Logger LOGGER = Logger.getLogger(SimpleLoadTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleLoadTest.class);
 
     @Test
     public void testPizza() throws Exception {
@@ -57,7 +58,7 @@ public class SimpleLoadTest {
         manager.setOntologyLoaderConfiguration(conf);
 
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
-        LOGGER.info("The file " + fileIRI);
+        LOGGER.debug("The source document file {}", fileIRI);
         OntologyModel ont = manager.loadOntologyFromOntologyDocument(fileIRI);
         OntGraphModel model = ont.asGraphModel();
         ReadWriteUtils.print(model);
@@ -74,7 +75,7 @@ public class SimpleLoadTest {
                 .map(Resource::getURI).map(IRI::create)
                 .map(owl::referencingAxioms).flatMap(Function.identity()).collect(Collectors.toSet());
         LOGGER.debug("OWL Axioms to exclude from consideration (" + punningAxioms.size() + "): ");
-        punningAxioms.forEach(LOGGER::debug);
+        punningAxioms.stream().map(String::valueOf).forEach(LOGGER::debug);
         List<OWLAxiom> owlList = owl.axioms().filter(axiom -> !punningAxioms.contains(axiom)).sorted().collect(Collectors.toList());
         // by some mysterious reason OWL-API skips owl:equivalentProperty although it seems a good axiom.
         test(owlList, ontList, Stream.of(AxiomType.DECLARATION, AxiomType.ANNOTATION_ASSERTION, AxiomType.EQUIVALENT_OBJECT_PROPERTIES).collect(Collectors.toSet()));
@@ -87,7 +88,7 @@ public class SimpleLoadTest {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
-        LOGGER.info("The file " + fileIRI);
+        LOGGER.debug("The source document file {}", fileIRI);
 
         OntologyModel ont = OntManagers.createONT().loadOntologyFromOntologyDocument(fileIRI);
         OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(fileIRI);
@@ -102,8 +103,8 @@ public class SimpleLoadTest {
 
         test(owlList, ontList, excluded);
 
-        LOGGER.info("Test separately skipped axioms:");
-        LOGGER.debug("Test type <" + AxiomType.DECLARATION + ">");
+        LOGGER.debug("Test separately skipped axioms:");
+        LOGGER.debug("Test type <{}>", AxiomType.DECLARATION);
         List<OWLAxiom> expectedDeclarations = Stream.of(
                 owlList.stream()
                         .filter(a -> AxiomType.CLASS_ASSERTION.equals(a.getAxiomType()))
@@ -121,7 +122,7 @@ public class SimpleLoadTest {
                         expectedDeclarations.size() + ")",
                 actualDeclarations, IsEqual.equalTo(expectedDeclarations));
 
-        LOGGER.debug("Test type <" + AxiomType.CLASS_ASSERTION + ">");
+        LOGGER.debug("Test type <{}>", AxiomType.CLASS_ASSERTION);
         List<OWLAxiom> expectedClassAssertions = Stream.of(
                 owlList.stream()
                         .filter(a -> AxiomType.CLASS_ASSERTION.equals(a.getAxiomType()))
@@ -136,7 +137,7 @@ public class SimpleLoadTest {
                         expectedClassAssertions.size() + ")",
                 actualClassAssertions, IsEqual.equalTo(expectedClassAssertions));
 
-        LOGGER.debug("Test type <" + AxiomType.DATA_PROPERTY_ASSERTION + ">");
+        LOGGER.debug("Test type <{}>", AxiomType.DATA_PROPERTY_ASSERTION);
         List<OWLAxiom> expectedDataPropertyAssertions = Stream.of(
                 owlList.stream()
                         .filter(a -> AxiomType.DATA_PROPERTY_ASSERTION.equals(a.getAxiomType()))
@@ -153,9 +154,10 @@ public class SimpleLoadTest {
 
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void test(String fileName, AxiomType... toExclude) throws Exception {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
-        LOGGER.info("The file " + fileIRI);
+        LOGGER.debug("The source document file {}", fileIRI);
 
         OntologyModel ont = OntManagers.createONT().loadOntologyFromOntologyDocument(fileIRI);
         OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(fileIRI);
@@ -180,7 +182,7 @@ public class SimpleLoadTest {
                     .filter(axiom -> type.equals(axiom.getAxiomType()))
                     .collect(Collectors.toList());
             List<OWLAxiom> expected = owlList.stream().filter(axiom -> type.equals(axiom.getAxiomType())).collect(Collectors.toList());
-            LOGGER.debug("Test type <" + type + ">" + " ::: " + expected.size());
+            LOGGER.debug("Test type <{}> ::: {}", type, expected.size());
             Assert.assertThat("Incorrect axioms for type <" + type + "> (actual(ont)=" + actual.size() + ", expected(owl)=" + expected.size() + ")", actual, IsEqual.equalTo(expected));
         });
     }

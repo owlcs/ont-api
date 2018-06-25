@@ -49,22 +49,22 @@ public class OntModelTest {
 
     @Test
     public void testPizzaLoadCE() {
-        LOGGER.info("load pizza");
+        LOGGER.debug("load pizza");
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
-        LOGGER.info("Ontology: " + m.getID());
+        LOGGER.debug("Ontology: {}", m.getID());
 
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
         int expectedClassesCount = m.listStatements(null, RDF.type, OWL.Class).mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).toSet().size();
         int actualClassesCount = classes.size();
-        LOGGER.info("Classes Count = {}", actualClassesCount);
+        LOGGER.debug("Classes Count = {}", actualClassesCount);
         Assert.assertEquals("Incorrect Classes count", expectedClassesCount, actualClassesCount);
 
-        LOGGER.info("Class Expressions:");
+        LOGGER.debug("Class Expressions:");
         List<OntCE> ces = m.ontObjects(OntCE.class).collect(Collectors.toList());
         ces.forEach(x -> LOGGER.debug("{}", x));
         int expectedCEsCount = m.listStatements(null, RDF.type, OWL.Class).andThen(m.listStatements(null, RDF.type, OWL.Restriction)).toSet().size();
         int actualCEsCount = ces.size();
-        LOGGER.info("Class Expressions Count = {}", actualCEsCount);
+        LOGGER.debug("Class Expressions Count = {}", actualCEsCount);
         Assert.assertEquals("Incorrect CE's count", expectedCEsCount, actualCEsCount);
 
         List<OntCE.RestrictionCE> restrictionCEs = m.ontObjects(OntCE.RestrictionCE.class).collect(Collectors.toList());
@@ -91,14 +91,14 @@ public class OntModelTest {
 
     @Test
     public void testPizzaLoadProperties() {
-        LOGGER.info("load pizza");
+        LOGGER.debug("load pizza");
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         simplePropertiesTest(m);
     }
 
     @Test
     public void testPizzaLoadIndividuals() {
-        LOGGER.info("load pizza");
+        LOGGER.debug("load pizza");
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
         Map<OntIndividual, Set<OntCE>> classes = individuals.stream()
@@ -223,13 +223,13 @@ public class OntModelTest {
         m.setNsPrefix("test", ns);
         m.setNsPrefixes(OntModelFactory.STANDARD);
 
-        LOGGER.info("1) Assign version-iri and ontology comment.");
+        LOGGER.debug("1) Assign version-iri and ontology comment.");
         m.setID(uri).setVersionIRI(ns + "1.0.1");
         m.getID().addComment("Some comment", "fr");
         m.getID().annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Should be one header annotation", 1, m.getID().annotations().count());
 
-        LOGGER.info("2) Create class with two labels.");
+        LOGGER.debug("2) Create class with two labels.");
         OntClass cl = m.createOntEntity(OntClass.class, ns + "ClassN1");
         cl.addLabel("some label");
         OntStatement label2 = cl.addLabel("another label", "de");
@@ -237,7 +237,7 @@ public class OntModelTest {
         cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect count of labels.", 2, m.listObjectsOfProperty(cl, RDFS.label).toList().size());
 
-        LOGGER.info("3) Annotate annotation {}", label2);
+        LOGGER.debug("3) Annotate annotation {}", label2);
         OntStatement seeAlsoForLabel2 = label2.addAnnotation(m.getAnnotationProperty(RDFS.seeAlso), ResourceFactory.createResource("http://see.also/1"));
         OntStatement labelForLabel2 = label2.addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label"));
         ReadWriteUtils.print(m);
@@ -245,7 +245,7 @@ public class OntModelTest {
         Assert.assertTrue("Can't find owl:Axiom section.", m.contains(null, RDF.type, OWL.Axiom));
         Assert.assertFalse("There is owl:Annotation section.", m.contains(null, RDF.type, OWL.Annotation));
 
-        LOGGER.info("4) Create annotation property and annotate {} and {}", seeAlsoForLabel2, labelForLabel2);
+        LOGGER.debug("4) Create annotation property and annotate {} and {}", seeAlsoForLabel2, labelForLabel2);
         OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "annotation-prop-1");
         seeAlsoForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see also"));
         OntStatement annotationForLabelForLabel2 = labelForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see label"));
@@ -255,7 +255,7 @@ public class OntModelTest {
         Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
         Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
-        LOGGER.info("5) Delete annotations for {}", labelForLabel2);
+        LOGGER.debug("5) Delete annotations for {}", labelForLabel2);
         labelForLabel2.deleteAnnotation(annotationForLabelForLabel2.getPredicate().as(OntNAP.class), annotationForLabelForLabel2.getObject());
         ReadWriteUtils.print(m);
         Assert.assertEquals("Expected one root with owl:Annotation.", 1, m.listStatements(null, RDF.type, OWL.Annotation)
@@ -264,14 +264,14 @@ public class OntModelTest {
         Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
 
-        LOGGER.info("6) Delete all annotations for {}", label2);
+        LOGGER.debug("6) Delete all annotations for {}", label2);
         label2.clearAnnotations();
         ReadWriteUtils.print(m);
         Assert.assertEquals("Incorrect count of labels.", 2, m.listObjectsOfProperty(cl, RDFS.label).toList().size());
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
         Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL.Annotation));
 
-        LOGGER.info("7) Annotate sub-class-of");
+        LOGGER.debug("7) Annotate sub-class-of");
         OntStatement subClassOf = cl.addSubClassOf(m.getOWLThing());
         OntStatement subClassOfAnnotation = subClassOf
                 .addAnnotation(nap1, ResourceFactory.createPlainLiteral("test"));
@@ -284,7 +284,7 @@ public class OntModelTest {
         Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
         Assert.assertEquals("Expected 3 root annotations for class " + cl, 3, cl.annotations().count());
 
-        LOGGER.info("8) Deleter all annotations for class {}", cl);
+        LOGGER.debug("8) Deleter all annotations for class {}", cl);
         cl.clearAnnotations();
         ReadWriteUtils.print(m);
         cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
@@ -345,7 +345,7 @@ public class OntModelTest {
 
     @Test
     public void testRemoveAnnotations() {
-        LOGGER.info("Create a model");
+        LOGGER.debug("Create a model");
         OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefixes(OntModelFactory.STANDARD);
         m.getID().addAnnotation(m.getAnnotationProperty(org.apache.jena.vocabulary.OWL.versionInfo), "anonymous ontology", "en");
@@ -361,7 +361,7 @@ public class OntModelTest {
                 .addAnnotation(m.getRDFSComment(), "This is a negative data property assertion", null).addAnnotation(m.getRDFSLabel(), "Label", "lk");
         ReadWriteUtils.print(m);
 
-        LOGGER.info("Remove annotated components");
+        LOGGER.debug("Remove annotated components");
         OntNPA.DataAssertion assertion = p.negativeAssertions(i).findFirst().orElseThrow(AssertionError::new);
         OntStatement domain = m.statements(null, RDFS.domain, null).findFirst().orElseThrow(AssertionError::new);
         OntStatement range = m.statements(null, RDFS.range, null).findFirst().orElseThrow(AssertionError::new);
@@ -478,11 +478,11 @@ public class OntModelTest {
         cl3.addSubClassOf(child.createIntersectionOf(Arrays.asList(cl1, cl2)));
         cl3.createIndividual(childNS + "Individual1");
 
-        LOGGER.info("Base:");
+        LOGGER.debug("Base:");
         base = child.imports().findFirst().orElse(null);
         Assert.assertNotNull("Null base", base);
         ReadWriteUtils.print(base);
-        LOGGER.info("Child:");
+        LOGGER.debug("Child:");
         ReadWriteUtils.print(child);
         Set<String> imports = child.getID().imports().collect(Collectors.toSet());
         Assert.assertThat("Incorrect imports", imports, IsEqual.equalTo(Stream.of(baseURI).collect(Collectors.toSet())));

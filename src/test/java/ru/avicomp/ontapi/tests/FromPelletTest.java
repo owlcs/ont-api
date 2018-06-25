@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,12 +14,12 @@
 
 package ru.avicomp.ontapi.tests;
 
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
@@ -34,7 +34,7 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
  * Created by @szuev on 19.04.2017.
  */
 public class FromPelletTest {
-    private static final Logger LOGGER = Logger.getLogger(FromPelletTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FromPelletTest.class);
 
     @Test
     public void testAddRemoveAxioms() throws Exception {
@@ -142,17 +142,17 @@ public class FromPelletTest {
         o.add(ClassAssertion);
 
         ReadWriteUtils.print(o);
-        o.axioms().forEach(LOGGER::info);
+        o.axioms().map(String::valueOf).forEach(LOGGER::debug);
     }
 
     @Test
     public void testPropertyChain() throws Exception {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("propertyChain.owl"));
-        LOGGER.info(iri);
+        LOGGER.debug("{}", iri);
         OntologyManager m = OntManagers.createONT();
         OntologyModel o = m.loadOntology(iri);
         ReadWriteUtils.print(o);
-        o.axioms().forEach(LOGGER::info);
+        o.axioms().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect count of property chains axioms", 4, o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF).count());
         OntOPE p = o.asGraphModel().getOntEntity(OntNOP.class, "http://www.example.org/test#s");
         Assert.assertEquals("Incorrect count of property chains", 3, p.propertyChains().count());
@@ -161,11 +161,11 @@ public class FromPelletTest {
     @Test
     public void testSWRLOntology() throws Exception {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("anyURI-premise.rdf"));
-        LOGGER.info(iri);
+        LOGGER.debug("{}", iri);
         OWLOntologyManager m = OntManagers.createONT();
         OWLOntology o = m.loadOntology(iri);
         ReadWriteUtils.print(o);
-        o.axioms().forEach(LOGGER::info);
+        o.axioms().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect data properties count", 7, o.dataPropertiesInSignature().count());
     }
 }

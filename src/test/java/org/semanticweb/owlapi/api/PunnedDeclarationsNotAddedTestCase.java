@@ -116,10 +116,10 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
             o.add(assertion);
             Assert.fail("The assetrtion succesfully added: " + assertion);
         } catch (ru.avicomp.ontapi.OntApiException e) {
-            LOGGER.info("Exception: {}", e);
+            LOGGER.debug("Exception: {}", e);
             Throwable cause = e.getCause();
             if (cause instanceof ru.avicomp.ontapi.jena.OntJenaException) {
-                LOGGER.info("Cause: {}", cause);
+                LOGGER.debug("Cause: {}", cause);
                 return;
             }
             throw e;

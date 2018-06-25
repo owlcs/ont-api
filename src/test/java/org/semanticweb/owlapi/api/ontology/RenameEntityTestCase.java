@@ -87,7 +87,7 @@ public class RenameEntityTestCase extends TestBase {
         axioms2.add(AnnotationAssertion(annoProp, clsAIRI2.getIRI(), Literal("X")));
 
         LOGGER.debug("----------------------------------------------");
-        LOGGER.info(String.format("Rename %s -> %s", clsAIRI1, clsAIRI2));
+        LOGGER.debug("Rename {} -> {}", clsAIRI1, clsAIRI2);
         OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), singleton(ont));
         List<OWLOntologyChange> changes1 = entityRenamer.changeIRI(clsAIRI1, clsAIRI2.getIRI());
         changes1.forEach(x -> LOGGER.debug(String.valueOf(x)));
@@ -97,10 +97,10 @@ public class RenameEntityTestCase extends TestBase {
         Assert.assertTrue(String.format("Incorrect list of axioms after renaming %s -> %s", clsAIRI1, clsAIRI2), actual1.containsAll(axioms2));
 
         LOGGER.debug("----------------------------------------------");
-        LOGGER.info(String.format("Rename back %s -> %s", clsAIRI2, clsAIRI1));
+        LOGGER.debug("Rename back {} -> {}", clsAIRI2, clsAIRI1);
         List<OWLOntologyChange> changes2 = entityRenamer.changeIRI(clsAIRI2.getIRI(), clsAIRI1.getIRI());
         Assert.assertEquals("The count of changes should be the same.", changes1.size(), changes2.size());
-        changes2.forEach(x -> LOGGER.debug(String.valueOf(x)));
+        changes2.forEach(x -> LOGGER.debug("{}", x));
         ont.getOWLOntologyManager().applyChanges(changes2);
 
         Set<OWLAxiom> actual2 = ont.axioms().collect(Collectors.toSet());
@@ -157,7 +157,7 @@ public class RenameEntityTestCase extends TestBase {
         axioms2.add(AnnotationAssertion(annoProp, propA2.getIRI(), Literal("X")));
 
         LOGGER.debug("----------------------------------------------");
-        LOGGER.info(String.format("Rename %s -> %s", propA, propA2));
+        LOGGER.debug("Rename {} -> {}", propA, propA2);
         OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), singleton(ont));
         List<OWLOntologyChange> changes1 = entityRenamer.changeIRI(propA, propA2.getIRI());
         changes1.forEach(x -> LOGGER.debug(String.valueOf(x)));
@@ -165,7 +165,7 @@ public class RenameEntityTestCase extends TestBase {
         Assert.assertEquals(ont.axioms().collect(Collectors.toSet()), axioms2);
 
         LOGGER.debug("----------------------------------------------");
-        LOGGER.info(String.format("Rename back %s -> %s", propA2, propA));
+        LOGGER.debug("Rename back {} -> {}", propA2, propA);
         List<OWLOntologyChange> changes2 = entityRenamer.changeIRI(propA2.getIRI(), propA.getIRI());
         Assert.assertEquals("The count of changes should be the same.", changes1.size(), changes2.size());
         changes2.forEach(x -> LOGGER.debug(String.valueOf(x)));

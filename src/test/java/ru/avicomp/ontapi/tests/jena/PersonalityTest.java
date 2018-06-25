@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 /**
  * Created by @szuev on 27.03.2018.
  */
+@SuppressWarnings("WeakerAccess")
 public class PersonalityTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(PersonalityTest.class);
 
@@ -185,7 +186,7 @@ public class PersonalityTest {
 
     @AfterClass
     public static void afterClass() {
-        LOGGER.info("Unregister '{}'", NAMED_INDIVIDUAL);
+        LOGGER.debug("Unregister '{}'", NAMED_INDIVIDUAL);
         Assert.assertNotNull(Entities.INDIVIDUAL.unregister(NAMED_INDIVIDUAL));
     }
 
@@ -198,7 +199,7 @@ public class PersonalityTest {
 
     public static OntPersonality buildCustomPersonality() {
         OntPersonality from = OntModelConfig.ONT_PERSONALITY_LAX;
-        LOGGER.info("Register '{}'", NAMED_INDIVIDUAL);
+        LOGGER.debug("Register '{}'", NAMED_INDIVIDUAL);
         Entities.INDIVIDUAL.register(NAMED_INDIVIDUAL, createNamedIndividualFactory(from.getOntImplementation(OntCE.class)));
         Assert.assertEquals(1, Entities.INDIVIDUAL.keys().size());
         Arrays.stream(Entities.values())

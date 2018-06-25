@@ -108,7 +108,7 @@ public class GraphsTest {
             } catch (IOException e) {
                 throw new UncheckedIOException("Can't load " + f.file(), e);
             }
-            LOGGER.info("Graph {} is loaded, size: {}", f.uri(), g.size());
+            LOGGER.debug("Graph {} is loaded, size: {}", f.uri(), g.size());
             res.put(f.uri(), new UnmodifiableGraph(g));
         }
         return Collections.unmodifiableMap(res);

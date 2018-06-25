@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.tests.model;
@@ -60,7 +59,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         int importsCount = 4;
         OntID jenaOnt = jena.setID(iri.getIRIString());
         Assert.assertNotNull(jenaOnt);
-        LOGGER.info("Add imports.");
+        LOGGER.debug("Add imports.");
         OntIRI import1 = OntIRI.create("http://dummy-imports.com/first");
         OntIRI import2 = OntIRI.create("http://dummy-imports.com/second");
         OntIRI import3 = OntIRI.create(ReadWriteUtils.getResourceURI("foaf.rdf"));
@@ -76,7 +75,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals("OWL: incorrect imports count.", importsCount, owl.importsDeclarations().count());
         Assert.assertEquals("Jena: incorrect imports count.", importsCount, jena.listStatements(iri.toResource(), OWL.imports, (RDFNode) null).toList().size());
 
-        LOGGER.info("Remove imports.");
+        LOGGER.debug("Remove imports.");
         jena.getID().removeImport(import4.getIRIString());
         manager.applyChange(new RemoveImport(owl, factory.getOWLImportsDeclaration(import1)));
         debug(owl);
@@ -117,12 +116,12 @@ public class ImportsOntModelTest extends OntModelTestBase {
         baseAxioms.add(factory.getOWLDeclarationAxiom(class2));
         baseAxioms.add(factory.getOWLDeclarationAxiom(dataType));
 
-        LOGGER.info("Apply axioms to the base ontology " + baseIRI);
+        LOGGER.debug("Apply axioms to the base ontology {}", baseIRI);
         baseAxioms.forEach(axiom -> base.applyChanges(new AddAxiom(base, axiom)));
 
         debug(base);
 
-        LOGGER.info("Add import " + baseIRI);
+        LOGGER.debug("Add import {}", baseIRI);
         OntIRI childIRI = OntIRI.create("http://test.test/add-import/child");
         OntologyModel child = manager.createOntology(childIRI);
         child.applyChanges(new AddImport(child, factory.getOWLImportsDeclaration(baseIRI)));
@@ -143,12 +142,12 @@ public class ImportsOntModelTest extends OntModelTestBase {
         axioms.add(factory.getOWLClassAssertionAxiom(ce1, individual2));
         axioms.add(factory.getOWLAnnotationPropertyDomainAxiom(annProperty, class1.getIRI()));
 
-        LOGGER.info("Apply axioms to the subsidiary ontology " + child);
+        LOGGER.debug("Apply axioms to the subsidiary ontology {}", child);
         axioms.forEach(axiom -> child.applyChanges(new AddAxiom(child, axiom)));
 
         debug(child);
 
-        LOGGER.info("Check triplets presence.");
+        LOGGER.debug("Check triplets presence.");
         checkTriple(base.asGraphModel(), child.asGraphModel(), classIRI1.toResource(), RDF.type, OWL.Class);
         checkTriple(base.asGraphModel(), child.asGraphModel(), classIRI2.toResource(), RDF.type, OWL.Class);
         checkTriple(base.asGraphModel(), child.asGraphModel(), objPropIRI.toResource(), RDF.type, OWL.ObjectProperty);
@@ -156,7 +155,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         checkTriple(base.asGraphModel(), child.asGraphModel(), annPropIRI.toResource(), RDF.type, OWL.AnnotationProperty);
         checkTriple(base.asGraphModel(), child.asGraphModel(), dataTypeIRI.toResource(), RDF.type, RDFS.Datatype);
 
-        LOGGER.info("Reload models.");
+        LOGGER.debug("Reload models.");
         OntologyManager newManager = OntManagers.createONT();
         OntologyModel newBase = ReadWriteUtils.convertJenaToONT(newManager, base.asGraphModel());
         OntologyModel newChild = ReadWriteUtils.convertJenaToONT(newManager, child.asGraphModel());
@@ -167,14 +166,14 @@ public class ImportsOntModelTest extends OntModelTestBase {
                 newChild.asGraphModel().listStatements().toList().size());
         TestUtils.compareAxioms(base.axioms(), newBase.axioms());
 
-        LOGGER.info("Check axioms after reload:");
+        LOGGER.debug("Check axioms after reload:");
         LOGGER.debug("Origin ont");
         child.axioms().map(String::valueOf).forEach(LOGGER::debug);
         LOGGER.debug("Reloaded ont");
         newChild.axioms().map(String::valueOf).forEach(LOGGER::debug);
         TestUtils.compareAxioms(child.axioms(), newChild.axioms());
 
-        LOGGER.info("Remove import test");
+        LOGGER.debug("Remove import test");
         child.applyChanges(new RemoveImport(child, factory.getOWLImportsDeclaration(baseIRI)));
         debug(child);
         checkTriplePresence(child.asGraphModel(), classIRI1.toResource(), RDF.type, OWL.Class);
@@ -201,7 +200,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         Assert.assertTrue(a_owl.imports().anyMatch(o -> Objects.equals(o, b_owl)));
 
-        LOGGER.info("Add class and associated individual");
+        LOGGER.debug("Add class and associated individual");
         OntIndividual i = b.createOntEntity(OntClass.class, "class").createIndividual("individual");
         b_owl.axioms().forEach(x -> LOGGER.debug("{}", x));
 
@@ -211,7 +210,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(0, a_owl.getAxiomCount());
         Assert.assertEquals(b_axioms_1, a_axioms_1);
 
-        LOGGER.info("Remove individual (class assertion + declaration)");
+        LOGGER.debug("Remove individual (class assertion + declaration)");
         b.removeOntObject(i);
         b_owl.axioms().forEach(x -> LOGGER.debug("{}", x));
 

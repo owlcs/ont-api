@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -113,7 +113,7 @@ public abstract class GraphTransformers {
         protected Map<String, Maker> set = new LinkedHashMap<>();
 
         /**
-         * Copies this instance/
+         * Makes a deep copy of this Store instance.
          *
          * @return new instance
          */
@@ -124,7 +124,7 @@ public abstract class GraphTransformers {
         }
 
         /**
-         * Adds last to store.
+         * Adds the specified Maker to the end of the queue in this Store.
          *
          * @param f {@link Maker} to add
          * @return a copy of this store
@@ -136,7 +136,7 @@ public abstract class GraphTransformers {
         }
 
         /**
-         * Adds first to store.
+         * Inserts the specified element Maker at the beginning of the queue in this Store.
          *
          * @param f {@link Maker} to add
          * @return a copy of this store
@@ -149,7 +149,7 @@ public abstract class GraphTransformers {
         }
 
         /**
-         * Removes first from store.
+         * Removes the first element Maker from internal queue from this Store.
          *
          * @return a copy of this store without first element.
          */
@@ -161,7 +161,7 @@ public abstract class GraphTransformers {
         }
 
         /**
-         * Removes last from store.
+         * Removes the last element Maker from internal queue from this Store.
          *
          * @return a copy of this store without last element.
          */
@@ -186,7 +186,7 @@ public abstract class GraphTransformers {
         }
 
         /**
-         * @param graph {@link Graph} to perform operations on.
+         * @param graph {@link Graph} to perform operations on
          * @throws TransformException if something wrong while transformations
          */
         public void transform(Graph graph) throws TransformException {
@@ -197,12 +197,12 @@ public abstract class GraphTransformers {
          * Recursively performs graph transformation.
          * todo: should return transform statistic object.
          *
-         * @param graph     {@link Graph}, in most cases it is {@link UnionGraph}.
-         * @param processed Set of base {@link Graph}s to avoid transformations multiple times on the same graph.
+         * @param graph     {@link Graph}, in most cases it is {@link UnionGraph} with sub-graphs, which will be processed first.
+         * @param processed Set of {@link Graph}s to avoid processing transformation multiple times on the same graph.
          * @throws TransformException if something is wrong
          * @see Transform
          */
-        protected void transform(Graph graph, Set<Graph> processed) throws TransformException {
+        public void transform(Graph graph, Set<Graph> processed) throws TransformException {
             List<Graph> children = Graphs.subGraphs(graph).collect(Collectors.toList());
             for (Graph g : children) {
                 try {

@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.tests.model;
@@ -58,7 +57,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         String commentLang = "s";
         String label = "some-label";
 
-        LOGGER.info("Create fresh ontology (" + iri + ").");
+        LOGGER.debug("Create fresh ontology ({}).", iri);
         OntologyManager manager = OntManagers.createONT();
         OWLDataFactory factory = manager.getOWLDataFactory();
         OntologyModel owl = manager.createOntology(iri);
@@ -67,7 +66,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         OntClass ontClass = jena.createOntEntity(OntClass.class, clazzIRI.getIRIString());
 
-        LOGGER.info("Assemble annotations using jena.");
+        LOGGER.debug("Assemble annotations using jena.");
         Resource commentURI;
         Literal label4, label2;
         Resource root = jena.createResource();
@@ -87,7 +86,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         jena.add(anon, RDFS.label, label4);
 
         debug(owl);
-        LOGGER.info("Check");
+        LOGGER.debug("Check");
 
         Set<OWLAnnotation> annotations = Stream.of(
                 factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty),
@@ -100,13 +99,13 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
                 factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))).collect(Collectors.toSet());
         OWLAxiom expected = factory.getOWLDeclarationAxiom(factory.getOWLClass(clazzIRI), annotations);
 
-        LOGGER.info("Current axioms:");
+        LOGGER.debug("Current axioms:");
         owl.axioms().map(String::valueOf).forEach(LOGGER::debug);
         TestUtils.compareAxioms(Stream.of(expected), owl.axioms());
 
-        LOGGER.info("Reload ontology.");
+        LOGGER.debug("Reload ontology.");
         OWLOntology reload = ReadWriteUtils.convertJenaToOWL(OntManagers.createOWL(), jena, null);
-        LOGGER.info("Axioms after reload:");
+        LOGGER.debug("Axioms after reload:");
         reload.axioms().map(String::valueOf).forEach(LOGGER::debug);
         TestUtils.compareAxioms(Stream.of(expected), reload.axioms());
     }
@@ -122,7 +121,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         long count = manager.ontologies().count();
 
         OWLOntologyID id1 = iri.toOwlOntologyID(iri.addPath("1.0"));
-        LOGGER.info("Create ontology " + id1);
+        LOGGER.debug("Create ontology {}", id1);
         OntologyModel owl1 = manager.createOntology(id1);
 
         // plain annotations will go as assertion annotation axioms after reloading owl. so disable
@@ -154,11 +153,11 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         debug(owl1);
 
         OWLOntologyID id2 = iri.toOwlOntologyID(iri.addPath("2.0"));
-        LOGGER.info("Create ontology " + id2 + " (empty)");
+        LOGGER.debug("Create ontology {} (empty)", id2);
         OntologyModel owl2 = manager.createOntology(id2);
         Assert.assertEquals("Incorrect number of ontologies.", count + 2, manager.ontologies().count());
 
-        LOGGER.info("Pass all content from " + id1 + " to " + id2 + " using jena");
+        LOGGER.debug("Pass all content from {} to {} using jena.", id1, id2);
         OntGraphModel source = owl1.asGraphModel();
         OntGraphModel target = owl2.asGraphModel();
         Iterator<Statement> toCopy = source.getBaseModel().listStatements().filterDrop(statement -> iri.toResource().equals(statement.getSubject()));
@@ -166,7 +165,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         target.setNsPrefixes(source.getNsPrefixMap()); // just in case
         debug(owl2);
 
-        LOGGER.info("Validate axioms"); // By default bulk assertions are allowed:
+        LOGGER.debug("Validate axioms"); // By default bulk assertions are allowed:
         Assert.assertEquals("Should be single class-assertion", 1, owl2.axioms(AxiomType.CLASS_ASSERTION).count());
         Assert.assertEquals("Should be two declarations(class + individual)", 2, owl2.axioms(AxiomType.DECLARATION).count());
         Assert.assertTrue("Incorrect class assertion axiom.", owl2.containsAxiom(individualAxiom));
@@ -309,7 +308,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
                 Stream.of(ind1, ind2, ind3).collect(Collectors.toSet()),
                 Stream.of(ann4).collect(Collectors.toSet())));
 
-        LOGGER.info("Add pairwise axioms");
+        LOGGER.debug("Add pairwise axioms");
 
         axioms.forEach(a -> owl.applyChange(new AddAxiom(owl, a)));
 
@@ -359,7 +358,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLAnnotation ann4 = factory.getOWLAnnotation(factory.getRDFSIsDefinedBy(), iri.addFragment("do-not-click/please"));
         axioms.add(factory.getOWLHasKeyAxiom(clazz1, Stream.of(op1).collect(Collectors.toSet()), Stream.of(ann4).collect(Collectors.toSet())));
 
-        LOGGER.info("Add annotated axioms");
+        LOGGER.debug("Add annotated axioms");
         axioms.forEach(a -> owl.applyChanges(new AddAxiom(owl, a)));
 
         debug(owl);
@@ -471,7 +470,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLAnnotation seeAlsoAnnotation = df.getOWLAnnotation(df.getRDFSSeeAlso(), link, Stream.of(_ann1, _ann2));
         OWLAnnotation customPropertyAnnotation = df.getOWLAnnotation(annotationProperty, someLiteral);
 
-        LOGGER.info("1) Annotate ontology.");
+        LOGGER.debug("1) Annotate ontology.");
         o1.applyChanges(new AddOntologyAnnotation(o1, seeAlsoAnnotation));
         o1.applyChanges(new AddOntologyAnnotation(o1, customPropertyAnnotation));
 
@@ -500,7 +499,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
             Assert.assertTrue("Can't find declaration of " + annotationProperty, jena.contains(WriteHelper.toResource(annotationProperty), RDF.type, OWL.AnnotationProperty));
         }
 
-        LOGGER.info("2) Remove " + seeAlsoAnnotation);
+        LOGGER.debug("2) Remove {}", seeAlsoAnnotation);
         o1.applyChanges(new RemoveOntologyAnnotation(o1, seeAlsoAnnotation));
         debug(o1);
         Assert.assertFalse("The annotation " + seeAlsoAnnotation + " still present", o1.annotations().anyMatch(seeAlsoAnnotation::equals));
@@ -517,7 +516,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
             Assert.assertTrue("Can't find declaration of " + annotationProperty, jena.contains(WriteHelper.toResource(annotationProperty), RDF.type, OWL.AnnotationProperty));
         }
 
-        LOGGER.info("3) Remove " + customPropertyAnnotation);
+        LOGGER.debug("3) Remove {}", customPropertyAnnotation);
         o1.applyChanges(new RemoveOntologyAnnotation(o1, customPropertyAnnotation));
         Assert.assertFalse("The annotation " + customPropertyAnnotation + " still present", o1.annotations().anyMatch(customPropertyAnnotation::equals));
         o1.remove(df.getOWLDeclarationAxiom(annotationProperty));
@@ -530,7 +529,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
             Assert.assertEquals("Expected only single triplet", 1, rest.size());
         }
 
-        LOGGER.info("4) Reload original ontology.");
+        LOGGER.debug("4) Reload original ontology.");
         IRI ver = IRI.create("http://version/2");
         txt += String.format("<%s> <%s> <%s> .", iri, OWL.versionIRI, ver);
         LOGGER.debug("\n" + txt + "\n");

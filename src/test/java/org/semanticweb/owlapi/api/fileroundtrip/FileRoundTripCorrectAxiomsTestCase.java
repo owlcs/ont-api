@@ -60,10 +60,10 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
         Set<OWLAxiom> actual = o.axioms().collect(Collectors.toSet());
         LOGGER.debug("Actual:");
-        actual.forEach(a -> LOGGER.info(String.valueOf(a)));
-        LOGGER.debug("COUNT: " + actual.size());
+        actual.forEach(a -> LOGGER.debug("{}", a));
+        LOGGER.debug("COUNT: {}", actual.size());
         LOGGER.debug("Expected:");
-        expected.forEach(a -> LOGGER.info(String.valueOf(a)));
+        expected.forEach(a -> LOGGER.debug("{}", a));
         if (OWLManager.DEBUG_USE_OWL) {
             Assert.assertEquals("Incorrect set of axioms", expected, actual);
         } else { // all explicit declarations are included!

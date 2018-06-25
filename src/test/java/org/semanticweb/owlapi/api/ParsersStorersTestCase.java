@@ -70,15 +70,15 @@ public class ParsersStorersTestCase extends TestBase {
     }
 
     public void test(OWLStorerFactory stores, OWLParserFactory parsers, OWLDocumentFormat format, boolean expectParse, boolean expectRoundtrip) throws Exception {
-        LOGGER.info("Test object: <" + object + ">");
-        LOGGER.debug("Test format: " + format.getClass().getSimpleName());
+        LOGGER.debug("Test object: <{}>", object);
+        LOGGER.debug("Test format: {}", format.getClass().getSimpleName());
         StringDocumentTarget target = new StringDocumentTarget();
         OWLOntology data = ont();
 
         LOGGER.debug("Test Data:");
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(data);
         LOGGER.debug("Original axioms:");
-        data.axioms().forEach(a -> LOGGER.debug(a.toString()));
+        data.axioms().forEach(a -> LOGGER.debug("{}", a));
 
         stores.createStorer().storeOntology(data, target, format);
         OWLOntology res = getAnonymousOWLOntology();
@@ -90,15 +90,15 @@ public class ParsersStorersTestCase extends TestBase {
             LOGGER.debug("Result format: " + resultFormat.getClass().getSimpleName());
         } catch (OWLParserException e) {
             if (expectParse) {
-                LOGGER.debug("ParsersStorersTestCase.test() " + target);
+                LOGGER.debug("ParsersStorersTestCase.test() {}", target);
                 throw e;
             } else {
-                LOGGER.debug("parse fail: " + format.getKey() + " " + object);
+                LOGGER.debug("parse fail: {} {}", format.getKey(), object);
                 return;
             }
         }
         LOGGER.debug("Axioms after parsing:");
-        res.axioms().forEach(a -> LOGGER.debug(a.toString()));
+        res.axioms().forEach(a -> LOGGER.debug("{}", a));
         if (!expectRoundtrip) {
             LOGGER.warn("Don't check the axiom contents.");
             return;

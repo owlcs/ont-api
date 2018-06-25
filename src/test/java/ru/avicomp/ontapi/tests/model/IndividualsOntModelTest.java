@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -54,11 +54,11 @@ public class IndividualsOntModelTest extends OntModelTestBase {
         int classesCount = 2;
         int individualsCount = 3;
 
-        LOGGER.info("Add classes.");
+        LOGGER.debug("Add classes.");
         manager.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(factory.getOWLClass(class1))));
         jena.add(class2.toResource(), RDF.type, OWL.Class);
 
-        LOGGER.info("Add individuals.");
+        LOGGER.debug("Add individuals.");
         LOGGER.debug("Add individuals using OWL");
         manager.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(factory.getOWLClass(class1), factory.getOWLNamedIndividual(individual1))));
         LOGGER.debug("Add individuals using ONT");
@@ -73,7 +73,7 @@ public class IndividualsOntModelTest extends OntModelTestBase {
         Assert.assertEquals("OWL: incorrect individuals count", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
         Assert.assertEquals("Jena: incorrect individuals count.", individualsCount, jena.ontObjects(OntIndividual.class).count());
 
-        LOGGER.info("Remove individuals");
+        LOGGER.debug("Remove individuals");
         // remove class assertion and declaration:
         jena.removeAll(individual3.toResource(), null, null);
         // remove class-assertion:

@@ -43,6 +43,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 16.10.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class TestUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestUtils.class);
 
@@ -57,7 +58,7 @@ public class TestUtils {
     }
 
     public static OntologyModel createModel(OntologyManager manager, OWLOntologyID id) {
-        LOGGER.info("Create ontology {}", id);
+        LOGGER.debug("Create ontology {}", id);
         return manager.createOntology(id);
     }
 

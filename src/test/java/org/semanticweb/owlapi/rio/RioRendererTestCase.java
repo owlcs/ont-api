@@ -69,7 +69,7 @@ public class RioRendererTestCase extends TestBase {
                 new RioTurtleStorerFactory());
         testOntologyEmpty = m.createOntology(testOntologyUri1);
         testOntologyKoala = m.loadOntologyFromOntologyDocument(getClass().getResourceAsStream("/owlapi/koala.owl"));
-        LOGGER.info("Axioms:");
+        LOGGER.debug("Axioms:");
         testOntologyKoala.axioms().forEach(axiom -> LOGGER.debug("{}", axiom));
         // ONT-API -> 76 axioms (6 declaration axioms for NamedIndividuals), OWL-API -> 70.
         int num = OWLManager.DEBUG_USE_OWL ? 70 : 76;

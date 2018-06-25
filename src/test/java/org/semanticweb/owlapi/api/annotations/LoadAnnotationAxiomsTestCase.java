@@ -69,7 +69,7 @@ public class LoadAnnotationAxiomsTestCase extends TestBase {
     }
 
     private void reload(OWLOntology ontology, OWLDocumentFormat format) throws Exception {
-        LOGGER.info("The format is [" + format.getClass().getSimpleName() + "]");
+        LOGGER.debug("The format is [{}]", format.getClass().getSimpleName());
         OWLOntologyLoaderConfiguration withAnnotationsConfig = new OWLOntologyLoaderConfiguration();
         OWLOntologyLoaderConfiguration withoutAnnotationsConfig = withAnnotationsConfig.setLoadAnnotationAxioms(false);
 
@@ -80,7 +80,7 @@ public class LoadAnnotationAxiomsTestCase extends TestBase {
         Set<OWLAxiom> axioms2 = o1.axioms().filter(notDeclaration()).collect(Collectors.toSet());
         Assert.assertEquals("Incorrect axioms for config with loaded annotations", axioms, axioms2);
         OWLOntology o2 = reload(ontology, format, withoutAnnotationsConfig);
-        Assert.assertFalse("The same axioms after reloading", axioms.equals(o2.axioms().filter(notDeclaration()).collect(Collectors.toSet())));
+        Assert.assertNotEquals("The same axioms after reloading", axioms, o2.axioms().filter(notDeclaration()).collect(Collectors.toSet()));
         Set<OWLAxiom> axiomsMinusAnnotationAxioms = new HashSet<>(axioms);
         axiomsMinusAnnotationAxioms.removeAll(annotationAxioms);
         Assert.assertEquals("Incorrect axioms for config without loaded annotations", axiomsMinusAnnotationAxioms,

@@ -330,10 +330,13 @@ public class OntologyFactoryImpl implements OntologyFactory {
                 boolean isPrimary = graphs.size() == 1;
                 Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
                 if (isPrimary && info.withTransforms() && config.isPerformTransformation()) {
+                    Set<Graph> transformed = graphs.values().stream()
+                            .filter(g -> !g.isFresh()).map(GraphInfo::getGraph)
+                            .collect(Collectors.toSet());
                     if (LOGGER.isDebugEnabled())
-                        LOGGER.debug("Perform graph transformations.");
+                        LOGGER.debug("Perform graph transformations on <{}>.", info.name());
                     try {
-                        config.getGraphTransformers().transform(graph);
+                        config.getGraphTransformers().transform(graph, transformed);
                     } catch (TransformException t) {
                         throw new OWLTransformException(t);
                     }
@@ -528,7 +531,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
         }
 
         /**
-         * Wraps a model as inner container.
+         * Wraps an already existed model as inner container.
          *
          * @param model {@link OntologyModel ontology}
          * @param src   the document source {@link IRI}, null to indicate the ontology is existing

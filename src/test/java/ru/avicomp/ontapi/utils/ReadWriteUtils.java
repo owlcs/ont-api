@@ -241,21 +241,8 @@ public class ReadWriteUtils {
         return dst;
     }
 
-    public static Path save(OWLOntology ontology, String name, OntFormat type) {
-        Path dst = getFileToSave(name, type);
-        LOGGER.debug("Save owl-ontology to " + dst.toUri() + " (" + (type == null ? "TURTLE" : type.getID()) + ")");
-        OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
-        try (OutputStream out = Files.newOutputStream(dst)) {
-            ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
-        } catch (OWLOntologyStorageException | IOException | UnsupportedOperationException e) {
-            LOGGER.error("Unable to print owl-ontology " + ontology, e);
-            return null;
-        }
-        return dst;
-    }
-
     public static OWLOntology loadOWLOntology(OWLOntologyManager manager, IRI fileIRI) {
-        LOGGER.info("Load ontology model from " + fileIRI + ".");
+        LOGGER.debug("Load ontology model from {}.", fileIRI);
         OWLOntology owl = null;
         try {
             owl = manager.loadOntology(fileIRI);
@@ -275,7 +262,7 @@ public class ReadWriteUtils {
 
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
         String uri = TestUtils.getURI(model);
-        LOGGER.info("Put ontology " + uri + "(" + convertFormat + ") to manager.");
+        LOGGER.debug("Put ontology {}({}) to the manager.", uri, convertFormat);
         try (InputStream is = toInputStream(model, convertFormat == null ? OntFormat.TURTLE : convertFormat)) {
             return manager.loadOntologyFromOntologyDocument(is);
         } catch (IOException | OWLOntologyCreationException e) {

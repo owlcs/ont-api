@@ -184,7 +184,7 @@ public class CommonManagerTest {
         axioms.forEach(a -> LOGGER.debug("{}", a));
         ReadWriteUtils.print(o1);
 
-        LOGGER.info("Change Load Annotation settings");
+        LOGGER.debug("Change Load Annotation settings");
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadAnnotationAxioms(false));
         Assert.assertFalse("Incorrect settings", m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
         // check the axioms changed.
@@ -194,7 +194,7 @@ public class CommonManagerTest {
         Assert.assertTrue("Can't find declaration for " + ap, axioms1.contains(df.getOWLDeclarationAxiom(ap)));
         Assert.assertTrue("The declaration for " + cl + " should be with annotations now", axioms1.contains(df.getOWLDeclarationAxiom(cl, Arrays.asList(a1, a2))));
 
-        LOGGER.info("Create new ontology ");
+        LOGGER.debug("Create new ontology ");
         OntologyModel o2 = m.createOntology();
         axioms.forEach(o2::add);
         ReadWriteUtils.print(o2);
@@ -231,7 +231,7 @@ public class CommonManagerTest {
         OWLOntology o2 = m.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(txt));
         Assert.assertEquals("Incorrect axioms collection in the copied ontology", axioms1, o2.axioms().collect(Collectors.toSet()));
 
-        LOGGER.info("Change Allow Bulk Annotation Assertion setting");
+        LOGGER.debug("Change Allow Bulk Annotation Assertion setting");
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setAllowBulkAnnotationAssertions(false));
         Assert.assertFalse("Incorrect settings", m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
         o1.axioms().forEach(a -> LOGGER.debug("{}", a));
@@ -263,27 +263,27 @@ public class CommonManagerTest {
 
     @Test
     public void testPassingGraph() throws Exception {
-        LOGGER.info("Build MultiUnion graph using jena OntModel");
+        LOGGER.debug("Build MultiUnion graph using jena OntModel");
         OntModelSpec spec = OntModelSpec.OWL_DL_MEM;
         FileManager jenaFileManager = spec.getDocumentManager().getFileManager();
         SpinModels.addMappings(jenaFileManager);
         OntModel ontologyModel = ModelFactory.createOntologyModel(spec);
         ontologyModel.read(SpinModels.SPINMAPL.getIRI().getIRIString(), "ttl");
 
-        LOGGER.info("Load spin-rdf ontology family using file-iri-mappings");
+        LOGGER.debug("Load spin-rdf ontology family using file-iri-mappings");
         OntologyManager m1 = OntManagers.createONT();
         SpinModels.addMappings(m1);
         m1.loadOntologyFromOntologyDocument(SpinModels.SPINMAPL.getIRI());
         long expected = m1.ontologies().count();
 
-        LOGGER.info("Pass ready composite graph to the manager as-is");
+        LOGGER.debug("Pass ready composite graph to the manager as-is");
         OntologyManager m2 = OntManagers.createONT();
         m2.addOntology(ontologyModel.getGraph());
         long actual = m2.ontologies().count();
 
         Assert.assertEquals("Counts of ontologies does not match", expected, actual);
 
-        LOGGER.info("Add several additional ontologies");
+        LOGGER.debug("Add several additional ontologies");
         m2.addOntology(OntModelFactory.createDefaultGraph());
         OntGraphModel o2 = OntModelFactory.createModel();
         o2.setID("http://example.org/test");
@@ -296,7 +296,7 @@ public class CommonManagerTest {
         setUpManager(origin);
         debugManager(origin);
 
-        LOGGER.info("|====================|");
+        LOGGER.debug("|====================|");
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ObjectOutputStream stream = new ObjectOutputStream(out);

@@ -73,7 +73,7 @@ public class LoadFactoryManagerTest {
         try {
             m.loadOntologyFromOntologyDocument(b);
         } catch (UnparsableOntologyException e) {
-            LOGGER.info("Exception: {}", e.getMessage().substring(0, Math.min(100, e.getMessage().length())));
+            LOGGER.debug("Exception: {}", e.getMessage().substring(0, Math.min(100, e.getMessage().length())));
         }
         // Note: the different with OWL-API (5.1.4) : no ontologies inside manager. Believe it is a bug of OWL-API.
         Assert.assertEquals("Wrong count", 1, m.ontologies().count());
@@ -159,14 +159,14 @@ public class LoadFactoryManagerTest {
         m.getIRIMappers().add(FileMap.create(amyIRI, amyFile));
         m.getIRIMappers().add(FileMap.create(sueIRI, sueFile));
         m.getIRIMappers().add(FileMap.create(coreIRI, wrongFile));
-        m.getIRIMappers().forEach(x -> LOGGER.info("{}", x));
+        m.getIRIMappers().forEach(x -> LOGGER.debug("{}", x));
 
-        LOGGER.info("-================-");
+        LOGGER.debug("-================-");
         try {
             Assert.fail("No exception while loading " + m.loadOntology(coreIRI));
         } catch (OWLRuntimeException e) {
             if (e instanceof UnloadableImportException) {
-                LOGGER.info("Exception", e);
+                LOGGER.debug("Exception", e);
             } else {
                 throw new AssertionError("Incorrect exception", e);
             }
@@ -186,7 +186,7 @@ public class LoadFactoryManagerTest {
         OWLOntologyIRIMapper mapSp = new SimpleIRIMapper(sp, IRI.create(ReadWriteUtils.getResourcePath("etc", "sp.ttl").toFile()));
         OWLOntologyIRIMapper mapSpin = new SimpleIRIMapper(spin, IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toFile()));
 
-        LOGGER.info("1) Test load some web ontology for a case when only file scheme is allowed.");
+        LOGGER.debug("1) Test load some web ontology for a case when only file scheme is allowed.");
         OntologyManager m1 = OntManagers.createONT();
         OntLoaderConfiguration conf = m1.getOntologyLoaderConfiguration().setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList()));
         m1.setOntologyLoaderConfiguration(conf);
@@ -194,30 +194,30 @@ public class LoadFactoryManagerTest {
             Assert.fail("No exception while loading " + m1.loadOntology(sp));
         } catch (OWLOntologyCreationException e) {
             if (e instanceof OntologyFactoryImpl.ConfigMismatchException) {
-                LOGGER.info("Exception", e);
+                LOGGER.debug("Exception", e);
             } else {
                 throw new AssertionError("Incorrect exception", e);
             }
         }
 
-        LOGGER.info("2) Add mapping and try to load again.");
+        LOGGER.debug("2) Add mapping and try to load again.");
         m1.getIRIMappers().add(mapSp);
         m1.loadOntology(sp);
         Assert.assertEquals("Should be single ontology inside", 1, m1.ontologies().count());
 
-        LOGGER.info("3) Load new web-ontology which depends on this existing one.");
+        LOGGER.debug("3) Load new web-ontology which depends on this existing one.");
         try {
             Assert.fail("No exception while loading " + m1.loadOntology(spin));
         } catch (OWLOntologyCreationException e) {
             if (e instanceof OntologyFactoryImpl.ConfigMismatchException) {
-                LOGGER.info("Exception", e);
+                LOGGER.debug("Exception", e);
             } else {
                 throw new AssertionError("Incorrect exception", e);
             }
         }
         Assert.assertEquals("Should be single ontology inside", 1, m1.ontologies().count());
 
-        LOGGER.info("4) Try to load new web-ontology with file mapping which depends on some other web-ontology.");
+        LOGGER.debug("4) Try to load new web-ontology with file mapping which depends on some other web-ontology.");
         OntologyManager m2 = OntManagers.createONT();
         m2.setOntologyLoaderConfiguration(conf);
         m2.getIRIMappers().add(mapSpin);
@@ -225,19 +225,19 @@ public class LoadFactoryManagerTest {
             Assert.fail("No exception while loading " + m2.loadOntology(spin));
         } catch (OWLRuntimeException e) {
             if (e instanceof UnloadableImportException) {
-                LOGGER.info("Exception", e);
+                LOGGER.debug("Exception", e);
             } else {
                 throw new AssertionError("Incorrect exception", e);
             }
         }
         Assert.assertEquals("Manager should be empty", 0, m2.ontologies().count());
 
-        LOGGER.info("5) Set ignore broken imports and try to load again.");
+        LOGGER.debug("5) Set ignore broken imports and try to load again.");
         m2.setOntologyLoaderConfiguration(conf.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
         m2.loadOntology(spin);
         Assert.assertEquals("Should be only single ontology inside.", 1, m2.ontologies().count());
 
-        LOGGER.info("6) Set ignore some import and load ontology with dependencies.");
+        LOGGER.debug("6) Set ignore some import and load ontology with dependencies.");
         OntologyManager m3 = OntManagers.createONT();
         m3.getIRIMappers().add(mapSp);
         m3.getIRIMappers().add(mapSpin);
@@ -245,14 +245,14 @@ public class LoadFactoryManagerTest {
         m3.loadOntology(spin);
         Assert.assertEquals("Should be only single ontology inside.", 1, m3.ontologies().count());
 
-        LOGGER.info("7) Default way to load.");
+        LOGGER.debug("7) Default way to load.");
         OntologyManager m4 = OntManagers.createONT();
         m4.getIRIMappers().add(mapSp);
         m4.getIRIMappers().add(mapSpin);
         m4.loadOntology(spin);
         Assert.assertEquals("Should be two ontologies inside.", 2, m4.ontologies().count());
 
-        LOGGER.info("8) Test loading with MissingOntologyHeaderStrategy = true/false");
+        LOGGER.debug("8) Test loading with MissingOntologyHeaderStrategy = true/false");
         OWLOntologyManager m5 = OntManagers.createONT();
         Assert.assertEquals("Incorrect default settings", MissingOntologyHeaderStrategy.INCLUDE_GRAPH, m5.getOntologyLoaderConfiguration().getMissingOntologyHeaderStrategy());
         loadLoopedOntologyFamily(m5);
@@ -384,13 +384,13 @@ public class LoadFactoryManagerTest {
         m.getIRIMappers().add(FileMap.create(bobIRI, bobFile));
         m.getIRIMappers().add(FileMap.create(sueIRI, sueFile));
         m.getIRIMappers().add(FileMap.create(coreIRI, coreFile));
-        m.getIRIMappers().forEach(x -> LOGGER.info("{}", x));
+        m.getIRIMappers().forEach(x -> LOGGER.debug("{}", x));
 
-        LOGGER.info("-================-");
+        LOGGER.debug("-================-");
         OWLOntology bob = m.loadOntology(bobIRI);
         ReadWriteUtils.print(bob);
         LOGGER.debug("[ONT]");
-        m.ontologies().forEach(x -> LOGGER.info("{}", x));
+        m.ontologies().forEach(x -> LOGGER.debug("{}", x));
     }
 
     private static String getComment(OWLOntology o) {

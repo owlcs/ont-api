@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.tests.formats;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.UnparsableOntologyException;
@@ -29,7 +30,10 @@ import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 import ru.avicomp.owlapi.OWLManager;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -44,6 +48,7 @@ import java.util.stream.Collectors;
  *
  * Created by @szuev on 10.01.2018.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntFormatsChecker {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntFormatsChecker.class);
 
@@ -56,7 +61,7 @@ public class OntFormatsChecker {
         Set<OntFormat> writeNotSupported = new HashSet<>();
         Set<OntFormat> readNotSupported = new HashSet<>();
         for (OntFormat f : OntFormat.values()) {
-            Path p = ReadWriteUtils.save(ontology, "formats-test", f);
+            Path p = save(ontology, "formats-test", f);
             LOGGER.debug("Format: {}, File: {}", f, p);
             if (p == null) { // write fail, but if it is pure jena format it is expected.
                 if (!f.isJenaOnly())
@@ -67,7 +72,7 @@ public class OntFormatsChecker {
                 OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(p.toUri()), f.createOwlFormat(), null);
                 OntManagers.createOWL().loadOntologyFromOntologyDocument(source);
             } catch (UnparsableOntologyException e) {
-                LOGGER.error("Can't read " + p, e);
+                LOGGER.debug("Can't read {}", p, e);
                 readNotSupported.add(f);
             } catch (OWLOntologyCreationException e) {
                 throw new AssertionError(e);
@@ -127,7 +132,7 @@ public class OntFormatsChecker {
             LOGGER.debug("Format: {}. Axioms: {}", type, axioms);
             //noinspection unchecked
             if (!checkAxiomsCount(ont, res, AxiomType.CLASS_ASSERTION, AxiomType.SUBCLASS_OF)) {
-                LOGGER.warn("Can't find class assertion. Format: {}" + format);
+                LOGGER.warn("Can't find class assertion. Format: {}", format);
                 if (!type.isSupported()) continue;
                 Assert.fail("Wrong axioms. Format: " + type);
             }
@@ -137,5 +142,18 @@ public class OntFormatsChecker {
     @SuppressWarnings("unchecked")
     private static boolean checkAxiomsCount(OWLOntology expected, OWLOntology actual, AxiomType<? extends OWLAxiom>... types) {
         return Arrays.stream(types).allMatch(type -> actual.axioms(type).count() == expected.axioms(type).count());
+    }
+
+    public static Path save(OWLOntology ontology, String name, OntFormat type) {
+        Path dst = ReadWriteUtils.getFileToSave(name, type);
+        LOGGER.debug("Save owl-ontology to " + dst.toUri() + " (" + (type == null ? "TURTLE" : type.getID()) + ")");
+        OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
+        try (OutputStream out = Files.newOutputStream(dst)) {
+            ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
+        } catch (OWLOntologyStorageException | IOException | UnsupportedOperationException e) {
+            LOGGER.error("Unable to print owl-ontology " + ontology, e);
+            return null;
+        }
+        return dst;
     }
 }
