@@ -31,6 +31,7 @@ import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.OWLRecursiveTransform;
 import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -128,9 +129,9 @@ public class LoadFactoryManagerTest {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
         OntologyManager m = OntManagers.createONT();
-        if (!m.getOntologyConfigurator().getGraphTransformers().contains(OWLRecursiveTransform.class.getName())) {
-            m.getOntologyConfigurator().setGraphTransformers(m.getOntologyConfigurator()
-                    .getGraphTransformers().addFirst(OWLRecursiveTransform::new));
+        GraphTransformers.Store store = m.getOntologyConfigurator().getGraphTransformers();
+        if (!store.contains(OWLRecursiveTransform.class.getName())) {
+            m.getOntologyConfigurator().setGraphTransformers(store.addFirst(OWLRecursiveTransform::new));
         }
         OntologyModel o = m.loadOntology(iri);
         ReadWriteUtils.print(o.asGraphModel());

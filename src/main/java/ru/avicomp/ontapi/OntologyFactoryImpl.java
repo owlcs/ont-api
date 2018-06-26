@@ -331,7 +331,8 @@ public class OntologyFactoryImpl implements OntologyFactory {
                 Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
                 if (isPrimary && info.withTransforms() && config.isPerformTransformation()) {
                     Set<Graph> transformed = graphs.values().stream()
-                            .filter(g -> !g.isFresh()).map(GraphInfo::getGraph)
+                            .filter(g -> !g.isFresh() || !g.withTransforms())
+                            .map(GraphInfo::getGraph)
                             .collect(Collectors.toSet());
                     if (LOGGER.isDebugEnabled())
                         LOGGER.debug("Perform graph transformations on <{}>.", info.name());

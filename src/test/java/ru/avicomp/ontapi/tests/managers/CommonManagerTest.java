@@ -114,7 +114,7 @@ public class CommonManagerTest {
         m1.setOntologyLoaderConfiguration(conf2.setPerformTransformation(doTransformation));
         Assert.assertEquals("The same 'perform transformation' flag", doTransformation, m1.getOntologyLoaderConfiguration().isPerformTransformation());
 
-        GraphTransformers.Store store = new GraphTransformers.Store().add((GraphTransformers.Maker) graph -> null);
+        GraphTransformers.Store store = new GraphTransformers.Store().add(graph -> null);
         OntLoaderConfiguration conf3 = m1.getOntologyLoaderConfiguration().setGraphTransformers(store);
         Assert.assertNotEquals("Graph transform action store is changed", store, m1.getOntologyLoaderConfiguration().getGraphTransformers());
         m1.setOntologyLoaderConfiguration(conf3);

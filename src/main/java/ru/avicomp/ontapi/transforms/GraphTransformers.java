@@ -26,6 +26,9 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,14 +45,14 @@ public abstract class GraphTransformers {
 
     // NOTE: the order may be important
     protected static Store converters = new Store()
-            .add(OWLIDTransform::new)
-            .add(OWLRecursiveTransform::new)
-            .add(RDFSTransform::new)
-            .add(OWLCommonTransform::new)
-            .add(OWLDeclarationTransform::new);
+            .add(OWLIDTransform.class)
+            .add(OWLRecursiveTransform.class)
+            .add(RDFSTransform.class)
+            .add(OWLCommonTransform.class)
+            .add(OWLDeclarationTransform.class);
 
     /**
-     * Sets global transformers store
+     * Sets global transformers store.
      *
      * @param store {@link Store} the store
      * @return previous store
@@ -86,31 +89,102 @@ public abstract class GraphTransformers {
     /**
      * Transforms creator.
      * Extends Serializable due to OWL-API requirements.
-     *
-     * @param <GC> {@link Transform}
+     * As a functional interface for convenience.
      */
     @FunctionalInterface
-    public interface Maker<GC extends Transform> extends Serializable {
-        GC create(Graph graph);
+    public interface Maker extends Serializable {
+
+        Transform create(Graph graph);
 
         /**
-         * Returns identifier, expected to be unique in bounds of store
+         * Returns identifier, expected to be unique in bounds of Store.
          *
          * @return String
          */
         default String id() {
-            return toString();
+            return getClass().getName() + "@" + Objects.hashCode(this);
         }
+
+        /**
+         * Creates a Maker from {@link Predicate} and {@link Consumer} with specified id.
+         * A factory method just for convenience.
+         *
+         * @param id        String transform identifier, not null
+         * @param filter    {@link Predicate} to test Graph, nullable
+         * @param transform Function to perform transformation, not null
+         * @return {@link Maker}
+         */
+        static Maker create(String id, Predicate<Graph> filter, Consumer<Graph> transform) {
+            Objects.requireNonNull(id, "Null id");
+            Objects.requireNonNull(transform, "Null transform function");
+            return create(id, g -> new Transform(g) {
+                @Override
+                public void perform() throws TransformException {
+                    transform.accept(g);
+                }
+
+                @Override
+                public boolean test() {
+                    return filter == null || filter.test(graph);
+                }
+
+                @Override
+                public String name() {
+                    return id;
+                }
+            });
+        }
+
+        /**
+         * Wraps the given function-factory as Maker.
+         * A factory method just for convenience.
+         *
+         * @param id      String, not null
+         * @param factory {@link Function}, the input {@link Graph}, the output {@link Transform}
+         * @return {@link Maker}
+         */
+        static Maker create(String id, Function<Graph, Transform> factory) {
+            Objects.requireNonNull(id, "Null id");
+            Objects.requireNonNull(factory, "Null transform factory");
+            return new Maker() {
+                @Override
+                public Transform create(Graph graph) {
+                    return factory.apply(graph);
+                }
+
+                @Override
+                public String id() {
+                    return id;
+                }
+            };
+        }
+
     }
 
     /**
-     * Immutable store of graph-transform makers and engine to perform transformation on graph.
+     * Graph filter, used in Store.
+     * Extends Serializable due to OWL-API requirements.
+     */
+    @FunctionalInterface
+    public interface Filter extends Predicate<Graph>, Serializable {
+    }
+
+    /**
+     * Immutable store of graph-transform Makers with predictable iteration order
+     * and 'engine' to perform transformation on graph.
+     * Extends Serializable due to OWL-API requirements.
      *
      * @see Maker
+     * @see Filter
      */
     public static class Store implements Serializable {
-        protected static final Logger LOGGER = LoggerFactory.getLogger(Store.class);
+        private static final Logger LOGGER = LoggerFactory.getLogger(Store.class);
+        private static final long serialVersionUID = -1;
+
+        // use linked map to save inserting order:
         protected Map<String, Maker> set = new LinkedHashMap<>();
+        // by default any graph is allowed to be transformed:
+        protected Filter filter = g -> true;
 
         /**
          * Makes a deep copy of this Store instance.
@@ -118,13 +192,67 @@ public abstract class GraphTransformers {
          * @return new instance
          */
         public Store copy() {
-            Store res = new Store();
-            res.set = new LinkedHashMap<>(this.set);
+            Store res = empty();
+            res.set.putAll(this.set);
             return res;
         }
 
         /**
-         * Adds the specified Maker to the end of the queue in this Store.
+         * Creates an empty Store with only filter copied.
+         *
+         * @return new instance
+         */
+        protected Store empty() {
+            Store res = new Store();
+            res.filter = this.filter;
+            return res;
+        }
+
+        /**
+         * Returns {@code true} if this store contains a Maker with specified id.
+         *
+         * @param id String
+         * @return boolean
+         */
+        public boolean contains(String id) {
+            return get(id).isPresent();
+        }
+
+        /**
+         * Returns Maker for specified id.
+         *
+         * @param id String
+         * @return Optional around {@link Maker}
+         */
+        public Optional<Maker> get(String id) {
+            return set.containsKey(id) ? Optional.of(set.get(id)) : Optional.empty();
+        }
+
+        /**
+         * Adds a Maker and returns new Store instance.
+         * It is a synonym for {@code #add(Maker)}.
+         *
+         * @param f {@link Maker}
+         * @return {@link Store}
+         */
+        public Store addLast(Maker f) {
+            return add(f);
+        }
+
+        /**
+         * Creates default implementation of {@link Maker} around the specified {@link Transform transformer}
+         * and adds it to collection of new Store in immutable way.
+         * It is a synonym for {@code #addLast(Maker)}.
+         *
+         * @param impl {@link Class} type of Transform
+         * @return {@link Store}
+         */
+        protected Store add(Class<? extends Transform> impl) {
+            return add(new DefaultMaker(impl));
+        }
+
+        /**
+         * Creates a duplicate of this Store by adding the specified element-Maker at the end of the copied internal queue.
          *
          * @param f {@link Maker} to add
          * @return a copy of this store
@@ -136,53 +264,113 @@ public abstract class GraphTransformers {
         }
 
         /**
-         * Inserts the specified element Maker at the beginning of the queue in this Store.
+         * Creates a duplicate of this Store by adding the specified element-Maker at the beginning of the copied internal queue.
          *
          * @param f {@link Maker} to add
          * @return a copy of this store
          */
         public Store addFirst(Maker f) {
-            Store res = new Store();
+            Store res = empty();
             res.set.put(f.id(), f);
-            this.set.forEach((k, v) -> res.set.put(k, v));
+            res.set.putAll(this.set);
             return res;
         }
 
         /**
-         * Removes the first element Maker from internal queue from this Store.
+         * Creates a duplicate of this Store by adding the specified element-Maker after the selected position.
          *
-         * @return a copy of this store without first element.
+         * @param id String id of the maker which should go before specified
+         * @param f  {@link Maker}
+         * @return new Store
+         */
+        public Store insertAfter(String id, Maker f) {
+            if (!set.containsKey(id)) throw new IllegalArgumentException("Can't find " + id);
+            Store res = empty();
+            set.keySet().forEach(i -> {
+                res.set.put(i, set.get(i));
+                if (Objects.equals(i, id)) {
+                    res.set.put(f.id(), f);
+                }
+            });
+            return res;
+        }
+
+        /**
+         * Creates a duplicate of this Store without first element-Maker.
+         *
+         * @return a copy of this Store without first element.
          */
         public Store removeFirst() {
-            String key = set.keySet().stream().findFirst().orElseThrow(() -> new IllegalStateException("Nothing to remove"));
+            if (set.isEmpty()) throw new IllegalStateException("Nothing to remove");
+            return delete((String) set.keySet().toArray()[0]);
+        }
+
+        /**
+         * Creates a duplicate of this Store without the last element-Maker.
+         *
+         * @return a copy of this Store without last element
+         */
+        public Store removeLast() {
+            if (set.isEmpty()) throw new IllegalStateException("Nothing to remove");
+            return delete((String) set.keySet().toArray()[set.size() - 1]);
+        }
+
+        /**
+         * Removes Maker by specified id.
+         *
+         * @param id String
+         * @return a copy of this Store without specified element
+         */
+        public Store remove(String id) {
+            if (set.isEmpty()) throw new IllegalStateException("Nothing to remove");
+            if (!set.containsKey(id)) throw new IllegalArgumentException("Can't find " + id);
+            return delete(id);
+        }
+
+        protected Store delete(String id) {
             Store res = copy();
-            res.set.remove(key);
+            res.set.remove(id);
             return res;
         }
 
         /**
-         * Removes the last element Maker from internal queue from this Store.
+         * Lists all makers ids.
          *
-         * @return a copy of this store without last element.
+         * @return Stream of ids
          */
-        public Store remove() {
-            if (set.isEmpty()) throw new IllegalStateException("Nothing to remove");
-            String key = (String) set.keySet().toArray()[set.size() - 1];
-            Store res = copy();
-            res.set.remove(key);
-            return res;
+        public Stream<String> ids() {
+            return set.keySet().stream();
         }
 
-        public boolean contains(String id) {
-            return set.containsKey(id);
+        /**
+         * Lists all {@link Transform transformation actions} applicable to the specified graph.
+         *
+         * @param graph {@link Graph}
+         * @return Stream of {@link Transform}s.
+         */
+        protected Stream<Transform> actions(Graph graph) {
+            return filter.test(graph) ? makers().map(f -> f.create(graph)).filter(Transform::test) : Stream.empty();
         }
 
-        public Stream<Maker> makers() {
+        /**
+         * Lists all Makers.
+         *
+         * @return Stream  of {@link Maker}s
+         */
+        protected Stream<Maker> makers() {
             return set.values().stream();
         }
 
-        public Stream<Transform> actions(Graph graph) {
-            return makers().map(f -> f.create(graph)).filter(Transform::test);
+        /**
+         * Creates a copy of this Store with a new filter.
+         *
+         * @param f {@link Filter}
+         * @return new instance
+         */
+        public Store setFilter(Filter f) {
+            Store res = copy();
+            res.filter = Objects.requireNonNull(f, "Null filter");
+            return res;
         }
 
         /**
@@ -197,22 +385,24 @@ public abstract class GraphTransformers {
          * Recursively performs graph transformation.
          * todo: should return transform statistic object.
          *
-         * @param graph     {@link Graph}, in most cases it is {@link UnionGraph} with sub-graphs, which will be processed first.
-         * @param processed Set of {@link Graph}s to avoid processing transformation multiple times on the same graph.
+         * @param graph     {@link Graph}, in most cases it is {@link UnionGraph} with sub-graphs, which will be processed first
+         * @param skip Set of {@link Graph}s to exclude from transformations,
+         *             it is used to avoid processing transformation multiple times on the same graph
+         *             and therefore it should be modifiable
          * @throws TransformException if something is wrong
          * @see Transform
          */
-        public void transform(Graph graph, Set<Graph> processed) throws TransformException {
+        public void transform(Graph graph, Set<Graph> skip) throws TransformException {
             List<Graph> children = Graphs.subGraphs(graph).collect(Collectors.toList());
             for (Graph g : children) {
                 try {
-                    transform(g, processed);
+                    transform(g, skip);
                 } catch (StoreException t) {
                     throw t.putParent(graph);
                 }
             }
             Graph base = Graphs.getBase(graph);
-            if (processed.contains(base)) return;
+            if (skip.contains(base)) return;
             List<Transform> actions = actions(graph).collect(Collectors.toList());
             for (Transform action : actions) {
                 if (LOGGER.isDebugEnabled()) {
@@ -224,30 +414,34 @@ public abstract class GraphTransformers {
                     throw new StoreException(action, e);
                 }
             }
-            processed.add(base);
+            skip.add(base);
         }
 
         @Override
         public boolean equals(Object o) {
-            return this == o || o instanceof Store && set.equals(((Store) o).set);
+            return this == o || o instanceof Store && set.equals(((Store) o).set) && filter.equals(((Store) o).filter);
         }
 
         @Override
         public int hashCode() {
-            return set.hashCode();
+            return Objects.hash(set, filter);
         }
     }
 
-    private static class StoreException extends TransformException {
-        private final Transform transform;
-        private Graph parent;
+    /**
+     * An exception, which can be thrown by {@link Store#transform(Graph, Set)} method.
+     * It is a {@link JenaException}.
+     */
+    public static class StoreException extends TransformException {
+        protected final Transform transform;
+        protected Graph parent;
 
-        public StoreException(Transform transform, Throwable cause) {
+        protected StoreException(Transform transform, Throwable cause) {
             super(cause);
             this.transform = OntApiException.notNull(transform, "Null transform");
         }
 
-        public StoreException putParent(Graph graph) {
+        protected StoreException putParent(Graph graph) {
             this.parent = OntApiException.notNull(graph, "Null parent graph");
             return this;
         }
@@ -268,7 +462,7 @@ public abstract class GraphTransformers {
     }
 
     /**
-     * Default impl of {@link Maker}
+     * Default impl of {@link Maker}.
      */
     public static class DefaultMaker implements Maker {
         protected final Class<? extends Transform> impl;

@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
 /**
  * Collection of all spin models (located in resources)
+ * Please note: it is for tests purposes only!
  * <p>
  * Created by szuev on 21.04.2017.
  */
@@ -38,7 +39,8 @@ public enum SpinModels {
     SMF_BASE("/etc/sparqlmotionfunctions.ttl", "http://topbraid.org/sparqlmotionfunctions"),
     SPINMAPL("/etc/spinmapl.spin.ttl", "http://topbraid.org/spin/spinmapl");
 
-    public static final OntPersonality ONT_SPIN_PERSONALITY = OntModelConfig.ONT_PERSONALITY_BUILDER.build(ru.avicomp.ontapi.utils.SP.SPIN_PERSONALITY, OntModelConfig.StdMode.LAX);
+    public static final OntPersonality ONT_SPIN_PERSONALITY = OntModelConfig.ONT_PERSONALITY_BUILDER
+            .build(ru.avicomp.ontapi.utils.SP.SPIN_PERSONALITY, OntModelConfig.StdMode.LAX);
 
     private final String file, uri;
 
