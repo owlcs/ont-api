@@ -14,7 +14,9 @@
 
 package ru.avicomp.ontapi.transforms;
 
+import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -65,18 +67,28 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OWLDeclarationTransform extends Transform {
 
+    protected final Transform manifestDeclarator;
+    protected final Transform reasonerDeclarator;
+
     public OWLDeclarationTransform(Graph graph) {
         super(graph);
+        this.manifestDeclarator = new ManifestDeclarator(graph);
+        this.reasonerDeclarator = new ReasonerDeclarator(graph);
     }
 
     @Override
     public void perform() {
         try {
-            new ManifestDeclarator(graph).perform();
-            new ReasonerDeclarator(graph).perform();
+            manifestDeclarator.perform();
+            reasonerDeclarator.perform();
         } finally {
             finalActions();
         }
+    }
+
+    @Override
+    public Stream<Triple> uncertainTriples() {
+        return reasonerDeclarator.uncertainTriples();
     }
 
     protected void finalActions() {
@@ -483,6 +495,7 @@ public class OWLDeclarationTransform extends Transform {
         public Map<Statement, Function<Statement, Res>> rerun = new LinkedHashMap<>();
 
         protected boolean annotationsOpt;
+        protected Set<Statement> unparsed = new HashSet<>();
 
         /**
          * base constructor.
@@ -518,10 +531,15 @@ public class OWLDeclarationTransform extends Transform {
                 parseAllDisjointProperties();
                 parseSubProperties();
 
-                parseTail();
+                unparsed.addAll(parseTail());
             } finally { // possibility to rerun
                 rerun = new LinkedHashMap<>();
             }
+        }
+
+        @Override
+        public Stream<Triple> uncertainTriples() {
+            return unparsed.stream().map(FrontsTriple::asTriple);
         }
 
         public void parseDataAndObjectRestrictions() {
@@ -868,7 +886,7 @@ public class OWLDeclarationTransform extends Transform {
                 prev = next;
                 next = new LinkedHashMap<>();
             }
-            LOGGER.warn("Ambiguous statements " + next.keySet());
+            LOGGER.warn("Ambiguous statements {}", next.keySet());
             return next.keySet();
         }
 

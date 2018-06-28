@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.transforms;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,20 @@ public abstract class Transform {
     }
 
     /**
+     * Performs the graph transformation if the encapsulated graph is applicable for it.
+     *
+     * @return Stream of {@link Triple}s that the transformer could not handle
+     * @throws TransformException in case something is wrong
+     */
+    public Stream<Triple> process() throws TransformException {
+        if (test()) {
+            if (LOGGER.isDebugEnabled())
+                LOGGER.debug(String.format("Process <%s> on <%s>", name(), Graphs.getName(getBaseGraph())));
+            perform();
+        }
+        return uncertainTriples();
+    }
+    /**
      * Performs the graph transformation.
      *
      * @throws TransformException if something wrong during operation.
@@ -60,12 +75,23 @@ public abstract class Transform {
     public abstract void perform() throws TransformException;
 
     /**
-     * decides is the transformation needed or not.
+     * Decides whether the transformation needed or not.
      *
      * @return true to process, false to skip
      */
     public boolean test() {
         return true;
+    }
+
+    /**
+     * Returns a problematic triple set as a Stream.
+     * I.e. those triples, which this parser was not able to handle correctly.
+     * Before process ({@link #perform()} this method should return empty Stream.
+     *
+     * @return Stream of {@link Triple}
+     */
+    public Stream<Triple> uncertainTriples() {
+        return Stream.empty();
     }
 
     protected static Stream<Statement> statements(Model m, Resource s, Property p, RDFNode o) {
@@ -90,14 +116,6 @@ public abstract class Transform {
 
     protected Model getBaseModel() {
         return base == null ? base = ModelFactory.createModelForGraph(getBaseGraph()) : base;
-    }
-
-    public void process() throws TransformException {
-        if (test()) {
-            if (LOGGER.isDebugEnabled())
-                LOGGER.debug(String.format("Process <%s> on <%s>", name(), Graphs.getName(getBaseGraph())));
-            perform();
-        }
     }
 
     protected void changeType(Resource realType, Resource newType) {

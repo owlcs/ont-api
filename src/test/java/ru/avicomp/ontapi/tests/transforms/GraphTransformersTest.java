@@ -24,6 +24,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.slf4j.Logger;
@@ -81,11 +82,28 @@ public class GraphTransformersTest {
         LOGGER.debug("Tree:\n{}", actualTree);
         Assert.assertEquals(27, actualTree.split("\n").length);
 
+        Assert.assertEquals(10, m.ontologies().count());
+        m.ontologies().forEach(o -> {
+            IRI uri = o.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
+            OWLDocumentFormat f = Optional.ofNullable(m.getOntologyFormat(o)).orElseThrow(AssertionError::new);
+            OWLOntologyLoaderMetaData d = f.getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
+            LOGGER.debug("Ontology: {}. MetaData: {}, {}, {}, {}",
+                    o,
+                    d.getHeaderState(),
+                    d.getTripleCount(),
+                    d.getUnparsedTriples().count(),
+                    d.getGuessedDeclarations().size());
+            if (SpinModels.SMF_BASE.getIRI().equals(uri)) {
+                return;
+            }
+            Assert.assertNotEquals("Wrong guessed declarations count for " + uri, 0, d.getGuessedDeclarations().size());
+        });
+
         OntologyModel spl = m.getOntology(SpinModels.SPL.getIRI());
         Assert.assertNotNull("Can't find SPL", spl);
 
-        String splAsString = ReadWriteUtils.toString(spl.asGraphModel(), OntFormat.TURTLE);
-        LOGGER.debug(splAsString);
+        //String splAsString = ReadWriteUtils.toString(spl.asGraphModel(), OntFormat.TURTLE);
+        //LOGGER.debug(splAsString);
 
         Assert.assertEquals("Incorrect spinmapl axioms count", axiomsCountSPINMAPL, spinmapl.getAxiomCount());
         Assert.assertEquals("Incorrect total axioms count", axiomsCountTotal, spinmapl.axioms(Imports.INCLUDED).count());
@@ -116,8 +134,19 @@ public class GraphTransformersTest {
         SpinModels.addMappings(FileManager.get());
         OntologyModel spin = m.loadOntology(SpinModels.SPINMAPL.getIRI());
         Assert.assertEquals(10, m.ontologies().count());
-        m.getOntology(SpinModels.SPL.getIRI());
-        Assert.assertEquals(10, m.ontologies().count());
+        m.ontologies().forEach(o -> {
+            IRI uri = o.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
+            OWLDocumentFormat f = Optional.ofNullable(m.getOntologyFormat(o)).orElseThrow(AssertionError::new);
+            OWLOntologyLoaderMetaData d = f.getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
+            LOGGER.debug("Ontology: {}. MetaData: {}, {}, {}, {}",
+                    o,
+                    d.getHeaderState(),
+                    d.getTripleCount(),
+                    d.getUnparsedTriples().count(),
+                    d.getGuessedDeclarations().size());
+            Assert.assertEquals("Wrong guessed declarations count for " + uri, 0, d.getGuessedDeclarations().size());
+        });
+        Assert.assertNotNull(m.getOntology(SpinModels.SPL.getIRI()));
 
         Assert.assertEquals(1098, spin.axioms(Imports.INCLUDED).count());
         spin.axioms(Imports.INCLUDED)

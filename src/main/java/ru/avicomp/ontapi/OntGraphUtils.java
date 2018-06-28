@@ -14,9 +14,9 @@
 
 package ru.avicomp.ontapi;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
+import org.apache.jena.graph.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
+import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import ru.avicomp.ontapi.jena.impl.OntIDImpl;
@@ -26,6 +26,7 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
 import javax.annotation.Nonnull;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -115,4 +116,67 @@ public class OntGraphUtils {
                         , LinkedHashMap::new));
     }
 
+    /**
+     * Converts a {@link Triple Jena Triple} to {@link RDFTriple OWL-API RDFTriple}.
+     *
+     * @param triple not null
+     * @return RDFTriple
+     */
+    public static RDFTriple triple(Triple triple) {
+        RDFResource subject;
+        if (triple.getSubject().isURI()) {
+            subject = uri(triple.getSubject());
+        } else {
+            subject = blank(triple.getSubject());
+        }
+        RDFResourceIRI predicate = uri(triple.getPredicate());
+        RDFNode object;
+        if (triple.getObject().isURI()) {
+            object = uri(triple.getObject());
+        } else if (triple.getObject().isLiteral()) {
+            object = literal(triple.getObject());
+        } else {
+            object = blank(triple.getObject());
+        }
+        return new RDFTriple(subject, predicate, object);
+    }
+
+    /**
+     * Converts a {@link Node Jena Node} to {@link RDFResourceBlankNode OWL-API node object}, which pretends to be a blank node.
+     *
+     * @param node not null, must be {@link Node_Blank}
+     * @return {@link RDFResourceBlankNode} with all flags set to {@code false}
+     * @throws IllegalArgumentException in case the specified node is not blank
+     */
+    public static RDFResourceBlankNode blank(Node node) throws IllegalArgumentException {
+        if (!Objects.requireNonNull(node, "Null node").isBlank())
+            throw new IllegalArgumentException("Not a blank node: " + node);
+        return new RDFResourceBlankNode(IRI.create(node.getBlankNodeId().getLabelString()), false, false, false);
+    }
+
+    /**
+     * Converts a {@link Node Jena Node} to {@link RDFResourceIRI OWL-API IRI RDF-Node}.
+     *
+     * @param node not null, must be {@link Node_URI}
+     * @return {@link RDFResourceIRI}
+     * @throws IllegalArgumentException in case the specified node is not blank
+     */
+    public static RDFResourceIRI uri(Node node) throws IllegalArgumentException {
+        if (!Objects.requireNonNull(node, "Null node").isURI())
+            throw new IllegalArgumentException("Not an uri node: " + node);
+        return new RDFResourceIRI(IRI.create(node.getURI()));
+    }
+
+    /**
+     * Converts a {@link Node Jena Node} to {@link RDFLiteral OWL-API Literal RDF-Node}.
+     *
+     * @param node not null, must be {@link Node_Literal}
+     * @return {@link RDFResourceIRI}
+     * @throws IllegalArgumentException in case the specified node is not literal
+     */
+    public static RDFLiteral literal(Node node) throws IllegalArgumentException {
+        if (!Objects.requireNonNull(node, "Null node").isLiteral())
+            throw new IllegalArgumentException("Not a literal node: " + node);
+        return new RDFLiteral(node.getLiteralLexicalForm(), node.getLiteralLanguage(), IRI.create(node.getLiteralDatatypeURI()));
+    }
 }

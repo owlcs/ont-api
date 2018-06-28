@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.RDFDataMgr;
 import org.semanticweb.owlapi.model.*;
@@ -626,7 +627,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> Stream<T> axioms(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key, @Nonnull Imports imports) {
-        return imports.stream(this).flatMap(o -> (Stream<T>) o.axioms(filter, key));
+        return imports.stream(this).flatMap(o -> o.axioms(filter, key));
     }
 
     /**
@@ -858,7 +859,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        Graph base = OntModelFactory.createDefaultGraph();
+        Graph base = new GraphMem();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
         setBase(new InternalModel(base, ConfigProvider.DEFAULT_CONFIG));
@@ -866,14 +867,22 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
 
     /**
      * Writes the object while serialization.
-     * Note: only base graph!
+     * Note: only the base graph is serialized,
+     * so if you serialize and then de-serialize standalone ontology it will loss all its references,
+     * please use managers serialization, it will restore any links.
+     * Also please note: an exception is expected if the encapsulated graph is not {@link GraphMem}.
      *
      * @param out {@link ObjectOutputStream}
      * @throws IOException if I/O errors occur while writing to the underlying <code>OutputStream</code>
+     * @throws OntApiException in case this instance encapsulates graph which is not stored in memory
      */
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject(); // serialize only base graph (it will be wrapped as UnionGraph):
-        RDFDataMgr.write(out, base.getBaseGraph(), DEFAULT_SERIALIZATION_FORMAT.getLang());
+    private void writeObject(ObjectOutputStream out) throws IOException, OntApiException {
+        Graph g = base.getBaseGraph();
+        if (!(g instanceof GraphMem))
+            throw new OntApiException(ontologyID + ":: Serialization is not supported for non-memory graphs.");
+        out.defaultWriteObject();
+        // serialize only base graph (it will be wrapped as UnionGraph):
+        RDFDataMgr.write(out, g, DEFAULT_SERIALIZATION_FORMAT.getLang());
     }
 
     /**

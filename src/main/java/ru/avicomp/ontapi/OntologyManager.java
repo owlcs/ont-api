@@ -36,9 +36,10 @@ import java.util.stream.Stream;
 
 
 /**
- * Ontology manager.
- * Base class: {@link OWLOntologyManager}
+ * An ONT-API Ontology manager, which is an extended {@link OWLOntologyManager OWL-API manager}
  * It is the main point for creating, loading and accessing {@link OntologyModel}s models.
+ * Any ontology in this manager is a wrapped {@link Graph Jena Graph},
+ * which may be linked to the another ontology through {@link ru.avicomp.ontapi.jena.UnionGraph UnionGraph} mechanism.
  * New (ONT-API) methods:
  * <ul>
  * <li>{@link #addOntology(Graph, OntLoaderConfiguration)}</li>
@@ -163,16 +164,17 @@ public interface OntologyManager extends OWLOntologyManager {
     OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration);
 
     /**
-     * Creates an ontology.
+     * Creates a fresh ontology with specified id.
      * <p>
      * Note: this method doesn't throw a checked exception {@link OWLOntologyCreationException} like OWL-API.
      * Instead it there is an unchecked exception {@link OntApiException} which may wrap {@link OWLOntologyCreationException}.
      * OWL-API and ONT-API work in different ways.
-     * So i see it is impossible to save the same places for exceptions.
-     * For example in OWL-API you could expect some kind of exception during saving ontology,
-     * but in ONT-API there would be another kind of exception during adding axiom.
+     * So I see it is impossible to save the same places for exceptions.
+     * For example in OWL-API you could expect some kind of exception during saving ontology-graph,
+     * but in ONT-API there would be another kind of exception during adding axiom before any saving.
      * I believe there is no reasons to save the same behaviour with exceptions everywhere.
      * The return type is also changed from {@link org.semanticweb.owlapi.model.OWLOntology} to our class {@link OntologyModel}.
+     * Also, it is looks a bit strange when a method, which is not affected by any resources throws a checked exception.
      *
      * @param id {@link OWLOntologyID}
      * @return ontology {@link OntologyModel}
@@ -195,7 +197,7 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Note: the axioms list may differ in source and result due to different config settings etc.
-     * TODO: this method should not throw checked exception, in ONT-API it doesn't make sense, see {@link #createOntology()} explanation.
+     * TODO: this method should not throw checked exception, in ONT-API it doesn't make sense, see {@link #createOntology(OWLOntologyID)} explanation.
      * @param source {@link OWLOntology} the source, could be pure OWL-API ontology
      * @param settings {@link OntologyCopy} the settings
      * @return new {@link OntologyModel}

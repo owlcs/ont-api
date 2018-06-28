@@ -15,7 +15,10 @@
 package ru.avicomp.ontapi.transforms;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphEventManager;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
+import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
@@ -375,46 +378,59 @@ public abstract class GraphTransformers {
 
         /**
          * @param graph {@link Graph} to perform operations on
+         * @return {@link Stats} a transform outcome object
          * @throws TransformException if something wrong while transformations
          */
-        public void transform(Graph graph) throws TransformException {
-            transform(graph, new HashSet<>());
+        public Stats transform(Graph graph) throws TransformException {
+            return transform(graph, new HashSet<>());
         }
 
         /**
          * Recursively performs graph transformation.
-         * todo: should return transform statistic object.
          *
          * @param graph     {@link Graph}, in most cases it is {@link UnionGraph} with sub-graphs, which will be processed first
          * @param skip Set of {@link Graph}s to exclude from transformations,
          *             it is used to avoid processing transformation multiple times on the same graph
          *             and therefore it should be modifiable
+         * @return {@link Stats} a container with result
          * @throws TransformException if something is wrong
          * @see Transform
          */
-        public void transform(Graph graph, Set<Graph> skip) throws TransformException {
+        public Stats transform(Graph graph, Set<Graph> skip) throws TransformException {
             List<Graph> children = Graphs.subGraphs(graph).collect(Collectors.toList());
+            Graph base = Graphs.getBase(graph);
+            Stats res = new Stats(base);
             for (Graph g : children) {
                 try {
-                    transform(g, skip);
+                    res.putStats(transform(g, skip));
                 } catch (StoreException t) {
                     throw t.putParent(graph);
                 }
             }
-            Graph base = Graphs.getBase(graph);
-            if (skip.contains(base)) return;
+            if (skip.contains(base)) return res;
             List<Transform> actions = actions(graph).collect(Collectors.toList());
             for (Transform action : actions) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(String.format("Process <%s> on <%s>", action.name(), Graphs.getName(base)));
                 }
+                GraphEventManager events = base.getEventManager();
+                TransformListener listener = new TransformListener();
                 try {
+                    events.register(listener);
                     action.perform();
                 } catch (JenaException e) {
                     throw new StoreException(action, e);
+                } finally {
+                    events.unregister(listener);
                 }
+                res.putTriples(action,
+                        listener.added,
+                        listener.deleted,
+                        action.uncertainTriples()
+                                .collect(Collectors.toSet()));
             }
             skip.add(base);
+            return res;
         }
 
         @Override
@@ -425,6 +441,126 @@ public abstract class GraphTransformers {
         @Override
         public int hashCode() {
             return Objects.hash(set, filter);
+        }
+    }
+
+    /**
+     * Transform statistic object, an outcome of transformation process.
+     * Notice that it holds everything in memory.
+     * <p>
+     * Created by @szuev on 27.06.2018.
+     */
+    public static class Stats {
+        protected final Graph graph;
+        protected Map<Type, Map<String, Set<Triple>>> triples = new EnumMap<>(Type.class);
+        protected Set<Stats> sub = new HashSet<>();
+
+        protected Stats(Graph graph) {
+            this.graph = Objects.requireNonNull(graph);
+        }
+
+        protected void putTriples(Transform transform, Set<Triple> added, Set<Triple> deleted, Set<Triple> unparsed) {
+            String name = transform.name();
+            put(Type.ADDED, name, added);
+            put(Type.DELETED, name, deleted);
+            put(Type.UNPARSED, name, unparsed);
+        }
+
+        protected void put(Type type, String name, Set<Triple> triples) {
+            map(type).put(name, triples);
+        }
+
+        protected void putStats(Stats other) {
+            this.sub.add(other);
+        }
+
+        public Set<Triple> getTriples(Type type, String name) {
+            return getUnmodifiable(map(type), name);
+        }
+
+        public Stream<Triple> triples(Type type) {
+            return map(type).entrySet().stream().map(Map.Entry::getValue).flatMap(Collection::stream);
+        }
+
+        public boolean hasTriples(Type type, String name) {
+            if (!triples.containsKey(type)) return false;
+            if (!triples.get(type).containsKey(name)) return false;
+            return !triples.get(type).get(name).isEmpty();
+        }
+
+        public boolean hasTriples(Type type) {
+            if (!triples.containsKey(type)) return false;
+            return triples.get(type).values().stream().anyMatch(x -> !x.isEmpty());
+        }
+
+        public boolean hasTriples() {
+            return !triples.isEmpty();
+        }
+
+        public boolean isNotEmpty() {
+            return hasTriples() && Arrays.stream(Type.values()).anyMatch(this::hasTriples);
+        }
+
+        protected Map<String, Set<Triple>> map(Type type) {
+            return triples.computeIfAbsent(type, t -> new HashMap<>());
+        }
+
+        public Graph getGraph() {
+            return graph;
+        }
+
+        /**
+         * Lists all encapsulated Stats object.
+         *
+         * @param deep if {@code true} all sub-stats will be included recursively in the result stream also.
+         * @return Stream of {@link Stats}
+         */
+        public Stream<Stats> listStats(boolean deep) {
+            if (!deep) return sub.stream();
+            return sub.stream().flatMap(s -> Stream.concat(Stream.of(s), s.listStats(true)));
+        }
+
+        private static <T> Set<T> getUnmodifiable(Map<String, Set<T>> map, String key) {
+            return map.containsKey(key) ? Collections.unmodifiableSet(map.get(key)) : Collections.emptySet();
+        }
+
+        public enum Type {
+            ADDED,
+            DELETED,
+            UNPARSED
+        }
+    }
+
+    /**
+     * Listener to control graph changes while transformations.
+     * <p>
+     * Created by @szuev on 27.06.2018.
+     */
+    public static class TransformListener extends GraphListenerBase {
+
+        protected Set<Triple> added = new HashSet<>();
+        protected Set<Triple> deleted = new HashSet<>();
+
+        @Override
+        protected void addEvent(Triple t) {
+            added.add(t);
+            deleted.remove(t);
+        }
+
+        @Override
+        protected void deleteEvent(Triple t) {
+            added.remove(t);
+            deleted.add(t);
+        }
+
+        @Override
+        public void notifyAddGraph(Graph g, Graph other) {
+            other.find(Triple.ANY).forEachRemaining(this::addEvent);
+        }
+
+        @Override
+        public void notifyDeleteGraph(Graph g, Graph other) {
+            other.find(Triple.ANY).forEachRemaining(this::deleteEvent);
         }
     }
 

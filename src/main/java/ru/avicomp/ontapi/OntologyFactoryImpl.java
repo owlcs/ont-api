@@ -14,18 +14,17 @@
 
 package ru.avicomp.ontapi;
 
-import com.google.common.collect.ArrayListMultimap;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
-import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
@@ -36,8 +35,11 @@ import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.TransformException;
 import ru.avicomp.owlapi.NoOpReadWriteLock;
 
@@ -47,6 +49,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The ontology building and loading factory, the 'core' - the main point to create and load ontologies.
@@ -267,6 +270,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
 
         /**
          * Main constructor.
+         *
          * @param alternative {@link Loader}, nullable
          */
         public ONTLoaderImpl(Loader alternative) {
@@ -316,7 +320,9 @@ public class OntologyFactoryImpl implements OntologyFactory {
          * @return {@link OntologyModel}, it is ready to use.
          * @throws OWLOntologyCreationException if can't assemble model from ready graph.
          */
-        protected OntologyModel createModel(GraphInfo info, OntologyManager manager, OntLoaderConfiguration config) throws OWLOntologyCreationException {
+        protected OntologyModel createModel(GraphInfo info,
+                                            OntologyManager manager,
+                                            OntLoaderConfiguration config) throws OWLOntologyCreationException {
             if (!info.isFresh()) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("The ontology {} is already configured.", info.name());
@@ -327,52 +333,27 @@ public class OntologyFactoryImpl implements OntologyFactory {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Set up ontology model {}.", info.name());
                 }
-                boolean isPrimary = graphs.size() == 1;
-                Graph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
-                if (isPrimary && info.withTransforms() && config.isPerformTransformation()) {
-                    Set<Graph> transformed = graphs.values().stream()
-                            .filter(g -> !g.isFresh() || !g.withTransforms())
-                            .map(GraphInfo::getGraph)
-                            .collect(Collectors.toSet());
-                    if (LOGGER.isDebugEnabled())
-                        LOGGER.debug("Perform graph transformations on <{}>.", info.name());
-                    try {
-                        config.getGraphTransformers().transform(graph, transformed);
-                    } catch (TransformException t) {
-                        throw new OWLTransformException(t);
-                    }
-
-                }
-                OntFormat format = info.getFormat();
+                Graph graph = makeUnionGraph(info, manager, config);
                 OntologyManagerImpl impl = asIMPL(manager);
+                // create ontology instance
                 OntologyModel res = impl.newOntologyModel(graph, config);
                 if (manager.contains(res)) {
                     throw new OWLOntologyAlreadyExistsException(res.getOntologyID());
                 }
-                // Restore possible missed import links between this ontology and existing.
-                // Such situation may occur if some ontology has been added with unresolved imports,
-                // which is possible if org.semanticweb.owlapi.model.MissingImportHandlingStrategy#SILENT was specified.
                 if (!info.isAnonymous()) {
-                    String u = info.getURI();
-                    manager.models()
-                            .filter(m -> m.getID().imports().anyMatch(i -> Objects.equals(i, u)))
-                            .filter(m -> m.imports().noneMatch(i -> Objects.equals(i.getID().getURI(), u)))
-                            .forEach(m -> m.addImport(res.asGraphModel()));
+                    restoreLinks(res.asGraphModel(), manager::models);
                 }
+                // put ontology inside manager:
                 impl.ontologyCreated(res);
-                OWLDocumentFormat owlFormat = format.createOwlFormat();
-                if (PrefixManager.class.isInstance(owlFormat)) {
-                    PrefixManager pm = (PrefixManager) owlFormat;
+
+                OWLDocumentFormat format = info.getFormat().createOwlFormat();
+                if (format.isPrefixOWLDocumentFormat()) {
+                    PrefixManager pm = format.asPrefixOWLDocumentFormat();
                     graph.getPrefixMapping().getNsPrefixMap().forEach(pm::setPrefix);
                     OntologyManagerImpl.setDefaultPrefix(pm, res);
                 }
-                if (isPrimary) {
-                    // todo: pass stats from transforms
-                    OWLOntologyLoaderMetaData fake = new RDFParserMetaData(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, 0,
-                            Collections.emptySet(), ArrayListMultimap.create());
-                    owlFormat.setOntologyLoaderMetaData(fake);
-                }
-                manager.setOntologyFormat(res, owlFormat);
+                format.setOntologyLoaderMetaData(makeParserMetaData(graph, info.getStats()));
+                manager.setOntologyFormat(res, format);
                 if (info.getSource() != null) {
                     manager.setOntologyDocumentIRI(res, info.getSource());
                 }
@@ -383,16 +364,70 @@ public class OntologyFactoryImpl implements OntologyFactory {
         }
 
         /**
+         * Assembles the {@link UnionGraph}, performs transformations on it and populates {@link #graphs graphs collection}.
+         *
+         * @param info    {@link GraphInfo} container with info about graph.
+         * @param manager {@link OntologyManager}
+         * @param config  {@link OntLoaderConfiguration}
+         * @return {@link UnionGraph}
+         * @throws OWLTransformException in case of error while transformation
+         * @throws OntApiException       if something goes wrong
+         */
+        protected UnionGraph makeUnionGraph(GraphInfo info,
+                                            OntologyManager manager,
+                                            OntLoaderConfiguration config) throws OWLTransformException {
+            boolean isPrimary = graphs.size() == 1;
+            // #makeUnionGraph will change #graphs collection:
+            UnionGraph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
+
+            if (!isPrimary || info.noTransforms() || !config.isPerformTransformation()) {
+                // no transformations needed
+                return graph;
+            }
+            // process transformations
+            GraphTransformers.Stats stats;
+            Set<Graph> transformed = graphs.values().stream()
+                    .filter(g -> !g.isFresh() || g.noTransforms())
+                    .map(GraphInfo::getGraph)
+                    .collect(Collectors.toSet());
+            if (LOGGER.isDebugEnabled())
+                LOGGER.debug("Perform graph transformations on <{}>.", info.name());
+            try {
+                stats = config.getGraphTransformers().transform(graph, transformed);
+            } catch (TransformException t) {
+                throw new OWLTransformException(t);
+            }
+            info.setStats(stats);
+            stats.listStats(true)
+                    .filter(GraphTransformers.Stats::isNotEmpty)
+                    .forEach(s -> {
+                        String uri = Graphs.getURI(s.getGraph());
+                        if (uri == null) {
+                            LOGGER.warn("Not a named graph {}", Graphs.getName(s.getGraph()));
+                            return;
+                        }
+                        GraphInfo g = graphs.get(uri);
+                        if (g == null) {
+                            LOGGER.warn("Unable to find a graph for {}", Graphs.getName(s.getGraph()));
+                            return;
+                        }
+                        g.setStats(s);
+                    });
+            return graph;
+        }
+
+        /**
          * Assembles the {@link UnionGraph} from the inner collection ({@link #graphs}).
+         * Note: this collection can be modified by this method.
          *
          * @param node    {@link GraphInfo}
          * @param seen    Collection of URIs to avoid recursion infinite loops in imports (ontology A imports ontology B, which in turn imports A).
          * @param manager {@link OntologyManager} the manager
          * @param config  {@link OntLoaderConfiguration} the config
-         * @return {@link Graph}
-         * @throws OntApiException if something wrong.
+         * @return {@link UnionGraph}
+         * @throws OntApiException if something wrong
          */
-        protected Graph makeUnionGraph(GraphInfo node, Collection<String> seen, OntologyManager manager, OntLoaderConfiguration config) {
+        protected UnionGraph makeUnionGraph(GraphInfo node, Collection<String> seen, OntologyManager manager, OntLoaderConfiguration config) {
             // it is important to have the same order on each call
             Set<GraphInfo> children = new LinkedHashSet<>();
             Graph main = node.getGraph();
@@ -443,6 +478,30 @@ public class OntologyFactoryImpl implements OntologyFactory {
             UnionGraph res = new UnionGraph(main);
             children.forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), manager, config)));
             return res;
+        }
+
+        protected static OWLOntologyLoaderMetaData makeParserMetaData(Graph graph, GraphTransformers.Stats stats) {
+            if (stats == null)
+                return OntologyMetaData.createParserMetaData(graph);
+            if (Graphs.getBase(graph) != stats.getGraph())
+                throw new IllegalArgumentException("Incompatible graphs: " + Graphs.getName(graph) + " != " + Graphs.getName(stats.getGraph()));
+            return OntologyMetaData.createParserMetaData(stats);
+        }
+
+        /**
+         * Restores possible missed import links between the given ontology and existing in the manager.
+         * Such situation may occur if some ontology has been added with unresolved imports,
+         * which is possible if {@link MissingImportHandlingStrategy#SILENT} was specified.
+         *
+         * @param res     {@link OntGraphModel} named ontology
+         * @param manager the collection of other ontologies
+         */
+        protected static void restoreLinks(OntGraphModel res, Supplier<Stream<OntGraphModel>> manager) {
+            String uri = Objects.requireNonNull(res.getID().getURI(), "Must be named ontology");
+            manager.get()
+                    .filter(m -> m.getID().imports().anyMatch(uri::equals))
+                    .filter(m -> m.imports().map(OntGraphModel::getID).map(Resource::getURI).noneMatch(uri::equals))
+                    .forEach(m -> m.addImport(res));
         }
 
         /**
@@ -866,6 +925,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
             private boolean fresh, transforms;
             private Node ontology;
             private Set<String> imports;
+            private GraphTransformers.Stats stats;
 
             protected GraphInfo(Graph graph, OntFormat format, IRI source, boolean withTransforms) {
                 this.graph = graph;
@@ -876,7 +936,10 @@ public class OntologyFactoryImpl implements OntologyFactory {
             }
 
             protected Node ontology() {
-                return ontology == null ? ontology = Graphs.ontologyNode(Graphs.getBase(graph)).orElse(NodeFactory.createVariable("NullOntology")) : ontology;
+                return ontology == null ?
+                        ontology = Graphs.ontologyNode(Graphs.getBase(graph))
+                                .orElse(NodeFactory.createVariable("NullOntology")) :
+                        ontology;
             }
 
             public String getURI() {
@@ -899,8 +962,8 @@ public class OntologyFactoryImpl implements OntologyFactory {
                 return fresh;
             }
 
-            protected boolean withTransforms() {
-                return transforms;
+            protected boolean noTransforms() {
+                return !transforms;
             }
 
             protected void setProcessed() {
@@ -917,6 +980,14 @@ public class OntologyFactoryImpl implements OntologyFactory {
 
             protected IRI getSource() {
                 return source;
+            }
+
+            public GraphTransformers.Stats getStats() {
+                return stats;
+            }
+
+            protected void setStats(GraphTransformers.Stats stats) {
+                this.stats = Objects.requireNonNull(stats, "Null transform stats");
             }
         }
     }
