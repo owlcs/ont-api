@@ -163,6 +163,14 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     @Override
+    public OntGraphModelImpl removeImport(String uri) {
+        imports().filter(m -> Objects.equals(uri, m.getID().getURI()))
+                .findFirst()
+                .ifPresent(this::removeImport);
+        return this;
+    }
+
+    @Override
     public Stream<OntGraphModel> imports() {
         return imports(getPersonality());
     }

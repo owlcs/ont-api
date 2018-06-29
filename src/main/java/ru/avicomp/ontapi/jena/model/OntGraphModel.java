@@ -19,6 +19,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
@@ -107,12 +108,22 @@ public interface OntGraphModel extends Model {
 
     /**
      * Removes a sub-model from {@code owl:import} and from the graph hierarchy.
+     * Does nothing, if the specified model does not belong to this ontology.
      *
      * @param m {@link OntGraphModel ont jena model} to remove, not null
      * @return this model to allow cascading calls
      * @see OntID#removeImport(String)
      */
     OntGraphModel removeImport(OntGraphModel m);
+
+    /**
+     * Removes import (both {@code owl:import} declaration and the corresponding graph)
+     * with the specified uri if is found.
+     *
+     * @param uri String, an iri of ontology to find, not null
+     * @return this model to allow cascading calls
+     */
+    OntGraphModelImpl removeImport(String uri);
 
     /**
      * Lists all top-level imported models which have {@code owl:import} reference inside the base graph.

@@ -512,7 +512,8 @@ public abstract class GraphTransformers {
         /**
          * Lists all encapsulated Stats object.
          *
-         * @param deep if {@code true} all sub-stats will be included recursively in the result stream also.
+         * @param deep if {@code true} all sub-stats will be included recursively in the result stream also,
+         *             otherwise only top-level sub-stats are expected in the return stream
          * @return Stream of {@link Stats}
          */
         public Stream<Stats> listStats(boolean deep) {

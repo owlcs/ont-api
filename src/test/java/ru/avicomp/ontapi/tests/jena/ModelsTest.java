@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -31,6 +32,7 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * To test {@link Models} utility.
@@ -41,7 +43,7 @@ public class ModelsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelsTest.class);
 
     @Test
-    public void testDelete() {
+    public void testDeleteResources() {
         OntGraphModel m = OntModelFactory.createModel();
         m.read(ModelsTest.class.getResourceAsStream("/recursive-graph.ttl"), null, "ttl");
         String ns = m.getID().getURI() + "#";
@@ -82,7 +84,7 @@ public class ModelsTest {
     }
 
     @Test
-    public void testLabels() {
+    public void testAddLabels() {
         OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefixes(OntModelFactory.STANDARD);
         OntID id = m.getID();
@@ -98,6 +100,28 @@ public class ModelsTest {
         Assert.assertEquals(3, Models.langValues(id, RDFS.label, "e2").count());
         Assert.assertEquals(1, Models.langValues(id, RDFS.label, "language3").count());
         Assert.assertEquals(7, m.listObjectsOfProperty(id, RDFS.label).toSet().size());
+    }
+
+    @Test
+    public void testInsertModel() {
+        OntGraphModel a1 = OntModelFactory.createModel().setID("http://a").getModel();
+        OntGraphModel a2 = OntModelFactory.createModel().setID("http://a").getModel();
+        OntClass c1 = a1.createOntEntity(OntClass.class, "http://a#Class-a1");
+        OntClass c2 = a2.createOntEntity(OntClass.class, "http://a#Class-a2");
+
+        // collection depending on a1
+        OntGraphModel m1 = OntModelFactory.createModel().setID("http://m1").getModel().addImport(a1);
+        OntGraphModel m2 = OntModelFactory.createModel().setID("http://m2").getModel().addImport(a1);
+        Assert.assertTrue(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c1));
+        Assert.assertFalse(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c2));
+        Assert.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c1));
+        Assert.assertFalse(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c2));
+
+        Models.insert(() -> Stream.of(m1, m2), a2, true);
+        Assert.assertTrue(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c2));
+        Assert.assertFalse(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c1));
+        Assert.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c2));
+        Assert.assertFalse(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c1));
     }
 
 }

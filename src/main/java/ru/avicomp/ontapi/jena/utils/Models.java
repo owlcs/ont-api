@@ -24,19 +24,23 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A helper to work with jena-models, mainly with {@link ru.avicomp.ontapi.jena.model.OntGraphModel} and related objects/
+ * A helper to work with {@link Model Jena Model}s (mainly with {@link ru.avicomp.ontapi.jena.model.OntGraphModel})
+ * and its related objects (i.e. {@link Resource Jena Resourec}, {@link Statement Jena Statement}).
  * <p>
  * Created by szuev on 20.10.2016.
  */
@@ -265,6 +269,30 @@ public class Models {
      */
     public static Stream<OntStatement> split(OntStatement statement) {
         return ((OntStatementImpl) statement).split();
+    }
+
+    /**
+     * Inserts the given ontology in the dependencies of each ontology from the specified collection ({@code manager}).
+     * Can be used to fix missed graphs or to replace existing dependency with new one in case {@code replace = true}.
+     *
+     * @param manager the collection of other ontologies in form of {@link Supplier} providing Stream
+     * @param ont     {@link OntGraphModel} the ontology to insert, must be named
+     * @param replace if {@code true} existing graphs will be replaced with new one,
+     *                otherwise the model will be inserted only if there is {@code owl:import} without a graph
+     */
+    public static void insert(Supplier<Stream<OntGraphModel>> manager, OntGraphModel ont, boolean replace) {
+        String uri = Objects.requireNonNull(ont.getID().getURI(), "Must be named ontology");
+        manager.get()
+                .filter(m -> m.getID().imports().anyMatch(uri::equals))
+                .peek(m -> {
+                    if (!replace) return;
+                    m.imports()
+                            .filter(i -> uri.equals(i.getID().getURI()))
+                            .findFirst()
+                            .ifPresent(i -> ((UnionGraph) m.getGraph()).removeGraph(i.getGraph()));
+                })
+                .filter(m -> m.imports().map(OntGraphModel::getID).map(Resource::getURI).noneMatch(uri::equals))
+                .forEach(m -> m.addImport(ont));
     }
 
 }
