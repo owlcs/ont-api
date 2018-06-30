@@ -127,7 +127,9 @@ public abstract class Transform {
     }
 
     protected void declare(Resource subject, Resource type) {
-        subject.addProperty(RDF.type, Objects.requireNonNull(type, "Declare: null type for resource '" + subject + "'"));
+        if (subject.hasProperty(RDF.type, Objects.requireNonNull(type, "Declare: null type for resource '" + subject + "'")))
+            return;
+        subject.addProperty(RDF.type, type);
     }
 
     protected void undeclare(Resource subject, Resource type) {

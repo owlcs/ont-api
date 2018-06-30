@@ -25,6 +25,7 @@ import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
+import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.slf4j.Logger;
@@ -93,6 +94,7 @@ public class GraphTransformersTest {
                     d.getTripleCount(),
                     d.getUnparsedTriples().count(),
                     d.getGuessedDeclarations().size());
+            Assert.assertEquals(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, d.getHeaderState());
             if (SpinModels.SMF_BASE.getIRI().equals(uri)) {
                 return;
             }

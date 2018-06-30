@@ -195,7 +195,6 @@ public class OWLDeclarationTransform extends Transform {
                         if (source == null || target == null) return;
                         declare(source, target);
                     });
-
         }
 
         public void parseClassExpressions() {

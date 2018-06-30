@@ -14,15 +14,27 @@
 
 package ru.avicomp.ontapi.tests.transforms;
 
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
+import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 
 import java.nio.file.Paths;
 
@@ -42,5 +54,91 @@ public class OWLTransformTest {
         ReadWriteUtils.print(o.asGraphModel());
         o.axioms().forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals(136, o.getAxiomCount());
+    }
+
+    @Test
+    public void testParseZeroHeader() throws OWLOntologyCreationException {
+        Model m = ModelFactory.createDefaultModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        m.createResource("http://class").addProperty(RDF.type, OWL.Class);
+        String txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
+
+        OntologyManager manager = OntManagers.createONT();
+        OntologyModel o = manager.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(txt, OntFormat.TURTLE));
+        OWLOntologyLoaderMetaData meta = manager.getNonnullOntologyFormat(o)
+                .getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
+        print(meta);
+        Assert.assertEquals(RDFOntologyHeaderStatus.PARSED_ZERO_HEADERS, meta.getHeaderState());
+        Assert.assertEquals(0, meta.getUnparsedTriples().count());
+        Assert.assertEquals(1, meta.getGuessedDeclarations().size());
+        Assert.assertEquals(2, meta.getTripleCount());
+    }
+
+    @Test
+    public void testParseMultipleHeader() throws OWLOntologyCreationException {
+        String ontIRI = "http://o";
+        String verIRI = "http://v";
+        Model m = ModelFactory.createDefaultModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        m.createResource("http://class").addProperty(RDF.type, OWL.Class);
+        m.createResource().addProperty(RDF.type, OWL.Ontology);
+        m.createResource("http://ont1").addProperty(RDF.type, OWL.Ontology);
+        m.createResource(ontIRI).addProperty(RDF.type, OWL.Ontology)
+                .addProperty(OWL.versionIRI, m.createResource(verIRI));
+        String txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
+
+        LOGGER.debug("Ontology:\n{}", txt);
+
+        OntologyManager manager = OntManagers.createONT();
+        OntologyModel o = manager.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(txt, OntFormat.TURTLE));
+        ReadWriteUtils.print(o);
+        Assert.assertEquals(ontIRI, o.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
+        Assert.assertEquals(verIRI, o.getOntologyID().getVersionIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
+
+        OWLOntologyLoaderMetaData meta = manager.getNonnullOntologyFormat(o)
+                .getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
+        print(meta);
+
+        Assert.assertEquals(RDFOntologyHeaderStatus.PARSED_MULTIPLE_HEADERS, meta.getHeaderState());
+        Assert.assertEquals(0, meta.getUnparsedTriples().count());
+        Assert.assertEquals(1, meta.getGuessedDeclarations().size());
+        Assert.assertEquals(o.asGraphModel().size(), meta.getTripleCount());
+    }
+
+    @Test
+    public void testUnparsableTriples() throws OWLOntologyCreationException {
+        Model m = ModelFactory.createDefaultModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        m.createResource("http://ont").addProperty(RDF.type, OWL.Ontology);
+
+        Resource clazz = m.createResource("http://class").addProperty(RDF.type, RDFS.Class);
+        Resource prop = m.createResource("http://prop").addProperty(RDF.type, RDF.Property);
+        // restriction, either data or object
+        m.createResource()
+                .addProperty(RDF.type, OWL.Restriction)
+                .addProperty(OWL.onProperty, prop)
+                .addProperty(OWL.allValuesFrom, clazz);
+        String txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
+
+        LOGGER.debug("Ontology:\n{}", txt);
+
+        OntologyManager manager = OntManagers.createONT();
+        OntologyModel o = manager.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(txt, OntFormat.TURTLE));
+        ReadWriteUtils.print(o);
+
+        OWLOntologyLoaderMetaData meta = manager.getNonnullOntologyFormat(o)
+                .getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
+        print(meta);
+
+        Assert.assertEquals(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, meta.getHeaderState());
+        Assert.assertEquals(1, meta.getUnparsedTriples().count());
+        Assert.assertEquals(0, meta.getGuessedDeclarations().size());
+        Assert.assertEquals(m.size(), meta.getTripleCount());
+
+    }
+
+    private static void print(OWLOntologyLoaderMetaData meta) {
+        meta.getGuessedDeclarations().asMap().forEach((x, y) -> LOGGER.debug("Guessed: {} => {}", x, y));
+        meta.getUnparsedTriples().forEach(t -> LOGGER.debug("Unparsed: {}", t));
     }
 }

@@ -136,6 +136,9 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
         }
         // declaration (note: anonymous object also wrapped as uri-resource)
         Resource obj = ResourceFactory.createResource(t.getObject().toString());
+        if (OWL.Ontology.equals(obj)) {
+            return OWLOntology.class;
+        }
         if (t.getSubject().isURI() && t.getObject().isURI()) { // named subject and object
             if (OWL.Class.equals(obj)) {
                 return OWLClass.class;
