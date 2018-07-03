@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.io.RDFTriple;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
+import ru.avicomp.ontapi.OWLAdapter;
 import ru.avicomp.owlapi.OWLManager;
 
 import java.util.stream.Stream;
@@ -53,7 +54,7 @@ public class FileRoundTripSubClassOfUntypedOWLClassStrictTestCase extends Abstra
     public void testAxioms() {
         config = config.setStrict(true);
         if (!OWLManager.DEBUG_USE_OWL) {
-            config = ru.avicomp.ontapi.OntologyFactoryImpl.asONT(config).setUseOWLParsersToLoad(true);
+            config = OWLAdapter.get().asONT(config).setUseOWLParsersToLoad(true);
         }
         OWLOntology ont = createOntology();
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(ont);

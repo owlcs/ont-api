@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
-import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -39,6 +38,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.TransformException;
 import ru.avicomp.owlapi.NoOpReadWriteLock;
+import ru.avicomp.owlapi.OWLOntologyFactoryImpl;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -47,7 +47,8 @@ import java.util.stream.Collectors;
 
 /**
  * The ontology building and loading factory, the 'core' - the main point to create and load ontologies.
- * See also base interface {@link OWLOntologyFactory} and its single implementation <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>.
+ * See also base interface {@link OWLOntologyFactory} and its single implementation
+ * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>.
  * <p>
  * Created by szuev on 24.10.2016.
  */
@@ -62,19 +63,8 @@ public class OntologyFactoryImpl implements OntologyFactory {
     protected final Loader ontologyLoader;
 
     public OntologyFactoryImpl() {
-        ontologyBuilder = new ONTBuilderImpl();
-        ontologyLoader = new ONTLoaderImpl(makeAlternative(ontologyBuilder));
-    }
-
-    /**
-     * Makes an OntLoader using OntBuilder, which will be used as alternative in the primary loader.
-     *
-     * @param builder {@link Builder}, not null
-     * @return {@link Loader} or null
-     */
-    public static Loader makeAlternative(Builder builder) {
-        OWLOntologyFactory factory = OntManagers.createOWLOntologyLoadFactory(builder);
-        return factory == null ? null : new OWLLoaderImpl(factory);
+        this.ontologyBuilder = new BuilderImpl();
+        this.ontologyLoader = new ONTLoaderImpl(ontologyBuilder, new OWLLoaderImpl(ontologyBuilder));
     }
 
     @Override
@@ -84,108 +74,67 @@ public class OntologyFactoryImpl implements OntologyFactory {
 
     @Override
     public boolean canAttemptLoading(@Nonnull OWLOntologyDocumentSource source) {
-        return !source.hasAlredyFailedOnStreams() ||
-                !source.hasAlredyFailedOnIRIResolution() &&
-                        OntConfig.DefaultScheme.all().anyMatch(s -> s.same(source.getDocumentIRI()));
+        return true;
+    }
+
+    /**
+     * Creates a fresh ontology (ONT) inside the given manager.
+     * Note: the default format is Turtle, not RDF/XML as in OWL-API impl, since it is more widely used in Jena-world.
+     *
+     * @param manager {@link OntologyManager}, not null
+     * @param id      {@link OWLOntologyID}, not null
+     * @return {@link OntologyModel}
+     * @see OntFormat#TURTLE
+     */
+    @Override
+    public OntologyModel createOntology(OntologyManager manager, OWLOntologyID id) {
+        OntologyModel res = this.ontologyBuilder.createOWLOntology(manager, id);
+        OWLAdapter.get().asIMPL(manager).ontologyCreated(res);
+        manager.setOntologyFormat(res, OntFormat.TURTLE.createOwlFormat());
+        return res;
     }
 
     @Override
-    public OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager,
-                                           @Nonnull OWLOntologyID id,
-                                           @Nonnull IRI documentIRI,
-                                           @Nonnull OWLOntologyCreationHandler handler) {
-        return ontologyBuilder.create(asONT(manager), id);
-    }
-
-    @Override
-    public OntologyModel loadOWLOntology(@Nonnull OWLOntologyManager manager,
-                                         @Nonnull OWLOntologyDocumentSource source,
-                                         @Nonnull OWLOntologyCreationHandler handler,
-                                         @Nonnull OWLOntologyLoaderConfiguration configuration) throws OWLOntologyCreationException {
-        return ontologyLoader.load(source, asONT(manager), asONT(configuration));
+    public OntologyModel loadOntology(OntologyManager manager,
+                                      OWLOntologyDocumentSource source,
+                                      OntLoaderConfiguration configuration) throws OWLOntologyCreationException {
+        return ontologyLoader.load(source, manager, configuration);
     }
 
     /**
-     * Currently it is just sugar.
-     *
-     * @param manager {@link OWLOntologyManager}
-     * @return {@link OntologyManager}
-     * @throws ClassCastException if of wrong instance
+     * An impl of {@link Builder} - a technical factory to create standalone ontology instances.
      */
-    public static OntologyManager asONT(OWLOntologyManager manager) {
-        return (OntologyManager) manager;
-    }
-
-    /**
-     * Wraps {@link OntologyConfigurator} as {@link OntConfig}
-     *
-     * @param conf {@link OntologyConfigurator}
-     * @return {@link OntConfig}
-     */
-    public static OntConfig asONT(OntologyConfigurator conf) {
-        return conf instanceof OntConfig ? (OntConfig) conf : OntConfig.copy(conf);
-    }
-
-    /**
-     * Wraps {@link OWLOntologyLoaderConfiguration} as {@link OntLoaderConfiguration}
-     *
-     * @param conf {@link OWLOntologyLoaderConfiguration}
-     * @return {@link OntLoaderConfiguration}
-     */
-    public static OntLoaderConfiguration asONT(OWLOntologyLoaderConfiguration conf) {
-        return conf instanceof OntLoaderConfiguration ? (OntLoaderConfiguration) conf : new OntLoaderConfiguration(conf);
-    }
-
-    /**
-     * Wraps {@link OWLOntologyWriterConfiguration} as {@link OntWriterConfiguration}
-     *
-     * @param conf {@link OWLOntologyWriterConfiguration}
-     * @return {@link OntWriterConfiguration}
-     */
-    public static OntWriterConfiguration asONT(OWLOntologyWriterConfiguration conf) {
-        return conf instanceof OntWriterConfiguration ? (OntWriterConfiguration) conf : new OntWriterConfiguration(conf);
-    }
-
-    /**
-     * Casts to ONT-API manager implementation.
-     * This implementation contains a lot of useful methods which uses by this factory, but
-     * these methods can't be moved to the interface since they are not common.
-     *
-     * @param manager {@link OWLOntologyManager manager}
-     * @return {@link OntologyManagerImpl}
-     * @throws ClassCastException in case of wrong instance specified
-     */
-    public static OntologyManagerImpl asIMPL(OWLOntologyManager manager) {
-        return (OntologyManagerImpl) manager;
-    }
-
-    /**
-     * The main impl of {@link Builder}
-     */
-    public static class ONTBuilderImpl implements Builder {
+    public static class BuilderImpl implements Builder {
 
         @Override
-        public OntologyModel createOWLOntology(@Nonnull OWLOntologyManager manager, @Nonnull OWLOntologyID id) {
-            OntologyManagerImpl m = asIMPL(manager);
-            OntologyModelImpl ont = new OntologyModelImpl(m, id);
-            return m.isConcurrent() ? ont.asConcurrent() : ont;
+        public OntologyModel createOntology(OntologyManager manager, OWLOntologyID id) {
+            OntologyManagerImpl m = OWLAdapter.get().asIMPL(manager);
+            OntologyModelImpl res = createOntologyImpl(createGraph(), m, m.getOntologyLoaderConfiguration());
+            res.setOntologyID(id);
+            return withLock(res, m);
         }
 
-        /**
-         * Creates a fresh ontology (ONT) inside manager.
-         * Note: the default format is Turtle, not RDF/XML as in OWL-API, since it is more widely used in Jena-world.
-         *
-         * @param manager {@link OntologyManager}
-         * @param id      {@link OWLOntologyID}
-         * @return {@link OntologyModel}
-         * @see OntFormat#TURTLE
-         */
         @Override
-        public OntologyModel create(@Nonnull OntologyManager manager, @Nonnull OWLOntologyID id) {
-            OntologyModel res = createOWLOntology(manager, id);
-            asIMPL(manager).ontologyCreated(res);
-            manager.setOntologyFormat(res, OntFormat.TURTLE.createOwlFormat());
-            return res;
+        public OntologyModel createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config) {
+            OntologyManagerImpl m = OWLAdapter.get().asIMPL(manager);
+            return withLock(createOntologyImpl(graph, m, config), m);
+        }
+
+        public OntologyModelImpl createOntologyImpl(Graph graph, OntologyManagerImpl manager, OntLoaderConfiguration config) {
+            OntologyManagerImpl.ModelConfig modelConfig = manager.createModelConfig();
+            if (config != null)
+                modelConfig.setLoaderConf(config);
+            return new OntologyModelImpl(graph, modelConfig);
+        }
+
+        public OntologyModel withLock(OntologyModelImpl ont, OntologyManagerImpl manager) {
+            if (!manager.isConcurrent()) return ont;
+            return new OntologyModelImpl.Concurrent(ont, manager.getLock());
+        }
+
+        @Override
+        public Graph createGraph() {
+            return OntModelFactory.createDefaultGraph();
         }
     }
 
@@ -195,7 +144,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
      * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by jena, so it is the only way.
      */
     public static class OWLLoaderImpl implements Loader {
-        protected static final Logger LOGGER = LoggerFactory.getLogger(OWLLoaderImpl.class);
+        private static final Logger LOGGER = LoggerFactory.getLogger(OWLLoaderImpl.class);
 
         protected final OWLOntologyFactory factory;
 
@@ -203,13 +152,17 @@ public class OntologyFactoryImpl implements OntologyFactory {
         // which may happen since OWL-API parsers may use the manager again, which uses factory with the same parsers
         protected Set<IRI> sources = new HashSet<>();
 
+        public OWLLoaderImpl(Builder builder) {
+            this(new OWLOntologyFactoryImpl(Objects.requireNonNull(builder, "Null ONT Builder specified.")));
+        }
+
         /**
          * Main constructor.
          *
          * @param factory {@link OWLOntologyFactory}, not null
          */
-        public OWLLoaderImpl(OWLOntologyFactory factory) {
-            this.factory = OntApiException.notNull(factory, "Null owl-load-factory impl.");
+        protected OWLLoaderImpl(OWLOntologyFactory factory) {
+            this.factory = OntApiException.notNull(factory, "Null OWL Ontology Factory impl.");
         }
 
         /**
@@ -217,7 +170,9 @@ public class OntologyFactoryImpl implements OntologyFactory {
          * @param manager {@link OntologyManager}
          * @param conf    {@link OntLoaderConfiguration}
          * @return an ontology inside manager
-         * @throws BadRecursionException        if recursion occurs (a cohesion/coupling issue in OWL-API: a manager uses a factory which uses the manager in its turn)
+         * @throws BadRecursionException        if recursion occurs
+         *                                      (the situation looks like cohesion/coupling issue in OWL-API:
+         *                                      a manager uses a factory which uses the manager in its turn)
          * @throws OWLOntologyCreationException if any other problem occurs
          */
         @Override
@@ -251,8 +206,9 @@ public class OntologyFactoryImpl implements OntologyFactory {
     public static class ONTLoaderImpl implements Loader {
         private static final Logger LOGGER = LoggerFactory.getLogger(ONTLoaderImpl.class);
 
+        protected final Builder builder;
         // to use OWL-API parsers:
-        protected Loader alternative;
+        protected final Loader alternative;
         // state:
         protected Map<String, GraphInfo> graphs = new LinkedHashMap<>();
         protected Map<IRI, Optional<IRI>> sourceMap = new HashMap<>();
@@ -261,19 +217,23 @@ public class OntologyFactoryImpl implements OntologyFactory {
         /**
          * Main constructor.
          *
+         * @param builder     {@link Builder}, not null
          * @param alternative {@link Loader}, nullable
          */
-        public ONTLoaderImpl(Loader alternative) {
+        public ONTLoaderImpl(Builder builder, Loader alternative) {
+            this.builder = Objects.requireNonNull(builder, "Null builder");
             this.alternative = alternative;
         }
 
         @Override
-        public OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration config) throws OWLOntologyCreationException {
+        public OntologyModel load(OWLOntologyDocumentSource source,
+                                  OntologyManager manager,
+                                  OntLoaderConfiguration config) throws OWLOntologyCreationException {
             if (config.isUseOWLParsersToLoad()) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Load ontology using OWL-API methods. Source [{}]{}", source.getClass().getSimpleName(), source.getDocumentIRI());
                 }
-                return OntApiException.notNull(alternative, "No owl loader.").load(source, manager, config);
+                return OntApiException.notNull(alternative, "No OWL loader found.").load(source, manager, config);
             }
             try {
                 GraphInfo primary = loadGraph(source, manager, config);
@@ -324,9 +284,8 @@ public class OntologyFactoryImpl implements OntologyFactory {
                     LOGGER.debug("Set up ontology model {}.", info.name());
                 }
                 Graph graph = makeUnionGraph(info, manager, config);
-                OntologyManagerImpl impl = asIMPL(manager);
                 // create ontology instance
-                OntologyModel res = impl.newOntologyModel(graph, config);
+                OntologyModel res = builder.createOntology(graph, manager, config);
                 if (manager.contains(res)) {
                     throw new OWLOntologyAlreadyExistsException(res.getOntologyID());
                 }
@@ -337,8 +296,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
                     Models.insert(manager::models, res.asGraphModel(), false);
                 }
                 // put ontology inside manager:
-                impl.ontologyCreated(res);
-
+                OWLAdapter.get().asIMPL(manager).ontologyCreated(res);
                 OWLDocumentFormat format = info.getFormat().createOwlFormat();
                 if (format.isPrefixOWLDocumentFormat()) {
                     PrefixManager pm = format.asPrefixOWLDocumentFormat();
@@ -553,7 +511,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
             if (res != null) {
                 sourceMap.remove(source);
             } else {
-                res = asIMPL(manager).mapIRI(source);
+                res = OWLAdapter.get().asIMPL(manager).mapIRI(source);
                 sourceMap.put(source, res);
             }
             return res;
@@ -619,7 +577,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
                     .orElse(source);
             try {
                 // jena:
-                Graph graph = OntModelFactory.createDefaultGraph();
+                Graph graph = builder.createGraph();
                 OntFormat format = OntGraphUtils.readGraph(graph, src, config);
                 GraphInfo res = toGraphInfo(graph, format, doc);
                 if (LOGGER.isDebugEnabled()) {
@@ -676,7 +634,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
          * @return {@link OntologyManager}, the target manager
          */
         protected OntologyManagerImpl createLoadCopy(OntologyManager from, OntLoaderConfiguration defaultConfig) {
-            OntologyManagerImpl delegate = asIMPL(from);
+            OntologyManagerImpl delegate = OWLAdapter.get().asIMPL(from);
             return new OntologyManagerImpl(delegate.getOWLDataFactory(), delegate.getLoadFactory(), new NoOpReadWriteLock()) {
 
                 @Override

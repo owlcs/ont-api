@@ -13,7 +13,10 @@
  */
 package ru.avicomp.owlapi;
 
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLOntologyBuilder;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OntologyConfigurator;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +35,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  */
 public class OWLManager {
 
-    // specify VM option '-Ddebug.use.owl=true' to run "pure" OWL-tests:
+    // specify VM option '-Ddebug.use.owl=true' to run "pure" OWL-tests (i.e. based on OWL-API-impl, not ONT-API):
     public static final boolean DEBUG_USE_OWL = Boolean.parseBoolean(System.getProperty("debug.use.owl", Boolean.FALSE.toString()));
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OWLManager.class);
@@ -58,7 +61,6 @@ public class OWLManager {
         LOGGER.debug("Create concurrent {}", typeName("OntologyManager"));
         return DEBUG_USE_OWL ? OntManagers.createConcurrentOWL() : OntManagers.createConcurrentONT();
     }
-
 
     /**
      * Gets a global data factory that can be used to create OWL API objects.
@@ -94,13 +96,6 @@ public class OWLManager {
                 OntManagers.getDataFactory();
     }
 
-    public static OWLOntologyFactory newOWLLoadFactory(OWLOntologyBuilder builder) {
-        LOGGER.debug("New {}", typeName("LoadFactory"));
-        return DEBUG_USE_OWL ?
-                new OntManagers.OWLAPIImplProfile().createLoadFactory(builder) :
-                OntManagers.createOWLOntologyLoadFactory(builder);
-    }
-
     public static OntologyConfigurator newConfig() {
         LOGGER.debug("New {}", typeName("OntologyConfigurator"));
         return DEBUG_USE_OWL ?
@@ -109,7 +104,7 @@ public class OWLManager {
     }
 
     /**
-     * From owlapi-parsers
+     * From owlapi-parsers.
      *
      * @return an initialized manchester syntax parser for parsing strings
      */
@@ -125,7 +120,7 @@ public class OWLManager {
     public static OWLOntologyBuilder createOntologyBuilder() {
         return OWLManager.DEBUG_USE_OWL ?
                 (OWLOntologyBuilder) (m, i) -> new OntManagers.OWLAPIImplProfile().createOWLOntologyImpl(m, i) :
-                new OntologyFactoryImpl.ONTBuilderImpl();
+                new OntologyFactoryImpl.BuilderImpl();
     }
 
     public static Class<?> findClass(String name) {

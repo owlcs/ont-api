@@ -1,0 +1,102 @@
+/*
+ * This file is part of the ONT API.
+ * The contents of this file are subject to the LGPL License, Version 3.0.
+ * Copyright (c) 2018, Avicomp Services, AO
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with this program.  If not, see http://www.gnu.org/licenses/.
+ *
+ * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ */
+
+package ru.avicomp.ontapi;
+
+import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
+import org.semanticweb.owlapi.model.OntologyConfigurator;
+import ru.avicomp.ontapi.config.OntConfig;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.config.OntWriterConfiguration;
+
+import java.util.Objects;
+
+/**
+ * TODO: description
+ * Collection of sugar.
+ *
+ * @since 1.2.1
+ * Created by @szuev on 01.07.2018.
+ */
+@SuppressWarnings("WeakerAccess")
+public class OWLAdapter {
+
+    private static OWLAdapter instance = new OWLAdapter();
+
+    public static OWLAdapter get() {
+        return instance;
+    }
+
+    public static void set(OWLAdapter adapter) {
+        instance = Objects.requireNonNull(adapter, "Null adapter");
+    }
+
+    /**
+     * Wraps {@link OWLOntologyManager} as {@link OntologyManager}.
+     *
+     * @param manager {@link OWLOntologyManager}
+     * @return {@link OntologyManager}
+     * @throws ClassCastException if of wrong instance
+     */
+    public OntologyManager asONT(OWLOntologyManager manager) {
+        return (OntologyManager) manager;
+    }
+
+    /**
+     * Wraps {@link OntologyConfigurator} as {@link OntConfig}.
+     *
+     * @param conf {@link OntologyConfigurator}
+     * @return {@link OntConfig}
+     */
+    public OntConfig asONT(OntologyConfigurator conf) {
+        return conf instanceof OntConfig ? (OntConfig) conf : OntConfig.copy(conf);
+    }
+
+    /**
+     * Wraps {@link OWLOntologyLoaderConfiguration} as {@link OntLoaderConfiguration}.
+     *
+     * @param conf {@link OWLOntologyLoaderConfiguration}
+     * @return {@link OntLoaderConfiguration}
+     */
+    public OntLoaderConfiguration asONT(OWLOntologyLoaderConfiguration conf) {
+        return conf instanceof OntLoaderConfiguration ? (OntLoaderConfiguration) conf : new OntLoaderConfiguration(conf);
+    }
+
+    /**
+     * Wraps {@link OWLOntologyWriterConfiguration} as {@link OntWriterConfiguration}.
+     *
+     * @param conf {@link OWLOntologyWriterConfiguration}
+     * @return {@link OntWriterConfiguration}
+     */
+    public OntWriterConfiguration asONT(OWLOntologyWriterConfiguration conf) {
+        return conf instanceof OntWriterConfiguration ? (OntWriterConfiguration) conf : new OntWriterConfiguration(conf);
+    }
+
+    /**
+     * Casts to the default ONT-API manager implementation.
+     * The implementation contains a lot of useful methods which are used by {@link OntologyFactoryImpl},
+     * but these methods can't be moved to the interface since they are not common or can break state,
+     * or by some other reasons.
+     * Currently I am not sure it is good idea to create one more interface.
+     *
+     * @param manager {@link OWLOntologyManager manager}
+     * @return {@link OntologyManagerImpl}
+     * @throws ClassCastException in case of wrong instance specified
+     */
+    OntologyManagerImpl asIMPL(OWLOntologyManager manager) {
+        return (OntologyManagerImpl) manager;
+    }
+}

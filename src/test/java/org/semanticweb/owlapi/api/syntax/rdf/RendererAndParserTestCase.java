@@ -13,34 +13,26 @@
  */
 package org.semanticweb.owlapi.api.syntax.rdf;
 
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.semanticweb.owlapi.api.baseclasses.TestBase;
+import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParserFactory;
-import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
-import ru.avicomp.owlapi.OWLManager;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
+import java.util.stream.Collectors;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 2.0.0
  */
-
 @SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class RendererAndParserTestCase extends TestBase {
@@ -55,33 +47,39 @@ public class RendererAndParserTestCase extends TestBase {
     public static List<AxiomBuilder> getData() {
         return Arrays.asList(
                 // AnonymousIndividual
-                () -> singleton(df.getOWLClassAssertionAxiom(df.getOWLObjectComplementOf(createClass()),
-                        createIndividual())),
+                () -> singleton(df.getOWLClassAssertionAxiom(df.getOWLObjectComplementOf(OWLFunctionalSyntaxFactory.createClass()),
+                        OWLFunctionalSyntaxFactory.createIndividual())),
                 // ClassAssertionAxioms
-                () -> singleton(df.getOWLClassAssertionAxiom(createClass(), createIndividual())),
+                () -> singleton(df.getOWLClassAssertionAxiom(
+                        OWLFunctionalSyntaxFactory.createClass(),
+                        OWLFunctionalSyntaxFactory.createIndividual())),
                 // DifferentIndividualsAxiom
-                () -> singleton(df.getOWLDifferentIndividualsAxiom(createIndividual(), createIndividual(),
-                        createIndividual(), createIndividual(), createIndividual())),
+                () -> singleton(df.getOWLDifferentIndividualsAxiom(
+                        OWLFunctionalSyntaxFactory.createIndividual(),
+                        OWLFunctionalSyntaxFactory.createIndividual(),
+                        OWLFunctionalSyntaxFactory.createIndividual(),
+                        OWLFunctionalSyntaxFactory.createIndividual(),
+                        OWLFunctionalSyntaxFactory.createIndividual())),
                 // EquivalentClasses
-                () -> singleton(df.getOWLEquivalentClassesAxiom(createClass(),
-                        df.getOWLObjectSomeValuesFrom(createObjectProperty(), df.getOWLThing()))),
+                () -> singleton(df.getOWLEquivalentClassesAxiom(
+                        OWLFunctionalSyntaxFactory.createClass(),
+                        df.getOWLObjectSomeValuesFrom(OWLFunctionalSyntaxFactory.createObjectProperty(), df.getOWLThing()))),
                 // NegativeDataPropertyAssertionAxiom
-                () -> singleton(df.getOWLNegativeDataPropertyAssertionAxiom(createDataProperty(), createIndividual(),
+                () -> singleton(df.getOWLNegativeDataPropertyAssertionAxiom(
+                        OWLFunctionalSyntaxFactory.createDataProperty(),
+                        OWLFunctionalSyntaxFactory.createIndividual(),
                         df.getOWLLiteral("TestConstant"))),
                 // NegativeObjectPropertyAssertionAxiom
-                () -> singleton(df.getOWLNegativeObjectPropertyAssertionAxiom(createObjectProperty(), createIndividual(),
-                        createIndividual())),
+                () -> singleton(df.getOWLNegativeObjectPropertyAssertionAxiom(
+                        OWLFunctionalSyntaxFactory.createObjectProperty(),
+                        OWLFunctionalSyntaxFactory.createIndividual(),
+                        OWLFunctionalSyntaxFactory.createIndividual())),
                 // QCR
-                () -> singleton(df.getOWLSubClassOfAxiom(createClass(),
-                        df.getOWLObjectMinCardinality(3, createObjectProperty(),
-                                df.getOWLObjectIntersectionOf(createClass(), createClass())))));
-    }
-
-    @Before
-    public void setUpManager() {
-        m.getOntologyFactories().set(OWLManager.newOWLLoadFactory(builder));
-        m.getOntologyStorers().set(new RDFXMLStorerFactory());
-        m.getOntologyParsers().set(new RDFXMLParserFactory());
+                () -> singleton(df.getOWLSubClassOfAxiom(
+                        OWLFunctionalSyntaxFactory.createClass(),
+                        df.getOWLObjectMinCardinality(3, OWLFunctionalSyntaxFactory.createObjectProperty(),
+                                df.getOWLObjectIntersectionOf(OWLFunctionalSyntaxFactory.createClass(),
+                                        OWLFunctionalSyntaxFactory.createClass())))));
     }
 
     @Test
@@ -89,10 +87,10 @@ public class RendererAndParserTestCase extends TestBase {
         OWLOntology ontA = getOWLOntology();
         ontA.add(axioms.build());
         OWLOntology ontB = roundTrip(ontA);
-        Set<OWLLogicalAxiom> aMinusB = asUnorderedSet(ontA.logicalAxioms());
-        aMinusB.removeAll(asList(ontB.axioms()));
-        Set<OWLLogicalAxiom> bMinusA = asUnorderedSet(ontB.logicalAxioms());
-        bMinusA.removeAll(asList(ontA.axioms()));
+        Set<OWLLogicalAxiom> aMinusB = ontA.logicalAxioms().collect(Collectors.toSet());
+        ontB.logicalAxioms().forEach(aMinusB::remove);
+        Set<OWLLogicalAxiom> bMinusA = ontB.logicalAxioms().collect(Collectors.toSet());
+        ontA.logicalAxioms().forEach(bMinusA::remove);
         StringBuilder msg = new StringBuilder();
         if (aMinusB.isEmpty() && bMinusA.isEmpty()) {
             msg.append("Ontology save/load roundtrip OK.\n");
@@ -107,6 +105,6 @@ public class RendererAndParserTestCase extends TestBase {
                 msg.append(axiom).append("\n");
             }
         }
-        assertTrue(msg.toString(), aMinusB.isEmpty() && bMinusA.isEmpty());
+        Assert.assertTrue(msg.toString(), aMinusB.isEmpty() && bMinusA.isEmpty());
     }
 }

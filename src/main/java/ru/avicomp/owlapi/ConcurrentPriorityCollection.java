@@ -18,25 +18,25 @@ import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.semanticweb.owlapi.util.PriorityCollection;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
+ * TODO: rename not to be confused with uk.ac.manchester.cs.owl.owlapi.*
  * A priority collection that supports concurrent reading and writing through a {@link ReadWriteLock}.
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 09/04/15
  * @param <T> type in the collection
+ * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/concurrent/ConcurrentPriorityCollection.java'>ConcurrentPriorityCollection</a>
  */
+@SuppressWarnings("WeakerAccess")
 public class ConcurrentPriorityCollection<T extends Serializable> extends PriorityCollection<T> {
 
     protected final ReadWriteLock lock;
 
     /**
-     * Constructs a {@link ConcurrentPriorityCollection} using the specified {@link ReadWriteLock}
+     * Constructs a PriorityCollection instance with the specified {@link ReadWriteLock}.
      *
-     * @param lock The {@link java.util.concurrent.locks.ReadWriteLock} that should be used for locking.
+     * @param lock {@link java.util.concurrent.locks.ReadWriteLock ReadWriteLock} that should be used for locking
      * @param sorting sorting criterion
      */
     public ConcurrentPriorityCollection(ReadWriteLock lock, PriorityCollectionSorting sorting) {
@@ -64,46 +64,60 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
         }
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
-    public void set(Iterable<T> c) {
+    public void set(Iterable<T> iterable) {
         lock.writeLock().lock();
         try {
-            super.set(c);
+            super.set(iterable);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
     @Override
-    public void add(Iterable<T> c) {
+    public void set(Set<T> set) {
         lock.writeLock().lock();
         try {
-            super.add(c);
+            super.set(set);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "NullableProblems"})
+    @Override
+    public void set(T... array) {
+        lock.writeLock().lock();
+        try {
+            super.set(array);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
     @Override
-    public void set(@SuppressWarnings("unchecked") T... c) {
+    public void add(Iterable<T> iterable) {
         lock.writeLock().lock();
         try {
-            super.set(c);
+            super.add(iterable);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void add(@SuppressWarnings("unchecked") T... c) {
+    public void add(T... array) {
         lock.writeLock().lock();
         try {
-            super.add(c);
+            super.add(array);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public void add(T c) {
         lock.writeLock().lock();
@@ -114,8 +128,9 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void remove(@SuppressWarnings("unchecked") T... c) {
+    public void remove(T... c) {
         lock.writeLock().lock();
         try {
             super.remove(c);
@@ -124,6 +139,7 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
         }
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public void remove(T c) {
         lock.writeLock().lock();
@@ -144,6 +160,7 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
         }
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public Iterator<T> iterator() {
         return copyIterable().iterator();
@@ -169,17 +186,15 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
         }
     }
 
-    private Iterable<T> copyIterable() {
+    protected Iterable<T> copyIterable() {
         lock.readLock().lock();
         try {
-            List<T> copy = new ArrayList<>();
-            for (Iterator<T> it = super.iterator(); it.hasNext(); ) {
-                T element = it.next();
-                copy.add(element);
-            }
-            return copy;
+            List<T> res = new ArrayList<>();
+            super.iterator().forEachRemaining(res::add);
+            return res;
         } finally {
             lock.readLock().unlock();
         }
     }
+
 }

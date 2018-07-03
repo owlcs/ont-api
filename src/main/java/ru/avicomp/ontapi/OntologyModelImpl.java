@@ -47,21 +47,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     protected transient ChangeProcessor changer;
 
     /**
-     * To construct fresh (empty) ontology.
-     * @param manager ontology manager
-     * @param id      the id
-     */
-    public OntologyModelImpl(OntologyManagerImpl manager, OWLOntologyID id) {
-        super(manager, id);
-    }
-
-    /**
-     * To construct an ontology based on graph.
+     * To construct an ontology based on the given graph.
      *
      * @param graph  {@link Graph}
      * @param config {@link OntologyManagerImpl.ModelConfig}
      */
-    public OntologyModelImpl(Graph graph, OntologyManagerImpl.ModelConfig config) {
+    protected OntologyModelImpl(Graph graph, OntologyManagerImpl.ModelConfig config) {
         super(graph, config);
     }
 
@@ -92,20 +83,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     @Override
     public OntGraphModel asGraphModel() {
         return getBase();
-    }
-
-    /**
-     * Returns concurrent representation of model if it is allowed by manager.
-     * For internal usage only
-     *
-     * @return {@link OntologyModel}
-     */
-    public OntologyModel asConcurrent() {
-        OntologyManagerImpl manager = getOWLOntologyManager();
-        if (!manager.isConcurrent()) {
-            throw new OntApiException.Unsupported("Concurrency is not allowed.");
-        }
-        return new Concurrent(this, manager.getLock());
     }
 
     protected class ChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {

@@ -46,7 +46,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * Helper to work with {@link Graph Apache Jena Graphs} in OWL-API terms.
+ * Helper to work with {@link Graph Apache Jena Graph}s in OWL-API terms.
  * Used in different ONT-API components related to the OWL-API-api implementation.
  * Some of the methods were moved from another classes (e.g. from {@link OntologyFactoryImpl})
  * and can refer to another class namespace (e.g. can throw exceptions defined as nested static in some external classes).
@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
  *
  * @see Graphs
  * @see DocumentSources
+ * @see RDFDataMgr
  * @since 1.0.1
  */
 @SuppressWarnings("WeakerAccess")
@@ -66,7 +67,6 @@ public class OntGraphUtils {
     public static final String LAST_REQUEST_TYPE = ", */*; q=0.09";
     public static final String DEFAULT_REQUEST = "application/rdf+xml, application/xml; q=0.7, text/xml; q=0.6" +
             TEXT_PLAIN_REQUEST_TYPE + LAST_REQUEST_TYPE;
-
 
     /**
      * Returns OWL Ontology ID from ontology-graph

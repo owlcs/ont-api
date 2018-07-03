@@ -13,56 +13,45 @@
  */
 package org.semanticweb.owlapi.api.syntax.rdfxml;
 
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
-import ru.avicomp.owlapi.OWLManager;
 
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
 /**
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 2.0.0
  */
-
 @SuppressWarnings("javadoc")
 public class RDFParserTestCase extends TestBase {
-
-    @Before
-    public void setUpStorers() {
-        // Use the reference implementation
-        m.getOntologyStorers().set(new RDFXMLStorerFactory());
-        m.getOntologyFactories().set(OWLManager.newOWLLoadFactory(builder));
-    }
 
     @Test
     public void testOWLAPI() throws Exception {
         parseFiles("/owlapi/");
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void parseFiles(String base) throws URISyntaxException, OWLOntologyCreationException {
         URL url = getClass().getResource(base.startsWith("/owlapi/") ? base : "/owlapi/" + base);
         File file = new File(url.toURI());
         for (File testSuiteFolder : Objects.requireNonNull(file.listFiles())) {
-            if (testSuiteFolder.isDirectory()) {
-                for (File ontologyFile : Objects.requireNonNull(testSuiteFolder.listFiles())) {
-                    if (ontologyFile.getName().endsWith(".rdf") || ontologyFile.getName().endsWith(".owlapi")) {
-                        OWLOntology ont = m.loadOntologyFromOntologyDocument(ontologyFile);
-                        m.removeOntology(ont);
-                    }
+            if (!testSuiteFolder.isDirectory()) {
+                continue;
+            }
+            for (File ontologyFile : Objects.requireNonNull(testSuiteFolder.listFiles())) {
+                if (!ontologyFile.getName().endsWith(".rdf") && !ontologyFile.getName().endsWith(".owlapi")) {
+                    continue;
                 }
+                OWLOntology ont = m.loadOntologyFromOntologyDocument(ontologyFile);
+                m.removeOntology(ont);
             }
         }
     }
@@ -88,7 +77,7 @@ public class RDFParserTestCase extends TestBase {
                 + "<owl:Datatype rdf:about=\"&xsd;integer\"/>\n" + "<owl:Datatype rdf:about=\"&xsd;string\"/>\n"
                 + "</rdf:RDF>";
         OWLOntology o = loadOntologyFromString(in);
-        assertFalse(o.containsObjectPropertyInSignature(IRI.create("http://www.loa-cnr.it/ontologies/Plans.owl#",
+        Assert.assertFalse(o.containsObjectPropertyInSignature(IRI.create("http://www.loa-cnr.it/ontologies/Plans.owl#",
                 "iteration-cardinality")));
     }
 
@@ -104,7 +93,7 @@ public class RDFParserTestCase extends TestBase {
                 + "    <rdfs:subPropertyOf rdf:resource=\"http://bibframe.org/vocab/relatedTo\"/>\n" + "  </rdf:Property>\n"
                 + "</rdf:RDF>";
         OWLOntology o = loadOntologyFromString(in);
-        assertEquals(0, o.axioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF).count());
-        assertEquals(1, o.axioms(AxiomType.SUB_OBJECT_PROPERTY).count());
+        Assert.assertEquals(0, o.axioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF).count());
+        Assert.assertEquals(1, o.axioms(AxiomType.SUB_OBJECT_PROPERTY).count());
     }
 }

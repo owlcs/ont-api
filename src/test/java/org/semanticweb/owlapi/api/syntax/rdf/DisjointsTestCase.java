@@ -13,47 +13,34 @@
  */
 package org.semanticweb.owlapi.api.syntax.rdf;
 
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.baseclasses.TestBase;
+import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.owlapi.OWLManager;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.createClass;
-import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.createObjectProperty;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
-
 /**
- * Test cases for rendering of disjoint axioms. The OWL 1.1 specification makes
- * it possible to specify that a set of classes are mutually disjoint.
- * Unfortunately, this must be represented in RDF as a set of pairwise disjoint
- * statements. In otherwords, DisjointClasses(A, B, C) must be represented as
- * DisjointWith(A, B), DisjointWith(A, C) DisjointWith(B, C). ~This test case
- * ensure that these axioms are serialsed correctly.
+ * Test cases for rendering of disjoint axioms.
+ * The OWL 1.1 specification makes it possible to specify that a set of classes are mutually disjoint.
+ * Unfortunately, this must be represented in RDF as a set of pairwise disjoint statements.
+ * In otherwords, DisjointClasses(A, B, C) must be represented as DisjointWith(A, B), DisjointWith(A, C) DisjointWith(B, C).
+ * ~This test case ensure that these axioms are serialised correctly.
  *
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 2.0.0
  */
-
 @SuppressWarnings("javadoc")
 public class DisjointsTestCase extends TestBase {
-
-    @Before
-    public void setUpManager() {
-        m.getOntologyFactories().set(OWLManager.newOWLLoadFactory(builder));
-    }
 
     @Test
     public void testAnonDisjoints() throws Exception {
         OWLOntology ontA = getOWLOntology();
-        OWLClass clsA = createClass();
-        OWLClass clsB = createClass();
-        OWLObjectProperty prop = createObjectProperty();
+        OWLClass clsA = OWLFunctionalSyntaxFactory.createClass();
+        OWLClass clsB = OWLFunctionalSyntaxFactory.createClass();
+        OWLObjectProperty prop = OWLFunctionalSyntaxFactory.createObjectProperty();
         OWLClassExpression descA = df.getOWLObjectSomeValuesFrom(prop, clsA);
         OWLClassExpression descB = df.getOWLObjectSomeValuesFrom(prop, clsB);
         Set<OWLClassExpression> classExpressions = new HashSet<>();
@@ -62,6 +49,6 @@ public class DisjointsTestCase extends TestBase {
         OWLAxiom ax = df.getOWLDisjointClassesAxiom(classExpressions);
         ontA.add(ax);
         OWLOntology ontB = roundTrip(ontA);
-        assertTrue(contains(ontB.axioms(), ax));
+        Assert.assertTrue(ontB.axioms().anyMatch(ax::equals));
     }
 }

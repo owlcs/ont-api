@@ -24,7 +24,6 @@ import ru.avicomp.owlapi.NoOpReadWriteLock;
 import ru.avicomp.owlapi.OWLDataFactoryImpl;
 import ru.avicomp.owlapi.OWLOntologyFactoryImpl;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -148,9 +147,9 @@ public class OntManagers implements OWLOntologyManagerFactory {
      *
      * @param builder {@link OWLOntologyBuilder}, required parameter
      * @return {@link OWLOntologyFactory} instance or null if it absents in class-path.
+     * @deprecated todo: going to delete
      */
-    @SuppressWarnings("ConstantConditions")
-    @Nullable
+    @Deprecated
     public static OWLOntologyFactory createOWLOntologyLoadFactory(OWLOntologyBuilder builder) {
         return new OWLOntologyFactoryImpl(builder);
     }

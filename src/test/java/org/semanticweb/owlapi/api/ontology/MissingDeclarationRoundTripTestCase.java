@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
+import ru.avicomp.ontapi.OWLAdapter;
 import ru.avicomp.owlapi.OWLManager;
 
 
@@ -49,7 +50,7 @@ public class MissingDeclarationRoundTripTestCase extends TestBase {
         LOGGER.debug("Target:\n{}", target);
         OWLOntologyLoaderConfiguration conf = new OWLOntologyLoaderConfiguration().setStrict(true);
         if (!OWLManager.DEBUG_USE_OWL) {
-            conf = ru.avicomp.ontapi.OntologyFactoryImpl.asONT(conf).setUseOWLParsersToLoad(true);
+            conf = OWLAdapter.get().asONT(conf).setUseOWLParsersToLoad(true);
         }
         OWLOntology o2 = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(target), conf);
         o2.axioms().forEach(a -> LOGGER.debug("{}", a));

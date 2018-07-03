@@ -315,9 +315,10 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
 
     /**
      * ONT-API config method.
-     * By default it is {@code false}.
+     * Returns {@code false} by default.
      *
-     * @return true if loading through Jena is disabled (the loading is done through the OWL-API mechanisms by one axiom at a time).
+     * @return {@code true} if loading through Jena is disabled
+     * (i.e. the loading is done through the OWL-API mechanisms by one axiom at a time).
      */
     public boolean isUseOWLParsersToLoad() {
         return (boolean) get(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD);

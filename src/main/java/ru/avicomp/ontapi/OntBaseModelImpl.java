@@ -28,7 +28,6 @@ import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
-import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
@@ -46,7 +45,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * 'Immutable' ontology only with methods to read information in the form of OWL-Objects from graph-model.
+ * An 'Immutable' ontology only with methods to read information in the form of OWL-Objects from graph-model.
  * It's our analogy of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl</a>
  * <p>
  * Created by @szuev on 03.12.2016.
@@ -61,13 +60,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
 
     protected OWLOntologyID ontologyID;
 
-    public OntBaseModelImpl(OntologyManagerImpl manager, OWLOntologyID ontologyID) {
-        OntApiException.notNull(ontologyID, "Null OWL ID.");
-        this.base = new InternalModel(OntModelFactory.createDefaultGraph(), OntApiException.notNull(manager, "Null manager.").createModelConfig());
-        setOntologyID(ontologyID);
-    }
-
-    public OntBaseModelImpl(Graph graph, OntologyManagerImpl.ModelConfig conf) {
+    protected OntBaseModelImpl(Graph graph, OntologyManagerImpl.ModelConfig conf) {
         this.base = new InternalModel(OntApiException.notNull(graph, "Null graph."), OntApiException.notNull(conf, "Null conf."));
     }
 
@@ -119,7 +112,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     }
 
     /**
-     * Gets ID.
+     * Gets Ontology ID.
      * Does not just return cached {@link #ontologyID} to provide synchronization with encapsulated jena model ({@link #base}).
      * In the other hand we need this cached {@link #ontologyID} to be existed and relevant for owl serialization.
      *
@@ -127,9 +120,9 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      */
     @Override
     public OWLOntologyID getOntologyID() {
-        OntID id = base.getID();
+        OntID id = this.base.getID();
         if (id.isAnon()) {
-            return ontologyID == null || !ontologyID.isAnonymous() ? assignID(new OWLOntologyID()) : ontologyID;
+            return this.ontologyID == null || !this.ontologyID.isAnonymous() ? assignID(new OWLOntologyID()) : this.ontologyID;
         }
         Optional<IRI> iri = Optional.of(id.getURI()).map(IRI::create);
         Optional<IRI> version = Optional.ofNullable(id.getVersionIRI()).map(IRI::create);
@@ -137,28 +130,34 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     }
 
     /**
-     * Sets ID.
-     * Protected access since this is an "immutable" ontology.
+     * Sets Ontology ID.
+     * For internal usage only: the outer interface must be "immutable".
      *
-     * @param id {@link OWLOntologyID}
+     * @param id {@link OWLOntologyID Ontology ID}
      */
     protected void setOntologyID(OWLOntologyID id) {
         try {
             if (id.isAnonymous()) {
-                base.setID(null).setVersionIRI(null);
+                this.base.setID(null).setVersionIRI(null);
                 return;
             }
-            IRI iri = id.getOntologyIRI().orElse(null);
-            IRI versionIRI = id.getVersionIRI().orElse(null);
-            base.setID(iri == null ? null : iri.getIRIString()).setVersionIRI(versionIRI == null ? null : versionIRI.getIRIString());
+            this.base.setID(id.getOntologyIRI().map(IRI::getIRIString).orElse(null))
+                    .setVersionIRI(id.getVersionIRI().map(IRI::getIRIString).orElse(null));
         } finally {
             assignID(id);
         }
     }
 
-    private OWLOntologyID assignID(OWLOntologyID id) {
+    /**
+     * Physically sets Ontology ID to this instance.
+     * For internal usage only: the outer interface must be "immutable".
+     *
+     * @param id {@link OWLOntologyID Ontology ID}
+     * @return the same id
+     */
+    protected OWLOntologyID assignID(OWLOntologyID id) {
         this.ontologyID = id;
-        // reset hashcode (due to change owl 5.1.1 -> 5.1.4)
+        // reset hashcode (due to changes in OWL-API-api 5.1.1 -> 5.1.4)
         this.hashCode = 0;
         return id;
     }

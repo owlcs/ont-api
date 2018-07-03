@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import ru.avicomp.ontapi.OWLAdapter;
 import ru.avicomp.owlapi.OWLManager;
 
 import java.util.Collection;
@@ -135,7 +136,7 @@ public class ProfileValidationTestCase extends TestBase {
         OWLOntologyManager m = setupManager();
         m.getOntologyConfigurator().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
         if (OWLManager.DEBUG_USE_OWL) return m;
-        ru.avicomp.ontapi.config.OntLoaderConfiguration conf = ru.avicomp.ontapi.OntologyFactoryImpl.asONT(m.getOntologyLoaderConfiguration());
+        ru.avicomp.ontapi.config.OntLoaderConfiguration conf = OWLAdapter.get().asONT(m.getOntologyLoaderConfiguration());
         m.setOntologyLoaderConfiguration(
                 conf
                 //.setAllowReadDeclarations(false)
