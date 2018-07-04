@@ -52,7 +52,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -61,7 +60,7 @@ import java.util.stream.Stream;
 
 
 /**
- * ONT-API Ontology Manager default implementation ({@link OntologyManager}).
+ * An ONT-API Ontology Manager default implementation ({@link OntologyManager}).
  * <p>
  * Created by @szuev on 03.10.2016.
  *
@@ -76,47 +75,83 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected OntConfig configProvider;
     protected transient OntLoaderConfiguration loaderConfig;
     protected transient OntWriterConfiguration writerConfig;
-    // should contain only OntologyModel.Factory implementations:
-    protected final PriorityCollection<OWLOntologyFactory> ontologyFactories;
-    protected final PriorityCollection<OWLOntologyIRIMapper> documentMappers;
-    // new (sine 1.0.1):
-    protected final Deque<DocumentSourceMapping> documentSourceMappers;
-    // alternative (to jena way) factories to load and save models:
-    protected final PriorityCollection<OWLParserFactory> parserFactories;
-    protected final PriorityCollection<OWLStorerFactory> ontologyStorers;
+    // OntologyFactory collection:
+    protected final ConcurrentPriorityCollection<OWLOntologyFactory> ontologyFactories;
+    // IRI mappers
+    protected final ConcurrentPriorityCollection<OWLOntologyIRIMapper> documentMappers;
+    // Graph mappers (sine 1.0.1):
+    protected final ConcurrentPriorityCollection<DocumentSourceMapping> documentSourceMappers;
+    // OWL-API parsers (i.e. alternative to jena way to read):
+    protected final ConcurrentPriorityCollection<OWLParserFactory> parserFactories;
+    // OWL-API storers (i.e. alternative to jena way to save):
+    protected final ConcurrentPriorityCollection<OWLStorerFactory> ontologyStorers;
     // primary parameters:
     protected final ReadWriteLock lock;
     protected final OWLDataFactory dataFactory;
     // the collection of ontologies:
     protected final OntologyCollection content;
 
+    /**
+     * @param dataFactory   {@link OWLDataFactory}
+     * @param readWriteLock {@link ReadWriteLock}
+     * @deprecated todo: delete
+     */
+    @Deprecated
     public OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
         this(dataFactory, new OntologyFactoryImpl(), readWriteLock);
     }
 
-    public OntologyManagerImpl(OWLDataFactory dataFactory, OntologyFactory loadFactory, ReadWriteLock readWriteLock) {
+    public OntologyManagerImpl(OWLDataFactory dataFactory, OntologyFactory ontologyFactory, ReadWriteLock readWriteLock) {
         this(dataFactory, readWriteLock, PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
-        this.ontologyFactories.add(Objects.requireNonNull(loadFactory, "Null Ontology Factory"));
+        this.ontologyFactories.add(Objects.requireNonNull(ontologyFactory, "Null Ontology Factory"));
     }
 
+    /**
+     * Constructs an empty manager.
+     * Notice: the manager instance is not ready to use: there are no any OntologyFactory inside to produce new ontologies.
+     *
+     * @param dataFactory {@link OWLDataFactory}, not null
+     * @param lock        {@link ReadWriteLock} or {@code null} for non-concurrent instance
+     * @param sorting     {@link PriorityCollectionSorting} OWL-API enum, can be null.
+     *                    Can't avoid using this parameter that is actually useless in ONT-API
+     */
     protected OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock lock, PriorityCollectionSorting sorting) {
         this.dataFactory = Objects.requireNonNull(dataFactory, "Null Data Factory");
-        this.lock = lock == null ? new NoOpReadWriteLock() : lock;
-        this.documentMappers = new ConcurrentPriorityCollection<>(this.lock, sorting);
-        this.documentSourceMappers = isConcurrent() ? new ConcurrentLinkedDeque<>() : new LinkedList<>();
-        this.ontologyFactories = new ConcurrentPriorityCollection<>(this.lock, sorting);
-        this.parserFactories = new ConcurrentPriorityCollection<>(this.lock, sorting);
-        this.ontologyStorers = new ConcurrentPriorityCollection<>(this.lock, sorting);
+        this.lock = lock == null ? NoOpReadWriteLock.INSTANCE : lock;
+        PriorityCollectionSorting _sorting = sorting == null ? PriorityCollectionSorting.NEVER : sorting;
+        this.documentMappers = new ConcurrentPriorityCollection<>(this.lock, _sorting);
+        this.documentSourceMappers = new ConcurrentPriorityCollection<>(this.lock);
+        this.ontologyFactories = new ConcurrentPriorityCollection<OWLOntologyFactory>(this.lock, _sorting) {
+            @Override
+            protected void onAdd(OWLOntologyFactory f) {
+                if (f instanceof OntologyFactory) return;
+                throw new OntApiException("Wrong argument: " + f + ". Only " + OntologyFactory.class.getSimpleName() + " can be accepted.");
+            }
+        };
+        this.parserFactories = new ConcurrentPriorityCollection<>(this.lock, _sorting);
+        this.ontologyStorers = new ConcurrentPriorityCollection<>(this.lock, _sorting);
+        // todo: make config concurrent also
         this.configProvider = new OntConfig();
         this.content = new OntologyCollection(isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet());
     }
 
+    /**
+     * Answers if this manager is concurrent (i.e. has any non-fictitious {@link ReadWriteLock} inside).
+     * Notice: the method returns {@code true}
+     * if you specify {@code uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock} from standard OWL-API supply,
+     * since OWL-API-impl not in project dependencies.
+     *
+     * @return boolean
+     */
     public boolean isConcurrent() {
-        // it is hard to image, but ru.avicomp.owlapi.NoOpReadWriteLock can be overridden (todo: should it be forbidden?),
-        // also uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock (absent in project dependencies) can be specified
-        return !(NoOpReadWriteLock.class.isInstance(lock) || "NoOpReadWriteLock".equals(lock.getClass().getSimpleName()));
+        return NoOpReadWriteLock.INSTANCE != lock;
     }
 
+    /**
+     * Returns a Read Write Lock associated with this manager.
+     *
+     * @return {@link ReadWriteLock}
+     */
     @Nonnull
     public ReadWriteLock getLock() {
         return lock;
@@ -125,10 +160,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     @Override
     public OWLDataFactory getOWLDataFactory() {
         return dataFactory;
-    }
-
-    public OntologyFactory getLoadFactory() {
-        return (OntologyFactory) ontologyFactories.iterator().next();
     }
 
     /**
@@ -227,23 +258,17 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * todo: wrap original OWL-API factory with our {@link OntologyFactory} to produce {@link OntologyModel}
-     *
-     * @param factories Set of {@link OWLOntologyFactory}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setOntologyFactories(Set)</a>
-     */
-    @Override
-    public void setOntologyFactories(@Nonnull Set<OWLOntologyFactory> factories) {
-        ontologyFactories.set(factories);
-    }
-
-    /**
-     * @return {@link PriorityCollection} of {@link OWLOntologyFactory}
+     * @return {@link org.semanticweb.owlapi.util.PriorityCollection} of {@link OWLOntologyFactory}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyFactories()</a>
      */
     @Override
     public PriorityCollection<OWLOntologyFactory> getOntologyFactories() {
         return ontologyFactories;
+    }
+
+    @Override
+    public Stream<OntologyFactory> ontologyFactories() {
+        return ontologyFactories.stream().map(OntologyFactory.class::cast);
     }
 
     /**
@@ -256,7 +281,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @return {@link PriorityCollection} of {@link OWLStorerFactory}
+     * @return {@link org.semanticweb.owlapi.util.PriorityCollection} of {@link OWLStorerFactory}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyStorers()</a>
      */
     @Override
@@ -291,7 +316,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @return {@link PriorityCollection} of {@link OWLParserFactory}
+     * @return {@link org.semanticweb.owlapi.util.PriorityCollection} of {@link OWLParserFactory}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyParsers()</a>
      */
     @Override
@@ -309,7 +334,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @return {@link PriorityCollection} of {@link OWLOntologyIRIMapper}
+     * @return {@link org.semanticweb.owlapi.util.PriorityCollection} of {@link OWLOntologyIRIMapper}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getIRIMappers()</a>
      */
     @Override
@@ -331,7 +356,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @Override
     public void addDocumentSourceMapper(DocumentSourceMapping mapper) {
-        documentSourceMappers.addFirst(mapper);
+        documentSourceMappers.add(mapper);
     }
 
     @Override
@@ -606,8 +631,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             throw new OWLOntologyDocumentAlreadyExistsException(doc);
         }
         for (OWLOntologyFactory factory : getOntologyFactories()) {
-            // we are working only with the one factory which returns OntologyModel, not OWLOntology,
-            // todo: reminder: other factories should be wrapped and turn into OntologyManager.Factory.
             if (!factory.canCreateFromDocumentIRI(doc)) {
                 continue;
             }
@@ -667,8 +690,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @param graph             {@link Graph}
-     * @param  conf {@link OntLoaderConfiguration} the config with settings
+     * @param graph {@link Graph}
+     * @param conf  {@link OntLoaderConfiguration} the config with settings
      * @return {@link OntologyModel}
      * @since 1.2.0
      */
@@ -788,7 +811,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Finds ontology by id or iri
+     * Finds ontology by id or iri.
      *
      * @param id {@link OWLOntologyID}
      * @return Optional around {@link OntologyModel}
@@ -948,24 +971,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             res = content.values().filter(e -> Objects.equals(e.getDocumentIRI(), declaration.getIRI())).findFirst();
         }
         return res.map(OntInfo::get);
-    }
-
-    /**
-     * the difference: find first, not any.
-     * TODO: delete?
-     *
-     * @param iri {@link IRI}
-     * @return {@link OntologyModelImpl}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyByDocumentIRI(IRI)</a>
-     */
-    @Nullable
-    protected OntologyModel getOntologyByDocumentIRI(IRI iri) {
-        getLock().readLock().lock();
-        try {
-            return ontologyByDocumentIRI(iri).orElse(null);
-        } finally {
-            getLock().readLock().unlock();
-        }
     }
 
     /**
@@ -1623,7 +1628,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param source {@link OWLOntologyDocumentSource}
      * @param conf   {@link OWLOntologyLoaderConfiguration}
      * @return {@link OntologyModel}
-     * @throws OWLOntologyCreationException can't load
+     * @throws OWLOntologyCreationException        can't load
      * @throws OWLOntologyFactoryNotFoundException no factory
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#load(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)</a>
      */
@@ -2203,11 +2208,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             map.clear();
         }
 
-        protected Stream<OntInfo> values() {
+        public Stream<OntInfo> values() {
             return map.stream();
         }
 
-        protected Stream<OWLOntologyID> keys() {
+        public Stream<OWLOntologyID> keys() {
             return values().map(OntInfo::id);
         }
 

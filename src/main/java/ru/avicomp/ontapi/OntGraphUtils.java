@@ -263,8 +263,9 @@ public class OntGraphUtils {
      */
     public static OntFormat guessFormat(OWLOntologyDocumentSource source) {
         Lang lang;
-        if (OntApiException.notNull(source, "Null document source.").getMIMEType().isPresent()) {
-            lang = RDFLanguages.contentTypeToLang(source.getMIMEType().orElseThrow(OntApiException.supplier("Can't get mime type")));
+        Optional<String> mime;
+        if ((mime = OntApiException.notNull(source, "Null document source.").getMIMEType()).isPresent()) {
+            lang = RDFLanguages.contentTypeToLang(mime.get());
         } else {
             lang = RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
         }

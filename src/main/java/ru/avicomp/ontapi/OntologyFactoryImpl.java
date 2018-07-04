@@ -37,10 +37,8 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.TransformException;
-import ru.avicomp.owlapi.NoOpReadWriteLock;
 import ru.avicomp.owlapi.OWLOntologyFactoryImpl;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,19 +60,15 @@ public class OntologyFactoryImpl implements OntologyFactory {
     protected final Builder ontologyBuilder;
     protected final Loader ontologyLoader;
 
+    @Deprecated // todo: delete
     public OntologyFactoryImpl() {
         this.ontologyBuilder = new BuilderImpl();
         this.ontologyLoader = new ONTLoaderImpl(ontologyBuilder, new OWLLoaderImpl(ontologyBuilder));
     }
 
-    @Override
-    public boolean canCreateFromDocumentIRI(@Nonnull IRI iri) {
-        return true;
-    }
-
-    @Override
-    public boolean canAttemptLoading(@Nonnull OWLOntologyDocumentSource source) {
-        return true;
+    public OntologyFactoryImpl(Builder builder, Loader loader) {
+        this.ontologyBuilder = Objects.requireNonNull(builder, "Null builder");
+        this.ontologyLoader = Objects.requireNonNull(loader, "Null loader");
     }
 
     /**
@@ -139,25 +133,32 @@ public class OntologyFactoryImpl implements OntologyFactory {
     }
 
     /**
-     * To load {@link OntologyModel} through pure OWL-API mechanisms (using <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>).
+     * An implementation of {@link Loader} which is actually {@link OWLOntologyFactory} decorator.
+     * Used to load {@link OntologyModel ontology} through pure OWL-API mechanisms (i.e. owl-api parsers).
      * Some formats (such as {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} or
-     * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by jena, so it is the only way.
+     * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by jena,
+     * so it is the only way to handle them by ONT-API.
      */
     public static class OWLLoaderImpl implements Loader {
         private static final Logger LOGGER = LoggerFactory.getLogger(OWLLoaderImpl.class);
 
         protected final OWLOntologyFactory factory;
 
-        // to avoid recursion loop,
+        // a set to avoid recursion loop,
         // which may happen since OWL-API parsers may use the manager again, which uses factory with the same parsers
         protected Set<IRI> sources = new HashSet<>();
 
+        /**
+         * Constructs a fresh OWL-API based Loader using the given Builder.
+         *
+         * @param builder {@link OntologyFactory.Builder}, not null
+         */
         public OWLLoaderImpl(Builder builder) {
             this(new OWLOntologyFactoryImpl(Objects.requireNonNull(builder, "Null ONT Builder specified.")));
         }
 
         /**
-         * Main constructor.
+         * The main constructor.
          *
          * @param factory {@link OWLOntologyFactory}, not null
          */
@@ -176,7 +177,8 @@ public class OntologyFactoryImpl implements OntologyFactory {
          * @throws OWLOntologyCreationException if any other problem occurs
          */
         @Override
-        public OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration conf) throws OWLOntologyCreationException {
+        public OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration conf)
+                throws OWLOntologyCreationException {
             IRI doc = source.getDocumentIRI();
             if (sources.contains(doc)) {
                 throw new BadRecursionException("Cycle loading for source " + doc);
@@ -195,13 +197,19 @@ public class OntologyFactoryImpl implements OntologyFactory {
     }
 
     /**
-     * The main impl of {@link Loader}.
-     * Uses Apache Jena as a primary way to load ontologies into the manager.
-     * Should resolves any problems such as cycle imports or throws informative exceptions.
+     * Jena based implementation of {@link Loader}.
+     * Apache Jena is used as a primary way to load ontologies into the manager.
+     * Should resolves any problems (such as cycle imports) or throws informative exceptions.
      * In case of some problems while loading there is no need to clear manager to keep it synchronized
      * since models are assembled after obtaining the graphs collection.
+     * If format is not suitable for Jena, or {@link OntLoaderConfiguration#isUseOWLParsersToLoad()} is specified,
+     * or some I/O error has occurred, then an alternative OWL-API based {@link Loader loader} will be used (see {@link OWLLoaderImpl}).
+     * Notice that using that OWL-API Loader everywhere and always is dangerous:
+     * 1) a graph may contain errors since OWL-API parsers are OWL-Axioms centric and may not contain very good code,
+     * 2) they affect manager: in case of error the managers state may be broken.
      *
      * @see RDFDataMgr
+     * @see OWLLoaderImpl
      */
     public static class ONTLoaderImpl implements Loader {
         private static final Logger LOGGER = LoggerFactory.getLogger(ONTLoaderImpl.class);
@@ -215,7 +223,8 @@ public class OntologyFactoryImpl implements OntologyFactory {
         protected Map<IRI, GraphInfo> loaded = new HashMap<>();
 
         /**
-         * Main constructor.
+         * Constructs a Loader instance based on the given Builder, and (as option) another Loader,
+         * which will be used as alternative to handle in several boundary cases.
          *
          * @param builder     {@link Builder}, not null
          * @param alternative {@link Loader}, nullable
@@ -246,8 +255,8 @@ public class OntologyFactoryImpl implements OntologyFactory {
                 List<GraphInfo> graphs = this.graphs.keySet().stream()
                         .filter(u -> !Objects.equals(u, primary.getURI()))
                         .map(k -> this.graphs.get(k)).collect(Collectors.toList());
-                for (GraphInfo c : graphs) {
-                    createModel(c, manager, config);
+                for (GraphInfo g : graphs) {
+                    createModel(g, manager, config);
                 }
                 return res;
             } finally { // the possibility to reuse.
@@ -309,7 +318,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
                     manager.setOntologyDocumentIRI(res, info.getSource());
                 }
                 return res;
-            } finally { // just in case.
+            } finally { // just in case:
                 info.setProcessed();
             }
         }
@@ -635,7 +644,8 @@ public class OntologyFactoryImpl implements OntologyFactory {
          */
         protected OntologyManagerImpl createLoadCopy(OntologyManager from, OntLoaderConfiguration defaultConfig) {
             OntologyManagerImpl delegate = OWLAdapter.get().asIMPL(from);
-            return new OntologyManagerImpl(delegate.getOWLDataFactory(), delegate.getLoadFactory(), new NoOpReadWriteLock()) {
+            OntologyFactory factory = findFactory(delegate);
+            return new OntologyManagerImpl(delegate.getOWLDataFactory(), factory, null) {
 
                 @Override
                 protected Optional<OntologyModel> ontology(OWLOntologyID id) {
@@ -702,6 +712,22 @@ public class OntologyFactoryImpl implements OntologyFactory {
                     return "CopyOf-" + delegate.toString();
                 }
             };
+        }
+
+        /**
+         * Finds an ontology factory that corresponds this loader instance.
+         *
+         * @param m {@link OntologyManager} to search in
+         * @return {@link OntologyFactory}
+         * @throws IllegalStateException if no factory found
+         */
+        protected OntologyFactory findFactory(OntologyManager m) throws IllegalStateException {
+            return m.ontologyFactories()
+                    .filter(OntologyFactoryImpl.class::isInstance)
+                    .map(OntologyFactoryImpl.class::cast)
+                    .filter(f -> Objects.equals(f.ontologyLoader, ONTLoaderImpl.this))
+                    .findFirst()
+                    .orElseThrow(IllegalStateException::new);
         }
 
         /**

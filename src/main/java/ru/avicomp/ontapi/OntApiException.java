@@ -50,7 +50,12 @@ public class OntApiException extends OWLRuntimeException {
         return notNull(obj, null);
     }
 
-
+    /**
+     * @param msg String
+     * @return exception
+     * @deprecated todo: delete - it is an unused sugar
+     */
+    @Deprecated
     public static Supplier<OntApiException> supplier(String msg) {
         return () -> new OntApiException(msg);
     }

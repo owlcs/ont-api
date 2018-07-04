@@ -88,7 +88,7 @@ public abstract class TestBase {
     }
 
     protected static OWLOntologyManager setupManager() {
-        OWLOntologyManager manager = OWLManager.newManager(df, new NoOpReadWriteLock());
+        OWLOntologyManager manager = OWLManager.newManager(df, NoOpReadWriteLock.INSTANCE);
         manager.getOntologyFactories().set(masterManager.getOntologyFactories());
         manager.getOntologyParsers().set(masterManager.getOntologyParsers());
         manager.getOntologyStorers().set(masterManager.getOntologyStorers());

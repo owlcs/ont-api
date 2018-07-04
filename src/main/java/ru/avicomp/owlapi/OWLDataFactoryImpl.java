@@ -99,9 +99,9 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
 
     private static final OWLLiteral NEGATIVE_FLOAT_ZERO = getBasicLiteral("-0.0", XSDFLOAT);
 
-    private static void checkNotNegative(long value, String message) {
+    private static void checkNotNegativeCardinality(long value) {
         if (value < 0) {
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(CARDINALITY_CANNOT_BE_NEGATIVE);
         }
     }
 
@@ -314,7 +314,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
 
     @Override
     public OWLDataExactCardinality getOWLDataExactCardinality(int cardinality, OWLDataPropertyExpression property) {
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         return new OWLDataExactCardinalityImpl(property, cardinality, getTopDatatype());
     }
@@ -323,7 +323,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLDataExactCardinality getOWLDataExactCardinality(int cardinality, OWLDataPropertyExpression property, OWLDataRange dataRange) {
         Objects.requireNonNull(dataRange, DATA_RANGE_CANNOT_BE_NULL);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         return new OWLDataExactCardinalityImpl(property, cardinality, dataRange);
     }
 
@@ -334,14 +334,14 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
 
     @Override
     public OWLDataMaxCardinality getOWLDataMaxCardinality(int cardinality, OWLDataPropertyExpression property) {
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         return new OWLDataMaxCardinalityImpl(property, cardinality, getTopDatatype());
     }
 
     @Override
     public OWLDataMaxCardinality getOWLDataMaxCardinality(int cardinality, OWLDataPropertyExpression property, OWLDataRange dataRange) {
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         Objects.requireNonNull(dataRange, DATA_RANGE_CANNOT_BE_NULL);
         return new OWLDataMaxCardinalityImpl(property, cardinality, dataRange);
@@ -354,7 +354,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
 
     @Override
     public OWLDataMinCardinality getOWLDataMinCardinality(int cardinality, OWLDataPropertyExpression property) {
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         return new OWLDataMinCardinalityImpl(property, cardinality, getTopDatatype());
     }
@@ -362,7 +362,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     @Override
     public OWLDataMinCardinality getOWLDataMinCardinality(int cardinality, OWLDataPropertyExpression property, OWLDataRange dataRange) {
         Objects.requireNonNull(dataRange, DATA_RANGE_CANNOT_BE_NULL);
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         return new OWLDataMinCardinalityImpl(property, cardinality, dataRange);
     }
@@ -411,7 +411,7 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
 
     @Override
     public OWLObjectExactCardinality getOWLObjectExactCardinality(int cardinality, OWLObjectPropertyExpression property) {
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         return new OWLObjectExactCardinalityImpl(property, cardinality, OWL_THING);
     }
@@ -420,13 +420,13 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLObjectExactCardinality getOWLObjectExactCardinality(int cardinality, OWLObjectPropertyExpression property, OWLClassExpression classExpression) {
         Objects.requireNonNull(classExpression, CLASS_EXPRESSION_CANNOT_BE_NULL);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         return new OWLObjectExactCardinalityImpl(property, cardinality, classExpression);
     }
 
     @Override
     public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality, OWLObjectPropertyExpression property) {
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         return new OWLObjectMinCardinalityImpl(property, cardinality, OWL_THING);
     }
@@ -435,20 +435,20 @@ public class OWLDataFactoryImpl implements OWLDataFactory {
     public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality, OWLObjectPropertyExpression property, OWLClassExpression classExpression) {
         Objects.requireNonNull(classExpression, CLASS_EXPRESSION_CANNOT_BE_NULL);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         return new OWLObjectMinCardinalityImpl(property, cardinality, classExpression);
     }
 
     @Override
     public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality, OWLObjectPropertyExpression property) {
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         return new OWLObjectMaxCardinalityImpl(property, cardinality, OWL_THING);
     }
 
     @Override
     public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality, OWLObjectPropertyExpression property, OWLClassExpression classExpression) {
-        checkNotNegative(cardinality, CARDINALITY_CANNOT_BE_NEGATIVE);
+        checkNotNegativeCardinality(cardinality);
         Objects.requireNonNull(classExpression, CLASS_EXPRESSION_CANNOT_BE_NULL);
         Objects.requireNonNull(property, PROPERTY_CANNOT_BE_NULL);
         return new OWLObjectMaxCardinalityImpl(property, cardinality, classExpression);

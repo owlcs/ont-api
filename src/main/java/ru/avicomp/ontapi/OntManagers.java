@@ -176,7 +176,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * The ONT-API impl of the {@link Profile}.
+     * An ONT-API impl of the {@link Profile}.
      */
     public static class ONTManagerProfile implements Profile {
 
@@ -184,21 +184,55 @@ public class OntManagers implements OWLOntologyManagerFactory {
 
         @Override
         public OntologyManager create(boolean concurrent) {
+            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.INSTANCE;
             Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
             Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
-            OntologyManager res = create(this.dataFactory(), concurrent ? new ReentrantReadWriteLock() : new NoOpReadWriteLock());
+            OntologyFactory factory = createOntologyFactory(createOntologyBuilder());
+            OntologyManager res = create(dataFactory(), factory, lock);
             res.setOntologyStorers(storers);
             res.setOntologyParsers(parsers);
             return res;
         }
 
-        public OntologyManager create(OWLDataFactory factory, ReadWriteLock lock) {
-            return new OntologyManagerImpl(factory, lock);
+        public OntologyManager create(OWLDataFactory dataFactory, OntologyFactory factory, ReadWriteLock lock) {
+            return new OntologyManagerImpl(dataFactory, factory, lock);
         }
 
         @Override
         public OWLDataFactory dataFactory() {
             return DEFAULT_DATA_FACTORY;
+        }
+
+        /**
+         * Creates an {@link OntologyFactory.Builder Ontology Builder} - an interface to create standalone ontologies.
+         *
+         * @return {@link OntologyFactory.Builder}
+         */
+        public OntologyFactory.Builder createOntologyBuilder() {
+            return new OntologyFactoryImpl.BuilderImpl();
+        }
+
+        /**
+         * Creates an {@link OntologyFactory Ontology Factory} based on the given Builder.
+         *
+         * @param builder {@link OntologyFactory.Builder Ontology Builder}
+         * @return {@link OntologyFactory} instance
+         */
+        public OntologyFactory createOntologyFactory(OntologyFactory.Builder builder) {
+            OntologyFactory.Loader loader = new OntologyFactoryImpl.ONTLoaderImpl(builder,
+                    new OntologyFactoryImpl.OWLLoaderImpl(builder));
+            return createOntologyFactory(builder, loader);
+        }
+
+        /**
+         * Creates an {@link OntologyFactory Ontology Factory} based on the given Builder and Loader.
+         *
+         * @param builder {@link OntologyFactory.Builder Ontology Builder}
+         * @param loader  {@link OntologyFactory.Loader Ontology Loader}
+         * @return {@link OntologyFactory} instance
+         */
+        public OntologyFactory createOntologyFactory(OntologyFactory.Builder builder, OntologyFactory.Loader loader) {
+            return new OntologyFactoryImpl(builder, loader);
         }
     }
 
@@ -289,7 +323,6 @@ public class OntManagers implements OWLOntologyManagerFactory {
      */
     public static class OWLAPIImplProfile implements Profile {
         private final Class<?> managerClass;
-        public static final ReadWriteLock NO_OP = new NoOpReadWriteLock();
 
         public OWLAPIImplProfile() throws OntApiException {
             this.managerClass = findClass("uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl");
@@ -314,7 +347,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
             nonConcurrentParams.put(owlOntologyImplementationFactoryType, owlOntologyImplementationFactoryInstance);
             OWLOntologyBuilder res = (OWLOntologyBuilder) newInstance("uk.ac.manchester.cs.owl.owlapi.concurrent.NonConcurrentOWLOntologyBuilder",
                     nonConcurrentParams);
-            if (lock == null || NO_OP.equals(lock)) return res;
+            if (lock == null || NoOpReadWriteLock.INSTANCE.equals(lock)) return res;
             LinkedListMultimap<Class<?>, Object> concurrentParams = LinkedListMultimap.create();
             concurrentParams.put(OWLOntologyBuilder.class, res);
             concurrentParams.put(ReadWriteLock.class, lock);
@@ -330,7 +363,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
 
         @Override
         public OWLOntologyManager create(boolean concurrent) {
-            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NO_OP;
+            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.INSTANCE;
             OWLDataFactory dataFactory = createDataFactory(false);
             OWLOntologyFactory loadFactory = createLoadFactory(createOWLOntologyBuilder(lock));
             OWLOntologyManager res = create(dataFactory, lock);

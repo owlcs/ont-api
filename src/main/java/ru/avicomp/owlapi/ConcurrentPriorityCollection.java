@@ -17,31 +17,46 @@ package ru.avicomp.owlapi;
 import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.semanticweb.owlapi.util.PriorityCollection;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * TODO: rename not to be confused with uk.ac.manchester.cs.owl.owlapi.*
- * A priority collection that supports concurrent reading and writing through a {@link ReadWriteLock}.
+ * A {@link PriorityCollection priority collection} that supports concurrent reading and writing through a {@link ReadWriteLock}.
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 09/04/15
- * @param <T> type in the collection
+ *
+ * @param <E> type in the collection
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/concurrent/ConcurrentPriorityCollection.java'>ConcurrentPriorityCollection</a>
  */
 @SuppressWarnings("WeakerAccess")
-public class ConcurrentPriorityCollection<T extends Serializable> extends PriorityCollection<T> {
+public class ConcurrentPriorityCollection<E extends Serializable> extends PriorityCollection<E> {
 
     protected final ReadWriteLock lock;
 
     /**
-     * Constructs a PriorityCollection instance with the specified {@link ReadWriteLock}.
+     * Constructs a PropertyCollection without any sorting
+     * @param lock {@link ReadWriteLock} instance, null for no concurrent access
+     * @see PriorityCollectionSorting#NEVER
+     * @since 1.2.1
+     */
+    public ConcurrentPriorityCollection(ReadWriteLock lock) {
+        this(lock, PriorityCollectionSorting.NEVER);
+    }
+
+    /**
+     * Constructs a PriorityCollection instance with the specified {@link ReadWriteLock} and {@link PriorityCollectionSorting}.
      *
-     * @param lock {@link java.util.concurrent.locks.ReadWriteLock ReadWriteLock} that should be used for locking
-     * @param sorting sorting criterion
+     * @param lock    {@link ReadWriteLock ReadWriteLock} that should be used for locking, null for no-op
+     * @param sorting {@link PriorityCollectionSorting} the enum, which (as passed as parameter) makes hard to use OWL-API interfaces.
+     *                (Do you know why in java (e.g. in NIO) there is interfaces passed as parameters (implemented by enum), not naked enums?)
      */
     public ConcurrentPriorityCollection(ReadWriteLock lock, PriorityCollectionSorting sorting) {
         super(sorting);
-        this.lock = Objects.requireNonNull(lock);
+        this.lock = lock == null ? NoOpReadWriteLock.INSTANCE : lock;
     }
 
     @Override
@@ -64,86 +79,91 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
         }
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
-    public void set(Iterable<T> iterable) {
+    public void set(@Nonnull Iterable<E> iterable) {
         lock.writeLock().lock();
         try {
-            super.set(iterable);
+            onAdd(iterable);
+            setIterable(iterable);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
     @Override
-    public void set(Set<T> set) {
+    public void set(Set<E> set) {
         lock.writeLock().lock();
         try {
+            onAdd(set);
             super.set(set);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
-    @SuppressWarnings({"unchecked", "NullableProblems"})
+    @SafeVarargs
     @Override
-    public void set(T... array) {
+    public final void set(@Nonnull E... array) {
         lock.writeLock().lock();
         try {
-            super.set(array);
+            onAdd(array);
+            setIterable(Arrays.asList(array));
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @SafeVarargs
+    @Override
+    public final void add(E... array) {
+        lock.writeLock().lock();
+        try {
+            onAdd(array);
+            addIterable(Arrays.asList(array));
         } finally {
             lock.writeLock().unlock();
         }
     }
 
     @Override
-    public void add(Iterable<T> iterable) {
+    public void add(Iterable<E> iterable) {
         lock.writeLock().lock();
         try {
-            super.add(iterable);
+            onAdd(iterable);
+            addIterable(iterable);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void add(T... array) {
+    public void add(@Nonnull E e) {
         lock.writeLock().lock();
         try {
-            super.add(array);
+            onAdd(e);
+            super.add(e);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
-    @SuppressWarnings("NullableProblems")
+    @SafeVarargs
     @Override
-    public void add(T c) {
+    public final void remove(E... array) {
         lock.writeLock().lock();
         try {
-            super.add(c);
+            onDelete(Arrays.asList(array));
+            super.remove(array);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void remove(T... c) {
+    public void remove(@Nonnull E c) {
         lock.writeLock().lock();
         try {
-            super.remove(c);
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public void remove(T c) {
-        lock.writeLock().lock();
-        try {
+            onDelete(c);
             super.remove(c);
         } finally {
             lock.writeLock().unlock();
@@ -160,14 +180,23 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
         }
     }
 
-    @SuppressWarnings("NullableProblems")
+    public Stream<E> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
+
     @Override
-    public Iterator<T> iterator() {
+    @Nonnull
+    public Iterator<E> iterator() {
         return copyIterable().iterator();
     }
 
     @Override
-    public PriorityCollection<T> getByMIMEType(String mimeType) {
+    public Spliterator<E> spliterator() {
+        return copyIterable().spliterator();
+    }
+
+    @Override
+    public PriorityCollection<E> getByMIMEType(String mimeType) {
         lock.readLock().lock();
         try {
             return super.getByMIMEType(mimeType);
@@ -186,15 +215,52 @@ public class ConcurrentPriorityCollection<T extends Serializable> extends Priori
         }
     }
 
-    protected Iterable<T> copyIterable() {
+    protected List<E> copyIterable() {
         lock.readLock().lock();
         try {
-            List<T> res = new ArrayList<>();
+            List<E> res = new ArrayList<>();
             super.iterator().forEachRemaining(res::add);
             return res;
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    protected void setIterable(Iterable<E> iterable) {
+        super.set(iterable);
+    }
+
+    protected void addIterable(Iterable<E> iterable) {
+        super.add(iterable);
+    }
+
+    @SafeVarargs
+    protected final void onAdd(E... array) {
+        onAdd(Arrays.asList(array));
+    }
+
+    protected void onAdd(Iterable<E> iterable) {
+        iterable.forEach(this::onAdd);
+    }
+
+    /**
+     * Performs some action when element is added to this collection.
+     *
+     * @param e an element that is added
+     */
+    protected void onAdd(E e) {
+    }
+
+    protected void onDelete(Iterable<E> iterable) {
+        iterable.forEach(this::onDelete);
+    }
+
+    /**
+     * Performs some action when element is deleted from this collection.
+     *
+     * @param e an element that is deleted
+     */
+    protected void onDelete(E e) {
     }
 
 }

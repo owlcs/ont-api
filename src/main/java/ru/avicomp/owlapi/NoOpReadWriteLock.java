@@ -15,6 +15,7 @@
 package ru.avicomp.owlapi;
 
 import javax.annotation.Nullable;
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -23,12 +24,26 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
+ * An implementation of {@link ReadWriteLock} with no-operation behaviour.
+ * <p>
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 13/04/15
+ *
+ * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/concurrent/NoOpReadWriteLock.java'>uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock</a>
  */
 @SuppressWarnings({"NullableProblems", "WeakerAccess"})
-public class NoOpReadWriteLock implements ReadWriteLock, Serializable {
+public final class NoOpReadWriteLock implements ReadWriteLock, Serializable {
+    public static final Condition NO_OP_CONDITION = new NoOpCondition();
+    public static final Lock NO_OP_LOCK = new NoOpLock();
 
-    private static final NoOpLock NO_OP_LOCK = new NoOpLock();
+    public static final ReadWriteLock INSTANCE = new NoOpReadWriteLock();
+
+    /**
+     * Singleton: it is hard to image someone would like to override this class.
+     * Also, currently ONT-API is not popular enough to take care that
+     * somebody has already done it or are already using this constructor in their own code.
+     */
+    private NoOpReadWriteLock() {
+    }
 
     @Override
     public Lock readLock() {
@@ -40,21 +55,24 @@ public class NoOpReadWriteLock implements ReadWriteLock, Serializable {
         return NO_OP_LOCK;
     }
 
+    private Object readResolve() throws ObjectStreamException {
+        return INSTANCE;
+    }
+
     /**
+     * A fake implementation of {@link Lock}.
      * Matthew Horridge Stanford Center for Biomedical Informatics Research 13/04/15
      */
-    public static class NoOpLock implements Lock, Serializable {
-
-        public static final NoOpCondition NO_OP_CONDITION = new NoOpCondition();
+    private static class NoOpLock implements Lock, Serializable {
+        private NoOpLock() {
+        }
 
         @Override
         public void lock() {
-            // nothing to do
         }
 
         @Override
         public void lockInterruptibly() {
-            // nothing to do
         }
 
         @Override
@@ -69,54 +87,50 @@ public class NoOpReadWriteLock implements ReadWriteLock, Serializable {
 
         @Override
         public void unlock() {
-            // nothing to do
         }
 
         @Override
         public Condition newCondition() {
             return NO_OP_CONDITION;
         }
+    }
 
-        private static class NoOpCondition implements Condition, Serializable {
+    /**
+     * A fake implementation of {@link Condition}.
+     */
+    private static class NoOpCondition implements Condition, Serializable {
+        private NoOpCondition() {
+        }
 
-            public NoOpCondition() {
-                // nothing to do
-            }
+        @Override
+        public void await() {
+        }
 
-            @Override
-            public void await() {
-                // nothing to do
-            }
+        @Override
+        public void awaitUninterruptibly() {
+        }
 
-            @Override
-            public void awaitUninterruptibly() {
-                // nothing to do
-            }
+        @Override
+        public long awaitNanos(long nanosTimeout) {
+            return 0;
+        }
 
-            @Override
-            public long awaitNanos(long nanosTimeout) {
-                return 0;
-            }
+        @Override
+        public boolean await(long time, @Nullable TimeUnit unit) {
+            return true;
+        }
 
-            @Override
-            public boolean await(long time, @Nullable TimeUnit unit) {
-                return true;
-            }
+        @Override
+        public boolean awaitUntil(@Nullable Date deadline) {
+            return true;
+        }
 
-            @Override
-            public boolean awaitUntil(@Nullable Date deadline) {
-                return true;
-            }
+        @Override
+        public void signal() {
+        }
 
-            @Override
-            public void signal() {
-                // nothing to do
-            }
-
-            @Override
-            public void signalAll() {
-                // nothing to do
-            }
+        @Override
+        public void signalAll() {
         }
     }
 }

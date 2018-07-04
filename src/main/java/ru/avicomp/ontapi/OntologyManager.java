@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.StreamDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
+import org.semanticweb.owlapi.util.PriorityCollection;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
@@ -32,25 +33,28 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 
 /**
  * An ONT-API Ontology manager, which is an extended {@link OWLOntologyManager OWL-API manager}
  * It is the main point for creating, loading and accessing {@link OntologyModel}s models.
- * Any ontology in this manager is a wrapped {@link Graph Jena Graph},
- * which may be linked to the another ontology through {@link ru.avicomp.ontapi.jena.UnionGraph UnionGraph} mechanism.
- * New (ONT-API) methods:
+ * Any ontology in this manager is a wrapper around a {@link Graph Jena Graph},
+ * which may be linked to the another ontology through {@link ru.avicomp.ontapi.jena.UnionGraph UnionGraph} interface.
+ * <p>
+ * The following methods are new (added in ONT-API), i.e. they extend the original functionality provided by the OWL-API:
  * <ul>
- * <li>{@link #addOntology(Graph, OntLoaderConfiguration)}</li>
+ * <li>{@link #addOntology(Graph, OntLoaderConfiguration)} - since 1.2.0</li>
  * <li>{@link #createGraphModel(String)}</li>
  * <li>{@link #createGraphModel(String, String)}</li>
  * <li>{@link #models()}</li>
  * <li>{@link #getGraphModel(String)}</li>
  * <li>{@link #getGraphModel(String, String)}</li>
- * <li>{@link #addDocumentSourceMapper(DocumentSourceMapping)}</li>
- * <li>{@link #removeDocumentSourceMapper(DocumentSourceMapping)}</li>
- * <li>{@link #documentSourceMappers()}</li>
+ * <li>{@link #addDocumentSourceMapper(DocumentSourceMapping)} - since 1.0.1</li>
+ * <li>{@link #removeDocumentSourceMapper(DocumentSourceMapping)} - since 1.0.1</li>
+ * <li>{@link #documentSourceMappers()} - since 1.0.1</li>
+ * <li>{@link #ontologyFactories()} - since 1.2.1</li>
  * </ul>
  * <p>
  * Created by szuev on 24.10.2016.
@@ -85,6 +89,28 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     OntConfig getOntologyConfigurator();
+
+    /**
+     * Gets a {@link PriorityCollection OWL-API PriorityCollection} of {@link OntologyFactory Ontology Factories}
+     * - an iterable object, which allows to iterate and modify an internal collection.
+     * Warning: any attempt to add OWLOntologyFactory into that Priority Collection
+     * will cause throwing an {@link OntApiException ONT-API runtime exception}
+     * in case that factory does not implement {@code OntologyFactory} interface.
+     *
+     * @return {@link PriorityCollection} of {@link OntologyFactory Ontology Factories}
+     * @see #setOntologyFactories(Set)
+     * @see #ontologyFactories()
+     */
+    @Override
+    PriorityCollection<OWLOntologyFactory> getOntologyFactories();
+
+    /**
+     * Lists all ontology factories.
+     *
+     * @return Stream of {@link OntologyFactory}
+     * @since 1.2.1
+     */
+    Stream<OntologyFactory> ontologyFactories();
 
     /**
      * Adds Document Source Mapping to the manager.
@@ -188,7 +214,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * This is a new (ONT-API) method.
      *
      * @param graph {@link Graph}
-     * @param conf {@link OntLoaderConfiguration}
+     * @param conf  {@link OntLoaderConfiguration}
      * @return {@link OntologyModel}
      * @see OntGraphDocumentSource
      * @since 1.2.0
@@ -198,11 +224,12 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Note: the axioms list may differ in source and result due to different config settings etc.
      * TODO: this method should not throw checked exception, in ONT-API it doesn't make sense, see {@link #createOntology(OWLOntologyID)} explanation.
-     * @param source {@link OWLOntology} the source, could be pure OWL-API ontology
+     *
+     * @param source   {@link OWLOntology} the source, could be pure OWL-API ontology
      * @param settings {@link OntologyCopy} the settings
      * @return new {@link OntologyModel}
      * @throws OWLOntologyCreationException in case of error.
-     * @throws OntApiException if any
+     * @throws OntApiException              if any
      * @see OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)
      */
     @Override
@@ -220,6 +247,22 @@ public interface OntologyManager extends OWLOntologyManager {
     @Override
     OntologyModel loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source,
                                                    @Nonnull OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
+
+    /**
+     * Sets the collection of ontology factories.
+     * Warning: if the given collection ({@code factories}) contains an instance that does not implement {@link OntologyFactory}
+     * an exception is expected.
+     * This method also takes into account {@link org.semanticweb.owlapi.annotations.HasPriority} annotation.
+     * But I don't think anyone uses that ordering mechanism.
+     *
+     * @param factories the factories to be injected
+     * @throws OntApiException in case input Set contains a not {@link OntologyFactory} implementation
+     * @see #getOntologyFactories()
+     */
+    @Override
+    default void setOntologyFactories(@Nonnull Set<OWLOntologyFactory> factories) throws OntApiException {
+        getOntologyFactories().set(factories);
+    }
 
     /**
      * Puts a graph to the manager.
