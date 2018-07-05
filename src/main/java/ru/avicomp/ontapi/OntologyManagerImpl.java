@@ -288,22 +288,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         return documentIRIMappers;
     }
 
-    /**
-     * @param mapper {@link DocumentSourceMapping}
-     */
     @Override
-    public void addDocumentSourceMapper(DocumentSourceMapping mapper) {
-        documentSourceMappers.add(mapper);
-    }
-
-    @Override
-    public void removeDocumentSourceMapper(DocumentSourceMapping mapper) {
-        documentSourceMappers.remove(mapper);
-    }
-
-    @Override
-    public Stream<DocumentSourceMapping> documentSourceMappers() {
-        return documentSourceMappers.stream();
+    public ConcurrentPriorityCollection<DocumentSourceMapping> getDocumentSourceMappers() {
+        return documentSourceMappers;
     }
 
     /**
@@ -618,11 +605,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                     .filter(e -> e.getKey().match(_id))
                     .map(e -> OntGraphDocumentSource.wrap(e.getValue()))
                     .findFirst().orElse(null);
+            ConcurrentPriorityCollection<DocumentSourceMapping> store = getDocumentSourceMappers();
             try {
-                addDocumentSourceMapper(mapping);
+                store.add(mapping);
                 return loadOntologyFromOntologyDocument(mapping.map(id), conf);
             } finally {
-                removeDocumentSourceMapper(mapping);
+                store.remove(mapping);
             }
         } catch (OWLOntologyCreationException e) {
             throw new OntApiException("Unable put graph to manager", e);
@@ -1692,7 +1680,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 ((OntologyModel) ontology).clearCache();
             }
             try {
-                for (OWLStorerFactory storerFactory : ontologyStorers) {
+                for (OWLStorerFactory storerFactory : getOntologyStorers()) {
                     OWLStorer storer = storerFactory.createStorer();
                     if (storer.canStoreOntology(documentFormat)) {
                         storer.storeOntology(ontology, target, documentFormat);

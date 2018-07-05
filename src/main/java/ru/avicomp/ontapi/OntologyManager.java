@@ -48,9 +48,10 @@ import java.util.stream.Stream;
  * <li>{@link #models()}</li>
  * <li>{@link #getGraphModel(String)}</li>
  * <li>{@link #getGraphModel(String, String)}</li>
- * <li>{@link #addDocumentSourceMapper(DocumentSourceMapping)} - since 1.0.1</li>
- * <li>{@link #removeDocumentSourceMapper(DocumentSourceMapping)} - since 1.0.1</li>
- * <li>{@link #documentSourceMappers()} - since 1.0.1</li>
+ * <li>{@code addDocumentSourceMapper(mapping)} - since 1.0.1, now deprecated</li>
+ * <li>{@code removeDocumentSourceMapper(mapping)} - since 1.0.1, now deprecated</li>
+ * <li>{@code documentSourceMappers()} - since 1.0.1, now deprecated</li>
+ * <li>{@link #getDocumentSourceMappers()} - since 1.2.1</li>
  * </ul>
  * <p>
  * Created by szuev on 24.10.2016.
@@ -112,6 +113,16 @@ public interface OntologyManager extends OWLOntologyManager {
     ConcurrentPriorityCollection<OWLOntologyIRIMapper> getIRIMappers();
 
     /**
+     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link DocumentSourceMapping ONT Document Source Mapping}.
+     * A {@link DocumentSourceMapping} is more general mechanism to conduct ontology mapping than {@link OWLOntologyIRIMapper},
+     * it is widely used in dependent projects.
+     *
+     * @return {@link ConcurrentPriorityCollection} of {@link DocumentSourceMapping}s
+     * @since 1.2.1
+     */
+    ConcurrentPriorityCollection<DocumentSourceMapping> getDocumentSourceMappers();
+
+    /**
      * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link OWLParserFactory OWL Parsers}.
      * If the parsers are annotated with a {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} type,
      * this will be used to decide the order they are used.
@@ -130,33 +141,6 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     ConcurrentPriorityCollection<OWLStorerFactory> getOntologyStorers();
-
-    /**
-     * Adds Document Source Mapping to the manager.
-     * New (ONT-API) method.
-     *
-     * @param mapper {@link DocumentSourceMapping}
-     * @since 1.0.1
-     */
-    void addDocumentSourceMapper(DocumentSourceMapping mapper);
-
-    /**
-     * Removes Document Source Mapping from the manager.
-     * New (ONT-API) method.
-     *
-     * @param mapper {@link DocumentSourceMapping}
-     * @since 1.0.1
-     */
-    void removeDocumentSourceMapper(DocumentSourceMapping mapper);
-
-    /**
-     * Returns document-source-mappings as stream.
-     * New (ONT-API) method.
-     *
-     * @return Stream of {@link DocumentSourceMapping}
-     * @since 1.0.1
-     */
-    Stream<DocumentSourceMapping> documentSourceMappers();
 
     /**
      * Contrary to the original description this method works with version IRI also if it fails with ontology IRI.
@@ -338,6 +322,45 @@ public interface OntologyManager extends OWLOntologyManager {
     @Override
     default void clearIRIMappers() {
         getIRIMappers().clear();
+    }
+
+    /**
+     * Returns document-source-mappings as stream.
+     * New (ONT-API) method.
+     *
+     * @return Stream of {@link DocumentSourceMapping}
+     * @since 1.0.1
+     * @deprecated use {@code getDocumentSourceMappers().stream()} instead
+     */
+    @Deprecated
+    default Stream<DocumentSourceMapping> documentSourceMappers() {
+        return getDocumentSourceMappers().stream();
+    }
+
+    /**
+     * Adds Document Source Mapping to the manager.
+     * New (ONT-API) method.
+     *
+     * @param mapper {@link DocumentSourceMapping}
+     * @since 1.0.1
+     * @deprecated use {@code getDocumentSourceMappers().add(mapper)} instead
+     */
+    @Deprecated
+    default void addDocumentSourceMapper(DocumentSourceMapping mapper) {
+        getDocumentSourceMappers().add(mapper);
+    }
+
+    /**
+     * Removes Document Source Mapping from the manager.
+     * New (ONT-API) method.
+     *
+     * @param mapper {@link DocumentSourceMapping}
+     * @since 1.0.1
+     * @deprecated use {@code getDocumentSourceMappers().remove(mapper)} instead
+     */
+    @Deprecated
+    default void removeDocumentSourceMapper(DocumentSourceMapping mapper) {
+        getDocumentSourceMappers().remove(mapper);
     }
 
     /**

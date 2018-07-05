@@ -468,7 +468,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
                 return toGraphInfo(res, null);
             }
             OWLOntologyID id = new OWLOntologyID(ontologyIRI);
-            OWLOntologyDocumentSource source = manager.documentSourceMappers()
+            OWLOntologyDocumentSource source = manager.getDocumentSourceMappers().stream()
                     .map(f -> f.map(id))
                     .filter(Objects::nonNull)
                     .findFirst()

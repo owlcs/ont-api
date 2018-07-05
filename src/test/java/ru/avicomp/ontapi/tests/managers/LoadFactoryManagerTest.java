@@ -342,7 +342,7 @@ public class LoadFactoryManagerTest {
         OntologyManager m = OntManagers.createONT();
         //m.getOntologyConfigurator().setSupportedSchemes(Collections.singletonList(() -> "store"));
         //m.setIRIMappers(Collections.singleton(iriMapper));
-        m.addDocumentSourceMapper(docMapper);
+        m.getDocumentSourceMappers().add(docMapper);
         OntologyModel o = m.loadOntologyFromOntologyDocument(docMapper.map(new OWLOntologyID(IRI.create("urn:b"))));
         Assert.assertNotNull(o);
         Assert.assertEquals(2, m.ontologies().count());
