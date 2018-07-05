@@ -28,7 +28,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -189,8 +188,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
             Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
             OntologyFactory factory = createOntologyFactory(createOntologyBuilder());
             OntologyManager res = create(dataFactory(), factory, lock);
-            res.setOntologyStorers(storers);
-            res.setOntologyParsers(parsers);
+            res.getOntologyStorers().set(storers);
+            res.getOntologyParsers().set(parsers);
             return res;
         }
 
@@ -369,9 +368,9 @@ public class OntManagers implements OWLOntologyManagerFactory {
             OWLOntologyManager res = create(dataFactory, lock);
             Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
             Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
-            res.setOntologyStorers(storers);
-            res.setOntologyParsers(parsers);
-            res.setOntologyFactories(Collections.singleton(loadFactory));
+            res.getOntologyStorers().set(storers);
+            res.getOntologyParsers().set(parsers);
+            res.getOntologyFactories().add(loadFactory);
             return res;
         }
 

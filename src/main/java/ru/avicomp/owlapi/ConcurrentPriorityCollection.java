@@ -26,7 +26,11 @@ import java.util.stream.StreamSupport;
 
 /**
  * TODO: rename not to be confused with uk.ac.manchester.cs.owl.owlapi.*
- * A {@link PriorityCollection priority collection} that supports concurrent reading and writing through a {@link ReadWriteLock}.
+ * Is there any reason why the base class does not implement {@link java.util.Collection}?
+ * Unfortunately I can't do that in this implementation: clashes with method {@link #remove(Serializable)}.
+ * Also I am wondering why {@code PriorityCollection} is a concrete class, not interface. It is very annoying.
+ * <p>
+ * A {@link PriorityCollection OWL-API Priority Collection} that supports concurrent reading and writing through a {@link ReadWriteLock}.
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 09/04/15
  *
  * @param <E> type in the collection
@@ -38,7 +42,8 @@ public class ConcurrentPriorityCollection<E extends Serializable> extends Priori
     protected final ReadWriteLock lock;
 
     /**
-     * Constructs a PropertyCollection without any sorting
+     * Constructs a PropertyCollection without any sorting.
+     *
      * @param lock {@link ReadWriteLock} instance, null for no concurrent access
      * @see PriorityCollectionSorting#NEVER
      * @since 1.2.1
@@ -262,5 +267,4 @@ public class ConcurrentPriorityCollection<E extends Serializable> extends Priori
      */
     protected void onDelete(E e) {
     }
-
 }

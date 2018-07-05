@@ -36,7 +36,8 @@ import java.io.Serializable;
 public interface OntologyFactory extends OWLOntologyFactory {
 
     /**
-     * Creates a fresh {@link OntologyModel} attached to the specified manager
+     * Creates a fresh {@link OntologyModel Ontology Model} with the given ID,
+     * the return model is attached to the specified manager.
      *
      * @param manager {@link OntologyManager} the ontology manager to set, not null
      * @param id      {@link OWLOntologyID} the ID of the ontology to create, not null
@@ -47,7 +48,7 @@ public interface OntologyFactory extends OWLOntologyFactory {
     OntologyModel createOntology(OntologyManager manager, OWLOntologyID id) throws OntApiException;
 
     /**
-     * Reads a graph from the given document source and stores it as {@link OntologyManager} in the specified manager.
+     * Reads a graph from the given document source and stores it as {@link OntologyModel Ontology Model} in the specified manager.
      *
      * @param manager {@link OntologyManager} manager the ontology manager to set, not null
      * @param source  {@link OWLOntologyDocumentSource} the document source that provides the means

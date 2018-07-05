@@ -25,7 +25,6 @@ import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntConfig;
@@ -37,6 +36,7 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.TransformException;
+import ru.avicomp.owlapi.ConcurrentPriorityCollection;
 import ru.avicomp.owlapi.OWLOntologyFactoryImpl;
 
 import java.io.File;
@@ -693,7 +693,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
                 }
 
                 @Override
-                public PriorityCollection<OWLParserFactory> getOntologyParsers() {
+                public ConcurrentPriorityCollection<OWLParserFactory> getOntologyParsers() {
                     return delegate.getOntologyParsers();
                 }
 
@@ -722,7 +722,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
          * @throws IllegalStateException if no factory found
          */
         protected OntologyFactory findFactory(OntologyManager m) throws IllegalStateException {
-            return m.ontologyFactories()
+            return m.getOntologyFactories().stream()
                     .filter(OntologyFactoryImpl.class::isInstance)
                     .map(OntologyFactoryImpl.class::cast)
                     .filter(f -> Objects.equals(f.ontologyLoader, ONTLoaderImpl.this))

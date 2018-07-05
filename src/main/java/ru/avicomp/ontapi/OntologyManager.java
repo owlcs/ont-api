@@ -15,17 +15,14 @@
 package ru.avicomp.ontapi;
 
 import org.apache.jena.graph.Graph;
-import org.semanticweb.owlapi.io.FileDocumentSource;
-import org.semanticweb.owlapi.io.IRIDocumentSource;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.StreamDocumentSource;
+import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
-import org.semanticweb.owlapi.util.PriorityCollection;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.owlapi.ConcurrentPriorityCollection;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -54,7 +51,6 @@ import java.util.stream.Stream;
  * <li>{@link #addDocumentSourceMapper(DocumentSourceMapping)} - since 1.0.1</li>
  * <li>{@link #removeDocumentSourceMapper(DocumentSourceMapping)} - since 1.0.1</li>
  * <li>{@link #documentSourceMappers()} - since 1.0.1</li>
- * <li>{@link #ontologyFactories()} - since 1.2.1</li>
  * </ul>
  * <p>
  * Created by szuev on 24.10.2016.
@@ -91,26 +87,49 @@ public interface OntologyManager extends OWLOntologyManager {
     OntConfig getOntologyConfigurator();
 
     /**
-     * Gets a {@link PriorityCollection OWL-API PriorityCollection} of {@link OntologyFactory Ontology Factories}
+     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link OntologyFactory Ontology Factories}
      * - an iterable object, which allows to iterate and modify an internal collection.
      * Warning: any attempt to add OWLOntologyFactory into that Priority Collection
      * will cause throwing an {@link OntApiException ONT-API runtime exception}
-     * in case that factory does not implement {@code OntologyFactory} interface.
+     * in case that factory does not extend {@code OntologyFactory} interface.
      *
-     * @return {@link PriorityCollection} of {@link OntologyFactory Ontology Factories}
-     * @see #setOntologyFactories(Set)
-     * @see #ontologyFactories()
+     * @return {@link ConcurrentPriorityCollection} of {@link OntologyFactory}
      */
     @Override
-    PriorityCollection<OWLOntologyFactory> getOntologyFactories();
+    ConcurrentPriorityCollection<OWLOntologyFactory> getOntologyFactories();
+
 
     /**
-     * Lists all ontology factories.
+     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link OWLOntologyIRIMapper IRI Mappers}
+     * The mappers are used to obtain ontology document IRIs for ontology IRIs.
+     * If their type is annotated with a {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} type,
+     * this will be used to decide the order they are used.
+     * Otherwise, the order in which the collection is iterated will determine the order in which the mappers are used.
      *
-     * @return Stream of {@link OntologyFactory}
-     * @since 1.2.1
+     * @return {@link ConcurrentPriorityCollection} of {@link OWLOntologyIRIMapper}s
      */
-    Stream<OntologyFactory> ontologyFactories();
+    @Override
+    ConcurrentPriorityCollection<OWLOntologyIRIMapper> getIRIMappers();
+
+    /**
+     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link OWLParserFactory OWL Parsers}.
+     * If the parsers are annotated with a {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} type,
+     * this will be used to decide the order they are used.
+     * Otherwise, the order in which the collection is iterated will determine the order in which the parsers are used.
+     *
+     * @return {@link ConcurrentPriorityCollection} of {@link OWLParserFactory}s
+     */
+    @Override
+    ConcurrentPriorityCollection<OWLParserFactory> getOntologyParsers();
+
+    /**
+     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link OWLStorerFactory OWL Storers}.
+     * About ordering see {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} annotation.
+     *
+     * @return {@link ConcurrentPriorityCollection} of {@link OWLStorerFactory}s
+     */
+    @Override
+    ConcurrentPriorityCollection<OWLStorerFactory> getOntologyStorers();
 
     /**
      * Adds Document Source Mapping to the manager.
@@ -253,15 +272,136 @@ public interface OntologyManager extends OWLOntologyManager {
      * Warning: if the given collection ({@code factories}) contains an instance that does not implement {@link OntologyFactory}
      * an exception is expected.
      * This method also takes into account {@link org.semanticweb.owlapi.annotations.HasPriority} annotation.
-     * But I don't think anyone uses that ordering mechanism.
+     * But I don't think anyone uses that ordering mechanism, at least with ONT-API.
      *
      * @param factories the factories to be injected
      * @throws OntApiException in case input Set contains a not {@link OntologyFactory} implementation
      * @see #getOntologyFactories()
+     * @deprecated use {@code getOntologyFactories().set(factories)} instead
      */
+    @Deprecated
     @Override
     default void setOntologyFactories(@Nonnull Set<OWLOntologyFactory> factories) throws OntApiException {
         getOntologyFactories().set(factories);
+    }
+
+    /**
+     * Sets the collection of IRI mappers.
+     * The mappers are used to obtain ontology document IRIs for ontology IRIs.
+     * If their type is annotated with a {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} type,
+     * this will be used to decide the order they are used.
+     * Otherwise, the order in which the collection is iterated will determine the order in which the mappers are used.
+     *
+     * @param mappers Set of {@link OWLOntologyIRIMapper IRI mappers} to be injected
+     * @see #getIRIMappers()
+     * @deprecated use {@code getIRIMappers().set(mappers)} instead
+     */
+    @Deprecated
+    @Override
+    default void setIRIMappers(@Nonnull Set<OWLOntologyIRIMapper> mappers) {
+        getIRIMappers().set(mappers);
+    }
+
+    /**
+     * Adds an IRI mapper to the manager.
+     *
+     * @param mapper {@link OWLOntologyIRIMapper}
+     * @see #getIRIMappers()
+     * @deprecated use {@code getIRIMappers().add(mapper)} instead
+     */
+    @Deprecated
+    @Override
+    default void addIRIMapper(@Nonnull OWLOntologyIRIMapper mapper) {
+        getIRIMappers().add(mapper);
+    }
+
+    /**
+     * Removes an IRI mapper from the manager.
+     *
+     * @param mapper {@link OWLOntologyIRIMapper}
+     * @see #getIRIMappers()
+     * @deprecated use {@code getIRIMappers().remove(mapper)} instead
+     */
+    @Deprecated
+    @Override
+    default void removeIRIMapper(@Nonnull OWLOntologyIRIMapper mapper) {
+        getIRIMappers().remove(mapper);
+    }
+
+    /**
+     * Clears the manager mappers.
+     *
+     * @see #getIRIMappers()
+     * @deprecated use {@code getIRIMappers().clear()} instead
+     */
+    @Deprecated
+    @Override
+    default void clearIRIMappers() {
+        getIRIMappers().clear();
+    }
+
+    /**
+     * Sets the java.util.Set of OWL parsers into the manager.
+     *
+     * @param parsers Set of {@link OWLParserFactory}s
+     * @see #getOntologyParsers()
+     * @deprecated use {@code getOntologyParsers().set(parsers)} instead
+     */
+    @Deprecated
+    @Override
+    default void setOntologyParsers(@Nonnull Set<OWLParserFactory> parsers) {
+        getOntologyParsers().set(parsers);
+    }
+
+    /**
+     * Sets the java.util.Set of OWL storers into the manager.
+     *
+     * @param storers Set of {@link OWLStorerFactory}s
+     * @see #getOntologyStorers()
+     * @deprecated use {@code getOntologyStorers().set(storers)} instead
+     */
+    @Deprecated
+    @Override
+    default void setOntologyStorers(@Nonnull Set<OWLStorerFactory> storers) {
+        getOntologyStorers().set(storers);
+    }
+
+    /**
+     * Adds the OWL storer factory into the manager.
+     *
+     * @param storer {@link OWLStorerFactory}
+     * @see #getOntologyStorers()
+     * @deprecated use {@code getOntologyStorers().add(storer)} instead
+     */
+    @Deprecated
+    @Override
+    default void addOntologyStorer(@Nonnull OWLStorerFactory storer) {
+        getOntologyStorers().add(storer);
+    }
+
+    /**
+     * Removes the OWL storer factory from the manager.
+     *
+     * @param storer {@link OWLStorerFactory}
+     * @see #getOntologyStorers()
+     * @deprecated use {@code getOntologyStorers().remove(storer)} instead
+     */
+    @Deprecated
+    @Override
+    default void removeOntologyStorer(@Nonnull OWLStorerFactory storer) {
+        getOntologyStorers().remove(storer);
+    }
+
+    /**
+     * Clears the manager OWL storer factories collection.
+     *
+     * @see #getOntologyStorers()
+     * @deprecated use {@code getOntologyStorers().clear()} instead
+     */
+    @Deprecated
+    @Override
+    default void clearOntologyStorers() {
+        getOntologyStorers().clear();
     }
 
     /**
@@ -325,7 +465,7 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Gets {@link OntGraphModel} by the ontology and version iris.
+     * Gets {@link OntGraphModel Ontology Graph Model} by the ontology and version iris.
      *
      * @param iri     String, nullable
      * @param version String, nullable
@@ -338,7 +478,7 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Gets {@link OntGraphModel} by the ontology iri
+     * Gets {@link OntGraphModel Ontology Graph Model} by the ontology iri
      *
      * @param iri String, nullable
      * @return {@link OntGraphModel} or {@code null} if no ontology found
@@ -348,7 +488,7 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Creates {@link OntGraphModel} with specified ontology-iri and version-iri
+     * Creates {@link OntGraphModel Ontology Graph Model} with specified ontology-iri and version-iri
      *
      * @param iri     String, nullable
      * @param version String, nullable
@@ -360,7 +500,7 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Creates {@link OntGraphModel} with specified iri
+     * Creates {@link OntGraphModel Ontology Graph Model} with specified iri
      *
      * @param iri String, nullable
      * @return {@link OntGraphModel}
@@ -370,7 +510,7 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Returns all {@link OntGraphModel}s as stream.
+     * Returns all {@link OntGraphModel Ontology Graph Model}s as stream.
      *
      * @return Stream of {@link OntGraphModel}
      */

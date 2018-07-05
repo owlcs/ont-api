@@ -28,7 +28,6 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.util.CollectionFactory;
-import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntConfig;
@@ -78,7 +77,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     // OntologyFactory collection:
     protected final ConcurrentPriorityCollection<OWLOntologyFactory> ontologyFactories;
     // IRI mappers
-    protected final ConcurrentPriorityCollection<OWLOntologyIRIMapper> documentMappers;
+    protected final ConcurrentPriorityCollection<OWLOntologyIRIMapper> documentIRIMappers;
     // Graph mappers (sine 1.0.1):
     protected final ConcurrentPriorityCollection<DocumentSourceMapping> documentSourceMappers;
     // OWL-API parsers (i.e. alternative to jena way to read):
@@ -101,6 +100,14 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         this(dataFactory, new OntologyFactoryImpl(), readWriteLock);
     }
 
+    /**
+     * Constructs a manager instance which is ready to use.
+     * OntologyFactory as parameter since a manager without it is useless.
+     *
+     * @param dataFactory     {@link OWLDataFactory} - a factory to provide OWL Axioms and other OWL objects, not null
+     * @param ontologyFactory {@link OntologyFactory} - a factory to create and load ontologies, not null
+     * @param readWriteLock   {@link ReadWriteLock} - lock to synchronize multithreading behaviour, can be null for a single-thread applications
+     */
     public OntologyManagerImpl(OWLDataFactory dataFactory, OntologyFactory ontologyFactory, ReadWriteLock readWriteLock) {
         this(dataFactory, readWriteLock, PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
         this.ontologyFactories.add(Objects.requireNonNull(ontologyFactory, "Null Ontology Factory"));
@@ -119,7 +126,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         this.dataFactory = Objects.requireNonNull(dataFactory, "Null Data Factory");
         this.lock = lock == null ? NoOpReadWriteLock.INSTANCE : lock;
         PriorityCollectionSorting _sorting = sorting == null ? PriorityCollectionSorting.NEVER : sorting;
-        this.documentMappers = new ConcurrentPriorityCollection<>(this.lock, _sorting);
+        this.documentIRIMappers = new ConcurrentPriorityCollection<>(this.lock, _sorting);
         this.documentSourceMappers = new ConcurrentPriorityCollection<>(this.lock);
         this.ontologyFactories = new ConcurrentPriorityCollection<OWLOntologyFactory>(this.lock, _sorting) {
             @Override
@@ -262,93 +269,23 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyFactories()</a>
      */
     @Override
-    public PriorityCollection<OWLOntologyFactory> getOntologyFactories() {
+    public ConcurrentPriorityCollection<OWLOntologyFactory> getOntologyFactories() {
         return ontologyFactories;
     }
 
     @Override
-    public Stream<OntologyFactory> ontologyFactories() {
-        return ontologyFactories.stream().map(OntologyFactory.class::cast);
-    }
-
-    /**
-     * @param storer {@link OWLStorerFactory}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addOntologyStorer(OWLStorerFactory)</a>
-     */
-    @Override
-    public void addOntologyStorer(@Nonnull OWLStorerFactory storer) {
-        ontologyStorers.add(storer);
-    }
-
-    /**
-     * @return {@link org.semanticweb.owlapi.util.PriorityCollection} of {@link OWLStorerFactory}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyStorers()</a>
-     */
-    @Override
-    public PriorityCollection<OWLStorerFactory> getOntologyStorers() {
+    public ConcurrentPriorityCollection<OWLStorerFactory> getOntologyStorers() {
         return ontologyStorers;
     }
 
-    /**
-     * @param storers Set of {@link OWLStorerFactory}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setOntologyStorers(Set)</a>
-     */
     @Override
-    public void setOntologyStorers(@Nonnull Set<OWLStorerFactory> storers) {
-        ontologyStorers.set(storers);
-    }
-
-    /**
-     * @param storer {@link OWLStorerFactory}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntologyStorer(OWLStorerFactory)</a>
-     */
-    @Override
-    public void removeOntologyStorer(@Nonnull OWLStorerFactory storer) {
-        ontologyStorers.remove(storer);
-    }
-
-    /**
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#clearOntologyStorers()</a>
-     */
-    @Override
-    public void clearOntologyStorers() {
-        ontologyStorers.clear();
-    }
-
-    /**
-     * @return {@link org.semanticweb.owlapi.util.PriorityCollection} of {@link OWLParserFactory}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyParsers()</a>
-     */
-    @Override
-    public PriorityCollection<OWLParserFactory> getOntologyParsers() {
+    public ConcurrentPriorityCollection<OWLParserFactory> getOntologyParsers() {
         return parserFactories;
     }
 
-    /**
-     * @param parsers Set of {@link OWLParserFactory}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setOntologyParsers(Set)</a>
-     */
     @Override
-    public void setOntologyParsers(@Nonnull Set<OWLParserFactory> parsers) {
-        parserFactories.set(parsers);
-    }
-
-    /**
-     * @return {@link org.semanticweb.owlapi.util.PriorityCollection} of {@link OWLOntologyIRIMapper}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getIRIMappers()</a>
-     */
-    @Override
-    public PriorityCollection<OWLOntologyIRIMapper> getIRIMappers() {
-        return documentMappers;
-    }
-
-    /**
-     * @param mappers Set of {@link OWLOntologyIRIMapper}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setIRIMappers(Set)</a>
-     */
-    @Override
-    public void setIRIMappers(@Nonnull Set<OWLOntologyIRIMapper> mappers) {
-        documentMappers.set(mappers);
+    public ConcurrentPriorityCollection<OWLOntologyIRIMapper> getIRIMappers() {
+        return documentIRIMappers;
     }
 
     /**
@@ -367,32 +304,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     @Override
     public Stream<DocumentSourceMapping> documentSourceMappers() {
         return documentSourceMappers.stream();
-    }
-
-    /**
-     * @param mapper {@link OWLOntologyIRIMapper}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addIRIMapper(OWLOntologyIRIMapper)</a>
-     */
-    @Override
-    public void addIRIMapper(@Nonnull OWLOntologyIRIMapper mapper) {
-        documentMappers.add(mapper);
-    }
-
-    /**
-     * @param mapper {@link OWLOntologyIRIMapper}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeIRIMapper(OWLOntologyIRIMapper)</a>
-     */
-    @Override
-    public void removeIRIMapper(@Nonnull OWLOntologyIRIMapper mapper) {
-        documentMappers.remove(mapper);
-    }
-
-    /**
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#clearIRIMappers()</a>
-     */
-    @Override
-    public void clearIRIMappers() {
-        documentMappers.clear();
     }
 
     /**
