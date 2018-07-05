@@ -41,6 +41,7 @@ import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.owlapi.ConcurrentPriorityCollection;
 import ru.avicomp.owlapi.NoOpReadWriteLock;
 
@@ -137,8 +138,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         };
         this.parserFactories = new ConcurrentPriorityCollection<>(this.lock, _sorting);
         this.ontologyStorers = new ConcurrentPriorityCollection<>(this.lock, _sorting);
-        // todo: make config concurrent also
-        this.configProvider = new OntConfig();
+        this.configProvider = new ConcurrentConfig(this.lock);
         this.content = new OntologyCollection(isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet());
     }
 
@@ -2261,6 +2261,81 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         @Override
         public boolean parallel() {
             return manager.isConcurrent();
+        }
+    }
+
+    /**
+     * An {@link OntConfig} with {@link ReadWriteLock} access.
+     * Created by @szuev on 05.07.2018.
+     */
+    public static class ConcurrentConfig extends OntConfig {
+        private final ReadWriteLock lock;
+
+        public ConcurrentConfig(ReadWriteLock lock) {
+            this.lock = lock == null ? NoOpReadWriteLock.INSTANCE : lock;
+        }
+
+        @Override
+        protected Object get(OptionSetting key) {
+            lock.readLock().lock();
+            try {
+                return super.get(key);
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        protected ConcurrentConfig put(OptionSetting key, Object value) {
+            lock.writeLock().lock();
+            try {
+                super.put(key, value);
+                return this;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        @Override
+        public ConcurrentConfig setPersonality(OntPersonality p) {
+            lock.writeLock().lock();
+            try {
+                super.setPersonality(p);
+                return this;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        @Override
+        public OntPersonality getPersonality() {
+            lock.readLock().lock();
+            try {
+                return super.getPersonality();
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public ConcurrentConfig setGraphTransformers(GraphTransformers.Store t) {
+            lock.writeLock().lock();
+            try {
+                super.setGraphTransformers(t);
+                return this;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        @Override
+        public GraphTransformers.Store getGraphTransformers() {
+            lock.readLock().lock();
+            try {
+                return super.getGraphTransformers();
+            } finally {
+                lock.readLock().unlock();
+            }
         }
     }
 }
