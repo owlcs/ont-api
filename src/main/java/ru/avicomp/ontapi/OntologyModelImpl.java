@@ -24,7 +24,6 @@ import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.owlapi.OWLOntologyWrapper;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.locks.ReadWriteLock;

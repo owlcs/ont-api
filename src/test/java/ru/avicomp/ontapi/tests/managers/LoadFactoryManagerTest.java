@@ -36,7 +36,6 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.OWLRecursiveTransform;
 import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
-import ru.avicomp.owlapi.OWLOntologyFactoryImpl;
 
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -368,7 +367,7 @@ public class LoadFactoryManagerTest {
         manager.getOntologyFactories().clear();
         Assert.assertTrue(manager.getOntologyFactories().isEmpty());
 
-        OWLOntologyFactory owlFactory = new OWLOntologyFactoryImpl((m, i) ->
+        OWLOntologyFactory owlFactory = new OntologyFactoryImpl.OWLLoaderImpl.FactoryImpl((m, i) ->
                 new OntManagers.OWLAPIImplProfile().createOWLOntologyImpl(m, i));
         try {
             manager.getOntologyFactories().add(owlFactory);

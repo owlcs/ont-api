@@ -102,7 +102,7 @@ public class OWLAdapter {
      * @return {@link OntologyManagerImpl}
      * @throws ClassCastException in case of wrong instance specified
      */
-    OntologyManagerImpl asIMPL(OWLOntologyManager manager) {
+    protected OntologyManagerImpl asIMPL(OWLOntologyManager manager) {
         return (OntologyManagerImpl) manager;
     }
 }

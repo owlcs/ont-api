@@ -22,7 +22,6 @@ import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.owlapi.ConcurrentPriorityCollection;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -88,59 +87,59 @@ public interface OntologyManager extends OWLOntologyManager {
     OntConfig getOntologyConfigurator();
 
     /**
-     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link OntologyFactory Ontology Factories}
+     * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link OntologyFactory Ontology Factories}
      * - an iterable object, which allows to iterate and modify an internal collection.
      * Warning: any attempt to add OWLOntologyFactory into that Priority Collection
      * will cause throwing an {@link OntApiException ONT-API runtime exception}
      * in case that factory does not extend {@code OntologyFactory} interface.
      *
-     * @return {@link ConcurrentPriorityCollection} of {@link OntologyFactory}
+     * @return {@link RWLockedCollection} of {@link OntologyFactory}
      */
     @Override
-    ConcurrentPriorityCollection<OWLOntologyFactory> getOntologyFactories();
+    RWLockedCollection<OWLOntologyFactory> getOntologyFactories();
 
 
     /**
-     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link OWLOntologyIRIMapper IRI Mappers}
+     * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link OWLOntologyIRIMapper IRI Mappers}
      * The mappers are used to obtain ontology document IRIs for ontology IRIs.
      * If their type is annotated with a {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} type,
      * this will be used to decide the order they are used.
      * Otherwise, the order in which the collection is iterated will determine the order in which the mappers are used.
      *
-     * @return {@link ConcurrentPriorityCollection} of {@link OWLOntologyIRIMapper}s
+     * @return {@link RWLockedCollection} of {@link OWLOntologyIRIMapper}s
      */
     @Override
-    ConcurrentPriorityCollection<OWLOntologyIRIMapper> getIRIMappers();
+    RWLockedCollection<OWLOntologyIRIMapper> getIRIMappers();
 
     /**
-     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link DocumentSourceMapping ONT Document Source Mapping}.
+     * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link DocumentSourceMapping ONT Document Source Mapping}.
      * A {@link DocumentSourceMapping} is more general mechanism to conduct ontology mapping than {@link OWLOntologyIRIMapper},
      * it is widely used in dependent projects.
      *
-     * @return {@link ConcurrentPriorityCollection} of {@link DocumentSourceMapping}s
+     * @return {@link RWLockedCollection} of {@link DocumentSourceMapping}s
      * @since 1.2.1
      */
-    ConcurrentPriorityCollection<DocumentSourceMapping> getDocumentSourceMappers();
+    RWLockedCollection<DocumentSourceMapping> getDocumentSourceMappers();
 
     /**
-     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link OWLParserFactory OWL Parsers}.
+     * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link OWLParserFactory OWL Parsers}.
      * If the parsers are annotated with a {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} type,
      * this will be used to decide the order they are used.
      * Otherwise, the order in which the collection is iterated will determine the order in which the parsers are used.
      *
-     * @return {@link ConcurrentPriorityCollection} of {@link OWLParserFactory}s
+     * @return {@link RWLockedCollection} of {@link OWLParserFactory}s
      */
     @Override
-    ConcurrentPriorityCollection<OWLParserFactory> getOntologyParsers();
+    RWLockedCollection<OWLParserFactory> getOntologyParsers();
 
     /**
-     * Gets an {@link ConcurrentPriorityCollection extended OWL-API PriorityCollection} of {@link OWLStorerFactory OWL Storers}.
+     * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link OWLStorerFactory OWL Storers}.
      * About ordering see {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} annotation.
      *
-     * @return {@link ConcurrentPriorityCollection} of {@link OWLStorerFactory}s
+     * @return {@link RWLockedCollection} of {@link OWLStorerFactory}s
      */
     @Override
-    ConcurrentPriorityCollection<OWLStorerFactory> getOntologyStorers();
+    RWLockedCollection<OWLStorerFactory> getOntologyStorers();
 
     /**
      * Contrary to the original description this method works with version IRI also if it fails with ontology IRI.

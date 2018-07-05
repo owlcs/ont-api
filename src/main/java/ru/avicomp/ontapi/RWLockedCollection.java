@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.owlapi;
+package ru.avicomp.ontapi;
 
 import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.semanticweb.owlapi.util.PriorityCollection;
@@ -25,19 +25,20 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * TODO: rename not to be confused with uk.ac.manchester.cs.owl.owlapi.*
+ * An {@link PriorityCollection extended OWL-API Priority Collection}
+ * that supports concurrent reading and writing through a {@link ReadWriteLock}.
+ * <p>
  * Is there any reason why the base class does not implement {@link java.util.Collection}?
  * Unfortunately I can't do that in this implementation: clashes with method {@link #remove(Serializable)}.
  * Also I am wondering why {@code PriorityCollection} is a concrete class, not interface. It is very annoying.
  * <p>
- * A {@link PriorityCollection OWL-API Priority Collection} that supports concurrent reading and writing through a {@link ReadWriteLock}.
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 09/04/15
  *
  * @param <E> type in the collection
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/concurrent/ConcurrentPriorityCollection.java'>ConcurrentPriorityCollection</a>
  */
 @SuppressWarnings("WeakerAccess")
-public class ConcurrentPriorityCollection<E extends Serializable> extends PriorityCollection<E> {
+public class RWLockedCollection<E extends Serializable> extends PriorityCollection<E> {
 
     protected final ReadWriteLock lock;
 
@@ -48,7 +49,7 @@ public class ConcurrentPriorityCollection<E extends Serializable> extends Priori
      * @see PriorityCollectionSorting#NEVER
      * @since 1.2.1
      */
-    public ConcurrentPriorityCollection(ReadWriteLock lock) {
+    public RWLockedCollection(ReadWriteLock lock) {
         this(lock, PriorityCollectionSorting.NEVER);
     }
 
@@ -59,9 +60,9 @@ public class ConcurrentPriorityCollection<E extends Serializable> extends Priori
      * @param sorting {@link PriorityCollectionSorting} the enum, which (as passed as parameter) makes hard to use OWL-API interfaces.
      *                (Do you know why in java (e.g. in NIO) there is interfaces passed as parameters (implemented by enum), not naked enums?)
      */
-    public ConcurrentPriorityCollection(ReadWriteLock lock, PriorityCollectionSorting sorting) {
+    public RWLockedCollection(ReadWriteLock lock, PriorityCollectionSorting sorting) {
         super(sorting);
-        this.lock = lock == null ? NoOpReadWriteLock.INSTANCE : lock;
+        this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
     }
 
     @Override
@@ -185,6 +186,12 @@ public class ConcurrentPriorityCollection<E extends Serializable> extends Priori
         }
     }
 
+    /**
+     * Returns a {@code Stream} with this collection as its source.
+     *
+     * @return a {@code Stream} over the elements in this collection
+     * @since 1.2.1
+     */
     public Stream<E> stream() {
         return StreamSupport.stream(spliterator(), false);
     }

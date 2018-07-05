@@ -34,7 +34,7 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.avicomp.owlapi.NoOpReadWriteLock;
+import ru.avicomp.ontapi.NoOpReadWriteLock;
 import ru.avicomp.owlapi.OWLManager;
 
 import javax.annotation.Nonnull;
@@ -88,7 +88,7 @@ public abstract class TestBase {
     }
 
     protected static OWLOntologyManager setupManager() {
-        OWLOntologyManager manager = OWLManager.newManager(df, NoOpReadWriteLock.INSTANCE);
+        OWLOntologyManager manager = OWLManager.newManager(df, NoOpReadWriteLock.NO_OP_RW_LOCK);
         manager.getOntologyFactories().set(masterManager.getOntologyFactories());
         manager.getOntologyParsers().set(masterManager.getOntologyParsers());
         manager.getOntologyStorers().set(masterManager.getOntologyStorers());

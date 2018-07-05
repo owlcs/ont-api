@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.owlapi;
+package ru.avicomp.ontapi;
 
 import javax.annotation.Nullable;
 import java.io.ObjectStreamException;
@@ -25,6 +25,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * An implementation of {@link ReadWriteLock} with no-operation behaviour.
+ * Singleton.
  * <p>
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 13/04/15
  *
@@ -34,8 +35,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 public final class NoOpReadWriteLock implements ReadWriteLock, Serializable {
     public static final Condition NO_OP_CONDITION = new NoOpCondition();
     public static final Lock NO_OP_LOCK = new NoOpLock();
-
-    public static final ReadWriteLock INSTANCE = new NoOpReadWriteLock();
+    public static final ReadWriteLock NO_OP_RW_LOCK = new NoOpReadWriteLock();
 
     /**
      * Singleton: it is hard to image someone would like to override this class.
@@ -56,7 +56,7 @@ public final class NoOpReadWriteLock implements ReadWriteLock, Serializable {
     }
 
     private Object readResolve() throws ObjectStreamException {
-        return INSTANCE;
+        return NO_OP_RW_LOCK;
     }
 
     /**

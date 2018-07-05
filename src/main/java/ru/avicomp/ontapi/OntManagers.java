@@ -20,9 +20,7 @@ import com.google.common.reflect.Reflection;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.owlapi.NoOpReadWriteLock;
 import ru.avicomp.owlapi.OWLDataFactoryImpl;
-import ru.avicomp.owlapi.OWLOntologyFactoryImpl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -150,7 +148,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      */
     @Deprecated
     public static OWLOntologyFactory createOWLOntologyLoadFactory(OWLOntologyBuilder builder) {
-        return new OWLOntologyFactoryImpl(builder);
+        return new OntologyFactoryImpl.OWLLoaderImpl.FactoryImpl(builder);
     }
 
     /**
@@ -183,7 +181,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
 
         @Override
         public OntologyManager create(boolean concurrent) {
-            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.INSTANCE;
+            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.NO_OP_RW_LOCK;
             Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
             Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
             OntologyFactory factory = createOntologyFactory(createOntologyBuilder());
@@ -346,7 +344,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
             nonConcurrentParams.put(owlOntologyImplementationFactoryType, owlOntologyImplementationFactoryInstance);
             OWLOntologyBuilder res = (OWLOntologyBuilder) newInstance("uk.ac.manchester.cs.owl.owlapi.concurrent.NonConcurrentOWLOntologyBuilder",
                     nonConcurrentParams);
-            if (lock == null || NoOpReadWriteLock.INSTANCE.equals(lock)) return res;
+            if (lock == null || NoOpReadWriteLock.NO_OP_RW_LOCK.equals(lock)) return res;
             LinkedListMultimap<Class<?>, Object> concurrentParams = LinkedListMultimap.create();
             concurrentParams.put(OWLOntologyBuilder.class, res);
             concurrentParams.put(ReadWriteLock.class, lock);
@@ -362,7 +360,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
 
         @Override
         public OWLOntologyManager create(boolean concurrent) {
-            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.INSTANCE;
+            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.NO_OP_RW_LOCK;
             OWLDataFactory dataFactory = createDataFactory(false);
             OWLOntologyFactory loadFactory = createLoadFactory(createOWLOntologyBuilder(lock));
             OWLOntologyManager res = create(dataFactory, lock);

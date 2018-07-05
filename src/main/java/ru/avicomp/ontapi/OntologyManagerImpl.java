@@ -42,8 +42,6 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
-import ru.avicomp.owlapi.ConcurrentPriorityCollection;
-import ru.avicomp.owlapi.NoOpReadWriteLock;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -76,15 +74,15 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected transient OntLoaderConfiguration loaderConfig;
     protected transient OntWriterConfiguration writerConfig;
     // OntologyFactory collection:
-    protected final ConcurrentPriorityCollection<OWLOntologyFactory> ontologyFactories;
+    protected final RWLockedCollection<OWLOntologyFactory> ontologyFactories;
     // IRI mappers
-    protected final ConcurrentPriorityCollection<OWLOntologyIRIMapper> documentIRIMappers;
+    protected final RWLockedCollection<OWLOntologyIRIMapper> documentIRIMappers;
     // Graph mappers (sine 1.0.1):
-    protected final ConcurrentPriorityCollection<DocumentSourceMapping> documentSourceMappers;
+    protected final RWLockedCollection<DocumentSourceMapping> documentSourceMappers;
     // OWL-API parsers (i.e. alternative to jena way to read):
-    protected final ConcurrentPriorityCollection<OWLParserFactory> parserFactories;
+    protected final RWLockedCollection<OWLParserFactory> parserFactories;
     // OWL-API storers (i.e. alternative to jena way to save):
-    protected final ConcurrentPriorityCollection<OWLStorerFactory> ontologyStorers;
+    protected final RWLockedCollection<OWLStorerFactory> ontologyStorers;
     // primary parameters:
     protected final ReadWriteLock lock;
     protected final OWLDataFactory dataFactory;
@@ -125,19 +123,19 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     protected OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock lock, PriorityCollectionSorting sorting) {
         this.dataFactory = Objects.requireNonNull(dataFactory, "Null Data Factory");
-        this.lock = lock == null ? NoOpReadWriteLock.INSTANCE : lock;
+        this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
         PriorityCollectionSorting _sorting = sorting == null ? PriorityCollectionSorting.NEVER : sorting;
-        this.documentIRIMappers = new ConcurrentPriorityCollection<>(this.lock, _sorting);
-        this.documentSourceMappers = new ConcurrentPriorityCollection<>(this.lock);
-        this.ontologyFactories = new ConcurrentPriorityCollection<OWLOntologyFactory>(this.lock, _sorting) {
+        this.documentIRIMappers = new RWLockedCollection<>(this.lock, _sorting);
+        this.documentSourceMappers = new RWLockedCollection<>(this.lock);
+        this.ontologyFactories = new RWLockedCollection<OWLOntologyFactory>(this.lock, _sorting) {
             @Override
             protected void onAdd(OWLOntologyFactory f) {
                 if (f instanceof OntologyFactory) return;
                 throw new OntApiException("Wrong argument: " + f + ". Only " + OntologyFactory.class.getSimpleName() + " can be accepted.");
             }
         };
-        this.parserFactories = new ConcurrentPriorityCollection<>(this.lock, _sorting);
-        this.ontologyStorers = new ConcurrentPriorityCollection<>(this.lock, _sorting);
+        this.parserFactories = new RWLockedCollection<>(this.lock, _sorting);
+        this.ontologyStorers = new RWLockedCollection<>(this.lock, _sorting);
         this.configProvider = new ConcurrentConfig(this.lock);
         this.content = new OntologyCollection(isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet());
     }
@@ -151,7 +149,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @return boolean
      */
     public boolean isConcurrent() {
-        return NoOpReadWriteLock.INSTANCE != lock;
+        return NoOpReadWriteLock.NO_OP_RW_LOCK != lock;
     }
 
     /**
@@ -269,27 +267,27 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyFactories()</a>
      */
     @Override
-    public ConcurrentPriorityCollection<OWLOntologyFactory> getOntologyFactories() {
+    public RWLockedCollection<OWLOntologyFactory> getOntologyFactories() {
         return ontologyFactories;
     }
 
     @Override
-    public ConcurrentPriorityCollection<OWLStorerFactory> getOntologyStorers() {
+    public RWLockedCollection<OWLStorerFactory> getOntologyStorers() {
         return ontologyStorers;
     }
 
     @Override
-    public ConcurrentPriorityCollection<OWLParserFactory> getOntologyParsers() {
+    public RWLockedCollection<OWLParserFactory> getOntologyParsers() {
         return parserFactories;
     }
 
     @Override
-    public ConcurrentPriorityCollection<OWLOntologyIRIMapper> getIRIMappers() {
+    public RWLockedCollection<OWLOntologyIRIMapper> getIRIMappers() {
         return documentIRIMappers;
     }
 
     @Override
-    public ConcurrentPriorityCollection<DocumentSourceMapping> getDocumentSourceMappers() {
+    public RWLockedCollection<DocumentSourceMapping> getDocumentSourceMappers() {
         return documentSourceMappers;
     }
 
@@ -605,7 +603,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                     .filter(e -> e.getKey().match(_id))
                     .map(e -> OntGraphDocumentSource.wrap(e.getValue()))
                     .findFirst().orElse(null);
-            ConcurrentPriorityCollection<DocumentSourceMapping> store = getDocumentSourceMappers();
+            RWLockedCollection<DocumentSourceMapping> store = getDocumentSourceMappers();
             try {
                 store.add(mapping);
                 return loadOntologyFromOntologyDocument(mapping.map(id), conf);
@@ -2272,7 +2270,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         private final ReadWriteLock lock;
 
         public ConcurrentConfig(ReadWriteLock lock) {
-            this.lock = lock == null ? NoOpReadWriteLock.INSTANCE : lock;
+            this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
         }
 
         @Override
