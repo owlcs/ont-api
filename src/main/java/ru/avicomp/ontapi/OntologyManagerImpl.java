@@ -90,16 +90,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected final OntologyCollection content;
 
     /**
-     * @param dataFactory   {@link OWLDataFactory}
-     * @param readWriteLock {@link ReadWriteLock}
-     * @deprecated todo: delete
-     */
-    @Deprecated
-    public OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock readWriteLock) {
-        this(dataFactory, new OntologyFactoryImpl(), readWriteLock);
-    }
-
-    /**
      * Constructs a manager instance which is ready to use.
      * OntologyFactory as parameter since a manager without it is useless.
      *

@@ -16,8 +16,6 @@ package ru.avicomp.ontapi;
 
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 
-import java.util.function.Supplier;
-
 /**
  * Base runtime exception.
  * <p>
@@ -51,17 +49,7 @@ public class OntApiException extends OWLRuntimeException {
     }
 
     /**
-     * @param msg String
-     * @return exception
-     * @deprecated todo: delete - it is an unused sugar
-     */
-    @Deprecated
-    public static Supplier<OntApiException> supplier(String msg) {
-        return () -> new OntApiException(msg);
-    }
-
-    /**
-     * for unsupported things
+     * A RuntimeException for unsupported things.
      * Created by @szuev on 29.09.2016.
      */
     public static class Unsupported extends OntApiException {

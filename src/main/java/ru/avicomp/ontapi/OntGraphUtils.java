@@ -69,26 +69,6 @@ public class OntGraphUtils {
             TEXT_PLAIN_REQUEST_TYPE + LAST_REQUEST_TYPE;
 
     /**
-     * Returns OWL Ontology ID from ontology-graph
-     *
-     * @param graph {@link Graph graph}
-     * @return Optional around {@link OWLOntologyID OWL Ontology ID} or
-     * {@code Optional.empty} for anonymous ontology graph or for graph without {@code owl:Ontology} section
-     * @deprecated use {@link OntGraphUtils#getOntologyID(Graph)}, this will be removed
-     */
-    @Deprecated
-    public static Optional<OWLOntologyID> ontologyID(@Nonnull Graph graph) {
-        Graph base = Graphs.getBase(graph);
-        return Graphs.ontologyNode(base)
-                .map(n -> new OntIDImpl(n, new ModelCom(base)))
-                .map(id -> {
-                    Optional<IRI> iri = Optional.ofNullable(id.getURI()).map(IRI::create);
-                    Optional<IRI> ver = Optional.ofNullable(id.getVersionIRI()).map(IRI::create);
-                    return new OWLOntologyID(iri, ver);
-                }).filter(id -> !id.isAnonymous());
-    }
-
-    /**
      * Gets an OWL Ontology ID parsed from the given graph.
      * Treats graphs without {@code owl:Ontology} section inside as anonymous.
      *

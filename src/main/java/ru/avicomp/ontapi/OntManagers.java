@@ -139,19 +139,6 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * Creates an OWL-API load factory instance.
-     * Static accessor to the {@link OWLOntologyFactory} OWL-API implementation.
-     *
-     * @param builder {@link OWLOntologyBuilder}, required parameter
-     * @return {@link OWLOntologyFactory} instance or null if it absents in class-path.
-     * @deprecated todo: going to delete
-     */
-    @Deprecated
-    public static OWLOntologyFactory createOWLOntologyLoadFactory(OWLOntologyBuilder builder) {
-        return new OWLLoaderImpl.FactoryImpl(builder);
-    }
-
-    /**
      * A factory to provide manager and data-factory.
      */
     public interface Profile {
@@ -184,11 +171,22 @@ public class OntManagers implements OWLOntologyManagerFactory {
             ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.NO_OP_RW_LOCK;
             Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
             Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
-            OntologyFactory factory = createOntologyFactory(createOntologyBuilder());
-            OntologyManager res = create(dataFactory(), factory, lock);
+            OntologyManager res = create(dataFactory(), lock);
             res.getOntologyStorers().set(storers);
             res.getOntologyParsers().set(parsers);
             return res;
+        }
+
+        /**
+         * Creates a ready to use fresh ONT-API-impl Ontology Manager.
+         *
+         * @param dataFactory {@link OWLDataFactory} instance
+         * @param lock        {@link ReadWriteLock} r/w lock
+         * @return {@link OntologyManager}
+         */
+        public OntologyManager create(OWLDataFactory dataFactory, ReadWriteLock lock) {
+            OntologyFactory factory = createOntologyFactory(createOntologyBuilder());
+            return create(dataFactory, factory, lock);
         }
 
         public OntologyManager create(OWLDataFactory dataFactory, OntologyFactory factory, ReadWriteLock lock) {
@@ -372,6 +370,12 @@ public class OntManagers implements OWLOntologyManagerFactory {
             return res;
         }
 
+        /**
+         * Creates a ready to use fresh OWL-API-impl Ontology Manager.
+         * @param dataFactory {@link OWLDataFactory} instance
+         * @param lock {@link ReadWriteLock} r/w lock
+         * @return {@link OWLOntologyManager}
+         */
         public OWLOntologyManager create(OWLDataFactory dataFactory, ReadWriteLock lock) {
             Constructor<?> constructor;
             try {

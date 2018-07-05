@@ -39,7 +39,7 @@ import java.util.stream.Stream;
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/concurrent/ConcurrentOWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl</a>
  */
-@SuppressWarnings({"deprecation", "EqualsWhichDoesntCheckParameterClass", "NullableProblems"})
+@SuppressWarnings({"deprecation", "EqualsWhichDoesntCheckParameterClass", "NullableProblems", "WeakerAccess"})
 public class OWLOntologyWrapper implements OWLMutableOntology {
 
     protected final OWLOntology delegate;

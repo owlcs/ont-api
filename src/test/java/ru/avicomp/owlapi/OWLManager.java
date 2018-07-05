@@ -82,7 +82,7 @@ public class OWLManager {
         LOGGER.debug("New {}", typeName("OntologyManager"));
         return DEBUG_USE_OWL ?
                 new OntManagers.OWLAPIImplProfile().create(df, lock) :
-                new ru.avicomp.ontapi.OntologyManagerImpl(df, lock);
+                new OntManagers.ONTManagerProfile().create(df, lock);
     }
 
     private static String typeName(String base) {

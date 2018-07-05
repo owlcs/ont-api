@@ -43,12 +43,6 @@ public class OntologyFactoryImpl implements OntologyFactory {
     protected final Builder ontologyBuilder;
     protected final Loader ontologyLoader;
 
-    @Deprecated // todo: delete
-    public OntologyFactoryImpl() {
-        this.ontologyBuilder = new OntologyBuilderImpl();
-        this.ontologyLoader = new ONTLoaderImpl(ontologyBuilder, new OWLLoaderImpl(ontologyBuilder));
-    }
-
     public OntologyFactoryImpl(Builder builder, Loader loader) {
         this.ontologyBuilder = Objects.requireNonNull(builder, "Null builder");
         this.ontologyLoader = Objects.requireNonNull(loader, "Null loader");
