@@ -148,7 +148,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      */
     @Deprecated
     public static OWLOntologyFactory createOWLOntologyLoadFactory(OWLOntologyBuilder builder) {
-        return new OntologyFactoryImpl.OWLLoaderImpl.FactoryImpl(builder);
+        return new OWLLoaderImpl.FactoryImpl(builder);
     }
 
     /**
@@ -206,7 +206,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
          * @return {@link OntologyFactory.Builder}
          */
         public OntologyFactory.Builder createOntologyBuilder() {
-            return new OntologyFactoryImpl.BuilderImpl();
+            return new OntologyBuilderImpl();
         }
 
         /**
@@ -216,8 +216,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
          * @return {@link OntologyFactory} instance
          */
         public OntologyFactory createOntologyFactory(OntologyFactory.Builder builder) {
-            OntologyFactory.Loader loader = new OntologyFactoryImpl.ONTLoaderImpl(builder,
-                    new OntologyFactoryImpl.OWLLoaderImpl(builder));
+            OntologyFactory.Loader loader = new ONTLoaderImpl(builder,
+                    new OWLLoaderImpl(builder));
             return createOntologyFactory(builder, loader);
         }
 

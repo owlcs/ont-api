@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * An {@link PriorityCollection extended OWL-API Priority Collection}
+ * An extended {@link PriorityCollection OWL-API Priority Collection}
  * that supports concurrent reading and writing through a {@link ReadWriteLock}.
  * <p>
  * Is there any reason why the base class does not implement {@link java.util.Collection}?

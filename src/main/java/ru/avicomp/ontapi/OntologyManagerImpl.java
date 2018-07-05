@@ -506,7 +506,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
     }
 
-
     /**
      * @param id {@link OWLOntologyID}
      * @return {@link OntInfo} the container with ontology
@@ -1091,7 +1090,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public Stream<OWLOntology> ontologies() {
         getLock().readLock().lock();
         try {
-            // XXX investigate lockable access to streams
             return content.values().map(OntInfo::get);
         } finally {
             getLock().readLock().unlock();
@@ -1818,6 +1816,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * This is just for simplification code.
      * All working with listeners should be here.
      */
+    @SuppressWarnings("UnusedReturnValue")
     protected static class ListenersHolder implements Serializable {
         private static final String BADLISTENER = "BADLY BEHAVING LISTENER: {} has been removed";
         protected final List<MissingImportListener> missingImportsListeners = new ArrayList<>();
@@ -2149,6 +2148,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @see OntologyManagerImpl#setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)
      * @see ModelConfig
      */
+    @SuppressWarnings("UnusedReturnValue")
     public class OntInfo implements Serializable {
         private final OntologyModel ont;
         private final ConfigProvider.Config conf;
@@ -2210,6 +2210,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * This implementation of {@link ConfigProvider.Config} has a reference to manager inside.
      * This is in order to provide access to the manager's settings also.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static class ModelConfig implements ConfigProvider.Config, Serializable {
         private OntLoaderConfiguration modelLoaderConf;
         private OntWriterConfiguration modelWriterConf;
