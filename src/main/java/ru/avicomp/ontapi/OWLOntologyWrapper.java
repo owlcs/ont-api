@@ -32,46 +32,28 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * A decorator for an {@link OWLOntology} instance.
- * Notices that it does not implement {@link OntologyModel}.
+ * A decorator for any {@link OWLOntology} instance.
+ * Notices that it does not implement {@link OntologyModel} and therefore cannot be used in ONT-API directly.
  *
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 03/04/15
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/concurrent/ConcurrentOWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl</a>
  */
-@SuppressWarnings({"deprecation", "EqualsWhichDoesntCheckParameterClass", "NullableProblems", "WeakerAccess"})
+@SuppressWarnings({"deprecation", "NullableProblems", "WeakerAccess"})
 public class OWLOntologyWrapper implements OWLMutableOntology {
 
     protected final OWLOntology delegate;
     protected final ReadWriteLock lock;
 
     /**
-     * Constructs a ConcurrentOWLOntology that provides concurrent access to a delegate
-     * {@link OWLOntology}.
+     * Constructs a new {@code OWLOntologyWrapper} that provides concurrent access to the specified delegate {@link OWLOntology ontology}.
      *
-     * @param delegate The delegate {@link OWLOntology}.
-     * @param lock     The {@link java.util.concurrent.locks.ReadWriteLock} that will provide
-     *                 the locking.
-     * @throws java.lang.NullPointerException if any parameters are {@code null}.
+     * @param delegate {@link OWLOntology} the delegate
+     * @param lock     {@link ReadWriteLock} the R/W Lock to provide thread-safe
      */
     public OWLOntologyWrapper(OWLOntology delegate, ReadWriteLock lock) {
-        this.delegate = Objects.requireNonNull(delegate);
-        this.lock = Objects.requireNonNull(lock);
-    }
-
-    @Override
-    public int typeIndex() {
-        return delegate.typeIndex();
-    }
-
-    @Override
-    public void accept(OWLNamedObjectVisitor owlNamedObjectVisitor) {
-        delegate.accept(owlNamedObjectVisitor);
-    }
-
-    @Override
-    public <O> O accept(OWLNamedObjectVisitorEx<O> owlNamedObjectVisitorEx) {
-        return delegate.accept(owlNamedObjectVisitorEx);
+        this.delegate = Objects.requireNonNull(delegate, "Null delegate");
+        this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
     }
 
     @Override
@@ -88,10 +70,58 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     public boolean equals(@Nullable Object obj) {
         lock.readLock().lock();
         try {
+            if (obj instanceof OWLOntologyWrapper) {
+                obj = ((OWLOntologyWrapper) obj).delegate;
+            }
             return delegate.equals(obj);
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    @Override
+    public String toString() {
+        lock.readLock().lock();
+        try {
+            return delegate.toString();
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public int compareTo(OWLObject o) {
+        lock.readLock().lock();
+        try {
+            return delegate.compareTo(o);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public int typeIndex() {
+        return delegate.typeIndex();
+    }
+
+    @Override
+    public void accept(OWLNamedObjectVisitor visitor) {
+        delegate.accept(visitor);
+    }
+
+    @Override
+    public <O> O accept(OWLNamedObjectVisitorEx<O> visitor) {
+        return delegate.accept(visitor);
+    }
+
+    @Override
+    public void accept(OWLObjectVisitor visitor) {
+        delegate.accept(visitor);
+    }
+
+    @Override
+    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
+        return delegate.accept(visitor);
     }
 
     @Override
@@ -105,10 +135,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public void setOWLOntologyManager(@Nullable OWLOntologyManager owlOntologyManager) {
+    public void setOWLOntologyManager(@Nullable OWLOntologyManager manager) {
         lock.writeLock().lock();
         try {
-            delegate.setOWLOntologyManager(owlOntologyManager);
+            delegate.setOWLOntologyManager(manager);
         } finally {
             lock.writeLock().unlock();
         }
@@ -377,20 +407,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public boolean isDeclared(OWLEntity owlEntity) {
+    public boolean isDeclared(OWLEntity entity) {
         lock.readLock().lock();
         try {
-            return delegate.isDeclared(owlEntity);
+            return delegate.isDeclared(entity);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public boolean isDeclared(OWLEntity owlEntity, Imports imports) {
+    public boolean isDeclared(OWLEntity entity, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.isDeclared(owlEntity, imports);
+            return delegate.isDeclared(entity, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -417,60 +447,60 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public void saveOntology(OutputStream outputStream) throws OWLOntologyStorageException {
+    public void saveOntology(OutputStream stream) throws OWLOntologyStorageException {
         lock.readLock().lock();
         try {
-            delegate.saveOntology(outputStream);
+            delegate.saveOntology(stream);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public void saveOntology(OWLDocumentFormat owlDocumentFormat) throws OWLOntologyStorageException {
+    public void saveOntology(OWLDocumentFormat format) throws OWLOntologyStorageException {
         lock.readLock().lock();
         try {
-            delegate.saveOntology(owlDocumentFormat);
+            delegate.saveOntology(format);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public void saveOntology(OWLDocumentFormat owlDocumentFormat, IRI iri) throws OWLOntologyStorageException {
+    public void saveOntology(OWLDocumentFormat format, IRI iri) throws OWLOntologyStorageException {
         lock.readLock().lock();
         try {
-            delegate.saveOntology(owlDocumentFormat, iri);
+            delegate.saveOntology(format, iri);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public void saveOntology(OWLDocumentFormat owlDocumentFormat, OutputStream outputStream) throws OWLOntologyStorageException {
+    public void saveOntology(OWLDocumentFormat format, OutputStream stream) throws OWLOntologyStorageException {
         lock.readLock().lock();
         try {
-            delegate.saveOntology(owlDocumentFormat, outputStream);
+            delegate.saveOntology(format, stream);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public void saveOntology(OWLOntologyDocumentTarget owlOntologyDocumentTarget) throws OWLOntologyStorageException {
+    public void saveOntology(OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
         lock.readLock().lock();
         try {
-            delegate.saveOntology(owlOntologyDocumentTarget);
+            delegate.saveOntology(target);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public void saveOntology(OWLDocumentFormat owlDocumentFormat, OWLOntologyDocumentTarget owlOntologyDocumentTarget) throws OWLOntologyStorageException {
+    public void saveOntology(OWLDocumentFormat format, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
         lock.readLock().lock();
         try {
-            delegate.saveOntology(owlDocumentFormat, owlOntologyDocumentTarget);
+            delegate.saveOntology(format, target);
         } finally {
             lock.readLock().unlock();
         }
@@ -488,60 +518,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public void accept(OWLObjectVisitor owlObjectVisitor) {
-        delegate.accept(owlObjectVisitor);
-    }
-
-    @Override
-    public <O> O accept(OWLObjectVisitorEx<O> owlObjectVisitorEx) {
-        return delegate.accept(owlObjectVisitorEx);
-    }
-
-    @Override
-    public boolean isTopEntity() {
+    public boolean containsEntityInSignature(OWLEntity entity) {
         lock.readLock().lock();
         try {
-            return delegate.isTopEntity();
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public boolean isBottomEntity() {
-        lock.readLock().lock();
-        try {
-            return delegate.isBottomEntity();
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public String toString() {
-        lock.readLock().lock();
-        try {
-            return delegate.toString();
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public int compareTo(OWLObject o) {
-        lock.readLock().lock();
-        try {
-            return delegate.compareTo(o);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public boolean containsEntityInSignature(OWLEntity owlEntity) {
-        lock.readLock().lock();
-        try {
-            return delegate.containsEntityInSignature(owlEntity);
+            return delegate.containsEntityInSignature(entity);
         } finally {
             lock.readLock().unlock();
         }
@@ -558,10 +538,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public boolean containsEntitiesOfTypeInSignature(EntityType<?> type, Imports includeImportsClosure) {
+    public boolean containsEntitiesOfTypeInSignature(EntityType<?> type, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.containsEntitiesOfTypeInSignature(type, includeImportsClosure);
+            return delegate.containsEntitiesOfTypeInSignature(type, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -688,61 +668,40 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType, Imports imports) {
+    public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> type, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(axiomType, imports);
+            return delegate.getAxioms(type, imports);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public <T extends OWLAxiom> Stream<T> axioms(AxiomType<T> axiomType, Imports imports) {
+    public <T extends OWLAxiom> Stream<T> axioms(AxiomType<T> type, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.axioms(axiomType, imports);
+            return delegate.axioms(type, imports);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType, Imports imports) {
+    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> type, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.getAxiomCount(axiomType, imports);
+            return delegate.getAxiomCount(type, imports);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public boolean containsAxiom(OWLAxiom owlAxiom, Imports imports, AxiomAnnotations axiomAnnotations) {
+    public boolean containsAxiom(OWLAxiom axiom, Imports imports, AxiomAnnotations annotations) {
         lock.readLock().lock();
         try {
-            return delegate.containsAxiom(owlAxiom, imports, axiomAnnotations);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    @Deprecated
-    public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom owlAxiom, Imports imports) {
-        lock.readLock().lock();
-        try {
-            return delegate.getAxiomsIgnoreAnnotations(owlAxiom, imports);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom owlAxiom, Imports imports) {
-        lock.readLock().lock();
-        try {
-            return delegate.axiomsIgnoreAnnotations(owlAxiom, imports);
+            return delegate.containsAxiom(axiom, imports, annotations);
         } finally {
             lock.readLock().unlock();
         }
@@ -750,31 +709,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAxiom> getReferencingAxioms(OWLPrimitive owlPrimitive, Imports imports) {
+    public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom axiom, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.getReferencingAxioms(owlPrimitive, imports);
+            return delegate.getAxiomsIgnoreAnnotations(axiom, imports);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public Stream<OWLAxiom> referencingAxioms(OWLPrimitive owlPrimitive, Imports imports) {
+    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom axiom, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.referencingAxioms(owlPrimitive, imports);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    @Deprecated
-    public Set<OWLClassAxiom> getAxioms(OWLClass owlClass, Imports imports) {
-        lock.readLock().lock();
-        try {
-            return delegate.getAxioms(owlClass, imports);
+            return delegate.axiomsIgnoreAnnotations(axiom, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -782,10 +730,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLObjectPropertyAxiom> getAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression, Imports imports) {
+    public Set<OWLAxiom> getReferencingAxioms(OWLPrimitive primitive, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(owlObjectPropertyExpression, imports);
+            return delegate.getReferencingAxioms(primitive, imports);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Stream<OWLAxiom> referencingAxioms(OWLPrimitive primitive, Imports imports) {
+        lock.readLock().lock();
+        try {
+            return delegate.referencingAxioms(primitive, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -793,10 +751,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDataPropertyAxiom> getAxioms(OWLDataProperty owlDataProperty, Imports imports) {
+    public Set<OWLClassAxiom> getAxioms(OWLClass clazz, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(owlDataProperty, imports);
+            return delegate.getAxioms(clazz, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -804,10 +762,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLIndividualAxiom> getAxioms(OWLIndividual owlIndividual, Imports imports) {
+    public Set<OWLObjectPropertyAxiom> getAxioms(OWLObjectPropertyExpression property, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(owlIndividual, imports);
+            return delegate.getAxioms(property, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -815,10 +773,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAnnotationAxiom> getAxioms(OWLAnnotationProperty owlAnnotationProperty, Imports imports) {
+    public Set<OWLDataPropertyAxiom> getAxioms(OWLDataProperty property, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(owlAnnotationProperty, imports);
+            return delegate.getAxioms(property, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -826,10 +784,32 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDatatypeDefinitionAxiom> getAxioms(OWLDatatype owlDatatype, Imports imports) {
+    public Set<OWLIndividualAxiom> getAxioms(OWLIndividual individual, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(owlDatatype, imports);
+            return delegate.getAxioms(individual, imports);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    @Deprecated
+    public Set<OWLAnnotationAxiom> getAxioms(OWLAnnotationProperty property, Imports imports) {
+        lock.readLock().lock();
+        try {
+            return delegate.getAxioms(property, imports);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    @Deprecated
+    public Set<OWLDatatypeDefinitionAxiom> getAxioms(OWLDatatype datatype, Imports imports) {
+        lock.readLock().lock();
+        try {
+            return delegate.getAxioms(datatype, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -880,30 +860,30 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType) {
+    public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> type) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(axiomType);
+            return delegate.getAxioms(type);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public <T extends OWLAxiom> Stream<T> axioms(AxiomType<T> axiomType) {
+    public <T extends OWLAxiom> Stream<T> axioms(AxiomType<T> type) {
         lock.readLock().lock();
         try {
-            return delegate.axioms(axiomType);
+            return delegate.axioms(type);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public boolean containsAxiom(OWLAxiom owlAxiom) {
+    public boolean containsAxiom(OWLAxiom axiom) {
         lock.readLock().lock();
         try {
-            return delegate.containsAxiom(owlAxiom);
+            return delegate.containsAxiom(axiom);
         } finally {
             lock.readLock().unlock();
         }
@@ -977,10 +957,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public boolean containsAxiom(OWLAxiom owlAxiom, boolean b) {
+    public boolean containsAxiom(OWLAxiom axiom, boolean b) {
         lock.readLock().lock();
         try {
-            return delegate.containsAxiom(owlAxiom, b);
+            return delegate.containsAxiom(axiom, b);
         } finally {
             lock.readLock().unlock();
         }
@@ -988,10 +968,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public boolean containsAxiomIgnoreAnnotations(OWLAxiom owlAxiom, boolean b) {
+    public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom, boolean b) {
         lock.readLock().lock();
         try {
-            return delegate.containsAxiomIgnoreAnnotations(owlAxiom, b);
+            return delegate.containsAxiomIgnoreAnnotations(axiom, b);
         } finally {
             lock.readLock().unlock();
         }
@@ -999,10 +979,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom owlAxiom, boolean b) {
+    public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom axiom, boolean b) {
         lock.readLock().lock();
         try {
-            return delegate.getAxiomsIgnoreAnnotations(owlAxiom, b);
+            return delegate.getAxiomsIgnoreAnnotations(axiom, b);
         } finally {
             lock.readLock().unlock();
         }
@@ -1053,10 +1033,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Set<OWLIndividualAxiom> getAxioms(OWLIndividual owlIndividual, boolean b) {
+    public Set<OWLIndividualAxiom> getAxioms(OWLIndividual individual, boolean b) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(owlIndividual, b);
+            return delegate.getAxioms(individual, b);
         } finally {
             lock.readLock().unlock();
         }
@@ -1064,10 +1044,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAnnotationAxiom> getAxioms(OWLAnnotationProperty owlAnnotationProperty, boolean b) {
+    public Set<OWLAnnotationAxiom> getAxioms(OWLAnnotationProperty property, boolean b) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(owlAnnotationProperty, b);
+            return delegate.getAxioms(property, b);
         } finally {
             lock.readLock().unlock();
         }
@@ -1115,10 +1095,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public boolean containsAxiomIgnoreAnnotations(OWLAxiom owlAxiom) {
+    public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom) {
         lock.readLock().lock();
         try {
-            return delegate.containsAxiomIgnoreAnnotations(owlAxiom);
+            return delegate.containsAxiomIgnoreAnnotations(axiom);
         } finally {
             lock.readLock().unlock();
         }
@@ -1126,20 +1106,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom owlAxiom) {
+    public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom axiom) {
         lock.readLock().lock();
         try {
-            return delegate.getAxiomsIgnoreAnnotations(owlAxiom);
+            return delegate.getAxiomsIgnoreAnnotations(axiom);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom owlAxiom) {
+    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom axiom) {
         lock.readLock().lock();
         try {
-            return delegate.axiomsIgnoreAnnotations(owlAxiom);
+            return delegate.axiomsIgnoreAnnotations(axiom);
         } finally {
             lock.readLock().unlock();
         }
@@ -1201,10 +1181,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLIndividualAxiom> getAxioms(OWLIndividual owlIndividual) {
+    public Set<OWLIndividualAxiom> getAxioms(OWLIndividual individual) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(owlIndividual);
+            return delegate.getAxioms(individual);
         } finally {
             lock.readLock().unlock();
         }
@@ -1212,10 +1192,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAnnotationAxiom> getAxioms(OWLAnnotationProperty owlAnnotationProperty) {
+    public Set<OWLAnnotationAxiom> getAxioms(OWLAnnotationProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(owlAnnotationProperty);
+            return delegate.getAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -1263,20 +1243,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Stream<OWLIndividualAxiom> axioms(OWLIndividual owlIndividual) {
+    public Stream<OWLIndividualAxiom> axioms(OWLIndividual individual) {
         lock.readLock().lock();
         try {
-            return delegate.axioms(owlIndividual);
+            return delegate.axioms(individual);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public Stream<OWLAnnotationAxiom> axioms(OWLAnnotationProperty owlAnnotationProperty) {
+    public Stream<OWLAnnotationAxiom> axioms(OWLAnnotationProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.axioms(owlAnnotationProperty);
+            return delegate.axioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -1390,10 +1370,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public boolean containsEntityInSignature(OWLEntity owlEntity, Imports imports) {
+    public boolean containsEntityInSignature(OWLEntity entity, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.containsEntityInSignature(owlEntity, imports);
+            return delegate.containsEntityInSignature(entity, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -1561,20 +1541,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public boolean containsReference(OWLEntity owlEntity, Imports imports) {
+    public boolean containsReference(OWLEntity entity, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.containsReference(owlEntity, imports);
+            return delegate.containsReference(entity, imports);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public boolean containsReference(OWLEntity owlEntity) {
+    public boolean containsReference(OWLEntity entity) {
         lock.readLock().lock();
         try {
-            return delegate.containsReference(owlEntity);
+            return delegate.containsReference(entity);
         } finally {
             lock.readLock().unlock();
         }
@@ -1680,10 +1660,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public boolean containsEntityInSignature(OWLEntity owlEntity, boolean b) {
+    public boolean containsEntityInSignature(OWLEntity entity, boolean b) {
         lock.readLock().lock();
         try {
-            return delegate.containsEntityInSignature(owlEntity, b);
+            return delegate.containsEntityInSignature(entity, b);
         } finally {
             lock.readLock().unlock();
         }
@@ -1779,10 +1759,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public boolean containsReference(OWLEntity owlEntity, boolean b) {
+    public boolean containsReference(OWLEntity entity, boolean b) {
         lock.readLock().lock();
         try {
-            return delegate.containsReference(owlEntity, b);
+            return delegate.containsReference(entity, b);
         } finally {
             lock.readLock().unlock();
         }
@@ -1790,51 +1770,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public <T extends OWLAxiom> Set<T> getAxioms(Class<T> aClass, OWLObject owlObject, Imports imports, Navigation navigation) {
+    public <T extends OWLAxiom> Set<T> getAxioms(Class<T> type, OWLObject object, Imports imports, Navigation navigation) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(aClass, owlObject, imports, navigation);
+            return delegate.getAxioms(type, object, imports, navigation);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public <T extends OWLAxiom> Stream<T> axioms(Class<T> aClass, OWLObject owlObject, Imports imports, Navigation navigation) {
+    public <T extends OWLAxiom> Stream<T> axioms(Class<T> type, OWLObject object, Imports imports, Navigation navigation) {
         lock.readLock().lock();
         try {
-            return delegate.axioms(aClass, owlObject, imports, navigation);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    @Deprecated
-    public <T extends OWLAxiom> Collection<T> filterAxioms(OWLAxiomSearchFilter owlAxiomSearchFilter, Object o, Imports imports) {
-        lock.readLock().lock();
-        try {
-            return delegate.filterAxioms(owlAxiomSearchFilter, o, imports);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public boolean contains(OWLAxiomSearchFilter owlAxiomSearchFilter, Object o, Imports imports) {
-        lock.readLock().lock();
-        try {
-            return delegate.contains(owlAxiomSearchFilter, o, imports);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public boolean contains(OWLAxiomSearchFilter owlAxiomSearchFilter, Object o) {
-        lock.readLock().lock();
-        try {
-            return delegate.contains(owlAxiomSearchFilter, o);
+            return delegate.axioms(type, object, imports, navigation);
         } finally {
             lock.readLock().unlock();
         }
@@ -1842,42 +1791,30 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public <T extends OWLAxiom> Set<T> getAxioms(Class<T> aClass, Class<? extends OWLObject> aClass1, OWLObject owlObject, Imports imports, Navigation navigation) {
+    public <T extends OWLAxiom> Collection<T> filterAxioms(OWLAxiomSearchFilter filter, Object o, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(aClass, aClass1, owlObject, imports, navigation);
+            return delegate.filterAxioms(filter, o, imports);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public <T extends OWLAxiom> Stream<T> axioms(Class<T> aClass, Class<? extends OWLObject> aClass1, OWLObject owlObject, Imports imports, Navigation navigation) {
+    public boolean contains(OWLAxiomSearchFilter filter, Object o, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.axioms(aClass, aClass1, owlObject, imports, navigation);
+            return delegate.contains(filter, o, imports);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    @Deprecated
-    public Set<OWLSubAnnotationPropertyOfAxiom> getSubAnnotationPropertyOfAxioms(OWLAnnotationProperty owlAnnotationProperty) {
+    public boolean contains(OWLAxiomSearchFilter filter, Object o) {
         lock.readLock().lock();
         try {
-            return delegate.getSubAnnotationPropertyOfAxioms(owlAnnotationProperty);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    @Deprecated
-    public Set<OWLAnnotationPropertyDomainAxiom> getAnnotationPropertyDomainAxioms(OWLAnnotationProperty owlAnnotationProperty) {
-        lock.readLock().lock();
-        try {
-            return delegate.getAnnotationPropertyDomainAxioms(owlAnnotationProperty);
+            return delegate.contains(filter, o);
         } finally {
             lock.readLock().unlock();
         }
@@ -1885,41 +1822,28 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAnnotationPropertyRangeAxiom> getAnnotationPropertyRangeAxioms(OWLAnnotationProperty owlAnnotationProperty) {
+    public <T extends OWLAxiom> Set<T> getAxioms(Class<T> type,
+                                                 Class<? extends OWLObject> explicitClass,
+                                                 OWLObject object,
+                                                 Imports imports,
+                                                 Navigation navigation) {
         lock.readLock().lock();
         try {
-            return delegate.getAnnotationPropertyRangeAxioms(owlAnnotationProperty);
+            return delegate.getAxioms(type, explicitClass, object, imports, navigation);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public Stream<OWLAnnotationPropertyDomainAxiom> annotationPropertyDomainAxioms(OWLAnnotationProperty owlAnnotationProperty) {
+    public <T extends OWLAxiom> Stream<T> axioms(Class<T> type,
+                                                 Class<? extends OWLObject> explicitClass,
+                                                 OWLObject object,
+                                                 Imports imports,
+                                                 Navigation navigation) {
         lock.readLock().lock();
         try {
-            return delegate.annotationPropertyDomainAxioms(owlAnnotationProperty);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Stream<OWLAnnotationPropertyRangeAxiom> annotationPropertyRangeAxioms(OWLAnnotationProperty owlAnnotationProperty) {
-        lock.readLock().lock();
-        try {
-            return delegate.annotationPropertyRangeAxioms(owlAnnotationProperty);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    @Deprecated
-    public Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity owlEntity) {
-        lock.readLock().lock();
-        try {
-            return delegate.getDeclarationAxioms(owlEntity);
+            return delegate.axioms(type, explicitClass, object, imports, navigation);
         } finally {
             lock.readLock().unlock();
         }
@@ -1927,10 +1851,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(OWLAnnotationSubject owlAnnotationSubject) {
+    public Set<OWLSubAnnotationPropertyOfAxiom> getSubAnnotationPropertyOfAxioms(OWLAnnotationProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getAnnotationAssertionAxioms(owlAnnotationSubject);
+            return delegate.getSubAnnotationPropertyOfAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -1938,10 +1862,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSubClass(OWLClass owlClass) {
+    public Set<OWLAnnotationPropertyDomainAxiom> getAnnotationPropertyDomainAxioms(OWLAnnotationProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getSubClassAxiomsForSubClass(owlClass);
+            return delegate.getAnnotationPropertyDomainAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -1949,10 +1873,30 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSuperClass(OWLClass owlClass) {
+    public Set<OWLAnnotationPropertyRangeAxiom> getAnnotationPropertyRangeAxioms(OWLAnnotationProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getSubClassAxiomsForSuperClass(owlClass);
+            return delegate.getAnnotationPropertyRangeAxioms(property);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Stream<OWLAnnotationPropertyDomainAxiom> annotationPropertyDomainAxioms(OWLAnnotationProperty property) {
+        lock.readLock().lock();
+        try {
+            return delegate.annotationPropertyDomainAxioms(property);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Stream<OWLAnnotationPropertyRangeAxiom> annotationPropertyRangeAxioms(OWLAnnotationProperty property) {
+        lock.readLock().lock();
+        try {
+            return delegate.annotationPropertyRangeAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -1960,10 +1904,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLEquivalentClassesAxiom> getEquivalentClassesAxioms(OWLClass owlClass) {
+    public Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity) {
         lock.readLock().lock();
         try {
-            return delegate.getEquivalentClassesAxioms(owlClass);
+            return delegate.getDeclarationAxioms(entity);
         } finally {
             lock.readLock().unlock();
         }
@@ -1971,10 +1915,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDisjointClassesAxiom> getDisjointClassesAxioms(OWLClass owlClass) {
+    public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(OWLAnnotationSubject subject) {
         lock.readLock().lock();
         try {
-            return delegate.getDisjointClassesAxioms(owlClass);
+            return delegate.getAnnotationAssertionAxioms(subject);
         } finally {
             lock.readLock().unlock();
         }
@@ -1982,10 +1926,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDisjointUnionAxiom> getDisjointUnionAxioms(OWLClass owlClass) {
+    public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSubClass(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.getDisjointUnionAxioms(owlClass);
+            return delegate.getSubClassAxiomsForSubClass(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -1993,10 +1937,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLHasKeyAxiom> getHasKeyAxioms(OWLClass owlClass) {
+    public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSuperClass(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.getHasKeyAxioms(owlClass);
+            return delegate.getSubClassAxiomsForSuperClass(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -2004,10 +1948,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSubProperty(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLEquivalentClassesAxiom> getEquivalentClassesAxioms(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.getObjectSubPropertyAxiomsForSubProperty(owlObjectPropertyExpression);
+            return delegate.getEquivalentClassesAxioms(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -2015,10 +1959,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSuperProperty(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLDisjointClassesAxiom> getDisjointClassesAxioms(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.getObjectSubPropertyAxiomsForSuperProperty(owlObjectPropertyExpression);
+            return delegate.getDisjointClassesAxioms(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -2026,10 +1970,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLObjectPropertyDomainAxiom> getObjectPropertyDomainAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLDisjointUnionAxiom> getDisjointUnionAxioms(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.getObjectPropertyDomainAxioms(owlObjectPropertyExpression);
+            return delegate.getDisjointUnionAxioms(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -2037,10 +1981,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLObjectPropertyRangeAxiom> getObjectPropertyRangeAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLHasKeyAxiom> getHasKeyAxioms(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.getObjectPropertyRangeAxioms(owlObjectPropertyExpression);
+            return delegate.getHasKeyAxioms(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -2048,10 +1992,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLInverseObjectPropertiesAxiom> getInverseObjectPropertyAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSubProperty(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getInverseObjectPropertyAxioms(owlObjectPropertyExpression);
+            return delegate.getObjectSubPropertyAxiomsForSubProperty(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2059,10 +2003,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLEquivalentObjectPropertiesAxiom> getEquivalentObjectPropertiesAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSuperProperty(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getEquivalentObjectPropertiesAxioms(owlObjectPropertyExpression);
+            return delegate.getObjectSubPropertyAxiomsForSuperProperty(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2070,10 +2014,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDisjointObjectPropertiesAxiom> getDisjointObjectPropertiesAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLObjectPropertyDomainAxiom> getObjectPropertyDomainAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getDisjointObjectPropertiesAxioms(owlObjectPropertyExpression);
+            return delegate.getObjectPropertyDomainAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2081,10 +2025,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLFunctionalObjectPropertyAxiom> getFunctionalObjectPropertyAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLObjectPropertyRangeAxiom> getObjectPropertyRangeAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getFunctionalObjectPropertyAxioms(owlObjectPropertyExpression);
+            return delegate.getObjectPropertyRangeAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2092,10 +2036,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLInverseFunctionalObjectPropertyAxiom> getInverseFunctionalObjectPropertyAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLInverseObjectPropertiesAxiom> getInverseObjectPropertyAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getInverseFunctionalObjectPropertyAxioms(owlObjectPropertyExpression);
+            return delegate.getInverseObjectPropertyAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2103,10 +2047,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLSymmetricObjectPropertyAxiom> getSymmetricObjectPropertyAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLEquivalentObjectPropertiesAxiom> getEquivalentObjectPropertiesAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getSymmetricObjectPropertyAxioms(owlObjectPropertyExpression);
+            return delegate.getEquivalentObjectPropertiesAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2114,10 +2058,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAsymmetricObjectPropertyAxiom> getAsymmetricObjectPropertyAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLDisjointObjectPropertiesAxiom> getDisjointObjectPropertiesAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getAsymmetricObjectPropertyAxioms(owlObjectPropertyExpression);
+            return delegate.getDisjointObjectPropertiesAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2125,10 +2069,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLReflexiveObjectPropertyAxiom> getReflexiveObjectPropertyAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLFunctionalObjectPropertyAxiom> getFunctionalObjectPropertyAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getReflexiveObjectPropertyAxioms(owlObjectPropertyExpression);
+            return delegate.getFunctionalObjectPropertyAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2136,10 +2080,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLIrreflexiveObjectPropertyAxiom> getIrreflexiveObjectPropertyAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLInverseFunctionalObjectPropertyAxiom> getInverseFunctionalObjectPropertyAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getIrreflexiveObjectPropertyAxioms(owlObjectPropertyExpression);
+            return delegate.getInverseFunctionalObjectPropertyAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2147,10 +2091,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLTransitiveObjectPropertyAxiom> getTransitiveObjectPropertyAxioms(OWLObjectPropertyExpression owlObjectPropertyExpression) {
+    public Set<OWLSymmetricObjectPropertyAxiom> getSymmetricObjectPropertyAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getTransitiveObjectPropertyAxioms(owlObjectPropertyExpression);
+            return delegate.getSymmetricObjectPropertyAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2158,10 +2102,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSubProperty(OWLDataProperty owlDataProperty) {
+    public Set<OWLAsymmetricObjectPropertyAxiom> getAsymmetricObjectPropertyAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getDataSubPropertyAxiomsForSubProperty(owlDataProperty);
+            return delegate.getAsymmetricObjectPropertyAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2169,10 +2113,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSuperProperty(OWLDataPropertyExpression owlDataPropertyExpression) {
+    public Set<OWLReflexiveObjectPropertyAxiom> getReflexiveObjectPropertyAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getDataSubPropertyAxiomsForSuperProperty(owlDataPropertyExpression);
+            return delegate.getReflexiveObjectPropertyAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2180,10 +2124,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDataPropertyDomainAxiom> getDataPropertyDomainAxioms(OWLDataProperty owlDataProperty) {
+    public Set<OWLIrreflexiveObjectPropertyAxiom> getIrreflexiveObjectPropertyAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getDataPropertyDomainAxioms(owlDataProperty);
+            return delegate.getIrreflexiveObjectPropertyAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2191,10 +2135,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDataPropertyRangeAxiom> getDataPropertyRangeAxioms(OWLDataProperty owlDataProperty) {
+    public Set<OWLTransitiveObjectPropertyAxiom> getTransitiveObjectPropertyAxioms(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getDataPropertyRangeAxioms(owlDataProperty);
+            return delegate.getTransitiveObjectPropertyAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2202,10 +2146,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLEquivalentDataPropertiesAxiom> getEquivalentDataPropertiesAxioms(OWLDataProperty owlDataProperty) {
+    public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSubProperty(OWLDataProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getEquivalentDataPropertiesAxioms(owlDataProperty);
+            return delegate.getDataSubPropertyAxiomsForSubProperty(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2213,10 +2157,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDisjointDataPropertiesAxiom> getDisjointDataPropertiesAxioms(OWLDataProperty owlDataProperty) {
+    public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSuperProperty(OWLDataPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getDisjointDataPropertiesAxioms(owlDataProperty);
+            return delegate.getDataSubPropertyAxiomsForSuperProperty(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2224,10 +2168,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLFunctionalDataPropertyAxiom> getFunctionalDataPropertyAxioms(OWLDataPropertyExpression owlDataPropertyExpression) {
+    public Set<OWLDataPropertyDomainAxiom> getDataPropertyDomainAxioms(OWLDataProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getFunctionalDataPropertyAxioms(owlDataPropertyExpression);
+            return delegate.getDataPropertyDomainAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2235,10 +2179,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLIndividual owlIndividual) {
+    public Set<OWLDataPropertyRangeAxiom> getDataPropertyRangeAxioms(OWLDataProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getClassAssertionAxioms(owlIndividual);
+            return delegate.getDataPropertyRangeAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2246,10 +2190,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLClassExpression owlClassExpression) {
+    public Set<OWLEquivalentDataPropertiesAxiom> getEquivalentDataPropertiesAxioms(OWLDataProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getClassAssertionAxioms(owlClassExpression);
+            return delegate.getEquivalentDataPropertiesAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2257,10 +2201,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDataPropertyAssertionAxiom> getDataPropertyAssertionAxioms(OWLIndividual owlIndividual) {
+    public Set<OWLDisjointDataPropertiesAxiom> getDisjointDataPropertiesAxioms(OWLDataProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getDataPropertyAssertionAxioms(owlIndividual);
+            return delegate.getDisjointDataPropertiesAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2268,10 +2212,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLObjectPropertyAssertionAxiom> getObjectPropertyAssertionAxioms(OWLIndividual owlIndividual) {
+    public Set<OWLFunctionalDataPropertyAxiom> getFunctionalDataPropertyAxioms(OWLDataPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.getObjectPropertyAssertionAxioms(owlIndividual);
+            return delegate.getFunctionalDataPropertyAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2279,10 +2223,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLNegativeObjectPropertyAssertionAxiom> getNegativeObjectPropertyAssertionAxioms(OWLIndividual owlIndividual) {
+    public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLIndividual individual) {
         lock.readLock().lock();
         try {
-            return delegate.getNegativeObjectPropertyAssertionAxioms(owlIndividual);
+            return delegate.getClassAssertionAxioms(individual);
         } finally {
             lock.readLock().unlock();
         }
@@ -2290,10 +2234,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLNegativeDataPropertyAssertionAxiom> getNegativeDataPropertyAssertionAxioms(OWLIndividual owlIndividual) {
+    public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLClassExpression clazz) {
         lock.readLock().lock();
         try {
-            return delegate.getNegativeDataPropertyAssertionAxioms(owlIndividual);
+            return delegate.getClassAssertionAxioms(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -2301,10 +2245,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLSameIndividualAxiom> getSameIndividualAxioms(OWLIndividual owlIndividual) {
+    public Set<OWLDataPropertyAssertionAxiom> getDataPropertyAssertionAxioms(OWLIndividual individual) {
         lock.readLock().lock();
         try {
-            return delegate.getSameIndividualAxioms(owlIndividual);
+            return delegate.getDataPropertyAssertionAxioms(individual);
         } finally {
             lock.readLock().unlock();
         }
@@ -2312,10 +2256,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDifferentIndividualsAxiom> getDifferentIndividualAxioms(OWLIndividual owlIndividual) {
+    public Set<OWLObjectPropertyAssertionAxiom> getObjectPropertyAssertionAxioms(OWLIndividual individual) {
         lock.readLock().lock();
         try {
-            return delegate.getDifferentIndividualAxioms(owlIndividual);
+            return delegate.getObjectPropertyAssertionAxioms(individual);
         } finally {
             lock.readLock().unlock();
         }
@@ -2323,20 +2267,64 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLDatatypeDefinitionAxiom> getDatatypeDefinitions(OWLDatatype owlDatatype) {
+    public Set<OWLNegativeObjectPropertyAssertionAxiom> getNegativeObjectPropertyAssertionAxioms(OWLIndividual individual) {
         lock.readLock().lock();
         try {
-            return delegate.getDatatypeDefinitions(owlDatatype);
+            return delegate.getNegativeObjectPropertyAssertionAxioms(individual);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public ChangeApplied applyChange(OWLOntologyChange owlOntologyChange) {
+    @Deprecated
+    public Set<OWLNegativeDataPropertyAssertionAxiom> getNegativeDataPropertyAssertionAxioms(OWLIndividual individual) {
+        lock.readLock().lock();
+        try {
+            return delegate.getNegativeDataPropertyAssertionAxioms(individual);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    @Deprecated
+    public Set<OWLSameIndividualAxiom> getSameIndividualAxioms(OWLIndividual individual) {
+        lock.readLock().lock();
+        try {
+            return delegate.getSameIndividualAxioms(individual);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    @Deprecated
+    public Set<OWLDifferentIndividualsAxiom> getDifferentIndividualAxioms(OWLIndividual individual) {
+        lock.readLock().lock();
+        try {
+            return delegate.getDifferentIndividualAxioms(individual);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    @Deprecated
+    public Set<OWLDatatypeDefinitionAxiom> getDatatypeDefinitions(OWLDatatype datatype) {
+        lock.readLock().lock();
+        try {
+            return delegate.getDatatypeDefinitions(datatype);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public ChangeApplied applyChange(OWLOntologyChange change) {
         lock.writeLock().lock();
         try {
-            return getMutableOntology().applyChange(owlOntologyChange);
+            return getMutableOntology().applyChange(change);
         } finally {
             lock.writeLock().unlock();
         }
@@ -2353,10 +2341,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public ChangeApplied addAxiom(OWLAxiom owlAxiom) {
+    public ChangeApplied addAxiom(OWLAxiom axiom) {
         lock.writeLock().lock();
         try {
-            return getMutableOntology().addAxiom(owlAxiom);
+            return getMutableOntology().addAxiom(axiom);
         } finally {
             lock.writeLock().unlock();
         }
@@ -2383,10 +2371,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public ChangeApplied add(OWLAxiom owlAxiom) {
+    public ChangeApplied add(OWLAxiom axiom) {
         lock.writeLock().lock();
         try {
-            return getMutableOntology().add(owlAxiom);
+            return getMutableOntology().add(axiom);
         } finally {
             lock.writeLock().unlock();
         }
@@ -2447,7 +2435,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public <T extends OWLAxiom> Stream<T> axioms(Class<T> type, Class<? extends OWLObject> explicitClass, OWLObject entity, Navigation forSubPosition) {
+    public <T extends OWLAxiom> Stream<T> axioms(Class<T> type,
+                                                 Class<? extends OWLObject> explicitClass,
+                                                 OWLObject entity,
+                                                 Navigation forSubPosition) {
         lock.readLock().lock();
         try {
             return delegate.axioms(type, explicitClass, entity, forSubPosition);
@@ -2457,10 +2448,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Stream<OWLSubAnnotationPropertyOfAxiom> subAnnotationPropertyOfAxioms(OWLAnnotationProperty subProperty) {
+    public Stream<OWLSubAnnotationPropertyOfAxiom> subAnnotationPropertyOfAxioms(OWLAnnotationProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.subAnnotationPropertyOfAxioms(subProperty);
+            return delegate.subAnnotationPropertyOfAxioms(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2697,10 +2688,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Stream<OWLClassAxiom> axioms(OWLClass cls, Imports imports) {
+    public Stream<OWLClassAxiom> axioms(OWLClass clazz, Imports imports) {
         lock.readLock().lock();
         try {
-            return delegate.axioms(cls, imports);
+            return delegate.axioms(clazz, imports);
         } finally {
             lock.readLock().unlock();
         }
@@ -2837,20 +2828,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Stream<OWLSubDataPropertyOfAxiom> dataSubPropertyAxiomsForSubProperty(OWLDataProperty subProperty) {
+    public Stream<OWLSubDataPropertyOfAxiom> dataSubPropertyAxiomsForSubProperty(OWLDataProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.dataSubPropertyAxiomsForSubProperty(subProperty);
+            return delegate.dataSubPropertyAxiomsForSubProperty(property);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public Stream<OWLSubDataPropertyOfAxiom> dataSubPropertyAxiomsForSuperProperty(OWLDataPropertyExpression superProperty) {
+    public Stream<OWLSubDataPropertyOfAxiom> dataSubPropertyAxiomsForSuperProperty(OWLDataPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.dataSubPropertyAxiomsForSuperProperty(superProperty);
+            return delegate.dataSubPropertyAxiomsForSuperProperty(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -2897,10 +2888,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Stream<OWLDisjointClassesAxiom> disjointClassesAxioms(OWLClass cls) {
+    public Stream<OWLDisjointClassesAxiom> disjointClassesAxioms(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.disjointClassesAxioms(cls);
+            return delegate.disjointClassesAxioms(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -2937,10 +2928,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Stream<OWLEquivalentClassesAxiom> equivalentClassesAxioms(OWLClass cls) {
+    public Stream<OWLEquivalentClassesAxiom> equivalentClassesAxioms(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.equivalentClassesAxioms(cls);
+            return delegate.equivalentClassesAxioms(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -3010,10 +3001,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public Set<OWLAnnotation> getAnnotations(OWLAnnotationProperty annotationProperty) {
+    public Set<OWLAnnotation> getAnnotations(OWLAnnotationProperty property) {
         lock.readLock().lock();
         try {
-            return delegate.getAnnotations(annotationProperty);
+            return delegate.getAnnotations(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -3021,7 +3012,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public <T extends OWLAxiom> Set<T> getAxioms(Class<T> type, Class<? extends OWLObject> explicitClass, OWLObject entity, Navigation forSubPosition) {
+    public <T extends OWLAxiom> Set<T> getAxioms(Class<T> type,
+                                                 Class<? extends OWLObject> explicitClass,
+                                                 OWLObject entity,
+                                                 Navigation forSubPosition) {
         lock.readLock().lock();
         try {
             return delegate.getAxioms(type, explicitClass, entity, forSubPosition);
@@ -3032,10 +3026,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
 
     @Override
     @Deprecated
-    public <T extends OWLAxiom> Set<T> getAxioms(Class<T> type, OWLObject entity, Navigation forSubPosition) {
+    public <T extends OWLAxiom> Set<T> getAxioms(Class<T> type, OWLObject entity, Navigation navigation) {
         lock.readLock().lock();
         try {
-            return delegate.getAxioms(type, entity, forSubPosition);
+            return delegate.getAxioms(type, entity, navigation);
         } finally {
             lock.readLock().unlock();
         }
@@ -3064,10 +3058,10 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Stream<OWLHasKeyAxiom> hasKeyAxioms(OWLClass cls) {
+    public Stream<OWLHasKeyAxiom> hasKeyAxioms(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.hasKeyAxioms(cls);
+            return delegate.hasKeyAxioms(clazz);
         } finally {
             lock.readLock().unlock();
         }
@@ -3204,20 +3198,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Stream<OWLSubObjectPropertyOfAxiom> objectSubPropertyAxiomsForSubProperty(OWLObjectPropertyExpression subProperty) {
+    public Stream<OWLSubObjectPropertyOfAxiom> objectSubPropertyAxiomsForSubProperty(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.objectSubPropertyAxiomsForSubProperty(subProperty);
+            return delegate.objectSubPropertyAxiomsForSubProperty(property);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public Stream<OWLSubObjectPropertyOfAxiom> objectSubPropertyAxiomsForSuperProperty(OWLObjectPropertyExpression superProperty) {
+    public Stream<OWLSubObjectPropertyOfAxiom> objectSubPropertyAxiomsForSuperProperty(OWLObjectPropertyExpression property) {
         lock.readLock().lock();
         try {
-            return delegate.objectSubPropertyAxiomsForSuperProperty(superProperty);
+            return delegate.objectSubPropertyAxiomsForSuperProperty(property);
         } finally {
             lock.readLock().unlock();
         }
@@ -3244,20 +3238,20 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     }
 
     @Override
-    public Stream<OWLSubClassOfAxiom> subClassAxiomsForSubClass(OWLClass cls) {
+    public Stream<OWLSubClassOfAxiom> subClassAxiomsForSubClass(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.subClassAxiomsForSubClass(cls);
+            return delegate.subClassAxiomsForSubClass(clazz);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public Stream<OWLSubClassOfAxiom> subClassAxiomsForSuperClass(OWLClass cls) {
+    public Stream<OWLSubClassOfAxiom> subClassAxiomsForSuperClass(OWLClass clazz) {
         lock.readLock().lock();
         try {
-            return delegate.subClassAxiomsForSuperClass(cls);
+            return delegate.subClassAxiomsForSuperClass(clazz);
         } finally {
             lock.readLock().unlock();
         }

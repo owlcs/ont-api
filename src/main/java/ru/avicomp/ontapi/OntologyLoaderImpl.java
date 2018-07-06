@@ -18,7 +18,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.riot.RDFDataMgr;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLParserFactory;
@@ -50,12 +49,11 @@ import java.util.stream.Collectors;
  * 1) a graph may contain errors since OWL-API parsers are OWL-Axioms centric and may not contain very good code,
  * 2) they affect manager: in case of error the managers state may be broken.
  *
- * @see RDFDataMgr
  * @see OWLLoaderImpl
  */
 @SuppressWarnings("WeakerAccess")
-public class ONTLoaderImpl implements OntologyFactory.Loader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ONTLoaderImpl.class);
+public class OntologyLoaderImpl implements OntologyFactory.Loader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntologyLoaderImpl.class);
 
     protected final OntologyFactory.Builder builder;
     // to use OWL-API parsers:
@@ -72,7 +70,7 @@ public class ONTLoaderImpl implements OntologyFactory.Loader {
      * @param builder     {@link OntologyFactory.Builder}, not null
      * @param alternative {@link OntologyFactory.Loader}, nullable
      */
-    public ONTLoaderImpl(OntologyFactory.Builder builder, OntologyFactory.Loader alternative) {
+    public OntologyLoaderImpl(OntologyFactory.Builder builder, OntologyFactory.Loader alternative) {
         this.builder = Objects.requireNonNull(builder, "Null builder");
         this.alternative = alternative;
     }
@@ -568,7 +566,7 @@ public class ONTLoaderImpl implements OntologyFactory.Loader {
         return m.getOntologyFactories().stream()
                 .filter(OntologyFactoryImpl.class::isInstance)
                 .map(OntologyFactoryImpl.class::cast)
-                .filter(f -> Objects.equals(f.ontologyLoader, ONTLoaderImpl.this))
+                .filter(f -> Objects.equals(f.loader, OntologyLoaderImpl.this))
                 .findFirst()
                 .orElseThrow(IllegalStateException::new);
     }

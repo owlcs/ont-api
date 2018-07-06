@@ -214,7 +214,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
          * @return {@link OntologyFactory} instance
          */
         public OntologyFactory createOntologyFactory(OntologyFactory.Builder builder) {
-            OntologyFactory.Loader loader = new ONTLoaderImpl(builder,
+            OntologyFactory.Loader loader = new OntologyLoaderImpl(builder,
                     new OWLLoaderImpl(builder));
             return createOntologyFactory(builder, loader);
         }

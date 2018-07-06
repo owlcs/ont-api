@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,13 +16,13 @@ package ru.avicomp.ontapi;
 
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntology;
-
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
- * OWL 2 Ontology.
- * It is access point to the structural (OWL) representation of underlying graph.
- * Following methods are new:
+ * A Structural Ontology Model, which is an extended {@link OWLOntology OWL Ontology},
+ * and represents an OWL 2 <a href="http://www.w3.org/TR/owl2-syntax/#Ontologies">Ontology</a> in the  OWL 2 specification.
+ * It is access point to the structural (OWL Axioms and Annotations) representation of underlying {@link org.apache.jena.graph.Graph graph}.
+ * The following methods are new (i.e. added in ONT-API) and extend the original functionality provided by the OWL-API:
  * <ul>
  *     <li>{@link #asGraphModel()}</li>
  *     <li>{@link #clearCache()}</li>
@@ -33,9 +33,11 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 public interface OntologyModel extends OWLOntology, OWLMutableOntology {
 
     /**
-     * Returns the jena model shadow, i.e. the interface to work with the graph directly.
+     * Returns the jena model shadow, i.e. the interface to work with the {@link org.apache.jena.graph.Graph graph} directly.
+     * The {@code OntGraphModel} is backed by the {@code OntologyModel},
+     * so changes to the graph model are reflected in the structural model, and vice-versa.
      *
-     * @return {@link OntGraphModel}
+     * @return {@link OntGraphModel Jena Based Graph Model}
      */
     OntGraphModel asGraphModel();
 
@@ -63,15 +65,16 @@ public interface OntologyModel extends OWLOntology, OWLMutableOntology {
      *  SubClassOf(Annotation(&lt;p&gt; "comment"^^xsd:string) &lt;a&gt; &lt;b&gt;)
      *  AnnotationAssertion(rdfs:label &lt;d&gt; "label"^^xsd:string)
      * </pre>
-     * Note: the loading behaviour and the axioms list above may vary according to various config settings,
+     * Note: the loading behaviour and the axioms list above may vary according to the various config settings,
      * for more details see {@link ru.avicomp.ontapi.config.OntLoaderConfiguration}.
      */
     void clearCache();
 
     /**
-     * Returns the manager.
+     * Returns the manager, that is responsible for referencing between different ontologies.
+     * Each ontology must have a link to the manager, if the method returns {@code null}, this means the ontology is broken.
      *
-     * @return {@link OntologyManager}
+     * @return {@link OntologyManager} the manager for this ontology
      */
     OntologyManager getOWLOntologyManager();
 

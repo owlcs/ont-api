@@ -29,9 +29,13 @@ import java.util.Objects;
 /**
  * The ontology building and loading factory, the 'core' - the main point to create and load ontologies.
  * See also base interface {@link OWLOntologyFactory} and its single implementation
- * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>.
+ * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a> in the OWLAPI-impl module.
+ * It is also an outer class for any {@link OWLOntologyCreationException}s sub-classes, which may occur during loading.
  * <p>
  * Created by szuev on 24.10.2016.
+ *
+ * @see OntologyBuilderImpl
+ * @see OntologyLoaderImpl
  */
 @SuppressWarnings("WeakerAccess")
 public class OntologyFactoryImpl implements OntologyFactory {
@@ -40,12 +44,12 @@ public class OntologyFactoryImpl implements OntologyFactory {
         ErrorHandlerFactory.setDefaultErrorHandler(ErrorHandlerFactory.errorHandlerNoLogging);
     }
 
-    protected final Builder ontologyBuilder;
-    protected final Loader ontologyLoader;
+    protected final Builder builder;
+    protected final Loader loader;
 
     public OntologyFactoryImpl(Builder builder, Loader loader) {
-        this.ontologyBuilder = Objects.requireNonNull(builder, "Null builder");
-        this.ontologyLoader = Objects.requireNonNull(loader, "Null loader");
+        this.builder = Objects.requireNonNull(builder, "Null builder");
+        this.loader = Objects.requireNonNull(loader, "Null loader");
     }
 
     /**
@@ -59,7 +63,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
      */
     @Override
     public OntologyModel createOntology(OntologyManager manager, OWLOntologyID id) {
-        OntologyModel res = this.ontologyBuilder.createOWLOntology(manager, id);
+        OntologyModel res = this.builder.createOWLOntology(manager, id);
         OWLAdapter.get().asIMPL(manager).ontologyCreated(res);
         manager.setOntologyFormat(res, OntFormat.TURTLE.createOwlFormat());
         return res;
@@ -69,7 +73,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
     public OntologyModel loadOntology(OntologyManager manager,
                                       OWLOntologyDocumentSource source,
                                       OntLoaderConfiguration configuration) throws OWLOntologyCreationException {
-        return ontologyLoader.load(source, manager, configuration);
+        return loader.load(source, manager, configuration);
     }
 
     public static class ConfigMismatchException extends OWLOntologyCreationException {
