@@ -192,11 +192,22 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * ONT-API config setter.
      *
      * @param schemes the collection of {@link OntConfig.Scheme}
-     * @return {@link OntLoaderConfiguration}
+     * @return {@link OntLoaderConfiguration}, new instance
      */
     public OntLoaderConfiguration setSupportedSchemes(List<OntConfig.Scheme> schemes) {
         List<OntConfig.Scheme> res = schemes instanceof Serializable ? schemes : new ArrayList<>(schemes);
         return set(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, res);
+    }
+
+    /**
+     * Disables all schemes with except of {@code file://} to prevent internet diving.
+     *
+     * @return {@link OntLoaderConfiguration}, new instance
+     * @see OntConfig#disableWebAccess()
+     * @since 1.2.1
+     */
+    public OntLoaderConfiguration disableWebAccess() {
+        return setSupportedSchemes(Collections.singletonList(OntConfig.DefaultScheme.FILE));
     }
 
     /**
@@ -327,9 +338,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     /**
      * ONT-API config setter.
      * To choose the preferable way to load ontology from a document source (ONT-API (Jena+OWL-API) vs pure OWL-API).
+     * For more information see description for the {@link OntConfig}'s method with the same name.
      *
      * @param b true to use pure OWL-API parsers to load.
      * @return this or new config.
+     * @see OntConfig#setUseOWLParsersToLoad(boolean)
      */
     public OntLoaderConfiguration setUseOWLParsersToLoad(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD, b);

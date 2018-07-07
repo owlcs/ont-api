@@ -251,7 +251,17 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config setter.
+     * Sets an {@link #isUseOWLParsersToLoad()} parameter.
+     * It is an ONT-API(NEW) manager load config setter.
+     * Used in {@link ru.avicomp.ontapi.OntologyFactoryImpl Default Ontology Factory Implementation} to choose preferable way to load.
+     * If this parameter is set to {@code true} then Apache Jena loading mechanisms are used in case it is supported both by Jena and OWL-API.
+     * Otherwise, loading is performed by using native OWL-API Parsers, which do not read full graph, but assemble it axiom by axiom.
+     * Please note, OWL-API loading mechanisms are OWL-centric and, in fact, work buggy:
+     * a graph may be corrupted after that loading, if source document does not fully correspond OWL2 specification.
+     * For example, <a href='http://spinrdf.org/spin'>spin</a> ontology contains a lot of SPARQL queries in spin form,
+     * which are using {@code rdf:List}s (an example of such []-list is the right part of any triple with predicate {@code sp:where}).
+     * After loading this ontology with OWL Turtle Parser (checked v 5.1.4), it will contain garbage instead of the original constructs.
+     * So please use this method with great care!
      *
      * @param b boolean to enable/disable this config parameter
      * @return this instance
@@ -263,6 +273,7 @@ public class OntConfig extends OntologyConfigurator {
 
     /**
      * ONT-API(NEW) manager load config getter.
+     * See {@link #setUseOWLParsersToLoad(boolean)} description.
      *
      * @return true if any errors while reading axioms are ignored (by default false)
      * @see OntLoaderConfiguration#isIgnoreAxiomsReadErrors()

@@ -70,6 +70,7 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     public boolean equals(@Nullable Object obj) {
         lock.readLock().lock();
         try {
+            if (obj == this) return true;
             if (obj instanceof OWLOntologyWrapper) {
                 obj = ((OWLOntologyWrapper) obj).delegate;
             }

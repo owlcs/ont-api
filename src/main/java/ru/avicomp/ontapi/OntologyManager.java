@@ -543,7 +543,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     default OntologyModel loadOntologyFromOntologyDocument(@Nonnull IRI iri) throws OWLOntologyCreationException {
-        return loadOntologyFromOntologyDocument(new IRIDocumentSource(iri, null, null));
+        return loadOntologyFromOntologyDocument(new IRIDocumentSource(iri));
     }
 
     /**

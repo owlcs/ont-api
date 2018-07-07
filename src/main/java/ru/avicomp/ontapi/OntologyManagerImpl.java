@@ -2326,5 +2326,45 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 lock.readLock().unlock();
             }
         }
+
+        @Override
+        public OntLoaderConfiguration buildLoaderConfiguration() {
+            lock.readLock().lock();
+            try {
+                return super.buildLoaderConfiguration();
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public OntWriterConfiguration buildWriterConfiguration() {
+            lock.readLock().lock();
+            try {
+                return super.buildWriterConfiguration();
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            lock.readLock().lock();
+            try {
+                return super.equals(o);
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            lock.readLock().lock();
+            try {
+                return super.hashCode();
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
     }
 }

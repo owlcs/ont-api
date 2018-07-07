@@ -15,12 +15,11 @@
 package ru.avicomp.ontapi.tests.managers;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.Statement;
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.io.FileDocumentSource;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSourceBase;
-import org.semanticweb.owlapi.io.StringDocumentSource;
-import org.semanticweb.owlapi.io.UnparsableOntologyException;
+import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
@@ -36,13 +35,11 @@ import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.OWLRecursiveTransform;
 import ru.avicomp.ontapi.utils.FileMap;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.SP;
 
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -347,6 +344,13 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(2, m.ontologies().count());
     }
 
+    @Test(expected = OntologyFactoryImpl.ConfigMismatchException.class)
+    public void testDisableWebAccess() throws OWLOntologyCreationException {
+        IRI iri = IRI.create("http://spinrdf.org/sp");
+        OntologyManager m = OntManagers.createONT();
+        m.loadOntologyFromOntologyDocument(new IRIDocumentSource(iri), m.getOntologyLoaderConfiguration().disableWebAccess());
+    }
+
     @Test
     public void testAddGraphWithVersionIRI() {
         OntGraphModel a = OntModelFactory.createModel();
@@ -399,10 +403,45 @@ public class LoadFactoryManagerTest {
         OntologyModel o2 = manager.loadOntology(IRI.create(LoadFactoryManagerTest.class.getResource("/test1.ttl")));
         Assert.assertNotNull(o2);
         ReadWriteUtils.print(o2);
-        Assert.assertEquals("http://test.test/complex", o2.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
-        Assert.assertEquals("http://test.test/complex/version-iri/1.0", o2.getOntologyID().getVersionIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
+        Assert.assertEquals("http://test.test/complex", o2.getOntologyID().getOntologyIRI()
+                .map(IRI::getIRIString).orElseThrow(AssertionError::new));
+        Assert.assertEquals("http://test.test/complex/version-iri/1.0", o2.getOntologyID().getVersionIRI()
+                .map(IRI::getIRIString).orElseThrow(AssertionError::new));
         Assert.assertEquals(comment, getOWLComment(o2));
 
+    }
+
+    @Test
+    public void testNativeTurtleOWLParser() throws OWLOntologyCreationException {
+        OntConfig conf = new OntConfig()
+                .addIgnoredImport(IRI.create("http://spinrdf.org/sp"))
+                .addIgnoredImport(IRI.create("http://spinrdf.org/spin"))
+                .disableWebAccess();
+        Assert.assertFalse(conf.buildLoaderConfiguration().isUseOWLParsersToLoad());
+
+        OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(LoadFactoryManagerTest.class.getResource("/etc/spl.spin.ttl")));
+
+        // Load using Jena turtle reader:
+        OntologyManager m1 = OntManagers.createONT();
+        OntologyModel o1 = m1.loadOntologyFromOntologyDocument(source, conf.buildLoaderConfiguration());
+        Assert.assertEquals(1, m1.ontologies().count());
+        Assert.assertEquals(0, o1.asGraphModel().imports().count());
+        // check all []-lists are valid:
+        List<RDFList> lists = o1.asGraphModel()
+                .statements(null, SP.where, null)
+                .map(Statement::getObject).map(o -> o.as(RDFList.class)).collect(Collectors.toList());
+        Assert.assertEquals(40, lists.size());
+        Assert.assertTrue(lists.stream().allMatch(RDFList::isValid));
+
+        // Load using OWL-API Turtle Parser
+        OntologyManager m2 = OntManagers.createONT();
+        OntologyModel o2 = m2.loadOntologyFromOntologyDocument(source, conf.buildLoaderConfiguration().setUseOWLParsersToLoad(true));
+        Assert.assertEquals(1, m2.ontologies().count());
+        Assert.assertEquals(0, o2.asGraphModel().imports().count());
+        ReadWriteUtils.print(o2);
+        // Due to buggy OWL-API Parser behaviour there is no []-lists at all!:
+        Assert.assertTrue(o2.asGraphModel().statements(null, null, null)
+                .map(Statement::getObject).noneMatch(l -> l.canAs(RDFList.class)));
     }
 
     private static void checkForMissedImportsTest(OntologyModel b) {
