@@ -58,15 +58,15 @@ public class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataProp
     }
 
     @Override
-    public InternalObject<OWLDataPropertyAssertionAxiom> toAxiom(OntStatement statement) {
+    public ONTObject<OWLDataPropertyAssertionAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        InternalObject<? extends OWLIndividual> i = reader.get(statement.getSubject().as(OntIndividual.class));
-        InternalObject<OWLDataProperty> p = reader.get(statement.getPredicate().as(OntNDP.class));
-        InternalObject<OWLLiteral> l = reader.get(statement.getObject().asLiteral());
-        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        ONTObject<? extends OWLIndividual> i = reader.get(statement.getSubject().as(OntIndividual.class));
+        ONTObject<OWLDataProperty> p = reader.get(statement.getPredicate().as(OntNDP.class));
+        ONTObject<OWLLiteral> l = reader.get(statement.getObject().asLiteral());
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLDataPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLDataPropertyAssertionAxiom(p.getObject(), i.getObject(), l.getObject(),
-                InternalObject.extract(annotations));
-        return InternalObject.create(res, statement).append(annotations).append(i).append(p).append(l);
+                        ONTObject.extract(annotations));
+        return ONTObject.create(res, statement).append(annotations).append(i).append(p).append(l);
     }
 }

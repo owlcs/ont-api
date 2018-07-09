@@ -29,11 +29,14 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import java.util.stream.Stream;
 
 /**
- * Ontology ID
+ * An Ontology ID Implementation.
+ *
  * Created by szuev on 09.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntIDImpl extends OntObjectImpl implements OntID {
-    public static OntObjectFactory idFactory = new CommonOntObjectFactory(new OntMaker.Default(OntIDImpl.class), new OntFinder.ByType(OWL.Ontology), new OntFilter.HasType(OWL.Ontology));
+    public static OntObjectFactory idFactory = new CommonOntObjectFactory(new OntMaker.Default(OntIDImpl.class),
+            new OntFinder.ByType(OWL.Ontology), new OntFilter.HasType(OWL.Ontology));
 
     public OntIDImpl(Node n, EnhGraph m) {
         super(n, m);

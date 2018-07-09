@@ -59,7 +59,7 @@ public class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<O
     }
 
     @Override
-    public InternalObject<OWLSubPropertyChainOfAxiom> toAxiom(OntStatement statement) {
+    public ONTObject<OWLSubPropertyChainOfAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
         return makeAxiom(statement, reader.get(statement),
                 reader::get,
@@ -72,8 +72,8 @@ public class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<O
                 },
                 (subject, members, annotations) ->
                         reader.getOWLDataFactory()
-                                .getOWLSubPropertyChainOfAxiom(members.stream().map(InternalObject::getObject).collect(Collectors.toList()),
-                                subject.getObject(), InternalObject.extract(annotations)));
+                                .getOWLSubPropertyChainOfAxiom(members.stream().map(ONTObject::getObject).collect(Collectors.toList()),
+                                        subject.getObject(), ONTObject.extract(annotations)));
 
     }
 }

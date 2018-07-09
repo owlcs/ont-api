@@ -19,6 +19,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Optional;
 import java.util.Set;
@@ -27,8 +28,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A base Ontology RDF Resource, a common super-type for all of the abstractions in the {@link OntGraphModel ontology}.
- * It is the analogue of {@link org.apache.jena.ontology.OntResource}.
+ * A base Ontology RDF Resource, a common super-type for all of the abstractions in the {@link OntGraphModel ontology},
+ * which can be annotated and/or have some strictly defined by the specification structure.
+ * It is an analogue of {@link org.apache.jena.ontology.OntResource}.
  * <p>
  * Created by szuev on 01.11.2016.
  */
@@ -52,26 +54,25 @@ public interface OntObject extends Resource {
 
     /**
      * Returns a root statement, i.e. the main triple in the model which determines this object.
-     * Usually it is declaration (statement with predicate {@code rdf:type}).
+     * Usually it is declaration (the statement with predicate {@code rdf:type}).
      *
      * @return OntStatement or {@code null}
      */
     OntStatement getRoot();
 
     /**
-     * Lists the content of object: all characteristic statements,
-     * i.e. all those statements which determine this object.
+     * Lists all characteristic statements of the object,
+     * i.e. all those statements which determine this object nature according to OWL2 specification.
      * For non-composite objects the result might contain only the root statement.
-     * For composite (usually anonymous, e.g. disjoint section, class expression, etc) objects
-     * the result would contain all statements in the graph but without statements related to the components.
-     * todo: unclear method name, better to renamed.
+     * For composite objects (usually anonymous resources: disjoint sections, class expression, etc)
+     * the result would contain all directly related to it statements in the graph but without statements that relate to the object components.
      *
-     * @return Stream of associated with this object statements
+     * @return Stream of statements that fully describe this object in OWL2 terms
      */
-    Stream<OntStatement> content();
+    Stream<OntStatement> spec();
 
     /**
-     * Adds an ont-statement by attaching predicate and object (value).
+     * Adds an ont-statement by attaching predicate and object (value) to this resource.
      *
      * @param property {@link Property} predicate, not null
      * @param value,   {@link RDFNode} object, not null
@@ -81,7 +82,8 @@ public interface OntObject extends Resource {
     OntStatement addStatement(Property property, RDFNode value);
 
     /**
-     * Removes a statement by predicate and object.
+     * Removes an associated statement with given predicate and object.
+     * Does nothing in case no match found.
      *
      * @param property {@link Property} predicate, not null
      * @param object   {@link RDFNode} object, not null
@@ -91,7 +93,7 @@ public interface OntObject extends Resource {
     OntObject remove(Property property, RDFNode object);
 
     /**
-     * Returns the <b>first</b> statement for specified property and object.
+     * Returns the <b>first</b> statement for the specified property and object.
      * What exactly is the first triple is defined at the level of graph; in general it is unpredictable.
      * Also note, that common jena implementation of in-memory graph does not allow duplicated triples.
      *
@@ -102,7 +104,7 @@ public interface OntObject extends Resource {
     Optional<OntStatement> statement(Property property, RDFNode object);
 
     /**
-     * Returns the <b>first</b> statement for specified property.
+     * Returns the <b>first</b> statement for the specified property.
      * What is the first triple is defined at the level of graph.
      *
      * @param property {@link Property}
@@ -110,7 +112,6 @@ public interface OntObject extends Resource {
      * @see Resource#getProperty(Property)
      */
     Optional<OntStatement> statement(Property property);
-
 
     /**
      * Lists ont-statements by predicate.
@@ -121,21 +122,21 @@ public interface OntObject extends Resource {
     Stream<OntStatement> statements(Property property);
 
     /**
-     * Lists all statements related to this object (i.e. with subject={@code this}).
+     * Lists all top-level statements related to this object (i.e. with subject={@code this}).
      *
      * @return Stream of all statements
      */
     Stream<OntStatement> statements();
 
     /**
-     * Lists all objects attached on property to this OntObject.
+     * Lists all objects attached on the property to this object with the given type
      *
      * @param predicate {@link Property} predicate
-     * @param view      Interface to find and cast
+     * @param type      Interface to find and cast
      * @param <O>       a class-type of rdf-node
-     * @return Stream of objects ({@link RDFNode}s)
+     * @return Stream of {@link RDFNode RDF Node}s
      */
-    <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view);
+    <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type);
 
     /**
      * Returns the <b>first</b> statement for specified property.
@@ -150,19 +151,25 @@ public interface OntObject extends Resource {
     OntStatement getRequiredProperty(Property property);
 
     /**
+     * Answers iff this object has declaration triple {@code @this rdf:type @any}.
+     *
+     * @param type {@link Resource} to test
+     * @return true if it has
+     */
+    default boolean hasType(Resource type) {
+        try (Stream<Resource> types = types()) {
+            return types.anyMatch(type::equals);
+        }
+    }
+
+    /**
      * Lists all declarations (statements with {@code rdf:type} predicate).
      *
      * @return Stream of {@link Resource}s
      */
-    Stream<Resource> types();
-
-    /**
-     * Answers iff this object has declaration triple {@code @this rdf:type @any}.
-     *
-     * @param type {@link Resource} to test
-     * @return true if it has.
-     */
-    boolean hasType(Resource type);
+    default Stream<Resource> types() {
+        return objects(RDF.type, Resource.class);
+    }
 
     /**
      * Returns a stream of all annotations attached to this object (not only to the main-triple).
@@ -223,7 +230,6 @@ public interface OntObject extends Resource {
     default OntStatement addComment(String txt, String lang) {
         return addAnnotation(getModel().getRDFSComment(), txt, lang);
     }
-
 
     /**
      * Creates {@code _:this rdfs:label "txt"^^xsd:string} statement.

@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -49,14 +48,14 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
     }
 
     @Override
-    public InternalObject<OWLDataPropertyRangeAxiom> toAxiom(OntStatement statement) {
+    public ONTObject<OWLDataPropertyRangeAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        InternalObject<OWLDataProperty> p = reader.get(statement.getSubject().as(getView()));
-        InternalObject<? extends OWLDataRange> d = reader.get(statement.getObject().as(OntDR.class));
-        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        ONTObject<OWLDataProperty> p = reader.get(statement.getSubject().as(getView()));
+        ONTObject<? extends OWLDataRange> d = reader.get(statement.getObject().as(OntDR.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLDataPropertyRangeAxiom res = reader.getOWLDataFactory()
-                .getOWLDataPropertyRangeAxiom(p.getObject(), d.getObject(), InternalObject.extract(annotations));
-        return InternalObject.create(res, statement).append(annotations).append(p).append(d);
+                .getOWLDataPropertyRangeAxiom(p.getObject(), d.getObject(), ONTObject.extract(annotations));
+        return ONTObject.create(res, statement).append(annotations).append(p).append(d);
     }
 
 }

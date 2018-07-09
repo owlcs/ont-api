@@ -35,7 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * base class for any class-expression.
+ * A base class for any class-expression implementation.
  * <p>
  * Created by szuev on 03.11.2016.
  */
@@ -333,8 +333,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.concat(super.content(), hasSelf());
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), hasSelf());
         }
     }
 
@@ -364,8 +364,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.concat(super.content(), statement(OWL.complementOf).map(Stream::of).orElse(Stream.empty()));
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), statement(OWL.complementOf).map(Stream::of).orElse(Stream.empty()));
         }
     }
 
@@ -422,8 +422,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.concat(super.content(), listStatements());
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), listStatements());
         }
     }
 
@@ -465,8 +465,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.concat(super.content(), onPropertyStatement());
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), onPropertyStatement());
         }
     }
 
@@ -510,8 +510,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.concat(super.content(), valueStatement());
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), valueStatement());
         }
     }
 
@@ -563,8 +563,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> content() { // note: value <O> could be null for qualified restrictions:
-            return Stream.concat(super.content(), cardinalityStatement());
+        public Stream<OntStatement> spec() { // note: value <O> could be null for qualified restrictions:
+            return Stream.concat(super.spec(), cardinalityStatement());
         }
     }
 
@@ -618,8 +618,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.of(super.content(), valueStatement(), onPropertiesStatements()).flatMap(Function.identity());
+        public Stream<OntStatement> spec() {
+            return Stream.of(super.spec(), valueStatement(), onPropertiesStatements()).flatMap(Function.identity());
         }
     }
 

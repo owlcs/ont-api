@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 
 /**
  * To test {@link OntGraphModel}.
- *
+ * <p>
  * Created by szuev on 07.11.2016.
  */
 public class OntModelTest {
@@ -285,7 +285,7 @@ public class OntModelTest {
         Assert.assertEquals("Expected 3 root annotations for class " + cl, 3, cl.annotations().count());
 
         LOGGER.debug("8) Deleter all annotations for class {}", cl);
-        cl.clearAnnotations();
+        Assert.assertEquals(2, cl.clearAnnotations().statements().count());
         ReadWriteUtils.print(m);
         cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Found annotations for class " + cl, 0, cl.annotations().count());
@@ -509,13 +509,12 @@ public class OntModelTest {
         OntClass person = m.createOntEntity(OntClass.class, schemaNS + "Person");
         OntNOP hasContact = m.createOntEntity(OntNOP.class, schemaNS + "contact");
 
-        hasContact.addDomain(person);
-        hasContact.addRange(contact);
+        hasContact.addDomain(person).getSubject(OntNOP.class).addRange(contact);
 
-        contactInfo.addDomain(contact);
-        contactInfo.addRange(email);
-        contactInfo.addRange(phone);
-        contactInfo.addRange(skype);
+        contactInfo.addDomain(contact).getSubject(OntNDP.class)
+                .addRange(email).getSubject(OntNDP.class)
+                .addRange(phone).getSubject(OntNDP.class)
+                .addRange(skype);
 
         // data:
         OntIndividual bobs = contact.createIndividual(dataNS + "bobs");

@@ -71,8 +71,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     @Override
-    public Stream<OntStatement> content() {
-        Stream<OntStatement> thisDeclaration = super.content();
+    public Stream<OntStatement> spec() {
+        Stream<OntStatement> thisDeclaration = super.spec();
         Stream<OntStatement> listDeclaration = predicates().map(this::statement).filter(Optional::isPresent).map(Optional::get);
         Stream<OntStatement> listContent = predicates().map(this::rdfListContent).flatMap(Function.identity());
         return Stream.of(thisDeclaration, listDeclaration, listContent).flatMap(Function.identity());

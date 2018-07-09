@@ -85,7 +85,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     }
 
     @Override
-    public Stream<OntStatement> content() {
+    public Stream<OntStatement> spec() {
         return SPEC.stream().map(this::getRequiredProperty);
     }
 

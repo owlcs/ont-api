@@ -50,10 +50,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * Reads all model axioms in form of stream.
      *
      * @param model {@link OntGraphModel ONT-API Jena Model}
-     * @return Stream of {@link InternalObject} around {@link OWLAxiom}
+     * @return Stream of {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException unable to read axioms of this type.
      */
-    public Stream<InternalObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
+    public Stream<ONTObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
         return statements(model)
                 // CacheStatement helps to speed up a little if ontology has a lot of annotations,
                 // otherwise, it may even slow down the process of axioms collecting ...
@@ -82,9 +82,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * Creates an OWL Axiom from a statement.
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
-     * @return {@link InternalObject} around {@link OWLAxiom}
+     * @return {@link ONTObject} around {@link OWLAxiom}
      */
-    public abstract InternalObject<Axiom> toAxiom(OntStatement statement);
+    public abstract ONTObject<Axiom> toAxiom(OntStatement statement);
 
     /**
      * Gets the config from model's settings or dummy if it is naked Jena model.

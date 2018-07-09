@@ -35,7 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * both for anon and named individuals.
+ * An {@link OntIndividual} implementation, both for anonymous and named individuals.
  * <p>
  * Created by szuev on 09.11.2016.
  */
@@ -126,7 +126,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         @Override
-        public Stream<OntStatement> content() {
+        public Stream<OntStatement> spec() {
             // todo: what about not local statements and individuals with attached to several classes?
             return statements(RDF.type);
         }

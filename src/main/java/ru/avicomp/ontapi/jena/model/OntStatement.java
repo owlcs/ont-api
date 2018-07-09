@@ -240,12 +240,13 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Gets typed subject.
+     * Gets a typed subject.
      *
      * @param type Class
      * @param <S>  subtype of {@link OntObject}
      * @return {@link OntObject}
      * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException if subject node and type are incompatible
+     * @since 1.2.1
      */
     default <S extends OntObject> S getSubject(Class<S> type) {
         return getSubject().as(type);

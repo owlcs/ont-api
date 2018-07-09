@@ -51,26 +51,60 @@ public class OntModelFactory {
             .setNsPrefix("xsd", XSD.NS)
             .lock();
 
+    /**
+     * Initializes Jena System.
+     */
     public static void init() {
         JenaSystem.init();
     }
 
+    /**
+     * Creates default (in-memory) graph implementation.
+     *
+     * @return {@link Graph}
+     * @see org.apache.jena.graph.Factory#createGraphMem()
+     */
     public static Graph createDefaultGraph() {
         return new GraphMem();
     }
 
+    /**
+     * Creates default (in-memory) RDF Model implementation.
+     *
+     * @return {@link Model}
+     * @see org.apache.jena.rdf.model.ModelFactory#createDefaultModel()
+     */
     public static Model createDefaultModel() {
         return new ModelCom(createDefaultGraph());
     }
 
+    /**
+     * Creates a fresh in-memory Ontology RDF Model with default personalities.
+     *
+     * @return {@link OntGraphModel}
+     * @see OntModelConfig#getPersonality()
+     */
     public static OntGraphModel createModel() {
         return createModel(createDefaultGraph());
     }
 
+    /**
+     * Creates an Ontology RDF Model wrapper around the given graph with default personalities.
+     *
+     * @param graph {@link Graph}
+     * @return {@link OntGraphModel}
+     */
     public static OntGraphModel createModel(Graph graph) {
         return createModel(graph, OntModelConfig.getPersonality());
     }
 
+    /**
+     * Creates an Ontology RDF Model wrapper around the given graph with given personalities.
+     *
+     * @param graph       {@link Graph}
+     * @param personality {@link OntPersonality}
+     * @return {@link OntGraphModel}
+     */
     public static OntGraphModel createModel(Graph graph, OntPersonality personality) {
         return new OntGraphModelImpl(graph, personality);
     }

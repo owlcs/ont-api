@@ -33,16 +33,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Immutable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple}s.
- * TODO: going to rename: will be used as external resource.
+ * An immutable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple triple}s.
  * <p>
  * Created by @szuev on 27.11.2016.
  */
-public abstract class InternalObject<O extends OWLObject> {
+public abstract class ONTObject<O extends OWLObject> {
     private final O object;
     private int hashCode;
 
-    protected InternalObject(O object) {
+    protected ONTObject(O object) {
         this.object = Objects.requireNonNull(object, "Null OWLObject.");
     }
 
@@ -85,8 +84,8 @@ public abstract class InternalObject<O extends OWLObject> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof InternalObject)) return false;
-        InternalObject<?> that = (InternalObject<?>) o;
+        if (!(o instanceof ONTObject)) return false;
+        ONTObject<?> that = (ONTObject<?>) o;
         return object.equals(that.object);
     }
 
@@ -101,8 +100,8 @@ public abstract class InternalObject<O extends OWLObject> {
         return String.valueOf(object);
     }
 
-    public static <O extends OWLObject> InternalObject<O> create(O o) {
-        return new InternalObject<O>(o) {
+    public static <O extends OWLObject> ONTObject<O> create(O o) {
+        return new ONTObject<O>(o) {
             @Override
             public Stream<Triple> triples() {
                 return Stream.empty();
@@ -115,12 +114,12 @@ public abstract class InternalObject<O extends OWLObject> {
         };
     }
 
-    public static <O extends OWLObject> InternalObject<O> create(O o, OntStatement root) {
+    public static <O extends OWLObject> ONTObject<O> create(O o, OntStatement root) {
         return create(o, root.asTriple());
     }
 
-    static <O extends OWLObject> InternalObject<O> create(O o, Triple root) {
-        return new InternalObject<O>(o) {
+    static <O extends OWLObject> ONTObject<O> create(O o, Triple root) {
+        return new ONTObject<O>(o) {
             @Override
             public Stream<Triple> triples() {
                 return Stream.of(root);
@@ -128,33 +127,33 @@ public abstract class InternalObject<O extends OWLObject> {
         };
     }
 
-    public static <O extends OWLObject> InternalObject<O> create(O o, OntObject root) {
-        return new InternalObject<O>(o) {
+    public static <O extends OWLObject> ONTObject<O> create(O o, OntObject root) {
+        return new ONTObject<O>(o) {
             @Override
             public Stream<Triple> triples() {
-                return root.content().map(FrontsTriple::asTriple);
+                return root.spec().map(FrontsTriple::asTriple);
             }
         };
     }
 
-    public InternalObject<O> append(OntObject other) {
-        return append(() -> other.content().map(FrontsTriple::asTriple));
+    public ONTObject<O> append(OntObject other) {
+        return append(() -> other.spec().map(FrontsTriple::asTriple));
     }
 
-    public InternalObject<O> append(InternalObject<? extends OWLObject> other) {
+    public ONTObject<O> append(ONTObject<? extends OWLObject> other) {
         return append(other::triples);
     }
 
-    public <B extends OWLObject> InternalObject<O> append(Collection<InternalObject<B>> others) {
-        return append(() -> others.stream().flatMap(InternalObject::triples));
+    public <B extends OWLObject> ONTObject<O> append(Collection<ONTObject<B>> others) {
+        return append(() -> others.stream().flatMap(ONTObject::triples));
     }
 
-    <B extends OWLObject> InternalObject<O> appendWildcards(Collection<InternalObject<? extends B>> others) {
-        return append(() -> others.stream().flatMap(InternalObject::triples));
+    <B extends OWLObject> ONTObject<O> appendWildcards(Collection<ONTObject<? extends B>> others) {
+        return append(() -> others.stream().flatMap(ONTObject::triples));
     }
 
-    public InternalObject<O> append(Supplier<Stream<Triple>> triples) {
-        return new InternalObject<O>(object) {
+    public ONTObject<O> append(Supplier<Stream<Triple>> triples) {
+        return new ONTObject<O>(object) {
             @Override
             public Stream<Triple> triples() {
                 return concat(triples.get());
@@ -166,30 +165,30 @@ public abstract class InternalObject<O extends OWLObject> {
         return isEmpty() ? other : Stream.concat(this.triples(), other);
     }
 
-    public InternalObject<O> add(Triple triple) {
+    public ONTObject<O> add(Triple triple) {
         return append(() -> Stream.of(triple));
     }
 
-    public InternalObject<O> delete(Triple triple) {
+    public ONTObject<O> delete(Triple triple) {
         if (isEmpty()) return this;
-        return new InternalObject<O>(object) {
+        return new ONTObject<O>(object) {
             @Override
             public Stream<Triple> triples() {
-                return InternalObject.this.triples().filter(t -> !triple.equals(t));
+                return ONTObject.this.triples().filter(t -> !triple.equals(t));
             }
         };
     }
 
     /**
-     * Finds {@link InternalObject} by {@link OWLObject}
+     * Finds {@link ONTObject} by {@link OWLObject}
      *
-     * @param set the collection of {@link InternalObject}
+     * @param set the collection of {@link ONTObject}
      * @param key {@link OWLObject}
      * @param <O> class-type of owl-object
-     * @return Optional around {@link InternalObject}
+     * @return Optional around {@link ONTObject}
      * @see ru.avicomp.owlapi.OWLObjectImpl#equals(Object)
      */
-    public static <O extends OWLObject> Optional<InternalObject<O>> find(Collection<InternalObject<O>> set, O key) {
+    public static <O extends OWLObject> Optional<ONTObject<O>> find(Collection<ONTObject<O>> set, O key) {
         int h = OntApiException.notNull(key, "null key").hashCode();
         int t = key.typeIndex();
         return set.stream()
@@ -200,16 +199,16 @@ public abstract class InternalObject<O extends OWLObject> {
                 .findAny();
     }
 
-    public static <O extends OWLObject> Stream<O> objects(Collection<InternalObject<O>> wraps) {
-        return wraps.stream().map(InternalObject::getObject);
+    public static <O extends OWLObject> Stream<O> objects(Collection<ONTObject<O>> wraps) {
+        return wraps.stream().map(ONTObject::getObject);
     }
 
-    public static <O extends OWLObject> Set<O> extract(Collection<InternalObject<O>> wraps) {
+    public static <O extends OWLObject> Set<O> extract(Collection<ONTObject<O>> wraps) {
         return objects(wraps).collect(Collectors.toSet());
     }
 
-    static <R extends OWLObject> Set<R> extractWildcards(Collection<InternalObject<? extends R>> wraps) {
-        return wraps.stream().map(InternalObject::getObject).collect(Collectors.toSet());
+    static <R extends OWLObject> Set<R> extractWildcards(Collection<ONTObject<? extends R>> wraps) {
+        return wraps.stream().map(ONTObject::getObject).collect(Collectors.toSet());
     }
 
 }

@@ -77,7 +77,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
-    public Stream<OntStatement> content() {
+    public Stream<OntStatement> spec() {
         OntStatement root = getRoot();
         return root == null ? Stream.empty() : Stream.of(root);
     }
@@ -99,18 +99,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public Optional<OntStatement> statement(Property property, RDFNode object) {
         try (Stream<OntStatement> statements = statements(property).filter(s -> s.getObject().equals(object))) {
             return statements.findFirst();
-        }
-    }
-
-    @Override
-    public Stream<Resource> types() {
-        return objects(RDF.type, Resource.class);
-    }
-
-    @Override
-    public boolean hasType(Resource type) {
-        try (Stream<Resource> types = types()) {
-            return types.anyMatch(type::equals);
         }
     }
 
@@ -231,7 +219,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         removeAll(predicate);
     }
 
-
     public <T extends RDFNode> T getObject(Property predicate, Class<T> view) {
         return object(predicate, view).orElse(null);
     }
@@ -265,7 +252,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view) {
-        return objects(predicate).filter(node -> node.canAs(view)).map(FrontsNode::asNode).map(node -> getModel().getNodeAs(node, view));
+        return objects(predicate)
+                .filter(n -> n.canAs(view))
+                .map(FrontsNode::asNode)
+                .map(n -> getModel().getNodeAs(n, view));
     }
 
     @Override
@@ -273,9 +263,17 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return (OntGraphModelImpl) super.getModel();
     }
 
+    /**
+     * Gets a public ont-object type identifier.
+     *
+     * @return Class, the actual type of this object
+     */
     @SuppressWarnings("unchecked")
     public Class<? extends OntObject> getActualClass() {
-        return Arrays.stream(getClass().getInterfaces()).filter(OntObject.class::isAssignableFrom).map(c -> (Class<? extends OntObject>) c).findFirst().orElse(null);
+        return Arrays.stream(getClass().getInterfaces())
+                .filter(OntObject.class::isAssignableFrom)
+                .map(c -> (Class<? extends OntObject>) c)
+                .findFirst().orElse(null);
     }
 
     static String viewAsString(Class<? extends RDFNode> view) {

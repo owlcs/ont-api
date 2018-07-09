@@ -55,13 +55,13 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public InternalObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement) {
+    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        InternalObject<? extends OWLClassExpression> sub = reader.get(statement.getSubject().as(OntCE.class));
-        InternalObject<? extends OWLClassExpression> sup = reader.get(statement.getObject().as(OntCE.class));
-        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        ONTObject<? extends OWLClassExpression> sub = reader.get(statement.getSubject().as(OntCE.class));
+        ONTObject<? extends OWLClassExpression> sup = reader.get(statement.getObject().as(OntCE.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLSubClassOfAxiom res = reader.getOWLDataFactory()
-                .getOWLSubClassOfAxiom(sub.getObject(), sup.getObject(), InternalObject.extract(annotations));
-        return InternalObject.create(res, statement).append(annotations).append(sub).append(sup);
+                .getOWLSubClassOfAxiom(sub.getObject(), sup.getObject(), ONTObject.extract(annotations));
+        return ONTObject.create(res, statement).append(annotations).append(sub).append(sup);
     }
 }

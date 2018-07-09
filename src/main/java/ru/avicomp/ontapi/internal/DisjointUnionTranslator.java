@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -58,13 +57,13 @@ public class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDis
     }
 
     @Override
-    public InternalObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement) {
+    public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
         return makeAxiom(statement, reader.get(statement),
                 reader::get,
                 clazz -> clazz.disjointUnionOf().map(reader::get).collect(Collectors.toSet()),
                 (subject, members, annotations) -> reader.getOWLDataFactory()
                         .getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(),
-                                InternalObject.extractWildcards(members), InternalObject.extract(annotations)));
+                                ONTObject.extractWildcards(members), ONTObject.extract(annotations)));
     }
 }

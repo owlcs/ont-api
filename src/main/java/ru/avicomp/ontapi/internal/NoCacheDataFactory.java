@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -50,86 +49,86 @@ public class NoCacheDataFactory implements InternalDataFactory {
     }
 
     @Override
-    public InternalObject<? extends OWLClassExpression> get(OntCE ce) {
+    public ONTObject<? extends OWLClassExpression> get(OntCE ce) {
         return ReadHelper.calcClassExpression(ce, this, new HashSet<>());
     }
 
     @Override
-    public InternalObject<? extends OWLDataRange> get(OntDR dr) {
+    public ONTObject<? extends OWLDataRange> get(OntDR dr) {
         return ReadHelper.calcDataRange(dr, this, new HashSet<>());
     }
 
     @Override
-    public InternalObject<OWLAnnotationProperty> get(OntNAP nap) {
+    public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
         IRI iri = toIRI(OntApiException.notNull(nap, "Null annotation property."));
-        return InternalObject.create(getOWLDataFactory().getOWLAnnotationProperty(iri), nap);
+        return ONTObject.create(getOWLDataFactory().getOWLAnnotationProperty(iri), nap);
     }
 
     @Override
-    public InternalObject<OWLDataProperty> get(OntNDP ndp) {
+    public ONTObject<OWLDataProperty> get(OntNDP ndp) {
         IRI iri = toIRI(OntApiException.notNull(ndp, "Null data property."));
-        return InternalObject.create(getOWLDataFactory().getOWLDataProperty(iri), ndp);
+        return ONTObject.create(getOWLDataFactory().getOWLDataProperty(iri), ndp);
     }
 
     @Override
-    public InternalObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
+    public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
         OntApiException.notNull(ope, "Null object property.");
         if (ope.isAnon()) { //todo: handle inverse of inverseOf (?)
             OWLObjectProperty op = getOWLDataFactory().getOWLObjectProperty(toIRI(ope.as(OntOPE.Inverse.class).getDirect()));
-            return InternalObject.create(op.getInverseProperty(), ope);
+            return ONTObject.create(op.getInverseProperty(), ope);
         }
-        return InternalObject.create(getOWLDataFactory().getOWLObjectProperty(toIRI(ope)), ope);
+        return ONTObject.create(getOWLDataFactory().getOWLObjectProperty(toIRI(ope)), ope);
     }
 
     @Override
-    public InternalObject<? extends OWLIndividual> get(OntIndividual individual) {
+    public ONTObject<? extends OWLIndividual> get(OntIndividual individual) {
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
-            return InternalObject.create(getOWLDataFactory().getOWLNamedIndividual(toIRI(individual)), individual);
+            return ONTObject.create(getOWLDataFactory().getOWLNamedIndividual(toIRI(individual)), individual);
         }
         String label = //NodeFmtLib.encodeBNodeLabel(individual.asNode().getBlankNodeLabel());
                 individual.asNode().getBlankNodeLabel();
-        return InternalObject.create(getOWLDataFactory().getOWLAnonymousIndividual(label), individual);
+        return ONTObject.create(getOWLDataFactory().getOWLAnonymousIndividual(label), individual);
 
     }
 
     @Override
-    public InternalObject<OWLLiteral> get(Literal literal) {
+    public ONTObject<OWLLiteral> get(Literal literal) {
         String txt = OntApiException.notNull(literal, "Null literal").getLexicalForm();
         String lang = literal.getLanguage();
         if (lang != null && !lang.isEmpty()) {
             txt = txt + "@" + lang;
         }
         OntDT dt = literal.getModel().getResource(literal.getDatatypeURI()).as(OntDT.class);
-        InternalObject<OWLDatatype> owl;
+        ONTObject<OWLDatatype> owl;
         if (dt.isBuiltIn()) {
-            owl = InternalObject.create(getOWLDataFactory().getOWLDatatype(toIRI(dt)));
+            owl = ONTObject.create(getOWLDataFactory().getOWLDatatype(toIRI(dt)));
         } else {
             owl = get(dt);
         }
         OWLLiteral res = getOWLDataFactory().getOWLLiteral(txt, owl.getObject());
-        return InternalObject.create(res).append(owl);
+        return ONTObject.create(res).append(owl);
     }
 
     @Override
-    public InternalObject<? extends SWRLAtom> get(OntSWRL.Atom atom) {
+    public ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom) {
         return ReadHelper.calcSWRLAtom(atom, this);
     }
 
     @Override
-    public InternalObject<IRI> asIRI(OntObject object) {
-        return InternalObject.create(toIRI(object), object.canAs(OntEntity.class) ? object.as(OntEntity.class) : object);
+    public ONTObject<IRI> asIRI(OntObject object) {
+        return ONTObject.create(toIRI(object), object.canAs(OntEntity.class) ? object.as(OntEntity.class) : object);
     }
 
     @Override
-    public Collection<InternalObject<OWLAnnotation>> get(OntStatement statement) {
+    public Collection<ONTObject<OWLAnnotation>> get(OntStatement statement) {
         return ReadHelper.getAnnotations(statement, this);
     }
 
-    public SimpleMap<OntCE, InternalObject<? extends OWLClassExpression>> classExpressionStore() {
+    public SimpleMap<OntCE, ONTObject<? extends OWLClassExpression>> classExpressionStore() {
         return new NoOpMap<>();
     }
 
-    public SimpleMap<OntDR, InternalObject<? extends OWLDataRange>> dataRangeStore() {
+    public SimpleMap<OntDR, ONTObject<? extends OWLDataRange>> dataRangeStore() {
         return new NoOpMap<>();
     }
 

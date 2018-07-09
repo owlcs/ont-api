@@ -82,7 +82,7 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
     }
 
     @Override
-    public Stream<OntStatement> content() {
+    public Stream<OntStatement> spec() {
         return Stream.of(statement(RDF.type, OWL.NegativePropertyAssertion),
                 statement(OWL.sourceIndividual),
                 statement(OWL.assertionProperty),

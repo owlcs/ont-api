@@ -117,8 +117,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.concat(super.content(), listStatements(OWL.oneOf));
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), listStatements(OWL.oneOf));
         }
 
         @Override
@@ -148,8 +148,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.of(super.content(),
+        public Stream<OntStatement> spec() {
+            return Stream.of(super.spec(),
                     statement(OWL.onDatatype).map(Stream::of).orElse(Stream.empty()),
                     listStatements(OWL.withRestrictions)).flatMap(Function.identity());
         }
@@ -166,8 +166,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.concat(super.content(), statement(OWL.datatypeComplementOf).map(Stream::of).orElse(Stream.empty()));
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), statement(OWL.datatypeComplementOf).map(Stream::of).orElse(Stream.empty()));
         }
 
         @Override
@@ -187,8 +187,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.concat(super.content(), listStatements(OWL.unionOf));
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), listStatements(OWL.unionOf));
         }
 
         @Override
@@ -208,8 +208,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.concat(super.content(), listStatements(OWL.intersectionOf));
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), listStatements(OWL.intersectionOf));
         }
 
         @Override

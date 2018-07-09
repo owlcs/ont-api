@@ -35,10 +35,8 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 import javax.annotation.Nonnull;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
@@ -317,7 +315,13 @@ public class OntGraphUtils {
     }
 
     protected static InputStream asInputStream(Reader reader) {
-        return new ReaderInputStream(reader, StandardCharsets.UTF_8);
+        Charset charset;
+        if (reader instanceof InputStreamReader) {
+            charset = Charset.forName(((InputStreamReader) reader).getEncoding());
+        } else {
+            charset = StandardCharsets.UTF_8;
+        }
+        return new ReaderInputStream(reader, charset);
     }
 
     protected static InputStream buffer(InputStream is) {
@@ -325,8 +329,10 @@ public class OntGraphUtils {
     }
 
     /**
-     * The analogue of {@link Function} with checked {@link OWLOntologyInputSourceException owl-exception}.
+     * A Functional interface with checked {@link OWLOntologyInputSourceException OWL Exception}
+     * to produce {@code InputStream} from {@link OWLOntologyDocumentSource}.
      */
+    @FunctionalInterface
     protected interface OntInputSupplier {
 
         /**

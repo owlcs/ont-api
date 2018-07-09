@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -85,12 +84,12 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
 
     abstract Class<? extends OntDisjoint<ONT>> getDisjointView();
 
-    InternalObject<Axiom> makeAxiom(OntStatement statement,
-                                    Collection<InternalObject<OWLAnnotation>> annotations,
-                                    Function<ONT, InternalObject<? extends OWL>> membersExtractor,
-                                    BiFunction<Collection<InternalObject<? extends OWL>>,
-                                            Collection<InternalObject<OWLAnnotation>>, Axiom> creator) {
-        Collection<InternalObject<? extends OWL>> members;
+    ONTObject<Axiom> makeAxiom(OntStatement statement,
+                               Collection<ONTObject<OWLAnnotation>> annotations,
+                               Function<ONT, ONTObject<? extends OWL>> membersExtractor,
+                               BiFunction<Collection<ONTObject<? extends OWL>>,
+                                       Collection<ONTObject<OWLAnnotation>>, Axiom> creator) {
+        Collection<ONTObject<? extends OWL>> members;
         OntObject subject = statement.getSubject();
         OntDisjoint<ONT> disjoint = null;
         if (subject.canAs(getDisjointView())) {
@@ -101,7 +100,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
                     .map(membersExtractor).collect(Collectors.toSet());
         }
         Axiom axiom = creator.apply(members, annotations);
-        return (disjoint != null ? InternalObject.create(axiom, disjoint) : InternalObject.create(axiom, statement))
+        return (disjoint != null ? ONTObject.create(axiom, disjoint) : ONTObject.create(axiom, statement))
                 .append(annotations).appendWildcards(members);
 
     }

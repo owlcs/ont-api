@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import java.util.Objects;
 
 /**
- * An adapter to convert OWL-API things to ONT-API ones.
+ * An 'adapter' to convert OWL-API things to ONT-API ones.
  * Currently it is a collection of sugar-methods:
  * anything produced by ONT-API should be also OWL-API since ONT-API is overridden OWL-API.
  *
@@ -92,11 +92,10 @@ public class OWLAdapter {
 
     /**
      * Casts to the default ONT-API manager implementation.
-     * The implementation contains a lot of useful methods
-     * which are used by the {@link OntologyFactoryImpl Ontogy Factory} implementation,
-     * but these methods can't be moved to the interface since they are not common or can break state,
-     * or by some other reasons.
-     * Currently I am not sure it is good idea to create one more interface to conduct access to these methods.
+     * The implementation contains a lot of useful methods,
+     * that are used by the implementation classes (e.g. by the {@link OntologyFactoryImpl Ontogy Factory Impl}),
+     * but can not be moved to the manager interface, as they are not general enough, or require careful use, or for some other reasons.
+     * Creation one more technical interface to describe and access them may seem a good idea, but currently I am not sure enough.
      *
      * @param manager {@link OWLOntologyManager manager}
      * @return {@link OntologyManagerImpl}

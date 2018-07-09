@@ -31,7 +31,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * Ont SWRL Object Implementation
+ * Ont SWRL Object Implementation.
  * <p>
  * Created by @szuev on 18.11.2016.
  */
@@ -199,8 +199,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.of(super.content(),
+        public Stream<OntStatement> spec() {
+            return Stream.of(super.spec(),
                     statement(SWRL.builtin).map(Stream::of).orElse(Stream.empty()),
                     rdfListContent(SWRL.arguments)
             ).flatMap(Function.identity());
@@ -230,8 +230,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.of(super.content(),
+        public Stream<OntStatement> spec() {
+            return Stream.of(super.spec(),
                     statement(predicate).map(Stream::of).orElse(Stream.empty()),
                     statement(SWRL.argument1).map(Stream::of).orElse(Stream.empty())
             ).flatMap(Function.identity());
@@ -280,8 +280,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.of(super.content(),
+        public Stream<OntStatement> spec() {
+            return Stream.of(super.spec(),
                     statement(predicate).map(Stream::of).orElse(Stream.empty()),
                     statement(SWRL.argument1).map(Stream::of).orElse(Stream.empty()),
                     statement(SWRL.argument2).map(Stream::of).orElse(Stream.empty())
@@ -353,8 +353,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public Stream<OntStatement> content() {
-            return Stream.of(super.content(), rdfListContent(SWRL.head), rdfListContent(SWRL.body)).flatMap(Function.identity());
+        public Stream<OntStatement> spec() {
+            return Stream.of(super.spec(), rdfListContent(SWRL.head), rdfListContent(SWRL.body)).flatMap(Function.identity());
         }
     }
 }

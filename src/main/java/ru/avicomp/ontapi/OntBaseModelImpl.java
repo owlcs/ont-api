@@ -45,8 +45,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * An 'Immutable' ontology only with methods to read information in the form of OWL-Objects from graph-model.
- * It's our analogy of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl</a>
+ * An abstract {@link OWLOntology OWL-API Ontology} implementation with methods to read information in the form of OWL-Objects from the underling graph-model.
+ * It's our analogy of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl</a>.
  * <p>
  * Created by @szuev on 03.12.2016.
  */
@@ -86,8 +86,9 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
 
     /**
      * Sets the manager.
-     * The parameter could be null (e.g. during {@link OWLOntologyManager#clearOntologies})
-     * Used also during {@link OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)}
+     * The parameter could be null (e.g. during {@link OWLOntologyManager#clearOntologies}).
+     * Used also during {@link OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)}.
+     * For internal usage only: the outer interface must be "immutable".
      *
      * @param manager {@link OntologyManager}, nullable.
      * @throws OntApiException in case wrong manager specified.

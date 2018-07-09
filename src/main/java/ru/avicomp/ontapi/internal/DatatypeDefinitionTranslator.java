@@ -56,13 +56,13 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     }
 
     @Override
-    public InternalObject<OWLDatatypeDefinitionAxiom> toAxiom(OntStatement statement) {
+    public ONTObject<OWLDatatypeDefinitionAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        InternalObject<OWLDatatype> dt = reader.get(statement.getSubject().as(OntDT.class));
-        InternalObject<? extends OWLDataRange> dr = reader.get(statement.getObject().as(OntDR.class));
-        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        ONTObject<OWLDatatype> dt = reader.get(statement.getSubject().as(OntDT.class));
+        ONTObject<? extends OWLDataRange> dr = reader.get(statement.getObject().as(OntDR.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLDatatypeDefinitionAxiom res = reader.getOWLDataFactory()
-                .getOWLDatatypeDefinitionAxiom(dt.getObject(), dr.getObject(), InternalObject.extract(annotations));
-        return InternalObject.create(res, statement).append(annotations).append(dt).append(dr);
+                .getOWLDatatypeDefinitionAxiom(dt.getObject(), dr.getObject(), ONTObject.extract(annotations));
+        return ONTObject.create(res, statement).append(annotations).append(dt).append(dr);
     }
 }

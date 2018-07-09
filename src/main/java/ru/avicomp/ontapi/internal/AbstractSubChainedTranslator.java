@@ -68,19 +68,19 @@ public abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom
                 && statement.getObject().canAs(RDFList.class);
     }
 
-    InternalObject<Axiom> makeAxiom(OntStatement statement,
-                                    Collection<InternalObject<OWLAnnotation>> annotations,
-                                    Function<ONT, InternalObject<? extends OWL_SUBJECT>> subjectExtractor,
-                                    Function<ONT, Collection<InternalObject<? extends OWL_MEMBERS>>> membersExtractor,
-                                    TriFunction<InternalObject<? extends OWL_SUBJECT>,
-                                            Collection<InternalObject<? extends OWL_MEMBERS>>,
-                                            Collection<InternalObject<OWLAnnotation>>, Axiom> axiomMaker) {
+    ONTObject<Axiom> makeAxiom(OntStatement statement,
+                               Collection<ONTObject<OWLAnnotation>> annotations,
+                               Function<ONT, ONTObject<? extends OWL_SUBJECT>> subjectExtractor,
+                               Function<ONT, Collection<ONTObject<? extends OWL_MEMBERS>>> membersExtractor,
+                               TriFunction<ONTObject<? extends OWL_SUBJECT>,
+                                       Collection<ONTObject<? extends OWL_MEMBERS>>,
+                                       Collection<ONTObject<OWLAnnotation>>, Axiom> axiomMaker) {
 
         ONT clazz = statement.getSubject().as(getView());
-        InternalObject<? extends OWL_SUBJECT> subject = subjectExtractor.apply(clazz);
-        Collection<InternalObject<? extends OWL_MEMBERS>> members = membersExtractor.apply(clazz);
+        ONTObject<? extends OWL_SUBJECT> subject = subjectExtractor.apply(clazz);
+        Collection<ONTObject<? extends OWL_MEMBERS>> members = membersExtractor.apply(clazz);
         Axiom res = axiomMaker.apply(subject, members, annotations);
-        return InternalObject.create(res, statement)
+        return ONTObject.create(res, statement)
                 .append(() -> ((OntObjectImpl) statement.getSubject()).rdfListContent(getPredicate()).map(FrontsTriple::asTriple));
 
     }

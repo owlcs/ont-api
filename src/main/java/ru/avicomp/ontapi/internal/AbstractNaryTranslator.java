@@ -83,8 +83,8 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     }
 
     @Override
-    public Stream<InternalObject<Axiom>> axioms(OntGraphModel model) {
-        Map<Axiom, InternalObject<Axiom>> res = new HashMap<>(); // memory!
+    public Stream<ONTObject<Axiom>> axioms(OntGraphModel model) {
+        Map<Axiom, ONTObject<Axiom>> res = new HashMap<>(); // memory!
         super.axioms(model).forEach(c -> res.compute(c.getObject(), (a, w) -> w == null ? c : w.append(c)));
         return new HashSet<>(res.values()).stream();
     }

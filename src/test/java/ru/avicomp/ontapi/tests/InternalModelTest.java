@@ -32,7 +32,7 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.internal.AxiomParserProvider;
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalObject;
+import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -69,7 +69,7 @@ public class InternalModelTest {
 
         Map<OWLAxiom, Set<Triple>> axioms = types.stream()
                 .flatMap(view -> AxiomParserProvider.get(view).axioms(model))
-                .collect(Collectors.toMap(InternalObject::getObject, i -> i.triples().collect(Collectors.toSet())));
+                .collect(Collectors.toMap(ONTObject::getObject, i -> i.triples().collect(Collectors.toSet())));
 
         LOGGER.debug("Recreate model");
         Model m2 = ModelFactory.createDefaultModel();

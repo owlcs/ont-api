@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
-import ru.avicomp.ontapi.internal.InternalObject;
+import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.internal.ReadHelper;
 import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.OntModelFactory;
@@ -387,7 +387,7 @@ public class CommonManagerTest {
         Assert.assertNotNull(ont);
         List<OWLClass> newOWLClasses = newClasses.stream()
                 .map(ReadHelper::fetchClassExpression)
-                .map(InternalObject::getObject)
+                .map(ONTObject::getObject)
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: " + newOWLClasses);
         newOWLClasses.forEach(c ->

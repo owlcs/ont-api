@@ -53,7 +53,7 @@ import java.util.stream.Stream;
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and it is used by the facade model
  * ({@link ru.avicomp.ontapi.OntologyModel}) while reading and writing the structural representation of ontology.
  * <p>
- * TODO: Should it return {@link InternalObject}s, not just naked {@link OWLObject}s?
+ * TODO: Should it return {@link ONTObject}s, not just naked {@link OWLObject}s?
  * It seems it would be very convenient and could make this class useful not only as part of inner implementation.
  * TODO: to support not-in-memory graphs+structural-view need to add disabling cache option somewhere to configuration and fix read/add/remove operations correspondingly.
  * <p>
@@ -167,7 +167,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     public Stream<OWLEntity> entities(IRI iri) {
         if (iri == null) return Stream.empty();
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
-        List<InternalObject<? extends OWLEntity>> res = new ArrayList<>();
+        List<ONTObject<? extends OWLEntity>> res = new ArrayList<>();
         if (e.canAs(OntClass.class)) {
             res.add(cacheDataFactory.get(e.as(OntClass.class)));
         }
@@ -186,7 +186,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         if (e.canAs(OntIndividual.Named.class)) {
             res.add(cacheDataFactory.get(e.as(OntIndividual.Named.class)));
         }
-        return res.stream().map(InternalObject::getObject);
+        return res.stream().map(ONTObject::getObject);
     }
 
     /**
@@ -437,7 +437,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @param type Class type
      * @param <O>  {@link OWLAnnotation} or subtype of {@link OWLAxiom}
-     * @return {@link InternalObject}
+     * @return {@link ONTObject}
      */
     @SuppressWarnings("unchecked")
     protected <O extends OWLObject> InternalObjectTriplesMap<O> readObjectTriples(Class<? extends OWLObject> type) {
@@ -478,7 +478,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @param type Class type
      * @param <A>  subtype of {@link OWLAxiom}
-     * @return {@link InternalObject}
+     * @return {@link ONTObject}
      */
     protected <A extends OWLAxiom> InternalObjectTriplesMap<A> readAxiomTriples(Class<A> type) {
         return new InternalObjectTriplesMap<>(type, AxiomParserProvider.get(type).axioms(InternalModel.this).collect(Collectors.toSet()));
@@ -487,7 +487,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     /**
      * Reads ontology header from underling graph.
      *
-     * @return {@link InternalObject}
+     * @return {@link ONTObject}
      */
     protected InternalObjectTriplesMap<OWLAnnotation> readAnnotationTriples() {
         return new InternalObjectTriplesMap<>(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), cacheDataFactory));
@@ -620,16 +620,16 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * Auxiliary object to provide common way for working with {@link OWLObject}s and {@link Triple}s together.
-     * Based on {@link InternalObject}, which is a wrapper around OWLObject with the reference to associated triples.
+     * Based on {@link ONTObject}, which is a wrapper around OWLObject with the reference to associated triples.
      *
      * @param <O> Component type: a subtype of {@link OWLAxiom} or {@link OWLAnnotation}
      */
     public static class InternalObjectTriplesMap<O extends OWLObject> {
         protected final Class<O> type;
-        protected final Set<InternalObject<O>> set;
+        protected final Set<ONTObject<O>> set;
         protected LoadingCache<O, Set<Triple>> cache = Caffeine.newBuilder().softValues().build(this::loadTripleSet);
 
-        public InternalObjectTriplesMap(Class<O> type, Set<InternalObject<O>> set) {
+        public InternalObjectTriplesMap(Class<O> type, Set<ONTObject<O>> set) {
             this.type = type;
             this.set = set;
         }
@@ -638,9 +638,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             return type;
         }
 
-        private Optional<InternalObject<O>> find(O key) {
+        private Optional<ONTObject<O>> find(O key) {
             // may be long: go over whole collection with concrete component type
-            return InternalObject.find(set, key);
+            return ONTObject.find(set, key);
         }
 
         @Nonnull
@@ -658,7 +658,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
          * @param triple {@link Triple}
          */
         public void add(O key, Triple triple) {
-            InternalObject<O> res = find(key).map(o -> o.isEmpty() ? new TripleSet<>(o) : o).orElseGet(() -> new TripleSet<>(key));
+            ONTObject<O> res = find(key).map(o -> o.isEmpty() ? new TripleSet<>(o) : o).orElseGet(() -> new TripleSet<>(key));
             set.add(res.add(triple));
             fromCache(key).ifPresent(set -> set.add(triple));
         }
@@ -701,24 +701,24 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         public Stream<O> objects() {
-            return set.stream().map(InternalObject::getObject);
+            return set.stream().map(ONTObject::getObject);
         }
 
         /**
-         * An {@link InternalObject} which holds triples in memory.
+         * An {@link ONTObject} which holds triples in memory.
          * Used in caches.
          * Note: it is mutable object while the base is immutable.
          *
          * @param <V>
          */
-        private class TripleSet<V extends O> extends InternalObject<V> {
+        private class TripleSet<V extends O> extends ONTObject<V> {
             private final Set<Triple> triples;
 
             protected TripleSet(V object) { // empty
                 this(object, new HashSet<>());
             }
 
-            protected TripleSet(InternalObject<V> object) {
+            protected TripleSet(ONTObject<V> object) {
                 this(object.getObject(), object.triples().collect(Collectors.toCollection(HashSet::new)));
             }
 
@@ -738,13 +738,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             }
 
             @Override
-            public InternalObject<V> add(Triple triple) {
+            public ONTObject<V> add(Triple triple) {
                 triples.add(triple);
                 return this;
             }
 
             @Override
-            public InternalObject<V> delete(Triple triple) {
+            public ONTObject<V> delete(Triple triple) {
                 triples.remove(triple);
                 return this;
             }
@@ -827,13 +827,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Currently it is based on caffeine cache since it is used widely by OWL-API.
      */
     public static class CacheDataFactory extends NoCacheDataFactory {
-        protected final LoadingCache<OntCE, InternalObject<? extends OWLClassExpression>> classExpressions;
-        protected final LoadingCache<OntDR, InternalObject<? extends OWLDataRange>> dataRanges;
-        protected final LoadingCache<OntNAP, InternalObject<OWLAnnotationProperty>> annotationProperties;
-        protected final LoadingCache<OntNDP, InternalObject<OWLDataProperty>> datatypeProperties;
-        protected final LoadingCache<OntOPE, InternalObject<? extends OWLObjectPropertyExpression>> objectProperties;
-        protected final LoadingCache<OntIndividual, InternalObject<? extends OWLIndividual>> individuals;
-        protected final LoadingCache<Literal, InternalObject<OWLLiteral>> literals;
+        protected final LoadingCache<OntCE, ONTObject<? extends OWLClassExpression>> classExpressions;
+        protected final LoadingCache<OntDR, ONTObject<? extends OWLDataRange>> dataRanges;
+        protected final LoadingCache<OntNAP, ONTObject<OWLAnnotationProperty>> annotationProperties;
+        protected final LoadingCache<OntNDP, ONTObject<OWLDataProperty>> datatypeProperties;
+        protected final LoadingCache<OntOPE, ONTObject<? extends OWLObjectPropertyExpression>> objectProperties;
+        protected final LoadingCache<OntIndividual, ONTObject<? extends OWLIndividual>> individuals;
+        protected final LoadingCache<Literal, ONTObject<OWLLiteral>> literals;
         protected final LoadingCache<String, IRI> iris;
 
         /**
@@ -866,37 +866,37 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         @Override
-        public InternalObject<? extends OWLClassExpression> get(OntCE ce) {
+        public ONTObject<? extends OWLClassExpression> get(OntCE ce) {
             return classExpressions.get(ce);
         }
 
         @Override
-        public InternalObject<? extends OWLDataRange> get(OntDR dr) {
+        public ONTObject<? extends OWLDataRange> get(OntDR dr) {
             return dataRanges.get(dr);
         }
 
         @Override
-        public InternalObject<OWLAnnotationProperty> get(OntNAP nap) {
+        public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
             return annotationProperties.get(nap);
         }
 
         @Override
-        public InternalObject<OWLDataProperty> get(OntNDP ndp) {
+        public ONTObject<OWLDataProperty> get(OntNDP ndp) {
             return datatypeProperties.get(ndp);
         }
 
         @Override
-        public InternalObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
+        public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
             return objectProperties.get(ope);
         }
 
         @Override
-        public InternalObject<OWLLiteral> get(Literal literal) {
+        public ONTObject<OWLLiteral> get(Literal literal) {
             return literals.get(literal);
         }
 
         @Override
-        public InternalObject<? extends OWLIndividual> get(OntIndividual i) {
+        public ONTObject<? extends OWLIndividual> get(OntIndividual i) {
             return individuals.get(i);
         }
 
@@ -941,12 +941,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         @Override
-        public SimpleMap<OntCE, InternalObject<? extends OWLClassExpression>> classExpressionStore() {
+        public SimpleMap<OntCE, ONTObject<? extends OWLClassExpression>> classExpressionStore() {
             return new CacheMap<>(classExpressions);
         }
 
         @Override
-        public SimpleMap<OntDR, InternalObject<? extends OWLDataRange>> dataRangeStore() {
+        public SimpleMap<OntDR, ONTObject<? extends OWLDataRange>> dataRangeStore() {
             return new CacheMap<>(dataRanges);
         }
 
@@ -973,13 +973,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Impl for debug.
      */
     public static class MapDataFactory extends NoCacheDataFactory {
-        private Map<OntCE, InternalObject<? extends OWLClassExpression>> classExpressions = new HashMap<>();
-        private Map<OntDR, InternalObject<? extends OWLDataRange>> dataRanges = new HashMap<>();
-        private Map<OntNAP, InternalObject<OWLAnnotationProperty>> annotationProperties = new HashMap<>();
-        private Map<OntNDP, InternalObject<OWLDataProperty>> datatypeProperties = new HashMap<>();
-        private Map<OntOPE, InternalObject<? extends OWLObjectPropertyExpression>> objectProperties = new HashMap<>();
-        private Map<OntIndividual, InternalObject<? extends OWLIndividual>> individuals = new HashMap<>();
-        private Map<Literal, InternalObject<OWLLiteral>> literals = new HashMap<>();
+        private Map<OntCE, ONTObject<? extends OWLClassExpression>> classExpressions = new HashMap<>();
+        private Map<OntDR, ONTObject<? extends OWLDataRange>> dataRanges = new HashMap<>();
+        private Map<OntNAP, ONTObject<OWLAnnotationProperty>> annotationProperties = new HashMap<>();
+        private Map<OntNDP, ONTObject<OWLDataProperty>> datatypeProperties = new HashMap<>();
+        private Map<OntOPE, ONTObject<? extends OWLObjectPropertyExpression>> objectProperties = new HashMap<>();
+        private Map<OntIndividual, ONTObject<? extends OWLIndividual>> individuals = new HashMap<>();
+        private Map<Literal, ONTObject<OWLLiteral>> literals = new HashMap<>();
 
         public MapDataFactory(Config config) {
             super(config);
@@ -997,47 +997,47 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         @Override
-        public InternalObject<? extends OWLClassExpression> get(OntCE ce) {
+        public ONTObject<? extends OWLClassExpression> get(OntCE ce) {
             return classExpressions.computeIfAbsent(ce, super::get);
         }
 
         @Override
-        public InternalObject<? extends OWLDataRange> get(OntDR dr) {
+        public ONTObject<? extends OWLDataRange> get(OntDR dr) {
             return dataRanges.computeIfAbsent(dr, super::get);
         }
 
         @Override
-        public InternalObject<OWLAnnotationProperty> get(OntNAP nap) {
+        public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
             return annotationProperties.computeIfAbsent(nap, super::get);
         }
 
         @Override
-        public InternalObject<OWLDataProperty> get(OntNDP ndp) {
+        public ONTObject<OWLDataProperty> get(OntNDP ndp) {
             return datatypeProperties.computeIfAbsent(ndp, super::get);
         }
 
         @Override
-        public InternalObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
+        public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
             return objectProperties.computeIfAbsent(ope, super::get);
         }
 
         @Override
-        public InternalObject<OWLLiteral> get(Literal l) {
+        public ONTObject<OWLLiteral> get(Literal l) {
             return literals.computeIfAbsent(l, super::get);
         }
 
         @Override
-        public InternalObject<? extends OWLIndividual> get(OntIndividual i) {
+        public ONTObject<? extends OWLIndividual> get(OntIndividual i) {
             return individuals.computeIfAbsent(i, super::get);
         }
 
         @Override
-        public SimpleMap<OntCE, InternalObject<? extends OWLClassExpression>> classExpressionStore() {
+        public SimpleMap<OntCE, ONTObject<? extends OWLClassExpression>> classExpressionStore() {
             return SimpleMap.fromMap(classExpressions);
         }
 
         @Override
-        public SimpleMap<OntDR, InternalObject<? extends OWLDataRange>> dataRangeStore() {
+        public SimpleMap<OntDR, ONTObject<? extends OWLDataRange>> dataRangeStore() {
             return SimpleMap.fromMap(dataRanges);
         }
     }

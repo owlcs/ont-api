@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -33,31 +32,31 @@ import java.util.Objects;
  * Created by @szuev on 14.03.2018.
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternals.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals</a>
- * @see InternalObject
+ * @see ONTObject
  */
 public interface InternalDataFactory {
 
     void clear();
 
-    InternalObject<? extends OWLClassExpression> get(OntCE ce);
+    ONTObject<? extends OWLClassExpression> get(OntCE ce);
 
-    InternalObject<? extends OWLDataRange> get(OntDR dr);
+    ONTObject<? extends OWLDataRange> get(OntDR dr);
 
-    InternalObject<OWLAnnotationProperty> get(OntNAP nap);
+    ONTObject<OWLAnnotationProperty> get(OntNAP nap);
 
-    InternalObject<OWLDataProperty> get(OntNDP ndp);
+    ONTObject<OWLDataProperty> get(OntNDP ndp);
 
-    InternalObject<? extends OWLObjectPropertyExpression> get(OntOPE ope);
+    ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope);
 
-    InternalObject<? extends OWLIndividual> get(OntIndividual i);
+    ONTObject<? extends OWLIndividual> get(OntIndividual i);
 
-    InternalObject<OWLLiteral> get(Literal literal);
+    ONTObject<OWLLiteral> get(Literal literal);
 
-    InternalObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
+    ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
 
-    Collection<InternalObject<OWLAnnotation>> get(OntStatement statement);
+    Collection<ONTObject<OWLAnnotation>> get(OntStatement statement);
 
-    InternalObject<IRI> asIRI(OntObject s);
+    ONTObject<IRI> asIRI(OntObject s);
 
     OWLDataFactory getOWLDataFactory();
 
@@ -65,7 +64,7 @@ public interface InternalDataFactory {
         return IRI.create(Objects.requireNonNull(str, "Null IRI."));
     }
 
-    default InternalObject<? extends OWLAnnotationValue> get(RDFNode value) {
+    default ONTObject<? extends OWLAnnotationValue> get(RDFNode value) {
         if (OntApiException.notNull(value, "Null node").isLiteral()) {
             return get(value.asLiteral());
         }
@@ -78,7 +77,7 @@ public interface InternalDataFactory {
         throw new OntApiException("Not an AnnotationValue " + value);
     }
 
-    default InternalObject<? extends OWLAnnotationSubject> get(OntObject subject) {
+    default ONTObject<? extends OWLAnnotationSubject> get(OntObject subject) {
         if (OntApiException.notNull(subject, "Null resource").isURIResource()) {
             return asIRI(subject);
         }
@@ -89,31 +88,31 @@ public interface InternalDataFactory {
     }
 
     @SuppressWarnings("unchecked")
-    default InternalObject<OWLClass> get(OntClass cl) {
-        return (InternalObject<OWLClass>) get((OntCE) cl);
+    default ONTObject<OWLClass> get(OntClass cl) {
+        return (ONTObject<OWLClass>) get((OntCE) cl);
     }
 
     @SuppressWarnings("unchecked")
-    default InternalObject<OWLDatatype> get(OntDT dt) {
-        return (InternalObject<OWLDatatype>) get((OntDR) dt);
+    default ONTObject<OWLDatatype> get(OntDT dt) {
+        return (ONTObject<OWLDatatype>) get((OntDR) dt);
     }
 
     @SuppressWarnings("unchecked")
-    default InternalObject<OWLObjectProperty> get(OntNOP nop) {
-        return (InternalObject<OWLObjectProperty>) get((OntOPE) nop);
+    default ONTObject<OWLObjectProperty> get(OntNOP nop) {
+        return (ONTObject<OWLObjectProperty>) get((OntOPE) nop);
     }
 
     @SuppressWarnings("unchecked")
-    default InternalObject<OWLNamedIndividual> get(OntIndividual.Named individual) {
-        return (InternalObject<OWLNamedIndividual>) get((OntIndividual) individual);
+    default ONTObject<OWLNamedIndividual> get(OntIndividual.Named individual) {
+        return (ONTObject<OWLNamedIndividual>) get((OntIndividual) individual);
     }
 
     @SuppressWarnings("unchecked")
-    default InternalObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous individual) {
-        return (InternalObject<OWLAnonymousIndividual>) get((OntIndividual) individual);
+    default ONTObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous individual) {
+        return (ONTObject<OWLAnonymousIndividual>) get((OntIndividual) individual);
     }
 
-    default InternalObject<? extends OWLEntity> get(OntEntity entity) {
+    default ONTObject<? extends OWLEntity> get(OntEntity entity) {
         Class<? extends OntObject> type = OntApiException.notNull(((OntObjectImpl) entity).getActualClass(),
                 "Can't determine view of entity " + entity);
         if (OntClass.class.equals(type)) {
@@ -132,7 +131,7 @@ public interface InternalDataFactory {
         throw new OntApiException("Unsupported " + entity);
     }
 
-    default InternalObject<? extends OWLPropertyExpression> get(OntPE property) {
+    default ONTObject<? extends OWLPropertyExpression> get(OntPE property) {
         if (OntApiException.notNull(property, "Null property.").canAs(OntNAP.class)) {
             return get(property.as(OntNAP.class));
         }

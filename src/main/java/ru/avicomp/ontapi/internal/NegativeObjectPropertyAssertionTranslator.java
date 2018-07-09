@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -45,16 +44,16 @@ public class NegativeObjectPropertyAssertionTranslator extends AbstractNegativeP
     }
 
     @Override
-    public InternalObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiom(OntStatement statement) {
+    public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
         OntNPA.ObjectAssertion npa = statement.getSubject().as(getView());
-        InternalObject<? extends OWLIndividual> s = reader.get(npa.getSource());
-        InternalObject<? extends OWLObjectPropertyExpression> p = reader.get(npa.getProperty());
-        InternalObject<? extends OWLIndividual> o = reader.get(npa.getTarget());
-        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        ONTObject<? extends OWLIndividual> s = reader.get(npa.getSource());
+        ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(npa.getProperty());
+        ONTObject<? extends OWLIndividual> o = reader.get(npa.getTarget());
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLNegativeObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLNegativeObjectPropertyAssertionAxiom(p.getObject(),
-                s.getObject(), o.getObject(), InternalObject.extract(annotations));
-        return InternalObject.create(res, npa).append(annotations).append(s).append(p).append(o);
+                        s.getObject(), o.getObject(), ONTObject.extract(annotations));
+        return ONTObject.create(res, npa).append(annotations).append(s).append(p).append(o);
     }
 }

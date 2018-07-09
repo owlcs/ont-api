@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
@@ -46,13 +45,13 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
     }
 
     @Override
-    public InternalObject<OWLSubDataPropertyOfAxiom> toAxiom(OntStatement statement) {
+    public ONTObject<OWLSubDataPropertyOfAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        InternalObject<OWLDataProperty> sub = reader.get(statement.getSubject().as(OntNDP.class));
-        InternalObject<OWLDataProperty> sup = reader.get(statement.getObject().as(OntNDP.class));
-        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        ONTObject<OWLDataProperty> sub = reader.get(statement.getSubject().as(OntNDP.class));
+        ONTObject<OWLDataProperty> sup = reader.get(statement.getObject().as(OntNDP.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLSubDataPropertyOfAxiom res = reader.getOWLDataFactory()
-                .getOWLSubDataPropertyOfAxiom(sub.getObject(), sup.getObject(), InternalObject.extract(annotations));
-        return InternalObject.create(res, statement).append(annotations).append(sub).append(sup);
+                .getOWLSubDataPropertyOfAxiom(sub.getObject(), sup.getObject(), ONTObject.extract(annotations));
+        return ONTObject.create(res, statement).append(annotations).append(sub).append(sup);
     }
 }

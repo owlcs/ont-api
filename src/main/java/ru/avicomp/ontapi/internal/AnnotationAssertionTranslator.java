@@ -63,16 +63,16 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
     }
 
     @Override
-    public InternalObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement) {
+    public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        InternalObject<? extends OWLAnnotationSubject> s = reader.get(statement.getSubject());
-        InternalObject<OWLAnnotationProperty> p = reader.get(statement.getPredicate().as(OntNAP.class));
-        InternalObject<? extends OWLAnnotationValue> v = reader.get(statement.getObject());
-        Collection<InternalObject<OWLAnnotation>> annotations = reader.get(statement);
+        ONTObject<? extends OWLAnnotationSubject> s = reader.get(statement.getSubject());
+        ONTObject<OWLAnnotationProperty> p = reader.get(statement.getPredicate().as(OntNAP.class));
+        ONTObject<? extends OWLAnnotationValue> v = reader.get(statement.getObject());
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLAnnotationAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
-                InternalObject.extract(annotations));
-        return InternalObject.create(res, statement).append(annotations).append(s).append(p).append(v);
+                        ONTObject.extract(annotations));
+        return ONTObject.create(res, statement).append(annotations).append(s).append(p).append(v);
     }
 
 }

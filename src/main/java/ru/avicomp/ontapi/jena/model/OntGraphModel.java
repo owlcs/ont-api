@@ -224,11 +224,11 @@ public interface OntGraphModel extends Model {
     boolean isLocal(Statement statement);
 
     /**
-     * Removes ont-object from the graph-model.
+     * Removes the given ont-object from the graph-model.
      *
      * @param obj {@link OntObject}
      * @return this model
-     * @see OntObject#content()
+     * @see OntObject#spec()
      */
     OntGraphModel removeOntObject(OntObject obj);
 
