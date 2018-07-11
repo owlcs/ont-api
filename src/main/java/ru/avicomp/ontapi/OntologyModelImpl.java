@@ -20,10 +20,9 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
-import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -34,8 +33,9 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
 /**
  * The main ontology model implementation. Not concurrent. Editable.
  * Provides access to {@link OntGraphModel}.
- *
+ * <p>
  * Created by @szuev on 27.09.2016.
+ *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl</a>
  * @see OntBaseModelImpl
  * @see OntologyModel
@@ -193,10 +193,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             return (OntologyModelImpl) delegate;
         }
 
-        public ReadWriteLock getLock() {
-            return lock;
-        }
-
         /**
          * @return {@link OntGraphModel}
          */
@@ -210,15 +206,19 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             }
         }
 
+        /**
+         * Makes a concurrent version of the base graph model.
+         *
+         * @return {@link OntGraphModel} with {@link ReadWriteLock R/W Lock} inside
+         */
         protected OntGraphModel makeGraphModel() {
-            UnionGraph thisGraph = getBase().getGraph();
-            UnionGraph newGraph = new UnionGraph(new ConcurrentGraph(thisGraph.getBaseGraph(), lock), thisGraph.getEventManager());
-            thisGraph.getUnderlying().graphs().forEach(newGraph::addGraph);
-            return OntModelFactory.createModel(newGraph, getConfig().loaderConfig().getPersonality());
+            InternalModel base = getBase();
+            return OntModelFactory.createModel(Graphs.asConcurrent(base.getGraph(), lock), base.getPersonality());
         }
 
         /**
-         * it does not change object state so read lock here
+         * Clears cache.
+         * It does not change the object state so uses read lock here.
          */
         @Override
         public void clearCache() {

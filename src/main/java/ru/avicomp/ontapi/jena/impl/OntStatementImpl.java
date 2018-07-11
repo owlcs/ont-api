@@ -197,8 +197,8 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     /**
      * Returns annotation objects corresponding to the given statement and rdfs-type
      *
-     * @param base base ont-statement
-     * @param type owl:Axiom or owl:Annotation
+     * @param base  base ont-statement
+     * @param type  owl:Axiom or owl:Annotation
      * @param maker BiFunction to produce OntAnnotation resource
      * @return Stream of {@link OntAnnotation}
      */

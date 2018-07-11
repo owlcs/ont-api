@@ -21,12 +21,15 @@ import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.sparql.graph.GraphWrapper;
+import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
@@ -41,10 +44,14 @@ import java.util.stream.Stream;
 public class Graphs {
 
     /**
-     * Returns stream of sub-graphs or empty stream if the specified one is not composite.
+     * Lists all top-level sub-graphs attached to the given graph-container.
+     * If the graph is not composite an empty stream is expected.
      *
      * @param graph {@link Graph}
-     * @return Stream of {@link Graph}s.
+     * @return Stream of {@link Graph}s
+     * @see UnionGraph
+     * @see Polyadic
+     * @see Dyadic
      */
     public static Stream<Graph> subGraphs(Graph graph) {
         return graph instanceof UnionGraph ? ((UnionGraph) graph).getUnderlying().graphs() :
@@ -53,19 +60,38 @@ public class Graphs {
     }
 
     /**
-     * Gets base (primary) graph from the specified graph if it is composite, otherwise returns the same one.
+     * Gets a base (primary) graph from the specified graph if it is composite or wrapper, otherwise returns the same graph.
+     * Note: this is a recursive method.
      *
      * @param graph {@link Graph}
      * @return {@link Graph}
+     * @see GraphWrapper
+     * @see ConcurrentGraph
+     * @see UnionGraph
+     * @see Polyadic
+     * @see Dyadic
      */
     public static Graph getBase(Graph graph) {
-        return graph instanceof UnionGraph ? ((UnionGraph) graph).getBaseGraph() :
-                graph instanceof Polyadic ? ((Polyadic) graph).getBaseGraph() :
-                        graph instanceof Dyadic ? (Graph) ((Dyadic) graph).getL() : graph;
+        if (graph instanceof GraphWrapper) {
+            return getBase(((GraphWrapper) graph).get());
+        }
+        if (graph instanceof ConcurrentGraph) {
+            return getBase(((ConcurrentGraph) graph).get());
+        }
+        if (graph instanceof UnionGraph) {
+            return getBase(((UnionGraph) graph).getBaseGraph());
+        }
+        if (graph instanceof Polyadic) {
+            return getBase(((Polyadic) graph).getBaseGraph());
+        }
+        if (graph instanceof Dyadic) {
+            return getBase((Graph) ((Dyadic) graph).getL());
+        }
+        return graph;
     }
 
     /**
-     * Returns all graphs from composite graph including the base as flat stream of non-composite graphs.
+     * Lists all graphs from the composite or wrapper graph including the base as flat stream of non-composite (primitive) graphs.
      * Note: this is a recursive method.
      *
      * @param graph {@link Graph}
@@ -74,6 +100,17 @@ public class Graphs {
     public static Stream<Graph> flat(Graph graph) {
         return graph == null ? Stream.empty() :
                 Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).map(Graphs::flat).flatMap(Function.identity()));
+    }
+
+    /**
+     * Answers {@code true} if the two input graphs are based on the same primitive graph.
+     *
+     * @param left  {@link Graph}
+     * @param right {@link Graph}
+     * @return boolean
+     */
+    public static boolean sameBase(Graph left, Graph right) {
+        return Objects.equals(getBase(left), getBase(right));
     }
 
     /**
@@ -89,11 +126,11 @@ public class Graphs {
     }
 
     /**
-     * Builds union-graph using specified comonents
+     * Builds an union-graph using specified components.
      * Note: this is a recursive method.
      *
-     * @param base {@link Graph} the base graph (root)
-     * @param other   collection of depended {@link Graph graphs}
+     * @param base  {@link Graph} the base graph (root)
+     * @param other collection of depended {@link Graph graphs}
      * @return {@link UnionGraph}
      * @since 1.0.1
      */
@@ -159,7 +196,7 @@ public class Graphs {
     }
 
     /**
-     * Returns uri-subject from owl:imports statements
+     * Returns all uri-subject from {@code owl:imports} statements.
      *
      * @param graph {@link Graph}
      * @return unordered Set of uris from whole graph (it may be composite).
@@ -176,7 +213,7 @@ public class Graphs {
      * For a valid ontology it should be an imports ({@code owl:imports}) tree also.
      * For debugging.
      * <p>
-     * Examples of output:
+     * An examples of possible output:
      * <pre> {@code
      * <http://imports.test.Main.ttl>
      *      <http://imports.test.C.ttl>
@@ -228,6 +265,40 @@ public class Graphs {
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, g, Lang.TURTLE);
         return sw.toString();
+    }
+
+    /**
+     * Makes a concurrent version of the given UnionGraph.
+     *
+     * @param graph {@link UnionGraph}, not null
+     * @param lock  {@link ReadWriteLock}, not null
+     * @return {@link UnionGraph} with {@link ConcurrentGraph} as a base graph
+     */
+    public static UnionGraph asConcurrent(UnionGraph graph, ReadWriteLock lock) {
+        Graph base = getBase(graph);
+        UnionGraph res = new UnionGraph(new ConcurrentGraph(base, lock), graph.getEventManager());
+        graph.getUnderlying().graphs()
+                .map(g -> g instanceof UnionGraph ? reassemble((UnionGraph) g) : g)
+                .forEach(res::addGraph);
+        return res;
+    }
+
+    /**
+     * Reassembles the given Union Graph into a new one.
+     * This operation can be used as opposite to the {@link #asConcurrent(UnionGraph, ReadWriteLock)} method:
+     * it makes an UnionGraph with the same structure as specified but without r/w lock.
+     *
+     * @param graph {@link UnionGraph}
+     * @return {@link UnionGraph}
+     * @see #asConcurrent(UnionGraph, ReadWriteLock)
+     */
+    public static UnionGraph reassemble(UnionGraph graph) {
+        Graph base = getBase(graph);
+        UnionGraph res = new UnionGraph(base, graph.getEventManager());
+        graph.getUnderlying().graphs()
+                .map(g -> g instanceof UnionGraph ? reassemble((UnionGraph) g) : g)
+                .forEach(res::addGraph);
+        return res;
     }
 
 }

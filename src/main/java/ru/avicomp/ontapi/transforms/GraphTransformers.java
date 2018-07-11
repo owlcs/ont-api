@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 28.10.2016.
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class GraphTransformers {
 
     // NOTE: the order may be important
@@ -173,9 +173,8 @@ public abstract class GraphTransformers {
     }
 
     /**
-     * Immutable store of graph-transform Makers with predictable iteration order
-     * and 'engine' to perform transformation on graph.
-     * Extends Serializable due to OWL-API requirements.
+     * Immutable store of graph-transform Makers with predictable iteration order and 'engine' to perform transformation on a graph.
+     * Extends Serializable due to OWL-API requirements, immutability is also due to OWL-API restrictions.
      *
      * @see Maker
      * @see Filter
@@ -365,6 +364,17 @@ public abstract class GraphTransformers {
         }
 
         /**
+         * Appends the given filter to existing one, returns a copy of this Store
+         *
+         * @param filter {@link Filter}, not null;
+         * @return new instance
+         */
+        public Store addFilter(Filter filter) {
+            Objects.requireNonNull(filter);
+            return setFilter(g -> Store.this.filter.test(g) && filter.test(g));
+        }
+
+        /**
          * Creates a copy of this Store with a new filter.
          *
          * @param f {@link Filter}
@@ -374,6 +384,15 @@ public abstract class GraphTransformers {
             Store res = copy();
             res.filter = Objects.requireNonNull(f, "Null filter");
             return res;
+        }
+
+        /**
+         * Retursn encapsulated filter.
+         *
+         * @return {@link Filter}
+         */
+        public Filter getFilter() {
+            return filter;
         }
 
         /**

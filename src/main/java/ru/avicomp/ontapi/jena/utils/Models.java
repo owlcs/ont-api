@@ -15,8 +15,8 @@
 package ru.avicomp.ontapi.jena.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
@@ -230,6 +230,46 @@ public class Models {
     }
 
     /**
+     * Recursively lists all statements for the specified subject (rdf-node).
+     * Note: there is a possibility of StackOverflowError in case graph contains a recursion.
+     *
+     * @param subject {@link RDFNode}, nullable
+     * @return Stream of {@link Statement}s
+     * @throws StackOverflowError in case graph contains recursion
+     * @see Models#getAssociatedStatements(Resource)
+     */
+    public static Stream<Statement> listProperties(RDFNode subject) {
+        if (subject == null || !subject.isAnon()) return Stream.empty();
+        return Iter.asStream(subject.asResource().listProperties())
+                .flatMap(s -> s.getObject().isAnon() ? listProperties(s.getObject().asResource()) : Stream.of(s));
+    }
+
+    /**
+     * Recursively lists all parent resources (subjects) for the specified object (rdf-node).
+     * Note: a possibility of StackOverflowError in case the graph contains a recursion.
+     *
+     * @param object {@link RDFNode}, not null
+     * @return Stream of {@link Resource}s
+     * @throws StackOverflowError in case graph contains recursion
+     */
+    public static Stream<Resource> listSubjects(RDFNode object) {
+        return subjects(object).flatMap(s -> {
+            Stream<Resource> r = Stream.of(s);
+            return s.isAnon() ? Stream.concat(r, listSubjects(s)) : r;
+        });
+    }
+
+    /**
+     * Lists all direct subjects for the given object.
+     *
+     * @param inModel {@link RDFNode}
+     * @return Stream of {@link Resource}s.
+     */
+    public static Stream<Resource> subjects(RDFNode inModel) {
+        return Iter.asStream(inModel.getModel().listResourcesWithProperty(null, inModel));
+    }
+
+    /**
      * Splits the statement on several equivalent ones but with disjoint annotations.
      * This method is useful in case there are several b-nodes for each annotations instead a single one.
      * It is not canonical way to add sub-annotations and should not be widely used, since it is redundant.
@@ -272,6 +312,30 @@ public class Models {
     }
 
     /**
+     * Returns a string representation of the given Jena statement taking into account PrefixMapping.
+     *
+     * @param st {@link Statement}, not null
+     * @param pm {@link PrefixMapping}, not null
+     * @return String
+     */
+    public static String toString(Statement st, PrefixMapping pm) {
+        return String.format("[%s, %s, %s]",
+                st.getSubject().asNode().toString(pm, false),
+                st.getPredicate().asNode().toString(pm, false),
+                st.getObject().asNode().toString(pm, true));
+    }
+
+    /**
+     * Returns a string representation of the given Jena statement.
+     *
+     * @param inModel {@link Statement}, not null
+     * @return String
+     */
+    public static String toString(Statement inModel) {
+        return toString(inModel, inModel.getModel());
+    }
+
+    /**
      * Inserts the given ontology in the dependencies of each ontology from the specified collection ({@code manager}).
      * Can be used to fix missed graphs or to replace existing dependency with new one in case {@code replace = true}.
      *
@@ -293,6 +357,18 @@ public class Models {
                 })
                 .filter(m -> m.imports().map(OntGraphModel::getID).map(Resource::getURI).noneMatch(uri::equals))
                 .forEach(m -> m.addImport(ont));
+    }
+
+    /**
+     * Lists all models that are associated with the given model in the form of a flat stream.
+     * Note: this is a recursive method.
+     *
+     * @param m {@link OntGraphModel}
+     * @return Stream of models, not empty (contains at least the input model)
+     * @see Graphs#flat(Graph)
+     */
+    public static Stream<OntGraphModel> flat(OntGraphModel m) {
+        return Stream.concat(Stream.of(m), m.imports().map(Models::flat).flatMap(Function.identity()));
     }
 
 }

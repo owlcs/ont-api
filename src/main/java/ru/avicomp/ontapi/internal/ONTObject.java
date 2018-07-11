@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An immutable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple triple}s.
+ * An unmodifiable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple triple}s.
  * <p>
  * Created by @szuev on 27.11.2016.
  */
@@ -71,7 +71,7 @@ public abstract class ONTObject<O extends OWLObject> {
     }
 
     /**
-     * Presents this container as {@link Graph}
+     * Presents this container as in-memory {@link Graph}.
      *
      * @return graph
      */

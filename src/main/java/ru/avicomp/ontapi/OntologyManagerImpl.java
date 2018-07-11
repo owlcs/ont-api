@@ -58,7 +58,7 @@ import java.util.stream.Stream;
 
 
 /**
- * An ONT-API Ontology Manager default implementation ({@link OntologyManager}).
+ * An ONT-API default implementation of {@link OntologyManager Ontology Manager}.
  * <p>
  * Created by @szuev on 03.10.2016.
  *
@@ -132,9 +132,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * Answers if this manager is concurrent (i.e. has any non-fictitious {@link ReadWriteLock} inside).
-     * Notice: the method returns {@code true}
-     * if you specify {@code uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock} from standard OWL-API supply,
-     * since OWL-API-impl not in project dependencies.
+     * Notice: an original OWL-API-impl is not in the project dependencies and is not taken into account,
+     * so this method will return {@code true} if {@code uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock}
+     * (which is an another kind of no-op R/W Lock) is specified in constructor.
      *
      * @return boolean
      */
@@ -585,7 +585,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().writeLock().lock();
         try {
             OWLOntologyID id = OntGraphUtils.getOntologyID(graph);
-            // this map can contain null for top-level anonymous graph:
             Map<OWLOntologyID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
             DocumentSourceMapping mapping = _id -> graphs.entrySet()
                     .stream()
@@ -600,7 +599,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 store.remove(mapping);
             }
         } catch (OWLOntologyCreationException e) {
-            throw new OntApiException("Unable put graph to manager", e);
+            throw new OntApiException("Unable put graph into the manager", e);
         } finally {
             getLock().writeLock().unlock();
         }

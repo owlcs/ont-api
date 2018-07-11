@@ -49,11 +49,32 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
      * Constructs a new {@code OWLOntologyWrapper} that provides concurrent access to the specified delegate {@link OWLOntology ontology}.
      *
      * @param delegate {@link OWLOntology} the delegate
-     * @param lock     {@link ReadWriteLock} the R/W Lock to provide thread-safe
+     * @param lock     {@link ReadWriteLock} the R/W Lock to provide thread-safe or {@code null} for non-concurrent mode
      */
     public OWLOntologyWrapper(OWLOntology delegate, ReadWriteLock lock) {
         this.delegate = Objects.requireNonNull(delegate, "Null delegate");
         this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
+    }
+
+    /**
+     * Gets R/W Lock associated with this ontology instance.
+     *
+     * @return {@link ReadWriteLock}
+     */
+    public ReadWriteLock getLock() {
+        return lock;
+    }
+
+    /**
+     * Answers if this ontology is concurrent (i.e. has any non-fictitious {@link ReadWriteLock} inside).
+     * Notice: an original OWL-API-impl is not in the project dependencies and is not taken into account,
+     * so this method will return {@code true} if {@code uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock}
+     * (which is an another kind of no-op R/W Lock) is specified in constructor.
+     *
+     * @return boolean
+     */
+    public boolean isConcurrent() {
+        return NoOpReadWriteLock.NO_OP_RW_LOCK != lock;
     }
 
     @Override
