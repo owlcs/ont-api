@@ -20,6 +20,8 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
+import ru.avicomp.ontapi.jena.ConcurrentGraph;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -220,22 +222,18 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         protected OntGraphModel makeGraphModel() {
             InternalModel base = getBase();
             OntPersonality p = base.getPersonality();
-            return new OntGraphModelImpl(Graphs.asConcurrent(base.getGraph(), lock), p) {
+            UnionGraph orig = base.getGraph();
+            UnionGraph copy = new UnionGraph(new ConcurrentGraph(orig.getBaseGraph(), lock), orig.getUnderlying(), orig.getEventManager());
+            return new OntGraphModelImpl(copy, p) {
 
                 @Override
                 public OntGraphModelImpl addImport(OntGraphModel m) {
-                    OntGraphModel i = asNonConcurrent(m);
-                    super.addImport(i);
-                    base.addImport(i);
-                    return this;
+                    return super.addImport(asNonConcurrent(m));
                 }
 
                 @Override
                 public OntGraphModelImpl removeImport(OntGraphModel m) {
-                    OntGraphModel i = asNonConcurrent(m);
-                    super.removeImport(i);
-                    base.removeImport(i);
-                    return this;
+                    return super.removeImport(asNonConcurrent(m));
                 }
 
                 private OntGraphModel asNonConcurrent(OntGraphModel m) {

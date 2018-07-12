@@ -21,6 +21,7 @@ import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphWrapper;
 import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.UnionGraph;
@@ -268,6 +269,18 @@ public class Graphs {
         StringWriter sw = new StringWriter();
         RDFDataMgr.write(sw, g, Lang.TURTLE);
         return sw.toString();
+    }
+
+    /**
+     * Collects a prefixes library from the collection of the graphs.
+     *
+     * @param graphs {@link Iterable} a collection of graphs
+     * @return unmodifiable {@link PrefixMapping prefix mapping}
+     */
+    public static PrefixMapping collectPrefixes(Iterable<Graph> graphs) {
+        PrefixMapping res = PrefixMapping.Factory.create();
+        graphs.forEach(g -> res.setNsPrefixes(g.getPrefixMapping()));
+        return res.lock();
     }
 
     /**

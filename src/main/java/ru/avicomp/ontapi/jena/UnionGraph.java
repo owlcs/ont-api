@@ -24,6 +24,7 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -34,24 +35,36 @@ import java.util.stream.Stream;
  * Such structure allows to build graph hierarchy which is used to reference between different models.
  * <p>
  * Created by szuev on 28.10.2016.
+ *
  * @see ru.avicomp.ontapi.jena.impl.UnionModel
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class UnionGraph extends Union {
 
     /**
-     * @param base Graph
+     * @param base {@link Graph}, not null
      */
     public UnionGraph(Graph base) {
         this(base, new OntEventManager());
     }
 
     /**
-     * @param base Graph
-     * @param gem  {@link OntEventManager}
+     * @param base {@link Graph}, not null
+     * @param gem  {@link OntEventManager}, not null
      */
     public UnionGraph(Graph base, OntEventManager gem) {
-        super(base, new OntMultiUnion());
-        this.gem = OntJenaException.notNull(gem, "Null event manager.");
+        this(base, new OntMultiUnion(), gem);
+    }
+
+    /**
+     * @param base {@link Graph}, not null
+     * @param sub  {@link OntMultiUnion}, not null
+     * @param gem  {@link OntEventManager}, not null
+     * @throws NullPointerException if null args
+     */
+    public UnionGraph(Graph base, OntMultiUnion sub, OntEventManager gem) {
+        super(Objects.requireNonNull(base), Objects.requireNonNull(sub));
+        this.gem = Objects.requireNonNull(gem, "Null event manager.");
     }
 
     public Graph getBaseGraph() {
@@ -99,6 +112,9 @@ public class UnionGraph extends Union {
         return L.find(t);
     }
 
+    /**
+     * An extended {@link MultiUnion Standard Jena MultiUnion Graph} with several useful methods.
+     */
     public static class OntMultiUnion extends MultiUnion {
 
         public OntMultiUnion() {
@@ -122,6 +138,9 @@ public class UnionGraph extends Union {
         }
     }
 
+    /**
+     * An extended {@link org.apache.jena.graph.GraphEventManager Jena Graph Event Manager}, a holder for {@link GraphListener}s.
+     */
     public static class OntEventManager extends SimpleEventManager {
 
         public Stream<GraphListener> listeners() {

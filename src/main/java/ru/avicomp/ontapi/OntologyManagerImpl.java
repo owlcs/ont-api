@@ -696,7 +696,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Finds ontology by id or iri.
+     * Finds ontology by the id or iri.
      *
      * @param id {@link OWLOntologyID}
      * @return Optional around {@link OntologyModel}
@@ -708,6 +708,18 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             res = content.values().filter(e -> e.id().matchOntology(iri)).findFirst();
         }
         return res.map(OntInfo::get);
+    }
+
+    /**
+     * Finds ontology by the given graph.
+     *
+     * @param graph {@link Graph}
+     * @return Optional around {@link OntologyModel}
+     */
+    protected Optional<OntologyModel> ontology(Graph graph) {
+        return content.values().map(OntInfo::get)
+                .filter(m -> Graphs.isSameBase(graph, m.asGraphModel().getGraph()))
+                .findFirst();
     }
 
     /**
@@ -2075,7 +2087,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * But perhaps we can introduce some caches to speed up if necessary.
      */
     public class OntologyCollection implements Serializable {
-        private final Collection<OntInfo> map;
+        protected final Collection<OntInfo> map;
 
         public OntologyCollection(Collection<OntInfo> c) {
             this.map = c;
@@ -2139,11 +2151,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @SuppressWarnings("UnusedReturnValue")
     public class OntInfo implements Serializable {
-        private final OntologyModel ont;
-        private final ConfigProvider.Config conf;
-        private IRI documentIRI;
-        private OWLImportsDeclaration declaration;
-        private OWLDocumentFormat format;
+        protected final OntologyModel ont;
+        protected final ConfigProvider.Config conf;
+        protected IRI documentIRI;
+        protected OWLImportsDeclaration declaration;
+        protected OWLDocumentFormat format;
 
         public OntInfo(@Nonnull OntologyModel ont) {
             this.ont = ont;
@@ -2201,9 +2213,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     @SuppressWarnings("UnusedReturnValue")
     public static class ModelConfig implements ConfigProvider.Config, Serializable {
-        private OntLoaderConfiguration modelLoaderConf;
-        private OntWriterConfiguration modelWriterConf;
-        private OntologyManagerImpl manager;
+        protected OntLoaderConfiguration modelLoaderConf;
+        protected OntWriterConfiguration modelWriterConf;
+        protected OntologyManagerImpl manager;
 
         public ModelConfig(OntologyManagerImpl m) {
             this.manager = m;
@@ -2257,7 +2269,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * Created by @szuev on 05.07.2018.
      */
     public static class ConcurrentConfig extends OntConfig {
-        private final ReadWriteLock lock;
+        protected final ReadWriteLock lock;
 
         public ConcurrentConfig(ReadWriteLock lock) {
             this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
