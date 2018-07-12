@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntID;
@@ -35,10 +36,7 @@ import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -240,6 +238,71 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(0, a.asGraphModel().imports().count());
         Assert.assertEquals(1, a.signature(Imports.INCLUDED).count());
         Assert.assertEquals(1, a.asGraphModel().listClasses().count());
+    }
+
+    @Test
+    public void testCommonDifferentImportsStrategies() {
+        oneMoreImportsTest(OntManagers.createONT());
+    }
+
+    @Test
+    public void testConcurrentDifferentImportsStrategies() {
+        oneMoreImportsTest(OntManagers.createConcurrentONT());
+    }
+
+    private void oneMoreImportsTest(OntologyManager m) {
+        String a_uri = "http://a";
+        String b_uri = "http://b";
+        String c_uri = "http://c";
+        OWLDataFactory df = m.getOWLDataFactory();
+        OntologyModel a = m.createOntology(IRI.create(a_uri));
+        OntologyModel b = m.createOntology(IRI.create(b_uri));
+        OntologyModel c = m.createOntology(IRI.create(c_uri));
+        c.asGraphModel().createOntEntity(OntClass.class, c_uri + "#c-1");
+
+        a.add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(a_uri + "#a-1"))));
+        Assert.assertEquals(1, a.axioms().count());
+
+        a.asGraphModel().createOntEntity(OntClass.class, a_uri + "#a-2");
+        Assert.assertEquals(2, a.axioms().count());
+
+        a.asGraphModel().addImport(b.asGraphModel());
+        b.add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-1"))));
+        b.asGraphModel().createOntEntity(OntClass.class, b_uri + "#b-2");
+        Assert.assertEquals(4, a.axioms(Imports.INCLUDED).count());
+        Assert.assertEquals(4, a.asGraphModel().listClasses().count());
+
+        a.asGraphModel().imports().findFirst().orElseThrow(AssertionError::new).createOntEntity(OntClass.class, b_uri + "#b-3");
+        a.imports().findFirst().orElseThrow(AssertionError::new).add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-4"))));
+        Assert.assertEquals(6, a.axioms(Imports.INCLUDED).count());
+        Assert.assertEquals(6, a.asGraphModel().listClasses().count());
+
+        OntModelFactory.createModel(a.asGraphModel().getGraph()).createOntEntity(OntClass.class, a_uri + "#a-3");
+        OntModelFactory.createModel(a.asGraphModel().imports().findFirst()
+                .orElseThrow(AssertionError::new).getGraph()).createOntEntity(OntClass.class, b_uri + "#b-5");
+        Assert.assertEquals(8, a.axioms(Imports.INCLUDED).count());
+        Assert.assertEquals(8, a.asGraphModel().listClasses().count());
+
+        Optional.ofNullable(m.getOntology(IRI.create("http://b")))
+                .orElseThrow(AssertionError::new).asGraphModel().createOntEntity(OntClass.class, b_uri + "#b-6");
+        Optional.ofNullable(m.getOntology(IRI.create("http://b")))
+                .orElseThrow(AssertionError::new).add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-7"))));
+        Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
+        Assert.assertEquals(10, a.asGraphModel().listClasses().count());
+
+        OntModelFactory.createModel(a.asGraphModel().getGraph()).addImport(c.asGraphModel());
+        Assert.assertEquals(11, a.axioms(Imports.INCLUDED).count());
+        Assert.assertEquals(11, a.asGraphModel().listClasses().count());
+        OntModelFactory.createModel(a.asGraphModel().getGraph()).removeImport(c.asGraphModel());
+        Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
+        Assert.assertEquals(10, a.asGraphModel().listClasses().count());
+
+        OntModelFactory.createModel(a.asGraphModel().getGraph()).addImport(m.getGraphModel("http://c"));
+        Assert.assertEquals(11, a.axioms(Imports.INCLUDED).count());
+        Assert.assertEquals(11, a.asGraphModel().listClasses().count());
+        OntModelFactory.createModel(a.asGraphModel().getGraph()).removeImport(m.getGraphModel("http://c"));
+        Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
+        Assert.assertEquals(10, a.asGraphModel().listClasses().count());
     }
 
     private static void assertDeclarationInModels(OntGraphModel base, OntGraphModel child, Resource subject, Resource type) {
