@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.tests.model;
 
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
@@ -50,7 +49,7 @@ import java.util.stream.Collectors;
 public class ImportsOntModelTest extends OntModelTestBase {
 
     @Test
-    public void testAdd() {
+    public void testMixedAddImports() {
         OntIRI iri = OntIRI.create("http://test.test/add-import/1");
         OntologyModel owl = TestUtils.createModel(iri);
         OntologyManager manager = owl.getOWLOntologyManager();
@@ -87,7 +86,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
     }
 
     @Test
-    public void testGraph() {
+    public void testOWLAddImports() {
         OntIRI baseIRI = OntIRI.create("http://test.test/add-import/base");
         OntologyManager manager = OntManagers.createConcurrentONT();
         OWLDataFactory factory = manager.getOWLDataFactory();
@@ -148,12 +147,12 @@ public class ImportsOntModelTest extends OntModelTestBase {
         debug(child);
 
         LOGGER.debug("Check triplets presence.");
-        checkTriple(base.asGraphModel(), child.asGraphModel(), classIRI1.toResource(), RDF.type, OWL.Class);
-        checkTriple(base.asGraphModel(), child.asGraphModel(), classIRI2.toResource(), RDF.type, OWL.Class);
-        checkTriple(base.asGraphModel(), child.asGraphModel(), objPropIRI.toResource(), RDF.type, OWL.ObjectProperty);
-        checkTriple(base.asGraphModel(), child.asGraphModel(), dataPropIRI.toResource(), RDF.type, OWL.DatatypeProperty);
-        checkTriple(base.asGraphModel(), child.asGraphModel(), annPropIRI.toResource(), RDF.type, OWL.AnnotationProperty);
-        checkTriple(base.asGraphModel(), child.asGraphModel(), dataTypeIRI.toResource(), RDF.type, RDFS.Datatype);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), classIRI1.toResource(), OWL.Class);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), classIRI2.toResource(), OWL.Class);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), objPropIRI.toResource(), OWL.ObjectProperty);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), dataPropIRI.toResource(), OWL.DatatypeProperty);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), annPropIRI.toResource(), OWL.AnnotationProperty);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), dataTypeIRI.toResource(), RDFS.Datatype);
 
         LOGGER.debug("Reload models.");
         OntologyManager newManager = OntManagers.createONT();
@@ -176,16 +175,16 @@ public class ImportsOntModelTest extends OntModelTestBase {
         LOGGER.debug("Remove import test");
         child.applyChanges(new RemoveImport(child, factory.getOWLImportsDeclaration(baseIRI)));
         debug(child);
-        checkTriplePresence(child.asGraphModel(), classIRI1.toResource(), RDF.type, OWL.Class);
-        checkTriplePresence(child.asGraphModel(), classIRI2.toResource(), RDF.type, OWL.Class);
-        checkTriplePresence(child.asGraphModel(), objPropIRI.toResource(), RDF.type, OWL.ObjectProperty);
-        checkTriplePresence(child.asGraphModel(), dataPropIRI.toResource(), RDF.type, OWL.DatatypeProperty);
-        checkTriplePresence(child.asGraphModel(), annPropIRI.toResource(), RDF.type, OWL.AnnotationProperty);
-        checkTripleAbsence(child.asGraphModel(), dataTypeIRI.toResource(), RDF.type, RDFS.Datatype);
+        assertHasDeclaration(child.asGraphModel(), classIRI1.toResource(), OWL.Class);
+        assertHasDeclaration(child.asGraphModel(), classIRI2.toResource(), OWL.Class);
+        assertHasDeclaration(child.asGraphModel(), objPropIRI.toResource(), OWL.ObjectProperty);
+        assertHasDeclaration(child.asGraphModel(), dataPropIRI.toResource(), OWL.DatatypeProperty);
+        assertHasDeclaration(child.asGraphModel(), annPropIRI.toResource(), OWL.AnnotationProperty);
+        assertHasNoDeclaration(child.asGraphModel(), dataTypeIRI.toResource(), RDFS.Datatype);
     }
 
     @Test
-    public void testSimpleImportsBehaviour() {
+    public void testCommonImportsBehaviour() {
         OntologyManager m = OntManagers.createONT();
         String a_uri = "A";
         String b_uri = "B";
@@ -221,22 +220,44 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(b_axioms_2, a_axioms_2);
     }
 
-    private static void checkTriple(OntGraphModel base, OntGraphModel child, Resource subject, Property predicate, RDFNode object) {
-        checkTriplePresence(base, subject, predicate, object);
-        checkTripleAbsence(child, subject, predicate, object);
+    @Test
+    public void testConcurrentImportsBehaviour() {
+        OntologyManager m = OntManagers.createConcurrentONT();
+        OntologyModel a = m.createOntology(IRI.create("a"));
+        OntologyModel b = m.createOntology(IRI.create("b"));
+        a.asGraphModel().addImport(b.asGraphModel());
+        Assert.assertEquals(1, a.imports().count());
+        Assert.assertEquals(0, b.imports().count());
+        Assert.assertEquals(1, a.asGraphModel().imports().count());
+        Assert.assertEquals(0, b.asGraphModel().imports().count());
+        a.asGraphModel().createOntEntity(OntClass.class, "A-C");
+        b.asGraphModel().createOntEntity(OntClass.class, "B-C");
+        Assert.assertEquals(2, a.signature(Imports.INCLUDED).count());
+        Assert.assertEquals(2, a.asGraphModel().listClasses().count());
+
+        Assert.assertEquals(0, a.asGraphModel().removeImport(b.asGraphModel()).imports().count());
+        Assert.assertEquals(0, a.imports().count());
+        Assert.assertEquals(0, a.asGraphModel().imports().count());
+        Assert.assertEquals(1, a.signature(Imports.INCLUDED).count());
+        Assert.assertEquals(1, a.asGraphModel().listClasses().count());
     }
 
-    private static void checkTriplePresence(OntGraphModel model, Resource subject, Property predicate, RDFNode object) {
-        Triple t = createTriple(subject, predicate, object);
+    private static void assertDeclarationInModels(OntGraphModel base, OntGraphModel child, Resource subject, Resource type) {
+        assertHasDeclaration(base, subject, type);
+        assertHasNoDeclaration(child, subject, type);
+    }
+
+    private static void assertHasDeclaration(OntGraphModel model, Resource subject, Resource object) {
+        Triple t = createDeclaration(subject, object);
         Assert.assertTrue("Can't find the triple " + t, model.getBaseGraph().contains(t));
     }
 
-    private static void checkTripleAbsence(OntGraphModel model, Resource subject, Property predicate, RDFNode object) {
-        Triple t = createTriple(subject, predicate, object);
+    private static void assertHasNoDeclaration(OntGraphModel model, Resource subject, Resource object) {
+        Triple t = createDeclaration(subject, object);
         Assert.assertFalse("There is the triple " + t, model.getBaseGraph().contains(t));
     }
 
-    private static Triple createTriple(Resource r, Property p, RDFNode o) {
-        return Triple.create(r.asNode(), p.asNode(), o.asNode());
+    private static Triple createDeclaration(Resource r, RDFNode o) {
+        return Triple.create(r.asNode(), RDF.type.asNode(), o.asNode());
     }
 }

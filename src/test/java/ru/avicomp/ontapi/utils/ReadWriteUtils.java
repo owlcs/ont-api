@@ -62,11 +62,13 @@ public class ReadWriteUtils {
     }
 
     public static void print(OWLOntology ontology, OntFormat ext) {
-        LOGGER.debug("\n" + toString(ontology, ext));
+        if (LOGGER.isDebugEnabled())
+            LOGGER.debug("\n{}", toString(ontology, ext));
     }
 
     public static void print(Model model, OntFormat ext) {
-        LOGGER.debug("\n" + toString(model, ext));
+        if (LOGGER.isDebugEnabled())
+            LOGGER.debug("\n{}", toString(model, ext));
     }
 
     public static String toString(OWLOntology ontology, OntFormat format) {
@@ -155,8 +157,8 @@ public class ReadWriteUtils {
      * Utilitarian method to get the File from '/resources' directory.
      * Can work with jar file as well.
      *
-     * @param dirName String, project dir, nullable
-     * @param fileName       String resource file name
+     * @param dirName  String, project dir, nullable
+     * @param fileName String resource file name
      * @return {@link Path} to resource
      * @throws Exception if something wrong
      */

@@ -40,6 +40,7 @@ abstract class OntModelTestBase {
     static final Logger LOGGER = LoggerFactory.getLogger(OntModelTestBase.class);
 
     public static void debug(OWLOntology ontology) {
+        if (!LOGGER.isDebugEnabled()) return;
         LOGGER.debug("DEBUG:");
         ReadWriteUtils.print(ontology, OntFormat.TURTLE);
         LOGGER.debug("Axioms:");
