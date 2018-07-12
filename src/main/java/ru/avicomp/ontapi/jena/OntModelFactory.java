@@ -61,7 +61,7 @@ public class OntModelFactory {
     /**
      * Creates default (in-memory) graph implementation.
      *
-     * @return {@link Graph}
+     * @return {@link GraphMem in-memory Jena Graph}
      * @see org.apache.jena.graph.Factory#createGraphMem()
      */
     public static Graph createDefaultGraph() {

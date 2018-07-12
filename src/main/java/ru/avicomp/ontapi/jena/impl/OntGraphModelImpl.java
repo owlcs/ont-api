@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -157,17 +158,24 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public OntGraphModelImpl removeImport(OntGraphModel m) {
-        getGraph().removeGraph(OntJenaException.notNull(m, "Null model.").getGraph());
-        getID().removeImport(m.getID().getURI());
-        return this;
+        return removeFirst(x -> Graphs.isSameBase(x.getGraph(), m.getGraph()));
     }
 
     @Override
     public OntGraphModelImpl removeImport(String uri) {
-        imports().filter(m -> Objects.equals(uri, m.getID().getURI()))
+        return removeFirst(x -> Objects.equals(uri, x.getID().getURI()));
+    }
+
+    protected OntGraphModelImpl removeFirst(Predicate<OntGraphModel> filter) {
+        imports().filter(filter)
                 .findFirst()
-                .ifPresent(this::removeImport);
+                .ifPresent(this::removeModel);
         return this;
+    }
+
+    protected void removeModel(OntGraphModel m) {
+        getGraph().removeGraph(m.getGraph());
+        getID().removeImport(m.getID().getURI());
     }
 
     @Override

@@ -118,7 +118,7 @@ public interface OntGraphModel extends Model {
 
     /**
      * Removes import (both {@code owl:import} declaration and the corresponding graph)
-     * with the specified uri if is found.
+     * by the given uri if it is found.
      *
      * @param uri String, an iri of ontology to find, not null
      * @return this model to allow cascading calls

@@ -29,6 +29,7 @@ import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.model.OntID;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nonnull;
@@ -877,7 +878,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * @throws OntApiException in case this instance encapsulates graph which is not stored in memory
      */
     private void writeObject(ObjectOutputStream out) throws IOException, OntApiException {
-        Graph g = base.getBaseGraph();
+        Graph g = Graphs.getBase(base.getBaseGraph());
         if (!(g instanceof GraphMem))
             throw new OntApiException(ontologyID + ":: Serialization is not supported for non-memory graphs.");
         out.defaultWriteObject();

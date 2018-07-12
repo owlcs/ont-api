@@ -19,6 +19,8 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 
+import java.util.concurrent.locks.ReadWriteLock;
+
 /**
  * An implementation of {@link OntologyFactory.Builder} - a technical factory to create standalone ontology instances.
  * This should be the only way to create {@link OntologyModel} instances.
@@ -31,13 +33,13 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
         OntologyManagerImpl m = OWLAdapter.get().asIMPL(manager);
         OntologyModelImpl res = createOntologyImpl(createGraph(), m, m.getOntologyLoaderConfiguration());
         res.setOntologyID(id);
-        return withLock(res, m);
+        return withLock(res, m.getLock());
     }
 
     @Override
     public OntologyModel createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config) {
         OntologyManagerImpl m = OWLAdapter.get().asIMPL(manager);
-        return withLock(createOntologyImpl(graph, m, config), m);
+        return withLock(createOntologyImpl(graph, m, config), m.getLock());
     }
 
     public OntologyModelImpl createOntologyImpl(Graph graph, OntologyManagerImpl manager, OntLoaderConfiguration config) {
@@ -47,11 +49,17 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
         return new OntologyModelImpl(graph, modelConfig);
     }
 
-    public OntologyModel withLock(OntologyModelImpl ont, OntologyManagerImpl manager) {
-        if (!manager.isConcurrent()) return ont;
-        return new OntologyModelImpl.Concurrent(ont, manager.getLock());
+    public OntologyModel withLock(OntologyModelImpl ont, ReadWriteLock lock) {
+        if (NoOpReadWriteLock.NO_OP_RW_LOCK.equals(lock)) return ont;
+        return new OntologyModelImpl.Concurrent(ont, lock);
     }
 
+
+    /**
+     * Creates an {@link org.apache.jena.mem.GraphMem in-memory graph}.
+     *
+     * @return Graph
+     */
     @Override
     public Graph createGraph() {
         return OntModelFactory.createDefaultGraph();

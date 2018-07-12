@@ -39,6 +39,9 @@ import java.util.stream.Stream;
  * Helper to work with jena {@link Graph} (generally with our {@link UnionGraph})
  * <p>
  * Created by szuev on 06.02.2017.
+ *
+ * @see org.apache.jena.graph.GraphUtil
+ * @see org.apache.jena.sparql.util.graph.GraphUtils
  */
 @SuppressWarnings("WeakerAccess")
 public class Graphs {
@@ -109,7 +112,7 @@ public class Graphs {
      * @param right {@link Graph}
      * @return boolean
      */
-    public static boolean sameBase(Graph left, Graph right) {
+    public static boolean isSameBase(Graph left, Graph right) {
         return Objects.equals(getBase(left), getBase(right));
     }
 
@@ -268,35 +271,49 @@ public class Graphs {
     }
 
     /**
-     * Makes a concurrent version of the given UnionGraph.
+     * Makes a concurrent version of the given Graph by wrapping it as ConcurrentGraph.
+     * If the input is an UnionGraph, only the base (primary) graph will contain the specified R/W lock.
+     * The result graph has the same structure as specified.
      *
-     * @param graph {@link UnionGraph}, not null
+     * @param graph {@link Graph}, not null
      * @param lock  {@link ReadWriteLock}, not null
-     * @return {@link UnionGraph} with {@link ConcurrentGraph} as a base graph
+     * @return {@link Graph} with {@link ReadWriteLock}
      */
-    public static UnionGraph asConcurrent(UnionGraph graph, ReadWriteLock lock) {
-        Graph base = getBase(graph);
-        UnionGraph res = new UnionGraph(new ConcurrentGraph(base, lock), graph.getEventManager());
-        graph.getUnderlying().graphs()
-                .map(g -> g instanceof UnionGraph ? reassemble((UnionGraph) g) : g)
+    public static Graph asConcurrent(Graph graph, ReadWriteLock lock) {
+        if (graph instanceof ConcurrentGraph) {
+            return asConcurrent(((ConcurrentGraph) graph).get(), lock);
+        }
+        if (!(graph instanceof UnionGraph)) {
+            return new ConcurrentGraph(graph, lock);
+        }
+        UnionGraph u = (UnionGraph) graph;
+        Graph base = asConcurrent(u.getBaseGraph(), lock);
+        UnionGraph res = new UnionGraph(base, u.getEventManager());
+        u.getUnderlying().graphs()
+                .map(Graphs::asNonConcurrent)
                 .forEach(res::addGraph);
         return res;
     }
 
     /**
-     * Reassembles the given Union Graph into a new one.
-     * This operation can be used as opposite to the {@link #asConcurrent(UnionGraph, ReadWriteLock)} method:
-     * it makes an UnionGraph with the same structure as specified but without r/w lock.
-     *
-     * @param graph {@link UnionGraph}
-     * @return {@link UnionGraph}
-     * @see #asConcurrent(UnionGraph, ReadWriteLock)
+     * Removes concurrency from the given graph.
+     * This operation is opposite to the {@link #asConcurrent(Graph, ReadWriteLock)} method:
+     * if the input is an UnionGraph it makes an UnionGraph with the same structure as specified but without R/W lock.
+     * @param graph {@link Graph}
+     * @return {@link Graph}
      */
-    public static UnionGraph reassemble(UnionGraph graph) {
-        Graph base = getBase(graph);
-        UnionGraph res = new UnionGraph(base, graph.getEventManager());
-        graph.getUnderlying().graphs()
-                .map(g -> g instanceof UnionGraph ? reassemble((UnionGraph) g) : g)
+    public static Graph asNonConcurrent(Graph graph) {
+        if (graph instanceof ConcurrentGraph) {
+            return ((ConcurrentGraph) graph).get();
+        }
+        if (!(graph instanceof UnionGraph)) {
+            return graph;
+        }
+        UnionGraph u = (UnionGraph) graph;
+        Graph base = asNonConcurrent(u.getBaseGraph());
+        UnionGraph res = new UnionGraph(base, u.getEventManager());
+        u.getUnderlying().graphs()
+                .map(Graphs::asNonConcurrent)
                 .forEach(res::addGraph);
         return res;
     }

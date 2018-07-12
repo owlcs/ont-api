@@ -20,7 +20,8 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
-import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 
@@ -178,7 +179,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     }
 
     /**
-     * The analogue of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/concurrent/ConcurrentOWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyImpl</a>.
+     * A concurrent version of {@link OntologyModel}.
      * <p>
      * Created by szuev on 22.12.2016.
      */
@@ -194,6 +195,11 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         }
 
         /**
+         * Creates a concurrent version of Ontology Graph Model with R/W Lock inside, backed by the given model.
+         * The internal Jena model, which is provided by the method {@link #getBase()}, does not contain any lock.
+         * This is due to the danger of the occurrence of deadlock or livelock,
+         * which are possible when work with the (caffeine) cache and the locked graph simultaneously.
+         *
          * @return {@link OntGraphModel}
          */
         @Override
@@ -213,7 +219,29 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
          */
         protected OntGraphModel makeGraphModel() {
             InternalModel base = getBase();
-            return OntModelFactory.createModel(Graphs.asConcurrent(base.getGraph(), lock), base.getPersonality());
+            OntPersonality p = base.getPersonality();
+            return new OntGraphModelImpl(Graphs.asConcurrent(base.getGraph(), lock), p) {
+
+                @Override
+                public OntGraphModelImpl addImport(OntGraphModel m) {
+                    OntGraphModel i = asNonConcurrent(m);
+                    super.addImport(i);
+                    base.addImport(i);
+                    return this;
+                }
+
+                @Override
+                public OntGraphModelImpl removeImport(OntGraphModel m) {
+                    OntGraphModel i = asNonConcurrent(m);
+                    super.removeImport(i);
+                    base.removeImport(i);
+                    return this;
+                }
+
+                private OntGraphModel asNonConcurrent(OntGraphModel m) {
+                    return new OntGraphModelImpl(Graphs.asNonConcurrent(m.getGraph()), p);
+                }
+            };
         }
 
         /**
