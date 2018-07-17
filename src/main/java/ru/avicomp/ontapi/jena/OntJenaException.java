@@ -17,11 +17,13 @@ package ru.avicomp.ontapi.jena;
 import org.apache.jena.shared.JenaException;
 
 /**
- * A base jena exception to use inside ont subsystem (i.e. package {@link ru.avicomp.ontapi.jena}).
+ * A base jena exception that is used inside ONT RDF Model subsystem (i.e. inside package {@link ru.avicomp.ontapi.jena}).
  * <p>
  * Created by @szuev on 24.11.2016.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class OntJenaException extends JenaException {
+
     public OntJenaException() {
         super();
     }
@@ -40,13 +42,15 @@ public class OntJenaException extends JenaException {
 
     public static <T> T notNull(T obj, String message) {
         if (obj == null)
-            throw message == null ? new OntJenaException() : new OntJenaException(message);
+            throw message == null ? new IllegalArgument() : new IllegalArgument(message);
         return obj;
     }
 
     /**
      * This is an analogue of {@link org.apache.jena.ontology.ConversionException},
-     * used inside top level api ({@link ru.avicomp.ontapi.jena.model.OntGraphModel} and maybe {@link ru.avicomp.ontapi.jena.model.OntObject}).
+     * used inside top level api ({@link ru.avicomp.ontapi.jena.model.OntGraphModel}
+     * and (maybe) inside {@link ru.avicomp.ontapi.jena.model.OntObject}) implementation.
+     * In the personality level a standard jena exception (ConversionException) should be used.
      */
     public static class Conversion extends OntJenaException {
         public Conversion(String message, Throwable cause) {
@@ -72,7 +76,7 @@ public class OntJenaException extends JenaException {
     }
 
     /**
-     * Exception to indicate that a feature is not supported right now.
+     * An exception to indicate that a feature is not supported right now or by design.
      */
     public static class Unsupported extends OntJenaException {
         public Unsupported() {
@@ -85,7 +89,7 @@ public class OntJenaException extends JenaException {
     }
 
     /**
-     * Exception that is thrown if a recursion is found in the graph.
+     * An exception that is thrown if a recursion is found in the graph.
      * Example of such graph recursion:
      * <pre>{@code  _:b0 a owl:Class ; owl:complementOf  _:b0 .}</pre>
      */
@@ -94,5 +98,34 @@ public class OntJenaException extends JenaException {
         public Recursion(String message) {
             super(message);
         }
+    }
+
+    public static class IllegalArgument extends OntJenaException {
+        public IllegalArgument() {
+        }
+
+        public IllegalArgument(String message) {
+            super(message);
+        }
+
+        public IllegalArgument(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+    }
+
+    public static class IllegalState extends OntJenaException {
+
+        public IllegalState() {
+        }
+
+        public IllegalState(String message) {
+            super(message);
+        }
+
+        public IllegalState(String message, Throwable cause) {
+            super(message, cause);
+        }
+
     }
 }

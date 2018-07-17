@@ -21,6 +21,7 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Stream;
 
 /**
@@ -41,6 +42,42 @@ public interface OntOPE extends OntPE {
     OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
 
     /**
+     * TODO:
+     *
+     * @return fresh empty {@link OntList}
+     */
+    default OntList<OntOPE> createPropertyChain() {
+        return createPropertyChain(Collections.emptySet());
+    }
+
+    /**
+     * TODO: description
+     *
+     * @param properties Collection of {@link OntOPE object property expression}s
+     * @return {@link OntList}
+     * @since 1.2.1
+     */
+    OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties);
+
+    /**
+     * TODO:
+     * @return Stream of {@link OntOPE object property expression}s
+     * @since 1.2.1
+     */
+    Stream<OntList<OntOPE>> listPropertyChains();
+
+    /**
+     * Returns all sub-property-of chains.
+     *
+     * @return Stream of {@link RDFList}s
+     * @deprecated todo:
+     */
+    @Deprecated
+    default Stream<RDFList> propertyChains() {
+        return listPropertyChains().map(c -> c.as(RDFList.class));
+    }
+
+    /**
      * Returns all members the right part of statement {@code P owl:propertyChainAxiom (P1 ... Pn)}
      * Note(1): in the result there could be repetitions.
      * Example: {@code SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )}
@@ -48,15 +85,12 @@ public interface OntOPE extends OntPE {
      * there is also {@link #propertyChains()} method to handle all chains.
      *
      * @return Stream of {@link OntOPE}s.
+     * @deprecated // todo:
      */
-    Stream<OntOPE> superPropertyOf();
-
-    /**
-     * Returns all sub-property-of chains.
-     *
-     * @return Stream of {@link RDFList}s
-     */
-    Stream<RDFList> propertyChains();
+    @Deprecated
+    default Stream<OntOPE> superPropertyOf() {
+        return listPropertyChains().flatMap(OntList::members);
+    }
 
     /**
      * Adds new sub-property-of chain.

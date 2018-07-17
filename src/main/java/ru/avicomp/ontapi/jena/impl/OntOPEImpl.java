@@ -19,7 +19,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -125,13 +124,13 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public Stream<OntOPE> superPropertyOf() {
-        return Iter.asStream(getRequiredProperty(OWL.propertyChainAxiom).getObject().as(RDFList.class).iterator()).map(r -> r.as(OntOPE.class));
+    public OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties) {
+        return OntListImpl.create(this, OWL.propertyChainAxiom, OntOPE.class, properties);
     }
 
     @Override
-    public Stream<RDFList> propertyChains() {
-        return statements(OWL.propertyChainAxiom).map(Statement::getObject).map(r -> r.as(RDFList.class));
+    public Stream<OntList<OntOPE>> listPropertyChains() {
+        return OntListImpl.stream(this, OWL.propertyChainAxiom, OntOPE.class);
     }
 
     @Override
