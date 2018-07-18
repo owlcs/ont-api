@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 /**
  * An Ontology ID.
  * Each {@link OntGraphModel OWL2 Obtology} must have the only one {@link OntID id} inside.
+ * Please note: this interface does not affect the structure of the rdf-graph, it works only with graph statements.
  * <p>
  * Created by szuev on 09.11.2016.
  */

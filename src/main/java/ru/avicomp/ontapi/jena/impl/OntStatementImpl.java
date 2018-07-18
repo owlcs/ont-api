@@ -14,10 +14,7 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -203,11 +200,15 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return Stream of {@link OntAnnotation}
      */
     protected static Stream<OntAnnotation> findOntAnnotationResources(OntStatementImpl base, Resource type, BiFunction<Resource, OntStatementImpl, OntAnnotation> maker) {
-        return Iter.asStream(base.getModel().listSubjectsWithProperty(OWL.annotatedSource, base.getSubject()))
-                .filter(r -> r.hasProperty(RDF.type, type))
-                .filter(r -> r.hasProperty(OWL.annotatedProperty, base.getPredicate()))
-                .filter(r -> r.hasProperty(OWL.annotatedTarget, base.getObject()))
+        return findAnnotations(base.getModel(), type, base.getSubject(), base.getPredicate(), base.getObject())
                 .map(r -> maker.apply(r, base));
+    }
+
+    protected static Stream<Resource> findAnnotations(Model m, Resource t, Resource s, Property p, RDFNode o) {
+        return Iter.asStream(m.listResourcesWithProperty(OWL.annotatedSource, s))
+                .filter(r -> r.hasProperty(RDF.type, t))
+                .filter(r -> r.hasProperty(OWL.annotatedProperty, p))
+                .filter(r -> r.hasProperty(OWL.annotatedTarget, o));
     }
 
     /**

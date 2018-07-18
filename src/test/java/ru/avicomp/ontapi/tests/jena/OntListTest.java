@@ -14,9 +14,12 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.XSD;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -30,6 +33,8 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by @szuev on 10.07.2018.
@@ -47,7 +52,7 @@ public class OntListTest {
         p1.addSuperPropertyOf(Collections.emptySet());
         check(m, 1, OntNOP.class);
 
-        OntList<OntOPE> list = p2.createPropertyChain();
+        OntList<OntOPE> list = p2.createPropertyChain(Collections.emptySet());
         Assert.assertTrue(list.canAs(RDFList.class));
         RDFList r_list = list.as(RDFList.class);
         System.out.println(r_list.isEmpty() + " " + r_list.isValid());
@@ -89,7 +94,7 @@ public class OntListTest {
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
         OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
-        p1.createPropertyChain().add(p2).add(p3);
+        p1.createPropertyChain(Collections.singleton(p2)).add(p3);
         check(m, 1, OntOPE.class);
 
         Assert.assertEquals(1, p1.listPropertyChains().count());
@@ -140,7 +145,7 @@ public class OntListTest {
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
         OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
 
-        OntList<OntOPE> list = p1.createPropertyChain().add(p2).add(p3).add(p4);
+        OntList<OntOPE> list = p1.createPropertyChain(Arrays.asList(p2, p3)).add(p4);
         check(m, 1, OntOPE.class);
 
         Assert.assertEquals(3, list.get(0).size());
@@ -168,7 +173,7 @@ public class OntListTest {
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
         OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
 
-        OntList<OntOPE> list = p1.createPropertyChain().add(p2).add(p3).add(p4);
+        OntList<OntOPE> list = p1.createPropertyChain(Collections.emptySet()).add(p2).add(p3).add(p4);
         check(m, 1, OntOPE.class);
         Assert.assertEquals(2, list.get(2).addFirst(p2).get(1).addLast(p2).size());
         check(m, 1, OntOPE.class);
@@ -210,6 +215,74 @@ public class OntListTest {
         Assert.assertEquals(2, list.get(1).members().count());
         Assert.assertEquals(p3, list.first().orElseThrow(AssertionError::new));
         Assert.assertEquals(p2, list.last().orElseThrow(AssertionError::new));
+    }
+
+    @Test
+    public void testListAnnotations() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
+        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
+        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
+        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntNAP p5 = m.createOntEntity(OntNAP.class, "p5");
+        Literal literal_x = m.createLiteral("x");
+        Literal literal_y = m.createLiteral("y", "y");
+        Literal literal_z = m.createTypedLiteral(2.2);
+        // following checking does not really belong to this test (https://github.com/avicomp/ont-api/issues/24):
+        Assert.assertEquals(XSD.xdouble.getURI(), literal_z.getDatatypeURI());
+
+        p1.addSuperPropertyOf(Arrays.asList(p4, p4, p3, p2)).addAnnotation(m.getRDFSLabel(), literal_x);
+        debug(m);
+        OntList<OntOPE> list = p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new);
+        Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
+        list.clear();
+        debug(m);
+        Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
+        Assert.assertEquals(0, list.size());
+        list.addLast(p2).addFirst(p3);
+        debug(m);
+        list.last().filter(p2::equals).orElseThrow(AssertionError::new);
+        list.first().filter(p3::equals).orElseThrow(AssertionError::new);
+        Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
+        Assert.assertEquals(2, list.size());
+        try {
+            list.get(1).addAnnotation(m.getRDFSLabel(), literal_z);
+            Assert.fail("Possible to annotate sub-lists");
+        } catch (OntJenaException.Unsupported j) {
+            LOGGER.debug("Expected: {}", j.getMessage());
+        }
+
+        getSingleAnnotation(list).addAnnotation(m.getRDFSLabel(), literal_y);
+        list.removeFirst();
+        debug(m);
+        Assert.assertEquals(1, list.size());
+        Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
+        Assert.assertEquals(literal_y, getSingleAnnotation(getSingleAnnotation(list)).getLiteral());
+        list.addAnnotation(p5, literal_z);
+        debug(m);
+        Assert.assertEquals(2, list.getRoot().annotations().count());
+        list.remove();
+        debug(m);
+        Assert.assertEquals(2, list.getRoot().annotations().count());
+        list.getRoot().annotations()
+                .filter(s -> p5.equals(s.getPredicate()) && literal_z.equals(s.getLiteral()))
+                .findFirst().orElseThrow(AssertionError::new);
+        list.getRoot().annotations()
+                .filter(s -> RDFS.label.equals(s.getPredicate()) && literal_x.equals(s.getLiteral()))
+                .findFirst().orElseThrow(AssertionError::new);
+        Assert.assertTrue(list.clearAnnotations().isEmpty());
+        Assert.assertEquals(6, m.statements().count());
+    }
+
+    private static OntStatement getSingleAnnotation(OntList<?> list) {
+        return getSingleAnnotation(list.getRoot());
+    }
+
+    private static OntStatement getSingleAnnotation(OntStatement s) {
+        List<OntStatement> res = s.annotations().collect(Collectors.toList());
+        Assert.assertEquals(1, res.size());
+        return res.get(0);
     }
 
     private static void check(OntGraphModel m, int numLists, Class<? extends RDFNode> type) {

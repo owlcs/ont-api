@@ -24,13 +24,16 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntList;
 import ru.avicomp.ontapi.jena.model.OntObject;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -70,6 +73,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         };
     }
 
+
+    @Override
+    public OntStatement getRoot() {
+        return getModel().createOntStatement(false, subject, predicate, getRDFList());
+    }
+
     public static <N extends RDFNode> OntList<N> wrap(OntObject subject, Property predicate, RDFList list, Class<N> type) {
         return new OntListImpl<N>(Objects.requireNonNull(subject, "Null subject"),
                 Objects.requireNonNull(predicate, "Null predicate"),
@@ -103,9 +112,17 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         if (!m.contains(s)) {
             throw new OntJenaException.IllegalState(Models.toString(s) + " does not exist");
         }
+        if (!objectRDFList.equals(list)) {
+            findAnnotations(m, subject, predicate, objectRDFList)
+                    .collect(Collectors.toSet())
+                    .forEach(a -> m.remove(a, OWL.annotatedTarget, objectRDFList).add(a, OWL.annotatedTarget, list));
+        }
         this.objectRDFList = list;
-        // todo: handle annotations
         return this;
+    }
+
+    private static Stream<Resource> findAnnotations(Model m, Resource subject, Property predicate, RDFNode obj) {
+        return OntStatementImpl.findAnnotations(m, OWL.Axiom, subject, predicate, obj);
     }
 
     @Override
@@ -236,15 +253,21 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     public OntList<E> get(int index) throws PropertyNotFoundException, OntJenaException.IllegalArgument {
         if (index < 0) throw new OntJenaException.IllegalArgument("Negative index: " + index);
         if (index == 0) return this;
-        RDFList tmp = getRDFList();
+        RDFList list = getRDFList();
         int i = 0;
-        while (!isEmpty(tmp)) {
-            Statement rest = tmp.getRequiredProperty(RDF.rest);
-            tmp = rest.getObject().as(RDFList.class);
+        OntGraphModelImpl m = getModel();
+        while (!isEmpty(list)) {
+            Statement rest = list.getRequiredProperty(RDF.rest);
+            list = rest.getObject().as(RDFList.class);
             if (++i != index) {
                 continue;
             }
-            return new OntListImpl<E>(rest.getSubject(), rest.getPredicate(), tmp, getModel(), type) {
+            return new OntListImpl<E>(rest.getSubject(), rest.getPredicate(), list, m, type) {
+                @Override
+                public OntStatement getRoot() {
+                    return m.createNotAnnotatedOntStatement(false, subject, predicate, getRDFList());
+                }
+
                 @Override
                 public boolean isValid(RDFNode n) {
                     return OntListImpl.this.isValid(n);

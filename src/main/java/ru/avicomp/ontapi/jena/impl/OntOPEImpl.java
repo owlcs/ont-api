@@ -113,12 +113,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public OntStatement addSuperPropertyOf(Collection<OntOPE> chain) {
-        OntJenaException.notNull(chain, "Null properties chain");
-        return addStatement(OWL.propertyChainAxiom, getModel().createList(chain.iterator()));
-    }
-
-    @Override
     public void removeSuperPropertyOf() {
         clearAll(OWL.propertyChainAxiom);
     }

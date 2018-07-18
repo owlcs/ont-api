@@ -100,6 +100,9 @@ public class OntJenaException extends JenaException {
         }
     }
 
+    /**
+     * An Jena exception that indicates wrong input.
+     */
     public static class IllegalArgument extends OntJenaException {
         public IllegalArgument() {
         }
@@ -114,6 +117,10 @@ public class OntJenaException extends JenaException {
 
     }
 
+    /**
+     * An Jena exception that indicates that Jena-object state is broken,
+     * which may happen in multithreading or in other uncommon situations.
+     */
     public static class IllegalState extends OntJenaException {
 
         public IllegalState() {

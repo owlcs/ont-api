@@ -26,6 +26,7 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -46,7 +47,7 @@ import java.util.stream.Stream;
  *
  * @see UnionGraph
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "SameParameterValue"})
 public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     /**
@@ -315,9 +316,8 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     /**
      * Creates an ont-statement.
-     * Must be the only point to init the {@link OntStatement} used inside model.
      *
-     * @param root true if root
+     * @param root {@code true} if root
      * @param s    {@link Resource} subject
      * @param p    {@link Property} predicate
      * @param o    {@link RDFNode} object
@@ -328,6 +328,29 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
             @Override
             public boolean isRoot() {
                 return root;
+            }
+        };
+    }
+
+    /**
+     * Creates an ont-statement that does not support sub-annotations.
+     *
+     * @param root {@code true} if root
+     * @param s    {@link Resource} subject
+     * @param p    {@link Property} predicate
+     * @param o    {@link RDFNode} object
+     * @return {@link OntStatement}
+     */
+    protected OntStatement createNotAnnotatedOntStatement(boolean root, Resource s, Property p, RDFNode o) {
+        return new OntStatementImpl(s, p, o, this) {
+            @Override
+            public boolean isRoot() {
+                return root;
+            }
+
+            @Override
+            public OntStatement addAnnotation(OntNAP property, RDFNode value) {
+                throw new OntJenaException.Unsupported("Sub-annotations are not supported (attempt to add " + Models.toString(this) + ")");
             }
         };
     }

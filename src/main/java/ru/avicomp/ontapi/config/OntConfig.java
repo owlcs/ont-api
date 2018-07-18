@@ -807,8 +807,6 @@ public class OntConfig extends OntologyConfigurator {
         }
     }
 
-    public static GraphTransformers.Store d;
-
     @SuppressWarnings("unchecked")
     public static GraphTransformers.Store getDefaultTransformers() {
         List<Class> transformers = (List<Class>) OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS.getDefaultValue();

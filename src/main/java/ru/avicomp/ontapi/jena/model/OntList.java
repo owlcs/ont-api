@@ -17,9 +17,11 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import ru.avicomp.ontapi.jena.OntJenaException;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -37,6 +39,23 @@ import java.util.stream.Stream;
 public interface OntList<E extends RDFNode> extends Resource {
 
     OntGraphModel getModel();
+
+    /**
+     * TODO: move to the super class
+     *
+     * @return {@link OntStatement}
+     */
+    OntStatement getRoot();
+
+    default OntStatement addAnnotation(OntNAP property, RDFNode value) {
+        return getRoot().addAnnotation(property, value);
+    }
+
+    default OntList<E> clearAnnotations() {
+        getRoot().annotations().collect(Collectors.toSet()).forEach(OntStatement::clearAnnotations);
+        getRoot().clearAnnotations();
+        return this;
+    }
 
     /**
      * Answers {@code true} if this list is the empty list (nil).
@@ -69,13 +88,40 @@ public interface OntList<E extends RDFNode> extends Resource {
      */
     OntList<E> remove();
 
+    /**
+     * Inserts the specified element at the beginning of this list.
+     *
+     * @param e {@link E} rdf-node
+     * @return this list instance
+     */
     OntList<E> addFirst(E e);
 
+    /**
+     * Removes and the first element from this list.
+     *
+     * @return the first element from this list
+     */
     OntList<E> removeFirst();
 
+    /**
+     * Removes all of the elements from this list.
+     * The list will be empty (nil) after this call returns.
+     *
+     * @return this (empty) instance
+     */
     OntList<E> clear();
 
-    OntList<E> get(int index);
+    /**
+     * Answers the list that is the tail of this list starting from the given position.
+     * Note: the result list is not annotable.
+     * This method can be used to insert/remove/clear the parent list at any position,
+     * e.g. the operation {@code get(1).addFirst(e)} will insert element {@code e} at second position.
+     *
+     * @param index int, not negative
+     * @return new {@code OntList} instance
+     * @throws OntJenaException.IllegalArgument if the specified index is out of list bounds
+     */
+    OntList<E> get(int index) throws OntJenaException.IllegalArgument;
 
     /**
      * Answers the number of {@link RDFNode rdf-node}s in the list.
@@ -98,18 +144,39 @@ public interface OntList<E extends RDFNode> extends Resource {
         return add(e);
     }
 
+    /**
+     * Removes the last element from this list.
+     * This is a synonym for the {@code this.remove(e)}.
+     *
+     * @return this list instance
+     */
     default OntList<E> removeLast() {
         return remove();
     }
 
+    /**
+     * Answers the first element with type {@link E}.
+     *
+     * @return Optional around rdf-node
+     */
     default Optional<E> first() {
         return members().findFirst();
     }
 
+    /**
+     * Answers the last element with type {@link E}.
+     * @return Optional around rdf-node
+     */
     default Optional<E> last() {
         return members().reduce((f, s) -> s);
     }
 
+    /**
+     * Appends all of the elements in the specified collection to the end of this list,
+     * in the order that they are returned by the specified collection's iterator (optional operation).
+     * @param c Collection of {@link E}-elements
+     * @return this list instance
+     */
     default OntList<E> addAll(Collection<? extends E> c) {
         c.forEach(this::add);
         return this;

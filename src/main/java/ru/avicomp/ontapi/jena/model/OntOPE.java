@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Stream;
@@ -45,7 +46,9 @@ public interface OntOPE extends OntPE {
      * TODO:
      *
      * @return fresh empty {@link OntList}
+     * @deprecated todo:
      */
+    @Deprecated
     default OntList<OntOPE> createPropertyChain() {
         return createPropertyChain(Collections.emptySet());
     }
@@ -58,6 +61,10 @@ public interface OntOPE extends OntPE {
      * @since 1.2.1
      */
     OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties);
+
+    default OntList<OntOPE> createPropertyChain(OntOPE... properties) {
+        return createPropertyChain(Arrays.asList(properties));
+    }
 
     /**
      * TODO:
@@ -98,7 +105,9 @@ public interface OntOPE extends OntPE {
      * @param chain Collection of {@link OntOPE}s
      * @return the {@link OntStatement} ({@code _:this owl:propertyChainAxiom ( ... )})
      */
-    OntStatement addSuperPropertyOf(Collection<OntOPE> chain);
+    default OntStatement addSuperPropertyOf(Collection<OntOPE> chain) {
+        return createPropertyChain(chain).getRoot();
+    }
 
     /**
      * Removes all statements with predicate {@code owl:propertyChainAxiom} (i.e. {@code _:this owl:propertyChainAxiom ( ... )})
@@ -106,7 +115,7 @@ public interface OntOPE extends OntPE {
     void removeSuperPropertyOf();
 
     /**
-     * Anonymous triple "_:x owl:inverseOf PN" which is also object property expression,
+     * Anonymous triple {@code _:x owl:inverseOf PN} which is also object property expression.
      */
     interface Inverse extends OntOPE {
         OntOPE getDirect();

@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 
 
 /**
- * An ONT-API Ontology manager, which is an extended {@link OWLOntologyManager OWL-API manager}
+ * An ONT-API Ontology manager, which is an extended {@link OWLOntologyManager OWL-API manager}.
  * It is the main point for creating, loading and accessing {@link OntologyModel Ontology Model}s.
  * Any ontology in this manager is a wrapper around a {@link Graph Jena Graph},
  * which may be linked to the another ontology through {@link ru.avicomp.ontapi.jena.UnionGraph UnionGraph} interface.
@@ -105,7 +105,6 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     RWLockedCollection<OWLOntologyFactory> getOntologyFactories();
-
 
     /**
      * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link OWLOntologyIRIMapper IRI Mappers}
@@ -244,7 +243,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Copies an ontology to the manager.
      * Note: the axioms list may differ in source and result due to different config settings etc.
-     * TODO: this method should not throw checked exception, in ONT-API it doesn't make sense, see {@link #createOntology(OWLOntologyID)} explanation.
+     * TODO: this method should not throw checked exception: in ONT-API it doesn't make sense, see {@link #createOntology(OWLOntologyID)} explanation.
      *
      * @param source   {@link OWLOntology} the source, could be pure OWL-API ontology
      * @param settings {@link OntologyCopy} the settings
