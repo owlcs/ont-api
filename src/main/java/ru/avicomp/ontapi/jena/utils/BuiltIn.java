@@ -10,7 +10,6 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.jena.utils;
@@ -130,7 +129,7 @@ public class BuiltIn {
     }
 
     /**
-     * Access to {@link OWL} vocabulary.
+     * Access to the {@link OWL} vocabulary.
      */
     @SuppressWarnings("WeakerAccess")
     public static class OWLVocabulary implements Vocabulary {
@@ -152,7 +151,7 @@ public class BuiltIn {
                         XSD.hexBinary, XSD.base64Binary,
                         XSD.anyURI, XSD.dateTime, XSD.dateTimeStamp
                 ).collect(Iter.toUnmodifiableSet());
-        public static final Set<RDFDatatype> JENA_RDF_DATATYPE_SET = initBuiltInRDFDatatypes(OWL2_DATATYPES);
+        public static final Set<RDFDatatype> JENA_RDF_DATATYPE_SET = initBuiltInRDFDatatypes(TypeMapper.getInstance());
 
         public static final Set<Resource> DATATYPES = JENA_RDF_DATATYPE_SET.stream().map(RDFDatatype::getURI).
                 map(ResourceFactory::createResource).collect(Iter.toUnmodifiableSet());
@@ -166,18 +165,12 @@ public class BuiltIn {
         public static final Set<Property> OBJECT_PROPERTIES =
                 Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Iter.toUnmodifiableSet());
 
-        private static Set<RDFDatatype> initBuiltInRDFDatatypes(Set<Resource> datatypes) {
-            TypeMapper mapper = TypeMapper.getInstance();
-            Stream.of(OWL.real, OWL.rational).forEach(d -> mapper.registerDatatype(new BaseDatatype(d.getURI()) {
-                @Override
-                public Class<?> getJavaClass() {
-                    return Double.class;
-                }
-            }));
-            datatypes.forEach(iri -> mapper.getSafeTypeByName(iri.getURI()));
+        private static Set<RDFDatatype> initBuiltInRDFDatatypes(TypeMapper types) {
+            Stream.of(OWL.real, OWL.rational).forEach(d -> types.registerDatatype(new BaseDatatype(d.getURI())));
+            OWLVocabulary.OWL2_DATATYPES.forEach(iri -> types.getSafeTypeByName(iri.getURI()));
             Set<RDFDatatype> res = new HashSet<>();
-            mapper.listTypes().forEachRemaining(res::add);
-            return res;
+            types.listTypes().forEachRemaining(res::add);
+            return Collections.unmodifiableSet(res);
         }
 
         @Override

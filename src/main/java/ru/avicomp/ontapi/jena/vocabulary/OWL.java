@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,13 +19,22 @@ import org.apache.jena.rdf.model.Resource;
 /**
  * Vocabulary definition for the <a href='https://www.w3.org/TR/owl2-syntax/'>OWL 2 Web Ontology Language</a>
  * See <a href='http://www.w3.org/2002/07/owl#'>schema(ttl)</a>
- * Note: owl:real and owl:rational are absent in the schema.
+ * Note: {@code owl:real} and {@code owl:rational} are absent in the schema and standard jena vocabulary (don't know why).
  * <p>
  * Created by @szuev on 21.12.2016.
  */
 public class OWL extends org.apache.jena.vocabulary.OWL2 {
 
+    /**
+     * The {@code owl:real} datatype does not directly provide any lexical forms.
+     */
     public final static Resource real = resource("real");
+    /**
+     * The {@code owl:rational} datatype supports lexical forms defined by the following grammar
+     * (whitespace within the grammar MUST be ignored and MUST NOT be included in the lexical forms of owl:rational,
+     * and single quotes are used to introduce terminal symbols):
+     * numerator '/' denominator
+     */
     public final static Resource rational = resource("rational");
 
 }
