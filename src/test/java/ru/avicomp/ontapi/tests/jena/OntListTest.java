@@ -28,6 +28,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -49,7 +50,7 @@ public class OntListTest {
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        p1.addSuperPropertyOf(Collections.emptySet());
+        p1.addSuperPropertyOf();
         check(m, 1, OntNOP.class);
 
         OntList<OntOPE> list = p2.createPropertyChain(Collections.emptySet());
@@ -232,7 +233,7 @@ public class OntListTest {
         // following checking does not really belong to this test (https://github.com/avicomp/ont-api/issues/24):
         Assert.assertEquals(XSD.xdouble.getURI(), literal_z.getDatatypeURI());
 
-        p1.addSuperPropertyOf(Arrays.asList(p4, p4, p3, p2)).addAnnotation(m.getRDFSLabel(), literal_x);
+        p1.addSuperPropertyOf(p4, p4, p3, p2).addAnnotation(m.getRDFSLabel(), literal_x);
         debug(m);
         OntList<OntOPE> list = p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
@@ -273,6 +274,42 @@ public class OntListTest {
                 .findFirst().orElseThrow(AssertionError::new);
         Assert.assertTrue(list.clearAnnotations().isEmpty());
         Assert.assertEquals(6, m.statements().count());
+    }
+
+    @Test
+    public void testPropertyChain() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
+        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
+        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
+        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        p1.addSuperPropertyOf(p2, p3);
+        p1.addSuperPropertyOf(p3, p3, p4);
+        p1.addSuperPropertyOf(p4, p4);
+        debug(m);
+        Assert.assertEquals(3, m.listObjectProperties().flatMap(OntOPE::listPropertyChains).count());
+        OntList<OntOPE> p334 = p1.listPropertyChains()
+                .filter(c -> c.first().filter(p3::equals).isPresent())
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        Assert.assertEquals(Arrays.asList(p3, p3, p4), p334.members().collect(Collectors.toList()));
+        OntList<OntOPE> p23 = p1.listPropertyChains()
+                .filter(c -> c.last().filter(p3::equals).isPresent())
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        Assert.assertEquals(Arrays.asList(p2, p3), p23.members().collect(Collectors.toList()));
+        p334.addAnnotation(m.getRDFSComment(), m.createLiteral("p3, p3, p4"));
+        p23.addAnnotation(m.getRDFSComment(), m.createLiteral("p2, p3"));
+        debug(m);
+        Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
+        p1.removePropertyChain(p334);
+        debug(m);
+        Assert.assertEquals(2, m.listObjectProperties().flatMap(OntOPE::listPropertyChains).count());
+        Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
+        p1.clearPropertyChains();
+        debug(m);
+        Assert.assertEquals(4, m.size());
     }
 
     private static OntStatement getSingleAnnotation(OntList<?> list) {

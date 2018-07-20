@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -119,12 +120,22 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     @Override
     public OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties) {
-        return OntListImpl.create(this, OWL.propertyChainAxiom, OntOPE.class, properties);
+        return OntListImpl.create(getModel(), this, OWL.propertyChainAxiom, OntOPE.class, properties);
     }
 
     @Override
     public Stream<OntList<OntOPE>> listPropertyChains() {
-        return OntListImpl.stream(this, OWL.propertyChainAxiom, OntOPE.class);
+        return OntListImpl.stream(getModel(), this, OWL.propertyChainAxiom, OntOPE.class);
+    }
+
+    @Override
+    public void removePropertyChain(Resource rdfList) throws OntJenaException.IllegalArgument {
+        OntList<OntOPE> list = listPropertyChains()
+                .filter(r -> Objects.equals(r, rdfList))
+                .findFirst().orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find list " + rdfList));
+        list.clearAnnotations();
+        list.clear();
+        remove(OWL.propertyChainAxiom, list);
     }
 
     @Override

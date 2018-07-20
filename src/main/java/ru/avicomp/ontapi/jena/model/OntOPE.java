@@ -22,7 +22,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 public interface OntOPE extends OntPE {
 
     /**
-     * Adds a negative property assertion object.
+     * Adds a negative property assertion ontology object.
      *
      * @param source {@link OntIndividual}
      * @param target {@link OntIndividual}
@@ -43,18 +43,9 @@ public interface OntOPE extends OntPE {
     OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
 
     /**
-     * TODO:
-     *
-     * @return fresh empty {@link OntList}
-     * @deprecated todo:
-     */
-    @Deprecated
-    default OntList<OntOPE> createPropertyChain() {
-        return createPropertyChain(Collections.emptySet());
-    }
-
-    /**
-     * TODO: description
+     * Creates a property chain as {@link OntList ontology list} that is attached to this Object Property Expression
+     * using the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
+     * The result list will consist of elements from the specified collection in the order which is determined by its iterator.
      *
      * @param properties Collection of {@link OntOPE object property expression}s
      * @return {@link OntList}
@@ -62,64 +53,33 @@ public interface OntOPE extends OntPE {
      */
     OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties);
 
-    default OntList<OntOPE> createPropertyChain(OntOPE... properties) {
-        return createPropertyChain(Arrays.asList(properties));
-    }
-
     /**
-     * TODO:
+     * Lists all property chain {@link OntList ontology list}s that are attached to this Object Property Expression
+     * on predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
+     *
      * @return Stream of {@link OntOPE object property expression}s
      * @since 1.2.1
      */
     Stream<OntList<OntOPE>> listPropertyChains();
 
     /**
-     * Returns all sub-property-of chains.
+     * Deletes the given property chain list including its annotations
+     * with predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom} for this resource from its associated model.
      *
-     * @return Stream of {@link RDFList}s
-     * @deprecated todo:
+     * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
+     * @throws ru.avicomp.ontapi.jena.OntJenaException if the list is not found
+     * @since 1.2.1
      */
-    @Deprecated
-    default Stream<RDFList> propertyChains() {
-        return listPropertyChains().map(c -> c.as(RDFList.class));
-    }
-
-    /**
-     * Returns all members the right part of statement {@code P owl:propertyChainAxiom (P1 ... Pn)}
-     * Note(1): in the result there could be repetitions.
-     * Example: {@code SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )}
-     * Note(2): there could be several chains, it gets first,
-     * there is also {@link #propertyChains()} method to handle all chains.
-     *
-     * @return Stream of {@link OntOPE}s.
-     * @deprecated // todo:
-     */
-    @Deprecated
-    default Stream<OntOPE> superPropertyOf() {
-        return listPropertyChains().flatMap(OntList::members);
-    }
-
-    /**
-     * Adds new sub-property-of chain.
-     *
-     * @param chain Collection of {@link OntOPE}s
-     * @return the {@link OntStatement} ({@code _:this owl:propertyChainAxiom ( ... )})
-     */
-    default OntStatement addSuperPropertyOf(Collection<OntOPE> chain) {
-        return createPropertyChain(chain).getRoot();
-    }
+    void removePropertyChain(Resource list);
 
     /**
      * Removes all statements with predicate {@code owl:propertyChainAxiom} (i.e. {@code _:this owl:propertyChainAxiom ( ... )})
+     *
+     * @see #clearPropertyChains()
+     * @deprecated this method does not take into account possible annotations of property chains
      */
+    @Deprecated
     void removeSuperPropertyOf();
-
-    /**
-     * Anonymous triple {@code _:x owl:inverseOf PN} which is also object property expression.
-     */
-    interface Inverse extends OntOPE {
-        OntOPE getDirect();
-    }
 
     /**
      * Gets the object property from the right part of statement "_:x owl:inverseOf PN" or "P1 owl:inverseOf P2".
@@ -149,6 +109,72 @@ public interface OntOPE extends OntPE {
     default Stream<OntNPA.ObjectAssertion> negativeAssertions(OntIndividual source) {
         return negativeAssertions()
                 .filter(a -> a.getSource().equals(source));
+    }
+
+    /**
+     * Creates a property chain {@link OntList ontology list} and returns statement {@code P owl:propertyChainAxiom (P1 ... Pn)}
+     * to allow the addition of annotations.
+     * About RDF Graph annotation specification see, for example,
+     * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
+     *
+     * @param properties Array of {@link OntOPE}s
+     * @return {@link OntStatement}
+     * @see #createPropertyChain(Collection)
+     * @since 1.2.1
+     */
+    default OntStatement addSuperPropertyOf(OntOPE... properties) {
+        return createPropertyChain(Arrays.asList(properties)).getRoot();
+    }
+
+    /**
+     * Deletes all property chain lists including their annotations
+     * with predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom} for this resource from its associated model.
+     *
+     * @since 1.2.1
+     */
+    default void clearPropertyChains() {
+        listPropertyChains().collect(Collectors.toSet()).forEach(this::removePropertyChain);
+    }
+
+    /**
+     * Returns all 'sub-property-of' chains in form of {@link RDFList} stream.
+     *
+     * @return Stream of {@link RDFList}s
+     * @deprecated use {@code listPropertyChains()} instead
+     */
+    @Deprecated
+    default Stream<RDFList> propertyChains() {
+        return listPropertyChains().map(c -> c.as(RDFList.class));
+    }
+
+    /**
+     * Lists all members from the right part of statement {@code P owl:propertyChainAxiom (P1 ... Pn)}.
+     * Note(1): in the return result there could be repetitions.
+     * Example: {@code SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )}
+     * Note(2): there can be several chains, the method returns the one which is defined as first at the graph level,
+     * i.e., in general, the result is unpredictable.
+     *
+     * @return Stream of {@link OntOPE}s, can be empty in case of nil-list or if there is no property-chains at all
+     * @see #listPropertyChains()
+     * @deprecated use {@code listPropertyChains()} with filtering instead
+     */
+    @Deprecated
+    default Stream<OntOPE> superPropertyOf() {
+        return listPropertyChains().map(OntList::members).findFirst().orElse(Stream.empty());
+    }
+
+    /**
+     * Adds new sub-property-of chain.
+     *
+     * @param properties Collection of {@link OntOPE}s
+     * @return the {@link OntStatement} ({@code _:this owl:propertyChainAxiom ( ... )})
+     * @see #createPropertyChain(Collection)
+     * @see #addSuperPropertyOf(OntOPE...)
+     * @deprecated redundant method: use {@code createPropertyChain(properties)} instead
+     */
+    @Deprecated
+    default OntStatement addSuperPropertyOf(Collection<OntOPE> properties) {
+        return createPropertyChain(properties).getRoot();
     }
 
     /**
@@ -182,17 +208,17 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Adds range statement
+     * Adds a property range (i.e. {@code P rdfs:range C} statement).
      *
      * @param range {@link OntCE}
-     * @return {@link OntStatement}
+     * @return {@link OntStatement} to allow processing annotations
      */
     default OntStatement addRange(OntCE range) {
         return addStatement(RDFS.range, range);
     }
 
     /**
-     * Returns all super properties, the pattern is "P1 rdfs:subPropertyOf P2"
+     * Lists all super properties, the pattern is {@code P1 rdfs:subPropertyOf P2}.
      *
      * @return Stream of {@link OntOPE}s
      * @see #addSubPropertyOf(OntOPE)
@@ -204,7 +230,7 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Adds super property
+     * Add a super-property of this property (i.e. {@code _:this rdfs:subPropertyOf @superProperty} statement).
      *
      * @param superProperty {@link OntOPE}
      * @return {@link OntStatement}
@@ -214,7 +240,7 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Returns disjoint properties (statement: "P1 owl:propertyDisjointWith P2").
+     * Returns disjoint properties (statement: {@code P1 owl:propertyDisjointWith P2}).
      *
      * @return Stream of {@link OntOPE}s
      * @see OntNDP#disjointWith()
@@ -225,7 +251,7 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Adds disjoint object property.
+     * Adds a disjoint object property (i.e. {@code _:this owl:propertyDisjointWith @other} statement).
      *
      * @param other {@link OntOPE}
      * @return {@link OntStatement}
@@ -237,7 +263,7 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Clears all "P1 owl:propertyDisjointWith P2" statements for the specified object property.
+     * Clears all {@code P1 owl:propertyDisjointWith P2} statements for the specified object property (subject, {@code P1}).
      *
      * @param other {@link OntOPE}
      * @see OntNDP#removeDisjointWith(OntNDP)
@@ -248,7 +274,7 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Returns all equivalent object properties ("Pi owl:equivalentProperty Pj")
+     * Returns all equivalent object properties (i.e. {@code Pi owl:equivalentProperty Pj}, where {@code Pi} - this property).
      *
      * @return Stream of {@link OntOPE}s.
      * @see OntNDP#equivalentProperty()
@@ -258,7 +284,7 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Adds new owl:equivalentProperty statement for this property.
+     * Adds new {@link OWL#equivalentProperty owl:equivalentProperty} statement for this and the given properties.
      *
      * @param other {@link OntOPE}
      * @return {@link OntStatement}
@@ -269,7 +295,7 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Removes all equivalent-property statements for the specified object property.
+     * Removes all equivalent-property statements for this and the specified object properties.
      *
      * @param other {@link OntOPE}
      * @see OntNDP#removeEquivalentProperty(OntNDP)
@@ -279,7 +305,7 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Returns all object properties from the right part of statement "P1 owl:inverseOf P2"
+     * Lists all object properties from the right part of statement {@code _:this owl:inverseOf P2}.
      *
      * @return Stream of {@link OntOPE}s.
      */
@@ -307,47 +333,11 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * To add or remove {@code P rdf:type owl:ReflexiveProperty} statement.
-     *
-     * @param reflexive true if should be reflexive
+     * @return true iff it is inverse functional property
      */
-    void setReflexive(boolean reflexive);
-
-    /**
-     * To add or remove {@code P rdf:type owl:IrreflexiveProperty} statement.
-     *
-     * @param irreflexive true if should be irreflexive
-     */
-    void setIrreflexive(boolean irreflexive);
-
-    /**
-     * To add or remove {@code P rdf:type owl:SymmetricProperty} statement.
-     *
-     * @param symmetric true if should be symmetric
-     */
-    void setSymmetric(boolean symmetric);
-
-    /**
-     * To add or remove {@code P rdf:type owl:AsymmetricProperty} statement.
-     *
-     * @param asymmetric true if should be asymmetric
-     */
-    void setAsymmetric(boolean asymmetric);
-
-    /**
-     * To add or remove {@code P rdf:type owl:TransitiveProperty} statement.
-     *
-     * @param transitive true if should be transitive
-     */
-    void setTransitive(boolean transitive);
-
-    /**
-     * To add or remove {@code P rdf:type owl:FunctionalProperty} statement.
-     *
-     * @param functional true if should be functional
-     * @see OntNDP#setFunctional(boolean)
-     */
-    void setFunctional(boolean functional);
+    default boolean isInverseFunctional() {
+        return hasType(OWL.InverseFunctionalProperty);
+    }
 
     /**
      * To add or remove {@code P rdf:type owl:InverseFunctionalProperty} statement.
@@ -357,18 +347,18 @@ public interface OntOPE extends OntPE {
     void setInverseFunctional(boolean inverseFunctional);
 
     /**
-     * @return true iff it is inverse functional property
-     */
-    default boolean isInverseFunctional() {
-        return hasType(OWL.InverseFunctionalProperty);
-    }
-
-    /**
      * @return true iff it is transitive property
      */
     default boolean isTransitive() {
         return hasType(OWL.TransitiveProperty);
     }
+
+    /**
+     * To add or remove {@code P rdf:type owl:TransitiveProperty} statement.
+     *
+     * @param transitive true if should be transitive
+     */
+    void setTransitive(boolean transitive);
 
     /**
      * @return true iff it is functional property
@@ -379,11 +369,26 @@ public interface OntOPE extends OntPE {
     }
 
     /**
+     * To add or remove {@code P rdf:type owl:FunctionalProperty} statement.
+     *
+     * @param functional true if should be functional
+     * @see OntNDP#setFunctional(boolean)
+     */
+    void setFunctional(boolean functional);
+
+    /**
      * @return true iff it is symmetric property
      */
     default boolean isSymmetric() {
         return hasType(OWL.SymmetricProperty);
     }
+
+    /**
+     * To add or remove {@code P rdf:type owl:SymmetricProperty} statement.
+     *
+     * @param symmetric true if should be symmetric
+     */
+    void setSymmetric(boolean symmetric);
 
     /**
      * @return true iff it is asymmetric property
@@ -393,6 +398,13 @@ public interface OntOPE extends OntPE {
     }
 
     /**
+     * To add or remove {@code P rdf:type owl:AsymmetricProperty} statement.
+     *
+     * @param asymmetric true if should be asymmetric
+     */
+    void setAsymmetric(boolean asymmetric);
+
+    /**
      * @return true iff it is reflexive property
      */
     default boolean isReflexive() {
@@ -400,9 +412,30 @@ public interface OntOPE extends OntPE {
     }
 
     /**
+     * To add or remove {@code P rdf:type owl:ReflexiveProperty} statement.
+     *
+     * @param reflexive true if should be reflexive
+     */
+    void setReflexive(boolean reflexive);
+
+    /**
      * @return true iff it is irreflexive property
      */
     default boolean isIrreflexive() {
         return hasType(OWL.IrreflexiveProperty);
+    }
+
+    /**
+     * To add or remove {@code P rdf:type owl:IrreflexiveProperty} statement.
+     *
+     * @param irreflexive true if should be irreflexive
+     */
+    void setIrreflexive(boolean irreflexive);
+
+    /**
+     * Anonymous triple {@code _:x owl:inverseOf PN} which is also object property expression.
+     */
+    interface Inverse extends OntOPE {
+        OntOPE getDirect();
     }
 }

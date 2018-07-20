@@ -173,7 +173,7 @@ public interface OntList<E extends RDFNode> extends Resource {
 
     /**
      * Appends all of the elements in the specified collection to the end of this list,
-     * in the order that they are returned by the specified collection's iterator (optional operation).
+     * in the order that they are returned by the specified collection's iterator.
      * @param c Collection of {@link E}-elements
      * @return this list instance
      */

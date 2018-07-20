@@ -155,7 +155,7 @@ public class FromPelletTest {
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect count of property chains axioms", 4, o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF).count());
         OntOPE p = o.asGraphModel().getOntEntity(OntNOP.class, "http://www.example.org/test#s");
-        Assert.assertEquals("Incorrect count of property chains", 3, p.propertyChains().count());
+        Assert.assertEquals("Incorrect count of property chains", 3, p.listPropertyChains().count());
     }
 
     @Test

@@ -46,26 +46,37 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     protected final Resource subject;
     protected final Property predicate;
-    protected final Class<E> type;
+    protected final Class<E> elementType;
     private RDFList objectRDFList;
-
 
     protected OntListImpl(Resource subject, Property predicate, RDFList object, OntGraphModel model, Class<E> type) {
         super(object.asNode(), (EnhGraph) model);
         this.objectRDFList = object;
         this.subject = subject;
         this.predicate = predicate;
-        this.type = type;
+        this.elementType = type;
     }
 
-    public static <N extends RDFNode> OntList<N> create(OntObject subject, Property predicate, Class<N> type, Collection<N> elements) {
-        Objects.requireNonNull(subject, "Null subject");
-        Objects.requireNonNull(predicate, "Null predicate");
-        Objects.requireNonNull(type, "Null type");
-        OntGraphModel m = Objects.requireNonNull(subject.getModel(), "Null model");
-        RDFList list = elements.isEmpty() ? m.createList() : m.createList(elements.iterator());
-        m.add(subject, predicate, list);
-        return new OntListImpl<N>(subject, predicate, list, m, type) {
+    /**
+     * Creates a fresh OntList based on the given element type.
+     *
+     * @param model     {@link OntGraphModelImpl}
+     * @param subject   {@link OntObject}
+     * @param predicate {@link Property}
+     * @param type      class-type of OntList elements
+     * @param elements  Collection of elements to be added to the new rdf-list
+     * @param <N>       {@link RDFNode} subtype
+     * @return a fresh {@link OntList} instance
+     */
+    public static <N extends RDFNode> OntList<N> create(OntGraphModelImpl model,
+                                                        OntObject subject,
+                                                        Property predicate,
+                                                        Class<N> type,
+                                                        Collection<N> elements) {
+        checkRequiredInput(model, subject, predicate, type);
+        RDFList list = elements.isEmpty() ? model.createList() : model.createList(elements.iterator());
+        model.add(subject, predicate, list);
+        return new OntListImpl<N>(subject, predicate, list, model, type) {
             @Override
             public boolean isValid(RDFNode n) {
                 return true;
@@ -73,27 +84,63 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         };
     }
 
-
-    @Override
-    public OntStatement getRoot() {
-        return getModel().createOntStatement(false, subject, predicate, getRDFList());
-    }
-
-    public static <N extends RDFNode> OntList<N> wrap(OntObject subject, Property predicate, RDFList list, Class<N> type) {
-        return new OntListImpl<N>(Objects.requireNonNull(subject, "Null subject"),
-                Objects.requireNonNull(predicate, "Null predicate"),
-                Objects.requireNonNull(list, "Null []-list"),
-                Objects.requireNonNull(subject.getModel(), "Null model"),
-                Objects.requireNonNull(type, "Null type")) {
+    /**
+     * Wraps the given RDFList as OntList.
+     *
+     * @param model     {@link OntGraphModelImpl}
+     * @param subject   {@link OntObject}
+     * @param predicate {@link Property}
+     * @param list      {@link RDFList}
+     * @param type      class-type of OntList elements
+     * @param <N>       {@link RDFNode} subtype
+     * @return a fresh {@link OntList} instance
+     */
+    protected static <N extends RDFNode> OntList<N> newOntList(OntGraphModelImpl model,
+                                                               OntObject subject,
+                                                               Property predicate,
+                                                               RDFList list,
+                                                               Class<N> type) {
+        return new OntListImpl<N>(subject, predicate, list, model, type) {
             @Override
             public boolean isValid(RDFNode n) {
-                return n.canAs(type);
+                return n.canAs(elementType);
             }
         };
     }
 
-    public static <N extends RDFNode> Stream<OntList<N>> stream(OntObject subject, Property predicate, Class<N> type) {
-        return subject.objects(predicate, RDFList.class).map(list -> wrap(subject, predicate, list, type));
+    /**
+     * Lists all rdf-lists by subject and predicate in form of ont-lists.
+     *
+     * @param model     {@link OntGraphModelImpl}
+     * @param subject   {@link OntObject}
+     * @param predicate {@link Property}
+     * @param type      class-type of OntList elements
+     * @param <N>       {@link RDFNode} subtype
+     * @return Stream of {@link OntList}s
+     */
+    public static <N extends RDFNode> Stream<OntList<N>> stream(OntGraphModelImpl model, OntObject subject, Property predicate, Class<N> type) {
+        checkRequiredInput(model, subject, predicate, type);
+        return subject.objects(predicate, RDFList.class).map(list -> newOntList(model, subject, predicate, list, type));
+    }
+
+    private static void checkRequiredInput(OntGraphModelImpl model, OntObject subject, Property predicate, Class type) {
+        Objects.requireNonNull(model, "Null model");
+        Objects.requireNonNull(subject, "Null subject");
+        Objects.requireNonNull(predicate, "Null predicate");
+        Objects.requireNonNull(type, "Null type");
+    }
+
+    private static Stream<Resource> findAnnotations(Model m, Resource subject, Property predicate, RDFNode obj) {
+        return OntStatementImpl.findAnnotations(m, OWL.Axiom, subject, predicate, obj);
+    }
+
+    public static boolean isEmpty(RDFList list) {
+        return RDF.nil.equals(list);
+    }
+
+    @Override
+    public OntStatement getRoot() {
+        return getModel().createOntStatement(false, subject, predicate, getRDFList());
     }
 
     @Override
@@ -121,10 +168,6 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return this;
     }
 
-    private static Stream<Resource> findAnnotations(Model m, Resource subject, Property predicate, RDFNode obj) {
-        return OntStatementImpl.findAnnotations(m, OWL.Axiom, subject, predicate, obj);
-    }
-
     @Override
     public Node asNode() {
         return getRDFList().asNode();
@@ -148,10 +191,6 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return isEmpty(getRDFList());
     }
 
-    public static boolean isEmpty(RDFList list) {
-        return RDF.nil.equals(list);
-    }
-
     @Override
     public Stream<E> members() {
         OntGraphModelImpl m = getModel();
@@ -159,7 +198,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                 .filter(this::isValid)
                 .map(n -> {
                     try {
-                        return m.getNodeAs(n.asNode(), type);
+                        return m.getNodeAs(n.asNode(), elementType);
                     } catch (OntJenaException.Conversion j) {
                         throw new OntJenaException.IllegalState("Problem node: '" + n + "'", j);
                     }
@@ -196,7 +235,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             } while (!tmp.isEmpty());
             model.remove(last);
             if (prev == null) { // rdf:nil
-                model.removeAll(subject, predicate, null).add(subject, predicate, list = model.createList());
+                model.remove(subject, predicate, list).add(subject, predicate, list = model.createList());
                 return list;
             }
             Statement st = Iter.asStream(prev)
@@ -232,7 +271,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             Model model = getModel();
             Statement rest = list.getRequiredProperty(RDF.rest);
             Statement first = list.getRequiredProperty(RDF.first);
-            model.remove(first).remove(rest).removeAll(subject, predicate, null).add(subject, predicate, rest.getObject());
+            model.remove(first).remove(rest).remove(subject, predicate, list).add(subject, predicate, rest.getObject());
             return rest.getObject().as(RDFList.class);
         });
     }
@@ -244,7 +283,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             Model model = getModel();
             list.removeList();
             RDFList res;
-            model.removeAll(subject, predicate, null).add(subject, predicate, res = model.createList());
+            model.remove(subject, predicate, list).add(subject, predicate, res = model.createList());
             return res;
         });
     }
@@ -262,7 +301,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             if (++i != index) {
                 continue;
             }
-            return new OntListImpl<E>(rest.getSubject(), rest.getPredicate(), list, m, type) {
+            return new OntListImpl<E>(rest.getSubject(), rest.getPredicate(), list, m, elementType) {
                 @Override
                 public OntStatement getRoot() {
                     return m.createNotAnnotatedOntStatement(false, subject, predicate, getRDFList());

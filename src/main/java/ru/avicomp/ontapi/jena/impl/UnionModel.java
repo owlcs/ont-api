@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -39,6 +40,10 @@ public class UnionModel extends ModelCom {
 
     public UnionModel(Graph base, Personality<RDFNode> personality) {
         super(base instanceof UnionGraph ? base : new UnionGraph(base), personality);
+    }
+
+    protected Cache<Node, RDFNode> getNodeCache() {
+        return enhNodes;
     }
 
     @Override
