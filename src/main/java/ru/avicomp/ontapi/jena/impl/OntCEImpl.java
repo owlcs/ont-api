@@ -800,14 +800,22 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return res;
     }
 
-    public static <CE extends ComponentRestrictionCE> CE createComponentRestrictionCE(OntGraphModelImpl model, Class<CE> view, OntPE onProperty, RDFNode other, Property predicate) {
+    public static <CE extends ComponentRestrictionCE> CE createComponentRestrictionCE(OntGraphModelImpl model,
+                                                                                      Class<CE> view,
+                                                                                      OntPE onProperty,
+                                                                                      RDFNode other,
+                                                                                      Property predicate) {
         OntJenaException.notNull(other, "Null expression.");
         Resource res = createOnPropertyRestriction(model, onProperty);
         model.add(res, predicate, other);
         return model.getNodeAs(res.asNode(), view);
     }
 
-    public static <CE extends CardinalityRestrictionCE> CE createCardinalityRestrictionCE(OntGraphModelImpl model, Class<CE> view, OntPE onProperty, int cardinality, OntObject object) {
+    public static <CE extends CardinalityRestrictionCE> CE createCardinalityRestrictionCE(OntGraphModelImpl model,
+                                                                                          Class<CE> view,
+                                                                                          OntPE onProperty,
+                                                                                          int cardinality,
+                                                                                          OntObject object) {
         Literal value = createNonNegativeIntegerLiteral(cardinality);
         Resource res = createOnPropertyRestriction(model, onProperty);
         boolean qualified = isQualified(object);
@@ -818,7 +826,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return model.getNodeAs(res.asNode(), view);
     }
 
-    public static <CE extends ComponentsCE> CE createComponentsCE(OntGraphModelImpl model, Class<CE> view, Property predicate, Stream<? extends OntObject> components) {
+    public static <CE extends ComponentsCE> CE createComponentsCE(OntGraphModelImpl model,
+                                                                  Class<CE> view,
+                                                                  Property predicate,
+                                                                  Stream<? extends OntObject> components) {
         OntJenaException.notNull(components, "Null components stream.");
         Resource res = model.createResource();
         model.add(res, RDF.type, OWL.Class);
@@ -857,7 +868,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return Stream.concat(clazz.rdfListMembers(OWL.hasKey, OntOPE.class), clazz.rdfListMembers(OWL.hasKey, OntNDP.class)).distinct();
     }
 
-    public static OntStatement addHasKey(OntCE clazz, Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
+    public static OntStatement addHasKey(OntCE clazz,
+                                         Collection<OntOPE> objectProperties,
+                                         Collection<OntNDP> dataProperties) {
         List<OntPE> properties = new ArrayList<>();
         if (objectProperties != null) properties.addAll(objectProperties);
         if (dataProperties != null) properties.addAll(dataProperties);

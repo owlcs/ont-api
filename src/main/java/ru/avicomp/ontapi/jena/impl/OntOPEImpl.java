@@ -23,7 +23,6 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -129,13 +128,13 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public void removePropertyChain(Resource rdfList) throws OntJenaException.IllegalArgument {
-        OntList<OntOPE> list = listPropertyChains()
-                .filter(r -> Objects.equals(r, rdfList))
-                .findFirst().orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find list " + rdfList));
-        list.clearAnnotations();
-        list.clear();
-        remove(OWL.propertyChainAxiom, list);
+    public void removePropertyChain(RDFNode rdfList) throws OntJenaException.IllegalArgument {
+        remove(OWL.propertyChainAxiom,
+                findPropertyChain(rdfList)
+                        .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find list " + rdfList))
+                        .clearAnnotations()
+                        .clear()
+        );
     }
 
     @Override

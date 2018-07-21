@@ -15,13 +15,13 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFList;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.stream.Collectors;
@@ -63,13 +63,11 @@ public class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<O
         InternalDataFactory reader = getDataFactory(statement.getModel());
         return makeAxiom(statement, reader.get(statement),
                 reader::get,
-                ope -> {
-                    RDFList list = statement.getObject().as(RDFList.class);
-                    return Iter.asStream(list.iterator())
-                            .map(p -> p.as(OntOPE.class))
-                            .map(reader::get)
-                            .collect(Collectors.toList());
-                },
+                ope -> ope.findPropertyChain(statement.getObject())
+                        .orElseThrow(() -> new OntApiException("Can't get OntList for statement " + Models.toString(statement)))
+                        .members()
+                        .map(reader::get)
+                        .collect(Collectors.toList()),
                 (subject, members, annotations) ->
                         reader.getOWLDataFactory()
                                 .getOWLSubPropertyChainOfAxiom(members.stream().map(ONTObject::getObject).collect(Collectors.toList()),

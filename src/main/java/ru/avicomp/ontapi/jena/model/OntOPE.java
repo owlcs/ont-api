@@ -16,12 +16,13 @@ package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,12 +44,15 @@ public interface OntOPE extends OntPE {
     OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
 
     /**
-     * Creates a property chain as {@link OntList ontology list} that is attached to this Object Property Expression
-     * using the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
-     * The result list will consist of elements from the specified collection in the order which is determined by its iterator.
+     * Creates a property chain as {@link OntList ontology list} of {@link OntOPE Object Property Expression}s
+     * that is attached to this Object Property Expression using the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
+     * The resulting rdf-list will consist of all the elements of the specified collection in the same order with the possibility of duplication.
+     * Note: {@code null}s in collection will cause {@link NullPointerException NullPointerException}.
+     * For additional information about PropertyChain logical construction see
+     * <a href='https://www.w3.org/TR/owl2-syntax/#Object_Subproperties'>9.2.1 Object Subproperties</a> specification.
      *
-     * @param properties Collection of {@link OntOPE object property expression}s
-     * @return {@link OntList}
+     * @param properties {@link Collection} (preferably {@link List}) of {@link OntOPE object property expression}s
+     * @return {@link OntList} of {@link OntOPE}s
      * @since 1.2.1
      */
     OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties);
@@ -66,17 +70,18 @@ public interface OntOPE extends OntPE {
      * Deletes the given property chain list including its annotations
      * with predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom} for this resource from its associated model.
      *
-     * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
-     * @throws ru.avicomp.ontapi.jena.OntJenaException if the list is not found
+     * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
+     * @throws OntJenaException if the list is not found
      * @since 1.2.1
      */
-    void removePropertyChain(Resource list);
+    void removePropertyChain(RDFNode list) throws OntJenaException;
 
     /**
      * Removes all statements with predicate {@code owl:propertyChainAxiom} (i.e. {@code _:this owl:propertyChainAxiom ( ... )})
      *
      * @see #clearPropertyChains()
-     * @deprecated this method does not take into account possible annotations of property chains
+     * @deprecated this method does not take into account possible annotations of property chains, use instead {@code clearPropertyChains()}
+     * @see #clearPropertyChains()
      */
     @Deprecated
     void removeSuperPropertyOf();
@@ -112,12 +117,25 @@ public interface OntOPE extends OntPE {
     }
 
     /**
+     * Finds a PropertyChain logical construction attached to this property by the specified rdf-node in the form of {@link OntList}.
+     *
+     * @param list {@link RDFNode}
+     * @return Optional around {@link OntList} of {@link OntOPE object property expression}s
+     * @since 1.2.1
+     */
+    default Optional<OntList<OntOPE>> findPropertyChain(RDFNode list) {
+        return listPropertyChains()
+                .filter(r -> Objects.equals(r, list))
+                .findFirst();
+    }
+
+    /**
      * Creates a property chain {@link OntList ontology list} and returns statement {@code P owl:propertyChainAxiom (P1 ... Pn)}
      * to allow the addition of annotations.
      * About RDF Graph annotation specification see, for example,
      * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
      *
-     * @param properties Array of {@link OntOPE}s
+     * @param properties Array of {@link OntOPE}s without {@code null}s
      * @return {@link OntStatement}
      * @see #createPropertyChain(Collection)
      * @since 1.2.1
@@ -174,7 +192,7 @@ public interface OntOPE extends OntPE {
      */
     @Deprecated
     default OntStatement addSuperPropertyOf(Collection<OntOPE> properties) {
-        return createPropertyChain(properties).getRoot();
+        return createPropertyChain(new ArrayList<>(properties)).getRoot();
     }
 
     /**

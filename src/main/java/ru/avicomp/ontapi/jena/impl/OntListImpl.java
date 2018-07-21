@@ -31,6 +31,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -58,23 +59,44 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     /**
-     * Creates a fresh OntList based on the given element type.
+     * Creates a fresh OntList based on the given {@code elementType}
+     * containing all content from the specified collection preserving the original order.
+     * The resulting list will be attached to the model by the given {@code subject} and {@code predicate}.
      *
-     * @param model     {@link OntGraphModelImpl}
-     * @param subject   {@link OntObject}
-     * @param predicate {@link Property}
-     * @param type      class-type of OntList elements
-     * @param elements  Collection of elements to be added to the new rdf-list
-     * @param <N>       {@link RDFNode} subtype
+     * @param model       {@link OntGraphModelImpl}
+     * @param subject     {@link OntObject}
+     * @param predicate   {@link Property}
+     * @param elementType Class-type of OntList elements
+     * @param elements    {@link Collection} of elements to be added to the new rdf-list
+     * @param <N>         {@link RDFNode} subtype
      * @return a fresh {@link OntList} instance
      */
     public static <N extends RDFNode> OntList<N> create(OntGraphModelImpl model,
                                                         OntObject subject,
                                                         Property predicate,
-                                                        Class<N> type,
+                                                        Class<N> elementType,
                                                         Collection<N> elements) {
+        return create(model, subject, predicate, elementType, Objects.requireNonNull(elements, "Null elements collection").iterator());
+    }
+
+    /**
+     * Creates a fresh OntList using {@code Iterator} and other parameters.
+     *
+     * @param model     {@link OntGraphModelImpl}
+     * @param subject   {@link OntObject}
+     * @param predicate {@link Property}
+     * @param type      class-type of OntList elements
+     * @param elements  {@link Iterator} of elements to be added to the new rdf-list
+     * @param <N>       {@link RDFNode} subtype
+     * @return a fresh {@link OntList} instance
+     */
+    protected static <N extends RDFNode> OntList<N> create(OntGraphModelImpl model,
+                                                           OntObject subject,
+                                                           Property predicate,
+                                                           Class<N> type,
+                                                           Iterator<N> elements) {
         checkRequiredInput(model, subject, predicate, type);
-        RDFList list = elements.isEmpty() ? model.createList() : model.createList(elements.iterator());
+        RDFList list = model.createList(elements);
         model.add(subject, predicate, list);
         return new OntListImpl<N>(subject, predicate, list, model, type) {
             @Override

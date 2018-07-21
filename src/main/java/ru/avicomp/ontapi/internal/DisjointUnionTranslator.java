@@ -18,8 +18,10 @@ import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDisjointUnionAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.stream.Collectors;
@@ -61,7 +63,11 @@ public class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDis
         InternalDataFactory reader = getDataFactory(statement.getModel());
         return makeAxiom(statement, reader.get(statement),
                 reader::get,
-                clazz -> clazz.disjointUnionOf().map(reader::get).collect(Collectors.toSet()),
+                clazz -> clazz.findDisjointUnion(statement.getObject())
+                        .orElseThrow(() -> new OntApiException("Can't get OntList for statement " + Models.toString(statement)))
+                        .members()
+                        .map(reader::get)
+                        .collect(Collectors.toSet()),
                 (subject, members, annotations) -> reader.getOWLDataFactory()
                         .getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(),
                                 ONTObject.extractWildcards(members), ONTObject.extract(annotations)));

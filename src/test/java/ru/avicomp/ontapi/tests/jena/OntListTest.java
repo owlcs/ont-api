@@ -53,7 +53,7 @@ public class OntListTest {
         p1.addSuperPropertyOf();
         check(m, 1, OntNOP.class);
 
-        OntList<OntOPE> list = p2.createPropertyChain(Collections.emptySet());
+        OntList<OntOPE> list = p2.createPropertyChain(Collections.emptyList());
         Assert.assertTrue(list.canAs(RDFList.class));
         RDFList r_list = list.as(RDFList.class);
         System.out.println(r_list.isEmpty() + " " + r_list.isValid());
@@ -95,7 +95,7 @@ public class OntListTest {
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
         OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
-        p1.createPropertyChain(Collections.singleton(p2)).add(p3);
+        p1.createPropertyChain(Collections.singletonList(p2)).add(p3);
         check(m, 1, OntOPE.class);
 
         Assert.assertEquals(1, p1.listPropertyChains().count());
@@ -174,7 +174,7 @@ public class OntListTest {
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
         OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
 
-        OntList<OntOPE> list = p1.createPropertyChain(Collections.emptySet()).add(p2).add(p3).add(p4);
+        OntList<OntOPE> list = p1.createPropertyChain(Collections.emptyList()).add(p2).add(p3).add(p4);
         check(m, 1, OntOPE.class);
         Assert.assertEquals(2, list.get(2).addFirst(p2).get(1).addLast(p2).size());
         check(m, 1, OntOPE.class);
@@ -310,6 +310,51 @@ public class OntListTest {
         p1.clearPropertyChains();
         debug(m);
         Assert.assertEquals(4, m.size());
+    }
+
+    @Test
+    public void testDisjointUnion() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass clazz = m.createOntEntity(OntClass.class, "c");
+        OntCE ce1, ce3, ce4;
+        OntCE ce2 = m.createComplementOf(ce1 = m.createOntEntity(OntClass.class, "c1"));
+        OntCE ce5 = m.createUnionOf(Arrays.asList(ce3 = m.createOntEntity(OntClass.class, "c3"), ce4 = m.createOntEntity(OntClass.class, "c4")));
+        Assert.assertEquals(2, clazz.addDisjointUnionOf(ce2, ce3).getObject().as(RDFList.class).size());
+        Assert.assertEquals(2, clazz.addDisjointUnionOf(ce3, ce3, ce4).getObject().as(RDFList.class).size());
+        Assert.assertEquals(3, clazz.addDisjointUnionOf(ce4, ce4, ce5, ce1, ce1).getObject().as(RDFList.class).size());
+        debug(m);
+        Assert.assertEquals(3, clazz.listDisjointUnions().count());
+        Assert.assertEquals(3, m.listClasses().flatMap(OntClass::listDisjointUnions).count());
+
+        OntList<OntCE> d23 = clazz.listDisjointUnions()
+                .filter(c -> c.first().filter(ce2::equals).isPresent())
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        OntList<OntCE> d34 = clazz.listDisjointUnions()
+                .filter(c -> c.last().filter(ce4::equals).isPresent())
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        OntList<OntCE> d451 = clazz.listDisjointUnions()
+                .filter(c -> c.last().filter(ce1::equals).isPresent())
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        Assert.assertEquals(Arrays.asList(ce2, ce3), d23.members().collect(Collectors.toList()));
+        Assert.assertEquals(Arrays.asList(ce3, ce4), d34.members().collect(Collectors.toList()));
+        Assert.assertEquals(Arrays.asList(ce4, ce5, ce1), d451.members().collect(Collectors.toList()));
+
+        d451.addAnnotation(m.getRDFSComment(), m.createLiteral("ce4, ce5, ce1"));
+        d23.addAnnotation(m.getRDFSComment(), m.createLiteral("ce2, ce3"));
+        debug(m);
+        Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
+        clazz.removeDisjointUnion(d451);
+
+        debug(m);
+        Assert.assertEquals(2, m.listClasses().flatMap(OntClass::listDisjointUnions).count());
+        Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
+        clazz.clearDisjointUnions();
+        debug(m);
+        Assert.assertEquals(12, m.size());
     }
 
     private static OntStatement getSingleAnnotation(OntList<?> list) {

@@ -16,12 +16,14 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.RDFNode;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -71,18 +73,25 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public OntStatement addDisjointUnionOf(Collection<OntCE> classes) {
-        return addStatement(OWL.disjointUnionOf, getModel().createList(OntJenaException.notNull(classes, "Null classes collection.").iterator()));
+    public OntList<OntCE> createDisjointUnion(Collection<OntCE> classes) {
+        return OntListImpl.create(getModel(), this, OWL.disjointUnionOf, OntCE.class,
+                Objects.requireNonNull(classes).stream().distinct().iterator());
+    }
+
+    @Override
+    public Stream<OntList<OntCE>> listDisjointUnions() {
+        return OntListImpl.stream(getModel(), this, OWL.disjointUnionOf, OntCE.class);
+    }
+
+    @Override
+    public void removeDisjointUnion(RDFNode rdfList) throws OntJenaException.IllegalArgument {
+        remove(OWL.disjointUnionOf, findDisjointUnion(rdfList)
+                .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find list " + rdfList)).clearAnnotations().clear());
     }
 
     @Override
     public void removeDisjointUnionOf() {
         clearAll(OWL.disjointUnionOf);
-    }
-
-    @Override
-    public Stream<OntCE> disjointUnionOf() {
-        return rdfListMembers(OWL.disjointUnionOf, OntCE.class);
     }
 
     @Override

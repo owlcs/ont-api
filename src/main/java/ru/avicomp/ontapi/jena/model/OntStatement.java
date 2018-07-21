@@ -242,13 +242,13 @@ public interface OntStatement extends Statement {
     /**
      * Gets a typed subject.
      *
-     * @param type Class
-     * @param <S>  subtype of {@link OntObject}
-     * @return {@link OntObject}
+     * @param type Class type
+     * @param <N>  subtype of {@link RDFNode}
+     * @return {@link RDFNode} instance
      * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException if subject node and type are incompatible
      * @since 1.2.1
      */
-    default <S extends OntObject> S getSubject(Class<S> type) {
+    default <N extends RDFNode> N getSubject(Class<N> type) {
         return getSubject().as(type);
     }
 

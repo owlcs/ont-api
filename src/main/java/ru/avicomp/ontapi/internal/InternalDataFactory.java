@@ -135,11 +135,12 @@ public interface InternalDataFactory {
         if (OntApiException.notNull(property, "Null property.").canAs(OntNAP.class)) {
             return get(property.as(OntNAP.class));
         }
-        if (property.canAs(OntNDP.class)) {
-            return get(property.as(OntNDP.class));
-        }
+        // process Object Properties first to match OWL-API-impl behaviour
         if (property.canAs(OntOPE.class)) {
             return get(property.as(OntOPE.class));
+        }
+        if (property.canAs(OntNDP.class)) {
+            return get(property.as(OntNDP.class));
         }
         throw new OntApiException("Unsupported property " + property);
     }
