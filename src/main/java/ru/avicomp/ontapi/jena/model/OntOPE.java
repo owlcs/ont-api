@@ -27,11 +27,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Object Property Expression (i.e. for iri-object property entity and for inverseOf anonymous property expression)
+ * A common interface for any Ontology <b>O</b>bject <b>P</b>roperty <b>E</b>xpression.
+ * In OWL2 there are two types of object property expressions: named object property (entity) and InverseOf anonymous property expression.
+ * Range values for this property expression are restricted to individuals (as distinct from datatype valued {@link OntNDP properties}).
  * <p>
  * Created by @szuev on 08.11.2016.
  */
-public interface OntOPE extends OntPE {
+public interface OntOPE extends OntDOP {
 
     /**
      * Adds a negative property assertion ontology object.
@@ -89,14 +91,14 @@ public interface OntOPE extends OntPE {
     /**
      * Gets the object property from the right part of statement "_:x owl:inverseOf PN" or "P1 owl:inverseOf P2".
      *
-     * @return {@link OntOPE} or null.
+     * @return {@link OntOPE} or {@code null}
      */
     OntOPE getInverseOf();
 
     /**
-     * Returns all associated negative object property assertions
+     * Returns all associated negative object property assertions.
      *
-     * @return Stream of {@link OntNPA.ObjectAssertion}s.
+     * @return Stream of {@link OntNPA.ObjectAssertion}s
      * @see OntNDP#negativeAssertions()
      */
     default Stream<OntNPA.ObjectAssertion> negativeAssertions() {
@@ -107,7 +109,7 @@ public interface OntOPE extends OntPE {
      * Returns all associated negative object property assertions for the specified source individual.
      *
      * @param source {@link OntIndividual}
-     * @return Stream of {@link OntNPA.ObjectAssertion}s.
+     * @return Stream of {@link OntNPA.ObjectAssertion}s
      * @see OntNDP#negativeAssertions(OntIndividual)
      */
 
@@ -193,26 +195,6 @@ public interface OntOPE extends OntPE {
     @Deprecated
     default OntStatement addSuperPropertyOf(Collection<OntOPE> properties) {
         return createPropertyChain(new ArrayList<>(properties)).getRoot();
-    }
-
-    /**
-     * Returns all domain class expressions (statement "P rdfs:domain C").
-     *
-     * @return Stream of {@link OntCE}s.
-     */
-    @Override
-    default Stream<OntCE> domain() {
-        return objects(RDFS.domain, OntCE.class);
-    }
-
-    /**
-     * Adds domain statement
-     *
-     * @param domain {@link OntCE}
-     * @return {@link OntStatement}
-     */
-    default OntStatement addDomain(OntCE domain) {
-        return addStatement(RDFS.domain, domain);
     }
 
     /**
@@ -323,7 +305,7 @@ public interface OntOPE extends OntPE {
     }
 
     /**
-     * Lists all object properties from the right part of statement {@code _:this owl:inverseOf P2}.
+     * Lists all object properties from the right part of statement {@code _:this owl:inverseOf P}.
      *
      * @return Stream of {@link OntOPE}s.
      */
@@ -377,22 +359,6 @@ public interface OntOPE extends OntPE {
      * @param transitive true if should be transitive
      */
     void setTransitive(boolean transitive);
-
-    /**
-     * @return true iff it is functional property
-     * @see OntNDP#isFunctional()
-     */
-    default boolean isFunctional() {
-        return hasType(OWL.FunctionalProperty);
-    }
-
-    /**
-     * To add or remove {@code P rdf:type owl:FunctionalProperty} statement.
-     *
-     * @param functional true if should be functional
-     * @see OntNDP#setFunctional(boolean)
-     */
-    void setFunctional(boolean functional);
 
     /**
      * @return true iff it is symmetric property
@@ -451,6 +417,7 @@ public interface OntOPE extends OntPE {
     void setIrreflexive(boolean irreflexive);
 
     /**
+     * Represents a <a href="http://www.w3.org/TR/owl2-syntax/#Inverse_Object_Properties">ObjectInverseOf</a>.
      * Anonymous triple {@code _:x owl:inverseOf PN} which is also object property expression.
      */
     interface Inverse extends OntOPE {

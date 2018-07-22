@@ -90,6 +90,7 @@ public class OntModelConfig {
             // property expressions:
             .add(OntOPE.Inverse.class, OntPEImpl.inversePropertyFactory)
             .add(OntOPE.class, OntPEImpl.abstractOPEFactory)
+            .add(OntDOP.class, OntPEImpl.abstractDOPFactory)
             .add(OntPE.class, OntPEImpl.abstractPEFactory)
 
             // individuals:

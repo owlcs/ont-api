@@ -865,7 +865,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static <C extends OntObjectImpl & OntCE> Stream<OntPE> listHasKey(C clazz) {
-        return Stream.concat(clazz.rdfListMembers(OWL.hasKey, OntOPE.class), clazz.rdfListMembers(OWL.hasKey, OntNDP.class)).distinct();
+        return Stream.concat(clazz.rdfListMembers(OWL.hasKey, OntOPE.class), clazz.rdfListMembers(OWL.hasKey, OntNDP.class))
+                .map(OntPE.class::cast)
+                .distinct();
     }
 
     public static OntStatement addHasKey(OntCE clazz,

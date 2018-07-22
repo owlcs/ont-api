@@ -52,6 +52,10 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
     public static Configurable<OntObjectFactory> abstractOPEFactory = buildMultiFactory(OntFinder.TYPED, null,
             Entities.OBJECT_PROPERTY, inversePropertyFactory);
 
+    @SuppressWarnings("unchecked")
+    public static Configurable<OntObjectFactory> abstractDOPFactory =
+            concatFactories(OntFinder.ANY_SUBJECT, Entities.DATA_PROPERTY, abstractOPEFactory);
+
     public static Configurable<OntObjectFactory> abstractPEFactory =
             buildMultiFactory(OntFinder.ANY_SUBJECT, null, abstractNamedPropertyFactory, inversePropertyFactory);
 

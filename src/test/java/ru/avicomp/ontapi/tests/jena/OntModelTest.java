@@ -91,9 +91,12 @@ public class OntModelTest {
 
     @Test
     public void testPizzaLoadProperties() {
-        LOGGER.debug("load pizza");
-        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
-        simplePropertiesTest(m);
+        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph()));
+    }
+
+    @Test
+    public void testFamilyLoadProperties() {
+        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("family.ttl").getGraph()));
     }
 
     @Test
@@ -195,7 +198,7 @@ public class OntModelTest {
         try (InputStream in = OntModelTest.class.getResourceAsStream("/owlapi/koala.owl")) {
             m.read(in, null, Lang.RDFXML.getName());
         }
-        simplePropertiesTest(m);
+        simplePropertiesValidation(m);
         OntOPE p1 = m.listObjectProperties().findFirst().orElseThrow(AssertionError::new);
         Assert.assertNull(p1.getInverseOf());
         OntOPE p2 = m.createResource().addProperty(OWL.inverseOf, p1).as(OntOPE.class);
@@ -205,13 +208,34 @@ public class OntModelTest {
         Assert.assertEquals(1, m.ontObjects(OntOPE.Inverse.class).count());
     }
 
-    private void simplePropertiesTest(OntGraphModel m) {
-        List<OntPE> actual = m.ontObjects(OntPE.class).collect(Collectors.toList());
-        actual.forEach(x -> LOGGER.debug("{}", x));
-        Set<Resource> expected = new HashSet<>();
-        Stream.of(OWL.AnnotationProperty, OWL.DatatypeProperty, OWL.ObjectProperty)
-                .forEach(r -> expected.addAll(m.listStatements(null, RDF.type, r).mapWith(Statement::getSubject).toSet()));
-        Assert.assertEquals("Incorrect number of properties", expected.size(), actual.size());
+    private void simplePropertiesValidation(OntGraphModel ont) {
+        Model jena = ModelFactory.createModelForGraph(ont.getGraph());
+        Set<Resource> annotationProperties = jena.listStatements(null, RDF.type, OWL.AnnotationProperty)
+                .mapWith(Statement::getSubject).toSet();
+        Set<Resource> datatypeProperties = jena.listStatements(null, RDF.type, OWL.DatatypeProperty)
+                .mapWith(Statement::getSubject).toSet();
+        Set<Resource> namedObjectProperties = jena.listStatements(null, RDF.type, OWL.ObjectProperty)
+                .mapWith(Statement::getSubject).toSet();
+        Set<Resource> inverseObjectProperties = jena.listStatements(null, OWL.inverseOf, (RDFNode) null)
+                .mapWith(Statement::getSubject).filterKeep(RDFNode::isAnon).toSet();
+        Set<Statement> inverseStatements = jena.listStatements(null, OWL.inverseOf, (RDFNode) null)
+                .filterKeep(s -> s.getSubject().isURIResource()).filterKeep(s -> s.getObject().isURIResource()).toSet();
+
+        List<OntPE> actualPEs = ont.ontObjects(OntPE.class).collect(Collectors.toList());
+        if (LOGGER.isDebugEnabled()) {
+            actualPEs.forEach(x -> LOGGER.debug("PE: {}", x));
+        }
+        Set<Resource> expectedPEs = Stream.of(annotationProperties, datatypeProperties, namedObjectProperties, inverseObjectProperties)
+                .flatMap(Collection::stream).collect(Collectors.toSet());
+        Assert.assertEquals("Incorrect number of property expressions", expectedPEs.size(), actualPEs.size());
+
+        List<OntPE> actualDOs = ont.ontObjects(OntDOP.class).collect(Collectors.toList());
+        Set<Resource> expectedDOs = Stream.of(datatypeProperties, namedObjectProperties, inverseObjectProperties)
+                .flatMap(Collection::stream).collect(Collectors.toSet());
+        Assert.assertEquals("Incorrect number of data and object property expressions", expectedDOs.size(), actualDOs.size());
+
+        Assert.assertEquals("Incorrect number of owl:inverseOf for object properties", inverseStatements.size(),
+                ont.listObjectProperties().flatMap(OntOPE::inverseOf).count());
     }
 
     @Test
@@ -369,6 +393,28 @@ public class OntModelTest {
         m.removeOntObject(assertion).removeOntStatement(domain).removeOntStatement(range);
         ReadWriteUtils.print(m);
         Assert.assertEquals("Some unexpected garbage are found", 6, m.statements().count());
+    }
+
+    @Test
+    public void testCreateProperties() {
+        String ns = "http://test.com/graph/7#";
+
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        m.setNsPrefix("test", ns);
+        OntNAP a1 = m.createOntEntity(OntNAP.class, ns + "a-p-1");
+        OntNAP a2 = m.createOntEntity(OntNAP.class, ns + "a-p-2");
+        m.createOntEntity(OntNOP.class, ns + "o-p-1");
+        m.createOntEntity(OntNOP.class, ns + "o-p-2").createInverse();
+        m.createOntEntity(OntNOP.class, ns + "o-p-3").createInverse().addComment("Anonymous property expression");
+        m.createOntEntity(OntNOP.class, ns + "o-p-4")
+                .addInverseOf(m.createOntEntity(OntNOP.class, ns + "o-p-5"))
+                .addAnnotation(a1, m.createLiteral("inverse statement, not inverse-property"));
+        m.createOntEntity(OntNDP.class, ns + "d-p-1");
+        m.createOntEntity(OntNDP.class, ns + "d-p-2").addAnnotation(a2, m.createLiteral("data-property"));
+
+        ReadWriteUtils.print(m);
+        simplePropertiesValidation(m);
     }
 
     @Test

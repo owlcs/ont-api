@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,21 +14,25 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 
+import java.util.stream.Stream;
+
 /**
- * The (Named) Annotation Property resource.
+ * Interface encapsulating a <b>N</b>amed <b>A</b>nnotation <b>P</b>roperty.
+ * The first word in this abbreviation means that it is an URI-{@link Resource Resource}.
+ * This is an extension to the standard jena {@link Property},
+ * the {@link OntEntity OWL Entity} and the {@link OntPE abstract property expression} interfaces.
+ * In OWL2 an Annotation Property cannot be anonymous.
  * <p>
  * Created by szuev on 01.11.2016.
  */
 public interface OntNAP extends OntPE, OntEntity, Property {
 
     /**
-     * Adds domain statement "A rdfs:domain U", where A is an annotation property, U is any IRI.
+     * Adds domain statement {@code A rdfs:domain U}, where {@code A} is an annotation property, {@code U} is any IRI.
      *
      * @param domain uri-{@link Resource}
      * @return {@link OntStatement}
@@ -39,18 +43,18 @@ public interface OntNAP extends OntPE, OntEntity, Property {
     OntStatement addDomain(Resource domain);
 
     /**
-     * Adds range statement "A rdfs:range U", where A is an annotation property, U is any IRI.
+     * Adds range statement {@code A rdfs:range U}, where {@code A} is an annotation property, {@code U} is any IRI.
      *
      * @param range uri-{@link Resource}
      * @return {@link OntStatement}
-     * @throws ru.avicomp.ontapi.jena.OntJenaException in case anonymous resource.
+     * @throws ru.avicomp.ontapi.jena.OntJenaException in case input is anonymous resource
      * @see #range()
      * @see OntPE#removeRange(Resource)
      */
     OntStatement addRange(Resource range);
 
     /**
-     * Returns domains.
+     * Returns property domains as java util stream.
      *
      * @return Stream of uri-{@link Resource}s
      */
@@ -58,7 +62,7 @@ public interface OntNAP extends OntPE, OntEntity, Property {
     Stream<Resource> domain();
 
     /**
-     * Returns ranges.
+     * Returns all annotation property ranges.
      *
      * @return Stream of uri-{@link Resource}s
      */
@@ -66,7 +70,8 @@ public interface OntNAP extends OntPE, OntEntity, Property {
     Stream<Resource> range();
 
     /**
-     * Returns all super properties, the pattern is "A1 rdfs:subPropertyOf A2"
+     * Returns all super properties.
+     * The pattern is {@code A1 rdfs:subPropertyOf A2}, where {@code A1} is this property and {@code A2} is what needs to be returned.
      *
      * @return Stream of {@link OntNAP}s
      * @see #addSubPropertyOf(OntNAP)

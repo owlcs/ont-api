@@ -26,7 +26,9 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- * owl:ObjectProperty (could be also Annotation, InverseFunctional, Transitive, SymmetricProperty, etc)
+ * Implementation of the Object Property Expression abstraction.
+ * Named instances should have a {@link OWL#OntologyProperty owl:ObjectProperty} type declarations.
+ * Anonymous instances should have {@link OWL#inverseOf owl:inverseOf} predicate.
  * <p>
  * Created by szuev on 03.11.2016.
  */
@@ -45,6 +47,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public Inverse createInverse() {
+            // todo: should it produce a new blank-node everytime? it seems, not.
             Resource res = getModel().createResource();
             getModel().add(res, OWL.inverseOf, this);
             return new InversePropertyImpl(res.asNode(), getModel());

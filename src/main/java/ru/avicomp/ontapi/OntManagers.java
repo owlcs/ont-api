@@ -80,10 +80,10 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * Creates an original (pure) OWL-API ontology manager instance with default settings.
+     * Creates an original OWL-API (i.e. pure impl) ontology manager instance with default settings.
      * Notes:
      * <ul>
-     * <li>This method is not a direct part of ONT-API, it is for convenience and/or test purposes only.
+     * <li>This method is not a direct part of ONT-API, it is here for convenience and/or test purposes only.
      * Better to use a similar method from OWL-API(apibinding) supply, if it is available.</li>
      * <li><a href='https://github.com/owlcs/owlapi/blob/version5/impl/'>owlapi-impl</a> must be in class-path</li>
      * </ul>
@@ -98,10 +98,10 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * Creates an original (pure) OWL-API ontology manager instance with default settings and locking to work in a concurrent environment.
+     * Creates an original OWL-API (i.e pure impl) ontology manager instance with default settings and locking to work in a concurrent environment.
      * Notes:
      * <ul>
-     * <li>This method is not a direct part of ONT-API, it is for convenience and/or test purposes only.
+     * <li>This method is not a direct part of ONT-API, it is here for convenience and/or test purposes only.
      * Better to use a similar method from OWL-API(apibinding) supply, if it is available.</li>
      * <li><a href='https://github.com/owlcs/owlapi/blob/version5/impl/'>owlapi-impl</a> must be in class-path</li>
      * </ul>

@@ -27,7 +27,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
- * owl:DatatypeProperty
+ * An ontology object implementation with declarative type {@link OWL#DatatypeProperty owl:DatatypeProperty}.
+ * <p>
  * Created by szuev on 03.11.2016.
  */
 public class OntDPropertyImpl extends OntPEImpl implements OntNDP {

@@ -21,9 +21,12 @@ import org.apache.jena.vocabulary.RDFS;
 import java.util.stream.Stream;
 
 /**
- * Common interface for any Property Expressions (DataProperty, ObjectProperty(Entity and InverseOf), AnnotationProperty).
- * See for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.2 Properties</a>
+ * An abstraction for any Ontology <b>P</b>roperty <b>E</b>xpression.
+ * In OWL2 there are four such property expressions: Data Property, Object Property (Entity and InverseOf) and Annotation Property.
+ * <p>
  * Created by @szuev on 02.11.2016.
+ *
+ * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.2 Properties</a>
  * @see OntOPE
  * @see OntNAP
  * @see OntNDP
@@ -31,7 +34,7 @@ import java.util.stream.Stream;
 public interface OntPE extends OntObject {
 
     /**
-     * Returns all domains
+     * Lists all property domains.
      *
      * @return Stream of {@link Resource}s
      * @see OntNAP#domain()
@@ -41,7 +44,7 @@ public interface OntPE extends OntObject {
     Stream<? extends Resource> domain();
 
     /**
-     * Returns all ranges
+     * Lists all property ranges.
      *
      * @return Stream of {@link Resource}s
      * @see OntNAP#range()
@@ -51,9 +54,9 @@ public interface OntPE extends OntObject {
     Stream<? extends Resource> range();
 
     /**
-     * Returns all super properties.
+     * List all super properties for this property expression.
      *
-     * @return Stream of {@link Resource}s
+     * @return Stream of {@link Resource jena resource}s
      * @see OntNAP#subPropertyOf()
      * @see OntOPE#subPropertyOf()
      * @see OntNDP#subPropertyOf()
@@ -68,7 +71,7 @@ public interface OntPE extends OntObject {
     Property asProperty();
 
     /**
-     * Removes specified rdfs:domain.
+     * Removes the specified domain (predicate {@link RDFS#domain rdfs:domain}.
      *
      * @param domain {@link Resource}
      */
@@ -77,7 +80,7 @@ public interface OntPE extends OntObject {
     }
 
     /**
-     * Removes specified rdfs:range.
+     * Removes specified {@code rdfs:range}.
      *
      * @param range {@link Resource}
      */
@@ -86,7 +89,7 @@ public interface OntPE extends OntObject {
     }
 
     /**
-     * Removes specified super property (predicate rdfs:subPropertyOf).
+     * Removes specified super property (predicate {@link RDFS#subPropertyOf rdfs:subPropertyOf}).
      *
      * @param superProperty {@link Resource}
      */

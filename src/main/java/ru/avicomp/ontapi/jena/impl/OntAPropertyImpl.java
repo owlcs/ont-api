@@ -29,7 +29,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.util.stream.Stream;
 
 /**
- * {@code owl:AnnotationProperty}
+ * Implementation of Annotation Property abstraction (an URI-{@link Resource} with {@link OWL#AnnotationProperty owl:AnnotationProperty} type).
  * <p>
  * Created by szuev on 03.11.2016.
  */

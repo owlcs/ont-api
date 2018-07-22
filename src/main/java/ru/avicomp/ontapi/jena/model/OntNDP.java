@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,21 +14,25 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.stream.Stream;
-
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
-
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.stream.Stream;
+
 /**
- * The (Named) Datatype Property.
+ * Interface encapsulating an Ontology <b>N</b>amed <b>D</b>ata <b>P</b>roperty.
+ * The first word in this abbreviation means that it is an URI-{@link Resource Resource}.
+ * This is an extension to the standard jena {@link Property},
+ * the {@link OntEntity OWL Entity} and the {@link OntDOP abstract data object property} interfaces.
+ * Range values for this property are are datatype values (as distinct from object property expression valued {@link OntOPE properties}).
+ * In OWL2 a Data Property cannot be anonymous.
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntNDP extends OntPE, OntEntity, Property {
+public interface OntNDP extends OntDOP, OntEntity, Property {
 
     /**
      * Adds negative data property assertion
@@ -41,17 +45,9 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     OntNPA.DataAssertion addNegativeAssertion(OntIndividual source, Literal target);
 
     /**
-     * Creates or removes "R rdf:type owl:FunctionalProperty" statement
+     * Returns all associated negative data property assertions.
      *
-     * @param functional if true makes this data property as functional
-     * @see OntOPE#setFunctional(boolean)
-     */
-    void setFunctional(boolean functional);
-
-    /**
-     * Returns all associated negative data property assertions
-     *
-     * @return Stream of {@link OntNPA.DataAssertion}s.
+     * @return Stream of {@link OntNPA.DataAssertion}s
      * @see OntOPE#negativeAssertions()
      */
     default Stream<OntNPA.DataAssertion> negativeAssertions() {
@@ -71,37 +67,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     /**
-     * Answers iff this data-property is functional
-     *
-     * @return true if functional
-     * @see OntOPE#isFunctional()
-     */
-    default boolean isFunctional() {
-        return hasType(OWL.FunctionalProperty);
-    }
-
-    /**
-     * Returns domain class expressions (statement "R rdfs:domain C").
-     *
-     * @return Stream of {@link OntCE}s.
-     */
-    @Override
-    default Stream<OntCE> domain() {
-        return objects(RDFS.domain, OntCE.class);
-    }
-
-    /**
-     * Adds statement "R rdfs:domain C"
-     *
-     * @param domain {@link OntCE}
-     * @return {@link OntStatement}
-     */
-    default OntStatement addDomain(OntCE domain) {
-        return addStatement(RDFS.domain, domain);
-    }
-
-    /**
-     * Returns ranges (statement pattern: "R rdfs:range D")
+     * Returns all property ranges (statement pattern: {@code R rdfs:range D}).
      *
      * @return Stream of {@link OntDR}s
      */
@@ -111,7 +77,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     /**
-     * Adds statement "R rdfs:range D"
+     * Adds a statement {@code R rdfs:range D}, where {@code R} is this data property and {@code D} is data range expression.
      *
      * @param range {@link OntDR}
      * @return {@link OntStatement}
@@ -143,7 +109,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     /**
-     * Returns disjoint properties (statement: "R1 owl:propertyDisjointWith R2").
+     * Returns disjoint properties (statement: {@code R1 owl:propertyDisjointWith R2}, where {@code Ri} - this property).
      *
      * @return Stream of {@link OntNDP}s
      * @see OntOPE#disjointWith()
@@ -177,7 +143,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     /**
-     * Returns all equivalent data properties ("Ri owl:equivalentProperty Rj")
+     * Returns all equivalent data properties (statement: {@code Ri owl:equivalentProperty Rj}, where {@code Ri} - this property).
      *
      * @return Stream of {@link OntNDP}s.
      * @see OntOPE#equivalentProperty()
@@ -187,7 +153,7 @@ public interface OntNDP extends OntPE, OntEntity, Property {
     }
 
     /**
-     * Adds new owl:equivalentProperty statement.
+     * Adds new {@link OWL#equivalentProperty owl:equivalentProperty} statement.
      *
      * @param other {@link OntNDP}
      * @return {@link OntStatement}
