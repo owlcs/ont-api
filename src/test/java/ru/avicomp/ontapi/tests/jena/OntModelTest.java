@@ -203,6 +203,7 @@ public class OntModelTest {
         Assert.assertNull(p1.getInverseOf());
         OntOPE p2 = m.createResource().addProperty(OWL.inverseOf, p1).as(OntOPE.class);
         Assert.assertNotNull(p2.getInverseOf());
+        Assert.assertEquals(1, p2.inverseOf().count());
         Assert.assertEquals(p1.asProperty(), p2.asProperty());
         Assert.assertEquals(p1, p2.getInverseOf());
         Assert.assertEquals(1, m.ontObjects(OntOPE.Inverse.class).count());

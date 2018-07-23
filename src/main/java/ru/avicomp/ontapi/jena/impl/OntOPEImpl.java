@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -23,6 +24,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -47,10 +50,21 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public Inverse createInverse() {
-            // todo: should it produce a new blank-node everytime? it seems, not.
-            Resource res = getModel().createResource();
-            getModel().add(res, OWL.inverseOf, this);
-            return new InversePropertyImpl(res.asNode(), getModel());
+            OntGraphModelImpl m = getModel();
+            List<Node> nodes = m.localStatements(null, OWL.inverseOf, this)
+                    .map(OntStatement::getSubject)
+                    .filter(RDFNode::isAnon)
+                    .map(FrontsNode::asNode)
+                    .distinct()
+                    .collect(Collectors.toList());
+            if (nodes.size() > 1) {
+                throw new OntJenaException.IllegalState("More than one inverse-of object properties found: [" +
+                        nodes + " owl:inverseOf " + this + "]");
+            }
+            Node n = nodes.isEmpty() ?
+                    m.createResource().addProperty(OWL.inverseOf, NamedPropertyImpl.this).asNode() :
+                    nodes.get(0);
+            return m.getNodeAs(n, Inverse.class);
         }
 
         @Override
@@ -72,11 +86,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         public OntStatement getRoot() {
             return getRoot(RDF.type, OWL.ObjectProperty);
         }
-
-        @Override
-        public Property asProperty() {
-            return as(Property.class);
-        }
     }
 
     public static class InversePropertyImpl extends OntOPEImpl implements OntOPE.Inverse {
@@ -87,26 +96,32 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public OntStatement getRoot() {
-            return getModel().createOntStatement(true, this, OWL.inverseOf, getRequiredDirectProperty());
-        }
-
-        protected Resource getRequiredDirectProperty() {
-            try (Stream<OntStatement> statements = getModel().statements(this, OWL.inverseOf, null)) {
-                return statements.findFirst()
-                        .map(Statement::getObject).map(RDFNode::asResource)
-                        .orElseThrow(() -> new OntJenaException("Can't find owl:inverseOf object prop."));
-            }
+            return getModel().createOntStatement(true, this, OWL.inverseOf, getDirect());
         }
 
         @Override
-        public OntOPE getDirect() {
-            Resource res = getRequiredDirectProperty();
-            return res.as(OntOPE.class);
+        public Class<? extends OntObject> getActualClass() {
+            return OntOPE.Inverse.class;
+        }
+
+        @Override
+        public OntNOP getDirect() {
+            OntGraphModelImpl m = getModel();
+            List<Resource> res = m.statements(this, OWL.inverseOf, null)
+                    .map(Statement::getObject)
+                    .map(RDFNode::asResource)
+                    .filter(RDFNode::isURIResource)
+                    .distinct()
+                    .collect(Collectors.toList());
+            if (res.size() != 1)
+                throw new OntJenaException.IllegalState("Expected one and only one owl:inverseOf statement, but found: [" +
+                        this + " owl:inverseOf " + res + "]");
+            return m.getNodeAs(res.get(0).asNode(), OntNOP.class);
         }
 
         @Override
         public Property asProperty() {
-            return getRequiredDirectProperty().as(Property.class);
+            return getDirect().asProperty();
         }
     }
 
@@ -175,9 +190,5 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         changeType(OWL.SymmetricProperty, symmetric);
     }
 
-    @Override
-    public OntOPE getInverseOf() {
-        return getObject(OWL.inverseOf, OntOPE.class);
-    }
 }
 

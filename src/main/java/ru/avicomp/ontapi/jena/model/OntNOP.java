@@ -27,9 +27,14 @@ import org.apache.jena.rdf.model.Property;
 public interface OntNOP extends OntOPE, OntEntity, Property {
 
     /**
-     * Creates an inverse of this property.
+     * Creates or finds an inverse of this property.
+     * The searching is performed only in the base graph,
+     * so it is possible to have more than one anonymous object property expressions
+     * in case the named companion belongs to some sub-graph.
+     * For a single-graph model a named object property can be answered
+     * by one and only one {@code Inverse} object property expression.
      *
-     * @return {@link OntOPE.Inverse} - a new anonymous {@link OntOPE} resource
+     * @return {@link OntOPE.Inverse} - an anonymous {@link OntOPE} resource (fresh or existing)
      */
     Inverse createInverse();
 

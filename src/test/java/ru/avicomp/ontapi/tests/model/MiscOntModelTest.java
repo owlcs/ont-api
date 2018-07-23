@@ -16,12 +16,12 @@ package ru.avicomp.ontapi.tests.model;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.OwlObjects;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 
 /**
@@ -50,5 +50,29 @@ public class MiscOntModelTest extends OntModelTestBase {
         debug(o);
         Assert.assertEquals(2, o.axioms(AxiomType.DISJOINT_UNION).count());
         Assert.assertEquals(7, o.axioms().count());
+    }
+
+    @Test
+    public void testInverseOfObjectProperties() throws OWLOntologyCreationException {
+        OWLOntologyManager manager = OntManagers.createONT();
+        OWLDataFactory df = manager.getOWLDataFactory();
+        OWLOntology o = manager.createOntology();
+        OWLObjectProperty p1 = df.getOWLObjectProperty(IRI.create("p1"));
+        OWLObjectProperty p2 = df.getOWLObjectProperty(IRI.create("p2"));
+        OWLObjectInverseOf inv = df.getOWLObjectInverseOf(p1);
+        o.add(df.getOWLDeclarationAxiom(p1));
+        o.add(df.getOWLObjectPropertyAssertionAxiom(inv, df.getOWLNamedIndividual(IRI.create("I1")), df.getOWLNamedIndividual(IRI.create("I2"))));
+        o.add(df.getOWLFunctionalObjectPropertyAxiom(inv));
+        o.add(df.getOWLTransitiveObjectPropertyAxiom(inv));
+        o.add(df.getOWLObjectPropertyAssertionAxiom(p2, df.getOWLNamedIndividual(IRI.create("I1")), df.getOWLNamedIndividual(IRI.create("I2"))));
+        o.add(df.getOWLInverseObjectPropertiesAxiom(p2, p1));
+        debug(o);
+
+        Assert.assertEquals(3, o.axioms()
+                .filter(a -> OwlObjects.objects(OWLObjectInverseOf.class, a).findAny().isPresent())
+                .peek(x -> LOGGER.debug("AxiomWithInverseOf: {}", x)).count());
+
+        Assert.assertEquals(2, ((OntologyModel) o).asGraphModel().statements(null, OWL.inverseOf, null).count());
+
     }
 }

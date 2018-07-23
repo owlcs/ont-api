@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 /**
  * For testing miscellaneous general functionality.
+ * TODO: move somewhere... maybe merge with {@link ru.avicomp.ontapi.tests.model.MiscOntModelTest} ?
  * <p>
  * Created by @szuev on 23.01.2018.
  */

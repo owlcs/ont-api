@@ -18,6 +18,7 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.jena.model.OntPE;
@@ -65,6 +66,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
 
     @Override
     public Property asProperty() {
+        if (!isURIResource()) throw new OntJenaException.IllegalState();
         return as(Property.class);
     }
 

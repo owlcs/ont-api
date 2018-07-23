@@ -89,13 +89,6 @@ public interface OntOPE extends OntDOP {
     void removeSuperPropertyOf();
 
     /**
-     * Gets the object property from the right part of statement "_:x owl:inverseOf PN" or "P1 owl:inverseOf P2".
-     *
-     * @return {@link OntOPE} or {@code null}
-     */
-    OntOPE getInverseOf();
-
-    /**
      * Returns all associated negative object property assertions.
      *
      * @return Stream of {@link OntNPA.ObjectAssertion}s
@@ -305,6 +298,19 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
+     * Gets the <b>first</b> object property from the right part of statement {@code _:x owl:inverseOf PN} or {@code P1 owl:inverseOf P2}.
+     * What exactly is the first statement is defined at the level of graph; in general it is unpredictable.
+     *
+     * @return {@link OntOPE} or {@code null}
+     * @see #inverseOf()
+     */
+    default OntOPE getInverseOf() {
+        try (Stream<OntOPE> res = inverseOf()) {
+            return res.findFirst().orElse(null);
+        }
+    }
+
+    /**
      * Lists all object properties from the right part of statement {@code _:this owl:inverseOf P}.
      *
      * @return Stream of {@link OntOPE}s.
@@ -324,7 +330,7 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Removes all statements with predicate owl:inverseOf and this property as subject.
+     * Removes the statement with predicate {@code owl:inverseOf} and the given object property as object.
      *
      * @param other {@link OntOPE}
      */
@@ -333,7 +339,7 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * @return true iff it is inverse functional property
+     * @return true iff it is an inverse functional property
      */
     default boolean isInverseFunctional() {
         return hasType(OWL.InverseFunctionalProperty);
@@ -347,7 +353,7 @@ public interface OntOPE extends OntDOP {
     void setInverseFunctional(boolean inverseFunctional);
 
     /**
-     * @return true iff it is transitive property
+     * @return true iff it is a transitive property
      */
     default boolean isTransitive() {
         return hasType(OWL.TransitiveProperty);
@@ -361,7 +367,7 @@ public interface OntOPE extends OntDOP {
     void setTransitive(boolean transitive);
 
     /**
-     * @return true iff it is symmetric property
+     * @return true iff it is a symmetric property
      */
     default boolean isSymmetric() {
         return hasType(OWL.SymmetricProperty);
@@ -375,7 +381,7 @@ public interface OntOPE extends OntDOP {
     void setSymmetric(boolean symmetric);
 
     /**
-     * @return true iff it is asymmetric property
+     * @return true iff it is an asymmetric property
      */
     default boolean isAsymmetric() {
         return hasType(OWL.AsymmetricProperty);
@@ -389,7 +395,7 @@ public interface OntOPE extends OntDOP {
     void setAsymmetric(boolean asymmetric);
 
     /**
-     * @return true iff it is reflexive property
+     * @return true iff it is a reflexive property
      */
     default boolean isReflexive() {
         return hasType(OWL.ReflexiveProperty);
@@ -403,7 +409,7 @@ public interface OntOPE extends OntDOP {
     void setReflexive(boolean reflexive);
 
     /**
-     * @return true iff it is irreflexive property
+     * @return true iff it is an irreflexive property
      */
     default boolean isIrreflexive() {
         return hasType(OWL.IrreflexiveProperty);
@@ -421,6 +427,6 @@ public interface OntOPE extends OntDOP {
      * Anonymous triple {@code _:x owl:inverseOf PN} which is also object property expression.
      */
     interface Inverse extends OntOPE {
-        OntOPE getDirect();
+        OntNOP getDirect();
     }
 }
