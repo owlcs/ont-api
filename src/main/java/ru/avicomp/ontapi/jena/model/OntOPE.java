@@ -63,7 +63,7 @@ public interface OntOPE extends OntDOP {
      * Lists all property chain {@link OntList ontology list}s that are attached to this Object Property Expression
      * on predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
      *
-     * @return Stream of {@link OntOPE object property expression}s
+     * @return Stream of {@link OntList}s with parameter-type {@code OntOPE}
      * @since 1.2.1
      */
     Stream<OntList<OntOPE>> listPropertyChains();
@@ -83,7 +83,6 @@ public interface OntOPE extends OntDOP {
      *
      * @see #clearPropertyChains()
      * @deprecated this method does not take into account possible annotations of property chains, use instead {@code clearPropertyChains()}
-     * @see #clearPropertyChains()
      */
     @Deprecated
     void removeSuperPropertyOf();
@@ -154,6 +153,7 @@ public interface OntOPE extends OntDOP {
      *
      * @return Stream of {@link RDFList}s
      * @deprecated use {@code listPropertyChains()} instead
+     * @see #listPropertyChains()
      */
     @Deprecated
     default Stream<RDFList> propertyChains() {
@@ -184,6 +184,7 @@ public interface OntOPE extends OntDOP {
      * @see #createPropertyChain(Collection)
      * @see #addSuperPropertyOf(OntOPE...)
      * @deprecated redundant method: use {@code createPropertyChain(properties)} instead
+     * @see #createPropertyChain(Collection)
      */
     @Deprecated
     default OntStatement addSuperPropertyOf(Collection<OntOPE> properties) {

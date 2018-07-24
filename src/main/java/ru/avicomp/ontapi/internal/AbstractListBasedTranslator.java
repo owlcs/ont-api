@@ -17,20 +17,27 @@ package ru.avicomp.ontapi.internal;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntList;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 /**
- * The base class for
+ * Base class for three following implementations:
  * <ul>
  * <li>{@link HasKeyTranslator}</li>
  * <li>{@link SubPropertyChainOfTranslator}</li>
@@ -38,8 +45,9 @@ import java.util.stream.Stream;
  * </ul>
  * Created by @szuev on 18.10.2016.
  */
-public abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom, ONT extends OntObject,
-        OWL_SUBJECT extends OWLObject, OWL_MEMBERS extends OWLObject> extends AxiomTranslator<Axiom> {
+abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
+        ONT_SUBJECT extends OntObject, OWL_SUBJECT extends OWLObject,
+        ONT_MEMBER extends OntObject, OWL_MEMBER extends OWLObject> extends AxiomTranslator<Axiom> {
 
     abstract OWLObject getSubject(Axiom axiom);
 
@@ -47,7 +55,7 @@ public abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom
 
     abstract Stream<? extends OWLObject> getObjects(Axiom axiom);
 
-    abstract Class<ONT> getView();
+    abstract Class<ONT_SUBJECT> getView();
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
@@ -70,19 +78,23 @@ public abstract class AbstractSubChainedTranslator<Axiom extends OWLLogicalAxiom
 
     ONTObject<Axiom> makeAxiom(OntStatement statement,
                                Collection<ONTObject<OWLAnnotation>> annotations,
-                               Function<ONT, ONTObject<? extends OWL_SUBJECT>> subjectExtractor,
-                               Function<ONT, Collection<ONTObject<? extends OWL_MEMBERS>>> membersExtractor,
+                               Function<ONT_SUBJECT, ONTObject<? extends OWL_SUBJECT>> subjectExtractor,
+                               BiFunction<ONT_SUBJECT, RDFNode, Optional<OntList<ONT_MEMBER>>> listExtractor,
+                               Function<ONT_MEMBER, ONTObject<? extends OWL_MEMBER>> memberExtractor,
+                               Collector<ONTObject<? extends OWL_MEMBER>, ?, ? extends Collection<ONTObject<? extends OWL_MEMBER>>> collector,
                                TriFunction<ONTObject<? extends OWL_SUBJECT>,
-                                       Collection<ONTObject<? extends OWL_MEMBERS>>,
+                                       Collection<ONTObject<? extends OWL_MEMBER>>,
                                        Collection<ONTObject<OWLAnnotation>>, Axiom> axiomMaker) {
 
-        ONT clazz = statement.getSubject().as(getView());
-        ONTObject<? extends OWL_SUBJECT> subject = subjectExtractor.apply(clazz);
-        Collection<ONTObject<? extends OWL_MEMBERS>> members = membersExtractor.apply(clazz);
+        ONT_SUBJECT ontSubject = statement.getSubject().as(getView());
+        ONTObject<? extends OWL_SUBJECT> subject = subjectExtractor.apply(ontSubject);
+        OntList<ONT_MEMBER> list = listExtractor.apply(ontSubject, statement.getObject())
+                .orElseThrow(() -> new OntApiException("Can't get OntList for statement " + Models.toString(statement)));
+        Collection<ONTObject<? extends OWL_MEMBER>> members = list.members().map(memberExtractor).collect(collector);
+
         Axiom res = axiomMaker.apply(subject, members, annotations);
         return ONTObject.create(res, statement)
                 .append(() -> ((OntObjectImpl) statement.getSubject()).rdfListContent(getPredicate()).map(FrontsTriple::asTriple));
-
     }
 
     @FunctionalInterface

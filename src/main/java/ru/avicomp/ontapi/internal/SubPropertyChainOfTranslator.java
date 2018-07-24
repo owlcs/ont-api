@@ -18,26 +18,24 @@ import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * base class : {@link AbstractSubChainedTranslator}
- * for SubPropertyChainOf axiom
- * example:
+ * Translator for SubPropertyChainOf axiom.
+ * Example in turtle:
  * <pre>{@code
  * owl:topObjectProperty owl:propertyChainAxiom ( :ob-prop-1 :ob-prop-2 ) .
  * }</pre>
  * <p>
  * Created by @szuev on 18.10.2016.
+ * @see <a href='https://www.w3.org/TR/owl2-syntax/#Object_Subproperties'>9.2.1 Object Subproperties</a>
  */
-public class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<OWLSubPropertyChainOfAxiom, OntOPE, OWLObjectPropertyExpression, OWLObjectPropertyExpression> {
+public class SubPropertyChainOfTranslator extends AbstractListBasedTranslator<OWLSubPropertyChainOfAxiom, OntOPE, OWLObjectPropertyExpression, OntOPE, OWLObjectPropertyExpression> {
     @Override
     OWLObject getSubject(OWLSubPropertyChainOfAxiom axiom) {
         return axiom.getSuperProperty();
@@ -61,17 +59,16 @@ public class SubPropertyChainOfTranslator extends AbstractSubChainedTranslator<O
     @Override
     public ONTObject<OWLSubPropertyChainOfAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        return makeAxiom(statement, reader.get(statement),
+        return makeAxiom(
+                statement,
+                reader.get(statement),
                 reader::get,
-                ope -> ope.findPropertyChain(statement.getObject())
-                        .orElseThrow(() -> new OntApiException("Can't get OntList for statement " + Models.toString(statement)))
-                        .members()
-                        .map(reader::get)
-                        .collect(Collectors.toList()),
-                (subject, members, annotations) ->
-                        reader.getOWLDataFactory()
-                                .getOWLSubPropertyChainOfAxiom(members.stream().map(ONTObject::getObject).collect(Collectors.toList()),
-                                        subject.getObject(), ONTObject.extract(annotations)));
-
+                OntOPE::findPropertyChain,
+                reader::get,
+                Collectors.toList(),
+                (s, m, a) -> reader.getOWLDataFactory().getOWLSubPropertyChainOfAxiom(
+                        m.stream().map(ONTObject::getObject).collect(Collectors.toList()),
+                        s.getObject(),
+                        ONTObject.extract(a)));
     }
 }

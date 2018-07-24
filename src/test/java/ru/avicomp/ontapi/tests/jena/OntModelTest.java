@@ -156,18 +156,18 @@ public class OntModelTest {
         Set<OntOPE> objProperties = m.ontObjects(OntNOP.class).collect(Collectors.toSet());
         Assert.assertEquals(4, objProperties.size());
 
-        OntStatement statement = person.addHasKey(objProperties, Collections.singleton(isHardWorking));
+        OntStatement statement = person.createHasKey(objProperties, Collections.singleton(isHardWorking)).getRoot();
         Assert.assertTrue(statement.getObject().canAs(RDFList.class));
         statement.addAnnotation(m.getRDFSComment(), "These are keys", "xz");
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(5, person.hasKey().count());
+        Assert.assertEquals(5, person.listHasKeys().findFirst().orElseThrow(AssertionError::new).members().count());
         Assert.assertEquals(36, m.ontObjects(OntCE.class).distinct().count());
         Assert.assertEquals(statementsCount + 16, m.statements().count());
         statement.deleteAnnotation(m.getRDFSComment());
 
         Assert.assertEquals(statementsCount + 11, m.statements().count());
-        person.removeHasKey();
+        person.clearHasKeys();
         Assert.assertEquals(statementsCount, m.statements().count());
 
         OntClass marsupials = m.getOntEntity(OntClass.class, ns + "Marsupials");

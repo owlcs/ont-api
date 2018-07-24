@@ -22,8 +22,10 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -58,18 +60,33 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
-        return OntCEImpl.addHasKey(this, objectProperties, dataProperties);
-    }
-
-    @Override
     public void removeHasKey() {
         clearAll(OWL.hasKey);
     }
 
     @Override
-    public Stream<OntPE> hasKey() {
-        return OntCEImpl.listHasKey(this);
+    public OntList<OntDOP> createHasKey(Collection<OntOPE> ope, Collection<OntNDP> dpe) {
+        return OntCEImpl.createHasKey(getModel(), this, Stream.of(ope, dpe).flatMap(Collection::stream));
+    }
+
+    @Override
+    public OntStatement addHasKey(OntDOP... properties) {
+        return OntCEImpl.createHasKey(getModel(), this, Arrays.stream(properties)).getRoot();
+    }
+
+    @Override
+    public Optional<OntList<OntDOP>> findHasKey(RDFNode list) {
+        return OntCEImpl.findHasKey(this, list);
+    }
+
+    @Override
+    public Stream<OntList<OntDOP>> listHasKeys() {
+        return OntCEImpl.listHasKeys(getModel(), this);
+    }
+
+    @Override
+    public void removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
+        OntCEImpl.removeHasKey(this, list);
     }
 
     @Override

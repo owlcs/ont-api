@@ -25,6 +25,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 
 /**
+ * For testing miscellaneous general model functionality.
+ *
  * Created by @szuev on 20.07.2018.
  */
 public class MiscOntModelTest extends OntModelTestBase {
@@ -50,6 +52,29 @@ public class MiscOntModelTest extends OntModelTestBase {
         debug(o);
         Assert.assertEquals(2, o.axioms(AxiomType.DISJOINT_UNION).count());
         Assert.assertEquals(7, o.axioms().count());
+    }
+
+    @Test
+    public void testLoadHasKey() throws OWLOntologyCreationException {
+        OWLOntologyManager m = OntManagers.createONT();
+        String s = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+                "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
+                "@prefix xml:   <http://www.w3.org/XML/1998/namespace> .\n" +
+                "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n" +
+                "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n" +
+                "<d2>    a       owl:DatatypeProperty .\n" +
+                "<C>     a           owl:Class ;\n" +
+                "        owl:hasKey  ( <p2> <p2> <d1> <d3> ) ;\n" +
+                "        owl:hasKey  ( <p1> <p2> <d1> <d2> ) .\n" +
+                "[ a       owl:Ontology ] .\n" +
+                "<d3>    a       owl:ObjectProperty .\n" +
+                "<p1>    a       owl:ObjectProperty .\n" +
+                "<d1>    a       owl:DatatypeProperty .\n" +
+                "<p2>    a       owl:ObjectProperty .";
+        OWLOntology o = m.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(s, OntFormat.TURTLE));
+        debug(o);
+        Assert.assertEquals(2, o.axioms(AxiomType.HAS_KEY).count());
+        Assert.assertEquals(8, o.axioms().count());
     }
 
     @Test

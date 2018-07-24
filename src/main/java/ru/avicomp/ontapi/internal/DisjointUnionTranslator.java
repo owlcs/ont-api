@@ -18,26 +18,25 @@ import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDisjointUnionAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * base class: {@link AbstractSubChainedTranslator}
- * for DisjointUnion
- * example:
+ * Translator for DisjointUnion Axiom.
+ * Example in turtle:
  * <pre>{@code
  * :MyClass1 owl:disjointUnionOf ( :MyClass2 [ a owl:Class ; owl:unionOf ( :MyClass3 :MyClass4  ) ] ) ;
  * }</pre>
  * <p>
  * Created by @szuev on 17.10.2016.
+ * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions'>9.1.4 Disjoint Union of Class Expressions</a>
  */
-public class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDisjointUnionAxiom, OntClass, OWLClassExpression, OWLClassExpression> {
+public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisjointUnionAxiom, OntClass, OWLClassExpression, OntCE, OWLClassExpression> {
     @Override
     public OWLObject getSubject(OWLDisjointUnionAxiom axiom) {
         return axiom.getOWLClass();
@@ -61,15 +60,16 @@ public class DisjointUnionTranslator extends AbstractSubChainedTranslator<OWLDis
     @Override
     public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        return makeAxiom(statement, reader.get(statement),
+        return makeAxiom(
+                statement,
+                reader.get(statement),
                 reader::get,
-                clazz -> clazz.findDisjointUnion(statement.getObject())
-                        .orElseThrow(() -> new OntApiException("Can't get OntList for statement " + Models.toString(statement)))
-                        .members()
-                        .map(reader::get)
-                        .collect(Collectors.toSet()),
-                (subject, members, annotations) -> reader.getOWLDataFactory()
-                        .getOWLDisjointUnionAxiom(subject.getObject().asOWLClass(),
-                                ONTObject.extractWildcards(members), ONTObject.extract(annotations)));
+                OntClass::findDisjointUnion,
+                reader::get,
+                Collectors.toSet(),
+                (s, m, a) -> reader.getOWLDataFactory().getOWLDisjointUnionAxiom(
+                        s.getObject().asOWLClass(),
+                        ONTObject.extractWildcards(m),
+                        ONTObject.extract(a)));
     }
 }

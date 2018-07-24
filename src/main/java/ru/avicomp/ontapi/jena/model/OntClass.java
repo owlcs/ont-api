@@ -49,7 +49,7 @@ public interface OntClass extends OntEntity, OntCE {
      * Lists all DisjointUnion {@link OntList ontology list}s that are attached to this OWL Class
      * on predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
      *
-     * @return Stream of {@link OntCE class expression}s
+     * @return Stream of {@link OntList}s with parameter-type {@code OntCE}
      * @since 1.2.1
      */
     Stream<OntList<OntCE>> listDisjointUnions();
@@ -66,7 +66,7 @@ public interface OntClass extends OntEntity, OntCE {
 
     /**
      * Removes all statements with predicate {@link OWL#disjointUnionOf owl:disjointUnionOf} including their content.
-     * @deprecated this method does not take into account possible annotations of disjoint union statement, use instead {@code clearDisjointUnions }
+     * @deprecated this method does not take into account possible annotations of disjoint union statement, use instead {@code clearDisjointUnions()}
      * @see #clearDisjointUnions()
      */
     @Deprecated
@@ -118,6 +118,7 @@ public interface OntClass extends OntEntity, OntCE {
      *
      * @return distinct stream of {@link OntCE}s
      * @deprecated use {@code listDisjointUnions()} with filtering instead
+     * @see #listDisjointUnions()
      */
     @Deprecated
     default Stream<OntCE> disjointUnionOf() {
@@ -131,6 +132,7 @@ public interface OntClass extends OntEntity, OntCE {
      * @param classes the collection of {@link OntCE}s
      * @return {@link OntStatement}
      * @deprecated redundant method: use {@code createDisjointUnion(classes)} instead
+     * @see #createDisjointUnion(Collection)
      */
     @Deprecated
     default OntStatement addDisjointUnionOf(Collection<OntCE> classes) {

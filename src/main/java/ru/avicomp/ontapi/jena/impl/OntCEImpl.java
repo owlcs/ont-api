@@ -28,9 +28,10 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -136,18 +137,33 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
-        return addHasKey(this, objectProperties, dataProperties);
+    public OntList<OntDOP> createHasKey(Collection<OntOPE> ope, Collection<OntNDP> dpe) {
+        return createHasKey(getModel(), this, Stream.of(ope, dpe).flatMap(Collection::stream));
+    }
+
+    @Override
+    public OntStatement addHasKey(OntDOP... properties) {
+        return createHasKey(getModel(), this, Arrays.stream(properties)).getRoot();
+    }
+
+    @Override
+    public Optional<OntList<OntDOP>> findHasKey(RDFNode list) {
+        return findHasKey(this, list);
+    }
+
+    @Override
+    public Stream<OntList<OntDOP>> listHasKeys() {
+        return listHasKeys(getModel(), this);
+    }
+
+    @Override
+    public void removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
+        removeHasKey(this, list);
     }
 
     @Override
     public void removeHasKey() {
         clearAll(OWL.hasKey);
-    }
-
-    @Override
-    public Stream<OntPE> hasKey() {
-        return listHasKey(this);
     }
 
     @Override
@@ -864,18 +880,22 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return model.getNodeAs(res.asNode(), OntIndividual.Named.class);
     }
 
-    public static <C extends OntObjectImpl & OntCE> Stream<OntPE> listHasKey(C clazz) {
-        return Stream.concat(clazz.rdfListMembers(OWL.hasKey, OntOPE.class), clazz.rdfListMembers(OWL.hasKey, OntNDP.class))
-                .map(OntPE.class::cast)
-                .distinct();
+    public static OntList<OntDOP> createHasKey(OntGraphModelImpl m, OntCE clazz, Stream<? extends OntDOP> collection) {
+        return OntListImpl.create(m, clazz, OWL.hasKey, OntDOP.class, collection.distinct().map(OntDOP.class::cast).iterator());
     }
 
-    public static OntStatement addHasKey(OntCE clazz,
-                                         Collection<OntOPE> objectProperties,
-                                         Collection<OntNDP> dataProperties) {
-        List<OntPE> properties = new ArrayList<>();
-        if (objectProperties != null) properties.addAll(objectProperties);
-        if (dataProperties != null) properties.addAll(dataProperties);
-        return clazz.addStatement(OWL.hasKey, clazz.getModel().createList(properties.iterator()));
+    public static Optional<OntList<OntDOP>> findHasKey(OntCE clazz, RDFNode list) {
+        return clazz.listHasKeys()
+                .filter(r -> Objects.equals(r, list))
+                .findFirst();
+    }
+
+    public static Stream<OntList<OntDOP>> listHasKeys(OntGraphModelImpl m, OntCE clazz) {
+        return OntListImpl.stream(m, clazz, OWL.hasKey, OntDOP.class);
+    }
+
+    public static void removeHasKey(OntCE clazz, RDFNode rdfList) throws OntJenaException.IllegalArgument {
+        clazz.remove(OWL.hasKey, clazz.findHasKey(rdfList)
+                .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find list " + rdfList)).clearAnnotations().clear());
     }
 }

@@ -20,8 +20,7 @@ import org.semanticweb.owlapi.model.OWLHasKeyAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntNDP;
-import ru.avicomp.ontapi.jena.model.OntOPE;
+import ru.avicomp.ontapi.jena.model.OntDOP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
@@ -29,16 +28,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * base class : {@link AbstractSubChainedTranslator}
- * for HasKey axiom.
- * example:
+ * Translator for HasKey axiom.
+ * Example in turtle:
  * <pre>{@code
  * :MyClass1 owl:hasKey ( :ob-prop-1 ) .
  * }</pre>
  * <p>
  * Created by @szuev on 17.10.2016.
+ * @see <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a>
  */
-public class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxiom, OntCE, OWLClassExpression, OWLPropertyExpression> {
+public class HasKeyTranslator extends AbstractListBasedTranslator<OWLHasKeyAxiom, OntCE, OWLClassExpression, OntDOP, OWLPropertyExpression> {
     @Override
     OWLObject getSubject(OWLHasKeyAxiom axiom) {
         return axiom.getClassExpression();
@@ -62,13 +61,16 @@ public class HasKeyTranslator extends AbstractSubChainedTranslator<OWLHasKeyAxio
     @Override
     public ONTObject<OWLHasKeyAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        return makeAxiom(statement, reader.get(statement),
+        return makeAxiom(
+                statement,
+                reader.get(statement),
                 reader::get,
-                ce -> ce.hasKey()
-                        .filter(p -> p.canAs(OntOPE.class) || p.canAs(OntNDP.class)) // only P or R (!)
-                        .map(reader::get).collect(Collectors.toSet()),
-                (subject, members, annotations) ->
-                        reader.getOWLDataFactory()
-                                .getOWLHasKeyAxiom(subject.getObject(), ONTObject.extractWildcards(members), ONTObject.extract(annotations)));
+                OntCE::findHasKey,
+                reader::get,
+                Collectors.toSet(),
+                (s, m, a) -> reader.getOWLDataFactory().getOWLHasKeyAxiom(
+                        s.getObject(),
+                        ONTObject.extractWildcards(m),
+                        ONTObject.extract(a)));
     }
 }

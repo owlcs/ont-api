@@ -15,16 +15,21 @@
 package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.vocabulary.RDFS;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Common interface for any Class Expressions (both named and anonymous).
+ * A common interface for any <b>C</b>lass <b>E</b>xpressions (both named and anonymous).
  * See for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
  * <p>
  * Created by szuev on 01.11.2016.
@@ -48,168 +53,6 @@ public interface OntCE extends OntObject {
      * @see OntIndividual#attachClass(OntCE)
      */
     OntIndividual.Named createIndividual(String uri);
-
-    /**
-     * Lists all key properties.
-     * I.e. returns all object- and datatype- properties which belong to
-     * the {@code C owl:hasKey (P1 ... Pm R1 ... Rn)} statements,
-     * where {@code C} - this class expression, {@code P} is a property expression, and {@code R} is a data(-type) property.
-     *
-     * @return distinct Stream of {@link OntOPE}s and {@link OntNDP}s.
-     */
-    Stream<OntPE> hasKey();
-
-    /**
-     * Creates an {@code owl:hasKey} statement.
-     *
-     * @param objectProperties the collection of {@link OntOPE}s/
-     * @param dataProperties   the collection of {@link OntNDP}s.
-     * @return {@link OntStatement}
-     */
-    OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties);
-
-    /**
-     * Removes all key properties.
-     * I.e. removes all statements with their content from a {@code owl:hasKey} axiom.
-     */
-    void removeHasKey();
-
-    /*
-     * ============================
-     * all known Class Expressions:
-     * ============================
-     */
-
-    interface ObjectSomeValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE> {
-    }
-
-    interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP> {
-    }
-
-    interface ObjectAllValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE> {
-    }
-
-    interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP> {
-    }
-
-    interface ObjectHasValue extends ComponentRestrictionCE<OntIndividual, OntOPE> {
-    }
-
-    interface DataHasValue extends ComponentRestrictionCE<Literal, OntNDP> {
-    }
-
-    interface ObjectMinCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
-    }
-
-    interface DataMinCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
-    }
-
-    interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
-    }
-
-    interface DataMaxCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
-    }
-
-    interface ObjectCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
-    }
-
-    interface DataCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
-    }
-
-    interface HasSelf extends RestrictionCE, ONProperty<OntOPE> {
-    }
-
-    interface UnionOf extends ComponentsCE<OntCE> {
-    }
-
-    interface OneOf extends ComponentsCE<OntIndividual> {
-    }
-
-    interface IntersectionOf extends ComponentsCE<OntCE> {
-    }
-
-    interface ComplementOf extends OntCE, Value<OntCE> {
-    }
-
-    interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
-    }
-
-    interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
-    }
-
-    /*
-     * ======================================
-     * Technical interfaces for abstract CEs:
-     * ======================================
-     */
-
-    interface ONProperty<P extends OntPE> {
-        P getOnProperty();
-
-        void setOnProperty(P p);
-    }
-
-    interface ONProperties<P extends OntPE> {
-        Stream<P> onProperties();
-
-        void setOnProperties(Collection<P> properties);
-    }
-
-    interface Components<O extends OntObject> {
-        Stream<O> components();
-
-        void setComponents(Collection<O> components);
-    }
-
-    interface Value<O extends RDFNode> {
-        O getValue();
-
-        void setValue(O value);
-    }
-
-    interface Cardinality {
-        int getCardinality();
-
-        void setCardinality(int cardinality);
-
-        /**
-         * Determines if this restriction is qualified.
-         * Qualified cardinality restrictions are defined to be cardinality restrictions
-         * that have fillers which aren't TOP (owl:Thing or rdfs:Literal).
-         * An object restriction is unqualified if it has a filler that is owl:Thing.
-         * A data restriction is unqualified if it has a filler which is the top data type (rdfs:Literal).
-         *
-         * @return {@code true} if this restriction is qualified, or {@code false} if this restriction is unqualified.
-         */
-        boolean isQualified();
-    }
-
-    /*
-     * ============================
-     * Interfaces for Abstract CEs:
-     * ============================
-     */
-
-    interface ComponentsCE<O extends OntObject> extends OntCE, Components<O> {
-    }
-
-    interface RestrictionCE extends OntCE {
-    }
-
-    interface ComponentRestrictionCE<O extends RDFNode, P extends OntPE> extends RestrictionCE, ONProperty<P>, Value<O> {
-    }
-
-    interface CardinalityRestrictionCE<O extends OntObject, P extends OntPE> extends Cardinality, ComponentRestrictionCE<O, P> {
-    }
-
-    interface NaryRestrictionCE<O extends OntObject, P extends OntPE> extends RestrictionCE, ONProperties<P>, Value<O> {
-    }
-
-    /*
-     * =======================
-     * Default common methods:
-     * =======================
-     */
 
     /**
      * Lists all individuals,
@@ -331,6 +174,249 @@ public interface OntCE extends OntObject {
      */
     default void removeEquivalentClass(OntCE other) {
         remove(OWL.equivalentClass, other);
+    }
+
+    /**
+     * Creates a HasKey logical construction as {@link OntList ontology list} of {@link OntDOP Object or Data Property Expression}s
+     * that is attached to this Class Expression using the predicate {@link OWL#hasKey owl:hasKey}.
+     * The resulting rdf-list will consist of all the elements of the specified collection in the same order but with exclusion of duplicates.
+     * Note: {@code null}s in collection will cause {@link NullPointerException NullPointerException}.
+     * For additional information about HasKey logical construction see
+     * <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a> specification.
+     *
+     * @param objectProperties {@link Collection} (preferably {@link Set})of {@link OntOPE object property expression}s
+     * @param dataProperties   {@link Collection} (preferably {@link Set})of {@link OntNDP data property expression}s
+     * @return {@link OntList} of {@link OntDOP}s
+     * @since 1.2.1
+     */
+    OntList<OntDOP> createHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties);
+
+    /**
+     * Creates a HasKey logical construction as {@link OntList ontology list} and returns statement {@code C owl:hasKey (P1 ... Pm R1 ... Rn)}
+     * to allow the addition of annotations.
+     * About RDF Graph annotation specification see, for example,
+     * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
+     *
+     * @param properties Array of {@link OntDOP}s without {@code null}s
+     * @return {@link OntStatement}
+     * @since 1.2.1
+     */
+    OntStatement addHasKey(OntDOP... properties);
+
+    /**
+     * Finds a HasKey logical construction attached to this class expression by the specified rdf-node in the form of {@link OntList}.
+     *
+     * @param list {@link RDFNode}
+     * @return Optional around {@link OntList} of {@link OntDOP data and object property expression}s
+     * @since 1.2.1
+     */
+    Optional<OntList<OntDOP>> findHasKey(RDFNode list);
+
+    /**
+     * Lists all HasKey {@link OntList ontology list}s that are attached to this class expression
+     * on predicate {@link OWL#hasKey owl:hasKey}.
+     *
+     * @return Stream of {@link OntList}s with parameter-type {@code OntDOP}
+     * @since 1.2.1
+     */
+    Stream<OntList<OntDOP>> listHasKeys();
+
+    /**
+     * Deletes the given HasKey list including its annotations
+     * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
+     *
+     * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
+     * @throws OntJenaException if the list is not found
+     * @since 1.2.1
+     */
+    void removeHasKey(RDFNode list);
+
+    /**
+     * Lists all key properties.
+     * I.e. returns all object- and datatype- properties which belong to
+     * the {@code C owl:hasKey (P1 ... Pm R1 ... Rn)} statements,
+     * where {@code C} - this class expression, {@code P} is a property expression, and {@code R} is a data(-type) property.
+     * If there are several []-lists in the model that satisfy these conditions,
+     * all their content will be merged into the one distinct stream.
+     *
+     * @return distinct Stream of {@link OntOPE}s and {@link OntNDP}s
+     * @see #listHasKeys()
+     * @deprecated use {@code listHasKeys()} with filtering instead
+     */
+    @Deprecated
+    default Stream<OntPE> hasKey() {
+        return listHasKeys().flatMap(OntList::members);
+    }
+
+    /**
+     * Creates an {@code owl:hasKey} statement.
+     *
+     * @param objectProperties the collection of {@link OntOPE}s
+     * @param dataProperties   the collection of {@link OntNDP}s
+     * @return {@link OntStatement}
+     * @deprecated redundant method: use {@code createHasKey(objectProperties, dataProperties)} instead
+     */
+    @Deprecated
+    default OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
+        return createHasKey(objectProperties, dataProperties).getRoot();
+    }
+
+    /**
+     * Deletes all HasKey list including its annotations
+     * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
+     *
+     * @throws OntJenaException if the list is not found
+     * @since 1.2.1
+     */
+    default void clearHasKeys() {
+        listHasKeys().collect(Collectors.toSet()).forEach(this::removeHasKey);
+    }
+
+    /**
+     * Removes all key properties.
+     * I.e. removes all statements with their content from a {@code owl:hasKey} axiom.
+     *
+     * @see #clearHasKeys()
+     * @deprecated this method does not take into account possible annotations of HasKey statement, use instead {@code clearHasKeys()}
+     */
+    @Deprecated
+    void removeHasKey();
+
+    /*
+     * ============================
+     * all known Class Expressions:
+     * ============================
+     */
+
+    interface ObjectSomeValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE> {
+    }
+
+    interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP> {
+    }
+
+    interface ObjectAllValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE> {
+    }
+
+    interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP> {
+    }
+
+    interface ObjectHasValue extends ComponentRestrictionCE<OntIndividual, OntOPE> {
+    }
+
+    interface DataHasValue extends ComponentRestrictionCE<Literal, OntNDP> {
+    }
+
+    interface ObjectMinCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
+    }
+
+    interface DataMinCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
+    }
+
+    /*
+     * ======================================
+     * Technical interfaces for abstract CEs:
+     * ======================================
+     */
+
+    interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
+    }
+
+    interface DataMaxCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
+    }
+
+    interface ObjectCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
+    }
+
+    interface DataCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
+    }
+
+    interface HasSelf extends RestrictionCE, ONProperty<OntOPE> {
+    }
+
+    /*
+     * ============================
+     * Interfaces for Abstract CEs:
+     * ============================
+     */
+
+    interface UnionOf extends ComponentsCE<OntCE> {
+    }
+
+    interface OneOf extends ComponentsCE<OntIndividual> {
+    }
+
+    interface IntersectionOf extends ComponentsCE<OntCE> {
+    }
+
+    interface ComplementOf extends OntCE, Value<OntCE> {
+    }
+
+    interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
+    }
+
+    /*
+     * =======================
+     * Default common methods:
+     * =======================
+     */
+
+    interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
+    }
+
+    interface ONProperty<P extends OntPE> {
+        P getOnProperty();
+
+        void setOnProperty(P p);
+    }
+
+    interface ONProperties<P extends OntPE> {
+        Stream<P> onProperties();
+
+        void setOnProperties(Collection<P> properties);
+    }
+
+    interface Components<O extends OntObject> {
+        Stream<O> components();
+
+        void setComponents(Collection<O> components);
+    }
+
+    interface Value<O extends RDFNode> {
+        O getValue();
+
+        void setValue(O value);
+    }
+
+    interface Cardinality {
+        int getCardinality();
+
+        void setCardinality(int cardinality);
+
+        /**
+         * Determines if this restriction is qualified.
+         * Qualified cardinality restrictions are defined to be cardinality restrictions
+         * that have fillers which aren't TOP (owl:Thing or rdfs:Literal).
+         * An object restriction is unqualified if it has a filler that is owl:Thing.
+         * A data restriction is unqualified if it has a filler which is the top data type (rdfs:Literal).
+         *
+         * @return {@code true} if this restriction is qualified, or {@code false} if this restriction is unqualified.
+         */
+        boolean isQualified();
+    }
+
+    interface ComponentsCE<O extends OntObject> extends OntCE, Components<O> {
+    }
+
+    interface RestrictionCE extends OntCE {
+    }
+
+    interface ComponentRestrictionCE<O extends RDFNode, P extends OntPE> extends RestrictionCE, ONProperty<P>, Value<O> {
+    }
+
+    interface CardinalityRestrictionCE<O extends OntObject, P extends OntPE> extends Cardinality, ComponentRestrictionCE<O, P> {
+    }
+
+    interface NaryRestrictionCE<O extends OntObject, P extends OntPE> extends RestrictionCE, ONProperties<P>, Value<O> {
     }
 
 }

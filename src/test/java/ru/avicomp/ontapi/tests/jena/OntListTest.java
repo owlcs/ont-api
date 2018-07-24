@@ -357,6 +357,54 @@ public class OntListTest {
         Assert.assertEquals(12, m.size());
     }
 
+    @Test
+    public void testHasKey() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass clazz = m.createOntEntity(OntClass.class, "c");
+        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
+        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
+        OntNDP p3 = m.createOntEntity(OntNDP.class, "p3");
+        OntNDP p4 = m.createOntEntity(OntNDP.class, "p4");
+        OntOPE p5 = m.createOntEntity(OntNOP.class, "p5").createInverse();
+
+        Assert.assertEquals(2, clazz.addHasKey(p2, p3).getObject().as(RDFList.class).size());
+        Assert.assertEquals(2, clazz.addHasKey(p3, p3, p4).getObject().as(RDFList.class).size());
+        Assert.assertEquals(3, clazz.addHasKey(p4, p4, p5, p1, p1).getObject().as(RDFList.class).size());
+        debug(m);
+        Assert.assertEquals(3, clazz.listHasKeys().count());
+        Assert.assertEquals(3, m.listClasses().flatMap(OntClass::listHasKeys).count());
+
+        OntList<OntDOP> h23 = clazz.listHasKeys()
+                .filter(c -> c.first().filter(p2::equals).isPresent())
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        OntList<OntDOP> h34 = clazz.listHasKeys()
+                .filter(c -> c.last().filter(p4::equals).isPresent())
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        OntList<OntDOP> h451 = clazz.listHasKeys()
+                .filter(c -> c.last().filter(p1::equals).isPresent())
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        Assert.assertEquals(Arrays.asList(p2, p3), h23.members().collect(Collectors.toList()));
+        Assert.assertEquals(Arrays.asList(p3, p4), h34.members().collect(Collectors.toList()));
+        Assert.assertEquals(Arrays.asList(p4, p5, p1), h451.members().collect(Collectors.toList()));
+
+        h451.addAnnotation(m.getRDFSComment(), m.createLiteral("p4, p5, p1"));
+        h23.addAnnotation(m.getRDFSComment(), m.createLiteral("p2, p3"));
+        debug(m);
+        Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
+        clazz.removeHasKey(h451);
+
+        debug(m);
+        Assert.assertEquals(2, m.listClasses().flatMap(OntClass::listHasKeys).count());
+        Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
+        clazz.clearHasKeys();
+        debug(m);
+        Assert.assertEquals(7, m.size());
+    }
+
     private static OntStatement getSingleAnnotation(OntList<?> list) {
         return getSingleAnnotation(list.getRoot());
     }
