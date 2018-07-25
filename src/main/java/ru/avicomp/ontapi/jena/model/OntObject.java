@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -28,48 +27,22 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A base Ontology RDF Resource, a common super-type for all of the abstractions in the {@link OntGraphModel ontology},
- * which can be annotated and/or have some strictly defined by the specification structure.
- * It is an analogue of {@link org.apache.jena.ontology.OntResource}.
+ * A base Object {@link OntResource Ontology RDF Resource}.
+ * A common super-type for all of the abstractions in the {@link OntGraphModel Ontology RDF Model},
+ * which support Jena Polymorphism, can be annotated and have a structure that is strictly defined according to the OWL2 specification.
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntObject extends Resource {
+public interface OntObject extends OntResource {
 
     /**
-     * Return the model associated with this resource.
-     * If the Resource was not created by a Model, the result may be null.
+     * Lists the content of this object, i.e. its all characteristic statements.
+     * The same as {@link #spec()}, but each element of that stream supports OWL2 annotations.
      *
-     * @return {@link OntGraphModel}
+     * @return Stream of {@link OntStatement Ontology Statement}s
+     * @see #spec()
      */
-    @Override
-    OntGraphModel getModel();
-
-    /**
-     * Determines if this Resource is local defined (i.e. does not belong to any other graphs from the model imports).
-     *
-     * @return {@code true} if this resource is local to the base model graph.
-     */
-    boolean isLocal();
-
-    /**
-     * Returns a root statement, i.e. the main triple in the model which determines this object.
-     * Usually it is declaration (the statement with predicate {@code rdf:type}).
-     *
-     * @return OntStatement or {@code null}
-     */
-    OntStatement getRoot();
-
-    /**
-     * Lists all characteristic statements of the object,
-     * i.e. all those statements which determine this object nature according to OWL2 specification.
-     * For non-composite objects the result might contain only the root statement.
-     * For composite objects (usually anonymous resources: disjoint sections, class expression, etc)
-     * the result would contain all directly related to it statements in the graph but without statements that relate to the object components.
-     *
-     * @return Stream of statements that fully describe this object in OWL2 terms
-     */
-    Stream<OntStatement> spec();
+    Stream<OntStatement> content();
 
     /**
      * Adds an ont-statement by attaching predicate and object (value) to this resource.
@@ -191,65 +164,12 @@ public interface OntObject extends Resource {
      *
      * @param property {@link OntNAP}, Named annotation property.
      * @param value    {@link RDFNode} the value: uri-resource, literal or anonymous individual.
-     * @return OntStatement for newly added annotation.
-     * @throws OntJenaException in case input is wrong.
+     * @return OntStatement for newly added annotation
+     * @throws OntJenaException in case input is wrong
      */
+    @Override
     default OntStatement addAnnotation(OntNAP property, RDFNode value) {
         return getRoot().addAnnotation(property, value);
-    }
-
-    /**
-     * Adds lang-string annotation assertion.
-     *
-     * @param predicate {@link OntNAP} predicate
-     * @param message   String, text message
-     * @param lang      String, language, nullable
-     * @return {@link OntStatement}
-     */
-    default OntStatement addAnnotation(OntNAP predicate, String message, String lang) {
-        return addAnnotation(predicate, ResourceFactory.createLangLiteral(message, lang));
-    }
-
-    /**
-     * Creates {@code _:this rdfs:comment "txt"^^xsd:string} statement.
-     *
-     * @param txt String
-     * @return {@link OntStatement}
-     */
-    default OntStatement addComment(String txt) {
-        return addComment(txt, null);
-    }
-
-    /**
-     * Adds text lang annotation with builtin {@code rdfs:comment} predicate.
-     *
-     * @param txt,  String, the message
-     * @param lang, String, the language, nullable.
-     * @return {@link OntStatement}
-     */
-    default OntStatement addComment(String txt, String lang) {
-        return addAnnotation(getModel().getRDFSComment(), txt, lang);
-    }
-
-    /**
-     * Creates {@code _:this rdfs:label "txt"^^xsd:string} statement.
-     *
-     * @param txt String
-     * @return {@link OntStatement}
-     */
-    default OntStatement addLabel(String txt) {
-        return addLabel(txt, null);
-    }
-
-    /**
-     * Adds text lang annotation with builtin {@code rdfs:label} predicate.
-     *
-     * @param txt,  String, the message
-     * @param lang, String, the language, nullable.
-     * @return {@link OntStatement}
-     */
-    default OntStatement addLabel(String txt, String lang) {
-        return addAnnotation(getModel().getRDFSLabel(), txt, lang);
     }
 
     /**
@@ -257,6 +177,7 @@ public interface OntObject extends Resource {
      *
      * @return this object to allow cascading calls
      */
+    @Override
     default OntObject clearAnnotations() {
         Set<OntStatement> annotated = statements().filter(OntStatement::hasAnnotations).collect(Collectors.toSet());
         annotated.forEach(OntStatement::clearAnnotations);

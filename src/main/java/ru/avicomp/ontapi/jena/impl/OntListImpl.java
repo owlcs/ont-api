@@ -18,6 +18,7 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -225,6 +226,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                         throw new OntJenaException.IllegalState("Problem node: '" + n + "'", j);
                     }
                 });
+    }
+
+    @Override
+    public Stream<Statement> spec() {
+        RDFListImpl list = ((RDFListImpl) getRDFList());
+        return isEmpty(list) ? Stream.empty() : list.collectStatements().stream();
     }
 
     public abstract boolean isValid(RDFNode n);

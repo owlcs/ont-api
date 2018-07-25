@@ -16,46 +16,30 @@ package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
 import ru.avicomp.ontapi.jena.OntJenaException;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * A parameterized analogue of {@link RDFList} that behaves like collection.
- * Currently it is not an {@link OntObject ontology object} and not a personality resource.
- * The latter means you cannot view any rdf-node as this interface,
- * but you can do the opposite: cast instance of this interface to the {@link RDFList rdf:List} view
+ * Please note: currently it is not a Personality resource and, therefore, Jena polymorphism is not supported for it
+ * The latter means that attempt to cast any {@link RDFNode RDF Node} to this view
+ * will cause {@link org.apache.jena.enhanced.UnsupportedPolymorphismException UnsupportedPolymorphismException},
+ * but it is possible do the opposite: cast an instance of this interface to the {@link RDFList rdf:List} view
  * using command {@code ont-list.as(RDFList.class)}.
- * TODO: not fully ready (should extend OntResource with common methods).
+ * Also note: switching to nil-list from a not-empty list and vice verse violates a Jena invariant,
+ * this means that this OntResource behaves not always like pure Jena Resource
+ * and all of the methods may throw {@link OntJenaException.IllegalState}
+ * in case of usage different instances encapsulating the same logical list.
+ * <p>
  * Created by @szuev on 10.07.2018.
  *
  * @param <E> the type of {@link RDFNode rdf-node}s in this list
  * @since 1.2.1
  */
-public interface OntList<E extends RDFNode> extends Resource {
-
-    OntGraphModel getModel();
-
-    /**
-     * TODO: move to the super class
-     *
-     * @return {@link OntStatement}
-     */
-    OntStatement getRoot();
-
-    default OntStatement addAnnotation(OntNAP property, RDFNode value) {
-        return getRoot().addAnnotation(property, value);
-    }
-
-    default OntList<E> clearAnnotations() {
-        getRoot().annotations().collect(Collectors.toSet()).forEach(OntStatement::clearAnnotations);
-        getRoot().clearAnnotations();
-        return this;
-    }
+public interface OntList<E extends RDFNode> extends OntResource {
 
     /**
      * Answers {@code true} if this list is the empty list (nil).
@@ -121,7 +105,7 @@ public interface OntList<E extends RDFNode> extends Resource {
      * @return new {@code OntList} instance
      * @throws OntJenaException.IllegalArgument if the specified index is out of list bounds
      */
-    OntList<E> get(int index) throws OntJenaException.IllegalArgument;
+    OntList<E> get(int index) throws OntJenaException;
 
     /**
      * Answers the number of {@link RDFNode rdf-node}s in the list.
@@ -165,6 +149,7 @@ public interface OntList<E extends RDFNode> extends Resource {
 
     /**
      * Answers the last element with type {@link E}.
+     *
      * @return Optional around rdf-node
      */
     default Optional<E> last() {
@@ -174,11 +159,28 @@ public interface OntList<E extends RDFNode> extends Resource {
     /**
      * Appends all of the elements in the specified collection to the end of this list,
      * in the order that they are returned by the specified collection's iterator.
+     *
      * @param c Collection of {@link E}-elements
      * @return this list instance
      */
     default OntList<E> addAll(Collection<? extends E> c) {
         c.forEach(this::add);
+        return this;
+    }
+
+    @Override
+    default boolean isLocal() {
+        return getRoot().isLocal();
+    }
+
+    @Override
+    default OntStatement addAnnotation(OntNAP property, RDFNode value) {
+        return getRoot().addAnnotation(property, value);
+    }
+
+    @Override
+    default OntList<E> clearAnnotations() {
+        getRoot().clearAnnotations();
         return this;
     }
 }

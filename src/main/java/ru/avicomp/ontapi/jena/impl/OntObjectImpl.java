@@ -83,9 +83,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
+    public Stream<OntStatement> content() {
+        return spec();
+    }
+
+    @Override
     public boolean isLocal() {
-        OntStatement declaration = getRoot(); // built-ins have null root-declaration
-        return declaration != null && declaration.isLocal();
+        OntStatement root = getRoot(); // built-ins have null root-declaration
+        return root != null && root.isLocal();
     }
 
     @Override

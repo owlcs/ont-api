@@ -35,6 +35,7 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -343,8 +344,8 @@ public class OntListTest {
         Assert.assertEquals(Arrays.asList(ce3, ce4), d34.members().collect(Collectors.toList()));
         Assert.assertEquals(Arrays.asList(ce4, ce5, ce1), d451.members().collect(Collectors.toList()));
 
-        d451.addAnnotation(m.getRDFSComment(), m.createLiteral("ce4, ce5, ce1"));
-        d23.addAnnotation(m.getRDFSComment(), m.createLiteral("ce2, ce3"));
+        d451.addLabel("ce4, ce5, ce1");
+        d23.addLabel("ce2, ce3");
         debug(m);
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
         clazz.removeDisjointUnion(d451);
@@ -391,8 +392,8 @@ public class OntListTest {
         Assert.assertEquals(Arrays.asList(p3, p4), h34.members().collect(Collectors.toList()));
         Assert.assertEquals(Arrays.asList(p4, p5, p1), h451.members().collect(Collectors.toList()));
 
-        h451.addAnnotation(m.getRDFSComment(), m.createLiteral("p4, p5, p1"));
-        h23.addAnnotation(m.getRDFSComment(), m.createLiteral("p2, p3"));
+        h451.addComment("p4, p5, p1");
+        h23.addComment("p2, p3");
         debug(m);
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
         clazz.removeHasKey(h451);
@@ -403,6 +404,32 @@ public class OntListTest {
         clazz.clearHasKeys();
         debug(m);
         Assert.assertEquals(7, m.size());
+    }
+
+    @Test
+    public void testListSpec() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
+        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
+        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
+        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntList<OntOPE> list = p1.createPropertyChain(Collections.emptyList());
+        debug(m);
+        Assert.assertEquals(0, list.spec().count());
+
+        list.add(p2).add(p3).add(p4);
+        Assert.assertEquals(6, list.spec().count());
+        Set<Statement> set = Models.getAssociatedStatements(m.listStatements(null, OWL.propertyChainAxiom, (RDFNode) null)
+                .mapWith(Statement::getObject).mapWith(RDFNode::asResource).toList().get(0));
+        Assert.assertEquals(set, list.spec().collect(Collectors.toSet()));
+
+        list.addComment("The list", "xx").addAnnotation(m.getRDFSLabel(), "test");
+        debug(m);
+        Assert.assertEquals(6, list.spec().count());
+        list.clear();
+        debug(m);
+        Assert.assertEquals(0, list.spec().count());
     }
 
     private static OntStatement getSingleAnnotation(OntList<?> list) {

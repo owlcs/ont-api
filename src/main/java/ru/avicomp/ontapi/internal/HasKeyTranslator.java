@@ -63,14 +63,13 @@ public class HasKeyTranslator extends AbstractListBasedTranslator<OWLHasKeyAxiom
         InternalDataFactory reader = getDataFactory(statement.getModel());
         return makeAxiom(
                 statement,
-                reader.get(statement),
                 reader::get,
                 OntCE::findHasKey,
                 reader::get,
                 Collectors.toSet(),
-                (s, m, a) -> reader.getOWLDataFactory().getOWLHasKeyAxiom(
+                (s, m) -> reader.getOWLDataFactory().getOWLHasKeyAxiom(
                         s.getObject(),
                         ONTObject.extractWildcards(m),
-                        ONTObject.extract(a)));
+                        ONTObject.extract(reader.get(statement))));
     }
 }

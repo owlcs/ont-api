@@ -61,14 +61,14 @@ public class SubPropertyChainOfTranslator extends AbstractListBasedTranslator<OW
         InternalDataFactory reader = getDataFactory(statement.getModel());
         return makeAxiom(
                 statement,
-                reader.get(statement),
                 reader::get,
                 OntOPE::findPropertyChain,
                 reader::get,
                 Collectors.toList(),
-                (s, m, a) -> reader.getOWLDataFactory().getOWLSubPropertyChainOfAxiom(
+                (s, m) -> reader.getOWLDataFactory().getOWLSubPropertyChainOfAxiom(
                         m.stream().map(ONTObject::getObject).collect(Collectors.toList()),
                         s.getObject(),
-                        ONTObject.extract(a)));
+                        ONTObject.extract(reader.get(statement))));
     }
+
 }

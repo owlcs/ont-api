@@ -62,14 +62,13 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
         InternalDataFactory reader = getDataFactory(statement.getModel());
         return makeAxiom(
                 statement,
-                reader.get(statement),
                 reader::get,
                 OntClass::findDisjointUnion,
                 reader::get,
                 Collectors.toSet(),
-                (s, m, a) -> reader.getOWLDataFactory().getOWLDisjointUnionAxiom(
+                (s, m) -> reader.getOWLDataFactory().getOWLDisjointUnionAxiom(
                         s.getObject().asOWLClass(),
                         ONTObject.extractWildcards(m),
-                        ONTObject.extract(a)));
+                        ONTObject.extract(reader.get(statement))));
     }
 }

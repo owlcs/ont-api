@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -31,14 +30,16 @@ import java.util.stream.Stream;
  * <p>
  * This is not a {@link org.apache.jena.rdf.model.Resource}.
  * OWL2 Annotations can be attached to this statement recursively.
+ *
  * Created by @szuev on 13.11.2016.
  * @see OntAnnotation
  * @see Statement
+ * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.2 Translation of Annotations</a>
  */
 public interface OntStatement extends Statement {
 
     /**
-     * Get the OntGraphModel this OnStatement was created in.
+     * Gets the {@link OntGraphModel Ontology RDF Model} this {@link OntStatement Statement} was created in.
      *
      * @return {@link OntGraphModel}
      */
@@ -50,10 +51,10 @@ public interface OntStatement extends Statement {
      * If this statement is root (see {@link #isRoot()}) the result is a plain annotation assertion (i.e. {@code this.subject property value}},
      * otherwise it is an assertion statement from a new (or present) {@link OntAnnotation} resource.
      *
-     * @param property {@link OntNAP} named annotation property, not null.
-     * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not null.
-     * @return {@link OntStatement} for newly added annotation.
-     * @throws OntJenaException in case input is incorrect.
+     * @param property {@link OntNAP} named annotation property, not null
+     * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not null
+     * @return {@link OntStatement Ont Statement} for newly added annotation
+     * @throws OntJenaException in case input is incorrect
      * @see OntAnnotation#addAnnotation(OntNAP, RDFNode)
      */
     OntStatement addAnnotation(OntNAP property, RDFNode value);
@@ -61,7 +62,7 @@ public interface OntStatement extends Statement {
     /**
      * Gets attached annotations (annotation assertions).
      *
-     * @return Stream of {@link OntStatement annotation assertion statements}, can be empty.
+     * @return Stream of {@link OntStatement annotation assertion statements}, can be empty
      * @see #asAnnotationResource()
      */
     Stream<OntStatement> annotations();
@@ -73,9 +74,9 @@ public interface OntStatement extends Statement {
      * If this statement is not root and corresponding {@link OntAnnotation} resource has no assertions any more,
      * it deletes the whole OntAnnotation resource also.
      *
-     * @param property {@link OntNAP} named annotation property, not null.
-     * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not null.
-     * @throws OntJenaException in case input is incorrect or deleted annotation has it is own annotations.
+     * @param property {@link OntNAP} named annotation property, not null
+     * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not null
+     * @throws OntJenaException in case input is incorrect or deleted annotation has it is own annotations
      */
     void deleteAnnotation(OntNAP property, RDFNode value) throws OntJenaException;
 
@@ -91,13 +92,13 @@ public interface OntStatement extends Statement {
      * }</pre>
      * Technically, although it does not make sense, it is possible that the given statement has several such b-nodes.
      *
-     * @return Stream of {@link OntAnnotation} resources.
-     * @see #asAnnotationResource() to get first annotation-object.
+     * @return Stream of {@link OntAnnotation} resources
+     * @see #asAnnotationResource() to get first annotation-object
      */
     Stream<OntAnnotation> annotationResources();
 
     /**
-     * Answers iff this statement is root (i.e. is a definition for some OntObject).
+     * Answers {@code true} if this statement is root (i.e. is a definition for some OntObject).
      * The root statement can be annotated with both plain and bulk annotation assertions:
      * <pre>{@code
      * :class   rdf:type                owl:Class ;
@@ -111,21 +112,21 @@ public interface OntStatement extends Statement {
      * ] .}</pre>
      * The non-root statement can only have bulk annotations.
      *
-     * @return true if root.
-     * @see OntObject#getRoot()
+     * @return {@code true} if root
+     * @see OntResource#getRoot()
      */
     boolean isRoot();
 
     /**
      * Answers iff this statement is in the base graph.
      *
-     * @return true if local
-     * @see OntObject#isLocal()
+     * @return {@code true} if local
+     * @see OntResource#isLocal()
      */
     boolean isLocal();
 
     /**
-     * An accessor method to return the subject of the statements in form of OntObject.
+     * An accessor method to return the subject of the statements in form of {@link OntObject Ontology Object}.
      *
      * @return {@link OntObject}
      * @see Statement#getSubject()
@@ -138,24 +139,24 @@ public interface OntStatement extends Statement {
      * It is assumed that this method always returns the same result if no changes in graph made,
      * even after graph reloading.
      *
-     * @return Optional around of {@link OntAnnotation}, can be empty.
+     * @return Optional around of {@link OntAnnotation}, can be empty
      * @see #annotationResources()
      */
     Optional<OntAnnotation> asAnnotationResource();
 
     /**
-     * Lists all annotations by property.
+     * Lists all annotations by the property.
      * @param property {@link OntNAP} the property
-     * @return Stream of {@link OntStatement}s.
+     * @return Stream of {@link OntStatement}s
      */
     default Stream<OntStatement> annotations(OntNAP property) {
         return annotations().filter(s -> Objects.equals(property, s.getPredicate()));
     }
 
     /**
-     * Deletes all annotations by property.
+     * Deletes all (sub-)annotations by the given property.
      *
-     * @param property {@link OntNAP}.
+     * @param property {@link OntNAP}
      */
     default void deleteAnnotation(OntNAP property) {
         Set<RDFNode> obj = annotations(property).map(Statement::getObject).collect(Collectors.toSet());
@@ -164,27 +165,27 @@ public interface OntStatement extends Statement {
 
     /**
      * Answers iff this statement is a declaration: {@code @any rdf:type @any}.
-     * @return true if predicate is rdf:type
+     * @return {@code true} if predicate is rdf:type
      */
     default boolean isDeclaration() {
         return RDF.type.equals(getPredicate());
     }
 
     /**
-     * Answers iff this is an annotation assertion.
+     * Answers {@code true}  if this is an annotation assertion.
      * Annotation assertion is a statement {@code s A t}, where
      * {@code s} is IRI or anonymous individual,
      * {@code t} is IRI, anonymous individual, or literal,
      * and {@code A} is annotation property.
      *
-     * @return true if predicate is {@link OntNAP}
+     * @return {@code true} if predicate is {@link OntNAP}
      */
     default boolean isAnnotation() {
         return getPredicate().canAs(OntNAP.class);
     }
 
     /**
-     * Answers iff the predicate is a data(-type) property and
+     * Answers {@code true} if the predicate is a data(-type) property and
      * therefore this statement is likely a positive data property assertion.
      * A positive data property assertion if a statement {@code a R v},
      * where {@code a} is an individual (both named and anonymous),
@@ -197,10 +198,10 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Answers iff the is a object property and
-     * therefore this statement is likely a positive object property assertion {@code a1 PN a2}.
+     * Answers {@code true} if there is an object property as a predicate and
+     * therefore this statement is likely to be a positive object property assertion {@code a1 PN a2}.
      *
-     * @return true if predicate is {@link OntNOP}
+     * @return {@code true} if predicate is {@link OntNOP}
      */
     default boolean isObject() {
         return getPredicate().canAs(OntNOP.class);
@@ -218,7 +219,7 @@ public interface OntStatement extends Statement {
     /**
      * Answers iff this statement has any annotations attached (both plain and bulk).
      *
-     * @return true if it is annotated.
+     * @return {@code true} if it is annotated
      */
     default boolean hasAnnotations() {
         try (Stream<OntStatement> annotations = annotations()) {
@@ -227,7 +228,19 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Adds lang annotation assertion.
+     * Adds String sub-annotation assertion.
+     *
+     * @param predicate {@link OntNAP}, not null
+     * @param text      String, the text message, not null.
+     * @return {@link OntStatement}
+     * @see OntObject#addAnnotation(OntNAP, String, String)
+     */
+    default OntStatement addAnnotation(OntNAP predicate, String text) {
+        return addAnnotation(predicate, text, null);
+    }
+
+    /**
+     * Adds lang sub-annotation assertion.
      *
      * @param predicate {@link OntNAP}, not null
      * @param text   String, the text message, not null.
@@ -236,7 +249,7 @@ public interface OntStatement extends Statement {
      * @see OntObject#addAnnotation(OntNAP, String, String)
      */
     default OntStatement addAnnotation(OntNAP predicate, String text, String lang) {
-        return addAnnotation(predicate, ResourceFactory.createLangLiteral(text, lang));
+        return addAnnotation(predicate, getModel().createLiteral(text, lang));
     }
 
     /**
