@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
@@ -23,6 +24,8 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
+import ru.avicomp.ontapi.jena.model.OntAnnotation;
+import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -33,6 +36,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -65,10 +69,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         }
     }
 
+    public boolean isBuiltIn() {
+        return getRoot() == null;
+    }
+
     @Override
     public OntStatement getRoot() {
-        try (Stream<OntStatement> types = types().map(t -> getModel().createOntStatement(true, this, RDF.type, t))) {
-            return types.findFirst().orElse(null);
+        try (Stream<Resource> types = types()) {
+            return types.findFirst().map(t -> getModel().createOntStatement(true, this, RDF.type, t)).orElse(null);
         }
     }
 
@@ -138,9 +146,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public Stream<OntStatement> statements(Property property) {
-        OntStatement root = getRoot();
+        OntStatement main = getRoot();
         return Iter.asStream(listProperties(property))
-                .map(s -> getModel().toOntStatement(root, s));
+                .map(s -> getModel().toOntStatement(main, s));
         //return statements().filter(s -> s.getPredicate().equals(property));
     }
 
@@ -152,7 +160,43 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
-    public Literal asLiteral() {
+    public Stream<OntStatement> annotations() {
+        Stream<OntStatement> res = statements().filter(s -> s.getPredicate().canAs(OntNAP.class));
+        OntStatement main = getRoot();
+        if (main != null) {
+            res = Stream.concat(res, main.annotationResources().flatMap(OntAnnotation::assertions));
+        }
+        return res;
+    }
+
+    /**
+     * Adds an annotation assertion.
+     * It could be expanded to bulk form by adding sub-annotation.
+     *
+     * @param property {@link OntNAP}, Named annotation property.
+     * @param value    {@link RDFNode} the value: uri-resource, literal or anonymous individual.
+     * @return OntStatement for newly added annotation
+     * @throws OntJenaException in case input is wrong
+     */
+    @Override
+    public OntStatement addAnnotation(OntNAP property, RDFNode value) {
+        OntStatement root = getRoot();
+        if (root == null) {
+            return getModel().createOntStatement(false, addProperty(property, value), property, value);
+        }
+        return root.addAnnotation(property, value);
+    }
+
+    @Override
+    public OntObject clearAnnotations() {
+        statements().collect(Collectors.toSet()).forEach(OntStatement::clearAnnotations);
+        // todo: it seems this is not correct, check and fix:
+        annotations().collect(Collectors.toSet()).forEach(a -> removeAll(a.getPredicate()));
+        return this;
+    }
+
+    @Override
+    public Literal asLiteral() throws UnsupportedPolymorphismException {
         return as(Literal.class);
     }
 
@@ -192,7 +236,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * Gets content of list in view of OntStatement streams.
+     * Gets the content of the list in view of OntStatement streams.
      * Note: if there are several rdf:List objects the contents will be merged.
      *
      * @param property predicate

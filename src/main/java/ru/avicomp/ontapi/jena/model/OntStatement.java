@@ -62,7 +62,7 @@ public interface OntStatement extends Statement {
     /**
      * Gets attached annotations (annotation assertions).
      *
-     * @return Stream of {@link OntStatement annotation assertion statements}, can be empty
+     * @return Stream of {@link OntStatement annotation assertion statements} with {@link OntNAP annotation property} as predicates, can be empty
      * @see #asAnnotationResource()
      */
     Stream<OntStatement> annotations();
@@ -98,8 +98,14 @@ public interface OntStatement extends Statement {
     Stream<OntAnnotation> annotationResources();
 
     /**
-     * Answers {@code true} if this statement is root (i.e. is a definition for some OntObject).
-     * The root statement can be annotated with both plain and bulk annotation assertions:
+     * Answers {@code true} if this statement is root (i.e. it is a main definition of an OntObject).
+     * The root statement can be annotated with both plain and bulk annotation assertions.
+     * Plain annotation is an assertion with annotation property ({@link OntNAP}) as predicate.
+     * Bulk annotation is an anonymous resource with type
+     * {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom owl:Axiom} (for top-level annotations) or
+     * {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation owl:Annotation} (for nested sub-annotations).
+     * The non-root statement can only have bulk annotations.
+     * The following snippet demonstrates both bulk and plain annotations:
      * <pre>{@code
      * :class   rdf:type                owl:Class ;
      *          rdfs:isDefinedBy        :annotation-1 .
@@ -110,15 +116,14 @@ public interface OntStatement extends Statement {
      *          owl:annotatedSource     :class ;
      *          owl:annotatedTarget     owl:Class
      * ] .}</pre>
-     * The non-root statement can only have bulk annotations.
      *
-     * @return {@code true} if root
+     * @return {@code true} if it is root ont-statement
      * @see OntResource#getRoot()
      */
     boolean isRoot();
 
     /**
-     * Answers iff this statement is in the base graph.
+     * Answers {@code true} if this statement is in the base graph.
      *
      * @return {@code true} if local
      * @see OntResource#isLocal()
@@ -232,7 +237,7 @@ public interface OntStatement extends Statement {
      *
      * @param predicate {@link OntNAP}, not null
      * @param text      String, the text message, not null.
-     * @return {@link OntStatement}
+     * @return {@link OntStatement}, new instance
      * @see OntObject#addAnnotation(OntNAP, String, String)
      */
     default OntStatement addAnnotation(OntNAP predicate, String text) {
@@ -245,7 +250,7 @@ public interface OntStatement extends Statement {
      * @param predicate {@link OntNAP}, not null
      * @param text   String, the text message, not null.
      * @param lang      String, language, optional
-     * @return {@link OntStatement}
+     * @return {@link OntStatement}, new instance
      * @see OntObject#addAnnotation(OntNAP, String, String)
      */
     default OntStatement addAnnotation(OntNAP predicate, String text, String lang) {

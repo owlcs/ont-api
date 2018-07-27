@@ -273,6 +273,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     @Override
     public OntGraphModelImpl removeOntObject(OntObject obj) {
         obj.clearAnnotations();
+        obj.content().forEach(OntStatement::clearAnnotations);
         obj.spec().collect(Collectors.toSet()).forEach(this::remove);
         return this;
     }
@@ -286,36 +287,44 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public Stream<OntStatement> statements() {
-        return Iter.asStream(listStatements()).map(st -> toOntStatement(null, st));
+        return Iter.asStream(listStatements()).map(this::toOntStatement);
     }
 
     @Override
     public Stream<OntStatement> statements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(listStatements(s, p, o)).map(st -> toOntStatement(null, st));
+        return Iter.asStream(listStatements(s, p, o)).map(this::toOntStatement);
     }
 
     @Override
     public Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(getBaseModel().listStatements(s, p, o)).map(st -> toOntStatement(null, st));
+        return Iter.asStream(getBaseModel().listStatements(s, p, o)).map(this::toOntStatement);
     }
 
     /**
-     * Wraps a jena statement as ont-statement
+     * Wraps the given jena statement as ont-statement.
      *
-     * @param main {@link OntStatement} the root, can be null
-     * @param st   {@link Statement}
+     * @param root {@link OntStatement} the root, may be {@code null}
+     * @param st   {@link Statement}, not {@code null}
      * @return {@link OntStatement}
      */
-    protected OntStatement toOntStatement(OntStatement main, Statement st) {
-        if (st.equals(main)) return main;
-        if (main != null && st.getPredicate().canAs(OntNAP.class)) {
-            return createOntStatement(false, main.getSubject(), st.getPredicate(), st.getObject());
-        }
+    protected OntStatement toOntStatement(OntStatement root, Statement st) {
+        return st.equals(root) ? root : toOntStatement(st);
+    }
+
+    /**
+     * Wraps the given jena statement as non-root ont-statement.
+     * A non-root statement can be annotated only using bulk annotations, see {@link OntStatement#isRoot()} description.
+     *
+     * @param st {@link Statement}, not {@code null}
+     * @return {@link OntStatement}
+     */
+    protected OntStatement toOntStatement(Statement st) {
         return createOntStatement(false, st.getSubject(), st.getPredicate(), st.getObject());
     }
 
     /**
-     * Creates an ont-statement.
+     * Creates an {@link OntStatement ont-statement} instance.
+     * The method does not change the model.
      *
      * @param root {@code true} if root
      * @param s    {@link Resource} subject
@@ -334,6 +343,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     /**
      * Creates an ont-statement that does not support sub-annotations.
+     * The method does not change the model.
      *
      * @param root {@code true} if root
      * @param s    {@link Resource} subject

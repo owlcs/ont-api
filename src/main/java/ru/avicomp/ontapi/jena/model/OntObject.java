@@ -17,23 +17,33 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A base Object {@link OntResource Ontology RDF Resource}.
+ * A base {@link OntResource Ontology Object RDF Resource}.
  * A common super-type for all of the abstractions in the {@link OntGraphModel Ontology RDF Model},
  * which support Jena Polymorphism, can be annotated and have a structure that is strictly defined according to the OWL2 specification.
  * <p>
  * Created by szuev on 01.11.2016.
  */
 public interface OntObject extends OntResource {
+
+    /**
+     * Returns the ontology object declaration statement.
+     * In most cases it wraps a triple with predicate {@code rdf:type}.
+     * Note that the returned ont-statement differs from that
+     * which could be obtained directly from the model using one of its {@code statement(..)} method:
+     * an statement's annotations are added in the form of annotation property assertions (so-called 'plain annotations'),
+     * not as anonymous resources with type {@code owl:Axiom} or {@code owl:Annotation} (so-called 'bulk annotations').
+     * Note: for anonymous ontology objects (i.e. for not OWL Entities) such behaviour differs from the OWL2 specification.
+     *
+     * @return {@link OntStatement} or {@code null}
+     */
+    @Override
+    OntStatement getRoot();
 
     /**
      * Lists the content of this object, i.e. its all characteristic statements.
@@ -102,6 +112,26 @@ public interface OntObject extends OntResource {
     Stream<OntStatement> statements();
 
     /**
+     * Lists all top-level annotations attached to the root statement of this object.
+     * Each annotation can be plain (annotation property assertion) or bulk
+     * (anonymous resource with type {@code owl:Axiom} or {@code owl:Annotation}, possibly with sub-annotations).
+     * Sub-annotations are not included into the returned stream.
+     * For not built-in ontology objects this is equivalent to the expression: {@code getRoot().annotations()}.
+     *
+     * @return Stream of {@link OntStatement}s that have an {@link OntNAP annotation property} as predicate
+     * @see OntStatement#annotations()
+     * @see OntAnnotation#assertions()
+     */
+    Stream<OntStatement> annotations();
+
+    /**
+     * Removes all associated annotations including nested.
+     *
+     * @return this object to allow cascading calls
+     */
+    OntObject clearAnnotations();
+
+    /**
      * Lists all objects attached on the property to this object with the given type
      *
      * @param predicate {@link Property} predicate
@@ -142,46 +172,5 @@ public interface OntObject extends OntResource {
      */
     default Stream<Resource> types() {
         return objects(RDF.type, Resource.class);
-    }
-
-    /**
-     * Returns a stream of all annotations attached to this object (not only to the main-triple).
-     * Each annotation could be plain (assertion) or bulk (with/without sub-annotations).
-     * Sub-annotations are not included to this stream.
-     * <p>
-     * According to OWL2-DL specification OntObject should be an uri-resource (i.e. not anonymous),
-     * but we extend this behaviour for more generality.
-     *
-     * @return Stream of {@link OntStatement}s, each of them has as key {@link OntNAP} and as value any {@link RDFNode}.
-     */
-    default Stream<OntStatement> annotations() {
-        return statements().map(OntStatement::annotations).flatMap(Function.identity());
-    }
-
-    /**
-     * Adds an annotation assertion.
-     * It could be expanded to bulk form by adding sub-annotation.
-     *
-     * @param property {@link OntNAP}, Named annotation property.
-     * @param value    {@link RDFNode} the value: uri-resource, literal or anonymous individual.
-     * @return OntStatement for newly added annotation
-     * @throws OntJenaException in case input is wrong
-     */
-    @Override
-    default OntStatement addAnnotation(OntNAP property, RDFNode value) {
-        return getRoot().addAnnotation(property, value);
-    }
-
-    /**
-     * Removes all associated annotations including nested.
-     *
-     * @return this object to allow cascading calls
-     */
-    @Override
-    default OntObject clearAnnotations() {
-        Set<OntStatement> annotated = statements().filter(OntStatement::hasAnnotations).collect(Collectors.toSet());
-        annotated.forEach(OntStatement::clearAnnotations);
-        annotations().forEach(a -> removeAll(a.getPredicate()));
-        return this;
     }
 }

@@ -229,7 +229,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     @Override
-    public Stream<Statement> spec() {
+    public Stream<Statement> spec() { // todo: switch to lazy stream
         RDFListImpl list = ((RDFListImpl) getRDFList());
         return isEmpty(list) ? Stream.empty() : list.collectStatements().stream();
     }

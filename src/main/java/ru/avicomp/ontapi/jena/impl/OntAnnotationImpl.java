@@ -50,8 +50,8 @@ import java.util.stream.Stream;
 public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static final Set<Property> REQUIRED_PROPERTIES = Stream.of(OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
             .collect(Iter.toUnmodifiableSet());
-    public static final Set<Property> SPEC =
-            Stream.concat(Stream.of(RDF.type), REQUIRED_PROPERTIES.stream()).collect(Iter.toUnmodifiableSet());
+    public static final Set<Property> SPEC = Stream.concat(Stream.of(RDF.type), REQUIRED_PROPERTIES.stream())
+            .collect(Iter.toUnmodifiableSet());
     public static final Set<Resource> EXTRA_ROOT_TYPES =
             Stream.of(OWL.AllDisjointClasses, OWL.AllDisjointProperties, OWL.AllDifferent, OWL.NegativePropertyAssertion)
                     .collect(Iter.toUnmodifiableSet());
@@ -101,7 +101,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     @Override
     public Stream<OntStatement> assertions() {
         return Iter.asStream(listProperties())
-                .filter(st -> !SPEC.contains(st.getPredicate()))
+                .filter(st -> !OntAnnotationImpl.SPEC.contains(st.getPredicate()))
                 .filter(st -> st.getPredicate().canAs(OntNAP.class))
                 .map(st -> getModel().createOntStatement(false, this, st.getPredicate(), st.getObject()));
     }
@@ -134,7 +134,9 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         return EXTRA_ROOT_TYPES_AS_NODES.stream().anyMatch(types::contains);
     }
 
-    private static <S> S removeMin(Set<S> notEmptySet, Comparator<? super S> comparator) throws IllegalStateException {
+    private static <S> S removeMin(Set<S> notEmptySet,
+                                   @SuppressWarnings("SameParameterValue") Comparator<? super S> comparator)
+            throws IllegalStateException {
         S res = notEmptySet.stream().min(comparator).orElseThrow(IllegalStateException::new);
         if (!notEmptySet.remove(res)) throw new IllegalStateException();
         return res;
