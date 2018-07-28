@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.tests;
+package ru.avicomp.ontapi.tests.model;
 
 import org.apache.log4j.Logger;
 import org.junit.After;
@@ -33,8 +33,8 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
  *
  * Created by @szuev on 27.09.2016.
  */
-public class ExampleTest {
-    private static final Logger LOGGER = Logger.getLogger(ExampleTest.class);
+public class SimpleCreationTest {
+    private static final Logger LOGGER = Logger.getLogger(SimpleCreationTest.class);
 
     @BeforeClass
     public static void before() {
@@ -49,7 +49,7 @@ public class ExampleTest {
     }
 
     @Test
-    public void test() {
+    public void testAssemblyOntology() {
         OntIRI owlURI = OntIRI.create("http://test.test/example");
         int statementsNumber = 15;
         OntologyManager manager = OntManagers.createONT();

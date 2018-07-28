@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.tests;
+package ru.avicomp.ontapi.tests.managers;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
@@ -43,8 +43,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * For testing miscellaneous general functionality.
- * TODO: move somewhere... maybe merge with {@link ru.avicomp.ontapi.tests.model.MiscOntModelTest} ?
+ * For testing miscellaneous general functionality related to manager and load settings.
  * <p>
  * Created by @szuev on 23.01.2018.
  */
