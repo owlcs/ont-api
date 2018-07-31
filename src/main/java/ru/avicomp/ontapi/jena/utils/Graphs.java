@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.jena.utils;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
@@ -37,7 +38,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Helper to work with jena {@link Graph} (generally with our {@link UnionGraph})
+ * Helper to work with {@link Graph Jena Graph} (generally with our {@link UnionGraph}) and with its related objects:
+ * {@link Triple} and {@link Node}.
  * <p>
  * Created by szuev on 06.02.2017.
  *
@@ -331,4 +333,13 @@ public class Graphs {
         return res;
     }
 
+    /**
+     * Makes a fresh node instance according to the given iri.
+     *
+     * @param iri String, an IRI to create URI-Node or {@code null} to create Blank-Node
+     * @return {@link Node}, not null
+     */
+    public static Node createNode(String iri) {
+        return iri == null ? NodeFactory.createBlankNode() : NodeFactory.createURI(iri);
+    }
 }

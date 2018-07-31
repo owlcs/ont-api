@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -437,5 +438,28 @@ public class OntModelTest {
         Assert.assertEquals(0, m.getRDFSLabel().content().count());
     }
 
+    @Test
+    public void testCreateEntities() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        createEntityTest(m, "a-p", OntNAP.class);
+        createEntityTest(m, "o-p", OntNOP.class);
+        createEntityTest(m, "d-p", OntNDP.class);
+        createEntityTest(m, "c", OntClass.class);
+        createEntityTest(m, "d", OntDT.class);
+        createEntityTest(m, "I", OntIndividual.Named.class);
+        ReadWriteUtils.print(m);
+    }
+
+    private <E extends OntEntity> void createEntityTest(OntGraphModel m, String uri, Class<E> type) {
+        String pref = "Annotation[" + uri + "]:::";
+        E e = m.createOntEntity(type, uri);
+        e.addComment(pref + "entity of type " + type.getSimpleName()).addAnnotation(m.getRDFSLabel(), pref + "label");
+        m.asStatement(e.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), pref + "comment");
+        Assert.assertEquals(2, e.annotations().count());
+        Assert.assertEquals(2, e.statements().count());
+        Assert.assertSame(e, e.as(type));
+        Assert.assertSame(e, ((OntGraphModelImpl) m).getNodeAs(e.asNode(), type));
+    }
 }
 

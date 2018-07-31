@@ -18,6 +18,7 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
@@ -35,7 +36,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,19 +69,18 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         }
     }
 
-    public boolean isBuiltIn() {
-        return getRoot() == null;
-    }
-
     @Override
     public OntStatement getRoot() {
-        try (Stream<Resource> types = types()) {
-            return types.findFirst().map(t -> getModel().createOntStatement(true, this, RDF.type, t)).orElse(null);
+        OntGraphModelImpl m = getModel();
+        try (Stream<RDFNode> objects = m.statements(this, RDF.type, null).map(Statement::getObject)) {
+            return objects.findFirst()
+                    .map(o -> m.createStatement(this, RDF.type, o))
+                    .map(OntStatementImpl::asRootStatement).orElse(null);
         }
     }
 
-    protected OntStatement getRoot(Property property, Resource type) {
-        return hasProperty(property, type) ? getModel().createOntStatement(true, this, property, type) : null;
+    protected OntStatement getRoot(Property property, Resource type) { // todo: check existing seems is not necessary (in case of built-ins)
+        return hasProperty(property, type) ? getModel().createStatement(this, property, type).asRootStatement() : null;
     }
 
     @Override
@@ -103,15 +102,15 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public Optional<OntStatement> statement(Property property) {
-        try (Stream<OntStatement> statements = statements(property)) {
-            return statements.findFirst();
+        try (Stream<OntStatement> res = statements(property)) {
+            return res.findFirst();
         }
     }
 
     @Override
     public Optional<OntStatement> statement(Property property, RDFNode object) {
-        try (Stream<OntStatement> statements = statements(property).filter(s -> s.getObject().equals(object))) {
-            return statements.findFirst();
+        try (Stream<OntStatement> res = statements(property).filter(s -> Objects.equals(s.getObject(), object))) {
+            return res.findFirst();
         }
     }
 
@@ -131,11 +130,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntStatement addStatement(Property property, RDFNode value) {
-        Statement st = getModel().createStatement(this,
+        OntStatement st = getModel().createStatement(this,
                 OntJenaException.notNull(property, "Null property."),
                 OntJenaException.notNull(value, "Null value."));
         getModel().add(st);
-        return getModel().toOntStatement(getRoot(), st);
+        return st;
     }
 
     @Override
@@ -146,17 +145,30 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public Stream<OntStatement> statements(Property property) {
-        OntStatement main = getRoot();
-        return Iter.asStream(listProperties(property))
-                .map(s -> getModel().toOntStatement(main, s));
-        //return statements().filter(s -> s.getPredicate().equals(property));
+        return Iter.asStream(listProperties(property)).map(OntStatement.class::cast);
     }
 
     @Override
     public Stream<OntStatement> statements() {
-        OntStatement main = getRoot();
-        return Iter.asStream(listProperties())
-                .map(s -> getModel().toOntStatement(main, s));
+        return Iter.asStream(listProperties()).map(OntStatement.class::cast);
+    }
+
+    @Override
+    public StmtIterator listProperties() {
+        return listProperties(null);
+    }
+
+    @Override
+    public StmtIterator listProperties(Property p) {
+        return Iter.createStmtIterator(getModel().getGraph().find(asNode(), OntGraphModelImpl.asNode(p), Node.ANY),
+                t -> createOntStatement(p, t));
+    }
+
+    protected OntStatement createOntStatement(Property p, Triple t) {
+        OntGraphModelImpl m = getModel();
+        Property property = p == null ? m.getNodeAs(t.getPredicate(), Property.class) : p;
+        RDFNode object = m.getNodeAs(t.getObject(), RDFNode.class);
+        return OntStatementImpl.createOntStatementImpl(this, property, object, getModel());
     }
 
     @Override
@@ -182,7 +194,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
         OntStatement root = getRoot();
         if (root == null) {
-            return getModel().createOntStatement(false, addProperty(property, value), property, value);
+            return getModel().createStatement(addProperty(property, value), property, value);
         }
         return root.addAnnotation(property, value);
     }
@@ -195,6 +207,12 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return this;
     }
 
+    /**
+     * OntObject is allowed to present literals.
+     *
+     * @return {@link Literal}
+     * @throws UnsupportedPolymorphismException if not a literal
+     */
     @Override
     public Literal asLiteral() throws UnsupportedPolymorphismException {
         return as(Literal.class);
@@ -243,17 +261,12 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream
      */
     public Stream<OntStatement> rdfListContent(Property property) {
-        OntStatement r = getRoot();
-        return Iter.asStream(listProperties(property)
-                .mapWith(Statement::getObject)
-                .filterKeep(n -> n.canAs(RDFList.class))
-                .mapWith(n -> n.as(RDFList.class)))
-                .map(RDFListImpl.class::cast)
+        return objects(property, RDFList.class)
                 .filter(list -> !list.isEmpty())
+                .map(RDFListImpl.class::cast)
                 .map(RDFListImpl::collectStatements)
-                .map(Collection::stream)
-                .flatMap(Function.identity())
-                .map(s -> getModel().toOntStatement(r, s));
+                .flatMap(Collection::stream)
+                .map(OntStatement.class::cast);
     }
 
     /**

@@ -66,7 +66,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
 
     @Override
     public OntStatement getRoot() {
-        return getModel().createOntStatement(true, this, predicate(getActualClass()), getValue());
+        return getModel().createStatement(this, predicate(getActualClass()), getValue()).asRootStatement();
     }
 
     @Override

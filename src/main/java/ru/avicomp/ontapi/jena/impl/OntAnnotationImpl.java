@@ -86,7 +86,8 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
 
     @Override
     public Stream<OntStatement> spec() {
-        return SPEC.stream().map(this::getRequiredProperty);
+        //return SPEC.stream().map(this::getRequiredProperty);
+        return statements().filter(s -> SPEC.contains(s.getPredicate()) || s.isAnnotation());
     }
 
     @Override
@@ -100,17 +101,16 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
 
     @Override
     public Stream<OntStatement> assertions() {
-        return Iter.asStream(listProperties())
+        return statements()
                 .filter(st -> !OntAnnotationImpl.SPEC.contains(st.getPredicate()))
-                .filter(st -> st.getPredicate().canAs(OntNAP.class))
-                .map(st -> getModel().createOntStatement(false, this, st.getPredicate(), st.getObject()));
+                .filter(OntStatement::isAnnotation);
     }
 
     @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
         OntGraphModelImpl model = getModel();
         model.add(this, property, value);
-        return model.createOntStatement(false, this, property, value);
+        return model.createStatement(this, property, value);
     }
 
     public static Stream<Node> findRootAnnotations(EnhGraph eg) {

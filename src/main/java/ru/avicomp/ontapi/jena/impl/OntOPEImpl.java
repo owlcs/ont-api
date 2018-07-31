@@ -96,7 +96,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public OntStatement getRoot() {
-            return getModel().createOntStatement(true, this, OWL.inverseOf, getDirect());
+            return getModel().createStatement(this, OWL.inverseOf, getDirect()).asRootStatement();
         }
 
         @Override

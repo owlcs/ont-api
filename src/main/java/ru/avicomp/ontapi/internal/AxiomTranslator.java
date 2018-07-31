@@ -55,9 +55,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      */
     public Stream<ONTObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
         return statements(model)
-                // CacheStatement helps to speed up a little if ontology has a lot of annotations,
+                // CacheStatement helps to speed up a little if the ontology model has a lot of annotations,
                 // otherwise, it may even slow down the process of axioms collecting ...
-                .map(OntStatementImpl::createCachedStatement)
+                .map(OntStatementImpl::createCachedOntStatementImpl)
                 .flatMap(Models::split)
                 .map(this::toAxiom);
     }

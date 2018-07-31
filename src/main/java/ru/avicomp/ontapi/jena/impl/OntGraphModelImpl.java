@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.reasoner.Reasoner;
@@ -26,7 +27,6 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
-import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -258,16 +258,18 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     /**
-     * Creates any ontology object resource by type and uri.
+     * Creates and caches an ontology object resource by the given type and uri.
      *
-     * @param type Class, type
-     * @param uri  String, null for anonymous resource
+     * @param type Class, object type
+     * @param uri  String, URI (IRI), can be {@code null} for anonymous resource
      * @param <T>  class-type of {@link OntObject}
-     * @return OntObject
+     * @return {@link OntObject}, new instance
      */
     public <T extends OntObject> T createOntObject(Class<T> type, String uri) {
-        Resource res = uri == null ? createResource() : createResource(uri);
-        return getPersonality().getOntImplementation(type).create(res.asNode(), this).as(type);
+        Node key = Graphs.createNode(uri);
+        T res = getPersonality().getOntImplementation(type).create(key, this).as(type);
+        getNodeCache().put(key, res);
+        return res;
     }
 
     @Override
@@ -287,82 +289,36 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public Stream<OntStatement> statements() {
-        return Iter.asStream(listStatements()).map(this::toOntStatement);
+        return Iter.asStream(listStatements()).map(OntStatement.class::cast);
     }
 
     @Override
     public Stream<OntStatement> statements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(listStatements(s, p, o)).map(this::toOntStatement);
+        return Iter.asStream(listStatements(s, p, o)).map(OntStatement.class::cast);
     }
 
     @Override
     public Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(getBaseModel().listStatements(s, p, o)).map(this::toOntStatement);
+        return Iter.asStream(listLocalStatements(s, p, o)).map(OntStatement.class::cast);
     }
 
-    /**
-     * Wraps the given jena statement as ont-statement.
-     *
-     * @param root {@link OntStatement} the root, may be {@code null}
-     * @param st   {@link Statement}, not {@code null}
-     * @return {@link OntStatement}
-     */
-    protected OntStatement toOntStatement(OntStatement root, Statement st) {
-        return st.equals(root) ? root : toOntStatement(st);
+    @Override
+    public StmtIterator listStatements(Resource s, Property p, RDFNode o) {
+        return Iter.createStmtIterator(getGraph().find(asNode(s), asNode(p), asNode(o)), this::asStatement);
     }
 
-    /**
-     * Wraps the given jena statement as non-root ont-statement.
-     * A non-root statement can be annotated only using bulk annotations, see {@link OntStatement#isRoot()} description.
-     *
-     * @param st {@link Statement}, not {@code null}
-     * @return {@link OntStatement}
-     */
-    protected OntStatement toOntStatement(Statement st) {
-        return createOntStatement(false, st.getSubject(), st.getPredicate(), st.getObject());
+    public StmtIterator listLocalStatements(Resource s, Property p, RDFNode o) {
+        return Iter.createStmtIterator(getBaseGraph().find(asNode(s), asNode(p), asNode(o)), this::asStatement);
     }
 
-    /**
-     * Creates an {@link OntStatement ont-statement} instance.
-     * The method does not change the model.
-     *
-     * @param root {@code true} if root
-     * @param s    {@link Resource} subject
-     * @param p    {@link Property} predicate
-     * @param o    {@link RDFNode} object
-     * @return {@link OntStatement}
-     */
-    protected OntStatement createOntStatement(boolean root, Resource s, Property p, RDFNode o) {
-        return new OntStatementImpl(s, p, o, this) {
-            @Override
-            public boolean isRoot() {
-                return root;
-            }
-        };
+    @Override
+    public OntStatementImpl createStatement(Resource s, Property p, RDFNode o) {
+        return OntStatementImpl.createOntStatementImpl(s, p, o, this);
     }
 
-    /**
-     * Creates an ont-statement that does not support sub-annotations.
-     * The method does not change the model.
-     *
-     * @param root {@code true} if root
-     * @param s    {@link Resource} subject
-     * @param p    {@link Property} predicate
-     * @param o    {@link RDFNode} object
-     * @return {@link OntStatement}
-     */
-    protected OntStatement createNotAnnotatedOntStatement(boolean root, Resource s, Property p, RDFNode o) {
-        return new OntStatementImpl(s, p, o, this) {
-            @Override
-            public boolean isRoot() {
-                return root;
-            }
-
-            @Override
-            public OntStatement addAnnotation(OntNAP property, RDFNode value) {
-                throw new OntJenaException.Unsupported("Sub-annotations are not supported (attempt to add " + Models.toString(this) + ")");
-            }
-        };
+    @Override
+    public OntStatement asStatement(Triple triple) {
+        return OntStatementImpl.createOntStatementImpl(triple, this);
     }
 
     @Override

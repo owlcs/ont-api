@@ -153,9 +153,8 @@ public class WriteHelper {
         addAnnotations(s.addStatement(p, o), annotations);
     }
 
-    public static void writeDeclarationTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, Stream<OWLAnnotation> annotations) {
-        OntObject s = toResource(subject).inModel(model).as(OntObject.class);
-        addAnnotations(s.addStatement(predicate, object), annotations);
+    public static void writeDeclarationTriple(OntGraphModel model, OWLEntity subject, Property predicate, RDFNode object, Stream<OWLAnnotation> annotations) {
+        addAnnotations(toResource(subject).inModel(model).addProperty(predicate, object).as(getEntityView(subject)).getRoot(), annotations);
     }
 
     public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, Stream<OWLAnnotation> annotations) {

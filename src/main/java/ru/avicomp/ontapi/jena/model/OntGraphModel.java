@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.vocabulary.RDFS;
@@ -213,6 +214,15 @@ public interface OntGraphModel extends Model {
     Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o);
 
     /**
+     * Answers an {@link OntStatement Ontology Statement} in this model who's SPO is that of the {@code triple}.
+     *
+     * @param triple {@link Triple}, not null
+     * @return {@link OntStatement}
+     */
+    @Override
+    OntStatement asStatement(Triple triple);
+
+    /**
      * Answers iff the statement belongs to the base graph.
      *
      * @param statement {@link Statement}
@@ -237,6 +247,7 @@ public interface OntGraphModel extends Model {
      *
      * @param statement {@link OntStatement}
      * @return this model
+     * @see #remove(Statement)
      */
     OntGraphModel removeOntStatement(OntStatement statement);
 

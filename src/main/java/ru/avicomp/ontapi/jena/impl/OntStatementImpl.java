@@ -14,12 +14,17 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
+import org.apache.jena.rdf.model.impl.PropertyImpl;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -32,9 +37,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The Ont Statement main implementation.
- * This is an extended Jena {@link StatementImpl} with possibility to add annotations in the same form of ont-statements.
- * Annotations can be plain (annotation assertion) or bulk (anonymous resource with rdf:type owl:Axiom or owl:Annotation, see {@link OntAnnotation}).
+ * An implementation of {@link OntStatement OntStatement}.
+ * This is an extended Jena {@link StatementImpl} with possibility to add annotations in the same form of  OntStatement.
+ * Annotations can be plain (annotation assertion) or bulk (anonymous resource with rdf:type {@code owl:Axiom} or {@code owl:Annotation},
+ * see {@link OntAnnotation}).
  * The examples of how to write bulk-annotations in RDF-graph see here:
  * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.2 Translation of Annotations</a>.
  * <p>
@@ -51,15 +57,50 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         this(statement.getSubject(), statement.getPredicate(), statement.getObject(), (OntGraphModel) statement.getModel());
     }
 
+    public static OntStatementImpl createOntStatementImpl(Triple t, OntGraphModelImpl m) {
+        return createOntStatementImpl(new ResourceImpl(t.getSubject(), m), t.getPredicate(), t.getObject(), m);
+    }
+
+    public static OntStatementImpl createOntStatementImpl(Resource s, Node p, Node o, OntGraphModelImpl m) {
+        return createOntStatementImpl(s, new PropertyImpl(p, m), o, m);
+    }
+
+    public static OntStatementImpl createOntStatementImpl(Resource s, Property p, Node o, OntGraphModelImpl m) {
+        return createOntStatementImpl(s, p, createObject(o, m), m);
+    }
+
+    public static OntStatementImpl createOntStatementImpl(Resource s, Property p, RDFNode o, OntGraphModelImpl m) {
+        return new OntStatementImpl(s, p, o, m);
+    }
+
     /**
-     * Creates a wrapper for ont-statement with in-memory caches.
+     * Creates a wrapper for the given ont-statement with in-memory caches.
      * Currently just for debugging.
      *
      * @param delegate {@link OntStatement}
      * @return {@link OntStatement}
      */
-    public static OntStatement createCachedStatement(OntStatement delegate) {
+    public static OntStatement createCachedOntStatementImpl(OntStatement delegate) {
         return delegate instanceof CachedStatementImpl ? delegate : new CachedStatementImpl(delegate);
+    }
+
+    /**
+     * Creates an ont-statement that does not support sub-annotations.
+     * The method does not change the model.
+     *
+     * @param s {@link Resource} subject
+     * @param p {@link Property} predicate
+     * @param o {@link RDFNode} object
+     * @param m {@link OntGraphModelImpl} model
+     * @return {@link OntStatementImpl}
+     */
+    public static OntStatementImpl createNotAnnotatedOntStatementImpl(Resource s, Property p, RDFNode o, OntGraphModelImpl m) {
+        return new OntStatementImpl(s, p, o, m) {
+            @Override
+            public OntStatement addAnnotation(OntNAP property, RDFNode value) {
+                throw new OntJenaException.Unsupported("Sub-annotations are not supported (attempt to add " + Models.toString(this) + ")");
+            }
+        };
     }
 
     @Override
@@ -69,7 +110,21 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public boolean isRoot() {
+        return isRootStatement();
+    }
+
+    public boolean isRootStatement() {
         return false;
+    }
+
+    public OntStatement asRootStatement() {
+        return isRootStatement() ? this : new OntStatementImpl(getSubject(), getPredicate(), getObject(), getModel()) {
+
+            @Override
+            public boolean isRootStatement() {
+                return true;
+            }
+        };
     }
 
     @Override
@@ -86,20 +141,20 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(value, "Null value.");
-        if (isRoot()) {
+        if (isRootStatement()) {
             model.add(getSubject(), OntJenaException.notNull(property, "Null property."), OntJenaException.notNull(value, "Null value."));
-            return getModel().createOntStatement(false, getSubject(), property, value);
+            return getModel().createStatement(getSubject(), property, value);
         }
-        return asAnnotationResource().orElseGet(() -> createAnnotationObject(OntStatementImpl.this, getAnnotationResourceType())).addAnnotation(property, value);
+        return asAnnotationResource()
+                .orElseGet(() -> createAnnotationObject(getModel(), OntStatementImpl.this, getAnnotationResourceType()))
+                .addAnnotation(property, value);
     }
 
     @Override
     public Stream<OntStatement> annotations() {
         Stream<OntStatement> res = annotationResources().flatMap(OntAnnotation::assertions);
-        if (isRoot()) {
-            return Stream.concat(Iter.asStream(subject.listProperties())
-                    .filter(s -> s.getPredicate().canAs(OntNAP.class))
-                    .map(s -> getModel().createOntStatement(false, s.getSubject(), s.getPredicate(), s.getObject())), res);
+        if (isRootStatement()) {
+            return Stream.concat(getSubject().statements().filter(OntStatement::isAnnotation), res);
         }
         return res;
     }
@@ -108,7 +163,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     public void deleteAnnotation(OntNAP property, RDFNode value) {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(value, "Null value.");
-        if (isRoot()) {
+        if (isRootStatement()) {
             model.removeAll(getSubject(), property, value);
         }
         Set<OntStatement> candidates = annotationResources()
@@ -163,11 +218,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         if (res.size() < 2) {
             return Stream.of(this);
         }
-        if (isRoot()) {
+        if (isRootStatement()) {
             OntAnnotation first = res.remove(0);
             OntStatementImpl r = new OntStatementImpl(this) {
                 @Override
-                public boolean isRoot() {
+                public boolean isRootStatement() {
                     return true;
                 }
 
@@ -212,14 +267,18 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * Creates the new annotation section (resource).
+     * Creates new annotation section (anonymous resource with the given type).
      *
-     * @param base base ont-statement
-     * @param type owl:Axiom or owl:Annotation
+     * @param model {@link Model}
+     * @param base  base ont-statement
+     * @param type  owl:Axiom or owl:Annotation
      * @return {@link OntAnnotation} the anonymous resource with specified type.
      */
-    protected static OntAnnotation createAnnotationObject(OntStatementImpl base, Resource type) {
-        Resource res = base.getModel().createResource();
+    protected static OntAnnotation createAnnotationObject(Model model, Statement base, Resource type) {
+        Resource res = Objects.requireNonNull(model).createResource();
+        if (!model.contains(Objects.requireNonNull(base))) {
+            throw new OntJenaException.IllegalArgument("Can't find " + Models.toString(base));
+        }
         res.addProperty(RDF.type, type);
         res.addProperty(OWL.annotatedSource, base.getSubject());
         res.addProperty(OWL.annotatedProperty, base.getPredicate());
@@ -236,8 +295,8 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return {@link OWL#Axiom} or {@link OWL#Annotation}
      */
     protected static Resource detectAnnotationRootType(OntObject s) {
-        if (s.isAnon() &&
-                s.types().anyMatch(t -> OWL.Axiom.equals(t) || OWL.Annotation.equals(t) || OntAnnotationImpl.EXTRA_ROOT_TYPES.contains(t))) {
+        if (s.isAnon() && s.types()
+                .anyMatch(t -> OWL.Axiom.equals(t) || OWL.Annotation.equals(t) || OntAnnotationImpl.EXTRA_ROOT_TYPES.contains(t))) {
             return OWL.Annotation;
         }
         return OWL.Axiom;

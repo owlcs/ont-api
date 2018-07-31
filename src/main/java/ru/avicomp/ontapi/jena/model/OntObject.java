@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -37,10 +38,14 @@ public interface OntObject extends OntResource {
      * Note that the returned ont-statement differs from that
      * which could be obtained directly from the model using one of its {@code statement(..)} method:
      * an statement's annotations are added in the form of annotation property assertions (so-called 'plain annotations'),
-     * not as anonymous resources with type {@code owl:Axiom} or {@code owl:Annotation} (so-called 'bulk annotations').
-     * Note: for anonymous ontology objects (i.e. for not OWL Entities) such behaviour differs from the OWL2 specification.
+     * not as typed anonymous resources (so-called 'bulk annotations').
+     * Note: for anonymous ontology objects (i.e. for not OWL Entities) this behaviour of root statement may not meet
+     * OWL2 specification: it describes only bulk annotations.
+     * To get a common ontology statement with support bulk annotations
+     * the expression {@code getModel().asStatement(this.getRoot().asTriple())} can be used.
      *
      * @return {@link OntStatement} or {@code null}
+     * @see OntGraphModel#asStatement(Triple)
      */
     @Override
     OntStatement getRoot();

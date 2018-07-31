@@ -26,12 +26,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An ONT Statement.
+ * An Ontology RDF Statement.
  * <p>
  * This is not a {@link org.apache.jena.rdf.model.Resource}.
  * OWL2 Annotations can be attached to this statement recursively.
- *
+ * <p>
  * Created by @szuev on 13.11.2016.
+ *
  * @see OntAnnotation
  * @see Statement
  * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.2 Translation of Annotations</a>
@@ -47,22 +48,29 @@ public interface OntStatement extends Statement {
     OntGraphModel getModel();
 
     /**
-     * Annotates this statement.
-     * If this statement is root (see {@link #isRoot()}) the result is a plain annotation assertion (i.e. {@code this.subject property value}},
-     * otherwise it is an assertion statement from a new (or present) {@link OntAnnotation} resource.
+     * Annotates the statement with the given {@link OntNAP annotation property}
+     * and {@link RDFNode value} and returns an annotation assertion statement.
+     * In special case of root statement (i.e. if this statement is result of {@link OntObject#getRoot()})
+     * the returned ont-statement (called a plain annotation) has the same subject as this statement,
+     * otherwise it is an annotation assertion from a fresh or existing {@link OntAnnotation bulk annotation}
+     * and it has a blank node as a subject.
      *
      * @param property {@link OntNAP} named annotation property, not null
      * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not null
-     * @return {@link OntStatement Ont Statement} for newly added annotation
+     * @return {@link OntStatement Ont-Statement} for newly added annotation
      * @throws OntJenaException in case input is incorrect
      * @see OntAnnotation#addAnnotation(OntNAP, RDFNode)
+     * @see OntObject#getRoot()
      */
     OntStatement addAnnotation(OntNAP property, RDFNode value);
 
     /**
-     * Gets attached annotations (annotation assertions).
+     * Lists all annotations related to the statement.
+     * The returned stream consists of annotation assertions listed from top-level bulk annotations and
+     * plain annotation assertions for special case of root statement.
      *
-     * @return Stream of {@link OntStatement annotation assertion statements} with {@link OntNAP annotation property} as predicates, can be empty
+     * @return Stream of {@link OntStatement annotation assertion statements}
+     * with {@link OntNAP annotation property} as predicates, can be empty
      * @see #asAnnotationResource()
      */
     Stream<OntStatement> annotations();
@@ -98,32 +106,19 @@ public interface OntStatement extends Statement {
     Stream<OntAnnotation> annotationResources();
 
     /**
-     * Answers {@code true} if this statement is root (i.e. it is a main definition of an OntObject).
-     * The root statement can be annotated with both plain and bulk annotation assertions.
-     * Plain annotation is an assertion with annotation property ({@link OntNAP}) as predicate.
-     * Bulk annotation is an anonymous resource with type
-     * {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom owl:Axiom} (for top-level annotations) or
-     * {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation owl:Annotation} (for nested sub-annotations).
-     * The non-root statement can only have bulk annotations.
-     * The following snippet demonstrates both bulk and plain annotations:
-     * <pre>{@code
-     * :class   rdf:type                owl:Class ;
-     *          rdfs:isDefinedBy        :annotation-1 .
-     * [
-     *          rdf:type                owl:Axiom ;
-     *          rdfs:seeAlso            :annotations-2 ;
-     *          owl:annotatedProperty   rdf:type ;
-     *          owl:annotatedSource     :class ;
-     *          owl:annotatedTarget     owl:Class
-     * ] .}</pre>
+     * Answers {@code true} if this statement is a root (i.e. it is a main definition of an OntObject).
      *
-     * @return {@code true} if it is root ont-statement
+     * @return {@code true} if it is a root object statement
      * @see OntResource#getRoot()
+     * @deprecated redundant method, which is more suitable to be placed inside the implementation
+     * and seems not very useful in public interfaces
      */
+    @Deprecated
     boolean isRoot();
 
     /**
      * Answers {@code true} if this statement is in the base graph.
+     * It is equivalent to the expression {@code this.getModel().getBaseGraph().contains(this.asTriple())}.
      *
      * @return {@code true} if local
      * @see OntResource#isLocal()
@@ -151,6 +146,7 @@ public interface OntStatement extends Statement {
 
     /**
      * Lists all annotations by the property.
+     *
      * @param property {@link OntNAP} the property
      * @return Stream of {@link OntStatement}s
      */
@@ -170,6 +166,7 @@ public interface OntStatement extends Statement {
 
     /**
      * Answers iff this statement is a declaration: {@code @any rdf:type @any}.
+     *
      * @return {@code true} if predicate is rdf:type
      */
     default boolean isDeclaration() {
@@ -248,7 +245,7 @@ public interface OntStatement extends Statement {
      * Adds lang sub-annotation assertion.
      *
      * @param predicate {@link OntNAP}, not null
-     * @param text   String, the text message, not null.
+     * @param text      String, the text message, not null.
      * @param lang      String, language, optional
      * @return {@link OntStatement}, new instance
      * @see OntObject#addAnnotation(OntNAP, String, String)

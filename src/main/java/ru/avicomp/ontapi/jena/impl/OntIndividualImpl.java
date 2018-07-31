@@ -242,7 +242,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         private static Stream<OntPE> positiveAssertionProperties(OntGraphModelImpl eg) {
-            return Iter.asStream(eg.listStatements().mapWith(Statement::getPredicate))
+            return eg.statements().map(Statement::getPredicate)
                     .filter(p -> Stream.of(OntNAP.class, OntOPE.class).anyMatch(v -> OntObjectImpl.canAs(v, p.asNode(), eg)))
                     .map(p -> p.as(OntPE.class));
         }

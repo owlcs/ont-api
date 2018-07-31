@@ -163,7 +163,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public OntStatement getRoot() {
-        return getModel().createOntStatement(false, subject, predicate, getRDFList());
+        return getModel().createStatement(subject, predicate, getRDFList());
     }
 
     @Override
@@ -333,7 +333,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             return new OntListImpl<E>(rest.getSubject(), rest.getPredicate(), list, m, elementType) {
                 @Override
                 public OntStatement getRoot() {
-                    return m.createNotAnnotatedOntStatement(false, subject, predicate, getRDFList());
+                    return OntStatementImpl.createNotAnnotatedOntStatementImpl(subject, predicate, getRDFList(), getModel());
                 }
 
                 @Override

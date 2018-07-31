@@ -63,8 +63,8 @@ public class ReadHelper {
                 Stream.of(d, o).map(AxiomParserProvider::get).anyMatch(a -> a.testStatement(statement)));
     }
 
-    public static boolean isDeclarationStatement(OntStatement statement) {
-        return statement.isRoot() && statement.isDeclaration() && isEntityOrAnonymousIndividual(statement.getSubject());
+    public static boolean isDeclarationStatement(OntStatement stmt) {
+        return stmt.isDeclaration() && isEntityOrAnonymousIndividual(stmt.getSubject());
     }
 
     public static boolean isEntityOrAnonymousIndividual(OntObject subject) {
@@ -163,7 +163,7 @@ public class ReadHelper {
         OWLAnnotation object = df.getOWLDataFactory().getOWLAnnotation(p.getObject(), v.getObject(), children.stream().map(ONTObject::getObject));
         ONTObject<OWLAnnotation> res = ONTObject.create(object, root);
         if (subject.canAs(OntAnnotation.class)) {
-            res = res.append(subject);
+            res = res.append(subject.as(OntAnnotation.class));
         }
         return res.append(p).append(v).append(children);
     }
