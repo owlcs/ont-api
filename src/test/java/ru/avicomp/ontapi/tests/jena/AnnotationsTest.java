@@ -112,7 +112,10 @@ public class AnnotationsTest {
                 .peek(a -> LOGGER.debug("Annotation: '{}'", a)).count());
 
         LOGGER.debug("8) Deleter all annotations for class {}", cl);
-        Assert.assertEquals(2, cl.clearAnnotations().statements().count());
+
+        Assert.assertEquals(2, cl.content()
+                .peek(OntStatement::clearAnnotations)
+                .peek(x -> LOGGER.debug("[{}] CONTENT: {}", cl.getLocalName(), Models.toString(x))).count());
         ReadWriteUtils.print(m);
         Assert.assertEquals("Found annotations for class " + cl, 0, cl.annotations().peek(a -> LOGGER.warn("Annotation: '{}'", a)).count());
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
@@ -269,4 +272,76 @@ public class AnnotationsTest {
         Assert.assertEquals(3, model.listStatements(null, RDF.type, OWL.Axiom).toList().size());
         Assert.assertEquals(1, model.listStatements(null, RDF.type, OWL.Annotation).toList().size());
     }
+
+    @Test
+    public void testClearAnnotations() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntNAP nap = m.createOntEntity(OntNAP.class, "nap");
+        nap.addComment("test1").addAnnotation(nap, "sub-test1");
+        m.asStatement(nap.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "test2").addAnnotation(m.getRDFSLabel(), "sub-test2");
+
+        OntStatement subPropertyOf = nap.addSubPropertyOf(m.getOWLBottomDataProperty().addProperty(RDF.type, OWL.AnnotationProperty).as(OntNAP.class));
+        subPropertyOf.addAnnotation(m.getRDFSLabel(), "test3")
+                .addAnnotation(m.getRDFSLabel(), "sub-test3")
+                .addAnnotation(m.getRDFSLabel(), "sub-sub-test3");
+        ReadWriteUtils.print(m);
+        Assert.assertTrue(nap.getRoot().hasAnnotations());
+        Assert.assertEquals(2, nap.annotations().count());
+        Assert.assertEquals(2, nap.annotations().mapToLong(a -> a.annotations().count()).sum());
+
+        nap.clearAnnotations();
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(0, nap.annotations().count());
+        Assert.assertTrue(subPropertyOf.hasAnnotations());
+        Assert.assertEquals(1, subPropertyOf.annotations().count());
+        Assert.assertEquals(1, subPropertyOf.annotations().mapToLong(a -> a.annotations().count()).sum());
+
+        subPropertyOf.clearAnnotations();
+        ReadWriteUtils.print(m);
+        Assert.assertFalse(subPropertyOf.hasAnnotations());
+        Assert.assertEquals(3, m.size());
+    }
+
+
+    @Test
+    public void testRemoveAnnotatedObject() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+
+        OntCE class1 = m.createOntEntity(OntClass.class, "C-1");
+        m.asStatement(class1.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "Class1::1")
+                .getSubject(OntAnnotation.class).getBase()
+                .getSubject(OntClass.class)
+                .addAnnotation(m.getRDFSComment(), "Class1::2");
+        long size1 = m.size();
+
+        OntCE class2 = m.createComplementOf(class1);
+        class2.addComment("Class2::1").addAnnotation(m.getRDFSComment(), "Class2::1::1").addAnnotation(m.getRDFSComment(), "Class2::1::1::1");
+        class2.addComment("Class2::2").addAnnotation(m.getRDFSComment(), "Class2::2::1").addAnnotation(m.getRDFSComment(), "Class2::2::1::1");
+        long size2 = m.size();
+
+        OntCE class3 = m.createIntersectionOf(Arrays.asList(class2, m.getOWLNothing()));
+        class3.addComment("Class3::1").addAnnotation(m.getRDFSComment(), "Class3::1::1");
+        class3.statements().filter(OntStatement::isAnnotation).findFirst().orElseThrow(AssertionError::new)
+                .addAnnotation(m.getRDFSComment(), "Class3::2").addAnnotation(m.getRDFSComment(), "Class3::2::1");
+        class3.addDisjointWith(class1).addAnnotation(m.getRDFSComment(), "class2 disjoint with class1");
+        class3.addDisjointWith(m.getOWLNothing()).addAnnotation(m.getRDFSComment(), "class2 disjoint with nothing");
+
+        ReadWriteUtils.print(m);
+
+        m.removeOntObject(class3);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(size2, m.size());
+
+        m.removeOntObject(class2);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(size1, m.size());
+
+        m.removeOntObject(class1);
+        ReadWriteUtils.print(m);
+        Assert.assertTrue(m.isEmpty());
+
+    }
+
 }

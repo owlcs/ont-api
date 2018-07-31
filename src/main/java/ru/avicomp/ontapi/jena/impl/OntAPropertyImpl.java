@@ -24,7 +24,6 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.stream.Stream;
 
@@ -76,6 +75,6 @@ public class OntAPropertyImpl extends OntPEImpl implements OntNAP {
 
     @Override
     public OntStatement getRoot() {
-        return getRoot(RDF.type, OWL.AnnotationProperty);
+        return getDeclarationStatement(OWL.AnnotationProperty);
     }
 }

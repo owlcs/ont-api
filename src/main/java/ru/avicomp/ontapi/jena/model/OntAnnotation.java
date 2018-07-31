@@ -20,10 +20,10 @@ import java.util.stream.Stream;
 
 /**
  * An annotation ont-object.
- * It's an anonymous jena-resource ({@link OntObject}) with one of the two types:
+ * It's an anonymous jena-resource ({@link OntObject Ontology Object}) with one of the two types:
  * <ul>
- * <li>owl:Axiom (see {@link org.apache.jena.vocabulary.OWL2#Axiom ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom}) for root annotations, it is usually owned by axiomatic statements.</li>
- * <li>owl:Annotation (see {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation}) for sub-annotations,
+ * <li>{@link ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom owl:Axiom} for root annotations, it is usually owned by axiomatic statements.</li>
+ * <li>{@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation owl:Annotation} for sub-annotations,
  * and also for annotation of several specific axioms with main-statement {@code _:x rdf:type @type} where @type is
  * owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion.</li>
  * </ul>
@@ -36,10 +36,10 @@ import java.util.stream.Stream;
  *   owl:annotatedTarget    owl:Class
  * ] .
  * }</pre>
- * For more info see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.2 Translation of Annotations</a>.
  *
  * Created by @szuev on 26.03.2017.
  * @see OntStatement
+ * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.2 Translation of Annotations</a>
  */
 public interface OntAnnotation extends OntObject {
 

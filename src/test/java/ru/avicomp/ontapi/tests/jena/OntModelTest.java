@@ -461,5 +461,67 @@ public class OntModelTest {
         Assert.assertSame(e, e.as(type));
         Assert.assertSame(e, ((OntGraphModelImpl) m).getNodeAs(e.asNode(), type));
     }
+
+    @Test
+    public void testObjectsContent() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntNDP p = m.createOntEntity(OntNDP.class, "p");
+        OntClass class1 = m.createOntEntity(OntClass.class, "c");
+        OntCE.UnionOf class2 = m.createUnionOf(Arrays.asList(m.createOntEntity(OntClass.class, "c1"), m.createOntEntity(OntClass.class, "c2")));
+        OntCE.DataHasValue class3 = m.createDataHasValue(p, m.createLiteral("2"));
+        OntCE.DataMinCardinality class4 = m.createDataMinCardinality(p, 2, m.getOntEntity(OntDT.class, XSD.xdouble));
+        OntClass class5 = m.getOWLThing();
+
+        class3.addComment("The Restriction");
+        class1.addSubClassOf(class2).getSubject(OntCE.class).addSubClassOf(class3);
+        class1.addDisjointWith(class4);
+        class2.addSubClassOf(m.createComplementOf(class5));
+        class5.addEquivalentClass(m.getOWLNothing());
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(1, class1.spec().peek(x -> LOGGER.debug("1::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(4, class1.content().peek(x -> LOGGER.debug("1::CLASS CONTENT: {}", x)).count());
+
+        Assert.assertEquals(6, class2.spec().peek(x -> LOGGER.debug("2::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(7, class2.content().peek(x -> LOGGER.debug("2::CLASS CONTENT: {}", x)).count());
+
+        Assert.assertEquals(3, class3.spec().peek(x -> LOGGER.debug("3::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(3, class3.content().peek(x -> LOGGER.debug("3::CLASS CONTENT: {}", x)).count());
+
+        Assert.assertEquals(4, class4.spec().peek(x -> LOGGER.debug("4::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(4, class4.content().peek(x -> LOGGER.debug("4::CLASS CONTENT: {}", x)).count());
+
+        Assert.assertEquals(0, class5.spec().peek(x -> LOGGER.debug("5::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(1, class5.content().peek(x -> LOGGER.debug("5::CLASS CONTENT: {}", x)).count());
+    }
+
+    @Test
+    public void testRemoveObjects() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+
+        OntCE class1 = m.createOntEntity(OntClass.class, "C-1");
+        OntCE class2 = m.createOntEntity(OntClass.class, "C-2");
+        OntCE class3 = m.createOntEntity(OntClass.class, "C-3");
+        OntOPE p = m.createOntEntity(OntNOP.class, "P");
+        OntCE class4 = m.createComplementOf(class3);
+        OntCE class5 = m.createObjectSomeValuesFrom(p, class4);
+        OntCE class6 = m.createIntersectionOf(Arrays.asList(m.getOWLThing(), class2, class4, class5));
+        Assert.assertEquals(6, m.ontObjects(OntCE.class).count());
+        long size = m.size();
+        OntDisjoint d = m.createDisjointClasses(Arrays.asList(m.getOWLNothing(), class1, class6));
+        ReadWriteUtils.print(m);
+
+        m.removeOntObject(d);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(size, m.statements().count());
+
+        m.removeOntObject(class6).removeOntObject(class5).removeOntObject(class4).removeOntObject(p);
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(3, m.size());
+    }
+
 }
 

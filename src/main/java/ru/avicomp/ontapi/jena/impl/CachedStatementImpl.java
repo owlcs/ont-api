@@ -95,7 +95,7 @@ public class CachedStatementImpl extends OntStatementImpl {
     @Override
     public List<OntAnnotation> getSortedAnnotations() {
         if (resources != null) return resources;
-        return resources = findOntAnnotationResources(this, getAnnotationResourceType(), CachedOntAnnImpl::new)
+        return resources = listOntAnnotationResources(this, getAnnotationResourceType(), CachedOntAnnImpl::new)
                 .sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR).collect(Collectors.toList());
     }
 

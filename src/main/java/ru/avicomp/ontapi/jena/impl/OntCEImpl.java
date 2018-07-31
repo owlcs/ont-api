@@ -837,7 +837,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         boolean qualified = isQualified(object);
         model.add(res, getCardinalityType(view).getPredicate(qualified), value);
         if (qualified) {
-            model.add(res, OntOPE.class.isInstance(onProperty) ? OWL.onClass : OWL.onDataRange, object);
+            model.add(res, onProperty instanceof OntOPE ? OWL.onClass : OWL.onDataRange, object);
         }
         return model.getNodeAs(res.asNode(), view);
     }

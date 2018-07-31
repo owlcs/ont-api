@@ -71,27 +71,34 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntStatement getRoot() {
+        return rootStatement().orElse(null);
+    }
+
+    public Optional<OntStatement> rootStatement() {
         OntGraphModelImpl m = getModel();
         try (Stream<RDFNode> objects = m.statements(this, RDF.type, null).map(Statement::getObject)) {
             return objects.findFirst()
                     .map(o -> m.createStatement(this, RDF.type, o))
-                    .map(OntStatementImpl::asRootStatement).orElse(null);
+                    .map(OntStatementImpl::asRootStatement);
         }
     }
 
-    protected OntStatement getRoot(Property property, Resource type) { // todo: check existing seems is not necessary (in case of built-ins)
+    protected OntStatement getDeclarationStatement(Resource type) {
+        return getRoot(RDF.type, Objects.requireNonNull(type));
+    }
+
+    protected OntStatement getRoot(Property property, Resource type) {
         return hasProperty(property, type) ? getModel().createStatement(this, property, type).asRootStatement() : null;
     }
 
     @Override
     public Stream<OntStatement> spec() {
-        OntStatement root = getRoot();
-        return root == null ? Stream.empty() : Stream.of(root);
+        return rootStatement().map(Stream::of).orElse(Stream.empty());
     }
 
     @Override
     public Stream<OntStatement> content() {
-        return spec();
+        return Stream.concat(spec(), statements().filter(x -> !x.isAnnotation()).collect(Collectors.toSet()).stream()).distinct();
     }
 
     @Override
@@ -130,11 +137,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntStatement addStatement(Property property, RDFNode value) {
-        OntStatement st = getModel().createStatement(this,
+        OntStatement res = getModel().createStatement(this,
                 OntJenaException.notNull(property, "Null property."),
                 OntJenaException.notNull(value, "Null value."));
-        getModel().add(st);
-        return st;
+        getModel().add(res);
+        return res;
     }
 
     @Override
@@ -173,12 +180,16 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public Stream<OntStatement> annotations() {
-        Stream<OntStatement> res = statements().filter(s -> s.getPredicate().canAs(OntNAP.class));
-        OntStatement main = getRoot();
-        if (main != null) {
-            res = Stream.concat(res, main.annotationResources().flatMap(OntAnnotation::assertions));
+        Stream<OntStatement> res = assertions();
+        Optional<OntStatement> main = rootStatement();
+        if (main.isPresent()) {
+            res = Stream.concat(res, main.get().annotationResources().flatMap(OntAnnotation::assertions));
         }
         return res;
+    }
+
+    public Stream<OntStatement> assertions() {
+        return statements().filter(OntStatement::isAnnotation);
     }
 
     /**
@@ -192,18 +203,16 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
-        OntStatement root = getRoot();
-        if (root == null) {
-            return getModel().createStatement(addProperty(property, value), property, value);
-        }
-        return root.addAnnotation(property, value);
+        return rootStatement().map(r -> r.addAnnotation(property, value))
+                .orElseGet(() -> getModel().createStatement(addProperty(property, value), property, value));
     }
 
     @Override
     public OntObject clearAnnotations() {
-        statements().collect(Collectors.toSet()).forEach(OntStatement::clearAnnotations);
-        // todo: it seems this is not correct, check and fix:
-        annotations().collect(Collectors.toSet()).forEach(a -> removeAll(a.getPredicate()));
+        // for built-ins
+        assertions().peek(OntStatement::clearAnnotations).collect(Collectors.toSet()).forEach(a -> getModel().remove(a));
+        // for others
+        rootStatement().ifPresent(OntStatement::clearAnnotations);
         return this;
     }
 

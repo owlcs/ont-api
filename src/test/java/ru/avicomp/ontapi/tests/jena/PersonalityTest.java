@@ -232,9 +232,10 @@ public class PersonalityTest {
             super(n, m);
         }
 
+        @Override
         public OntStatement getRoot() {
-            OntStatement res = getRoot(RDF.type, OWL.NamedIndividual);
-            return res == null ? types().map(r -> getRoot(RDF.type, r)).findFirst().orElse(null) : res;
+            OntStatement res = getDeclarationStatement(OWL.NamedIndividual);
+            return res == null ? types().map(this::getDeclarationStatement).findFirst().orElse(null) : res;
         }
     }
 }

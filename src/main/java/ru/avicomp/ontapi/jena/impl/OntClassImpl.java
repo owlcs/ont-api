@@ -20,7 +20,6 @@ import org.apache.jena.rdf.model.RDFNode;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -113,6 +112,6 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
 
     @Override
     public OntStatement getRoot() {
-        return getRoot(RDF.type, OWL.Class);
+        return getDeclarationStatement(OWL.Class);
     }
 }

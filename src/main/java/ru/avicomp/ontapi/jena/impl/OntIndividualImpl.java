@@ -121,8 +121,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
         @Override
         public OntStatement getRoot() {
-            // todo: it seems this logic is wrong - it should return the "this rdf:type OWLClass" statement.
-            return getRoot(RDF.type, OWL.NamedIndividual);
+            return getDeclarationStatement(OWL.NamedIndividual);
         }
 
         @Override

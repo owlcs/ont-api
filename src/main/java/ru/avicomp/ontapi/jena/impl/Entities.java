@@ -188,7 +188,8 @@ public enum Entities implements Configurable<OntObjectFactory> {
         OntFilter illegalPunningsFilter = OntFilter.TRUE.accumulate(bannedTypes(m)
                 .map(OntFilter.HasType::new).map(OntFilter::negate).toArray(OntFilter[]::new));
 
-        OntFilter filter = OntFilter.URI.and((new OntFilter.HasType(type).and(illegalPunningsFilter)).or(new OntFilter.OneOf(builtInURIs())));
+        OntFilter filter = new OntFilter.OneOf(builtInURIs()).or(OntFilter.URI.and(new OntFilter.HasType(type).and(illegalPunningsFilter)));
+        //OntFilter filter = OntFilter.URI.and((new OntFilter.HasType(type).and(illegalPunningsFilter)).or(new OntFilter.OneOf(builtInURIs())));
         OntMaker maker = new OntMaker.WithType(impl, type).restrict(illegalPunningsFilter);
 
         return new CommonOntObjectFactory(maker, finder, filter);

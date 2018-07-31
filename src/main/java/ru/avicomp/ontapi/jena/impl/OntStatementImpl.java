@@ -57,18 +57,53 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         this(statement.getSubject(), statement.getPredicate(), statement.getObject(), (OntGraphModel) statement.getModel());
     }
 
+    /**
+     * Creates an OntStatement impl from the given Triple.
+     * The OntStatement has subject, predicate, and object corresponding to those of Triple.
+     *
+     * @param t {@link Triple} not null
+     * @param m {@link OntGraphModelImpl} model
+     * @return {@link OntStatementImpl} fresh instance
+     */
     public static OntStatementImpl createOntStatementImpl(Triple t, OntGraphModelImpl m) {
         return createOntStatementImpl(new ResourceImpl(t.getSubject(), m), t.getPredicate(), t.getObject(), m);
     }
 
+    /**
+     * Creates an OntStatement impl with the given SPO.
+     *
+     * @param s {@link Resource} subject
+     * @param p {@link Node Graph RDF URI Node} predicate
+     * @param o {@link Node Graph RDF Node} object
+     * @param m {@link OntGraphModelImpl} model
+     * @return {@link OntStatementImpl} fresh instance
+     */
     public static OntStatementImpl createOntStatementImpl(Resource s, Node p, Node o, OntGraphModelImpl m) {
         return createOntStatementImpl(s, new PropertyImpl(p, m), o, m);
     }
 
+    /**
+     * Creates an OntStatement impl with the given SPO.
+     *
+     * @param s {@link Resource} subject
+     * @param p {@link Property} predicate
+     * @param o {@link Node Graph RDF Node} object
+     * @param m {@link OntGraphModelImpl} model
+     * @return {@link OntStatementImpl} fresh instance
+     */
     public static OntStatementImpl createOntStatementImpl(Resource s, Property p, Node o, OntGraphModelImpl m) {
         return createOntStatementImpl(s, p, createObject(o, m), m);
     }
 
+    /**
+     * Creates an OntStatement impl with the given SPO.
+     *
+     * @param s {@link Resource} subject
+     * @param p {@link Property} predicate
+     * @param o {@link RDFNode Model RDF Node} object
+     * @param m {@link OntGraphModelImpl} model
+     * @return {@link OntStatementImpl} fresh instance
+     */
     public static OntStatementImpl createOntStatementImpl(Resource s, Property p, RDFNode o, OntGraphModelImpl m) {
         return new OntStatementImpl(s, p, o, m);
     }
@@ -194,7 +229,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public Stream<OntAnnotation> annotationResources() {
-        return findOntAnnotationResources(this, getAnnotationResourceType(), AttachedAnnotationImpl::new);
+        return listOntAnnotationResources(this, getAnnotationResourceType(), AttachedAnnotationImpl::new);
     }
 
     @Override
@@ -254,12 +289,23 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param maker BiFunction to produce OntAnnotation resource
      * @return Stream of {@link OntAnnotation}
      */
-    protected static Stream<OntAnnotation> findOntAnnotationResources(OntStatementImpl base, Resource type, BiFunction<Resource, OntStatementImpl, OntAnnotation> maker) {
-        return findAnnotations(base.getModel(), type, base.getSubject(), base.getPredicate(), base.getObject())
+    protected static Stream<OntAnnotation> listOntAnnotationResources(OntStatementImpl base, Resource type,
+                                                                      BiFunction<Resource, OntStatementImpl, OntAnnotation> maker) {
+        return listAnnotations(base.getModel(), type, base.getSubject(), base.getPredicate(), base.getObject())
                 .map(r -> maker.apply(r, base));
     }
 
-    protected static Stream<Resource> findAnnotations(Model m, Resource t, Resource s, Property p, RDFNode o) {
+    /**
+     * Lists all (bulk) annotations anonymous resources form the specified model.
+     *
+     * @param m {@link Model}
+     * @param t {@link Resource} either {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}
+     * @param s {@link Resource} subject
+     * @param p {@link Property} predicate
+     * @param o {@link RDFNode} object
+     * @return Stream of {@link Resource}s
+     */
+    protected static Stream<Resource> listAnnotations(Model m, Resource t, Resource s, Property p, RDFNode o) {
         return Iter.asStream(m.listResourcesWithProperty(OWL.annotatedSource, s))
                 .filter(r -> r.hasProperty(RDF.type, t))
                 .filter(r -> r.hasProperty(OWL.annotatedProperty, p))

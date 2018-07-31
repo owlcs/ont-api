@@ -51,7 +51,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
     @Override
     public boolean testStatement(OntStatement statement) {
-        return statement.getPredicate().equals(RDF.type)
+        return statement.isDeclaration()
                 && statement.getObject().canAs(OntCE.class)
                 && statement.getSubject().canAs(OntIndividual.class);
     }

@@ -49,7 +49,7 @@ public interface OntStatement extends Statement {
 
     /**
      * Annotates the statement with the given {@link OntNAP annotation property}
-     * and {@link RDFNode value} and returns an annotation assertion statement.
+     * and any {@link RDFNode RDF Node} as value and returns it as the newly added annotation assertion statement.
      * In special case of root statement (i.e. if this statement is result of {@link OntObject#getRoot()})
      * the returned ont-statement (called a plain annotation) has the same subject as this statement,
      * otherwise it is an annotation assertion from a fresh or existing {@link OntAnnotation bulk annotation}
@@ -211,11 +211,13 @@ public interface OntStatement extends Statement {
 
     /**
      * Removes all sub-annotations including their children.
+     * @see OntObject#clearAnnotations()
      */
     default void clearAnnotations() {
-        Set<OntStatement> children = annotations().collect(Collectors.toSet());
-        children.forEach(OntStatement::clearAnnotations);
-        children.forEach(a -> deleteAnnotation(a.getPredicate().as(OntNAP.class), a.getObject()));
+        annotations()
+                .peek(OntStatement::clearAnnotations)
+                .collect(Collectors.toSet())
+                .forEach(a -> deleteAnnotation(a.getPredicate().as(OntNAP.class), a.getObject()));
     }
 
     /**

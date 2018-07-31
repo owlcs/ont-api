@@ -40,19 +40,31 @@ public interface OntObject extends OntResource {
      * an statement's annotations are added in the form of annotation property assertions (so-called 'plain annotations'),
      * not as typed anonymous resources (so-called 'bulk annotations').
      * Note: for anonymous ontology objects (i.e. for not OWL Entities) this behaviour of root statement may not meet
-     * OWL2 specification: it describes only bulk annotations.
+     * OWL2 specification: it describes only bulk annotations for all anonymous OWL2 components with except of an individual.
      * To get a common ontology statement with support bulk annotations
      * the expression {@code getModel().asStatement(this.getRoot().asTriple())} can be used.
+     * It is legal for a root statement to have both plain and bulk annotations.
      *
-     * @return {@link OntStatement} or {@code null}
+     * @return {@link OntStatement} or {@code null} in some boundary cases (e.g. for built-ins)
      * @see OntGraphModel#asStatement(Triple)
+     * @see OntStatement#addAnnotation(OntNAP, RDFNode)
      */
     @Override
     OntStatement getRoot();
 
     /**
-     * Lists the content of this object, i.e. its all characteristic statements.
-     * The same as {@link #spec()}, but each element of that stream supports OWL2 annotations.
+     * Lists all objects characteristic statements according to its OWL2 specification.
+     * For OWL Entities the returned stream will contain only single root statement (see {@link #getRoot()}),
+     * or even will be empty for built-in entities.
+     * @return Stream of {@link OntStatement Ontology Statement}s
+     */
+    @Override
+    Stream<OntStatement> spec();
+
+    /**
+     * Lists the content of the object, i.e. its all characteristic statements (see {@link #spec()}),
+     * plus all the additional statements in which this object is the subject,
+     * minus those of them whose predicate is an annotation property.
      *
      * @return Stream of {@link OntStatement Ontology Statement}s
      * @see #spec()
@@ -70,8 +82,8 @@ public interface OntObject extends OntResource {
     OntStatement addStatement(Property property, RDFNode value);
 
     /**
-     * Removes an associated statement with given predicate and object.
-     * Does nothing in case no match found.
+     * Deletes an associated statement with given predicate and object, not caring about their annotations.
+     * No-op in case no match found.
      *
      * @param property {@link Property} predicate, not null
      * @param object   {@link RDFNode} object, not null
@@ -121,7 +133,7 @@ public interface OntObject extends OntResource {
      * Each annotation can be plain (annotation property assertion) or bulk
      * (anonymous resource with type {@code owl:Axiom} or {@code owl:Annotation}, possibly with sub-annotations).
      * Sub-annotations are not included into the returned stream.
-     * For not built-in ontology objects this is equivalent to the expression: {@code getRoot().annotations()}.
+     * For non-built-in ontology objects this is equivalent to the expression {@code getRoot().annotations()}.
      *
      * @return Stream of {@link OntStatement}s that have an {@link OntNAP annotation property} as predicate
      * @see OntStatement#annotations()
@@ -130,9 +142,15 @@ public interface OntObject extends OntResource {
     Stream<OntStatement> annotations();
 
     /**
-     * Removes all associated annotations including nested.
+     * Removes all root annotations including their sub-annotations hierarchy.
+     * Any non-root annotations are untouched.
+     * For example, in case of deleting an OWL class, if it is present on the left side of the {@code rdfs:subClassOf} statement,
+     * all the annotations of that statement will remain in the graph,
+     * but all root annotations (which belongs to the statement with predicate {@code rdf:type}) will be deleted from the graph.
+     * For non-built-in ontology objects this is equivalent to the expression {@code getRoot().clearAnnotations()}.
      *
      * @return this object to allow cascading calls
+     * @see OntStatement#clearAnnotations()
      */
     OntObject clearAnnotations();
 

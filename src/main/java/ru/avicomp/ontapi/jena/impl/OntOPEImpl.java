@@ -21,7 +21,6 @@ import org.apache.jena.rdf.model.*;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.List;
@@ -84,7 +83,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public OntStatement getRoot() {
-            return getRoot(RDF.type, OWL.ObjectProperty);
+            return getDeclarationStatement(OWL.ObjectProperty);
         }
     }
 

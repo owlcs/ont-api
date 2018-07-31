@@ -22,7 +22,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * Named entity with rdf:type = rdfs:Datatype
@@ -47,7 +46,7 @@ public class OntDatatypeImpl extends OntObjectImpl implements OntDT {
 
     @Override
     public OntStatement getRoot() {
-        return getRoot(RDF.type, RDFS.Datatype);
+        return getDeclarationStatement(RDFS.Datatype);
     }
 
     @Override

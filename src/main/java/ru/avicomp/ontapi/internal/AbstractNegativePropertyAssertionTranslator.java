@@ -51,7 +51,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     @Override
     public boolean testStatement(OntStatement statement) {
         return statement.getObject().equals(OWL.NegativePropertyAssertion)
-                && statement.getPredicate().equals(RDF.type)
+                && statement.isDeclaration()
                 && statement.getSubject().canAs(getView());
     }
 }

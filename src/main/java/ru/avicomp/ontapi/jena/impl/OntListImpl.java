@@ -141,7 +141,10 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
      * @param <N>       {@link RDFNode} subtype
      * @return Stream of {@link OntList}s
      */
-    public static <N extends RDFNode> Stream<OntList<N>> stream(OntGraphModelImpl model, OntObject subject, Property predicate, Class<N> type) {
+    public static <N extends RDFNode> Stream<OntList<N>> stream(OntGraphModelImpl model,
+                                                                OntObject subject,
+                                                                Property predicate,
+                                                                Class<N> type) {
         checkRequiredInput(model, subject, predicate, type);
         return subject.objects(predicate, RDFList.class).map(list -> newOntList(model, subject, predicate, list, type));
     }
@@ -153,8 +156,8 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         Objects.requireNonNull(type, "Null type");
     }
 
-    private static Stream<Resource> findAnnotations(Model m, Resource subject, Property predicate, RDFNode obj) {
-        return OntStatementImpl.findAnnotations(m, OWL.Axiom, subject, predicate, obj);
+    private static Stream<Resource> listAnnotations(Model m, Resource subject, Property predicate, RDFNode obj) {
+        return OntStatementImpl.listAnnotations(m, OWL.Axiom, subject, predicate, obj);
     }
 
     public static boolean isEmpty(RDFList list) {
@@ -183,7 +186,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             throw new OntJenaException.IllegalState(Models.toString(s) + " does not exist");
         }
         if (!objectRDFList.equals(list)) {
-            findAnnotations(m, subject, predicate, objectRDFList)
+            listAnnotations(m, subject, predicate, objectRDFList)
                     .collect(Collectors.toSet())
                     .forEach(a -> m.remove(a, OWL.annotatedTarget, objectRDFList).add(a, OWL.annotatedTarget, list));
         }

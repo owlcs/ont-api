@@ -66,7 +66,7 @@ interface OntResource extends Resource {
      * i.e. all those statements which completely determine this object nature according to the OWL2 specification.
      * For non-composite objects the result might contain only the {@link #getRoot() root statement}.
      * For composite objects (usually anonymous resources: disjoint sections, class expression, etc)
-     * the result would contain all directly related to it statements in the graph
+     * the result would contain all statements in the graph directly related to the object
      * but without statements that relate to the object components.
      * The return stream is ordered and, in most cases,
      * the expression {@code this.spec().findFirst().get()} returns the same statement as {@code this.getRoot()}.
@@ -77,7 +77,7 @@ interface OntResource extends Resource {
     Stream<? extends Statement> spec();
 
     /**
-     * Adds an annotation assertion.
+     * Adds an annotation assertion with the given {@link OntNAP annotation property} and any {@link RDFNode rdf-node} as value.
      *
      * @param property {@link OntNAP} - named annotation property
      * @param value    {@link RDFNode} - the value: uri-resource, literal or anonymous individual
@@ -94,15 +94,26 @@ interface OntResource extends Resource {
     OntResource clearAnnotations();
 
     /**
-     * Adds lang-string annotation assertion.
+     * Adds no-lang annotation assertion.
      *
-     * @param predicate {@link OntNAP} predicate
-     * @param message   String, text message
-     * @param lang      String, language, nullable
+     * @param predicate   {@link OntNAP} predicate
+     * @param lexicalForm String, text message
      * @return {@link OntStatement}
      */
-    default OntStatement addAnnotation(OntNAP predicate, String message, String lang) {
-        return addAnnotation(predicate, getModel().createLiteral(message, lang));
+    default OntStatement addAnnotation(OntNAP predicate, String lexicalForm) {
+        return addAnnotation(predicate, lexicalForm, null);
+    }
+
+    /**
+     * Adds lang annotation assertion.
+     *
+     * @param predicate {@link OntNAP} predicate
+     * @param lexicalForm   String, text message
+     * @param lang      String, language, nullable
+     * @return {@link OntStatement} - new statement: {@code @subject @predicate 'lexicalForm'@lang}
+     */
+    default OntStatement addAnnotation(OntNAP predicate, String lexicalForm, String lang) {
+        return addAnnotation(predicate, getModel().createLiteral(lexicalForm, lang));
     }
 
     /**

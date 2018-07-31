@@ -189,7 +189,7 @@ public interface OntGraphModel extends Model {
     Stream<OntStatement> statements();
 
     /**
-     * Lists all statements for the specified subject, predicate and object.
+     * Lists all statements for the specified subject, predicate and object (SPO).
      *
      * @param s {@link Resource}, the subject
      * @param p {@link Property}, the predicate
@@ -234,16 +234,22 @@ public interface OntGraphModel extends Model {
     boolean isLocal(Statement statement);
 
     /**
-     * Removes the given ont-object from the graph-model.
+     * Removes the given {@link OntObject Ontology Object} from the graph-model including its content and annotations.
+     * Note: for example, if you delete an OWL class
+     * that is on the right side in a statement with predicate {@code rdf:subClassOf},
+     * that statement remains unchanged in the graph, but it will be meaningless:
+     * its right side will no longer be a class, but just uri.
+     * But if a class is on the left side of the statement with the {@code rdf:subClassOf} predicate,
+     * that statement will be removed from the graph along with its annotations, because it is belongs to class content.
      *
      * @param obj {@link OntObject}
      * @return this model
-     * @see OntObject#spec()
+     * @see OntObject#content()
      */
     OntGraphModel removeOntObject(OntObject obj);
 
     /**
-     * Removes ont-statement including its annotations.
+     * Removes the statement from the graph-model including its annotations with sub-annotations hierarchy.
      *
      * @param statement {@link OntStatement}
      * @return this model

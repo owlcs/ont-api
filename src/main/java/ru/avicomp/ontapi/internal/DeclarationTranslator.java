@@ -48,7 +48,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     public boolean testStatement(OntStatement statement) {
-        return statement.getPredicate().equals(RDF.type)
+        return statement.isDeclaration()
                 && statement.getSubject().isURIResource()
                 && Stream.of(Entities.values()).map(Entities::type).anyMatch(t -> statement.getObject().equals(t));
     }

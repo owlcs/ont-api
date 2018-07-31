@@ -57,7 +57,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     @Override
     public boolean testStatement(OntStatement statement) {
         return statement.getObject().equals(getType())
-                && statement.getPredicate().equals(RDF.type)
+                && statement.isDeclaration()
                 && statement.getSubject().canAs(getView());
     }
 

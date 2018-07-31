@@ -24,7 +24,6 @@ import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
  * An ontology object implementation with declarative type {@link OWL#DatatypeProperty owl:DatatypeProperty}.
@@ -64,7 +63,7 @@ public class OntDPropertyImpl extends OntPEImpl implements OntNDP {
 
     @Override
     public OntStatement getRoot() {
-        return getRoot(RDF.type, OWL.DatatypeProperty);
+        return getDeclarationStatement(OWL.DatatypeProperty);
     }
 
 }
