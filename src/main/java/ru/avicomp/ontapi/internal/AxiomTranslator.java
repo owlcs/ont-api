@@ -14,6 +14,9 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.JenaException;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -69,6 +72,20 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return Stream of {@link OntStatement}, always local (not from imports)
      */
     public abstract Stream<OntStatement> statements(OntGraphModel model);
+
+    /**
+     * Lists all model statements, which belong to the base graph, using the given SPO.
+     * Placed here for more control.
+     *
+     * @param model {@link OntGraphModel}
+     * @param s     {@link Resource}
+     * @param p     {@link Property}
+     * @param o     {@link RDFNode}
+     * @return Stream of {@link OntStatement}s
+     */
+    protected static Stream<OntStatement> listStatements(OntGraphModel model, Resource s, Property p, RDFNode o) {
+        return model.localStatements(s, p, o);
+    }
 
     /**
      * Tests if the specified statement answers the axiom definition.

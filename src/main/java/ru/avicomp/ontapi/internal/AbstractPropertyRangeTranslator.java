@@ -41,7 +41,7 @@ public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & H
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.localStatements(null, RDFS.range, null)
+        return listStatements(model, null, RDFS.range, null)
                 .filter(s -> s.getSubject().canAs(getView()));
     }
 

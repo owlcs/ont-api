@@ -49,7 +49,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
     @Override
     public ONTObject<OWLEquivalentClassesAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        ONTObject<? extends OWLClassExpression> a = reader.get(statement.getSubject().as(getView()));
+        ONTObject<? extends OWLClassExpression> a = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLClassExpression> b = reader.get(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLEquivalentClassesAxiom res = reader.getOWLDataFactory()

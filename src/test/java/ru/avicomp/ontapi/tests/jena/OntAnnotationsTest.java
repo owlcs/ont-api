@@ -14,16 +14,16 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -36,8 +36,8 @@ import java.util.Arrays;
  * To test annotated statements ({@link OntStatement}) and annotations within ont objects ({@link OntObject}).
  * Created by @szuev on 28.07.2018.
  */
-public class AnnotationsTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AnnotationsTest.class);
+public class OntAnnotationsTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntAnnotationsTest.class);
 
     @Test
     public void testCreatePlainAnnotations() {
@@ -341,7 +341,116 @@ public class AnnotationsTest {
         m.removeOntObject(class1);
         ReadWriteUtils.print(m);
         Assert.assertTrue(m.isEmpty());
-
     }
 
+    @Test
+    public void testAnnotationFunctionality() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        Resource r = m.createResource("A").addProperty(m.createProperty("B"), "C");
+        OntStatement base = m.statements(r, null, null).findFirst().orElseThrow(AssertionError::new);
+
+        Literal literal_1 = m.createLiteral("annotation-1");
+        Literal literal_2 = m.createLiteral("annotation-2");
+        Literal literal_3 = m.createLiteral("annotation-3");
+
+        OntStatement s1 = base.addAnnotation(m.getRDFSLabel(), literal_1);
+        Assert.assertTrue(s1.getSubject().isAnon());
+        OntStatement s3 = base.addAnnotation(m.getRDFSLabel(), literal_2).addAnnotation(m.getRDFSLabel(), literal_3);
+        OntAnnotation annotation = m.ontObjects(OntAnnotation.class)
+                .peek(a -> LOGGER.debug("{}::{}", a, a.getBase()))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+        Assert.assertEquals(base, annotation.getBase());
+        Assert.assertEquals(2, annotation.annotations().count());
+        Assert.assertEquals(1, annotation.descendants().count());
+        Assert.assertEquals(annotation, base.asAnnotationResource().orElseThrow(AbstractMethodError::new));
+        long size = m.size();
+        // has anonymous resources in the model cache:
+        Assert.assertNotNull(((OntGraphModelImpl) m).getNodeAs(s1.getSubject().asNode(), OntAnnotation.class));
+        Assert.assertNotNull(((OntGraphModelImpl) m).getNodeAs(s3.getSubject().asNode(), OntAnnotation.class));
+        ReadWriteUtils.print(m);
+
+        // attempt to delete annotation with children:
+        try {
+            base.deleteAnnotation(m.getRDFSLabel(), literal_2);
+            Assert.fail("Expected error");
+        } catch (OntJenaException j) {
+            LOGGER.debug("Expected: {}", j.getMessage());
+        }
+        Assert.assertEquals(2, base.annotations().count());
+        Assert.assertEquals(size, m.statements().count());
+
+        // success deletion 'annotation-1':
+        Assert.assertEquals("C", base.deleteAnnotation(s1.getPredicate().as(OntNAP.class), s1.getObject()).getObject().asLiteral().getLexicalForm());
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(1, base.annotations().count());
+        OntStatement s2 = annotation.annotations().findFirst().orElseThrow(AssertionError::new);
+        Assert.assertEquals(literal_2, s2.getObject());
+        size = m.size();
+
+        // no deletion, no error
+        base.deleteAnnotation(s3.getPredicate().as(OntNAP.class), literal_3);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(1, base.annotations().count());
+        Assert.assertEquals(size, m.statements().count());
+
+        // attempt to delete assertions from annotation object
+        try {
+            annotation.getRoot().deleteAnnotation(s3.getPredicate().as(OntNAP.class));
+            Assert.fail("Expected error");
+        } catch (OntJenaException j) {
+            LOGGER.debug("Expected: {}", j.getMessage());
+        }
+        Assert.assertEquals(size, m.statements().count());
+
+        // delete 'annotation-3' and then annotation-2
+        Assert.assertEquals(0, s2.deleteAnnotation(m.getRDFSLabel(), literal_3)
+                .getSubject(OntAnnotation.class).descendants().count());
+        Assert.assertEquals(0, annotation.descendants().count());
+        m.removeOntObject(annotation);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(1, m.size());
+    }
+
+    @Test
+    public void testAssemblyAnnotations() {
+        Model m = ModelFactory.createDefaultModel().setNsPrefixes(OntModelFactory.STANDARD);
+        Property b = m.createProperty("B");
+        Literal c = m.createLiteral("C");
+        Resource a = m.createResource("A").addProperty(b, c);
+
+        Resource an1 = m.createResource(OWL.Axiom)
+                .addProperty(RDFS.comment, "annotation-1")
+                .addProperty(OWL.annotatedProperty, b)
+                .addProperty(OWL.annotatedSource, a)
+                .addProperty(OWL.annotatedTarget, c);
+        m.createResource(OWL.Axiom)
+                .addProperty(RDFS.comment, "annotation-2")
+                .addProperty(OWL.annotatedProperty, b)
+                .addProperty(OWL.annotatedSource, a)
+                .addProperty(OWL.annotatedTarget, c);
+        m.createResource(OWL.Annotation)
+                .addProperty(RDFS.comment, "annotation-3")
+                .addProperty(OWL.annotatedProperty, RDFS.comment)
+                .addProperty(OWL.annotatedSource, an1)
+                .addProperty(OWL.annotatedTarget, m.listObjectsOfProperty(an1, RDFS.comment).toList().get(0));
+        ReadWriteUtils.print(m);
+
+        OntGraphModel model = OntModelFactory.createModel(m.getGraph());
+        Assert.assertEquals(2, model.ontObjects(OntAnnotation.class).count());
+        OntStatement base = model.statements(a, b, c).findFirst().orElseThrow(AssertionError::new);
+        Assert.assertEquals(2, base.annotations().count());
+        base.addAnnotation(model.getRDFSLabel(), "com-1");
+        base.addAnnotation(model.getRDFSLabel(), "com-2");
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(an1, base.asAnnotationResource().orElseThrow(AssertionError::new));
+        Assert.assertEquals(3, an1.inModel(model).as(OntAnnotation.class).annotations()
+                .peek(x -> LOGGER.debug("{}", Models.toString(x))).count());
+        Assert.assertEquals(1, an1.inModel(model).as(OntAnnotation.class).descendants().count());
+
+        Assert.assertEquals(2, model.statements(null, RDF.type, OWL.Axiom).count());
+        Assert.assertEquals(1, model.statements(null, RDF.type, OWL.Annotation).count());
+    }
 }

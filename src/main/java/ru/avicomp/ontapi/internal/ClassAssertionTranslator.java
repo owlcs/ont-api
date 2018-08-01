@@ -44,7 +44,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.localStatements(null, RDF.type, null)
+        return listStatements(model, null, RDF.type, null)
                 .filter(s -> s.getObject().canAs(OntCE.class))
                 .filter(s -> s.getSubject().canAs(OntIndividual.class));
     }
@@ -59,7 +59,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     @Override
     public ONTObject<OWLClassAssertionAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        ONTObject<? extends OWLIndividual> i = reader.get(statement.getSubject().as(OntIndividual.class));
+        ONTObject<? extends OWLIndividual> i = reader.get(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLClassExpression> ce = reader.get(statement.getObject().as(OntCE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLClassAssertionAxiom res = reader.getOWLDataFactory()

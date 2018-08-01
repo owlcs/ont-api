@@ -44,7 +44,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.localStatements(null, RDF.type, OWL.NegativePropertyAssertion)
+        return listStatements(model, null, RDF.type, OWL.NegativePropertyAssertion)
                 .filter(s -> s.getSubject().canAs(getView()));
     }
 

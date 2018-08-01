@@ -431,7 +431,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         return (InternalObjectTriplesMap<A>) components.get(type);
     }
 
-
     /**
      * Performs loading OWLObject-Triples container from underlying graph
      *
@@ -550,7 +549,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @param triple {@link Triple}
      */
     protected void delete(Triple triple) {
-        enhNodes.remove(triple.getSubject());
+        getNodeCache().remove(triple.getSubject());
         getBaseGraph().delete(triple);
     }
 

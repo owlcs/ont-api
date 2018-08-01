@@ -82,9 +82,10 @@ public class CachedStatementImpl extends OntStatementImpl {
     }
 
     @Override
-    public void deleteAnnotation(OntNAP property, RDFNode value) {
+    public CachedStatementImpl deleteAnnotation(OntNAP property, RDFNode value) {
         clear();
         super.deleteAnnotation(property, value);
+        return this;
     }
 
     @Override
@@ -95,7 +96,7 @@ public class CachedStatementImpl extends OntStatementImpl {
     @Override
     public List<OntAnnotation> getSortedAnnotations() {
         if (resources != null) return resources;
-        return resources = listOntAnnotationResources(this, getAnnotationResourceType(), CachedOntAnnImpl::new)
+        return resources = listOntAnnotationResources(this, getAnnotationResourceType(), (r, s) -> new CachedOntAnnImpl(r, s, getModel()))
                 .sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR).collect(Collectors.toList());
     }
 
@@ -117,18 +118,30 @@ public class CachedStatementImpl extends OntStatementImpl {
 
     protected class CachedOntAnnImpl extends AttachedAnnotationImpl {
         private Set<OntStatement> assertions;
+        private Set<OntAnnotation> children;
 
-        public CachedOntAnnImpl(Resource subject, OntStatementImpl base) {
-            super(subject, base);
+        public CachedOntAnnImpl(Resource subject, OntStatement base, OntGraphModelImpl m) {
+            super(subject, base, m);
         }
 
         protected void clear() {
             assertions = null;
+            children = null;
         }
 
         @Override
         public Stream<OntStatement> assertions() {
             return (assertions == null ? assertions = super.assertions().map(CachedStatementImpl::new).collect(Collectors.toSet()) : assertions).stream();
+        }
+
+        public Set<OntAnnotation> getChildren() {
+            if (children != null) return children;
+            return children = super.descendants().collect(Collectors.toSet());
+        }
+
+        @Override
+        public Stream<OntAnnotation> descendants() {
+            return getChildren().stream();
         }
 
         @Override

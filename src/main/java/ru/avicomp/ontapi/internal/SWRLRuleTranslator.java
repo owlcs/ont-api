@@ -53,7 +53,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     @Override
     public ONTObject<SWRLRule> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        OntSWRL.Imp imp = statement.getSubject().as(OntSWRL.Imp.class);
+        OntSWRL.Imp imp = statement.getSubject(OntSWRL.Imp.class);
 
         Collection<ONTObject<? extends SWRLAtom>> head = imp.head().map(reader::get).collect(Collectors.toList());
         Collection<ONTObject<? extends SWRLAtom>> body = imp.body().map(reader::get).collect(Collectors.toList());

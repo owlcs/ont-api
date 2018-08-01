@@ -45,12 +45,12 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     abstract Class<P> getView();
 
     P getSubject(OntStatement s) {
-        return s.getSubject().as(getView());
+        return s.getSubject(getView());
     }
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.localStatements(null, RDF.type, getType())
+        return listStatements(model, null, RDF.type, getType())
                 .filter(s -> s.getSubject().canAs(getView()));
     }
 

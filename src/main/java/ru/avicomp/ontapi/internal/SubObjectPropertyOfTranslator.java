@@ -47,7 +47,7 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
     @Override
     public ONTObject<OWLSubObjectPropertyOfAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        ONTObject<? extends OWLObjectPropertyExpression> sub = reader.get(statement.getSubject().as(OntOPE.class));
+        ONTObject<? extends OWLObjectPropertyExpression> sub = reader.get(statement.getSubject(OntOPE.class));
         ONTObject<? extends OWLObjectPropertyExpression> sup = reader.get(statement.getObject().as(OntOPE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLSubObjectPropertyOfAxiom res = reader.getOWLDataFactory()

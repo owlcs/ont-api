@@ -52,7 +52,7 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
         if (!getConfig(model).loaderConfig().isLoadAnnotationAxioms()) return Stream.empty();
-        return model.localStatements()
+        return listStatements(model, null, null, null)
                 .filter(this::testStatement);
     }
 

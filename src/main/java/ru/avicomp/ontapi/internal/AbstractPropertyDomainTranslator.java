@@ -40,7 +40,7 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.localStatements(null, RDFS.domain, null)
+        return listStatements(model, null, RDFS.domain, null)
                 .filter(s -> s.getSubject().canAs(getView()));
     }
 

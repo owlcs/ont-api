@@ -62,7 +62,7 @@ abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.localStatements(null, getPredicate(), null)
+        return listStatements(model, null, getPredicate(), null)
                 .filter(s -> s.getSubject().canAs(getView()))
                 .filter(s -> s.getObject().canAs(RDFList.class));
     }
@@ -81,7 +81,7 @@ abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
                                Collector<ONTObject<? extends OWL_MEMBER>, ?, ? extends Collection<ONTObject<? extends OWL_MEMBER>>> collector,
                                BiFunction<ONTObject<? extends OWL_SUBJECT>, Collection<ONTObject<? extends OWL_MEMBER>>, Axiom> axiomMaker) {
 
-        ONT_SUBJECT ontSubject = statement.getSubject().as(getView());
+        ONT_SUBJECT ontSubject = statement.getSubject(getView());
         ONTObject<? extends OWL_SUBJECT> subject = subjectExtractor.apply(ontSubject);
         OntList<ONT_MEMBER> list = listExtractor.apply(ontSubject, statement.getObject())
                 .orElseThrow(() -> new OntApiException("Can't get OntList for statement " + Models.toString(statement)));

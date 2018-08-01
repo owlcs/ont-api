@@ -39,7 +39,7 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
     abstract Class<P> getView();
 
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.localStatements(null, RDFS.subPropertyOf, null)
+        return listStatements(model, null, RDFS.subPropertyOf, null)
                 .filter(s -> s.getSubject().canAs(getView()))
                 .filter(s -> s.getObject().canAs(getView()));
     }

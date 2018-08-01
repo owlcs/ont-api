@@ -43,7 +43,7 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.localStatements(null, OWL.equivalentClass, null)
+        return listStatements(model, null, OWL.equivalentClass, null)
                 .filter(s -> s.getSubject().canAs(OntDT.class))
                 .filter(s -> s.getObject().canAs(OntDR.class));
     }
@@ -58,7 +58,7 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     @Override
     public ONTObject<OWLDatatypeDefinitionAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        ONTObject<OWLDatatype> dt = reader.get(statement.getSubject().as(OntDT.class));
+        ONTObject<OWLDatatype> dt = reader.get(statement.getSubject(OntDT.class));
         ONTObject<? extends OWLDataRange> dr = reader.get(statement.getObject().as(OntDR.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
         OWLDatatypeDefinitionAxiom res = reader.getOWLDataFactory()

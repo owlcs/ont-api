@@ -73,7 +73,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.localStatements(null, getPredicate(), null)
+        return listStatements(model, null, getPredicate(), null)
                 .filter(s -> s.getSubject().canAs(getView()));
     }
 

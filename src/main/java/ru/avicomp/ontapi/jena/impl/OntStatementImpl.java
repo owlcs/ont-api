@@ -167,6 +167,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         return !getModel().getGraph().getUnderlying().hasSubGraphs() || getModel().isLocal(this);
     }
 
+    public boolean isAnnotationRootStatement() {
+        return subject.isAnon() && RDF.type.equals(predicate) && (OWL.Axiom.equals(object) || OWL.Annotation.equals(object));
+    }
+
     @Override
     public OntObject getSubject() {
         return subject instanceof OntObject ? (OntObject) subject : subject.as(OntObject.class);
@@ -195,11 +199,17 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
-    public void deleteAnnotation(OntNAP property, RDFNode value) {
+    public OntStatementImpl deleteAnnotation(OntNAP property, RDFNode value) {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(value, "Null value.");
+        OntGraphModelImpl model = getModel();
         if (isRootStatement()) {
-            model.removeAll(getSubject(), property, value);
+            Set<OntStatement> assertions = model.statements(getSubject(), property, value).collect(Collectors.toSet());
+            if (isAnnotationRootStatement()) {
+                // if it is anon bulk annotation root statement, deletion can break down the structure of annotation object
+                throw new OntJenaException("Direct removing assertions from Annotation resource is prohibited");
+            }
+            assertions.forEach(model::remove);
         }
         Set<OntStatement> candidates = annotationResources()
                 .flatMap(OntAnnotation::assertions)
@@ -207,7 +217,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
                 .filter(s -> Objects.equals(value, s.getObject()))
                 .collect(Collectors.toSet());
         if (candidates.isEmpty()) {
-            return;
+            return this;
         }
         Set<OntStatement> delete = candidates.stream()
                 .filter(s -> !s.hasAnnotations()).collect(Collectors.toSet());
@@ -215,12 +225,18 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
             throw new OntJenaException("Can't delete [*, " + property + ", " + value + "]: " +
                     "candidates have their own annotations which should be deleted first.");
         }
-        OntGraphModelImpl model = getModel();
+
         delete.forEach(model::remove);
+        // delete empty owl:Axiom or owl:Annotation sections
         Set<OntAnnotation> empty = annotationResources()
                 .filter(f -> Objects.equals(f.listProperties().toSet().size(), OntAnnotationImpl.SPEC.size()))
                 .collect(Collectors.toSet());
-        empty.forEach(a -> model.removeAll(a, null, null));
+        empty.forEach(a -> {
+            model.removeAll(a, null, null);
+            // anon resource no need anymore:
+            model.getNodeCache().remove(a.asNode());
+        });
+        return this;
     }
 
     protected Stream<Statement> properties() {
@@ -229,7 +245,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public Stream<OntAnnotation> annotationResources() {
-        return listOntAnnotationResources(this, getAnnotationResourceType(), AttachedAnnotationImpl::new);
+        return listOntAnnotationResources(this, getAnnotationResourceType(), (r, s) -> new AttachedAnnotationImpl(r, s, getModel()));
     }
 
     @Override
@@ -352,10 +368,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * An {@link OntAnnotationImpl} with reference to itself.
      */
     protected static class AttachedAnnotationImpl extends OntAnnotationImpl {
-        private final OntStatementImpl base;
+        private final OntStatement base;
 
-        public AttachedAnnotationImpl(Resource subject, OntStatementImpl base) {
-            super(subject.asNode(), base.getModel());
+        public AttachedAnnotationImpl(Resource subject, OntStatement base, OntGraphModelImpl m) {
+            super(subject.asNode(), m);
             this.base = base;
         }
 

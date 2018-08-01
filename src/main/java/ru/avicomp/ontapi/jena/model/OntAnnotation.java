@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  * <li>{@link ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom owl:Axiom} for root annotations, it is usually owned by axiomatic statements.</li>
  * <li>{@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation owl:Annotation} for sub-annotations,
  * and also for annotation of several specific axioms with main-statement {@code _:x rdf:type @type} where @type is
- * owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion.</li>
+ * {@code owl:AllDisjointClasses}, {@code owl:AllDisjointProperties}, {@code owl:AllDifferent} or {@code owl:NegativePropertyAssertion}.</li>
  * </ul>
  * Example:
  * <pre>{@code
@@ -60,6 +60,24 @@ public interface OntAnnotation extends OntObject {
      * @see OntObject#annotations()
      */
     Stream<OntStatement> assertions();
+
+    /**
+     * Just a synonym for {@link #assertions()}.
+     *
+     * @return Stream of annotation statements {@link OntStatement}s
+     */
+    @Override
+    Stream<OntStatement> annotations();
+
+    /**
+     * Lists all descendants of this ont-annotation resource.
+     * The resulting resources must have {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation owl:Annotation} type
+     * and this object on predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#annotatedSource owl:annotatedSource}.
+     *
+     * @return Stream of {@link OntAnnotation}s
+     * @since 1.2.1
+     */
+    Stream<OntAnnotation> descendants();
 
     /**
      * Adds a new annotation assertion to this annotation resource.

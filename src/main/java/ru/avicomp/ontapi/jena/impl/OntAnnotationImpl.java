@@ -27,6 +27,7 @@ import ru.avicomp.ontapi.jena.impl.conf.OntMaker;
 import ru.avicomp.ontapi.jena.impl.conf.OntObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntNAP;
+import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
@@ -63,13 +64,13 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
             OntAnnotationImpl::testAnnotation);
 
     /**
-     * The first are annotations with the most numerous assertions,
+     * The first are annotations with the most numerous assertions and children,
      * the remaining comparison operations are not so important,
      * but the provided order should be preserved after graph reload.
      */
     public static final Comparator<OntAnnotation> DEFAULT_ANNOTATION_COMPARATOR = (left, right) -> {
-        Set<OntStatement> leftSet = left.assertions().collect(Collectors.toSet());
-        Set<OntStatement> rightSet = right.assertions().collect(Collectors.toSet());
+        Set<OntStatement> leftSet = listRelatedStatements(left).collect(Collectors.toSet());
+        Set<OntStatement> rightSet = listRelatedStatements(right).collect(Collectors.toSet());
         int res = Integer.compare(leftSet.size(), rightSet.size());
         while (res == 0) {
             OntStatement s1 = removeMin(leftSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
@@ -107,6 +108,19 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     }
 
     @Override
+    public Stream<OntStatement> annotations() {
+        return assertions();
+    }
+
+    @Override
+    public Stream<OntAnnotation> descendants() {
+        return getModel().statements(null, OWL.annotatedSource, this)
+                .map(OntStatement::getSubject)
+                .filter(s -> s.canAs(OntAnnotation.class))
+                .map(s -> s.as(OntAnnotation.class));
+    }
+
+    @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
         OntGraphModelImpl model = getModel();
         model.add(this, property, value);
@@ -140,6 +154,17 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         S res = notEmptySet.stream().min(comparator).orElseThrow(IllegalStateException::new);
         if (!notEmptySet.remove(res)) throw new IllegalStateException();
         return res;
+    }
+
+    /**
+     * Lists annotation assertions plus sub-annotation root statements.
+     *
+     * @param annotation {@link OntAnnotation}
+     * @return Stream of {@link OntStatement}s
+     * @since 1.2.1
+     */
+    public static Stream<OntStatement> listRelatedStatements(OntAnnotation annotation) {
+        return Stream.concat(annotation.assertions(), annotation.descendants().map(OntObject::getRoot));
     }
 
 }

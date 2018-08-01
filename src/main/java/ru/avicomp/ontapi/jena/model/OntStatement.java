@@ -21,7 +21,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -84,9 +83,10 @@ public interface OntStatement extends Statement {
      *
      * @param property {@link OntNAP} named annotation property, not null
      * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not null
+     * @return this statement instance to allow cascading calls
      * @throws OntJenaException in case input is incorrect or deleted annotation has it is own annotations
      */
-    void deleteAnnotation(OntNAP property, RDFNode value) throws OntJenaException;
+    OntStatement deleteAnnotation(OntNAP property, RDFNode value) throws OntJenaException;
 
     /**
      * Returns the stream of annotation objects attached to this statement.
@@ -160,8 +160,9 @@ public interface OntStatement extends Statement {
      * @param property {@link OntNAP}
      */
     default void deleteAnnotation(OntNAP property) {
-        Set<RDFNode> obj = annotations(property).map(Statement::getObject).collect(Collectors.toSet());
-        obj.forEach(s -> deleteAnnotation(property, s));
+        annotations(property).map(Statement::getObject)
+                .collect(Collectors.toSet())
+                .forEach(v -> deleteAnnotation(property, v));
     }
 
     /**
