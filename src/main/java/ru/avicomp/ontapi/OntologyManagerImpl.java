@@ -1353,7 +1353,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             OntologyModel res;
             switch (settings) {
                 case MOVE:
-                    if (!OntologyModel.class.isInstance(source)) {
+                    if (!(source instanceof OntologyModel)) {
                         throw new OWLOntologyCreationException(String.format("Can't move %s: not an %s. Use %s or %s parameter.",
                                 source.getOntologyID(), OntologyModel.class.getSimpleName(), OntologyCopy.DEEP, OntologyCopy.SHALLOW));
                     }
@@ -1670,8 +1670,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     protected void write(OWLOntology ontology, OWLDocumentFormat documentFormat, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
         OntFormat format = OntFormat.get(documentFormat);
-        if (format == null || !format.isJena() || !OntologyModel.class.isInstance(ontology)) {
-            if (OntologyModel.class.isInstance(ontology)) {
+        if (format == null || !format.isJena() || !(ontology instanceof OntologyModel)) {
+            if (ontology instanceof OntologyModel) {
                 // It does not work correctly without expanding axioms for some OWL-API formats such as ManchesterSyntaxDocumentFormat.
                 // The cache cleaning encourages extracting hidden axioms (declarations) in an explicit form while getting axioms:
                 ((OntologyModel) ontology).clearCache();
@@ -1709,7 +1709,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             throw new OWLOntologyStorageException("Null output stream, format = " + documentFormat);
         }
         Model model = ((OntologyModel) ontology).asGraphModel().getBaseModel();
-        PrefixManager pm = PrefixManager.class.isInstance(documentFormat) ? (PrefixManager) documentFormat : null;
+        PrefixManager pm = documentFormat instanceof PrefixManager ? (PrefixManager) documentFormat : null;
         setDefaultPrefix(pm, ontology);
         Map<String, String> newPrefixes = pm != null ? pm.getPrefixName2PrefixMap() : Collections.emptyMap();
         Map<String, String> initPrefixes = model.getNsPrefixMap();
@@ -1736,7 +1736,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     public static void setDefaultPrefix(PrefixManager pm, OWLOntology owl) {
         if (pm == null || owl == null) return;
-        if (!TurtleDocumentFormat.class.isInstance(pm)) return;
+        if (!(pm instanceof TurtleDocumentFormat)) return;
         if (pm.getDefaultPrefix() != null) return;
         if (!owl.getOntologyID().getOntologyIRI().isPresent()) return;
         String uri = owl.getOntologyID().getOntologyIRI().get().getIRIString();
@@ -1921,7 +1921,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         protected void fireStartedLoadingEvent(OWLOntologyID id, IRI doc) {
             if (loadCount.get() != importsLoadCount.get()) {
-                LOGGER.warn("Runtime Warning: Parsers should load imported ontologies using the makeImportLoadRequest method.");
+                LOGGER.warn("Runtime Warning: Parsers should load imported ontologies using the makeImportLoadRequest method. ID={}, DOC-IRI={}", id, doc);
             }
             fireStartedLoadingEvent(id, doc, loadCount.get() > 0);
             loadCount.incrementAndGet();

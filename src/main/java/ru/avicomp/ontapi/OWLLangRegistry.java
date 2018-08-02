@@ -14,15 +14,14 @@
 
 package ru.avicomp.ontapi;
 
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
+import com.google.common.reflect.Reflection;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLStorerFactory;
 
-import com.google.common.reflect.Reflection;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * The global OWL-API format syntax registry.
@@ -33,6 +32,7 @@ import com.google.common.reflect.Reflection;
  * @see LangKey
  * @see OWLLang
  */
+@SuppressWarnings("WeakerAccess")
 public class OWLLangRegistry {
     private static Map<String, OWLLang> registry = LangKey.asMap();
 

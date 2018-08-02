@@ -198,7 +198,7 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
     @SuppressWarnings("unchecked")
     @Override
     public Multimap<IRI, Class<?>> getGuessedDeclarations() {
-        return Multimaps.unmodifiableMultimap(Multimap.class.cast(guessed));
+        return Multimaps.unmodifiableMultimap((Multimap) guessed);
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {

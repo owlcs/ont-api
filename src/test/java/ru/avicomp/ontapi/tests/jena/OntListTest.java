@@ -427,6 +427,16 @@ public class OntListTest {
         list.addComment("The list", "xx").addAnnotation(m.getRDFSLabel(), "test");
         debug(m);
         Assert.assertEquals(6, list.spec().count());
+
+        // check that spec elements cannot be annotated
+        try {
+            list.spec().skip(3).limit(1)
+                    .findFirst().orElseThrow(AssertionError::new).addAnnotation(m.getRDFSComment(), "Is it possible?");
+            Assert.fail("Possible to annotate some rdf:List statement");
+        } catch (OntJenaException j) {
+            LOGGER.debug("Expected: {}", j.getMessage());
+        }
+
         list.clear();
         debug(m);
         Assert.assertEquals(0, list.spec().count());

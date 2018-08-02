@@ -36,8 +36,9 @@ import java.util.stream.Stream;
  *   owl:annotatedTarget    owl:Class
  * ] .
  * }</pre>
- *
+ * <p>
  * Created by @szuev on 26.03.2017.
+ *
  * @see OntStatement
  * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.2 Translation of Annotations</a>
  */
@@ -62,14 +63,6 @@ public interface OntAnnotation extends OntObject {
     Stream<OntStatement> assertions();
 
     /**
-     * Just a synonym for {@link #assertions()}.
-     *
-     * @return Stream of annotation statements {@link OntStatement}s
-     */
-    @Override
-    Stream<OntStatement> annotations();
-
-    /**
      * Lists all descendants of this ont-annotation resource.
      * The resulting resources must have {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation owl:Annotation} type
      * and this object on predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#annotatedSource owl:annotatedSource}.
@@ -80,13 +73,34 @@ public interface OntAnnotation extends OntObject {
     Stream<OntAnnotation> descendants();
 
     /**
+     * Just a synonym for {@link #assertions()}.
+     *
+     * @return Stream of annotation statements {@link OntStatement}s
+     */
+    @Override
+    Stream<OntStatement> annotations();
+
+    /**
      * Adds a new annotation assertion to this annotation resource.
+     * If this {@link OntAnnotation} contains annotation property assertion {@code this x y} and it does not have sub-annotations yet,
+     * the given annotation property {@code p} and value {@code v} will produce following {@link OntAnnotation} object:
+     * <pre>{@code
+     * _:x rdf:type              owl:Annotation .
+     * _:x p                     v .
+     * _:x owl:annotatedSource   this .
+     * _:x owl:annotatedProperty x .
+     * _:x owl:annotatedTarget   y .
+     * }</pre>
+     * and this method will return {@code _:x p v} triple wrapped as {@link OntStatement} to allow adding new sub-annotations.
+     * If this annotation object already has a sub-annotation for the statement {@code this x y},
+     * the new triple will be added to the existing anonymous resource.
      *
      * @param property {@link OntNAP}
      * @param value    {@link RDFNode}
      * @return {@link OntStatement}
      * @see OntStatement#addAnnotation(OntNAP, RDFNode)
      */
+    @Override
     OntStatement addAnnotation(OntNAP property, RDFNode value);
 
 }

@@ -16,11 +16,14 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.UnsupportedPolymorphismException;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
+import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntList;
@@ -31,9 +34,8 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -160,8 +162,33 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return OntStatementImpl.listAnnotations(m, OWL.Axiom, subject, predicate, obj);
     }
 
-    public static boolean isEmpty(RDFList list) {
+    public static boolean isEmpty(RDFNode list) {
         return RDF.nil.equals(list);
+    }
+
+    private static OntStatement createRDFFirst(OntGraphModelImpl m, List<Triple> batch) {
+        return createListStatement(m, RDF.first, batch);
+    }
+
+    private static OntStatement createRDFRest(OntGraphModelImpl m, List<Triple> batch) {
+        return createListStatement(m, RDF.rest, batch);
+    }
+
+    private static OntStatement createListStatement(OntGraphModelImpl m, Property predicate, List<Triple> batch) {
+        return createListStatement(m, (n, g) -> g.getNodeAs(n, Resource.class), predicate, (n, g) -> g.getNodeAs(n, RDFNode.class), batch);
+    }
+
+    private static OntStatement createListStatement(OntGraphModelImpl m,
+                                                    BiFunction<Node, OntGraphModelImpl, Resource> subject,
+                                                    Property predicate,
+                                                    BiFunction<Node, OntGraphModelImpl, RDFNode> object,
+                                                    List<Triple> batch) {
+        for (Triple t : batch) {
+            if (!predicate.asNode().equals(t.getPredicate())) continue;
+            return OntStatementImpl.createNotAnnotatedOntStatementImpl(subject.apply(t.getSubject(), m),
+                    predicate, object.apply(t.getObject(), m), m);
+        }
+        throw new OntJenaException.IllegalState("Can't find rdf:List triple with predicate " + predicate);
     }
 
     @Override
@@ -219,25 +246,30 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public Stream<E> members() {
-        OntGraphModelImpl m = getModel();
-        return Iter.asStream(getRDFList().iterator())
+        return spec().filter(s -> Objects.equals(s.getPredicate(), RDF.first))
+                .map(Statement::getObject)
                 .filter(this::isValid)
-                .map(n -> {
-                    try {
-                        return m.getNodeAs(n.asNode(), elementType);
-                    } catch (OntJenaException.Conversion j) {
-                        throw new OntJenaException.IllegalState("Problem node: '" + n + "'", j);
-                    }
-                });
+                .map(this::cast);
     }
 
     @Override
-    public Stream<Statement> spec() { // todo: switch to lazy stream
+    public Stream<OntStatement> spec() {
         RDFListImpl list = ((RDFListImpl) getRDFList());
-        return isEmpty(list) ? Stream.empty() : list.collectStatements().stream();
+        if (isEmpty(list)) return Stream.empty();
+        OntGraphModelImpl m = getModel();
+        return Iter.asStream(WrappedIterator.create(new RDFListIterator(getModel().getGraph(), list.asNode())))
+                .flatMap(t -> Stream.of(createRDFFirst(m, t), createRDFRest(m, t)));
     }
 
     public abstract boolean isValid(RDFNode n);
+
+    public E cast(RDFNode n) {
+        try {
+            return getModel().getNodeAs(n.asNode(), elementType);
+        } catch (OntJenaException.Conversion j) {
+            throw new OntJenaException.IllegalState("Problem node: '" + n + "'", j);
+        }
+    }
 
     @Override
     public OntList<E> add(E e) {
@@ -346,6 +378,44 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             };
         }
         throw new OntJenaException.IllegalArgument("Index out of bounds: " + index);
+    }
+
+    /**
+     * A simplest {@link Iterator iterator} over a {@link RDF#List rdf:List},
+     * whose {@code next} method returns a batch of {@link Triple triple}s in the form of standard {@link List Java List}.
+     */
+    public static class RDFListIterator implements Iterator<List<Triple>> {
+        public static final Node REST = RDF.rest.asNode();
+        public static final Node NIL = RDF.nil.asNode();
+        private final Graph graph;
+        private Node head;
+
+        public RDFListIterator(Graph graph, Node head) {
+            this.graph = Objects.requireNonNull(graph);
+            this.head = Objects.requireNonNull(head);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !NIL.equals(head);
+        }
+
+        @Override
+        public List<Triple> next() {
+            Node next = null;
+            List<Triple> triples = new ArrayList<>();
+            Iterator<Triple> it = graph.find(head, Node.ANY, Node.ANY);
+            while (it.hasNext()) {
+                Triple t = it.next();
+                triples.add(t);
+                if (REST.equals(t.getPredicate())) {
+                    next = t.getObject();
+                }
+            }
+            if (next == null) throw new NoSuchElementException();
+            this.head = next;
+            return triples;
+        }
     }
 
 }

@@ -133,7 +133,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         return new OntStatementImpl(s, p, o, m) {
             @Override
             public OntStatement addAnnotation(OntNAP property, RDFNode value) {
-                throw new OntJenaException.Unsupported("Sub-annotations are not supported (attempt to add " + Models.toString(this) + ")");
+                throw new OntJenaException.Unsupported("Sub-annotations are not supported (attempt to annotate " +
+                        Models.toString(this) +
+                        " with predicate " + m.shortForm(property.getURI()) + " and value " + value + ")");
             }
         };
     }

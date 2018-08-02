@@ -108,6 +108,14 @@ public interface OntList<E extends RDFNode> extends OntResource {
     OntList<E> get(int index) throws OntJenaException;
 
     /**
+     * {@inheritDoc}
+     *
+     * @return Stream of {@link OntStatement Ontology Statement}s that does not support annotations
+     */
+    @Override
+    Stream<OntStatement> spec();
+
+    /**
      * Answers the number of {@link RDFNode rdf-node}s in the list.
      * Note: in general this operation is not equivalent to {@code this.members().count()}.
      *

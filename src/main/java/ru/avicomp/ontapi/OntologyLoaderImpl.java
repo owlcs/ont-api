@@ -358,6 +358,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      */
     private Optional<IRI> documentIRI(OntologyManager manager, IRI source) {
         Optional<IRI> res = sourceMap.get(source);
+        //noinspection OptionalAssignedToNull
         if (res != null) {
             sourceMap.remove(source);
         } else {
@@ -378,7 +379,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         OWLDocumentFormat owlFormat = model.getOWLOntologyManager().getOntologyFormat(model);
         OntFormat format = OntFormat.get(owlFormat);
         Graph graph = model.asGraphModel().getBaseGraph();
-        if (PrefixManager.class.isInstance(owlFormat)) { // pass prefixes from model to graph
+        if (owlFormat instanceof PrefixManager) { // pass prefixes from model to graph
             PrefixManager pm = (PrefixManager) owlFormat;
             Models.setNsPrefixes(graph.getPrefixMapping(), pm.getPrefixName2PrefixMap());
         }
@@ -411,7 +412,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
     public GraphInfo loadGraph(OWLOntologyDocumentSource source,
                                OntologyManager manager,
                                OntLoaderConfiguration config) throws OWLOntologyCreationException {
-        if (OntGraphDocumentSource.class.isInstance(source)) {
+        if (source instanceof OntGraphDocumentSource) {
             OntGraphDocumentSource src = (OntGraphDocumentSource) source;
             Graph graph = src.getGraph();
             OntFormat format = src.getOntFormat();
