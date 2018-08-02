@@ -45,7 +45,7 @@ public class ModelsTest {
     @Test
     public void testDeleteResources() {
         OntGraphModel m = OntModelFactory.createModel();
-        m.read(ModelsTest.class.getResourceAsStream("/recursive-graph.ttl"), null, "ttl");
+        m.read(ModelsTest.class.getResourceAsStream("/ontapi/recursive-graph.ttl"), null, "ttl");
         String ns = m.getID().getURI() + "#";
         OntObject d = m.createDisjointClasses(Arrays.asList(
                 m.createOntEntity(OntClass.class, ns + "CL1"),

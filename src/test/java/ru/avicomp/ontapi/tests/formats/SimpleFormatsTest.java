@@ -81,7 +81,7 @@ public class SimpleFormatsTest {
 
     @Test
     public void test() {
-        IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName + "." + format.getExt()));
+        IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi", fileName + "." + format.getExt()));
         LOGGER.debug("Load ontology {}. Format: {}", fileIRI, format);
         OntologyModel o;
         try {

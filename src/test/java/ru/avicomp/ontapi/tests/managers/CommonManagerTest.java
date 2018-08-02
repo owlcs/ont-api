@@ -65,7 +65,7 @@ public class CommonManagerTest {
 
     @Test
     public void testBasics() throws OWLOntologyCreationException {
-        final IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("test1.ttl"));
+        final IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test1.ttl"));
         final OWLOntologyID id = OntIRI.create("http://dummy").toOwlOntologyID();
 
         Assert.assertNotSame("The same manager", OntManagers.createONT(), OntManagers.createONT());
@@ -125,7 +125,7 @@ public class CommonManagerTest {
     public void testConcurrentManager() throws Exception {
         OWLOntologyManager m = OntManagers.createConcurrentONT();
         OWLOntology o1 = m.createOntology();
-        OWLOntology o2 = m.loadOntology(IRI.create(ReadWriteUtils.getResourceFile("test1.ttl")));
+        OWLOntology o2 = m.loadOntology(IRI.create(ReadWriteUtils.getResourceFile("ontapi/test1.ttl")));
         Assert.assertEquals("Expected 2 ontologies.", 2, m.ontologies().count());
         Assert.assertTrue("(1)Not concurrent model!", o1 instanceof OntologyModelImpl.Concurrent);
         Assert.assertTrue("(2)Not concurrent model!", o2 instanceof OntologyModelImpl.Concurrent);
@@ -252,7 +252,7 @@ public class CommonManagerTest {
     public void testLoadSplitBulkRootAnnotations() throws OWLOntologyCreationException {
         OWLOntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
-        String file = "test-annotations-3.ttl";
+        String file = "ontapi/test-annotations-3.ttl";
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals(0, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
@@ -306,7 +306,7 @@ public class CommonManagerTest {
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         ObjectInputStream inStream = new ObjectInputStream(in);
         OWLOntologyManager copy = (OWLOntologyManager) inStream.readObject();
-        if (OntologyManager.class.isInstance(origin)) {
+        if (origin instanceof OntologyManager) {
             Assert.assertEquals("Incorrect concurrency", ((OntologyManagerImpl) origin).isConcurrent(), ((OntologyManagerImpl) copy).isConcurrent());
         }
 
@@ -314,13 +314,13 @@ public class CommonManagerTest {
         debugManager(copy);
         compareManagersTest(origin, copy);
 
-        if (OntologyManager.class.isInstance(origin)) {
+        if (origin instanceof OntologyManager) {
             editManagerTest((OntologyManager) origin, (OntologyManager) copy);
         }
     }
 
     private static void fixAfterSerialization(OWLOntologyManager origin, OWLOntologyManager copy) {
-        if (OntologyManager.class.isInstance(copy)) {
+        if (copy instanceof OntologyManager) {
             return;
         }
         // OWL-API 5.0.5:
@@ -432,7 +432,7 @@ public class CommonManagerTest {
             LOGGER.debug("OWL entities: " + actualEntities);
             Assert.assertEquals("Incorrect owl entities", expectedEntities, actualEntities);
         }
-        if (OntologyModel.class.isInstance(actualOnt) && OntologyModel.class.isInstance(expectedOnt)) {  // ont
+        if (actualOnt instanceof OntologyModel && expectedOnt instanceof OntologyModel) {  // ont
             List<OntEntity> actualEntities = ((OntologyModel) actualOnt).asGraphModel().ontEntities().collect(Collectors.toList());
             List<OntEntity> expectedEntities = ((OntologyModel) expectedOnt).asGraphModel().ontEntities().collect(Collectors.toList());
             LOGGER.debug("ONT entities: " + actualEntities);

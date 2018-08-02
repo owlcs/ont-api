@@ -59,8 +59,8 @@ public class LoadFactoryManagerTest {
      */
     @Test
     public void testLoadWrongDuplicate() throws OWLOntologyCreationException {
-        IRI a = IRI.create(ReadWriteUtils.getResourceURI("load-test-a.owl"));
-        IRI b = IRI.create(ReadWriteUtils.getResourceURI("load-test-b.ttl"));
+        IRI a = IRI.create(ReadWriteUtils.getResourceURI("ontapi/load-test-a.owl"));
+        IRI b = IRI.create(ReadWriteUtils.getResourceURI("ontapi/load-test-b.ttl"));
 
         OWLOntologyManager m = OntManagers.createONT();
         OWLOntology o = m.loadOntologyFromOntologyDocument(a);
@@ -109,7 +109,7 @@ public class LoadFactoryManagerTest {
     @Test(expected = OntologyFactoryImpl.OWLTransformException.class)
     public void tesLoadWrongRDFSyntax() throws OWLOntologyCreationException {
         // wrong []-List
-        OntManagers.createONT().loadOntology(IRI.create(ReadWriteUtils.getResourceURI("wrong.rdf")));
+        OntManagers.createONT().loadOntology(IRI.create(ReadWriteUtils.getResourceURI("ontapi/wrong.rdf")));
     }
 
     @Test(expected = UnloadableImportException.class)
@@ -124,7 +124,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testLoadRecursiveGraphWithTransform() throws OWLOntologyCreationException {
-        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
         OntologyManager m = OntManagers.createONT();
         GraphTransformers.Store store = m.getOntologyConfigurator().getGraphTransformers();
@@ -153,7 +153,7 @@ public class LoadFactoryManagerTest {
 
         IRI amyFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-amy.ttl"));
         IRI sueFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-sue.ttl"));
-        IRI wrongFile = IRI.create(ReadWriteUtils.getResourceURI("wrong-core.ttl"));
+        IRI wrongFile = IRI.create(ReadWriteUtils.getResourceURI("ontapi/wrong-core.ttl"));
 
         m.getIRIMappers().add(FileMap.create(amyIRI, amyFile));
         m.getIRIMappers().add(FileMap.create(sueIRI, sueFile));
@@ -400,7 +400,7 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(uri1, o1.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
         Assert.assertEquals(comment, getOWLComment(o1));
 
-        OntologyModel o2 = manager.loadOntology(IRI.create(LoadFactoryManagerTest.class.getResource("/test1.ttl")));
+        OntologyModel o2 = manager.loadOntology(IRI.create(LoadFactoryManagerTest.class.getResource("/ontapi/test1.ttl")));
         Assert.assertNotNull(o2);
         ReadWriteUtils.print(o2);
         Assert.assertEquals("http://test.test/complex", o2.getOntologyID().getOntologyIRI()
@@ -464,7 +464,7 @@ public class LoadFactoryManagerTest {
         IRI amyFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-amy.ttl"));
         IRI sueFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-sue.ttl"));
         IRI bobFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-bob.ttl"));
-        IRI coreFile = IRI.create(ReadWriteUtils.getResourceURI("core.ttl"));
+        IRI coreFile = IRI.create(ReadWriteUtils.getResourceURI("ontapi/core.ttl"));
 
         m.getIRIMappers().add(FileMap.create(amyIRI, amyFile));
         m.getIRIMappers().add(FileMap.create(bobIRI, bobFile));

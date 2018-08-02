@@ -47,12 +47,12 @@ public class SimpleLoadTest {
 
     @Test
     public void testPizza() throws Exception {
-        test("pizza.ttl");
+        test("ontapi/pizza.ttl");
     }
 
     @Test
     public void testFoaf() throws Exception {
-        String fileName = "foaf.rdf";
+        String fileName = "ontapi/foaf.rdf";
         OntologyManager manager = OntManagers.createONT();
         OntLoaderConfiguration conf = manager.getOntologyLoaderConfiguration().setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
         manager.setOntologyLoaderConfiguration(conf);
@@ -84,7 +84,7 @@ public class SimpleLoadTest {
 
     @Test
     public void testGoodrelations() throws Exception {
-        String fileName = "goodrelations.rdf";
+        String fileName = "ontapi/goodrelations.rdf";
         OWLDataFactory factory = OntManagers.getDataFactory();
 
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));

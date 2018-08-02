@@ -232,7 +232,7 @@ public class GraphTransformersTest {
     @Test
     public void testSWRLVocabulary() throws Exception {
         IRI iri = IRI.create("http://www.w3.org/2003/11/swrl");
-        IRI file = IRI.create(ReadWriteUtils.getResourceURI("swrl.owl.rdf"));
+        IRI file = IRI.create(ReadWriteUtils.getResourceURI("ontapi/swrl.owl.rdf"));
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
         OntologyModel o = m.loadOntology(file);

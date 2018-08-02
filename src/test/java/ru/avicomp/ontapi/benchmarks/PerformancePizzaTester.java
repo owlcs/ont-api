@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 public class PerformancePizzaTester {
     private static final Logger LOGGER = Logger.getLogger(PerformancePizzaTester.class);
 
-    private static final String fileName = "pizza.ttl";
+    private static final String fileName = "ontapi/pizza.ttl";
     // if this is non-positive number, then the loading&checking axioms will be skipped for ONT-API (OWL-API loads them always):
     private static final int axiomCount = 945;
     private static final int num = 150;

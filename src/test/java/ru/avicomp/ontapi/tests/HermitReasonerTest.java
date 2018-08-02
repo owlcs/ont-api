@@ -34,7 +34,7 @@ public class HermitReasonerTest {
 
     @Test
     public void testSimple() throws OWLOntologyCreationException {
-        IRI file = IRI.create(HermitReasonerTest.class.getResource("/pizza.ttl"));
+        IRI file = IRI.create(HermitReasonerTest.class.getResource("/ontapi/pizza.ttl"));
         LOGGER.debug("File {}", file);
         performHermitTest(OntManagers.createONT().loadOntologyFromOntologyDocument(file));
     }

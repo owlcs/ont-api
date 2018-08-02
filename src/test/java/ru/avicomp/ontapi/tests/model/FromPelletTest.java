@@ -147,7 +147,7 @@ public class FromPelletTest {
 
     @Test
     public void testPropertyChain() throws Exception {
-        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("propertyChain.owl"));
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/propertyChain.owl"));
         LOGGER.debug("{}", iri);
         OntologyManager m = OntManagers.createONT();
         OntologyModel o = m.loadOntology(iri);
@@ -160,7 +160,7 @@ public class FromPelletTest {
 
     @Test
     public void testSWRLOntology() throws Exception {
-        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("anyURI-premise.rdf"));
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/anyURI-premise.rdf"));
         LOGGER.debug("{}", iri);
         OWLOntologyManager m = OntManagers.createONT();
         OWLOntology o = m.loadOntology(iri);

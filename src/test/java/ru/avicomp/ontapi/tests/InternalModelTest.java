@@ -60,7 +60,7 @@ public class InternalModelTest {
 
     @Test
     public void testAxiomRead() {
-        Model m = ReadWriteUtils.loadResourceTTLFile("pizza.ttl");
+        Model m = ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl");
         OntGraphModel model = OntModelFactory.createModel(m.getGraph());
         // 39 axiom types:
         Set<Class<? extends OWLAxiom>> types = AxiomType.AXIOM_TYPES.stream().map(AxiomType::getActualClass).collect(Collectors.toSet());
@@ -87,7 +87,7 @@ public class InternalModelTest {
     public void testOntologyAnnotations() {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
-        InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph(), ConfigProvider.DEFAULT_CONFIG);
+        InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph(), ConfigProvider.DEFAULT_CONFIG);
 
         Set<OWLAnnotation> annotations = model.annotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
@@ -122,12 +122,12 @@ public class InternalModelTest {
 
     @Test
     public void testPizzaEntities() {
-        testEntities("pizza.ttl", OntFormat.TURTLE);
+        testEntities("ontapi/pizza.ttl", OntFormat.TURTLE);
     }
 
     @Test
     public void testFoafEntities() {
-        String file = "foaf.rdf";
+        String file = "ontapi/foaf.rdf";
         OntFormat format = OntFormat.RDF_XML;
 
         OntPersonality profile = OntModelConfig.getPersonality();
@@ -175,7 +175,7 @@ public class InternalModelTest {
 
     @Test
     public void testGoodrelationsEntities() {
-        testEntities("goodrelations.rdf", OntFormat.RDF_XML);
+        testEntities("ontapi/goodrelations.rdf", OntFormat.RDF_XML);
     }
 
     private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {

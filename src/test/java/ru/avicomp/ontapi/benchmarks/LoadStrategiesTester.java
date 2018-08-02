@@ -61,7 +61,7 @@ public class LoadStrategiesTester {
                     7464, 1002, true),*/
             new TestData(
                     "pizza",
-                    LoadStrategiesTester.class.getResource("/pizza.ttl"), OntFormat.TURTLE, "http://www.co-ode.org/ontologies/pizza/pizza.owl",
+                    LoadStrategiesTester.class.getResource("/ontapi/pizza.ttl"), OntFormat.TURTLE, "http://www.co-ode.org/ontologies/pizza/pizza.owl",
                     945, 100, true),
             new TestData(
                     "teleost",

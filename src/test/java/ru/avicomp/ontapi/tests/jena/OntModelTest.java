@@ -49,7 +49,7 @@ public class OntModelTest {
     @Test
     public void testPizzaLoadCE() {
         LOGGER.debug("load pizza");
-        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
+        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         LOGGER.debug("Ontology: {}", m.getID());
 
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
@@ -90,18 +90,18 @@ public class OntModelTest {
 
     @Test
     public void testPizzaLoadProperties() {
-        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph()));
+        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph()));
     }
 
     @Test
     public void testFamilyLoadProperties() {
-        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("family.ttl").getGraph()));
+        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/family.ttl").getGraph()));
     }
 
     @Test
     public void testPizzaLoadIndividuals() {
         LOGGER.debug("load pizza");
-        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("pizza.ttl").getGraph());
+        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
         Map<OntIndividual, Set<OntCE>> classes = individuals.stream()
                 .collect(Collectors.toMap(Function.identity(), i -> i.classes().collect(Collectors.toSet())));

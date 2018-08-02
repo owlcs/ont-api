@@ -57,7 +57,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
     @Test
     public void testDisjointAddRemove() throws OWLOntologyCreationException {
         OWLDataFactory factory = OntManagers.getDataFactory();
-        IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("test1.ttl"));
+        IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test1.ttl"));
         LOGGER.debug("Load ontology from file {}", fileIRI);
         OWLOntology original = OntManagers.createONT().loadOntology(fileIRI);
         debug(original);

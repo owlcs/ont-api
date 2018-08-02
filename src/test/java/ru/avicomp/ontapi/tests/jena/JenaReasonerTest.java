@@ -84,17 +84,17 @@ public class JenaReasonerTest {
 
     @Test
     public void testValidation1() {
-        validationTest("dttest1.nt", false);
+        validationTest("ontapi/dttest1.nt", false);
     }
 
     @Test
     public void testValidation2() {
-        validationTest("dttest2.nt", false);
+        validationTest("ontapi/dttest2.nt", false);
     }
 
     @Test
     public void testValidation3() {
-        validationTest("dttest3.nt", true);
+        validationTest("ontapi/dttest3.nt", true);
     }
 
     /**

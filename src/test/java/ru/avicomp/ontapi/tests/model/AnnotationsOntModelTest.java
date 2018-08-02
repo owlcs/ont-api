@@ -448,7 +448,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLAnnotationProperty p2 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasDbXref");
         OWLClass c = df.getOWLClass("http://purl.obolibrary.org/obo/TTO_1006537");
 
-        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("test-annotations-1.ttl")));
+        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-1.ttl")));
         Assert.assertEquals("Wrong annotation assertions count", 1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
         @SuppressWarnings("ConstantConditions") OWLAnnotationAssertionAxiom axiom = o.axioms(AxiomType.ANNOTATION_ASSERTION).findFirst().get();
         Assert.assertEquals("Wrong value", df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
@@ -467,7 +467,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLAnnotationProperty p2 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasDbXref");
         OWLClass c = df.getOWLClass("http://purl.obolibrary.org/obo/TTO_1006537");
 
-        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("test-annotations-2.ttl")));
+        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-2.ttl")));
         Assert.assertEquals("Wrong annotation assertions count", 2, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
 
         o.axioms(AxiomType.ANNOTATION_ASSERTION).forEach(axiom -> {
@@ -483,7 +483,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testLoadRootSplitBulkAnnotations() throws Exception {
         OWLOntologyManager m = OntManagers.createONT();
-        String file = "test-annotations-3.ttl";
+        String file = "ontapi/test-annotations-3.ttl";
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
         o.axioms().forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Wrong declarations count", 3, o.axioms(AxiomType.DECLARATION).count());

@@ -59,8 +59,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
         LOGGER.debug("Add imports.");
         OntIRI import1 = OntIRI.create("http://dummy-imports.com/first");
         OntIRI import2 = OntIRI.create("http://dummy-imports.com/second");
-        OntIRI import3 = OntIRI.create(ReadWriteUtils.getResourceURI("foaf.rdf"));
-        OntIRI import4 = OntIRI.create(ReadWriteUtils.getResourceURI("pizza.ttl"));
+        OntIRI import3 = OntIRI.create(ReadWriteUtils.getResourceURI("ontapi/foaf.rdf"));
+        OntIRI import4 = OntIRI.create(ReadWriteUtils.getResourceURI("ontapi/pizza.ttl"));
         manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(import1)));
         jena.getID().addImport(import2.getIRIString());
         manager.applyChange(new AddImport(owl, factory.getOWLImportsDeclaration(import3)));

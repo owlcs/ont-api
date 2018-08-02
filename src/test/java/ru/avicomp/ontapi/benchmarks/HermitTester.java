@@ -53,7 +53,7 @@ public class HermitTester {
     }
 
     private static void processTest(int num, Supplier<OWLOntologyManager> manager) throws Exception {
-        IRI file = IRI.create(HermitTester.class.getResource("/pizza.ttl"));
+        IRI file = IRI.create(HermitTester.class.getResource("/ontapi/pizza.ttl"));
         LOGGER.info("Ontology file {}", file);
         OWLOntologyManager m = manager.get();
         OWLOntology o = m.loadOntologyFromOntologyDocument(file);

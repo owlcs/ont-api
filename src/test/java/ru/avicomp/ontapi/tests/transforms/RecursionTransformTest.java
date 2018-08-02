@@ -68,7 +68,7 @@ public class RecursionTransformTest {
 
     @Parameterized.Parameters(name = "{0}")
     public static List<TestData> getData() {
-        return Arrays.asList(TestData.of("recursive-graph.ttl", 1), TestData.of("/etc/spl.spin.ttl", 0), TestData.of("test-rec.ttl", 0), TestData.of("test-long.ttl", 0));
+        return Arrays.asList(TestData.of("ontapi/recursive-graph.ttl", 1), TestData.of("/etc/spl.spin.ttl", 0), TestData.of("ontapi/test-rec.ttl", 0), TestData.of("ontapi/test-long.ttl", 0));
     }
 
     private static class TestData {

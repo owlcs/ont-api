@@ -52,7 +52,7 @@ public class MiscOntologyTest {
 
     @Test(expected = OntApiException.class) // not a StackOverflowError
     public void testReadRecursiveGraph() throws OWLOntologyCreationException {
-        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setPerformTransformation(false);
@@ -63,7 +63,7 @@ public class MiscOntologyTest {
 
     @Test
     public void testLoadWithIgnoreReadAxiomsErrors() throws OWLOntologyCreationException {
-        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("recursive-graph.ttl"));
+        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true).setPerformTransformation(false);
@@ -146,7 +146,7 @@ public class MiscOntologyTest {
 
     @Test
     public void testOntGraphDocumentSourceInOWL() throws OWLOntologyCreationException {
-        IRI pizza = IRI.create(MiscOntologyTest.class.getResource("/pizza.ttl"));
+        IRI pizza = IRI.create(MiscOntologyTest.class.getResource("/ontapi/pizza.ttl"));
         LOGGER.debug("File: {}", pizza);
         OntologyModel ont = OntManagers.createONT().loadOntology(pizza);
         OWLOntologyDocumentSource src = OntGraphDocumentSource.wrap(ont.asGraphModel().getBaseGraph());
