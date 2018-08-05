@@ -53,7 +53,7 @@ public class WriteHelper {
     }
 
     public static Resource toResource(OWLObject object) {
-        if (OWLIndividual.class.isInstance(object)) {
+        if (object instanceof OWLIndividual) {
             return toResource((OWLIndividual) object);
         }
         return toResource(toIRI(object));
@@ -249,28 +249,28 @@ public class WriteHelper {
      * @return {@link RDFNode} node, attached to the model.
      */
     public static RDFNode addRDFNode(OntGraphModel model, OWLObject o) {
-        if (OWLEntity.class.isInstance(o)) {
+        if (o instanceof OWLEntity) {
             return addOntEntity(model, (OWLEntity) o);
         }
-        if (OWLLiteral.class.isInstance(o)) {
+        if (o instanceof OWLLiteral) {
             return addLiteral(model, (OWLLiteral) o);
         }
-        if (OWLObjectInverseOf.class.isInstance(o)) {
+        if (o instanceof OWLObjectInverseOf) {
             return addInverseOf(model, (OWLObjectInverseOf) o);
         }
-        if (OWLFacetRestriction.class.isInstance(o)) {
+        if (o instanceof OWLFacetRestriction) {
             return addFacetRestriction(model, (OWLFacetRestriction) o);
         }
-        if (OWLClassExpression.class.isInstance(o)) {
+        if (o instanceof OWLClassExpression) {
             return addClassExpression(model, (OWLClassExpression) o);
         }
-        if (OWLDataRange.class.isInstance(o)) {
+        if (o instanceof OWLDataRange) {
             return addDataRange(model, (OWLDataRange) o);
         }
-        if (OWLAnonymousIndividual.class.isInstance(o)) {
+        if (o instanceof OWLAnonymousIndividual) {
             return getAnonymousIndividual(model, (OWLAnonymousIndividual) o);
         }
-        if (SWRLObject.class.isInstance(o)) {
+        if (o instanceof SWRLObject) {
             return addSWRLObject(model, (SWRLObject) o);
         }
         return toRDFNode(o).inModel(model);
@@ -286,16 +286,16 @@ public class WriteHelper {
     }
 
     public static RDFNode addSWRLObject(OntGraphModel model, SWRLObject o) {
-        if (SWRLAtom.class.isInstance(o)) {
+        if (o instanceof SWRLAtom) {
             return addSWRLAtom(model, (SWRLAtom) o);
-        } else if (SWRLArgument.class.isInstance(o)) {
-            if (SWRLVariable.class.isInstance(o)) {
+        } else if (o instanceof SWRLArgument) {
+            if (o instanceof SWRLVariable) {
                 return addSWRLVariable(model, (SWRLVariable) o);
             }
-            if (SWRLLiteralArgument.class.isInstance(o)) {
+            if (o instanceof SWRLLiteralArgument) {
                 return addRDFNode(model, ((SWRLLiteralArgument) o).getLiteral());
             }
-            if (SWRLIndividualArgument.class.isInstance(o)) {
+            if (o instanceof SWRLIndividualArgument) {
                 return addRDFNode(model, ((SWRLIndividualArgument) o).getIndividual());
             }
         }
@@ -321,16 +321,16 @@ public class WriteHelper {
 
     public static IRI toIRI(OWLObject object) {
         if (OntApiException.notNull(object, "Null owl-object specified.").isIRI()) return (IRI) object;
-        if (HasIRI.class.isInstance(object)) {
+        if (object instanceof HasIRI) {
             return ((HasIRI) object).getIRI();
         }
-        if (OWLAnnotationObject.class.isInstance(object)) {
+        if (object instanceof OWLAnnotationObject) {
             return ((OWLAnnotationObject) object).asIRI().orElseThrow(() -> new OntApiException("Not iri: " + object));
         }
-        if (OWLClassExpression.class.isInstance(object)) {
+        if (object instanceof OWLClassExpression) {
             return toIRI((OWLClassExpression) object);
         }
-        if (OWLPropertyExpression.class.isInstance(object)) {
+        if (object instanceof OWLPropertyExpression) {
             return toIRI((OWLPropertyExpression) object);
         }
         throw new OntApiException("Unsupported owl-object: " + object);
@@ -462,7 +462,7 @@ public class WriteHelper {
         RESTRICTION(DataRangeType.DATATYPE_RESTRICTION, new Translator<OWLDatatypeRestriction, OntDR.Restriction>() {
             @Override
             OntDR.Restriction translate(OntGraphModel model, OWLDatatypeRestriction expression) {
-                return model.createRestrictionDataRange(addRDFNode(model, expression.getDatatype()).as(OntDR.class),
+                return model.createRestrictionDataRange(addRDFNode(model, expression.getDatatype()).as(OntDT.class),
                         expression.facetRestrictions().map(f -> addFacetRestriction(model, f)).collect(Collectors.toList()));
             }
         }),

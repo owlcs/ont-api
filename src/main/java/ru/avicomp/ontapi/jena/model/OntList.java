@@ -108,12 +108,19 @@ public interface OntList<E extends RDFNode> extends OntResource {
     OntList<E> get(int index) throws OntJenaException;
 
     /**
+     * Lists all statements related to this list.
+     * For nil-list empty stream is expected.
+     * Inherit java-docs:
      * {@inheritDoc}
      *
      * @return Stream of {@link OntStatement Ontology Statement}s that does not support annotations
      */
     @Override
     Stream<OntStatement> spec();
+
+    default Stream<OntStatement> content() {
+        return Stream.concat(Stream.of(getRoot()), spec());
+    }
 
     /**
      * Answers the number of {@link RDFNode rdf-node}s in the list.

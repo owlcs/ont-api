@@ -25,6 +25,7 @@ import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
@@ -521,6 +522,31 @@ public class OntModelTest {
         ReadWriteUtils.print(m);
 
         Assert.assertEquals(3, m.size());
+    }
+
+    @Test
+    public void testDataRanges() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntFR f1 = m.createFacetRestriction(OntFR.MaxExclusive.class, m.createTypedLiteral(12));
+        OntFR f2 = m.createFacetRestriction(OntFR.Pattern.class, m.createTypedLiteral("\\d+"));
+        OntFR f3 = m.createFacetRestriction(OntFR.LangRange.class, m.createTypedLiteral("^r.*"));
+
+        OntDT d1 = m.getOntEntity(OntDT.class, XSD.xstring);
+        OntDR d2 = m.createComplementOfDataRange(d1);
+        OntDR d3 = m.createRestrictionDataRange(d1, Arrays.asList(f1, f2, f3));
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(3, m.ontObjects(OntFR.class).count());
+        Assert.assertEquals(2, m.ontObjects(OntDR.class).count());
+        Assert.assertEquals(1, m.ontObjects(OntDR.ComponentsDR.class).count());
+        Assert.assertEquals(d2, m.ontObjects(OntDR.class).filter(s -> s.canAs(OntDR.ComplementOf.class))
+                .findFirst().orElseThrow(AssertionError::new));
+        Assert.assertEquals(d3, m.ontObjects(OntDR.class).filter(s -> s.canAs(OntDR.Restriction.class))
+                .findFirst().orElseThrow(AssertionError::new));
+
+        Assert.assertEquals(XSD.xstring, d3.as(OntDR.Restriction.class).getDatatype());
+        Assert.assertEquals(12, d3.spec().peek(s -> LOGGER.debug("{}", Models.toString(s))).count());
     }
 
 }

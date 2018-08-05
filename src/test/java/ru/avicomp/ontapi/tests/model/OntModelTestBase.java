@@ -41,9 +41,9 @@ abstract class OntModelTestBase {
 
     public static void debug(OWLOntology ontology) {
         if (!LOGGER.isDebugEnabled()) return;
-        LOGGER.debug("DEBUG:");
+        LOGGER.debug("[DEBUG]Turtle:");
         ReadWriteUtils.print(ontology, OntFormat.TURTLE);
-        LOGGER.debug("Axioms:");
+        LOGGER.debug("[DEBUG]Axioms:");
         ontology.axioms().map(String::valueOf).forEach(LOGGER::debug);
     }
 

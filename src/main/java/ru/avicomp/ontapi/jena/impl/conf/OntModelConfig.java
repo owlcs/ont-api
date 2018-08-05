@@ -130,6 +130,7 @@ public class OntModelConfig {
             .add(OntDR.ComplementOf.class, OntDRImpl.complementOfDRFactory)
             .add(OntDR.UnionOf.class, OntDRImpl.unionOfDRFactory)
             .add(OntDR.IntersectionOf.class, OntDRImpl.intersectionOfDRFactory)
+            .add(OntDR.ComponentsDR.class, OntDRImpl.abstractComponentsDRFactory)
             .add(OntDR.class, OntDRImpl.abstractDRFactory)
 
             // SWRL objects:

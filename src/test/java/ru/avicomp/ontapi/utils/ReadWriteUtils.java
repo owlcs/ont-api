@@ -51,7 +51,7 @@ public class ReadWriteUtils {
     });
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadWriteUtils.class);
 
-    private static final String DESTINATION_DIR = "out";
+    public static final String DESTINATION_DIR = "out";
 
     public static void print(OWLOntology ontology) {
         print(ontology, null);

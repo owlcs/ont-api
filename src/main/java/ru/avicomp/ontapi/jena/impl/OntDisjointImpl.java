@@ -35,10 +35,11 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * for anonymous owl:AllDisjointProperties,  owl:AllDisjointClasses, owl:AllDifferent sections.
+ * Implementation for anonymous {@code owl:AllDisjointProperties}, {@code owl:AllDisjointClasses}, {@code owl:AllDifferent} sections.
  * <p>
  * Created by @szuev on 15.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl implements OntDisjoint<O> {
     public static final OntFinder PROPERTIES_FINDER = new OntFinder.ByType(OWL.AllDisjointProperties);
 
@@ -61,21 +62,25 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         super(n, m);
     }
 
-    protected abstract Stream<Property> predicates();
+    protected Property getPredicate() {
+        return OWL.members;
+    }
 
-    protected abstract Class<O> componentClass();
+    protected abstract Class<O> getComponentType();
 
     @Override
     public Stream<O> members() {
-        return predicates().map(p -> rdfListMembers(p, componentClass())).flatMap(Function.identity());
+        return getList().members();
+    }
+
+    @Override
+    public OntList<O> getList() {
+        return OntListImpl.asOntList(getRequiredObject(getPredicate(), RDFList.class), getModel(), this, getPredicate(), getComponentType());
     }
 
     @Override
     public Stream<OntStatement> spec() {
-        Stream<OntStatement> thisDeclaration = super.spec();
-        Stream<OntStatement> listDeclaration = predicates().map(this::statement).filter(Optional::isPresent).map(Optional::get);
-        Stream<OntStatement> listContent = predicates().map(this::rdfListContent).flatMap(Function.identity());
-        return Stream.of(thisDeclaration, listDeclaration, listContent).flatMap(Function.identity());
+        return Stream.concat(super.spec(), getList().content());
     }
 
     private static OntObjectFactory createFactory(Class<? extends OntDisjointImpl> impl,
@@ -131,14 +136,15 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     /**
-     * Creates blank node "_:x rdf:type owl:AllDifferent. _:x owl:members (a1 ... an)."
+     * Creates blank node {@code _:x rdf:type owl:AllDifferent. _:x owl:members (a1 ... an).}
      * <p>
-     * Note: the predicate is "owl:members", not "owl:distinctMembers" (but the last one is correct also)
-     * see <a href='https://www.w3.org/TR/owl2-quick-reference/#Additional_Vocabulary_in_OWL_2_RDF_Syntax'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
+     * Note: the predicate is {@link OWL#members owl:members}, not {@link OWL#distinctMembers owl:distinctMembers} (but the last one is correct also)
+     * It is chosen as the preferred from considerations of uniformity.
      *
      * @param model       {@link OntGraphModelImpl}
      * @param individuals stream of {@link OntIndividual}
      * @return {@link ru.avicomp.ontapi.jena.model.OntDisjoint.Individuals}
+     * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Additional_Vocabulary_in_OWL_2_RDF_Syntax'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
      */
     public static Individuals createDifferentIndividuals(OntGraphModelImpl model, Stream<OntIndividual> individuals) {
         OntJenaException.notNull(individuals, "Null individuals stream.");
@@ -170,12 +176,12 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Stream<Property> predicates() {
-            return Stream.of(OWL.members);
+        public Class<? extends OntObject> getActualClass() {
+            return Classes.class;
         }
 
         @Override
-        protected Class<OntCE> componentClass() {
+        protected Class<OntCE> getComponentType() {
             return OntCE.class;
         }
     }
@@ -186,12 +192,60 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Stream<Property> predicates() {
-            return Stream.of(OWL.members, OWL.distinctMembers);
+        public Stream<OntIndividual> members() {
+            return lists().flatMap(OntList::members);
         }
 
         @Override
-        protected Class<OntIndividual> componentClass() {
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), lists().flatMap(OntList::content));
+        }
+
+        public Stream<Property> predicates() {
+            return Stream.of(getPredicate(), getAlternativePredicate());
+        }
+
+        public Stream<OntList<OntIndividual>> lists() {
+            return predicates()
+                    .map(this::findList)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get);
+        }
+
+        @Override
+        public OntList<OntIndividual> getList() {
+            Optional<OntList<OntIndividual>> p = findList(getPredicate());
+            Optional<OntList<OntIndividual>> a = findList(getAlternativePredicate());
+            if (p.isPresent() && a.isPresent()) {
+                if (p.get().size() > a.get().size()) return p.get();
+                if (p.get().size() < a.get().size()) return a.get();
+            }
+            if (p.isPresent()) {
+                return p.get();
+            }
+            if (a.isPresent()) {
+                return a.get();
+            }
+            throw new OntJenaException.IllegalState("Neither owl:members or owl:distinctMembers could be found");
+        }
+
+        public Optional<OntList<OntIndividual>> findList(Property predicate) {
+            if (!hasProperty(predicate)) return Optional.empty();
+            return Optional.of(OntListImpl.asOntList(getRequiredObject(predicate, RDFList.class),
+                    getModel(), this, predicate, getComponentType()));
+        }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Individuals.class;
+        }
+
+        protected Property getAlternativePredicate() {
+            return OWL.distinctMembers;
+        }
+
+        @Override
+        protected Class<OntIndividual> getComponentType() {
             return OntIndividual.class;
         }
     }
@@ -202,10 +256,6 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
             super(n, m);
         }
 
-        @Override
-        protected Stream<Property> predicates() {
-            return Stream.of(OWL.members);
-        }
     }
 
     public static class ObjectPropertiesImpl extends PropertiesImpl<OntOPE> implements ObjectProperties {
@@ -214,7 +264,12 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Class<OntOPE> componentClass() {
+        public Class<? extends OntObject> getActualClass() {
+            return ObjectProperties.class;
+        }
+
+        @Override
+        protected Class<OntOPE> getComponentType() {
             return OntOPE.class;
         }
     }
@@ -225,7 +280,12 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Class<OntNDP> componentClass() {
+        public Class<? extends OntObject> getActualClass() {
+            return DataProperties.class;
+        }
+
+        @Override
+        protected Class<OntNDP> getComponentType() {
             return OntNDP.class;
         }
     }

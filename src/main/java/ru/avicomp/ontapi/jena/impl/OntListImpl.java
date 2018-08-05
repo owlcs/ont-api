@@ -112,23 +112,53 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     /**
      * Wraps the given RDFList as OntList.
      *
+     * @param list      {@link RDFList}, an existing rdf-list
      * @param model     {@link OntGraphModelImpl}
      * @param subject   {@link OntObject}
      * @param predicate {@link Property}
-     * @param list      {@link RDFList}
      * @param type      class-type of OntList elements
      * @param <N>       {@link RDFNode} subtype
      * @return a fresh {@link OntList} instance
+     * @see #asSafeOntList(RDFList, OntGraphModelImpl, OntObject, Property, Class)
      */
-    protected static <N extends RDFNode> OntList<N> newOntList(OntGraphModelImpl model,
-                                                               OntObject subject,
-                                                               Property predicate,
-                                                               RDFList list,
-                                                               Class<N> type) {
+    protected static <N extends RDFNode> OntList<N> asOntList(RDFList list,
+                                                              OntGraphModelImpl model,
+                                                              OntObject subject,
+                                                              Property predicate,
+                                                              Class<N> type) {
         return new OntListImpl<N>(subject, predicate, list, model, type) {
             @Override
             public boolean isValid(RDFNode n) {
                 return n.canAs(elementType);
+            }
+        };
+    }
+
+    /**
+     * Wraps the given RDFList as OntList.
+     * This method creates an instance of {@code OntList} which takes care about possible graph-recursions.
+     * Used for class-expressions and data-ranges,
+     * because it is theoretically possible to have definition of some expression
+     * which relies on the definition of another (or the same) expression.
+     *
+     * @param list      {@link RDFList}, an existing rdf-list
+     * @param model     {@link OntGraphModelImpl}
+     * @param subject   {@link OntObject}
+     * @param predicate {@link Property}
+     * @param type      class-type of OntList elements
+     * @param <N>       {@link RDFNode} subtype
+     * @return a fresh {@link OntList} instance
+     * @see #asOntList(RDFList, OntGraphModelImpl, OntObject, Property, Class)
+     */
+    protected static <N extends RDFNode> OntList<N> asSafeOntList(RDFList list,
+                                                                  OntGraphModelImpl model,
+                                                                  OntObject subject,
+                                                                  Property predicate,
+                                                                  Class<N> type) {
+        return new OntListImpl<N>(subject, predicate, list, model, type) {
+            @Override
+            public boolean isValid(RDFNode n) {
+                return OntObjectImpl.canAs(elementType, n.asNode(), model);
             }
         };
     }
@@ -148,7 +178,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                                 Property predicate,
                                                                 Class<N> type) {
         checkRequiredInput(model, subject, predicate, type);
-        return subject.objects(predicate, RDFList.class).map(list -> newOntList(model, subject, predicate, list, type));
+        return subject.objects(predicate, RDFList.class).map(list -> asOntList(list, model, subject, predicate, type));
     }
 
     private static void checkRequiredInput(OntGraphModelImpl model, OntObject subject, Property predicate, Class type) {
@@ -175,7 +205,8 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     private static OntStatement createListStatement(OntGraphModelImpl m, Property predicate, List<Triple> batch) {
-        return createListStatement(m, (n, g) -> g.getNodeAs(n, Resource.class), predicate, (n, g) -> g.getNodeAs(n, RDFNode.class), batch);
+        return createListStatement(m, (n, g) -> g.getNodeAs(n, Resource.class), predicate,
+                (n, g) -> g.getNodeAs(n, RDFNode.class), batch);
     }
 
     private static OntStatement createListStatement(OntGraphModelImpl m,
@@ -206,8 +237,8 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     protected OntListImpl<E> setRDFList(UnaryOperator<RDFList> operation) throws OntJenaException.IllegalState {
+        OntGraphModelImpl m = getModel();
         RDFList list = Objects.requireNonNull(operation).apply(this.objectRDFList);
-        Model m = getModel();
         Statement s = m.createStatement(subject, predicate, list);
         if (!m.contains(s)) {
             throw new OntJenaException.IllegalState(Models.toString(s) + " does not exist");
@@ -217,6 +248,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                     .collect(Collectors.toSet())
                     .forEach(a -> m.remove(a, OWL.annotatedTarget, objectRDFList).add(a, OWL.annotatedTarget, list));
         }
+        m.getNodeCache().remove(objectRDFList.asNode());
         this.objectRDFList = list;
         return this;
     }
@@ -246,7 +278,11 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public Stream<E> members() {
-        return spec().filter(s -> Objects.equals(s.getPredicate(), RDF.first))
+        RDFList list = getRDFList();
+        if (isEmpty(list)) return Stream.empty();
+        OntGraphModelImpl m = getModel();
+        return createRDFListIterator(list.asNode())
+                .map(l -> createRDFFirst(m, l))
                 .map(Statement::getObject)
                 .filter(this::isValid)
                 .map(this::cast);
@@ -254,11 +290,23 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public Stream<OntStatement> spec() {
-        RDFListImpl list = ((RDFListImpl) getRDFList());
+        RDFList list = getRDFList();
         if (isEmpty(list)) return Stream.empty();
+        return createSafeRDFListIterator(list.asNode()).flatMap(this::toListStatements);
+    }
+
+    public Stream<List<Triple>> createSafeRDFListIterator(Node list) {
+        return Iter.asStream(WrappedIterator.create(new SafeRDFListIterator(getModel().getGraph(), list)))
+                .filter(Objects::nonNull);
+    }
+
+    public Stream<List<Triple>> createRDFListIterator(Node list) {
+        return Iter.asStream(WrappedIterator.create(new RDFListIterator(getModel().getGraph(), list)));
+    }
+
+    protected Stream<OntStatement> toListStatements(List<Triple> triples) {
         OntGraphModelImpl m = getModel();
-        return Iter.asStream(WrappedIterator.create(new RDFListIterator(getModel().getGraph(), list.asNode())))
-                .flatMap(t -> Stream.of(createRDFFirst(m, t), createRDFRest(m, t)));
+        return Stream.of(createRDFFirst(m, triples), createRDFRest(m, triples));
     }
 
     public abstract boolean isValid(RDFNode n);
@@ -267,7 +315,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         try {
             return getModel().getNodeAs(n.asNode(), elementType);
         } catch (OntJenaException.Conversion j) {
-            throw new OntJenaException.IllegalState("Problem node: '" + n + "'", j);
+            throw new OntJenaException.IllegalState("Can't cast to " + elementType.getSimpleName() + ". Problem node: '" + n + "'", j);
         }
     }
 
@@ -381,8 +429,31 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     /**
+     * An extended {@link RDFListIterator} whose {@link Iterator#next()} method does not throw {@link NoSuchElementException}
+     * in case no element found, but returns {@code null} instead.
+     * It is important to have safe iterator since it can be cached somewhere by ONT-API.
+     *
+     * @see RDFListImpl#removeList()
+     */
+    public static class SafeRDFListIterator extends RDFListIterator {
+
+        public SafeRDFListIterator(Graph graph, Node head) {
+            super(graph, head);
+        }
+
+        @Override
+        public List<Triple> next() {
+            try {
+                return super.next();
+            } catch (NoSuchElementException n) {
+                return null;
+            }
+        }
+    }
+
+    /**
      * A simplest {@link Iterator iterator} over a {@link RDF#List rdf:List},
-     * whose {@code next} method returns a batch of {@link Triple triple}s in the form of standard {@link List Java List}.
+     * whose {@link Iterator#next()} method returns a batch of {@link Triple triple}s in the form of standard {@link List Java List}.
      */
     public static class RDFListIterator implements Iterator<List<Triple>> {
         public static final Node REST = RDF.rest.asNode();
@@ -397,11 +468,11 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
         @Override
         public boolean hasNext() {
-            return !NIL.equals(head);
+            return head != null && !NIL.equals(head);
         }
 
         @Override
-        public List<Triple> next() {
+        public List<Triple> next() throws NoSuchElementException {
             Node next = null;
             List<Triple> triples = new ArrayList<>();
             Iterator<Triple> it = graph.find(head, Node.ANY, Node.ANY);
@@ -412,8 +483,10 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                     next = t.getObject();
                 }
             }
-            if (next == null) throw new NoSuchElementException();
             this.head = next;
+            if (next == null) {
+                throw new NoSuchElementException("No element found: " + triples);
+            }
             return triples;
         }
     }

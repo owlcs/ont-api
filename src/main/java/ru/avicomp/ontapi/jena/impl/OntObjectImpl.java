@@ -298,6 +298,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * Returns an object from a first found statement with specified predicate.
      * Since the order in the graph is undefined
      * in case there are more then one statement for a property the result is unpredictable.
+     * TODO: throw exception in case there is more than one object
      *
      * @param predicate {@link Property}
      * @param view      Class

@@ -30,10 +30,12 @@ import java.util.stream.Stream;
 
 /**
  * A common interface for any <b>C</b>lass <b>E</b>xpressions (both named and anonymous).
- * See for example <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
+ * Examples of rdf-patterns see <a href='https://www.w3.org/TR/owl2-quick-reference/'>here</a>.
  * <p>
  * Created by szuev on 01.11.2016.
  * @see OntClass
+ * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
+ * @see <a href='https://www.w3.org/TR/owl2-syntax/#Class_Expressions'>8 Class Expressions</a>
  */
 public interface OntCE extends OntObject {
 
@@ -354,14 +356,35 @@ public interface OntCE extends OntObject {
     interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
     }
 
-    /*
-     * =======================
-     * Default common methods:
-     * =======================
-     */
-
     interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
     }
+
+    /*
+     * =====================================
+     * Abstract class expression interfaces:
+     * =====================================
+     */
+
+    interface ComponentsCE<O extends OntObject> extends OntCE, Components<O> {
+    }
+
+    interface CardinalityRestrictionCE<O extends OntObject, P extends OntPE> extends Cardinality, ComponentRestrictionCE<O, P> {
+    }
+
+    interface ComponentRestrictionCE<O extends RDFNode, P extends OntPE> extends RestrictionCE, ONProperty<P>, Value<O> {
+    }
+
+    interface NaryRestrictionCE<O extends OntObject, P extends OntPE> extends RestrictionCE, ONProperties<P>, Value<O> {
+    }
+
+    interface RestrictionCE extends OntCE {
+    }
+
+    /*
+     * ============================
+     * Common technical interfaces:
+     * ============================
+     */
 
     interface ONProperty<P extends OntPE> {
         P getOnProperty();
@@ -370,15 +393,27 @@ public interface OntCE extends OntObject {
     }
 
     interface ONProperties<P extends OntPE> {
-        Stream<P> onProperties();
+        OntList<P> getList();
 
-        void setOnProperties(Collection<P> properties);
+        default Stream<P> onProperties() {
+            return getList().members();
+        }
+
+        default void setOnProperties(Collection<P> properties) {
+            getList().clear().addAll(properties);
+        }
     }
 
     interface Components<O extends OntObject> {
-        Stream<O> components();
+        OntList<O> getList();
 
-        void setComponents(Collection<O> components);
+        default Stream<O> components() {
+            return getList().members();
+        }
+
+        default void setComponents(Collection<O> components) {
+            getList().clear().addAll(components);
+        }
     }
 
     interface Value<O extends RDFNode> {
@@ -403,21 +438,5 @@ public interface OntCE extends OntObject {
          */
         boolean isQualified();
     }
-
-    interface ComponentsCE<O extends OntObject> extends OntCE, Components<O> {
-    }
-
-    interface RestrictionCE extends OntCE {
-    }
-
-    interface ComponentRestrictionCE<O extends RDFNode, P extends OntPE> extends RestrictionCE, ONProperty<P>, Value<O> {
-    }
-
-    interface CardinalityRestrictionCE<O extends OntObject, P extends OntPE> extends Cardinality, ComponentRestrictionCE<O, P> {
-    }
-
-    interface NaryRestrictionCE<O extends OntObject, P extends OntPE> extends RestrictionCE, ONProperties<P>, Value<O> {
-    }
-
 }
 

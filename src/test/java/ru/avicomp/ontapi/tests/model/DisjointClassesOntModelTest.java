@@ -18,7 +18,6 @@ import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Resource;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntFormat;
@@ -35,31 +34,38 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * test owl:AllDisjointClasses and owl:disjointWith using jena and owl-api
+ * Test for {@code owl:AllDisjointClasses} and {@code owl:disjointWith} using jena and owl-api
  * <p>
  * Created by @szuev on 08.10.2016.
  */
 public class DisjointClassesOntModelTest extends OntModelTestBase {
 
+    /**
+     * The order while removing (see {@link org.apache.jena.rdf.model.RDFList#removeList}) is unpredictable.
+     * This method checks that that operation does not broke the whole process and the ontology data.
+     */
     @Test
-    @Ignore // for manual running
-    public void testDisjointAddRemoveInCycle() throws OWLOntologyCreationException {
-        int N = 60;
-        for (int i = 1; i <= N; i++) {
+    public void testDisjointAddRemoveInCycle() {
+        IntStream.rangeClosed(1, 10).forEach(i -> {
             LOGGER.info("ITER #{}", i);
             testDisjointAddRemove();
-        }
+        });
     }
 
-    @Test
-    public void testDisjointAddRemove() throws OWLOntologyCreationException {
+    private void testDisjointAddRemove() {
         OWLDataFactory factory = OntManagers.getDataFactory();
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test1.ttl"));
         LOGGER.debug("Load ontology from file {}", fileIRI);
-        OWLOntology original = OntManagers.createONT().loadOntology(fileIRI);
+        OWLOntology original;
+        try {
+            original = OntManagers.createONT().loadOntology(fileIRI);
+        } catch (OWLOntologyCreationException e) {
+            throw new AssertionError(e);
+        }
         debug(original);
 
         LOGGER.debug("Assemble new ontology with the same content.");
@@ -106,21 +112,22 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         actual = result.axioms().sorted().collect(Collectors.toList());
         expected = original.axioms().sorted().collect(Collectors.toList());
         expected.remove(factory.getOWLDisjointClassesAxiom(owlComplex1, owlSimple1));
-
         expected.stream().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
-        LOGGER.debug("Remove OWL:AllDisjointClasses");
+        LOGGER.debug("Remove owl:AllDisjointClasses using RDFList#removeList");
         anon = jena.listResourcesWithProperty(RDF.type, OWL.AllDisjointClasses).toList().get(0);
         RDFList list = jena.listObjectsOfProperty(anon, OWL.members).mapWith(n -> n.as(RDFList.class)).toList().get(0);
         list.removeList();
         jena.removeAll(anon, null, null);
-
         debug(result);
+        Assert.assertFalse(result.axioms(AxiomType.DISJOINT_CLASSES).findFirst().isPresent());
+
         LOGGER.debug("Compare axioms.");
         actual = result.axioms().sorted().collect(Collectors.toList());
-        expected = original.axioms().filter(axiom -> !AxiomType.DISJOINT_CLASSES.equals(axiom.getAxiomType())).sorted().collect(Collectors.toList());
-
+        expected = original.axioms()
+                .filter(a -> !AxiomType.DISJOINT_CLASSES.equals(a.getAxiomType()))
+                .sorted().collect(Collectors.toList());
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
     }

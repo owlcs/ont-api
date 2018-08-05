@@ -22,15 +22,17 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import java.util.stream.Stream;
 
 /**
- * The datatype resource (both anonymous and named).
+ * Interface encapsulating an Ontology <b>D</b>ata <b>T</b>ype {@link OntEntity OWL Entity}
+ * (i.e. named {@link OntDR data range} expression).
  * <p>
  * Created by szuev on 01.11.2016.
  */
 public interface OntDT extends OntEntity, OntDR {
 
     /**
-     * Returns all equivalent data ranges.
-     * The pattern "DN owl:equivalentClass D" to search.
+     * Lists all equivalent data ranges.
+     * The pattern to search is {@code DN owl:equivalentClass D}, where {@code DN} is this {@link OntDT Data Type},
+     * and {@code D} is a search object, the {@link OntDR data-range expression}.
      *
      * @return Stream of {@link OntDR}s
      * @see OntCE#equivalentClass()
@@ -40,7 +42,7 @@ public interface OntDT extends OntEntity, OntDR {
     }
 
     /**
-     * Creates an equivalent class statement.
+     * Creates an equivalent class statement with the giver {@link OntDR Data Range expression}.
      *
      * @param other {@link OntDR}, not null
      * @return {@link OntStatement}
@@ -51,7 +53,8 @@ public interface OntDT extends OntEntity, OntDR {
     }
 
     /**
-     * Removes equivalent data range.
+     * Removes an equivalent data range,
+     * attached to this data-type on predicate {@link OWL#equivalentClass owl:equivalenrClass}
      *
      * @param other {@link OntDR}
      * @see OntCE#removeEquivalentClass(OntCE)
@@ -61,9 +64,9 @@ public interface OntDT extends OntEntity, OntDR {
     }
 
     /**
-     * Creates a jena-datatype.
+     * Creates a Jena Datatype.
      *
-     * @return {@link RDFDatatype}
+     * @return {@link RDFDatatype Jena RDF Datatype}
      */
     default RDFDatatype toRDFDatatype() {
         return TypeMapper.getInstance().getSafeTypeByName(getURI());

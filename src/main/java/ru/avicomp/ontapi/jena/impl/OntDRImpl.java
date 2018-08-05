@@ -16,9 +16,7 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
@@ -26,7 +24,6 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -50,6 +47,9 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     public static OntObjectFactory intersectionOfDRFactory =
             new CommonOntObjectFactory(new OntMaker.Default(IntersectionOfImpl.class), DR_FINDER, DR_FILTER.and(new OntFilter.HasPredicate(OWL.intersectionOf)));
 
+    public static OntObjectFactory abstractComponentsDRFactory = new MultiOntObjectFactory(DR_FINDER, null,
+            oneOfDRFactory, restrictionDRFactory, unionOfDRFactory, intersectionOfDRFactory);
+
     public static OntObjectFactory abstractAnonDRFactory = new MultiOntObjectFactory(DR_FINDER, null,
             oneOfDRFactory, restrictionDRFactory, complementOfDRFactory, unionOfDRFactory, intersectionOfDRFactory);
 
@@ -72,11 +72,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         return model.getNodeAs(res.asNode(), OneOf.class);
     }
 
-    public static Restriction createRestriction(OntGraphModelImpl model, OntDR property, Stream<OntFR> values) {
-        OntJenaException.notNull(property, "Null property.");
+    public static Restriction createRestriction(OntGraphModelImpl model, OntDT dataType, Stream<OntFR> values) {
+        OntJenaException.notNull(dataType, "Null data-type.");
         OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model);
-        model.add(res, OWL.onDatatype, property);
+        model.add(res, OWL.onDatatype, dataType);
         model.add(res, OWL.withRestrictions, model.createList(values.iterator()));
         return model.getNodeAs(res.asNode(), Restriction.class);
     }
@@ -102,58 +102,6 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         return model.getNodeAs(res.asNode(), IntersectionOf.class);
     }
 
-    Stream<OntStatement> listStatements(Property predicate) {
-        return Stream.of(statements(predicate), rdfListContent(predicate)).flatMap(Function.identity());
-    }
-
-    public static class OneOfImpl extends OntDRImpl implements OneOf {
-        public OneOfImpl(Node n, EnhGraph m) {
-            super(n, m);
-        }
-
-        @Override
-        public Stream<Literal> values() {
-            return rdfListMembers(OWL.oneOf, Literal.class);
-        }
-
-        @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), listStatements(OWL.oneOf));
-        }
-
-        @Override
-        public Class<? extends OntObject> getActualClass() {
-            return OneOf.class;
-        }
-    }
-
-    public static class RestrictionImpl extends OntDRImpl implements Restriction {
-        public RestrictionImpl(Node n, EnhGraph m) {
-            super(n, m);
-        }
-
-        @Override
-        public Class<Restriction> getActualClass() {
-            return Restriction.class;
-        }
-
-        @Override
-        public OntDT getDatatype() {
-            return getRequiredObject(OWL.onDatatype, OntDT.class);
-        }
-
-        @Override
-        public Stream<OntFR> facetRestrictions() {
-            return rdfListMembers(OWL.withRestrictions, OntFR.class);
-        }
-
-        @Override
-        public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(),
-                    statement(OWL.onDatatype).map(Stream::of).orElse(Stream.empty()),
-                    listStatements(OWL.withRestrictions)).flatMap(Function.identity());
-        }
-    }
 
     public static class ComplementOfImpl extends OntDRImpl implements ComplementOf {
         public ComplementOfImpl(Node n, EnhGraph m) {
@@ -167,7 +115,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), statement(OWL.datatypeComplementOf).map(Stream::of).orElse(Stream.empty()));
+            return Stream.of(rootStatement().orElseThrow(OntJenaException.IllegalState::new),
+                    getRequiredProperty(OWL.datatypeComplementOf));
         }
 
         @Override
@@ -176,19 +125,47 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
     }
 
-    public static class UnionOfImpl extends OntDRImpl implements UnionOf {
-        public UnionOfImpl(Node n, EnhGraph m) {
-            super(n, m);
+    public static class OneOfImpl extends ComponentsDRImpl<Literal> implements OneOf {
+        public OneOfImpl(Node n, EnhGraph m) {
+            super(n, m, OWL.oneOf, Literal.class);
         }
 
         @Override
-        public Stream<OntDR> dataRanges() {
-            return rdfListMembers(OWL.unionOf, OntDR.class);
+        public Class<? extends OntObject> getActualClass() {
+            return OneOf.class;
+        }
+    }
+
+    public static class RestrictionImpl extends ComponentsDRImpl<OntFR> implements Restriction {
+        public RestrictionImpl(Node n, EnhGraph m) {
+            super(n, m, OWL.withRestrictions, OntFR.class);
+        }
+
+        @Override
+        public Class<Restriction> getActualClass() {
+            return Restriction.class;
+        }
+
+        @Override
+        public OntDT getDatatype() {
+            return getRequiredObject(OWL.onDatatype, OntDT.class);
         }
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), listStatements(OWL.unionOf));
+            return Stream.concat(Stream.of(rootStatement().orElseThrow(OntJenaException.IllegalState::new), getRequiredProperty(OWL.onDatatype)),
+                    getList().content().flatMap(s -> {
+                        if (!s.getObject().canAs(OntFR.class)) {
+                            return Stream.of(s);
+                        }
+                        return Stream.of(s, s.getObject().as(OntFR.class).getRoot());
+                    }));
+        }
+    }
+
+    public static class UnionOfImpl extends ComponentsDRImpl<OntDR> implements UnionOf {
+        public UnionOfImpl(Node n, EnhGraph m) {
+            super(n, m, OWL.unionOf, OntDR.class);
         }
 
         @Override
@@ -197,25 +174,41 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
     }
 
-    public static class IntersectionOfImpl extends OntDRImpl implements IntersectionOf {
+    public static class IntersectionOfImpl extends ComponentsDRImpl<OntDR> implements IntersectionOf {
+
         public IntersectionOfImpl(Node n, EnhGraph m) {
-            super(n, m);
-        }
-
-        @Override
-        public Stream<OntDR> dataRanges() {
-            return rdfListMembers(OWL.intersectionOf, OntDR.class);
-        }
-
-        @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), listStatements(OWL.intersectionOf));
+            super(n, m, OWL.intersectionOf, OntDR.class);
         }
 
         @Override
         public Class<? extends OntObject> getActualClass() {
             return IntersectionOf.class;
         }
+    }
 
+    /**
+     * An abstract super-class for {@link OneOf}, {@link Restriction}, {@link UnionOf}, {@link IntersectionOf}.
+     *
+     * @param <N> {@link RDFNode}
+     */
+    protected static abstract class ComponentsDRImpl<N extends RDFNode> extends OntDRImpl implements ComponentsDR<N> {
+        protected final Property predicate;
+        protected final Class<N> type;
+
+        protected ComponentsDRImpl(Node n, EnhGraph m, Property predicate, Class<N> type) {
+            super(n, m);
+            this.predicate = OntJenaException.notNull(predicate, "Null predicate.");
+            this.type = OntJenaException.notNull(type, "Null view.");
+        }
+
+        @Override
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), getList().content());
+        }
+
+        @Override
+        public OntList<N> getList() {
+            return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, type);
+        }
     }
 }

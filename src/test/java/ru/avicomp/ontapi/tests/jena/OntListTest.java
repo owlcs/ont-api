@@ -442,6 +442,58 @@ public class OntListTest {
         Assert.assertEquals(0, list.spec().count());
     }
 
+    @Test
+    public void testDisjointPropertiesOntList() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
+        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
+        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
+        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+
+        OntNDP p5 = m.createOntEntity(OntNDP.class, "p5");
+        OntNDP p6 = m.createOntEntity(OntNDP.class, "p6");
+        OntNDP p7 = m.createOntEntity(OntNDP.class, "p7");
+
+        OntDisjoint.ObjectProperties d1 = m.createDisjointObjectProperties(Arrays.asList(p1, p2));
+        OntDisjoint.DataProperties d2 = m.createDisjointDataProperties(Arrays.asList(p5, p7));
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(2, m.ontObjects(OntDisjoint.class).count());
+        d1.getList().addFirst(p3).addFirst(p4);
+        d2.getList().get(1).addFirst(p6);
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(Arrays.asList(p4, p3, p1, p2), d1.members().collect(Collectors.toList()));
+        Assert.assertEquals(Arrays.asList(p5, p6, p7), m.ontObjects(OntDisjoint.DataProperties.class)
+                .findFirst().orElseThrow(AssertionError::new).members().collect(Collectors.toList()));
+    }
+
+    @Test
+    public void testDisjointClassIndividualsOntList() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+
+        OntCE ce1 = m.createOntEntity(OntClass.class, "c1");
+        OntCE ce3 = m.createHasSelf(m.createOntEntity(OntNOP.class, "p1"));
+        OntCE ce2 = m.createDataHasValue(m.createOntEntity(OntNDP.class, "p2"), m.createLiteral("2"));
+
+        OntDisjoint.Classes d1 = m.createDisjointClasses(Arrays.asList(m.getOWLNothing(), ce1, ce3));
+        OntDisjoint.Individuals d2 = m.createDifferentIndividuals(Arrays.asList(ce2.createIndividual(), ce3.createIndividual("I")));
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(2, m.statements(null, OWL.members, null).count());
+        Assert.assertEquals(2, m.ontObjects(OntDisjoint.class).count());
+
+        Assert.assertEquals(1, d1.getList().get(1).removeFirst().members().peek(s -> LOGGER.debug("{}", s)).count());
+        Assert.assertEquals(2, d1.members().peek(s -> LOGGER.debug("{}", s)).count());
+        Assert.assertEquals(1, d2.getList().removeFirst().members().peek(s -> LOGGER.debug("{}", s)).count());
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(1, m.ontObjects(OntDisjoint.Individuals.class)
+                .findFirst().orElseThrow(AssertionError::new).members().count());
+
+    }
+
+
     private static OntStatement getSingleAnnotation(OntList<?> list) {
         return getSingleAnnotation(list.getRoot());
     }

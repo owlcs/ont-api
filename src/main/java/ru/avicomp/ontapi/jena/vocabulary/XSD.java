@@ -35,7 +35,6 @@ public class XSD extends org.apache.jena.vocabulary.XSD {
     public static final Property maxExclusive = property("maxExclusive");
     public static final Property totalDigits = property("totalDigits");
     public static final Property fractionDigits = property("fractionDigits");
-    public static final Property langRange = property("langRange");
 
     private static Property property(String name) {
         return ResourceFactory.createProperty(NS + name);

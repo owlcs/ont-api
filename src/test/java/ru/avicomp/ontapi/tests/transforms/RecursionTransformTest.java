@@ -50,6 +50,14 @@ public class RecursionTransformTest {
         this.data = data;
     }
 
+    /**
+     * TODO: sometimes (but very rare) there is StackOverflowError:
+     * java.lang.StackOverflowError
+     * at java.util.stream.Streams$StreamBuilderImpl.forEachRemaining(Streams.java:419)
+     * at java.util.stream.Streams$ConcatSpliterator.forEachRemaining(Streams.java:742)
+     * at java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:580)
+     * at java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:270)
+     */
     @Test
     public void testOWLTrasform() throws IOException {
         OntGraphModel m = OntModelFactory.createModel();

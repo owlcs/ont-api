@@ -408,38 +408,28 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     /**
-     * Abstract base components CE (IntersectionOf, OneOf, UnionOf)
+     * An abstract super class for {@link IntersectionOf}, {@link OneOf}, {@link UnionOf}.
      *
-     * @param <O> OntObject
+     * @param <O> {@link OntObject}
      */
     protected static abstract class ComponentsCEImpl<O extends OntObject> extends OntCEImpl implements ComponentsCE<O> {
         protected final Property predicate;
-        protected final Class<O> view;
+        protected final Class<O> type;
 
-        protected ComponentsCEImpl(Node n, EnhGraph m, Property predicate, Class<O> view) {
+        protected ComponentsCEImpl(Node n, EnhGraph m, Property predicate, Class<O> type) {
             super(n, m);
             this.predicate = OntJenaException.notNull(predicate, "Null predicate.");
-            this.view = OntJenaException.notNull(view, "Null view.");
-        }
-
-        @Override
-        public Stream<O> components() {
-            return rdfListMembers(predicate, view);
-        }
-
-        @Override
-        public void setComponents(Collection<O> components) {
-            clearAll(predicate);
-            addProperty(predicate, getModel().createList(components.iterator()));
-        }
-
-        protected Stream<OntStatement> listStatements() {
-            return Stream.of(statements(predicate), rdfListContent(predicate)).flatMap(Function.identity());
+            this.type = OntJenaException.notNull(type, "Null view.");
         }
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), listStatements());
+            return Stream.concat(super.spec(), getList().content());
+        }
+
+        @Override
+        public OntList<O> getList() {
+            return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, type);
         }
     }
 
@@ -589,29 +579,19 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
      */
     protected static abstract class NaryRestrictionCEImpl<O extends OntObject, P extends OntPE> extends OntCEImpl implements NaryRestrictionCE<O, P> {
         protected final Property predicate;
-        protected final Class<O> objectView;
-        protected final Class<P> propertyView;
+        protected final Class<O> objectType;
+        protected final Class<P> propertyTyoe;
 
-        protected NaryRestrictionCEImpl(Node n, EnhGraph m, Property predicate, Class<O> objectView, Class<P> propertyView) {
+        protected NaryRestrictionCEImpl(Node n, EnhGraph m, Property predicate, Class<O> objectType, Class<P> propertyTyoe) {
             super(n, m);
             this.predicate = predicate;
-            this.objectView = objectView;
-            this.propertyView = propertyView;
-        }
-
-        @Override
-        public Stream<P> onProperties() {
-            return rdfListMembers(OWL.onProperties, propertyView);
-        }
-
-        @Override
-        public void setOnProperties(Collection<P> properties) {
-            throw new OntJenaException("TODO");
+            this.objectType = objectType;
+            this.propertyTyoe = propertyTyoe;
         }
 
         @Override
         public O getValue() {
-            return getRequiredObject(predicate, objectView);
+            return getRequiredObject(predicate, objectType);
         }
 
         @Override
@@ -628,14 +608,14 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             return statement(predicate, getValue()).map(Stream::of).orElse(Stream.empty());
         }
 
-        protected Stream<OntStatement> onPropertiesStatements() {
-            return Stream.of(statements(OWL.onProperties),
-                    rdfListContent(OWL.onProperties)).flatMap(Function.identity());
+        @Override
+        public Stream<OntStatement> spec() {
+            return Stream.of(super.spec(), valueStatement(), getList().content()).flatMap(Function.identity());
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(), valueStatement(), onPropertiesStatements()).flatMap(Function.identity());
+        public OntList<P> getList() {
+            return OntListImpl.asSafeOntList(getRequiredObject(OWL.onProperties, RDFList.class), getModel(), this, predicate, propertyTyoe);
         }
     }
 

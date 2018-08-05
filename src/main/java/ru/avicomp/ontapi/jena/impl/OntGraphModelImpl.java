@@ -353,8 +353,8 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     @Override
-    public OntDR.Restriction createRestrictionDataRange(OntDR property, Collection<OntFR> values) {
-        return OntDRImpl.createRestriction(this, property, values.stream());
+    public OntDR.Restriction createRestrictionDataRange(OntDT datatype, Collection<OntFR> values) {
+        return OntDRImpl.createRestriction(this, datatype, values.stream());
     }
 
     @Override

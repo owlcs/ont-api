@@ -22,7 +22,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.util.stream.Stream;
 
 /**
- * For named and anonymous individuals
+ * Interface for named and anonymous individuals.
  * <p>
  * Created by @szuev on 02.11.2016.
  */
@@ -82,7 +82,9 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * Returns all differen individuals, the pattern to search for is "a1 owl:differentFrom a2"
+     * Lists all different individuals.
+     * The pattern to search for is {@code a1 owl:differentFrom a2},
+     * where {@code a1} is this {@link OntIndividual} and {@code a2} is one of the returned {@link OntIndividual}.
      *
      * @return Stream of {@link OntIndividual}s
      * @see OntDisjoint.Individuals
@@ -214,7 +216,7 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * An interface for Named Individual.
+     * An interface for <b>Named</b> Individual which is an {@link OWL Entity OntEntity}.
      * <p>
      * Created by szuev on 01.11.2016.
      */
@@ -223,17 +225,24 @@ public interface OntIndividual extends OntObject {
 
     /**
      * An interface for Anonymous Individuals.
-     * The anonymous individual is a blank node ("_:a") which satisfies one of the following conditions:
+     * The anonymous individual is a blank node ({@code _:a}) which satisfies one of the following conditions:
      * <ul>
-     * <li>it has a class declaration (i.e. there is a triple "_:a rdf:type C", where C is a class expression)</li>
-     * <li>it is a subject or an object in a statement with predicate owl:sameAs or owl:differentFrom</li>
-     * <li>it is contained in a rdf:List with predicate owl:distinctMembers or owl:members in a blank node with rdf:type owl:AllDifferent</li>
-     * <li>it is contained in a rdf:List with predicate owl:oneOf in a blank node with rdf:type owl:Class</li>
-     * <li>it is a part of owl:NegativePropertyAssertion section with predicates owl:sourceIndividual or owl:targetIndividual</li>
-     * <li>it is an object with predicate owl:hasValue inside "_:x rdf:type owl:Restriction" (Object Property Restriction)</li>
-     * <li>it is a subject or an object in a statement where predicate is an uri-resource with rdf:type owl:AnnotationProperty (i.e. annotation property assertion "s A t")</li>
-     * <li>it is a subject in a triple which corresponds data property assertion "_:a R v" (where "R" is a datatype property, "v" is a literal)</li>
-     * <li>it is a subject or an object in a triple which corresponds object property assertion "_:a1 PN _:a2" (where PN is a named object property)</li>
+     * <li>it has a class declaration (i.e. there is a triple {@code _:a rdf:type C}, where {@code C} is a {@link OntCE class expression})</li>
+     * <li>it is a subject or an object in a statement with predicate {@link OWL#sameAs owl:sameAs} or {@link OWL#differentFrom owl:differentFrom}</li>
+     * <li>it is contained in a {@code rdf:List} with predicate {@code owl:distinctMembers} or {@code owl:members}
+     * in a blank node with {@code rdf:type = owl:AllDifferent}, see {@link OntDisjoint.Individuals}</li>
+     * <li>it is contained in a {@code rdf:List} with predicate {@code owl:oneOf} in a blank node with {@code rdf:type = owl:Class},
+     * see {@link OntCE.OneOf}</li>
+     * <li>it is a part of {@link OntNPA owl:NegativePropertyAssertion} section with predicates
+     * {@link OWL#sourceIndividual owl:sourceIndividual} or {@link OWL#targetIndividual owl:targetIndividual}</li>
+     * <li>it is an object with predicate {@code owl:hasValue} inside {@code _:x rdf:type owl:Restriction}
+     * (see {@link OntCE.ObjectHasValue Object Property HasValue Restriction})</li>
+     * <li>it is a subject or an object in a statement where predicate is an uri-resource with {@code rdf:type = owl:AnnotationProperty}
+     * (i.e. {@link OntNAP annotation property} assertion {@code s A t})</li>
+     * <li>it is a subject in a triple which corresponds data property assertion {@code _:a R v}
+     * (where {@code R} is a {@link OntNDP datatype property}, {@code v} is a {@link Literal literal})</li>
+     * <li>it is a subject or an object in a triple which corresponds object property assertion {@code _:a1 PN _:a2}
+     * (where {@code PN} is a {@link OntNOP named object property}, and {@code _:ai} are individuals)</li>
      * </ul>
      * <p>
      * Created by szuev on 10.11.2016.

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,34 +14,94 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- * for anonymous collections (owl:AllDisjointProperties,  owl:AllDisjointClasses, owl:AllDifferent).
- * Example:
- * {@code _:x rdf:type owl:AllDisjointProperties; _:x owl:members ( R1 … Rn ).}
+ * Interface encapsulating an anonymous resource-collection of objects in an ontology with one of the following types:
+ * {@code owl:AllDisjointProperties}, {@code owl:AllDisjointClasses}, {@code owl:AllDifferent}).
+ * The resource is looks like this example:
+ * {@code _:x rdf:type owl:AllDisjointProperties; _:x owl:members ( R1 ... Rn ).}.
  * <p>
  * Created by @szuev on 15.11.2016.
+ *
+ * @param <O> {@link OntIndividual individual}, {@link OntCE class expression}, {@link OntOPE object property expression} or {@link OntNDP data property}
  */
 public interface OntDisjoint<O extends OntObject> extends OntObject {
 
     /**
-     * @return Stream (not distinct) of all members ({@link OntObject}s).
+     * Answers an {@link OntList ONT-List}, which is an resource-collection of all disjoint members.
+     *
+     * @return {@link OntList} of {@link O}
+     */
+    OntList<O> getList();
+
+    /**
+     * Lists all members holding by this {@link OntDisjoint Ontology Disjoint} resource.
+     * In general, this method is equivalent to the expression {@code this.getList().members()}.
+     *
+     * @return Stream (<b>not distinct</b>) of {@link OntObject}s
      */
     Stream<O> members();
 
+    /**
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Classes'>9.1.3 Disjoint Classes</a>
+     * @see OntGraphModel#createDisjointClasses(Collection)
+     */
     interface Classes extends OntDisjoint<OntCE> {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Individual_Inequality'>9.6.2 Individual Inequality</a>
+     * @see OntGraphModel#createDifferentIndividuals(Collection)
+     */
     interface Individuals extends OntDisjoint<OntIndividual> {
+
+        /**
+         * Gets an {@link OntList ONT-List}.
+         * Since both predicates {@link ru.avicomp.ontapi.jena.vocabulary.OWL#members owl:members} and
+         * {@link ru.avicomp.ontapi.jena.vocabulary.OWL#distinctMembers owl:distinctMembers} are allowed by specification,
+         * this method returns most bulky list.
+         * In case both lists have the same dimension, the method choose one that is on predicate {@code owl:members}.
+         * The method {@link OntGraphModel#createDifferentIndividuals(Collection)} also prefers {@code owl:members} predicate.
+         * This was done for reasons of uniformity.
+         *
+         * @return {@link OntList ONT-List} of {@link OntIndividual individual}s
+         * @see OntGraphModel#createDifferentIndividuals(Collection)
+         */
+        @Override
+        OntList<OntIndividual> getList();
+
+        /**
+         * Lists all members from []-list on predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#members owl:members}
+         * with concatenation all members from []-list
+         * on predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#distinctMembers owl:distinctMembers}.
+         *
+         * @return <b>not distinct</b> Stream of {@link OntIndividual individual}s
+         */
+        @Override
+        Stream<OntIndividual> members();
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Object_Properties'>9.2.3 Disjoint Object Properties</a>
+     * @see OntGraphModel#createDisjointObjectProperties(Collection)
+     */
     interface ObjectProperties extends Properties<OntOPE> {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Data_Properties'>9.3.3 Disjoint Data Properties</a>
+     * @see OntGraphModel#createDisjointDataProperties(Collection)
+     */
     interface DataProperties extends Properties<OntNDP> {
     }
 
+    /**
+     * Abstraction for Pairwise Disjoint Properties anonymous {@link OntObject Ontology Object}.
+     *
+     * @param <P> either {@link OntOPE object property expression} or {@link OntNDP data property}
+     */
     interface Properties<P extends OntPE> extends OntDisjoint<P> {
     }
 }

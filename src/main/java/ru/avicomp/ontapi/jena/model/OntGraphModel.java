@@ -276,6 +276,8 @@ public interface OntGraphModel extends Model {
      * @param literal {@link Literal}, not null
      * @param <F>     type of ont-facet-restriction
      * @return {@link OntFR}
+     * @see OntDR.Restriction
+     * @see OntGraphModel#createRestrictionDataRange(OntDT, Collection)
      */
     <F extends OntFR> F createFacetRestriction(Class<F> type, Literal literal);
 
@@ -301,7 +303,7 @@ public interface OntGraphModel extends Model {
 
     OntDR.OneOf createOneOfDataRange(Collection<Literal> values);
 
-    OntDR.Restriction createRestrictionDataRange(OntDR property, Collection<OntFR> values);
+    OntDR.Restriction createRestrictionDataRange(OntDT other, Collection<OntFR> values);
 
     OntDR.ComplementOf createComplementOfDataRange(OntDR other);
 

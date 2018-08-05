@@ -52,7 +52,7 @@ public class MultiOntObjectFactory extends OntObjectFactory {
 
     private static List<OntObjectFactory> unbend(OntObjectFactory... factories) {
         return Arrays.stream(factories)
-                .map(f -> MultiOntObjectFactory.class.isInstance(f) ? ((MultiOntObjectFactory) f).factories() : Stream.of(f))
+                .map(f -> f instanceof MultiOntObjectFactory ? ((MultiOntObjectFactory) f).factories() : Stream.of(f))
                 .flatMap(Function.identity()).collect(Collectors.toList());
     }
 

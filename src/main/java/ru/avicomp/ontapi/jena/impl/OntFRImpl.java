@@ -24,6 +24,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntFR;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 /**
@@ -53,7 +54,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
     public static OntObjectFactory patternFRFactory =
             new CommonOntObjectFactory(makeMaker(PatternImpl.class), makeFinder(XSD.pattern), makeFilter(XSD.pattern));
     public static OntObjectFactory langRangeFRFactory =
-            new CommonOntObjectFactory(makeMaker(LangRangeImpl.class), makeFinder(XSD.langRange), makeFilter(XSD.langRange));
+            new CommonOntObjectFactory(makeMaker(LangRangeImpl.class), makeFinder(RDF.langRange), makeFilter(RDF.langRange));
 
     public static OntObjectFactory abstractFRFactory = new MultiOntObjectFactory(OntFinder.ANY_SUBJECT, null,
             lengthFRFactory, minLengthFRFactory, maxLengthFRFactory,
@@ -66,7 +67,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
 
     @Override
     public OntStatement getRoot() {
-        return getModel().createStatement(this, predicate(getActualClass()), getValue()).asRootStatement();
+        return getModel().createStatement(this, predicate(getActualClass()), getValue());//.asRootStatement();
     }
 
     @Override
@@ -97,7 +98,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
         if (TotalDigits.class.equals(view)) return XSD.totalDigits;
         if (FractionDigits.class.equals(view)) return XSD.fractionDigits;
         if (Pattern.class.equals(view)) return XSD.pattern;
-        if (LangRange.class.equals(view)) return XSD.langRange;
+        if (LangRange.class.equals(view)) return RDF.langRange;
         throw new OntJenaException("Unsupported facet restriction " + view);
     }
 

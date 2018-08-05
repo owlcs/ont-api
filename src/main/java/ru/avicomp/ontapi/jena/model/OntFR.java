@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,44 +17,85 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.Literal;
 
 /**
- * The facet restriction.
+ * Interface encapsulating an Ontology <b>F</b>acet <b>R</b>estriction abstraction.
  * <p>
  * Created by @szuev on 02.11.2016.
+ * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Facets'>3.2 Facets</a>
+ * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-facets'>4.3 Constraining Facets</a>
  * @see ru.avicomp.ontapi.jena.vocabulary.XSD
+ * @see OntGraphModel#createFacetRestriction(Class, Literal)
  */
 public interface OntFR extends OntObject {
+    /**
+     * Answers the value of this Facet Restriction.
+     *
+     * @return {@link Literal}
+     */
     Literal getValue();
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-pattern'>4.3.4 pattern</a>
+     */
     interface Pattern extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-length'>4.3.1 length</a>
+     */
     interface Length extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-minLength'>4.3.2 minLength</a>
+     */
     interface MinLength extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-maxLength'>4.3.3 maxLength</a>
+     */
     interface MaxLength extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-minInclusive'>4.3.10 minInclusive</a>
+     */
     interface MinInclusive extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-maxInclusive'>4.3.7 maxInclusive</a>
+     */
     interface MaxInclusive extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-minExclusive'>4.3.9 minExclusive</a>
+     */
     interface MinExclusive extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-maxExclusive'>4.3.8 maxExclusive</a>
+     */
     interface MaxExclusive extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-totalDigits'>4.3.11 totalDigits</a>
+     */
     interface TotalDigits extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-fractionDigits'>4.3.12 fractionDigits</a>
+     */
     interface FractionDigits extends OntFR {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/rdf-plain-literal/#langRange'>Table 1. The Facet Space of rdf:PlainLiteral</a>
+     */
     interface LangRange extends OntFR {
     }
 
