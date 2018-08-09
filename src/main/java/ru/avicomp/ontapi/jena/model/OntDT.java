@@ -42,7 +42,7 @@ public interface OntDT extends OntEntity, OntDR {
     }
 
     /**
-     * Creates an equivalent class statement with the giver {@link OntDR Data Range expression}.
+     * Creates an equivalent class statement with the given {@link OntDR Data Range expression}.
      *
      * @param other {@link OntDR}, not null
      * @return {@link OntStatement}

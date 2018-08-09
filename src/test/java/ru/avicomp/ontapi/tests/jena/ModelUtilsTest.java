@@ -39,13 +39,13 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 25.04.2018.
  */
-public class ModelsTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ModelsTest.class);
+public class ModelUtilsTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModelUtilsTest.class);
 
     @Test
     public void testDeleteResources() {
         OntGraphModel m = OntModelFactory.createModel();
-        m.read(ModelsTest.class.getResourceAsStream("/ontapi/recursive-graph.ttl"), null, "ttl");
+        m.read(ModelUtilsTest.class.getResourceAsStream("/ontapi/recursive-graph.ttl"), null, "ttl");
         String ns = m.getID().getURI() + "#";
         OntObject d = m.createDisjointClasses(Arrays.asList(
                 m.createOntEntity(OntClass.class, ns + "CL1"),

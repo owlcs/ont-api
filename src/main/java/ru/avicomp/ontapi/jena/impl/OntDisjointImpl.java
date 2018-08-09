@@ -75,7 +75,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
 
     @Override
     public OntList<O> getList() {
-        return OntListImpl.asOntList(getRequiredObject(getPredicate(), RDFList.class), getModel(), this, getPredicate(), getComponentType());
+        return OntListImpl.asOntList(getRequiredObject(getPredicate(), RDFList.class), getModel(), this, getPredicate(), null, getComponentType());
     }
 
     @Override
@@ -232,7 +232,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         public Optional<OntList<OntIndividual>> findList(Property predicate) {
             if (!hasProperty(predicate)) return Optional.empty();
             return Optional.of(OntListImpl.asOntList(getRequiredObject(predicate, RDFList.class),
-                    getModel(), this, predicate, getComponentType()));
+                    getModel(), this, predicate, null, getComponentType()));
         }
 
         @Override

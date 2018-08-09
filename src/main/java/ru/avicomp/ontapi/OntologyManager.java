@@ -189,7 +189,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * This is in order to make the behaviour the same as OWL-API method.
      * To find an anonymous ontology use {@link #ontologies()} stream with filters.
      *
-     * @param id {@link OWLOntologyID} the id
+     * @param id {@link OWLOntologyID ontology ID}
      * @return true if {@code id} is not anonymous and there is an ontology with the same iri as in the specified {@code id}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(OWLOntologyID)</a>
      */
@@ -207,6 +207,16 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Nullable
     OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration iri);
+
+    /**
+     * Lists all ontologies contained within the manager.
+     * Each of the returned ontologies is an instance of {@link OntologyModel} interface and encapsulates a {@link Graph Jena Graph}.
+     *
+     * @return Stream of {@link OntologyModel}s
+     * @see #models()
+     */
+    @Override
+    Stream<OWLOntology> ontologies();
 
     /**
      * Creates a fresh ontology with the specified {@code id}.
@@ -485,6 +495,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @return {@link OntologyModel} the newly created ONT-API ontology instance
      * @see OWLOntologyManager#createOntology()
      */
+    @Override
     default OntologyModel createOntology() {
         return createOntology(new OWLOntologyID());
     }
@@ -503,6 +514,7 @@ public interface OntologyManager extends OWLOntologyManager {
      *                         {@link  OWLOntologyDocumentAlreadyExistsException}.
      * @see OWLOntologyManager#createOntology(IRI)
      */
+    @Override
     default OntologyModel createOntology(@Nullable IRI iri) {
         return createOntology(new OWLOntologyID(Optional.ofNullable(iri), Optional.empty()));
     }
@@ -630,9 +642,10 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Lists all {@link OntGraphModel Ontology Graph Model}s.
+     * Lists all {@link OntGraphModel Ontology Graph Model}s from the manager.
      *
      * @return Stream of {@link OntGraphModel}
+     * @see #ontologies()
      */
     default Stream<OntGraphModel> models() {
         return ontologies().map(OntologyModel.class::cast).map(OntologyModel::asGraphModel);

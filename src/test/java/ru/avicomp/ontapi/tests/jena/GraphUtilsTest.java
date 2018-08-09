@@ -41,8 +41,8 @@ import java.util.Map;
  *
  * Created by @szuev on 06.04.2018.
  */
-public class GraphsTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GraphsTest.class);
+public class GraphUtilsTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GraphUtilsTest.class);
 
     @Test
     public void testLoadSpinTree() {
@@ -103,7 +103,7 @@ public class GraphsTest {
         Map<String, Graph> res = new HashMap<>();
         for (SpinModels f : SpinModels.values()) {
             Graph g = new GraphMem();
-            try (InputStream in = GraphsTest.class.getResourceAsStream(f.file())) {
+            try (InputStream in = GraphUtilsTest.class.getResourceAsStream(f.file())) {
                 RDFDataMgr.read(g, in, null, Lang.TURTLE);
             } catch (IOException e) {
                 throw new UncheckedIOException("Can't load " + f.file(), e);

@@ -429,7 +429,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public OntList<O> getList() {
-            return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, type);
+            return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, null, type);
         }
     }
 
@@ -580,13 +580,13 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     protected static abstract class NaryRestrictionCEImpl<O extends OntObject, P extends OntPE> extends OntCEImpl implements NaryRestrictionCE<O, P> {
         protected final Property predicate;
         protected final Class<O> objectType;
-        protected final Class<P> propertyTyoe;
+        protected final Class<P> propertyType;
 
-        protected NaryRestrictionCEImpl(Node n, EnhGraph m, Property predicate, Class<O> objectType, Class<P> propertyTyoe) {
+        protected NaryRestrictionCEImpl(Node n, EnhGraph m, Property predicate, Class<O> objectType, Class<P> propertyType) {
             super(n, m);
             this.predicate = predicate;
             this.objectType = objectType;
-            this.propertyTyoe = propertyTyoe;
+            this.propertyType = propertyType;
         }
 
         @Override
@@ -615,7 +615,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public OntList<P> getList() {
-            return OntListImpl.asSafeOntList(getRequiredObject(OWL.onProperties, RDFList.class), getModel(), this, predicate, propertyTyoe);
+            return OntListImpl.asSafeOntList(getRequiredObject(OWL.onProperties, RDFList.class), getModel(),
+                    this, predicate, null, propertyType);
         }
     }
 

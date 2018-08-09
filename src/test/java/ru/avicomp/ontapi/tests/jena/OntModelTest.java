@@ -346,6 +346,12 @@ public class OntModelTest {
         Assert.assertEquals("Incorrect count of SWRL D-Arg", 3, m.ontObjects(OntSWRL.DArg.class).count());
         // individuals(2 anonymous, 1 named) and variables(1):
         Assert.assertEquals("Incorrect count of SWRL I-Arg", 4, m.ontObjects(OntSWRL.IArg.class).count());
+
+        Assert.assertEquals(3, m.statements(null, RDF.type, SWRL.AtomList)
+                .map(OntStatement::getSubject)
+                .map(s -> s.as(RDFList.class))
+                .peek(s -> LOGGER.debug("SWRL-List: {}", s.asJavaList()))
+                .count());
     }
 
     @Test

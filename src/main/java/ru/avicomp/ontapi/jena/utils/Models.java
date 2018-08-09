@@ -26,6 +26,7 @@ import org.apache.jena.sparql.util.NodeUtils;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
+import ru.avicomp.ontapi.jena.impl.OntListImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -61,44 +62,44 @@ public class Models {
     public static final Literal FALSE = ResourceFactory.createTypedLiteral(Boolean.FALSE);
 
     /**
-     * Creates typed list: the anonymous section which is built using the same rules as true rdf:List {@link RDFListImpl},
-     * i.e. by using rdf:first, rdf:rest and rdf:nil predicates.
-     *
-     * @param model   Model
-     * @param type    Resource
-     * @param members List of {@link RDFNode}'s
-     * @return Anonymous resource - the header for typed list.
-     */
-    public static Resource createTypedList(Model model, Resource type, List<? extends RDFNode> members) {
-        /*if (members.isEmpty()) return RDF.nil.inModel(model);
-        Resource res = model.createResource();
-        res.addProperty(RDF.type, type);
-        res.addProperty(RDF.first, members.remove(0));
-        res.addProperty(RDF.rest, createTypedList(model, type, members));
-        return res;*/
-        return new RDFListImpl(Node.ANY, (EnhGraph) model) {
-            @Override
-            public Resource listType() {
-                return type;
-            }
-
-            @Override
-            public RDFList copy() {
-                return copy(members.iterator());
-            }
-        }.copy();
-    }
-
-    /**
      * Builds typed list from Stream of RDFNode's
      *
      * @param model   Model
      * @param type    type of list to create
      * @param members Stream of members
      * @return the head of created list.
+     * @deprecated using stream as input parameter is a bad idea,
      */
+    @Deprecated
     public static Resource createTypedList(Model model, Resource type, Stream<? extends RDFNode> members) {
         return createTypedList(model, type, members.collect(Collectors.toList()));
+    }
+
+    /**
+     * Creates a typed []-list with the given type containing the resources from the given given collection.
+     *
+     * @param model   {@link Model model} in which the []-list is created
+     * @param type    {@link Resource} the type for new []-list
+     * @param members Collection of {@link RDFNode}s
+     * @return anonymous resource - the header of the typed []-list
+     */
+    public static RDFList createTypedList(Model model, Resource type, Collection<? extends RDFNode> members) {
+        return createTypedList(model, type, members.iterator());
+    }
+
+    /**
+     * Creates a typed list with the given type containing the resources from the given given iterator.
+     * A typed list is an anonymous resource that is created using the same rules as the standard {@link RDFList []-list}
+     * (that is, using {@link RDF#first rdf:first}, {@link RDF#rest rdf:rest} and {@link RDF#nil rdf:nil} predicates),
+     * but each item of this []-list has the specified type on predicate {@link RDF#type rdf:type}.
+     *
+     * @param model   {@link Model model} in which the []-list is created
+     * @param type    {@link Resource} the type for new []-list
+     * @param members {@link Iterator} of {@link RDFNode}s
+     * @return anonymous resource - the header of the typed []-list
+     */
+    public static RDFList createTypedList(Model model, Resource type, Iterator<? extends RDFNode> members) {
+        return OntListImpl.createTypedList((EnhGraph) model, type, members);
     }
 
     /**

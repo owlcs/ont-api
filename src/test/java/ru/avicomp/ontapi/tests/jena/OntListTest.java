@@ -14,10 +14,8 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.graph.Factory;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.junit.Assert;
@@ -26,16 +24,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.OntListImpl;
+import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -278,6 +276,96 @@ public class OntListTest {
     }
 
     @Test
+    public void testListSpec() {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
+        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
+        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
+        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntList<OntOPE> list = p1.createPropertyChain(Collections.emptyList());
+        debug(m);
+        Assert.assertEquals(0, list.spec().count());
+
+        list.add(p2).add(p3).add(p4);
+        Assert.assertEquals(6, list.spec().count());
+        Set<Statement> set = Models.getAssociatedStatements(m.listStatements(null, OWL.propertyChainAxiom, (RDFNode) null)
+                .mapWith(Statement::getObject).mapWith(RDFNode::asResource).toList().get(0));
+        Assert.assertEquals(set, list.spec().collect(Collectors.toSet()));
+
+        list.addComment("The list", "xx").addAnnotation(m.getRDFSLabel(), "test");
+        debug(m);
+        Assert.assertEquals(6, list.spec().count());
+
+        // check that spec elements cannot be annotated
+        try {
+            list.spec().skip(3).limit(1)
+                    .findFirst().orElseThrow(AssertionError::new).addAnnotation(m.getRDFSComment(), "Is it possible?");
+            Assert.fail("Possible to annotate some rdf:List statement");
+        } catch (OntJenaException j) {
+            LOGGER.debug("Expected: {}", j.getMessage());
+        }
+
+        list.clear();
+        debug(m);
+        Assert.assertEquals(0, list.spec().count());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testTypedList() {
+        OntGraphModelImpl m = new OntGraphModelImpl(Factory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        Resource a = m.createResource("A");
+        Resource b = m.createResource("B");
+        Literal c = m.createLiteral("C");
+        Resource d = m.createResource("D");
+        Literal e = m.createLiteral("E");
+
+        OntObject s = m.createResource("list").as(OntObject.class);
+        Property p = m.createProperty("of");
+        OntList list = OntListImpl.create(m, s, p, RDF.List, RDFNode.class, Arrays.asList(a, b, c, d, e).iterator());
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(RDF.List, ((Optional<Resource>) list.type()).orElseThrow(AssertionError::new));
+        Assert.assertEquals(16, m.size());
+        Assert.assertEquals(15, list.spec().count());
+        Assert.assertEquals(16, list.content().count());
+        Assert.assertEquals(5, list.members().count());
+
+        OntList<Resource> tmp1 = OntListImpl.asOntList(list.as(RDFList.class), m, s, p, RDF.List, Resource.class);
+        Assert.assertEquals(RDF.List, tmp1.type().orElseThrow(AssertionError::new));
+        Assert.assertEquals(15, tmp1.spec().count());
+        Assert.assertEquals(3, tmp1.members().count());
+        OntList<Literal> tmp2 = OntListImpl.asOntList(list.as(RDFList.class), m, s, p, RDF.List, Literal.class);
+        Assert.assertEquals(RDF.List, tmp2.type().orElseThrow(AssertionError::new));
+        Assert.assertEquals(15, tmp2.spec().count());
+        Assert.assertEquals(2, tmp2.members().count());
+
+        list.removeLast().removeFirst();
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(10, m.size());
+        Assert.assertEquals(9, list.spec().count());
+
+        list.addLast(m.createResource("X")).addFirst(m.createLiteral("Y"));
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(15, list.spec().count());
+        Assert.assertEquals(Arrays.asList("Y", "B", "C", "D", "X"),
+                list.members().map(String::valueOf).collect(Collectors.toList()));
+
+        Assert.assertEquals(2, list.get(2).removeFirst()
+                .addFirst(m.createResource("Z")).get(1)
+                .removeFirst().addLast(m.createLiteral("F")).members().peek(x -> LOGGER.debug("member={}", x)).count());
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(Arrays.asList("Y", "B", "Z", "X", "F"), list.members().map(String::valueOf).collect(Collectors.toList()));
+        Assert.assertEquals(16, m.size());
+        Assert.assertEquals(15, list.spec().count());
+
+        list.clear();
+        Assert.assertEquals(1, m.size());
+        ReadWriteUtils.print(m);
+    }
+
+    @Test
     public void testPropertyChain() {
         OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefixes(OntModelFactory.STANDARD);
@@ -407,42 +495,6 @@ public class OntListTest {
     }
 
     @Test
-    public void testListSpec() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
-        OntList<OntOPE> list = p1.createPropertyChain(Collections.emptyList());
-        debug(m);
-        Assert.assertEquals(0, list.spec().count());
-
-        list.add(p2).add(p3).add(p4);
-        Assert.assertEquals(6, list.spec().count());
-        Set<Statement> set = Models.getAssociatedStatements(m.listStatements(null, OWL.propertyChainAxiom, (RDFNode) null)
-                .mapWith(Statement::getObject).mapWith(RDFNode::asResource).toList().get(0));
-        Assert.assertEquals(set, list.spec().collect(Collectors.toSet()));
-
-        list.addComment("The list", "xx").addAnnotation(m.getRDFSLabel(), "test");
-        debug(m);
-        Assert.assertEquals(6, list.spec().count());
-
-        // check that spec elements cannot be annotated
-        try {
-            list.spec().skip(3).limit(1)
-                    .findFirst().orElseThrow(AssertionError::new).addAnnotation(m.getRDFSComment(), "Is it possible?");
-            Assert.fail("Possible to annotate some rdf:List statement");
-        } catch (OntJenaException j) {
-            LOGGER.debug("Expected: {}", j.getMessage());
-        }
-
-        list.clear();
-        debug(m);
-        Assert.assertEquals(0, list.spec().count());
-    }
-
-    @Test
     public void testDisjointPropertiesOntList() {
         OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefixes(OntModelFactory.STANDARD);
@@ -490,9 +542,7 @@ public class OntListTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals(1, m.ontObjects(OntDisjoint.Individuals.class)
                 .findFirst().orElseThrow(AssertionError::new).members().count());
-
     }
-
 
     private static OntStatement getSingleAnnotation(OntList<?> list) {
         return getSingleAnnotation(list.getRoot());

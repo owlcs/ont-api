@@ -136,7 +136,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     @Override
     public OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties) {
-        return OntListImpl.create(getModel(), this, OWL.propertyChainAxiom, OntOPE.class, properties);
+        return OntListImpl.create(getModel(), this, OWL.propertyChainAxiom, OntOPE.class, properties.iterator());
     }
 
     @Override

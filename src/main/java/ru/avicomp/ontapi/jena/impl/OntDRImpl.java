@@ -208,7 +208,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public OntList<N> getList() {
-            return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, type);
+            return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, null, type);
         }
     }
 }
