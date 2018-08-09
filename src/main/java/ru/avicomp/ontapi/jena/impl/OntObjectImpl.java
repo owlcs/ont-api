@@ -20,7 +20,6 @@ import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -33,7 +32,6 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -246,36 +244,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .mapWith(n -> n.as(RDFList.class)))
                 .flatMap(l -> Iter.asStream(l.iterator()))
                 .distinct();
-    }
-
-    /**
-     * Returns stream of nodes with the specified type from rdf:List.
-     * Note: In OWL2 the type of rdf:List members is always the same (with except of owl:hasKey construction).
-     * Note: this method will skip all members which can not be casted to the specified type.
-     *
-     * @param predicate to search for rdf:Lists
-     * @param view      Class, the type of returned nodes.
-     * @param <O>       a class-type of rdf-node
-     * @return Stream of {@link RDFNode} with specified type.
-     */
-    public <O extends RDFNode> Stream<O> rdfListMembers(Property predicate, Class<O> view) {
-        return rdfListMembers(predicate).map(n -> getModel().fetchNodeAs(n.asNode(), view)).filter(Objects::nonNull);
-    }
-
-    /**
-     * Gets the content of the list in view of OntStatement streams.
-     * Note: if there are several rdf:List objects the contents will be merged.
-     *
-     * @param property predicate
-     * @return Stream
-     */
-    public Stream<OntStatement> rdfListContent(Property property) {
-        return objects(property, RDFList.class)
-                .filter(list -> !list.isEmpty())
-                .map(RDFListImpl.class::cast)
-                .map(RDFListImpl::collectStatements)
-                .flatMap(Collection::stream)
-                .map(OntStatement.class::cast);
     }
 
     /**

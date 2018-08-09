@@ -106,6 +106,12 @@ public interface OntDR extends OntObject {
      * @param <N> {@link RDFNode}
      */
     interface ComponentsDR<N extends RDFNode> extends OntDR {
+        /**
+         * Gets the ONT-List that contains resources of type {@link N}.
+         *
+         * @return {@link OntList}
+         * @since 1.2.1
+         */
         OntList<N> getList();
     }
 

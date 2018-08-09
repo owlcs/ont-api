@@ -393,6 +393,12 @@ public interface OntCE extends OntObject {
     }
 
     interface ONProperties<P extends OntPE> {
+        /**
+         * Gets the ONT-List that contains resources of type {@link P}.
+         *
+         * @return {@link OntList}
+         * @since 1.2.1
+         */
         OntList<P> getList();
 
         default Stream<P> onProperties() {
@@ -405,6 +411,12 @@ public interface OntCE extends OntObject {
     }
 
     interface Components<O extends OntObject> {
+        /**
+         * Gets the ONT-List that contains resources of type {@link O}.
+         *
+         * @return {@link OntList}
+         * @since 1.2.1
+         */
         OntList<O> getList();
 
         default Stream<O> components() {

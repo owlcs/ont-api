@@ -605,7 +605,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         protected Stream<OntStatement> valueStatement() {
-            return statement(predicate, getValue()).map(Stream::of).orElse(Stream.empty());
+            return Stream.of(getRequiredProperty(predicate));
         }
 
         @Override

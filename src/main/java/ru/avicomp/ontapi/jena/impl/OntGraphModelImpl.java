@@ -476,7 +476,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Collection<OntSWRL.DArg> arguments) {
-        return OntSWRLImpl.createBuiltInAtom(this, predicate, arguments.stream());
+        return OntSWRLImpl.createBuiltInAtom(this, predicate, arguments);
     }
 
     @Override
@@ -511,7 +511,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body) {
-        return OntSWRLImpl.createImp(this, head.stream(), body.stream());
+        return OntSWRLImpl.createImp(this, head, body);
     }
 
     @Override

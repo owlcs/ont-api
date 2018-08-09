@@ -361,7 +361,18 @@ public class OntListTest {
         Assert.assertEquals(15, list.spec().count());
 
         list.clear();
+        Assert.assertTrue(list.isEmpty());
+        Assert.assertEquals(0, list.size());
         Assert.assertEquals(1, m.size());
+        ReadWriteUtils.print(m);
+
+        OntList<Resource> empty = OntListImpl.create(m, m.createResource("empty").as(OntObject.class), p, RDF.List,
+                Resource.class,
+                Collections.emptyIterator());
+        Assert.assertTrue(empty.isEmpty());
+        Assert.assertEquals(0, empty.size());
+        Assert.assertEquals(2, m.size());
+
         ReadWriteUtils.print(m);
     }
 

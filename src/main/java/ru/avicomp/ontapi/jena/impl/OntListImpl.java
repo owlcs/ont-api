@@ -533,7 +533,8 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             Iterator<List<Triple>> it = createRDFListIterator();
             if (it == null) return res;
             Statement root = getRoot();
-            if (!it.hasNext()) throw new OntJenaException.IllegalState("TODO");
+            if (!it.hasNext())
+                throw new OntJenaException.IllegalState("The list " + this + " does not contain any items.");
             Graph g = m.getGraph();
             do {
                 it.next().forEach(g::delete);
@@ -551,7 +552,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     public Statement getFirstRestStatement() {
         Iterator<List<Triple>> it = createRDFListIterator();
         if (it == null) return null;
-        if (!it.hasNext()) throw new OntJenaException.IllegalState("TODO");
+        if (!it.hasNext()) throw new OntJenaException.IllegalState("Can't find any []-list batch in the list " + this);
         return getRestStatement(it.next());
     }
 
@@ -563,7 +564,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     public Statement getLastRestStatement() {
         Iterator<List<Triple>> it = createRDFListIterator();
         if (it == null) return null;
-        if (!it.hasNext()) throw new OntJenaException.IllegalState("TODO");
+        if (!it.hasNext()) throw new OntJenaException.IllegalState("Can't find any []-list batch in the list " + this);
         List<Triple> res;
         do {
             res = it.next();
@@ -579,7 +580,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     public List<Statement> getFirstTwoRestStatements() {
         Iterator<List<Triple>> it = createRDFListIterator();
         if (it == null) return null;
-        if (!it.hasNext()) throw new OntJenaException.IllegalState("TODO");
+        if (!it.hasNext()) throw new OntJenaException.IllegalState("Can't find any []-list batch in the list " + this);
         List<Statement> res = new ArrayList<>();
         res.add(getRestStatement(it.next()));
         if (it.hasNext()) {
@@ -602,14 +603,15 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             prev = last;
             last = it.next();
         }
-        if (last == null) throw new OntJenaException.IllegalState("TODO");
+        if (last == null) throw new OntJenaException.IllegalState("Can't find last []-list batch in the list " + this);
         return Stream.of(prev, last).filter(Objects::nonNull).map(this::getRestStatement).collect(Collectors.toList());
     }
 
     private Statement getRestStatement(List<Triple> triples) {
         OntGraphModel m = getModel();
         return triples.stream().filter(s -> RDF.rest.asNode().equals(s.getPredicate()))
-                .map(m::asStatement).findFirst().orElseThrow(() -> new OntJenaException.IllegalState("TODO-2"));
+                .map(m::asStatement).findFirst()
+                .orElseThrow(() -> new OntJenaException.IllegalState("Can't find rdf:rest in the batch " + triples));
     }
 
     @Override

@@ -52,7 +52,8 @@ public abstract class GraphTransformers {
             .add(OWLRecursiveTransform.class)
             .add(RDFSTransform.class)
             .add(OWLCommonTransform.class)
-            .add(OWLDeclarationTransform.class);
+            .add(OWLDeclarationTransform.class)
+            .add(SWRLTransform.class);
 
     /**
      * Sets global transformers store.

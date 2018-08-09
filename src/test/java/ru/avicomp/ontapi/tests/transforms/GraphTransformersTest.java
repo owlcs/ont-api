@@ -249,14 +249,17 @@ public class GraphTransformersTest {
 
     @Test
     public void testGeneralFunctionality() {
+        int num = 6; //5;
+        Class<? extends Transform> first = OWLIDTransform.class;
+        Class<? extends Transform> last = SWRLTransform.class; //OWLDeclarationTransform.class;
+
         GraphTransformers.Store store = GraphTransformers.getTransformers();
         Assert.assertSame(store, GraphTransformers.getTransformers());
-        store.ids().forEach(x -> LOGGER.debug("Store:::{}", x));
-        Assert.assertEquals(5, store.ids().count());
-        Assert.assertTrue(store.get(OWLIDTransform.class.getName()).isPresent());
+        Assert.assertEquals(num, store.ids().peek(x -> LOGGER.debug("Store:::{}", x)).count());
+        Assert.assertTrue(store.get(first.getName()).isPresent());
         List<String> ids = store.ids().collect(Collectors.toList());
-        Assert.assertEquals(OWLIDTransform.class.getName(), ids.get(0));
-        Assert.assertEquals(OWLDeclarationTransform.class.getName(), ids.get(ids.size() - 1));
+        Assert.assertEquals(first.getName(), ids.get(0));
+        Assert.assertEquals(last.getName(), ids.get(ids.size() - 1));
         GraphTransformers.Maker maker = GraphTransformers.Maker.create("a", g -> new Transform(g) {
             @Override
             public void perform() throws TransformException {
@@ -268,24 +271,23 @@ public class GraphTransformersTest {
                 return "Test #1";
             }
         });
-        GraphTransformers.Store store1 = store.insertAfter(OWLIDTransform.class.getName(), maker);
+        GraphTransformers.Store store1 = store.insertAfter(first.getName(), maker);
         store1.ids().forEach(x -> LOGGER.debug("Store1:::{}", x));
         Assert.assertNotEquals(store, store1);
-        Assert.assertEquals(5, store.ids().count());
+        Assert.assertEquals(num, store.ids().count());
         List<String> ids1 = store1.ids().collect(Collectors.toList());
-        Assert.assertEquals(6, ids1.size());
+        Assert.assertEquals(num + 1, ids1.size());
         Assert.assertEquals("a", ids1.get(1));
 
         GraphTransformers.Store store2 = store1.removeFirst();
         Assert.assertNotEquals(store1, store2);
-        Assert.assertEquals(6, store1.ids().count());
-        Assert.assertEquals(5, store2.ids().count());
+        Assert.assertEquals(num + 1, store1.ids().count());
+        Assert.assertEquals(num, store2.ids().count());
 
         GraphTransformers.Store store3 = store1.remove(OWLCommonTransform.class.getName());
         Assert.assertNotEquals(store1, store3);
-        Assert.assertEquals(6, store1.ids().count());
-        Assert.assertEquals(5, store3.ids().count());
-        store3.ids().forEach(x -> LOGGER.debug("Store3:::{}", x));
+        Assert.assertEquals(num + 1, store1.ids().count());
+        Assert.assertEquals(num, store3.ids().peek(x -> LOGGER.debug("Store3:::{}", x)).count());
 
         GraphTransformers.Store store4 = store3.removeLast().removeLast().removeLast()
                 .addLast(GraphTransformers.Maker.create("b", graph -> true, g -> {
@@ -297,7 +299,7 @@ public class GraphTransformersTest {
                     s.addProperty(OWL.versionIRI, m.createResource("http://ver"));
                 })).setFilter(Graph::isEmpty);
 
-        Assert.assertEquals(3, store4.ids().count());
+        Assert.assertEquals(num - 2, store4.ids().peek(s -> LOGGER.debug("Store4::::{}", s)).count());
         Model m1 = ModelFactory.createDefaultModel();
         OntGraphModel m2 = OntModelFactory.createModel().setID("http://x").getModel();
         store4.transform(m2.getGraph());

@@ -30,9 +30,10 @@ import java.util.stream.Stream;
 public interface OntDisjoint<O extends OntObject> extends OntObject {
 
     /**
-     * Answers an {@link OntList ONT-List}, which is an resource-collection of all disjoint members.
+     * Answers an {@link OntList ONT-List}, which is an resource-collection of all disjoint members of type {@link O}.
      *
-     * @return {@link OntList} of {@link O}
+     * @return {@link OntList}
+     * @since 1.2.1
      */
     OntList<O> getList();
 
@@ -68,6 +69,7 @@ public interface OntDisjoint<O extends OntObject> extends OntObject {
          *
          * @return {@link OntList ONT-List} of {@link OntIndividual individual}s
          * @see OntGraphModel#createDifferentIndividuals(Collection)
+         * @since 1.2.1
          */
         @Override
         OntList<OntIndividual> getList();

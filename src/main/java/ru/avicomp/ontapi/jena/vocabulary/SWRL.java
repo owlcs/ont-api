@@ -52,11 +52,11 @@ public class SWRL {
     public static final Property argument1 = property("argument1");
     public static final Property argument2 = property("argument2");
 
-    private static Resource resource(String local) {
+    protected static Resource resource(String local) {
         return ResourceFactory.createResource(NS + local);
     }
 
-    private static Property property(String local) {
+    protected static Property property(String local) {
         return ResourceFactory.createProperty(NS + local);
     }
 }

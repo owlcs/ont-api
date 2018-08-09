@@ -16,17 +16,19 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Iter;
-import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
+import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -43,9 +45,9 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
             new OntFinder.ByType(SWRL.Variable), VAR_SWRL_FILTER);
 
     public static OntObjectFactory dArgSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(DArgImpl.class),
-                    OntFinder.ANY_SUBJECT_AND_OBJECT, VAR_SWRL_FILTER.or(LiteralImpl.factory::canWrap));
+            OntFinder.ANY_SUBJECT_AND_OBJECT, VAR_SWRL_FILTER.or(LiteralImpl.factory::canWrap));
     public static OntObjectFactory iArgSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(IArgImpl.class),
-                    OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or((n, g) -> OntObjectImpl.canAs(OntIndividual.class, n, g)));
+            OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or((n, g) -> OntObjectImpl.canAs(OntIndividual.class, n, g)));
     public static OntObjectFactory abstractArgSWRLFactory = new MultiOntObjectFactory(OntFinder.ANY_SUBJECT_AND_OBJECT, null, dArgSWRLFactory, iArgSWRLFactory);
 
     public static OntObjectFactory builtInAtomSWRLFactory = makeAtomFactory(BuiltInAtomImpl.class, SWRL.BuiltinAtom);
@@ -75,14 +77,15 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.createOntObject(Variable.class, uri);
     }
 
-    public static Atom.BuiltIn createBuiltInAtom(OntGraphModelImpl model, Resource predicate, Stream<DArg> arguments) {
-        OntObjectImpl.checkNamed(predicate);
-        Resource res = model.createResource();
-        model.add(res, RDF.type, SWRL.BuiltinAtom);
-        model.add(res, SWRL.builtin, predicate);
-        model.add(predicate, RDF.type, SWRL.Builtin); // ?
-        model.add(res, SWRL.arguments, model.createList(arguments.iterator()));
+    public static Atom.BuiltIn createBuiltInAtom(OntGraphModelImpl model, Resource predicate, Collection<DArg> arguments) {
+        Property property = createBuiltinProperty(model, predicate);
+        OntObject res = model.createResource(SWRL.BuiltinAtom).addProperty(SWRL.builtin, property).as(OntObject.class);
+        OntListImpl.create(model, res, SWRL.arguments, null, DArg.class, arguments.iterator());
         return model.getNodeAs(res.asNode(), Atom.BuiltIn.class);
+    }
+
+    public static Property createBuiltinProperty(OntGraphModelImpl model, Resource predicate) {
+        return checkNamed(predicate).inModel(model).addProperty(RDF.type, SWRL.Builtin).as(Property.class);
     }
 
     public static Atom.OntClass createClassAtom(OntGraphModelImpl model, OntCE clazz, IArg arg) {
@@ -149,13 +152,12 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.getNodeAs(res.asNode(), Atom.SameIndividuals.class);
     }
 
-    public static Imp createImp(OntGraphModelImpl model, Stream<Atom> head, Stream<Atom> body) {
+    public static Imp createImp(OntGraphModelImpl model, Collection<Atom> head, Collection<Atom> body) {
         OntJenaException.notNull(head, "Null head");
         OntJenaException.notNull(body, "Null body");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, SWRL.Imp);
-        model.add(res, SWRL.head, Models.createTypedList(model, SWRL.AtomList, head));
-        model.add(res, SWRL.body, Models.createTypedList(model, SWRL.AtomList, body));
+        OntObject res = model.createResource(SWRL.Imp).as(OntObject.class);
+        OntListImpl.create(model, res, SWRL.head, SWRL.AtomList, Atom.class, head.iterator());
+        OntListImpl.create(model, res, SWRL.body, SWRL.AtomList, Atom.class, body.iterator());
         return model.getNodeAs(res.asNode(), Imp.class);
     }
 
@@ -163,17 +165,32 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         public VariableImpl(Node n, EnhGraph m) {
             super(n, m);
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Variable.class;
+        }
     }
 
     public static class DArgImpl extends OntObjectImpl implements DArg {
         public DArgImpl(Node n, EnhGraph m) {
             super(n, m);
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return DArg.class;
+        }
     }
 
     public static class IArgImpl extends OntObjectImpl implements IArg {
         public IArgImpl(Node n, EnhGraph m) {
             super(n, m);
+        }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return IArg.class;
         }
     }
 
@@ -194,16 +211,25 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public Stream<DArg> arguments() {
-            return rdfListMembers(SWRL.arguments, DArg.class);
+        public OntList<DArg> getArgList() {
+            return OntListImpl.asOntList(getRequiredObject(SWRL.arguments, RDFList.class), getModel(), this, SWRL.arguments, null, DArg.class);
+        }
+
+        public Stream<OntStatement> predicateStatements() {
+            OntStatement b = getRequiredProperty(SWRL.builtin);
+            OntStatement a = b.getSubject().statement(RDF.type, SWRL.Builtin)
+                    .orElseThrow(() -> new OntJenaException.IllegalState("Can't find rdf:type SWRL:Builtin for " + b));
+            return Stream.of(a, b);
         }
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(),
-                    statement(SWRL.builtin).map(Stream::of).orElse(Stream.empty()),
-                    rdfListContent(SWRL.arguments)
-            ).flatMap(Function.identity());
+            return Stream.of(super.spec(), predicateStatements(), getArgList().content()).flatMap(Function.identity());
+        }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Atom.BuiltIn.class;
         }
     }
 
@@ -242,41 +268,51 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         public OntClassAtomImpl(Node n, EnhGraph m) {
             super(n, m, SWRL.classPredicate, OntCE.class, IArg.class);
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Atom.OntClass.class;
+        }
     }
 
     public static class DataRangeAtomImpl extends UnaryImpl<OntDR, DArg> implements Atom.DataRange {
         public DataRangeAtomImpl(Node n, EnhGraph m) {
             super(n, m, SWRL.dataRange, OntDR.class, DArg.class);
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Atom.DataRange.class;
+        }
     }
 
     public static abstract class BinaryImpl<O extends Resource, F extends Arg, S extends Arg> extends AtomImpl<O> implements Atom.Binary<O, F, S> {
         protected final Property predicate;
-        private final Class<O> objectView;
-        private final Class<F> firstArgView;
-        private final Class<S> secondArgView;
+        private final Class<O> objectType;
+        private final Class<F> firstArgType;
+        private final Class<S> secondArgType;
 
-        BinaryImpl(Node n, EnhGraph m, Property predicate, Class<O> objectView, Class<F> firstArgView, Class<S> secondArgView) {
+        BinaryImpl(Node n, EnhGraph m, Property predicate, Class<O> objectType, Class<F> firstArgType, Class<S> secondArgType) {
             super(n, m);
             this.predicate = predicate;
-            this.objectView = objectView;
-            this.firstArgView = firstArgView;
-            this.secondArgView = secondArgView;
+            this.objectType = objectType;
+            this.firstArgType = firstArgType;
+            this.secondArgType = secondArgType;
         }
 
         @Override
         public O getPredicate() {
-            return getRequiredObject(predicate, objectView);
+            return getRequiredObject(predicate, objectType);
         }
 
         @Override
         public F getFirstArg() {
-            return getRequiredObject(SWRL.argument1, firstArgView);
+            return getRequiredObject(SWRL.argument1, firstArgType);
         }
 
         @Override
         public S getSecondArg() {
-            return getRequiredObject(SWRL.argument2, secondArgView);
+            return getRequiredObject(SWRL.argument2, secondArgType);
         }
 
         @Override
@@ -293,11 +329,21 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         public DataPropertyAtomImpl(Node n, EnhGraph m) {
             super(n, m, SWRL.propertyPredicate, OntNDP.class, IArg.class, DArg.class);
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Atom.DataProperty.class;
+        }
     }
 
     public static class ObjectPropertyAtomImpl extends BinaryImpl<OntOPE, IArg, IArg> implements Atom.ObjectProperty {
         public ObjectPropertyAtomImpl(Node n, EnhGraph m) {
             super(n, m, SWRL.propertyPredicate, OntOPE.class, IArg.class, IArg.class);
+        }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Atom.ObjectProperty.class;
         }
     }
 
@@ -316,45 +362,52 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         public DifferentIndividualsAtomImpl(Node n, EnhGraph m) {
             super(n, m, OWL.differentFrom);
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Atom.DifferentIndividuals.class;
+        }
     }
 
     public static class SameIndividualsAtomImpl extends IndividualsAtomImpl implements Atom.SameIndividuals {
         public SameIndividualsAtomImpl(Node n, EnhGraph m) {
             super(n, m, OWL.sameAs);
         }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Atom.SameIndividuals.class;
+        }
     }
 
     public static class ImpImpl extends OntSWRLImpl implements Imp {
+
         public ImpImpl(Node n, EnhGraph m) {
             super(n, m);
         }
 
-        protected Stream<Atom> list(Property predicate) {
-            Statement st = getProperty(predicate);
-            if (st == null || !st.getObject().isResource())
-                return Stream.empty();
-            Resource list = st.getObject().asResource();
-            if (list.listProperties().filterDrop(s -> RDF.type.equals(s.getPredicate()) && SWRL.AtomList.equals(s.getObject())).toSet().isEmpty()) {
-                // swrl:AtomicList is a stupid huck. Some formats (e.g. json-ld) ignore any  types in rdf:List
-                // special case of list. empty list would be like this: "[ a  swrl:AtomList ]"
-                return Stream.empty();
-            }
-            return Iter.asStream(list.as(RDFList.class).iterator()).filter(n -> n.canAs(Atom.class)).map(n -> n.as(Atom.class)).distinct();
+        @Override
+        public OntList<Atom> getHeadList() {
+            return getList(SWRL.head);
         }
 
         @Override
-        public Stream<Atom> head() {
-            return list(SWRL.head);
+        public OntList<Atom> getBodyList() {
+            return getList(SWRL.body);
         }
 
-        @Override
-        public Stream<Atom> body() {
-            return list(SWRL.body);
+        protected OntList<Atom> getList(Property predicate) {
+            return OntListImpl.asOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, SWRL.AtomList, Atom.class);
         }
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(), rdfListContent(SWRL.head), rdfListContent(SWRL.body)).flatMap(Function.identity());
+            return Stream.of(super.spec(), getHeadList().content(), getBodyList().content()).flatMap(Function.identity());
+        }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Imp.class;
         }
     }
 }
