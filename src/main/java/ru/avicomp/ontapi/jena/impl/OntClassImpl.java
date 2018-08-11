@@ -39,6 +39,11 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
+    public Optional<OntStatement> findRootStatement() {
+        return getOptionalRootStatement(this, OWL.Class);
+    }
+
+    @Override
     public boolean isBuiltIn() {
         return Entities.CLASS.builtInURIs().contains(this);
     }
@@ -110,8 +115,4 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
         clearAll(OWL.disjointUnionOf);
     }
 
-    @Override
-    public OntStatement getRoot() {
-        return getDeclarationStatement(OWL.Class);
-    }
 }

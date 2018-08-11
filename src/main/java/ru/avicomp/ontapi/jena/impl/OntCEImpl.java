@@ -127,6 +127,14 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
+    public Optional<OntStatement> findRootStatement() {
+        return getRequiredRootStatement(this, OWL.Class);
+    }
+
+    @Override
+    public abstract Class<? extends OntCE> getActualClass();
+
+    @Override
     public OntIndividual.Anonymous createIndividual() {
         return createAnonymousIndividual(getModel(), this);
     }
@@ -165,9 +173,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     public void removeHasKey() {
         clearAll(OWL.hasKey);
     }
-
-    @Override
-    public abstract Class<? extends OntCE> getActualClass();
 
     public static class ObjectSomeValuesFromImpl extends ComponentRestrictionCEImpl<OntCE, OntOPE> implements ObjectSomeValuesFrom {
         public ObjectSomeValuesFromImpl(Node n, EnhGraph m) {
@@ -340,17 +345,13 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Class<HasSelf> getActualClass() {
-            return HasSelf.class;
-        }
-
-        Stream<OntStatement> hasSelf() {
-            return statement(OWL.hasSelf, Models.TRUE).map(Stream::of).orElse(Stream.empty());
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), required(OWL.hasSelf));
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), hasSelf());
+        public Class<HasSelf> getActualClass() {
+            return HasSelf.class;
         }
     }
 
@@ -360,28 +361,29 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
+        public Stream<OntStatement> spec() {
+            return Stream.concat(super.spec(), required(OWL.complementOf));
+        }
+
+        @Override
         public Class<ComplementOf> getActualClass() {
             return ComplementOf.class;
         }
 
         @Override
         public OntCE getValue() {
-            return getModel().getNodeAs(getPropertyResourceValue(OWL.complementOf).asNode(), OntCE.class);
+            return getRequiredObject(OWL.complementOf, OntCE.class);
         }
 
         @Override
         public void setValue(OntCE c) {
+            Objects.requireNonNull(c, "Null component");
             clear();
             addProperty(OWL.complementOf, c);
         }
 
         void clear() {
             removeAll(OWL.complementOf);
-        }
-
-        @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), statement(OWL.complementOf).map(Stream::of).orElse(Stream.empty()));
         }
     }
 
@@ -434,21 +436,26 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     /**
-     * for any restriction with owl:onProperty
+     * Abstract implementation for any restriction with {@code owl:onProperty} predicate.
      *
-     * @param <P> OntPE (DataProperty or ObjectProperty Expression)
+     * @param <P> subtype of {@link OntDOP Data or Object Property Expression}
      */
-    protected static abstract class OnPropertyRestrictionCEImpl<P extends OntPE> extends OntCEImpl implements ONProperty<P> {
+    protected static abstract class OnPropertyRestrictionCEImpl<P extends OntDOP> extends OntCEImpl implements ONProperty<P> {
         protected final Class<P> propertyView;
 
         /**
-         * @param n            Node
-         * @param m            EnhGraph
-         * @param propertyView Class for OntPE
+         * @param n            {@link Node}
+         * @param m            {@link EnhGraph}
+         * @param propertyType Class-type for {@link OntDOP}
          */
-        protected OnPropertyRestrictionCEImpl(Node n, EnhGraph m, Class<P> propertyView) {
+        protected OnPropertyRestrictionCEImpl(Node n, EnhGraph m, Class<P> propertyType) {
             super(n, m);
-            this.propertyView = propertyView;
+            this.propertyView = propertyType;
+        }
+
+        @Override
+        public Optional<OntStatement> findRootStatement() {
+            return getRequiredRootStatement(this, OWL.Restriction);
         }
 
         @Override
@@ -458,6 +465,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public void setOnProperty(P p) {
+            Objects.requireNonNull(p, "Null " + viewAsString(propertyView));
             clearProperty(OWL.onProperty);
             addProperty(OWL.onProperty, p);
         }
@@ -466,14 +474,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             removeAll(property);
         }
 
-        protected Stream<OntStatement> onPropertyStatement() {
-            return statement(OWL.onProperty, getOnProperty()).map(Stream::of).orElse(Stream.empty());
-        }
-
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), onPropertyStatement());
+            return Stream.concat(super.spec(), required(OWL.onProperty));
         }
+
     }
 
     /**
@@ -481,9 +486,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
      * It's for CE which has owl:onProperty and some component also (with predicate owl:dataRange,owl:onClass, owl:someValuesFrom, owl:allValuesFrom)
      *
      * @param <O> a class-type of {@link RDFNode rdf-node}
-     * @param <P> a class-type of {@link OntPE property-expression}
+     * @param <P> a class-type of {@link OntDOP data or object property-expression}
      */
-    protected static abstract class ComponentRestrictionCEImpl<O extends RDFNode, P extends OntPE> extends OnPropertyRestrictionCEImpl<P> implements ComponentRestrictionCE<O, P> {
+    protected static abstract class ComponentRestrictionCEImpl<O extends RDFNode, P extends OntDOP>
+            extends OnPropertyRestrictionCEImpl<P> implements ComponentRestrictionCE<O, P> {
         protected final Property predicate;
         protected final Class<O> objectView;
 
@@ -497,7 +503,16 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         protected ComponentRestrictionCEImpl(Node n, EnhGraph m, Property predicate, Class<O> objectView, Class<P> propertyView) {
             super(n, m, propertyView);
             this.predicate = OntJenaException.notNull(predicate, "Null predicate.");
-            this.objectView = OntJenaException.notNull(objectView, "Null view.");
+            this.objectView = OntJenaException.notNull(objectView, "Null object view.");
+        }
+
+        @Override
+        public Stream<OntStatement> spec() {
+            return spec(true);
+        }
+
+        protected Stream<OntStatement> spec(boolean requireObject) {
+            return requireObject ? Stream.concat(super.spec(), required(predicate)) : super.spec();
         }
 
         @Override
@@ -510,36 +525,47 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             clearProperty(predicate);
             addProperty(predicate, c);
         }
-
-        protected Stream<OntStatement> valueStatement() {
-            return statement(predicate, getValue()).map(Stream::of).orElse(Stream.empty());
-        }
-
-        @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), valueStatement());
-        }
     }
 
-    protected static abstract class CardinalityRestrictionCEImpl<O extends OntObject, P extends OntPE> extends ComponentRestrictionCEImpl<O, P> implements CardinalityRestrictionCE<O, P> {
+    /**
+     * Abstraction for any cardinality restriction.
+     *
+     * @param <O> either {@link OntCE} (predicate {@link OWL#onClass owl:onClass}) or {@link OntDR}
+     *            (predicate: {@link OWL#onDataRange owl:onDataRange})
+     * @param <P> either {@link OntOPE} or {@link OntNDP}
+     */
+    protected static abstract class CardinalityRestrictionCEImpl<O extends OntObject, P extends OntDOP>
+            extends ComponentRestrictionCEImpl<O, P> implements CardinalityRestrictionCE<O, P> {
         protected final CardinalityType cardinalityType;
 
         /**
-         * @param n               Node
-         * @param m               Model
-         * @param predicate       can be owl:onDataRange or owl:onClass
+         * @param n               {@link Node}
+         * @param m               {@link EnhGraph}
+         * @param predicate       either {@code owl:onDataRange} or {@code owl:onClass}
          * @param objectView      interface of class expression or data range
          * @param propertyView    interface, property expression
          * @param cardinalityType type of cardinality.
          */
-        protected CardinalityRestrictionCEImpl(Node n, EnhGraph m, Property predicate, Class<O> objectView, Class<P> propertyView, CardinalityType cardinalityType) {
+        protected CardinalityRestrictionCEImpl(Node n,
+                                               EnhGraph m,
+                                               Property predicate,
+                                               Class<O> objectView,
+                                               Class<P> propertyView,
+                                               CardinalityType cardinalityType) {
             super(n, m, predicate, objectView, propertyView);
             this.cardinalityType = cardinalityType;
         }
 
         @Override
-        public O getValue() {
-            return getObject(predicate, objectView);
+        public Stream<OntStatement> spec() {
+            // note: object value <O> is null for non-qualified restrictions.
+            boolean q;
+            return Stream.concat(super.spec(q = isQualified()), required(getCardinalityPredicate(q)));
+        }
+
+        @Override
+        public O getValue() { // null for non-qualified restrictions:
+            return object(predicate, objectView).orElse(null);
         }
 
         @Override
@@ -556,7 +582,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         protected Property getCardinalityPredicate() {
-            return cardinalityType.getPredicate(isQualified());
+            return getCardinalityPredicate(isQualified());
+        }
+
+        protected Property getCardinalityPredicate(boolean q) {
+            return cardinalityType.getPredicate(q);
         }
 
         @Override
@@ -564,20 +594,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             return isQualified(getValue());
         }
 
-        protected Stream<OntStatement> cardinalityStatement() {
-            return statement(getCardinalityPredicate()).map(Stream::of).orElse(Stream.empty());
-        }
-
-        @Override
-        public Stream<OntStatement> spec() { // note: value <O> could be null for qualified restrictions:
-            return Stream.concat(super.spec(), cardinalityStatement());
-        }
     }
 
     /**
      * TODO: currently it is read-only
      */
-    protected static abstract class NaryRestrictionCEImpl<O extends OntObject, P extends OntPE> extends OntCEImpl implements NaryRestrictionCE<O, P> {
+    protected static abstract class NaryRestrictionCEImpl<O extends OntObject, P extends OntDOP> extends OntCEImpl implements NaryRestrictionCE<O, P> {
         protected final Property predicate;
         protected final Class<O> objectType;
         protected final Class<P> propertyType;
@@ -587,6 +609,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             this.predicate = predicate;
             this.objectType = objectType;
             this.propertyType = propertyType;
+        }
+
+        @Override
+        public Optional<OntStatement> findRootStatement() {
+            return getRequiredRootStatement(this, OWL.Restriction);
         }
 
         @Override
@@ -604,13 +631,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             return NaryRestrictionCE.class;
         }
 
-        protected Stream<OntStatement> valueStatement() {
-            return Stream.of(getRequiredProperty(predicate));
-        }
-
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(), valueStatement(), getList().content()).flatMap(Function.identity());
+            return Stream.of(super.spec(), required(predicate), getList().content()).flatMap(Function.identity());
         }
 
         @Override
@@ -645,7 +668,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 return Literal.class;
             }
 
-        },;
+        },
+        ;
     }
 
     protected enum RestrictionType implements PredicateFilterProvider {
@@ -660,7 +684,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             public Class<OntOPE> view() {
                 return OntOPE.class;
             }
-        },;
+        },
+        ;
 
         public OntFilter getFilter() {
             return getFilter(OWL.onProperty);
@@ -835,8 +860,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static HasSelf createHasSelf(OntGraphModelImpl model, OntOPE onProperty) {
-        Resource res = createOnPropertyRestriction(model, onProperty);
-        model.add(res, OWL.hasSelf, Models.TRUE);
+        Resource res = createOnPropertyRestriction(model, onProperty).addProperty(OWL.hasSelf, Models.TRUE);
         return model.getNodeAs(res.asNode(), HasSelf.class);
     }
 

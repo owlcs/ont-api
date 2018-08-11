@@ -29,7 +29,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Negative Property Assertion Implementation.
+ * Implementation of the Negative Property Assertion.
  * <p>
  * Created by @szuev on 15.11.2016.
  */
@@ -60,6 +60,16 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         return model.getNodeAs(res.asNode(), ObjectAssertion.class);
     }
 
+    @Override
+    public Optional<OntStatement> findRootStatement() {
+        return getRequiredRootStatement(this, OWL.NegativePropertyAssertion);
+    }
+
+    @Override
+    public Stream<OntStatement> spec() {
+        return Stream.concat(super.spec(), required(OWL.sourceIndividual, OWL.assertionProperty, targetPredicate()));
+    }
+
     abstract Class<P> propertyClass();
 
     abstract Property targetPredicate();
@@ -79,14 +89,6 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         res.addProperty(RDF.type, OWL.NegativePropertyAssertion);
         res.addProperty(OWL.sourceIndividual, source);
         return res;
-    }
-
-    @Override
-    public Stream<OntStatement> spec() {
-        return Stream.of(statement(RDF.type, OWL.NegativePropertyAssertion),
-                statement(OWL.sourceIndividual),
-                statement(OWL.assertionProperty),
-                statement(targetPredicate())).filter(Optional::isPresent).map(Optional::get);
     }
 
     public static class ObjectAssertionImpl extends OntNPAImpl<OntOPE, OntIndividual> implements ObjectAssertion {
@@ -142,6 +144,5 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         public Literal getTarget() {
             return getRequiredObject(targetPredicate(), Literal.class);
         }
-
     }
 }

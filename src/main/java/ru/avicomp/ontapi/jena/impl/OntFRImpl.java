@@ -27,6 +27,8 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
+import java.util.Optional;
+
 /**
  * Implementation of Facet Restrictions
  * <p>
@@ -66,8 +68,8 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
     }
 
     @Override
-    public OntStatement getRoot() {
-        return getModel().createStatement(this, predicate(getActualClass()), getValue());//.asRootStatement();
+    public Optional<OntStatement> findRootStatement() {
+        return Optional.of(getModel().createStatement(this, predicate(getActualClass()), getValue()));//.asRootStatement();
     }
 
     @Override

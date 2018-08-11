@@ -24,6 +24,8 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -57,6 +59,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
     public OntDRImpl(Node n, EnhGraph m) {
         super(n, m);
+    }
+
+    @Override
+    public Optional<OntStatement> findRootStatement() {
+        return getRequiredRootStatement(this, RDFS.Datatype);
     }
 
     private static Resource create(OntGraphModelImpl model) {
@@ -115,8 +122,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.of(rootStatement().orElseThrow(OntJenaException.IllegalState::new),
-                    getRequiredProperty(OWL.datatypeComplementOf));
+            return Stream.concat(super.spec(), required(OWL.datatypeComplementOf));
         }
 
         @Override
@@ -153,13 +159,16 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.concat(Stream.of(rootStatement().orElseThrow(OntJenaException.IllegalState::new), getRequiredProperty(OWL.onDatatype)),
-                    getList().content().flatMap(s -> {
-                        if (!s.getObject().canAs(OntFR.class)) {
-                            return Stream.of(s);
-                        }
-                        return Stream.of(s, s.getObject().as(OntFR.class).getRoot());
-                    }));
+            return Stream.of(declaration(), required(OWL.onDatatype), withRestrictionsSpec()).flatMap(Function.identity());
+        }
+
+        public Stream<OntStatement> withRestrictionsSpec() {
+            return getList().content().flatMap(s -> {
+                if (!s.getObject().canAs(OntFR.class)) {
+                    return Stream.of(s);
+                }
+                return Stream.of(s, s.getObject().as(OntFR.class).getRoot());
+            });
         }
     }
 
@@ -203,7 +212,11 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), getList().content());
+            return Stream.concat(declaration(), getList().content());
+        }
+
+        public Stream<OntStatement> declaration() {
+            return super.spec();
         }
 
         @Override

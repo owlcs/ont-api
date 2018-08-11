@@ -473,34 +473,73 @@ public class OntModelTest {
     public void testObjectsContent() {
         OntGraphModel m = OntModelFactory.createModel();
         m.setNsPrefixes(OntModelFactory.STANDARD);
-        OntNDP p = m.createOntEntity(OntNDP.class, "p");
+        // properties:
+        OntNDP p1 = m.createOntEntity(OntNDP.class, "p1");
+        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
+        // classes:
         OntClass class1 = m.createOntEntity(OntClass.class, "c");
         OntCE.UnionOf class2 = m.createUnionOf(Arrays.asList(m.createOntEntity(OntClass.class, "c1"), m.createOntEntity(OntClass.class, "c2")));
-        OntCE.DataHasValue class3 = m.createDataHasValue(p, m.createLiteral("2"));
-        OntCE.DataMinCardinality class4 = m.createDataMinCardinality(p, 2, m.getOntEntity(OntDT.class, XSD.xdouble));
+        OntCE.DataHasValue class3 = m.createDataHasValue(p1, m.createLiteral("2"));
+        OntCE.DataMinCardinality class4 = m.createDataMinCardinality(p1, 2, m.getOntEntity(OntDT.class, XSD.xdouble));
         OntClass class5 = m.getOWLThing();
-
+        OntCE.ObjectCardinality class6 = m.createObjectCardinality(p2, 1234, class5);
+        OntCE.HasSelf class7 = m.createHasSelf(p2);
         class3.addComment("The Restriction");
         class1.addSubClassOf(class2).getSubject(OntCE.class).addSubClassOf(class3);
         class1.addDisjointWith(class4);
         class2.addSubClassOf(m.createComplementOf(class5));
         class5.addEquivalentClass(m.getOWLNothing());
+        // data-ranges:
+        OntDT dr1 = m.getOntEntity(OntDT.class, XSD.xint);
+        OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(Arrays.asList(dr1, m.getOntEntity(OntDT.class, XSD.xdouble)));
+        OntDR.ComplementOf dr3 = m.createComplementOfDataRange(dr2);
+        dr3.addComment("Data range: complement of intersection int and double");
+        // individuals:
+        OntIndividual i1 = class5.createIndividual("i1");
+        OntIndividual i2 = class6.createIndividual();
+        // nap:
+        OntNPA npa1 = p1.addNegativeAssertion(i1, m.createLiteral("xxx"));
+
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(1, class1.spec().peek(x -> LOGGER.debug("1::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(4, class1.content().peek(x -> LOGGER.debug("1::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(1, class1.spec().map(Models::toString).peek(x -> LOGGER.debug("1::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(4, class1.content().map(Models::toString).peek(x -> LOGGER.debug("1::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(6, class2.spec().peek(x -> LOGGER.debug("2::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(7, class2.content().peek(x -> LOGGER.debug("2::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(6, class2.spec().map(Models::toString).peek(x -> LOGGER.debug("2::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(7, class2.content().map(Models::toString).peek(x -> LOGGER.debug("2::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(3, class3.spec().peek(x -> LOGGER.debug("3::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(3, class3.content().peek(x -> LOGGER.debug("3::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(3, class3.spec().map(Models::toString).peek(x -> LOGGER.debug("3::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(3, class3.content().map(Models::toString).peek(x -> LOGGER.debug("3::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(4, class4.spec().peek(x -> LOGGER.debug("4::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(4, class4.content().peek(x -> LOGGER.debug("4::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(4, class4.spec().map(Models::toString).peek(x -> LOGGER.debug("4::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(4, class4.content().map(Models::toString).peek(x -> LOGGER.debug("4::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(0, class5.spec().peek(x -> LOGGER.debug("5::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(1, class5.content().peek(x -> LOGGER.debug("5::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(0, class5.spec().map(Models::toString).peek(x -> LOGGER.debug("5::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(1, class5.content().map(Models::toString).peek(x -> LOGGER.debug("5::CLASS CONTENT: {}", x)).count());
+
+        Assert.assertEquals(3, class6.spec().map(Models::toString).peek(x -> LOGGER.debug("6::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(3, class6.content().map(Models::toString).peek(x -> LOGGER.debug("6::CLASS CONTENT: {}", x)).count());
+
+        Assert.assertEquals(3, class7.spec().map(Models::toString).peek(x -> LOGGER.debug("7::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(3, class7.content().map(Models::toString).peek(x -> LOGGER.debug("7::CLASS CONTENT: {}", x)).count());
+
+        Assert.assertEquals(0, dr1.spec().map(Models::toString).peek(x -> LOGGER.debug("1::DATA-RANGE SPEC: {}", x)).count());
+        Assert.assertEquals(0, dr1.content().map(Models::toString).peek(x -> LOGGER.debug("1::DATA-RANGE CONTENT: {}", x)).count());
+
+        Assert.assertEquals(6, dr2.spec().map(Models::toString).peek(x -> LOGGER.debug("2::DATA-RANGE SPEC: {}", x)).count());
+        Assert.assertEquals(6, dr2.content().map(Models::toString).peek(x -> LOGGER.debug("2::DATA-RANGE CONTENT: {}", x)).count());
+
+        Assert.assertEquals(2, dr3.spec().map(Models::toString).peek(x -> LOGGER.debug("3::DATA-RANGE SPEC: {}", x)).count());
+        Assert.assertEquals(2, dr3.content().map(Models::toString).peek(x -> LOGGER.debug("3::DATA-RANGE CONTENT: {}", x)).count());
+
+        Assert.assertEquals(1, i1.spec().map(Models::toString).peek(x -> LOGGER.debug("1::INDIVIDUAL SPEC: {}", x)).count());
+        Assert.assertEquals(2, i1.content().map(Models::toString).peek(x -> LOGGER.debug("1::INDIVIDUAL CONTENT: {}", x)).count());
+
+        Assert.assertEquals(0, i2.spec().map(Models::toString).peek(x -> LOGGER.debug("2::INDIVIDUAL SPEC: {}", x)).count());
+        Assert.assertEquals(1, i2.content().map(Models::toString).peek(x -> LOGGER.debug("2::INDIVIDUAL CONTENT: {}", x)).count());
+
+        Assert.assertEquals(4, npa1.spec().map(Models::toString).peek(x -> LOGGER.debug("1::NAP SPEC: {}", x)).count());
+        Assert.assertEquals(4, npa1.content().map(Models::toString).peek(x -> LOGGER.debug("1::NAP CONTENT: {}", x)).count());
     }
 
     @Test

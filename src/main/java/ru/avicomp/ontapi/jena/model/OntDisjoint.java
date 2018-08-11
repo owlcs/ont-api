@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 public interface OntDisjoint<O extends OntObject> extends OntObject {
 
     /**
-     * Answers an {@link OntList ONT-List}, which is an resource-collection of all disjoint members of type {@link O}.
+     * Answers an {@link OntList ONT-List}, which is an resource-collection of all pair-wise disjoint members of type {@link O}.
      *
      * @return {@link OntList}
      * @since 1.2.1
@@ -38,7 +38,7 @@ public interface OntDisjoint<O extends OntObject> extends OntObject {
     OntList<O> getList();
 
     /**
-     * Lists all members holding by this {@link OntDisjoint Ontology Disjoint} resource.
+     * Lists all pair-wise disjoint members holding by this {@link OntDisjoint Ontology Disjoint} resource.
      * In general, this method is equivalent to the expression {@code this.getList().members()}.
      *
      * @return Stream (<b>not distinct</b>) of {@link OntObject}s

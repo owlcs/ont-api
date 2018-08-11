@@ -62,11 +62,18 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         super(n, m);
     }
 
+    @Override
+    public Optional<OntStatement> findRootStatement() {
+        return getRequiredRootStatement(this, getResourceType());
+    }
+
     protected Property getPredicate() {
         return OWL.members;
     }
 
     protected abstract Class<O> getComponentType();
+
+    protected abstract Resource getResourceType();
 
     @Override
     public Stream<O> members() {
@@ -184,6 +191,11 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         protected Class<OntCE> getComponentType() {
             return OntCE.class;
         }
+
+        @Override
+        protected Resource getResourceType() {
+            return OWL.AllDisjointClasses;
+        }
     }
 
     public static class IndividualsImpl extends OntDisjointImpl<OntIndividual> implements Individuals {
@@ -248,6 +260,11 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         protected Class<OntIndividual> getComponentType() {
             return OntIndividual.class;
         }
+
+        @Override
+        protected Resource getResourceType() {
+            return OWL.AllDifferent;
+        }
     }
 
     public abstract static class PropertiesImpl<P extends OntPE> extends OntDisjointImpl<P> implements Properties<P> {
@@ -256,6 +273,10 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
             super(n, m);
         }
 
+        @Override
+        protected Resource getResourceType() {
+            return OWL.AllDisjointProperties;
+        }
     }
 
     public static class ObjectPropertiesImpl extends PropertiesImpl<OntOPE> implements ObjectProperties {

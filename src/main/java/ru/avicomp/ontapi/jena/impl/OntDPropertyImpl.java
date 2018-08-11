@@ -25,6 +25,8 @@ import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Optional;
+
 /**
  * An ontology object implementation with declarative type {@link OWL#DatatypeProperty owl:DatatypeProperty}.
  * <p>
@@ -48,7 +50,7 @@ public class OntDPropertyImpl extends OntPEImpl implements OntNDP {
 
     @Override
     public void setFunctional(boolean functional) {
-        changeType(OWL.FunctionalProperty, functional);
+        changeRDFType(OWL.FunctionalProperty, functional);
     }
 
     @Override
@@ -62,8 +64,8 @@ public class OntDPropertyImpl extends OntPEImpl implements OntNDP {
     }
 
     @Override
-    public OntStatement getRoot() {
-        return getDeclarationStatement(OWL.DatatypeProperty);
+    public Optional<OntStatement> findRootStatement() {
+        return getOptionalRootStatement(this, OWL.DatatypeProperty);
     }
 
 }

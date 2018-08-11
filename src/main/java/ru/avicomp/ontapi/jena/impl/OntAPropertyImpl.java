@@ -25,6 +25,7 @@ import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -74,7 +75,7 @@ public class OntAPropertyImpl extends OntPEImpl implements OntNAP {
     }
 
     @Override
-    public OntStatement getRoot() {
-        return getDeclarationStatement(OWL.AnnotationProperty);
+    public Optional<OntStatement> findRootStatement() {
+        return getOptionalRootStatement(this, OWL.AnnotationProperty);
     }
 }

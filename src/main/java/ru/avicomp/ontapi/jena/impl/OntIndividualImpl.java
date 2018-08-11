@@ -30,6 +30,7 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -101,12 +102,12 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
     @Override
     public OntStatement attachClass(OntCE clazz) {
-        return addType(clazz);
+        return addRDFType(clazz);
     }
 
     @Override
     public void detachClass(OntCE clazz) {
-        removeType(clazz);
+        removeRDFType(clazz);
     }
 
     public static class NamedImpl extends OntIndividualImpl implements OntIndividual.Named {
@@ -120,14 +121,9 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         @Override
-        public OntStatement getRoot() {
-            return getDeclarationStatement(OWL.NamedIndividual);
-        }
-
-        @Override
-        public Stream<OntStatement> spec() {
-            // todo: what about not local statements and individuals with attached to several classes?
-            return statements(RDF.type);
+        public Optional<OntStatement> findRootStatement() {
+            // there are no built-in named individuals, the root is required:
+            return getRequiredRootStatement(this, OWL.NamedIndividual);
         }
 
         @Override
@@ -167,6 +163,11 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
         public AnonymousImpl(Node n, EnhGraph m) {
             super(n, m);
+        }
+
+        @Override
+        public Optional<OntStatement> findRootStatement() {
+            return Optional.empty();
         }
 
         @Override

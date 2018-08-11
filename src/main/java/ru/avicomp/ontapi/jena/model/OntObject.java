@@ -95,13 +95,14 @@ public interface OntObject extends OntResource {
     /**
      * Returns the <b>first</b> statement for the specified property and object.
      * What exactly is the first triple is defined at the level of graph; in general it is unpredictable.
-     * Also note, that common jena implementation of in-memory graph does not allow duplicated triples.
+     * Also note, that common jena implementation of in-memory graph does not allow duplicated triples,
+     * therefore, there can usually be no more than one statement for the given {@code property} and {@code value}.
      *
      * @param property {@link Property}, the predicate
-     * @param object   {@link RDFNode}, the object
+     * @param value   {@link RDFNode}, the object
      * @return {@link Optional} around {@link OntStatement}
      */
-    Optional<OntStatement> statement(Property property, RDFNode object);
+    Optional<OntStatement> statement(Property property, RDFNode value);
 
     /**
      * Returns the <b>first</b> statement for the specified property.
@@ -165,12 +166,12 @@ public interface OntObject extends OntResource {
     <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type);
 
     /**
-     * Returns the <b>first</b> statement for specified property.
-     * What exactly is the first triple is defined at the level of graph; in general it is unpredictable.
+     * Returns the <b>first</b> statement for the specified property.
+     * What exactly is the first triple is defined at the level of graph and, in general, it is unpredictable.
      *
      * @param property {@link Property}, the predicate
      * @return {@link OntStatement}
-     * @throws org.apache.jena.shared.PropertyNotFoundException if no such statement
+     * @throws org.apache.jena.shared.PropertyNotFoundException if no such statement found
      * @see Resource#getRequiredProperty(Property)
      */
     @Override

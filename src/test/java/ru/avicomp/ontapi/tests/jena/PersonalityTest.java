@@ -36,6 +36,7 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -233,9 +234,8 @@ public class PersonalityTest {
         }
 
         @Override
-        public OntStatement getRoot() {
-            OntStatement res = getDeclarationStatement(OWL.NamedIndividual);
-            return res == null ? types().map(this::getDeclarationStatement).findFirst().orElse(null) : res;
+        public Optional<OntStatement> findRootStatement() {
+            return getOptionalRootStatement(this, OWL.NamedIndividual);
         }
     }
 }

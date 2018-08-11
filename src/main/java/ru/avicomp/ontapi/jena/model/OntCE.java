@@ -368,13 +368,13 @@ public interface OntCE extends OntObject {
     interface ComponentsCE<O extends OntObject> extends OntCE, Components<O> {
     }
 
-    interface CardinalityRestrictionCE<O extends OntObject, P extends OntPE> extends Cardinality, ComponentRestrictionCE<O, P> {
+    interface CardinalityRestrictionCE<O extends OntObject, P extends OntDOP> extends Cardinality, ComponentRestrictionCE<O, P> {
     }
 
-    interface ComponentRestrictionCE<O extends RDFNode, P extends OntPE> extends RestrictionCE, ONProperty<P>, Value<O> {
+    interface ComponentRestrictionCE<O extends RDFNode, P extends OntDOP> extends RestrictionCE, ONProperty<P>, Value<O> {
     }
 
-    interface NaryRestrictionCE<O extends OntObject, P extends OntPE> extends RestrictionCE, ONProperties<P>, Value<O> {
+    interface NaryRestrictionCE<O extends OntObject, P extends OntDOP> extends RestrictionCE, ONProperties<P>, Value<O> {
     }
 
     interface RestrictionCE extends OntCE {
@@ -386,7 +386,7 @@ public interface OntCE extends OntObject {
      * ============================
      */
 
-    interface ONProperty<P extends OntPE> {
+    interface ONProperty<P extends OntDOP> {
         P getOnProperty();
 
         void setOnProperty(P p);

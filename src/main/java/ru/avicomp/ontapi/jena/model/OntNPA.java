@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -18,11 +18,15 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 
 /**
- * Negative property assertion. For {@link OntNDP} and {@link OntOPE} properties.
- * Negative Object Property Assertion example:
+ * Interface representing the <b>N</b>egative <b>P</b>roperty <b>A</b>ssertion abstraction,
+ * where predicate (property) is expected to be either ontology {@link OntNDP data property} ({@code R}) or
+ * {@link OntOPE object property exception} ({@code P}).
+ * Assuming {@code _:x} is a blank node, {@code ai} is an individual and {@code v} is literal,
+ * a Negative Object Property Assertion in Turtle syntax looks like this:
  * {@code _:x rdf:type owl:NegativePropertyAssertion ; _:x owl:sourceIndividual a1; _:x owl:assertionProperty P; _:x owl:targetIndividual a2.}
- * Negative Data Property Assertion example:
+ * In turn, a Negative Data Property Assertion looks like following:
  * {@code _:x rdf:type owl:NegativePropertyAssertion; _:x owl:sourceIndividual a; _:x owl:assertionProperty R;  _:x owl:targetValue v.}
+ *
  * <p>
  * Created by @szuev on 15.11.2016.
  */
@@ -49,9 +53,15 @@ public interface OntNPA<P extends OntPE, T extends RDFNode> extends OntObject {
      */
     T getTarget();
 
+    /**
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Negative_Object_Property_Assertions'>9.6.5 Negative Object Property Assertions</a>
+     */
     interface ObjectAssertion extends OntNPA<OntOPE, OntIndividual> {
     }
 
+    /**
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Negative_Data_Property_Assertions'>9.6.7 Negative Data Property Assertions</a>
+     */
     interface DataAssertion extends OntNPA<OntNDP, Literal> {
     }
 }

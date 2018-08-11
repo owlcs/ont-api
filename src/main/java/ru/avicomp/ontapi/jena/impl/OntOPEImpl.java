@@ -24,6 +24,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -82,8 +83,8 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         }
 
         @Override
-        public OntStatement getRoot() {
-            return getDeclarationStatement(OWL.ObjectProperty);
+        public Optional<OntStatement> findRootStatement() {
+            return getOptionalRootStatement(this, OWL.ObjectProperty);
         }
     }
 
@@ -94,8 +95,8 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         }
 
         @Override
-        public OntStatement getRoot() {
-            return getModel().createStatement(this, OWL.inverseOf, getDirect()).asRootStatement();
+        public Optional<OntStatement> findRootStatement() {
+            return Optional.of(getModel().createStatement(this, OWL.inverseOf, getDirect()).asRootStatement());
         }
 
         @Override
@@ -156,37 +157,37 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
     @Override
     public void setFunctional(boolean functional) {
-        changeType(OWL.FunctionalProperty, functional);
+        changeRDFType(OWL.FunctionalProperty, functional);
     }
 
     @Override
     public void setInverseFunctional(boolean inverseFunctional) {
-        changeType(OWL.InverseFunctionalProperty, inverseFunctional);
+        changeRDFType(OWL.InverseFunctionalProperty, inverseFunctional);
     }
 
     @Override
     public void setAsymmetric(boolean asymmetric) {
-        changeType(OWL.AsymmetricProperty, asymmetric);
+        changeRDFType(OWL.AsymmetricProperty, asymmetric);
     }
 
     @Override
     public void setTransitive(boolean transitive) {
-        changeType(OWL.TransitiveProperty, transitive);
+        changeRDFType(OWL.TransitiveProperty, transitive);
     }
 
     @Override
     public void setReflexive(boolean reflexive) {
-        changeType(OWL.ReflexiveProperty, reflexive);
+        changeRDFType(OWL.ReflexiveProperty, reflexive);
     }
 
     @Override
     public void setIrreflexive(boolean irreflexive) {
-        changeType(OWL.IrreflexiveProperty, irreflexive);
+        changeRDFType(OWL.IrreflexiveProperty, irreflexive);
     }
 
     @Override
     public void setSymmetric(boolean symmetric) {
-        changeType(OWL.SymmetricProperty, symmetric);
+        changeRDFType(OWL.SymmetricProperty, symmetric);
     }
 
 }

@@ -29,6 +29,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -91,20 +92,18 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     public static Atom.OntClass createClassAtom(OntGraphModelImpl model, OntCE clazz, IArg arg) {
         OntJenaException.notNull(clazz, "Null class");
         OntJenaException.notNull(arg, "Null i-arg");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, SWRL.ClassAtom);
-        model.add(res, SWRL.classPredicate, clazz);
-        model.add(res, SWRL.argument1, arg);
+        Resource res = model.createResource(SWRL.ClassAtom)
+                .addProperty(SWRL.classPredicate, clazz)
+                .addProperty(SWRL.argument1, arg);
         return model.getNodeAs(res.asNode(), Atom.OntClass.class);
     }
 
     public static Atom.DataRange createDataRangeAtom(OntGraphModelImpl model, OntDR range, DArg arg) {
         OntJenaException.notNull(range, "Null data range");
         OntJenaException.notNull(arg, "Null d-arg");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, SWRL.DataRangeAtom);
-        model.add(res, SWRL.dataRange, range);
-        model.add(res, SWRL.argument1, arg);
+        Resource res = model.createResource(SWRL.DataRangeAtom)
+                .addProperty(SWRL.dataRange, range)
+                .addProperty(SWRL.argument1, arg);
         return model.getNodeAs(res.asNode(), Atom.DataRange.class);
     }
 
@@ -112,11 +111,10 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         OntJenaException.notNull(dataProperty, "Null data property");
         OntJenaException.notNull(firstArg, "Null first i-arg");
         OntJenaException.notNull(secondArg, "Null second d-arg");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, SWRL.DatavaluedPropertyAtom);
-        model.add(res, SWRL.propertyPredicate, dataProperty);
-        model.add(res, SWRL.argument1, firstArg);
-        model.add(res, SWRL.argument2, secondArg);
+        Resource res = model.createResource(SWRL.DatavaluedPropertyAtom)
+                .addProperty(SWRL.propertyPredicate, dataProperty)
+                .addProperty(SWRL.argument1, firstArg)
+                .addProperty(SWRL.argument2, secondArg);
         return model.getNodeAs(res.asNode(), Atom.DataProperty.class);
     }
 
@@ -124,31 +122,28 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         OntJenaException.notNull(objectProperty, "Null object property");
         OntJenaException.notNull(firstArg, "Null first i-arg");
         OntJenaException.notNull(secondArg, "Null second i-arg");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, SWRL.IndividualPropertyAtom);
-        model.add(res, SWRL.propertyPredicate, objectProperty);
-        model.add(res, SWRL.argument1, firstArg);
-        model.add(res, SWRL.argument2, secondArg);
+        Resource res = model.createResource(SWRL.IndividualPropertyAtom)
+                .addProperty(SWRL.propertyPredicate, objectProperty)
+                .addProperty(SWRL.argument1, firstArg)
+                .addProperty(SWRL.argument2, secondArg);
         return model.getNodeAs(res.asNode(), Atom.ObjectProperty.class);
     }
 
     public static Atom.DifferentIndividuals createDifferentIndividualsAtom(OntGraphModelImpl model, IArg firstArg, IArg secondArg) {
         OntJenaException.notNull(firstArg, "Null first i-arg");
         OntJenaException.notNull(secondArg, "Null second i-arg");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, SWRL.DifferentIndividualsAtom);
-        model.add(res, SWRL.argument1, firstArg);
-        model.add(res, SWRL.argument2, secondArg);
+        Resource res = model.createResource(SWRL.DifferentIndividualsAtom)
+                .addProperty(SWRL.argument1, firstArg)
+                .addProperty(SWRL.argument2, secondArg);
         return model.getNodeAs(res.asNode(), Atom.DifferentIndividuals.class);
     }
 
     public static Atom.SameIndividuals createSameIndividualsAtom(OntGraphModelImpl model, IArg firstArg, IArg secondArg) {
         OntJenaException.notNull(firstArg, "Null first i-arg");
         OntJenaException.notNull(secondArg, "Null second i-arg");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, SWRL.SameIndividualAtom);
-        model.add(res, SWRL.argument1, firstArg);
-        model.add(res, SWRL.argument2, secondArg);
+        Resource res = model.createResource(SWRL.SameIndividualAtom)
+                .addProperty(SWRL.argument1, firstArg)
+                .addProperty(SWRL.argument2, secondArg);
         return model.getNodeAs(res.asNode(), Atom.SameIndividuals.class);
     }
 
@@ -198,11 +193,23 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         public AtomImpl(Node n, EnhGraph m) {
             super(n, m);
         }
+
+        @Override
+        public Optional<OntStatement> findRootStatement() {
+            return getRequiredRootStatement(this, getResourceType());
+        }
+
+        public abstract Resource getResourceType();
     }
 
     public static class BuiltInAtomImpl extends AtomImpl<Resource> implements Atom.BuiltIn {
         public BuiltInAtomImpl(Node n, EnhGraph m) {
             super(n, m);
+        }
+
+        @Override
+        public Resource getResourceType() {
+            return SWRL.BuiltinAtom;
         }
 
         @Override
@@ -257,16 +264,18 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(),
-                    statement(predicate).map(Stream::of).orElse(Stream.empty()),
-                    statement(SWRL.argument1).map(Stream::of).orElse(Stream.empty())
-            ).flatMap(Function.identity());
+            return Stream.concat(super.spec(), required(predicate, SWRL.argument1));
         }
     }
 
     public static class OntClassAtomImpl extends UnaryImpl<OntCE, IArg> implements Atom.OntClass {
         public OntClassAtomImpl(Node n, EnhGraph m) {
             super(n, m, SWRL.classPredicate, OntCE.class, IArg.class);
+        }
+
+        @Override
+        public Resource getResourceType() {
+            return SWRL.ClassAtom;
         }
 
         @Override
@@ -278,6 +287,11 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     public static class DataRangeAtomImpl extends UnaryImpl<OntDR, DArg> implements Atom.DataRange {
         public DataRangeAtomImpl(Node n, EnhGraph m) {
             super(n, m, SWRL.dataRange, OntDR.class, DArg.class);
+        }
+
+        @Override
+        public Resource getResourceType() {
+            return SWRL.DataRangeAtom;
         }
 
         @Override
@@ -317,17 +331,18 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(),
-                    statement(predicate).map(Stream::of).orElse(Stream.empty()),
-                    statement(SWRL.argument1).map(Stream::of).orElse(Stream.empty()),
-                    statement(SWRL.argument2).map(Stream::of).orElse(Stream.empty())
-            ).flatMap(Function.identity());
+            return Stream.concat(super.spec(), required(predicate, SWRL.argument1, SWRL.argument2));
         }
     }
 
     public static class DataPropertyAtomImpl extends BinaryImpl<OntNDP, IArg, DArg> implements Atom.DataProperty {
         public DataPropertyAtomImpl(Node n, EnhGraph m) {
             super(n, m, SWRL.propertyPredicate, OntNDP.class, IArg.class, DArg.class);
+        }
+
+        @Override
+        public Resource getResourceType() {
+            return SWRL.DatavaluedPropertyAtom;
         }
 
         @Override
@@ -339,6 +354,11 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     public static class ObjectPropertyAtomImpl extends BinaryImpl<OntOPE, IArg, IArg> implements Atom.ObjectProperty {
         public ObjectPropertyAtomImpl(Node n, EnhGraph m) {
             super(n, m, SWRL.propertyPredicate, OntOPE.class, IArg.class, IArg.class);
+        }
+
+        @Override
+        public Resource getResourceType() {
+            return SWRL.IndividualPropertyAtom;
         }
 
         @Override
@@ -364,6 +384,11 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
+        public Resource getResourceType() {
+            return SWRL.DifferentIndividualsAtom;
+        }
+
+        @Override
         public Class<? extends OntObject> getActualClass() {
             return Atom.DifferentIndividuals.class;
         }
@@ -372,6 +397,11 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     public static class SameIndividualsAtomImpl extends IndividualsAtomImpl implements Atom.SameIndividuals {
         public SameIndividualsAtomImpl(Node n, EnhGraph m) {
             super(n, m, OWL.sameAs);
+        }
+
+        @Override
+        public Resource getResourceType() {
+            return SWRL.SameIndividualAtom;
         }
 
         @Override
@@ -403,6 +433,11 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         @Override
         public Stream<OntStatement> spec() {
             return Stream.of(super.spec(), getHeadList().content(), getBodyList().content()).flatMap(Function.identity());
+        }
+
+        @Override
+        public Optional<OntStatement> findRootStatement() {
+            return getRequiredRootStatement(this, SWRL.Imp);
         }
 
         @Override
