@@ -240,7 +240,7 @@ public class OWLLangRegistry {
     private static OWLDocumentFormat makeBinaryFormat(Class<? extends OWLDocumentFormat> implType, Class<? extends OWLDocumentFormat> interfaceType) {
         OWLDocumentFormat target = newInstance(implType);
         return Reflection.newProxy(interfaceType, (proxy, method, args) -> {
-            if (method.getName().equals("isTextual")) return false;
+            if ("isTextual".equals(method.getName())) return false;
             return method.invoke(target, args);
         });
     }

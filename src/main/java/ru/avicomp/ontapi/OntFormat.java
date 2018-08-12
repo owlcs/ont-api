@@ -69,7 +69,8 @@ public enum OntFormat {
     KRSS2("KRSS2", "krss2", null, LangKey.KRSS2),
     DL("DL", "dl", null, LangKey.DLSYNTAX),
     DL_HTML("DL/HTML", "html", null, LangKey.DLSYNTAXHTML),
-    LATEX("LATEX", "tex", null, LangKey.LATEX),;
+    LATEX("LATEX", "tex", null, LangKey.LATEX),
+    ;
 
     private final String id;
     private String ext;
@@ -233,6 +234,7 @@ public enum OntFormat {
 
     /**
      * Answers iff this format supports read operation.
+     *
      * @return true if reading is possible through OWL-API or Jena.
      * @see #isSupported()
      */
@@ -243,6 +245,7 @@ public enum OntFormat {
 
     /**
      * Answers iff this format supports write operation.
+     *
      * @return true if writing is possible through OWL-API or Jena.
      * @see #isSupported()
      */
@@ -262,6 +265,7 @@ public enum OntFormat {
 
     /**
      * Answers iff this format is provided by owl-api.
+     *
      * @return boolean
      */
     public boolean isOWL() {
@@ -270,6 +274,7 @@ public enum OntFormat {
 
     /**
      * Answers iff this format is provided by jena only, i.e. no owl-api support.
+     *
      * @return boolean
      */
     public boolean isJenaOnly() {
@@ -278,6 +283,7 @@ public enum OntFormat {
 
     /**
      * Answers iff this format is provided by owl-api, i.e. no jena-support.
+     *
      * @return boolean
      */
     public boolean isOWLOnly() {
@@ -314,6 +320,7 @@ public enum OntFormat {
 
     /**
      * Returns all formats as stream.
+     *
      * @return Stream of formats.
      */
     public static Stream<OntFormat> formats() {
@@ -321,15 +328,19 @@ public enum OntFormat {
     }
 
     /**
-     * Finds OntFormat by instance of OWLDocumentFormat.
+     * Finds an {@link OntFormat ONT Format} by instance of {@link OWLDocumentFormat OWL Format}.
      *
-     * @param owlFormat {@link OWLDocumentFormat} instance
-     * @return OntFormat or null
-     * @throws NullPointerException in case of wrong argument
+     * @param format {@link OWLDocumentFormat} instance
+     * @return {@link OntFormat} or {@code null} if the format is not considered in this integrator
+     * @throws NullPointerException in case of null format key identifier
      */
-    public static OntFormat get(OWLDocumentFormat owlFormat) {
-        Class<? extends OWLDocumentFormat> type = OntApiException.notNull(owlFormat, "Null owl-document-format specified.").getClass();
-        return SimpleDocumentFormat.class.equals(type) ? get(owlFormat.getKey()) : get(type);
+    public static OntFormat get(OWLDocumentFormat format) {
+        Class<? extends OWLDocumentFormat> type = OntApiException.notNull(format, "Null OWL Document Format specified.").getClass();
+        OntFormat res = null;
+        if (!SimpleDocumentFormat.class.equals(type)) {
+            res = get(type); // the result is null for BinaryRDF since it is proxy now
+        }
+        return res != null ? res : get(format.getKey());
     }
 
     /**

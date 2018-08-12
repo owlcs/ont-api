@@ -37,7 +37,8 @@ import java.util.stream.Stream;
 
 /**
  * Test loading from different formats.
- * TODO: At the moment it is only for four unbroken owl-formats which are not supported by jena: fss, obo, omn, owl-rdf.
+ * TODO: At the moment it is only for four "good" owl-formats which are not supported by jena: fss, obo, omn, owl-rdf.
+ * "Good" means it is passed reloading test.
  * The pure OWL-API mechanism is used for loading a document in these formats.
  * <p>
  * Created by szuev on 20.12.2016.
@@ -103,6 +104,7 @@ public class SimpleFormatsTest {
                     return true;
                 })
                 .sorted().collect(Collectors.toList());
-        Assert.assertThat("[" + format + "] Incorrect list of axioms (expected=" + expected.size() + ",actual=" + actual.size() + ")", actual, IsEqual.equalTo(expected));
+        Assert.assertThat("[" + format + "] Incorrect list of axioms (expected=" + expected.size() +
+                ",actual=" + actual.size() + ")", actual, IsEqual.equalTo(expected));
     }
 }

@@ -1668,23 +1668,25 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
     }
 
-    protected void write(OWLOntology ontology, OWLDocumentFormat documentFormat, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
-        OntFormat format = OntFormat.get(documentFormat);
-        if (format == null || !format.isJena() || !(ontology instanceof OntologyModel)) {
-            if (ontology instanceof OntologyModel) {
-                // It does not work correctly without expanding axioms for some OWL-API formats such as ManchesterSyntaxDocumentFormat.
-                // The cache cleaning encourages extracting hidden axioms (declarations) in an explicit form while getting axioms:
-                ((OntologyModel) ontology).clearCache();
-            }
+    protected void write(OWLOntology ontology, OWLDocumentFormat doc, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
+        if (!(ontology instanceof OntologyModel))
+            throw new OntApiException.Unsupported("Unsupported OWLOntology instance: " + this);
+        OntFormat format = OntApiException.notNull(OntFormat.get(doc), "Can't determine format: " + doc);
+        OntologyModel ont = (OntologyModel) ontology;
+        if (!format.isJena()) {
+            // It does not work correctly without expanding axioms for some OWL-API formats such as ManchesterSyntaxDocumentFormat.
+            // The cache cleaning encourages extracting hidden axioms (declarations) in an explicit form while getting axioms.
+            // TODO: this logic must be rethought: clearCache is very expensive operation for large ontologies
+            ont.clearCache();
             try {
                 for (OWLStorerFactory storerFactory : getOntologyStorers()) {
-                    OWLStorer storer = storerFactory.createStorer();
-                    if (storer.canStoreOntology(documentFormat)) {
-                        storer.storeOntology(ontology, target, documentFormat);
+                    OWLStorer writer = storerFactory.createStorer();
+                    if (writer.canStoreOntology(doc)) {
+                        writer.storeOntology(ont, target, doc);
                         return;
                     }
                 }
-                throw new OWLStorerNotFoundException(documentFormat);
+                throw new OWLStorerNotFoundException(doc);
             } catch (IOException e) {
                 throw new OWLOntologyStorageIOException(e);
             }
@@ -1695,7 +1697,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         } else if (target.getDocumentIRI().isPresent()) {
             IRI iri = target.getDocumentIRI().get();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Save {} to {}", ontology.getOntologyID(), iri);
+                LOGGER.debug("Save {} to {}", ont.getOntologyID(), iri);
             }
             try {
                 os = openStream(iri);
@@ -1706,18 +1708,18 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             os = new WriterOutputStream(target.getWriter().get(), StandardCharsets.UTF_8);
         }
         if (os == null) {
-            throw new OWLOntologyStorageException("Null output stream, format = " + documentFormat);
+            throw new OWLOntologyStorageException("Null output stream, format = " + doc);
         }
-        Model model = ((OntologyModel) ontology).asGraphModel().getBaseModel();
-        PrefixManager pm = documentFormat instanceof PrefixManager ? (PrefixManager) documentFormat : null;
-        setDefaultPrefix(pm, ontology);
+        Model model = ont.asGraphModel().getBaseModel();
+        PrefixManager pm = doc instanceof PrefixManager ? (PrefixManager) doc : null;
+        setDefaultPrefix(pm, ont);
         Map<String, String> newPrefixes = pm != null ? pm.getPrefixName2PrefixMap() : Collections.emptyMap();
         Map<String, String> initPrefixes = model.getNsPrefixMap();
         try {
             Models.setNsPrefixes(model, newPrefixes);
             RDFDataMgr.write(os, model, format.getLang());
         } catch (JenaException e) {
-            throw new OWLOntologyStorageException("Can't save " + ontology.getOntologyID() + ". Format=" + format, e);
+            throw new OWLOntologyStorageException("Can't save " + ont.getOntologyID() + ". Format=" + format, e);
         } finally {
             Models.setNsPrefixes(model, initPrefixes);
         }

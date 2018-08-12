@@ -43,14 +43,24 @@ import java.util.stream.Collectors;
 
 /**
  * As a test.
- * To compare OWL-API and ONT-API read/write support.
+ * Currently it is mostly to compare OWL-API and ONT-API read/write support.
  * See {@link OntFormat}.
  *
  * Created by @szuev on 10.01.2018.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntFormatsChecker {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OntFormatsChecker.class);
+public class OntFormatsTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntFormatsTest.class);
+
+    @Test
+    public void testOntFormatsCommon() {
+        Arrays.stream(OntFormat.values()).forEach(f -> {
+            OWLDocumentFormat owl = f.createOwlFormat();
+            Assert.assertNotNull(owl);
+            Assert.assertNotNull(owl.getKey());
+            Assert.assertSame(f, OntFormat.get(owl));
+        });
+    }
 
     @Test
     public void testDocumentFormatFactories() throws OWLOntologyCreationException {
@@ -61,7 +71,7 @@ public class OntFormatsChecker {
         Set<OntFormat> writeNotSupported = new HashSet<>();
         Set<OntFormat> readNotSupported = new HashSet<>();
         for (OntFormat f : OntFormat.values()) {
-            Path p = save(ontology, "formats-test", f);
+            Path p = save(ontology, f);
             LOGGER.debug("Format: {}, File: {}", f, p);
             if (p == null) { // write fail, but if it is pure jena format it is expected.
                 if (!f.isJenaOnly())
@@ -144,14 +154,14 @@ public class OntFormatsChecker {
         return Arrays.stream(types).allMatch(type -> actual.axioms(type).count() == expected.axioms(type).count());
     }
 
-    public static Path save(OWLOntology ontology, String name, OntFormat type) {
-        Path dst = ReadWriteUtils.getFileToSave(name, type);
+    private static Path save(OWLOntology ontology, OntFormat type) {
+        Path dst = ReadWriteUtils.getFileToSave("formats-test", type);
         LOGGER.debug("Save owl-ontology to " + dst.toUri() + " (" + (type == null ? "TURTLE" : type.getID()) + ")");
         OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
         try (OutputStream out = Files.newOutputStream(dst)) {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
         } catch (OWLOntologyStorageException | IOException | UnsupportedOperationException e) {
-            LOGGER.error("Unable to print owl-ontology " + ontology, e);
+            LOGGER.warn("Unable to print owl-ontology " + ontology, e);
             return null;
         }
         return dst;
