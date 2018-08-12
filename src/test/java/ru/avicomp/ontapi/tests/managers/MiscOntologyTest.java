@@ -35,6 +35,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -150,7 +151,8 @@ public class MiscOntologyTest {
         LOGGER.debug("File: {}", pizza);
         OntologyModel ont = OntManagers.createONT().loadOntology(pizza);
         OWLOntologyDocumentSource src = OntGraphDocumentSource.wrap(ont.asGraphModel().getBaseGraph());
-        LOGGER.debug("Load using pipes");
+        URI uri = src.getDocumentIRI().toURI();
+        LOGGER.debug("Load using pipes from: {}", uri);
         OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(src);
         Set<OWLAxiom> ontAxioms = ont.axioms().collect(Collectors.toSet());
         Set<OWLAxiom> owlAxioms = owl.axioms().collect(Collectors.toSet());
@@ -167,7 +169,9 @@ public class MiscOntologyTest {
         OntGraphModel c = OntModelFactory.createModel();
         c.setID(iris.get(2)).addImport(iris.get(0)).addImport(iris.get(1));
         ReadWriteUtils.print(c);
-        m.loadOntologyFromOntologyDocument(OntGraphDocumentSource.wrap(c.getGraph()));
+        OntGraphDocumentSource src = OntGraphDocumentSource.wrap(c.getGraph());
+        LOGGER.debug("Load graph from: {}", src.getDocumentIRI().toURI());
+        m.loadOntologyFromOntologyDocument(src);
         Assert.assertEquals(3, m.ontologies().count());
         iris.forEach(i -> Assert.assertNotNull(m.getGraphModel(i)));
     }

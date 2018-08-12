@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 
 /**
@@ -52,15 +53,30 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
     protected AtomicReference<IOException> exception = new AtomicReference<>();
 
     /**
-     * Returns encapsulated graph.
+     * Returns the encapsulated {@link Graph Jena RDF Graph} instance.
      *
      * @return {@link Graph}
      */
     public abstract Graph getGraph();
 
+    /**
+     * Gets the IRI of this ontology document source.
+     * Every call to this method must return the same IRI, which must be unique within the manager.
+     *
+     * @return {@link IRI}, not {@code null}
+     */
     @Override
     public IRI getDocumentIRI() {
-        return IRI.create("graph:" + Graphs.getName(getGraph()));
+        return identifier().apply(getGraph());
+    }
+
+    /**
+     * Gets a function-mapper to retrieve an IRI-identifier from any graph.
+     *
+     * @return {@link Function} to calculate an {@link IRI} from a {@link Graph}
+     */
+    public static Function<Graph, IRI> identifier() {
+        return g -> IRI.create("graph:" + g.getClass().getName() + "@" + Integer.toHexString(g.hashCode()));
     }
 
     /**
