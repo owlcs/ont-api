@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Buffer RDF-OWL model.
+ * Buffer RDF Graph OWL model.
  * It's our analogy of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/Internals.java'>uk.ac.manchester.cs.owl.owlapi.Internals</a>.
  * This is a non-serializable(!) {@link OntGraphModel} but with methods to work with the owl-axioms and owl-entities directly.
  * It combines jena(RDF Graph) and owl(structural, OWLAxiom) ways and it is used by the facade model
@@ -79,6 +79,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             Caffeine.newBuilder().softValues().build(this::readObjects);
 
     /**
+     * Creates an RDF Graph Buffer Model.
      * For internal usage only.
      *
      * @param base   {@link Graph}
@@ -94,7 +95,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns model config instance.
+     * Returns the model config instance.
      *
      * @return {@link ConfigProvider.Config}
      */
@@ -109,7 +110,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * Jena model method.
-     * Since in ONT-API we use another kind of lock this method is disabled.
+     * Since in ONT-API we use another kind of lock this method is disabled (i.e. R/W Lock inside manager).
      *
      * @see ru.avicomp.ontapi.jena.ConcurrentGraph
      */
@@ -120,7 +121,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * Jena model method to work with embedded lock-mechanism.
-     * Disabled since in OWL-API there is a different approach.
+     * Disabled since in OWL-API there is a different approach (i.e. R/W Lock inside manager).
      *
      * @see #getLock()
      */
@@ -131,7 +132,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * Jena model method to work with embedded lock-mechanism.
-     * Disabled since in OWL-API there is a different approach.
+     * Disabled since in the OWL-API there is a different approach (i.e. R/W Lock inside manager).
      *
      * @see #getLock()
      */
@@ -141,7 +142,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns import-declarations.
+     * Lists all owl import-declarations.
      *
      * @return Stream of {@link OWLImportsDeclaration}s
      */
@@ -150,16 +151,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Returns true if ontology is empty from the semantic point of view.
+     * Answers {@code true} if the ontology is empty (in the axiomatic point of view).
      *
-     * @return true if ontology does not contain any axioms and annotations
+     * @return {@code true}  if ontology does not contain any axioms and annotations,
+     * the encapsulated graph still may contain some triples.
      */
     public boolean isOntologyEmpty() {
         return axioms().count() == 0 && annotations().count() == 0;
     }
 
     /**
-     * Returns an owl-entity by iri specified.
+     * Lists {@link OWLEntity OWL Entity} for the specified IRI.
      *
      * @param iri {@link IRI}
      * @return List of {@link OWLEntity}s.
@@ -245,7 +247,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Lists annotation properties in form of OWL-API objects.
+     * Lists all annotation properties in form of OWL-API objects.
      *
      * @return Stream of {@link OWLAnnotationProperty}s
      */
@@ -263,7 +265,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Gets owl-objects from axioms and annotations.
+     * Lists all OWL-objects of the specified class-type from the axioms and annotations cache-collections.
      *
      * @param type Class type of owl-object.
      * @param <O>  type of owl-object
@@ -275,7 +277,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Extracts object with specified type from ontology header and axioms.
+     * Extracts the Set of OWL-object of the specified class-type from the ontology header and axioms cache-collections.
      *
      * @param type Class type
      * @param <O>  subtype of {@link OWLObject}
@@ -289,7 +291,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Adds ontology header annotation to the model.
+     * Adds the given annotation to the ontology header of the model.
      *
      * @param annotation {@link OWLAnnotation}
      * @see #add(OWLAxiom)
@@ -299,7 +301,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Removes ontology header annotation from the model.
+     * Removes the given ontology header annotation from the model.
      *
      * @param annotation {@link OWLAnnotation}
      * @see #remove(OWLAxiom)
@@ -322,7 +324,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * The main method for loading/getting axioms.
+     * The main method for loading and getting axioms.
      * <p>
      * If {@link Config#parallel()} is true then collecting must not go beyond this method, otherwise it is allowed to be lazy.
      * This is due to the fact that OWL-API uses ReadWriteLock-mechanism everywhere and therefore there is a dangerous
@@ -343,7 +345,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Adds axiom to the model
+     * Adds the specified axiom to the model.
      *
      * @param axiom {@link OWLAxiom}
      * @see #add(OWLAnnotation)
@@ -353,8 +355,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Removes axiom from the model.
-     * Clears cache for an entity type, if the entity has been belonged to the removed axiom.
+     * Removes the given axiom from the model.
+     * Also, clears the cache for the entity type, if the entity has been belonged to the removed axiom.
      *
      * @param axiom {@link OWLAxiom}
      * @see #remove(OWLAnnotation)
@@ -373,7 +375,21 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Gets all axioms
+     * Answers {@code true} if the given axiom is present within this buffer-model.
+     * It is equivalent to the expression {@code this.axioms().anyMatch(a::equals)}.
+     *
+     * @param a {@link OWLAxiom}, not {@code null}
+     * @return {@code true} if axiom is present within model
+     */
+    public boolean contains(OWLAxiom a) {
+        if (!getCacheMap().containsKey(a.getClass())) { // as a hack: make sure cache is initialized
+            AxiomType.AXIOM_TYPES.forEach(t -> getAxiomTripleStore(t.getActualClass()));
+        }
+        return getAxiomTripleStore(a.getAxiomType()).contains(a);
+    }
+
+    /**
+     * Lists all axioms.
      *
      * @return Stream of {@link OWLAxiom}s.
      */
@@ -382,7 +398,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Gets axioms by class-type.
+     * Lists axioms of the given class-type.
      *
      * @param view Class
      * @param <A>  type of axiom
@@ -393,7 +409,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Gets axioms by axiom-type.
+     * Lists axioms of the given axiom-type.
      *
      * @param type {@link AxiomType}
      * @param <A>  type of axiom
@@ -406,8 +422,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
+     * Loads (if needed) and returns a map of axioms for the specified {@link AxiomType OWLAxiom type}.
      * Auxiliary method.
-     * Returns map of axioms by specified OWLAxiom type.
      *
      * @param type {@link AxiomType}
      * @param <A>  {@link OWLAxiom}
@@ -419,8 +435,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
+     * Loads (if needed) and returns a map of axioms for the specified OWLAxiom class-type.
      * Auxiliary method.
-     * Returns map of axioms by specified OWLAxiom class.
      *
      * @param type Class type of {@link OWLAxiom OWLAxiom}.
      * @param <A>  real type of OWLAxiom
@@ -432,7 +448,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Performs loading OWLObject-Triples container from underlying graph
+     * Loads and returns the {@link InternalObjectTriplesMap internal object-triple map} for the given Class-type.
      *
      * @param type Class type
      * @param <O>  {@link OWLAnnotation} or subtype of {@link OWLAxiom}
@@ -454,7 +470,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             Duration d = Duration.between(start, Instant.now());
             // commons-lang3 is included in jena-arq (3.6.0)
             LOGGER.debug("[{}]{}:::{}s", getID(),
-                    StringUtils.rightPad("[" + type.getSimpleName() + "]", 42), d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000.0);
+                    StringUtils.rightPad("[" + type.getSimpleName() + "]", 42),
+                    d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000.0);
         }
         return res;
     }
@@ -473,7 +490,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Reads OWLAxioms and triples by specified type.
+     * Reads axioms and their associated triples in the form of
+     * {@link InternalObjectTriplesMap iternal object-triple map} by the specified class-type.
      *
      * @param type Class type
      * @param <A>  subtype of {@link OWLAxiom}
@@ -484,7 +502,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Reads ontology header from underling graph.
+     * Reads the ontology header from the encapsulated graph.
      *
      * @return {@link ONTObject}
      */
@@ -493,8 +511,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
+     * Loads (if needed) and returns the triples-map of Ontology {@link OWLAnnotation OWL Annotation}s.
      * Auxiliary method.
-     * Returns triples-map of owl-annotations
      *
      * @return {@link InternalObjectTriplesMap} of {@link OWLAnnotation}.
      */
@@ -504,7 +522,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Adds an object to the model.
+     * Adds the OWL object to the model.
      *
      * @param object either {@link OWLAxiom} or {@link OWLAnnotation}
      * @param store  {@link InternalObjectTriplesMap}
@@ -525,8 +543,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Removes an OWLObject from the model.
-     * Note: need also remove associated objects from {@link #objects} cache!
+     * Removes the {@code component} from the given {@link InternalObjectTriplesMap map} and the model.
+     * Note: need also remove associated objects from the {@link #objects} cache!
      *
      * @param component either {@link OWLAxiom} or {@link OWLAnnotation}
      * @param map       {@link InternalObjectTriplesMap}
@@ -544,7 +562,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Deletes a triple from the base graph and clear jena cache for it.
+     * Deletes a triple from the base graph and clears standard jena cache for it.
      *
      * @param triple {@link Triple}
      */
@@ -555,7 +573,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
     /**
      * The overridden base method.
-     * Makes this ontology empty.
+     * Makes this ontology empty given its caches.
      *
      * @return {@link Model}
      */
@@ -566,8 +584,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Clears cache for the specified triple.
-     * This method is called while working with jena model.
+     * Clears the cache for the specified triple.
+     * This method is called if work directly through jena model interface.
      *
      * @param triple {@link Triple}
      */
@@ -591,12 +609,16 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     protected Collection<InternalObjectTriplesMap<? extends OWLObject>> getComponents() {
-        return components.asMap().values();
+        return getCacheMap().values();
+    }
+
+    protected Map<Class<? extends OWLObject>, InternalObjectTriplesMap<? extends OWLObject>> getCacheMap() {
+        return components.asMap();
     }
 
     /**
-     * Auxiliary method.
      * Invalidates {@link #objects} and {@link #cacheDataFactory} caches.
+     * Auxiliary method.
      */
     protected void clearObjectsCaches() {
         objects.invalidateAll();
@@ -618,8 +640,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Auxiliary object to provide common way for working with {@link OWLObject}s and {@link Triple}s together.
-     * Based on {@link ONTObject}, which is a wrapper around OWLObject with the reference to associated triples.
+     * Auxiliary class-container to provide a common way for working with {@link OWLObject}s and {@link Triple}s together.
+     * It is logically based on the {@link ONTObject} container,
+     * which is a wrapper around {@link OWLObject OWLObject} with the reference to associated {@link Triple triple} set.
      *
      * @param <O> Component type: a subtype of {@link OWLAxiom} or {@link OWLAnnotation}
      */
@@ -649,9 +672,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         /**
-         * Adds triple to this map.
-         * If there is no triple-container for specified object, or it is empty, or it is in-memory,
-         * then a triple will be added to inner set, otherwise appended to existing stream.
+         * Adds the object-triple pair to this map.
+         * If there is no triple-container for the specified object, or it is empty, or it is in-memory,
+         * then a triple will be added to the inner set, otherwise appended to existing stream.
          *
          * @param key    OWLObject (axiom or annotation)
          * @param triple {@link Triple}
@@ -663,7 +686,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         /**
-         * Removes an object-triple pair from this map
+         * Removes the object-triple pair from the map.
          *
          * @param key    OWLObject (axiom or annotation)
          * @param triple {@link Triple}
@@ -674,7 +697,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
 
         /**
-         * Removes an object and all associated triples
+         * Removes the given object and all associated triples.
          *
          * @param key OWLObject (axiom or annotation)
          */
@@ -697,6 +720,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
         public boolean contains(Triple triple) {
             return objects().anyMatch(o -> getTripleSet(o).contains(triple));
+        }
+
+        public boolean contains(O o) {
+            return set.contains(ONTObject.create(o));
         }
 
         public Stream<O> objects() {
@@ -909,9 +936,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
          * <a href='https://github.com/ben-manes/caffeine/issues/209'>a recursive computation is not supported in Java’s maps</a>.
          *
          * @param maxSize, int, the maximum size of the cache
-         * @param loader  {@link CacheLoader}
-         * @param <K>     key type
-         * @param <V>     value type
+         * @param loader   {@link CacheLoader}
+         * @param <K>      key type
+         * @param <V>      value type
          * @return {@link LoadingCache}
          */
         private static <K, V> LoadingCache<K, V> buildSync(long maxSize, CacheLoader<K, V> loader) {

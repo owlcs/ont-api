@@ -44,7 +44,7 @@ abstract class OntModelTestBase {
         LOGGER.debug("[DEBUG]Turtle:");
         ReadWriteUtils.print(ontology, OntFormat.TURTLE);
         LOGGER.debug("[DEBUG]Axioms:");
-        ontology.axioms().map(String::valueOf).forEach(LOGGER::debug);
+        ontology.axioms().forEach(x -> LOGGER.debug("AXIOM: {}", x));
     }
 
     Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType... excluded) {

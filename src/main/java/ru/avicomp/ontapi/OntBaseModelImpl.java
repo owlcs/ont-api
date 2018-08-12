@@ -646,64 +646,70 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <A extends OWLAxiom> Stream<A> axioms(@Nonnull Class<A> type, @Nullable Class<? extends OWLObject> view, @Nonnull OWLObject object, @Nullable Navigation position) {
-        if (OWLDeclarationAxiom.class.equals(type) && OWLEntity.class.isInstance(object) && Navigation.IN_SUB_POSITION.equals(position)) {
+    public <A extends OWLAxiom> Stream<A> axioms(@Nonnull Class<A> type,
+                                                 @Nullable Class<? extends OWLObject> view,
+                                                 @Nonnull OWLObject object,
+                                                 @Nullable Navigation position) {
+        if (OWLDeclarationAxiom.class.equals(type) && object instanceof OWLEntity && Navigation.IN_SUB_POSITION.equals(position)) {
             return (Stream<A>) base.axioms(OWLDeclarationAxiom.class).filter(a -> object.equals(a.getEntity()));
         }
-        if (OWLSubObjectPropertyOfAxiom.class.equals(type) && OWLObjectPropertyExpression.class.isInstance(object)) {
+        if (OWLSubObjectPropertyOfAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
             return (Stream<A>) base.axioms(OWLSubObjectPropertyOfAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
-        if (OWLSubDataPropertyOfAxiom.class.equals(type) && OWLDataPropertyExpression.class.isInstance(object)) {
+        if (OWLSubDataPropertyOfAxiom.class.equals(type) && object instanceof OWLDataPropertyExpression) {
             return (Stream<A>) base.axioms(OWLSubDataPropertyOfAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
-        if (OWLSubAnnotationPropertyOfAxiom.class.equals(type) && OWLAnnotationProperty.class.isInstance(object)) { // the difference: this axiom type is ignored in original OWL-API method:
+        if (OWLSubAnnotationPropertyOfAxiom.class.equals(type) && object instanceof OWLAnnotationProperty) {
+            // the difference: this axiom type is ignored in original OWL-API method:
             return (Stream<A>) base.axioms(OWLSubAnnotationPropertyOfAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
-        if (OWLSubClassOfAxiom.class.equals(type) && OWLClassExpression.class.isInstance(object)) {
+        if (OWLSubClassOfAxiom.class.equals(type) && object instanceof OWLClassExpression) {
             return (Stream<A>) base.axioms(OWLSubClassOfAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperClass() : a.getSubClass()));
         }
-        if (OWLInverseObjectPropertiesAxiom.class.equals(type) && OWLObjectPropertyExpression.class.isInstance(object)) {
+        if (OWLInverseObjectPropertiesAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
             return (Stream<A>) base.axioms(OWLInverseObjectPropertiesAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSecondProperty() : a.getFirstProperty()));
         }
-        if (OWLObjectPropertyAssertionAxiom.class.equals(type) && OWLIndividual.class.isInstance(object)) {
+        if (OWLObjectPropertyAssertionAxiom.class.equals(type) && object instanceof OWLIndividual) {
             return (Stream<A>) base.axioms(OWLObjectPropertyAssertionAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getObject() : a.getSubject()));
         }
-        if (OWLNegativeObjectPropertyAssertionAxiom.class.equals(type) && OWLIndividual.class.isInstance(object)) {
+        if (OWLNegativeObjectPropertyAssertionAxiom.class.equals(type) && object instanceof OWLIndividual) {
             return (Stream<A>) base.axioms(OWLNegativeObjectPropertyAssertionAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getObject() : a.getSubject()));
         }
         if (OWLAnnotationAssertionAxiom.class.equals(type)) {
-            if (Navigation.IN_SUPER_POSITION.equals(position) && OWLAnnotationObject.class.isInstance(object)) {
+            if (Navigation.IN_SUPER_POSITION.equals(position) && object instanceof OWLAnnotationObject) {
                 return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class).filter(a -> object.equals(a.getValue()));
             }
-            if (Navigation.IN_SUB_POSITION.equals(position) && OWLAnnotationSubject.class.isInstance(object)) {
+            if (Navigation.IN_SUB_POSITION.equals(position) && object instanceof OWLAnnotationSubject) {
                 return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class).filter(a -> object.equals(a.getSubject()));
             }
         }
-        if (OWLDisjointUnionAxiom.class.equals(type) && OWLClassExpression.class.isInstance(object)) {
+        if (OWLDisjointUnionAxiom.class.equals(type) && object instanceof OWLClassExpression) {
             return (Stream<A>) base.axioms(OWLDisjointUnionAxiom.class)
-                    .filter(a -> Navigation.IN_SUPER_POSITION.equals(position) ? a.classExpressions().anyMatch(object::equals) : object.equals(a.getOWLClass()));
+                    .filter(a -> Navigation.IN_SUPER_POSITION.equals(position) ?
+                            a.classExpressions().anyMatch(object::equals) : object.equals(a.getOWLClass()));
         }
-        if (OWLSubPropertyChainOfAxiom.class.equals(type) && OWLObjectPropertyExpression.class.isInstance(object)) {
+        if (OWLSubPropertyChainOfAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
             return (Stream<A>) base.axioms(OWLSubPropertyChainOfAxiom.class)
-                    .filter(a -> Navigation.IN_SUPER_POSITION.equals(position) ? a.getPropertyChain().stream().anyMatch(object::equals) : object.equals(a.getSuperProperty()));
+                    .filter(a -> Navigation.IN_SUPER_POSITION.equals(position) ?
+                            a.getPropertyChain().stream().anyMatch(object::equals) : object.equals(a.getSuperProperty()));
         }
-        if (OWLClassAxiom.class.equals(type) && OWLClass.class.isInstance(object)) {
+        if (OWLClassAxiom.class.equals(type) && object instanceof OWLClass) {
             return (Stream<A>) axioms((OWLClass) object);
         }
-        if (OWLObjectPropertyAxiom.class.equals(type) && OWLObjectPropertyExpression.class.isInstance(object)) {
+        if (OWLObjectPropertyAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
             return (Stream<A>) axioms((OWLObjectPropertyExpression) object);
         }
-        if (OWLDataPropertyAxiom.class.equals(type) && OWLDataProperty.class.isInstance(object)) {
+        if (OWLDataPropertyAxiom.class.equals(type) && object instanceof OWLDataProperty) {
             return (Stream<A>) axioms((OWLDataProperty) object);
         }
-        if (OWLIndividualAxiom.class.equals(type) && OWLIndividual.class.isInstance(object)) {
+        if (OWLIndividualAxiom.class.equals(type) && object instanceof OWLIndividual) {
             return (Stream<A>) axioms((OWLIndividual) object);
         }
         if (OWLNaryAxiom.class.isAssignableFrom(type)) {
@@ -815,8 +821,8 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     }
 
     @Override
-    public boolean containsAxiom(@Nullable OWLAxiom axiom) {
-        return base.axioms().anyMatch(a -> a.equals(axiom));
+    public boolean containsAxiom(@Nonnull OWLAxiom axiom) {
+        return base.contains(axiom);
     }
 
     @Override
