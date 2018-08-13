@@ -189,7 +189,7 @@ public interface OntCE extends OntObject {
      * @param objectProperties {@link Collection} (preferably {@link Set})of {@link OntOPE object property expression}s
      * @param dataProperties   {@link Collection} (preferably {@link Set})of {@link OntNDP data property expression}s
      * @return {@link OntList} of {@link OntDOP}s
-     * @since 1.2.1
+     * @since 1.3.0
      */
     OntList<OntDOP> createHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties);
 
@@ -201,7 +201,7 @@ public interface OntCE extends OntObject {
      *
      * @param properties Array of {@link OntDOP}s without {@code null}s
      * @return {@link OntStatement}
-     * @since 1.2.1
+     * @since 1.3.0
      */
     OntStatement addHasKey(OntDOP... properties);
 
@@ -210,7 +210,7 @@ public interface OntCE extends OntObject {
      *
      * @param list {@link RDFNode}
      * @return Optional around {@link OntList} of {@link OntDOP data and object property expression}s
-     * @since 1.2.1
+     * @since 1.3.0
      */
     Optional<OntList<OntDOP>> findHasKey(RDFNode list);
 
@@ -219,7 +219,7 @@ public interface OntCE extends OntObject {
      * on predicate {@link OWL#hasKey owl:hasKey}.
      *
      * @return Stream of {@link OntList}s with parameter-type {@code OntDOP}
-     * @since 1.2.1
+     * @since 1.3.0
      */
     Stream<OntList<OntDOP>> listHasKeys();
 
@@ -229,7 +229,7 @@ public interface OntCE extends OntObject {
      *
      * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
      * @throws OntJenaException if the list is not found
-     * @since 1.2.1
+     * @since 1.3.0
      */
     void removeHasKey(RDFNode list);
 
@@ -268,7 +268,7 @@ public interface OntCE extends OntObject {
      * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
      *
      * @throws OntJenaException if the list is not found
-     * @since 1.2.1
+     * @since 1.3.0
      */
     default void clearHasKeys() {
         listHasKeys().collect(Collectors.toSet()).forEach(this::removeHasKey);
@@ -397,7 +397,7 @@ public interface OntCE extends OntObject {
          * Gets the ONT-List that contains resources of type {@link P}.
          *
          * @return {@link OntList}
-         * @since 1.2.1
+         * @since 1.3.0
          */
         OntList<P> getList();
 
@@ -415,7 +415,7 @@ public interface OntCE extends OntObject {
          * Gets the ONT-List that contains resources of type {@link O}.
          *
          * @return {@link OntList}
-         * @since 1.2.1
+         * @since 1.3.0
          */
         OntList<O> getList();
 

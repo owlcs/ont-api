@@ -204,7 +204,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      *
      * @return {@link OntLoaderConfiguration}, new instance
      * @see OntConfig#disableWebAccess()
-     * @since 1.2.1
+     * @since 1.3.0
      */
     public OntLoaderConfiguration disableWebAccess() {
         return setSupportedSchemes(Collections.singletonList(OntConfig.DefaultScheme.FILE));

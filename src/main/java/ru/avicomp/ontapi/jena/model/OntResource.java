@@ -27,7 +27,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 24.07.2018.
  *
- * @since 1.2.1
+ * @since 1.3.0
  */
 interface OntResource extends Resource {
 

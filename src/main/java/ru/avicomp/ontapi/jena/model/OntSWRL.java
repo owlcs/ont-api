@@ -37,7 +37,7 @@ public interface OntSWRL extends OntObject {
          * The list <b>is</b> typed: each list item has the type {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#AtomList swrl:AtomList}.
          *
          * @return {@link OntList} of {@link Atom}
-         * @since 1.2.1
+         * @since 1.3.0
          */
         OntList<Atom> getHeadList();
 
@@ -46,7 +46,7 @@ public interface OntSWRL extends OntObject {
          * The list <b>is</b> typed: each list item has the type {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#AtomList swrl:AtomList}.
          *
          * @return {@link OntList} of {@link Atom}
-         * @since 1.2.1
+         * @since 1.3.0
          */
         OntList<Atom> getBodyList();
 
@@ -97,7 +97,7 @@ public interface OntSWRL extends OntObject {
              * i.e. there are no {@code _:x rdf:type rdf:List} for list items.
              *
              * @return {@link OntList} of {@link DArg}
-             * @since 1.2.1
+             * @since 1.3.0
              */
             OntList<DArg> getArgList();
 

@@ -110,7 +110,7 @@ public interface OntDR extends OntObject {
          * Gets the ONT-List that contains resources of type {@link N}.
          *
          * @return {@link OntList}
-         * @since 1.2.1
+         * @since 1.3.0
          */
         OntList<N> getList();
     }

@@ -29,7 +29,7 @@ import java.util.Objects;
  * Currently it is a collection of sugar-methods:
  * anything produced by ONT-API should be also OWL-API since ONT-API is overridden OWL-API.
  *
- * @since 1.2.1
+ * @since 1.3.0
  * Created by @szuev on 01.07.2018.
  */
 @SuppressWarnings("WeakerAccess")

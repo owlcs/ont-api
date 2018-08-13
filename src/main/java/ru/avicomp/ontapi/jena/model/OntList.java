@@ -53,7 +53,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 10.07.2018.
  *
  * @param <E> the type of {@link RDFNode rdf-node}s in this list
- * @since 1.2.1
+ * @since 1.3.0
  */
 public interface OntList<E extends RDFNode> extends OntResource {
 

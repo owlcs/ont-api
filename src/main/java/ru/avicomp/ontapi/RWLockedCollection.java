@@ -47,7 +47,7 @@ public class RWLockedCollection<E extends Serializable> extends PriorityCollecti
      *
      * @param lock {@link ReadWriteLock} instance, null for no concurrent access
      * @see PriorityCollectionSorting#NEVER
-     * @since 1.2.1
+     * @since 1.3.0
      */
     public RWLockedCollection(ReadWriteLock lock) {
         this(lock, PriorityCollectionSorting.NEVER);
@@ -190,7 +190,7 @@ public class RWLockedCollection<E extends Serializable> extends PriorityCollecti
      * Returns a {@code Stream} with this collection as its source.
      *
      * @return a {@code Stream} over the elements in this collection
-     * @since 1.2.1
+     * @since 1.3.0
      */
     public Stream<E> stream() {
         return StreamSupport.stream(spliterator(), false);

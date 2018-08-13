@@ -68,7 +68,7 @@ public interface OntAnnotation extends OntObject {
      * and this object on predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#annotatedSource owl:annotatedSource}.
      *
      * @return Stream of {@link OntAnnotation}s
-     * @since 1.2.1
+     * @since 1.3.0
      */
     Stream<OntAnnotation> descendants();
 

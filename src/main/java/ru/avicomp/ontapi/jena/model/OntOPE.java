@@ -55,7 +55,7 @@ public interface OntOPE extends OntDOP {
      *
      * @param properties {@link Collection} (preferably {@link List}) of {@link OntOPE object property expression}s
      * @return {@link OntList} of {@link OntOPE}s
-     * @since 1.2.1
+     * @since 1.3.0
      */
     OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties);
 
@@ -64,7 +64,7 @@ public interface OntOPE extends OntDOP {
      * on predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
      *
      * @return Stream of {@link OntList}s with parameter-type {@code OntOPE}
-     * @since 1.2.1
+     * @since 1.3.0
      */
     Stream<OntList<OntOPE>> listPropertyChains();
 
@@ -74,7 +74,7 @@ public interface OntOPE extends OntDOP {
      *
      * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
      * @throws OntJenaException if the list is not found
-     * @since 1.2.1
+     * @since 1.3.0
      */
     void removePropertyChain(RDFNode list) throws OntJenaException;
 
@@ -115,7 +115,7 @@ public interface OntOPE extends OntDOP {
      *
      * @param list {@link RDFNode}
      * @return Optional around {@link OntList} of {@link OntOPE object property expression}s
-     * @since 1.2.1
+     * @since 1.3.0
      */
     default Optional<OntList<OntOPE>> findPropertyChain(RDFNode list) {
         return listPropertyChains()
@@ -132,7 +132,7 @@ public interface OntOPE extends OntDOP {
      * @param properties Array of {@link OntOPE}s without {@code null}s
      * @return {@link OntStatement}
      * @see #createPropertyChain(Collection)
-     * @since 1.2.1
+     * @since 1.3.0
      */
     default OntStatement addSuperPropertyOf(OntOPE... properties) {
         return createPropertyChain(Arrays.asList(properties)).getRoot();
@@ -142,7 +142,7 @@ public interface OntOPE extends OntDOP {
      * Deletes all property chain lists including their annotations
      * with predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom} for this resource from its associated model.
      *
-     * @since 1.2.1
+     * @since 1.3.0
      */
     default void clearPropertyChains() {
         listPropertyChains().collect(Collectors.toSet()).forEach(this::removePropertyChain);

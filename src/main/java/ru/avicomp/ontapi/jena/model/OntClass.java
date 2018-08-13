@@ -41,7 +41,7 @@ public interface OntClass extends OntEntity, OntCE {
      *
      * @param classes {@link Collection} (preferably {@link Set}) of {@link OntCE class expression}s
      * @return {@link OntList} of {@link OntCE}s
-     * @since 1.2.1
+     * @since 1.3.0
      */
     OntList<OntCE> createDisjointUnion(Collection<OntCE> classes);
 
@@ -50,7 +50,7 @@ public interface OntClass extends OntEntity, OntCE {
      * on predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
      *
      * @return Stream of {@link OntList}s with parameter-type {@code OntCE}
-     * @since 1.2.1
+     * @since 1.3.0
      */
     Stream<OntList<OntCE>> listDisjointUnions();
 
@@ -60,7 +60,7 @@ public interface OntClass extends OntEntity, OntCE {
      *
      * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
      * @throws OntJenaException if the list is not found
-     * @since 1.2.1
+     * @since 1.3.0
      */
     void removeDisjointUnion(RDFNode list);
 
@@ -76,7 +76,7 @@ public interface OntClass extends OntEntity, OntCE {
      * Deletes all DisjointUnion lists including their annotations
      * with predicate {@link OWL#disjointUnionOf owl:disjointUnionOf} for this resource from its associated model.
      *
-     * @since 1.2.1
+     * @since 1.3.0
      */
     default void clearDisjointUnions() {
         listDisjointUnions().collect(Collectors.toSet()).forEach(this::removeDisjointUnion);
@@ -87,7 +87,7 @@ public interface OntClass extends OntEntity, OntCE {
      *
      * @param list {@link RDFNode}
      * @return Optional around {@link OntList} of {@link OntCE class expression}s
-     * @since 1.2.1
+     * @since 1.3.0
      */
     default Optional<OntList<OntCE>> findDisjointUnion(RDFNode list) {
         return listDisjointUnions()
@@ -104,7 +104,7 @@ public interface OntClass extends OntEntity, OntCE {
      * @param classes Array of {@link OntCE class expressions} without {@code null}s, duplicates will be discarded and order will be saved
      * @return {@link OntStatement}
      * @see #createDisjointUnion(Collection)
-     * @since 1.2.1
+     * @since 1.3.0
      */
     default OntStatement addDisjointUnionOf(OntCE... classes) {
         return createDisjointUnion(Arrays.stream(classes).collect(Collectors.toCollection(LinkedHashSet::new))).getRoot();

@@ -264,7 +264,7 @@ public interface OntStatement extends Statement {
      * @param <N>  subtype of {@link RDFNode}
      * @return {@link RDFNode} instance
      * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException if subject node and type are incompatible
-     * @since 1.2.1
+     * @since 1.3.0
      */
     default <N extends RDFNode> N getSubject(Class<N> type) {
         return getSubject().as(type);

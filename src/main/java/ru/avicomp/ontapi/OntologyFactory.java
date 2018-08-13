@@ -43,7 +43,7 @@ public interface OntologyFactory extends OWLOntologyFactory {
      * @param id      {@link OWLOntologyID} the ID of the ontology to create, not null
      * @return {@link OntologyModel}
      * @throws OntApiException if something goes wrong
-     * @since 1.2.1
+     * @since 1.3.0
      */
     OntologyModel createOntology(OntologyManager manager, OWLOntologyID id) throws OntApiException;
 
@@ -58,7 +58,7 @@ public interface OntologyFactory extends OWLOntologyFactory {
      * @throws OWLOntologyCreationException if the ontology could not be created due to some I/O problem,
      *                                      broken source or incompatible state of manager
      * @throws OntApiException              if something else goes wrong
-     * @since 1.2.1
+     * @since 1.3.0
      */
     OntologyModel loadOntology(OntologyManager manager,
                                OWLOntologyDocumentSource source,
@@ -160,7 +160,7 @@ public interface OntologyFactory extends OWLOntologyFactory {
          * @param manager {@link OntologyManager} manager
          * @param config  {@link OntLoaderConfiguration} the config
          * @return {@link OntologyModel} new instance reflecting manager settings
-         * @since 1.2.1
+         * @since 1.3.0
          */
         OntologyModel createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config);
 
@@ -168,7 +168,7 @@ public interface OntologyFactory extends OWLOntologyFactory {
          * Makes a fresh Graph.
          *
          * @return {@link Graph Jena Graph}
-         * @since 1.2.1
+         * @since 1.3.0
          */
         Graph createGraph();
 

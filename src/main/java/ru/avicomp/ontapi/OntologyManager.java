@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  * <li>{@code addDocumentSourceMapper(mapping)} - since 1.0.1, now deprecated</li>
  * <li>{@code removeDocumentSourceMapper(mapping)} - since 1.0.1, now deprecated</li>
  * <li>{@code documentSourceMappers()} - since 1.0.1, now deprecated</li>
- * <li>{@link #getDocumentSourceMappers()} - since 1.2.1</li>
+ * <li>{@link #getDocumentSourceMappers()} - since 1.3.0</li>
  * </ul>
  * <p>
  * Created by szuev on 24.10.2016.
@@ -124,7 +124,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * it is widely used in dependent projects.
      *
      * @return {@link RWLockedCollection} of {@link DocumentSourceMapping}s
-     * @since 1.2.1
+     * @since 1.3.0
      */
     RWLockedCollection<DocumentSourceMapping> getDocumentSourceMappers();
 

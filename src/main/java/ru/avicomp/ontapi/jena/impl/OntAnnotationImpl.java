@@ -161,7 +161,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
      *
      * @param annotation {@link OntAnnotation}
      * @return Stream of {@link OntStatement}s
-     * @since 1.2.1
+     * @since 1.3.0
      */
     public static Stream<OntStatement> listRelatedStatements(OntAnnotation annotation) {
         return Stream.concat(annotation.assertions(), annotation.descendants().map(OntObject::getRoot));
