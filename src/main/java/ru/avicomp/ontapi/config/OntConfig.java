@@ -15,6 +15,8 @@
 package ru.avicomp.ontapi.config;
 
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.conf.Configurable;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
@@ -56,6 +58,7 @@ import java.util.stream.Stream;
  * <li>{@link #isIgnoreAxiomsReadErrors()} (since 1.1.0)</li>
  * <li>{@link #setIgnoreAxiomsReadErrors(boolean)} (since 1.1.0)</li>
  * </ul>
+ * <p>
  * Created by szuev on 27.02.2017.
  *
  * @see OntSettings
@@ -64,6 +67,8 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class OntConfig extends OntologyConfigurator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntConfig.class);
+
     protected final Map<OptionSetting, Object> map = new HashMap<>();
     // WARNING: OntPersonality is not serializable!
     protected transient OntPersonality personality;
@@ -696,6 +701,31 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
+     * Always returns {@code true} since this functionality is not supported by ONT-API.
+     *
+     * @return {@code true}
+     * @since OWL-API 5.1.1
+     * @since ONT-API 1.3.0
+     */
+    public boolean shouldRepairIllegalPunnings() {
+        LOGGER.warn("ONT-API does not support RepairIllegalPunnings");
+        return true;
+    }
+
+    /**
+     * No-op since this functionality is not supported by ONT-API.
+     *
+     * @param b anything
+     * @return this instance
+     * @since OWL-API 5.1.1
+     * @since ONT-API 1.3.0
+     */
+    public OntConfig withRepairIllegalPunnings(boolean b) {
+        LOGGER.warn("ONT-API does not support RepairIllegalPunnings");
+        return this;
+    }
+
+    /**
      * Builds new loader configuration.
      *
      * @return new {@link OntLoaderConfiguration}
@@ -821,7 +851,8 @@ public class OntConfig extends OntologyConfigurator {
         HTTP,
         HTTPS,
         FTP,
-        FILE,;
+        FILE,
+        ;
 
         @Override
         public String key() {

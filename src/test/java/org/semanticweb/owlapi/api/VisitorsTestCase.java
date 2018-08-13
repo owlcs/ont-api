@@ -47,9 +47,9 @@ public class VisitorsTestCase {
         Builder b = new Builder();
         Map<OWLObject, String> map = new LinkedHashMap<>();
         map.put(b.rule(),
-                "DLSafeRule( Body(BuiltInAtom(<urn:swrl#v1> Variable(<urn:swrl#var3>) Variable(<urn:swrl#var4>) )) Head(BuiltInAtom(<urn:swrl#v2> Variable(<urn:swrl#var5>) Variable(<urn:swrl#var6>) )) )");
+                "DLSafeRule( Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) )) Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )) )");
         map.put(b.bigRule(),
-                "DLSafeRule(Annotation(<urn:test#ann> \"test\"^^xsd:string)  Body(BuiltInAtom(<urn:swrl#v1> Variable(<urn:swrl#var3>) Variable(<urn:swrl#var4>) ) ClassAtom(<urn:test#c> Variable(<urn:swrl#var2>)) DataRangeAtom(<urn:test#datatype> Variable(<urn:swrl#var1>)) BuiltInAtom(<urn:test#iri> Variable(<urn:swrl#var1>) ) DifferentFromAtom(Variable(<urn:swrl#var2>) <urn:test#i>) SameAsAtom(Variable(<urn:swrl#var2>) <urn:test#iri>)) Head(BuiltInAtom(<urn:swrl#v2> Variable(<urn:swrl#var5>) Variable(<urn:swrl#var6>) ) DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl#var2>) \"false\"^^xsd:boolean) ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl#var2>) Variable(<urn:swrl#var2>))) )");
+                "DLSafeRule(Annotation(<urn:test#ann> \"test\"^^xsd:string)  Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) ) ClassAtom(<urn:test#c> Variable(<urn:swrl:var#var2>)) DataRangeAtom(<urn:test#datatype> Variable(<urn:swrl:var#var1>)) BuiltInAtom(<urn:test#iri> Variable(<urn:swrl:var#var1>) ) DifferentFromAtom(Variable(<urn:swrl:var#var2>) <urn:test#i>) SameAsAtom(Variable(<urn:swrl:var#var2>) <urn:test#iri>)) Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) ) DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl:var#var2>) \"false\"^^xsd:boolean) ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl:var#var2>) Variable(<urn:swrl:var#var2>))) )");
         map.put(b.onto(),
                 "Ontology(OntologyID(OntologyIRI(<urn:test#test>) VersionIRI(<null>)) [Axioms: 0] [Logical axioms: 0])");
         map.put(b.ann(),

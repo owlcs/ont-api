@@ -68,11 +68,11 @@ public class AxiomSubjectProviderExTestCase {
         map.put(b.subClass(), "<urn:test#c>");
         map.put(b.subData(), "<urn:test#dp>");
         map.put(b.subObject(), "<urn:test#op>");
-        map.put(b.rule(), "BuiltInAtom(<urn:swrl#v2> Variable(<urn:swrl#var5>) Variable(<urn:swrl#var6>) )");
+        map.put(b.rule(), "BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )");
         map.put(b.symm(), "<urn:test#op>");
         map.put(b.trans(), "<urn:test#op>");
         map.put(b.hasKey(), "<urn:test#c>");
-        map.put(b.bigRule(), "BuiltInAtom(<urn:swrl#v2> Variable(<urn:swrl#var5>) Variable(<urn:swrl#var6>) )");
+        map.put(b.bigRule(), "BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )");
         map.put(b.ann(), "urn:test#iri");
         map.put(b.asymm(), "<urn:test#op>");
         map.put(b.annDom(), "<urn:test#ann>");

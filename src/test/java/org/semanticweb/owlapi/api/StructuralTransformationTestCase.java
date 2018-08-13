@@ -99,8 +99,8 @@ public class StructuralTransformationTestCase {
         map.put(b.subObject(),
                 "[SubObjectPropertyOf(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#op> owl:topObjectProperty)]");
         map.put(b.rule(),
-                "[DLSafeRule( Body(BuiltInAtom(<urn:swrl#v1> Variable(<urn:swrl#var3>) Variable(<urn:swrl#var4>) )) "
-                        + "Head(BuiltInAtom(<urn:swrl#v2> Variable(<urn:swrl#var5>) Variable(<urn:swrl#var6>) )) )]");
+                "[DLSafeRule( Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) )) "
+                        + "Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )) )]");
         map.put(b.symm(),
                 "[SymmetricObjectProperty(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#op>)]");
         map.put(b.trans(),
@@ -108,12 +108,12 @@ public class StructuralTransformationTestCase {
         map.put(b.hasKey(),
                 "[HasKey(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#c> (<urn:test#iri> <urn:test#op> ) (<urn:test#dp> ))]");
         map.put(b.bigRule(),
-                "[DLSafeRule(Annotation(<urn:test#ann> \"test\"^^xsd:string)  Body(BuiltInAtom(<urn:swrl#v1> Variable(<urn:swrl#var3>) Variable(<urn:swrl#var4>) ) "
-                        + "ClassAtom(<urn:test#c> Variable(<urn:swrl#var2>)) DataRangeAtom(<urn:test#datatype> Variable(<urn:swrl#var1>)) "
-                        + "BuiltInAtom(<urn:test#iri> Variable(<urn:swrl#var1>) ) DifferentFromAtom(Variable(<urn:swrl#var2>) <urn:test#i>) "
-                        + "SameAsAtom(Variable(<urn:swrl#var2>) <urn:test#iri>)) Head(BuiltInAtom(<urn:swrl#v2> Variable(<urn:swrl#var5>) "
-                        + "Variable(<urn:swrl#var6>) ) DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl#var2>) \"false\"^^xsd:boolean) "
-                        + "ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl#var2>) Variable(<urn:swrl#var2>))) )]");
+                "[DLSafeRule(Annotation(<urn:test#ann> \"test\"^^xsd:string)  Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) ) "
+                        + "ClassAtom(<urn:test#c> Variable(<urn:swrl:var#var2>)) DataRangeAtom(<urn:test#datatype> Variable(<urn:swrl:var#var1>)) "
+                        + "BuiltInAtom(<urn:test#iri> Variable(<urn:swrl:var#var1>) ) DifferentFromAtom(Variable(<urn:swrl:var#var2>) <urn:test#i>) "
+                        + "SameAsAtom(Variable(<urn:swrl:var#var2>) <urn:test#iri>)) Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) "
+                        + "Variable(<urn:swrl:var#var6>) ) DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl:var#var2>) \"false\"^^xsd:boolean) "
+                        + "ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl:var#var2>) Variable(<urn:swrl:var#var2>))) )]");
         map.put(b.ann(),
                 "[AnnotationAssertion(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#ann> <urn:test#iri> \"false\"^^xsd:boolean)]");
         map.put(b.asymm(),

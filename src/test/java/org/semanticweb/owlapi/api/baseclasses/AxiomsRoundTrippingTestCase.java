@@ -144,17 +144,17 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
                 // SWRLRule
                 () -> {
                     Set<OWLAxiom> axioms = new HashSet<>();
-                    SWRLVariable varX = df.getSWRLVariable("urn:swrl#", "x");
-                    SWRLVariable varY = df.getSWRLVariable("urn:swrl#", "y");
-                    SWRLVariable varZ = df.getSWRLVariable("urn:swrl#", "z");
+                    SWRLVariable varX = df.getSWRLVariable("urn:swrl:var#", "x");
+                    SWRLVariable varY = df.getSWRLVariable("urn:swrl:var#", "y");
+                    SWRLVariable varZ = df.getSWRLVariable("urn:swrl:var#", "z");
                     Set<SWRLAtom> body = new HashSet<>();
                     body.add(df.getSWRLClassAtom(Class(iri("A")), varX));
                     SWRLIndividualArgument indIArg = df.getSWRLIndividualArgument(ind);
                     SWRLIndividualArgument indJArg = df.getSWRLIndividualArgument(indj);
                     body.add(df.getSWRLClassAtom(Class(iri("D")), indIArg));
                     body.add(df.getSWRLClassAtom(Class(iri("B")), varX));
-                    SWRLVariable varQ = df.getSWRLVariable("urn:swrl#", "q");
-                    SWRLVariable varR = df.getSWRLVariable("urn:swrl#", "r");
+                    SWRLVariable varQ = df.getSWRLVariable("urn:swrl:var#", "q");
+                    SWRLVariable varR = df.getSWRLVariable("urn:swrl:var#", "r");
                     body.add(df.getSWRLDataPropertyAtom(dp, varX, varQ));
                     OWLLiteral lit = Literal(33);
                     SWRLLiteralArgument litArg = df.getSWRLLiteralArgument(lit);

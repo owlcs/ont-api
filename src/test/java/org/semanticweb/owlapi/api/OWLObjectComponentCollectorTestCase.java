@@ -86,21 +86,21 @@ public class OWLObjectComponentCollectorTestCase {
             "DataPropertyAssertion(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#dp> <urn:test#i> \"string\"@en)";
     private static final String dpdomain =
             "DataPropertyDomain(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#dp> <urn:test#c>)";
-    private static final String VAR1 = "Variable(<urn:swrl#var1>)";
+    private static final String VAR1 = "Variable(<urn:swrl:var#var1>)";
     private static final String DRA =
-            "DataRangeAtom(<urn:test#datatype> Variable(<urn:swrl#var1>))";
-    private static final String v1 = "BuiltInAtom(<urn:test#iri> Variable(<urn:swrl#var1>) )";
-    private static final String v2 = "SameAsAtom(Variable(<urn:swrl#var2>) <urn:test#iri>)";
-    private static final String var2 = "Variable(<urn:swrl#var2>)";
+            "DataRangeAtom(<urn:test#datatype> Variable(<urn:swrl:var#var1>))";
+    private static final String v1 = "BuiltInAtom(<urn:test#iri> Variable(<urn:swrl:var#var1>) )";
+    private static final String v2 = "SameAsAtom(Variable(<urn:swrl:var#var2>) <urn:test#iri>)";
+    private static final String var2 = "Variable(<urn:swrl:var#var2>)";
     private static final String diffvar2 =
-            "DifferentFromAtom(Variable(<urn:swrl#var2>) <urn:test#i>)";
+            "DifferentFromAtom(Variable(<urn:swrl:var#var2>) <urn:test#i>)";
     private static final String opavar2 =
-            "ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl#var2>) Variable(<urn:swrl#var2>))";
+            "ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl:var#var2>) Variable(<urn:swrl:var#var2>))";
     private static final String dpvar2 =
-            "DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl#var2>) \"false\"^^xsd:boolean)";
-    private static final String classvar2 = "ClassAtom(<urn:test#c> Variable(<urn:swrl#var2>))";
+            "DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl:var#var2>) \"false\"^^xsd:boolean)";
+    private static final String classvar2 = "ClassAtom(<urn:test#c> Variable(<urn:swrl:var#var2>))";
     private static final String rule =
-            "DLSafeRule(Annotation(<urn:test#ann> \"test\"^^xsd:string)  Body(BuiltInAtom(<urn:swrl#v1> Variable(<urn:swrl#var3>) Variable(<urn:swrl#var4>) ) ClassAtom(<urn:test#c> Variable(<urn:swrl#var2>)) DataRangeAtom(<urn:test#datatype> Variable(<urn:swrl#var1>)) BuiltInAtom(<urn:test#iri> Variable(<urn:swrl#var1>) ) DifferentFromAtom(Variable(<urn:swrl#var2>) <urn:test#i>) SameAsAtom(Variable(<urn:swrl#var2>) <urn:test#iri>)) Head(BuiltInAtom(<urn:swrl#v2> Variable(<urn:swrl#var5>) Variable(<urn:swrl#var6>) ) DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl#var2>) \"false\"^^xsd:boolean) ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl#var2>) Variable(<urn:swrl#var2>))) )";
+            "DLSafeRule(Annotation(<urn:test#ann> \"test\"^^xsd:string)  Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) ) ClassAtom(<urn:test#c> Variable(<urn:swrl:var#var2>)) DataRangeAtom(<urn:test#datatype> Variable(<urn:swrl:var#var1>)) BuiltInAtom(<urn:test#iri> Variable(<urn:swrl:var#var1>) ) DifferentFromAtom(Variable(<urn:swrl:var#var2>) <urn:test#i>) SameAsAtom(Variable(<urn:swrl:var#var2>) <urn:test#iri>)) Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) ) DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl:var#var2>) \"false\"^^xsd:boolean) ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl:var#var2>) Variable(<urn:swrl:var#var2>))) )";
     private static final String T =
             "TransitiveObjectProperty(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#op>)";
     private static final String HASKEY =
@@ -241,16 +241,16 @@ public class OWLObjectComponentCollectorTestCase {
     private static final String TOPO = "owl:topObjectProperty";
     private static final String SUBOP =
             "SubObjectPropertyOf(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#op> owl:topObjectProperty)";
-    private static final String var6 = "Variable(<urn:swrl#var6>)";
-    private static final String var5 = "Variable(<urn:swrl#var5>)";
-    private static final String v4 = "Variable(<urn:swrl#var4>)";
+    private static final String var6 = "Variable(<urn:swrl:var#var6>)";
+    private static final String var5 = "Variable(<urn:swrl:var#var5>)";
+    private static final String v4 = "Variable(<urn:swrl:var#var4>)";
     private static final String v34 =
-            "BuiltInAtom(<urn:swrl#v1> Variable(<urn:swrl#var3>) Variable(<urn:swrl#var4>) )";
-    private static final String v3 = "Variable(<urn:swrl#var3>)";
+            "BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) )";
+    private static final String v3 = "Variable(<urn:swrl:var#var3>)";
     private static final String var236 =
-            "BuiltInAtom(<urn:swrl#v2> Variable(<urn:swrl#var5>) Variable(<urn:swrl#var6>) )";
+            "BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )";
     private static final String SHORTRULE =
-            "DLSafeRule( Body(BuiltInAtom(<urn:swrl#v1> Variable(<urn:swrl#var3>) Variable(<urn:swrl#var4>) )) Head(BuiltInAtom(<urn:swrl#v2> Variable(<urn:swrl#var5>) Variable(<urn:swrl#var6>) )) )";
+            "DLSafeRule( Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) )) Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )) )";
     private final OWLAxiom object;
     private final Set<String> expected;
 

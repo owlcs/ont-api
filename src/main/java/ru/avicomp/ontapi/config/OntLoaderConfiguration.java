@@ -16,6 +16,8 @@ package ru.avicomp.ontapi.config;
 
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.Namespaces;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -30,11 +32,16 @@ import java.util.*;
  * This is an extended {@link OWLOntologyLoaderConfiguration} with ONT-API specific settings.
  * Note: this config is immutable.
  * Used to configure loading a particular ontology to manager, different ontologies might have different load configs.
+ * <p>
+ * The new config methods (that are present in ONT-API, but are absent in the original OWL-API class),
+ * which are listed in the description of the class {@link OntConfig},
+ * have its own pair in this class.
  *
  * @see OntConfig
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue", "unused"})
 public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntLoaderConfiguration.class);
 
     protected final Map<OntConfig.OptionSetting, Object> map = new HashMap<>();
 
@@ -87,6 +94,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
         this.map.put(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, conf.getPriorityCollectionSorting());
         this.map.put(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS, conf.getBannedParsers());
         this.map.put(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT, conf.getEntityExpansionLimit());
+        this.map.put(OntSettings.OWL_API_AUTHORIZATION_VALUE, conf.getAuthorizationValue());
     }
 
     protected void copyONTSettings(OntLoaderConfiguration conf) {
@@ -643,6 +651,87 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     @Override
     public OntLoaderConfiguration setEntityExpansionLimit(@Nonnull String s) {
         return set(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT, s);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return String authorization header value
+     * @see OWLOntologyLoaderConfiguration#getAuthorizationValue()
+     * @since OWL-API 5.1.4
+     * @since ONT-API 1.3.0
+     */
+    @Override
+    public String getAuthorizationValue() {
+        return (String) get(OntSettings.OWL_API_AUTHORIZATION_VALUE);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param s Authorization header value.
+     * @return an {@link OntLoaderConfiguration} with the new option set
+     * @see OWLOntologyLoaderConfiguration#setAuthorizationValue(String)
+     * @since OWL-API 5.1.4
+     * @since ONT-API 1.3.0
+     */
+    @Override
+    public OntLoaderConfiguration setAuthorizationValue(@Nonnull String s) {
+        return set(OntSettings.OWL_API_AUTHORIZATION_VALUE, s);
+    }
+
+    /**
+     * Always returns {@code true} since this functionality is not supported by ONT-API.
+     *
+     * @return {@code true}
+     * @since OWL-API 5.1.5
+     * @since ONT-API 1.3.0
+     */
+    @Override
+    public boolean shouldTrimToSize() {
+        LOGGER.warn("ONT-API does not support TrimToSize");
+        return true;
+    }
+
+    /**
+     * No-op since this functionality is not supported by ONT-API.
+     *
+     * @param b anything
+     * @return this config instance
+     * @since OWL-API 5.1.5
+     * @since ONT-API 1.3.0
+     */
+    @Override
+    public OntLoaderConfiguration setTrimToSize(boolean b) {
+        LOGGER.warn("ONT-API does not support TrimToSize");
+        return this;
+    }
+
+    /**
+     * Always returns {@code true} since this functionality is not supported by ONT-API.
+     *
+     * @return {@code true}
+     * @since OWL-API 5.1.1
+     * @since ONT-API 1.3.0
+     */
+    @Override
+    public boolean shouldRepairIllegalPunnings() {
+        LOGGER.warn("ONT-API does not support RepairIllegalPunnings");
+        return true;
+    }
+
+    /**
+     * No-op since this functionality is not supported by ONT-API.
+     *
+     * @param b anything
+     * @return this config instance
+     * @since OWL-API 5.1.1
+     * @since ONT-API 1.3.0
+     */
+    @Override
+    public OntLoaderConfiguration setRepairIllegalPunnings(boolean b) {
+        LOGGER.warn("ONT-API does not support RepairIllegalPunnings");
+        return this;
     }
 
     @Override

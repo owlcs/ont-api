@@ -44,15 +44,15 @@ public class Builder {
     private final Set<OWLObjectProperty> ops = Sets.newHashSet(df.getOWLObjectProperty(iri), op);
     private final Set<OWLClass> classes = Sets.newHashSet(df.getOWLClass(iri), ce);
     private final Set<OWLNamedIndividual> inds = Sets.newHashSet(i, df.getOWLNamedIndividual(iri));
-    private final SWRLAtom v1 = df.getSWRLBuiltInAtom(IRI.create("urn:swrl#", "v1"),
-            Arrays.asList(df.getSWRLVariable("urn:swrl#", "var3"), df.getSWRLVariable("urn:swrl#", "var4")));
-    private final SWRLAtom v2 = df.getSWRLBuiltInAtom(IRI.create("urn:swrl#", "v2"),
-            Arrays.asList(df.getSWRLVariable("urn:swrl#", "var5"), df.getSWRLVariable("urn:swrl#", "var6")));
+    private final SWRLAtom v1 = df.getSWRLBuiltInAtom(IRI.create("urn:swrl:var#", "v1"),
+            Arrays.asList(df.getSWRLVariable("urn:swrl:var#", "var3"), df.getSWRLVariable("urn:swrl:var#", "var4")));
+    private final SWRLAtom v2 = df.getSWRLBuiltInAtom(IRI.create("urn:swrl:var#", "v2"),
+            Arrays.asList(df.getSWRLVariable("urn:swrl:var#", "var5"), df.getSWRLVariable("urn:swrl:var#", "var6")));
     private final Set<SWRLAtom> body = Sets.newHashSet(v1);
     private final Set<SWRLAtom> head = Sets.newHashSet(v2);
-    private final SWRLDArgument var1 = df.getSWRLVariable("urn:swrl#", "var1");
+    private final SWRLDArgument var1 = df.getSWRLVariable("urn:swrl:var#", "var1");
     private final List<SWRLDArgument> var1list = Collections.singletonList(var1);
-    private final SWRLIArgument var2 = df.getSWRLVariable("urn:swrl#", "var2");
+    private final SWRLIArgument var2 = df.getSWRLVariable("urn:swrl:var#", "var2");
     private final LinkedHashSet<SWRLAtom> body2 = Sets.newLinkedHashSet(Arrays.asList(v1,
             df.getSWRLClassAtom(ce, var2),
             df.getSWRLDataRangeAtom(d, var1),

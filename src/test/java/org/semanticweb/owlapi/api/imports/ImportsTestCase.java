@@ -19,6 +19,7 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.api.baseclasses.TestBase;
 import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -35,6 +36,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health
@@ -278,4 +283,37 @@ public class ImportsTestCase extends TestBase {
         }
         return a;
     }
+
+    @Test // from OWL-API-5.1.5
+    public void testImportsWhenRemovingAndReloading() throws Exception {
+        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        AutoIRIMapper mapper = new AutoIRIMapper(new File(RESOURCES, "imports"), true);
+        man.getIRIMappers().add(mapper);
+        String name = "/owlapi/imports/thesubont.omn";
+        OWLOntology root = man.loadOntologyFromOntologyDocument(getClass().getResourceAsStream(name));
+        assertEquals(1, root.imports().count());
+        for (OWLOntology ontology : asList(man.ontologies())) {
+            man.removeOntology(ontology);
+        }
+        assertEquals(0, man.ontologies().count());
+        root = man.loadOntologyFromOntologyDocument(getClass().getResourceAsStream(name));
+        assertEquals(1, root.imports().count());
+    }
+
+    /* // TODO: disabled till update to jena 3.8.0 + (where xerces is excluded)
+    @Test // from OWL-API-5.1.5
+    public void testAutoIRIMapperShouldNotBeConfusedByPrefixes() {
+        AutoIRIMapper mapper = new AutoIRIMapper(new File(RESOURCES, "imports"), true);
+        assertTrue(mapper.getOntologyIRIs()
+                .contains(IRI.create("http://owlapitestontologies.com/thesubont")));
+    }
+    */
+
+    @Test // from OWL-API-5.1.5
+    public void testAutoIRIMapperShouldRecogniseRdfAboutInOwlOntology() {
+        AutoIRIMapper mapper = new AutoIRIMapper(new File(RESOURCES, "imports"), true);
+        assertTrue(mapper.getOntologyIRIs().contains(IRI.create("http://test.org/compleximports/A.owl")));
+    }
+
+
 }
