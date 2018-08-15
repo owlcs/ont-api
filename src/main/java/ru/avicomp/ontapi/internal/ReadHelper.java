@@ -63,22 +63,56 @@ public class ReadHelper {
                 Stream.of(d, o).map(AxiomParserProvider::get).anyMatch(a -> a.testStatement(statement)));
     }
 
-    public static boolean isDeclarationStatement(OntStatement stmt) {
-        return stmt.isDeclaration() && isEntityOrAnonymousIndividual(stmt.getSubject());
+    /**
+     * Answers {@code true} if the given {@link OntStatement} is a declaration (predicate = {@code rdf:type})
+     * of some OWL entity or anonymous individual.
+     *
+     * @param s {@link OntStatement} to test
+     * @return boolean
+     */
+    public static boolean isDeclarationStatement(OntStatement s) {
+        return s.isDeclaration() && isEntityOrAnonymousIndividual(s.getSubject());
     }
 
-    public static boolean isEntityOrAnonymousIndividual(OntObject subject) {
-        return (subject.isURIResource() && !subject.canAs(OntID.class)) || subject.canAs(OntIndividual.Anonymous.class);
+    /**
+     * Answers {@code true} if the given {@link OntObject} is an OWL-Entity or Anonymous Individual
+     *
+     * @param o {@link OntObject}
+     * @return boolean
+     */
+    public static boolean isEntityOrAnonymousIndividual(OntObject o) {
+        return o.isURIResource() || o.canAs(OntIndividual.Anonymous.class);
     }
 
-    public static boolean isAnnotationAssertionStatement(OntStatement statement, OntLoaderConfiguration conf) {
-        return statement.isAnnotation() && !statement.getSubject().canAs(OntAnnotation.class) && (isAllowBulkAnnotationAssertions(conf) || !hasAnnotations(statement));
+    /**
+     * Answers if the given {@link OntStatement} can be considered as annotation property assertion.
+     *
+     * @param s {@link OntStatement}, not null
+     * @param c {@link OntLoaderConfiguration}, config
+     * @return {@code true} if the specified statement is annotation property assertion
+     */
+    public static boolean isAnnotationAssertionStatement(OntStatement s, OntLoaderConfiguration c) {
+        return s.isAnnotation()
+                && !s.isBulkAnnotation()
+                && (ReadHelper.isAllowBulkAnnotationAssertions(c) || !ReadHelper.hasAnnotations(s));
     }
 
+    /**
+     * Lists all annotations for the given {@link OntStatement Ontology Statement}.
+     *
+     * @param statement {@link OntStatement}
+     * @return Stream of {@link OntStatement}s
+     */
     public static Stream<OntStatement> annotations(OntStatement statement) {
         return statement.annotations();
     }
 
+    /**
+     * Answers if the given statement has annotations.
+     *
+     * @param statement {@link OntStatement}
+     * @return boolean
+     */
     public static boolean hasAnnotations(OntStatement statement) {
         return statement.hasAnnotations();
     }
@@ -118,7 +152,7 @@ public class ReadHelper {
      * @param conf {@link OntLoaderConfiguration}
      * @return true if bulk assertions are preferable.
      */
-    private static boolean isAllowBulkAnnotationAssertions(OntLoaderConfiguration conf) {
+    public static boolean isAllowBulkAnnotationAssertions(OntLoaderConfiguration conf) {
         return conf == null || conf.isAllowBulkAnnotationAssertions();
     }
 
@@ -170,6 +204,7 @@ public class ReadHelper {
 
     /**
      * Maps {@link OntFR} =&gt; {@link OWLFacetRestriction}.
+     *
      * @param fr {@link OntFR}
      * @param df {@link InternalDataFactory}
      * @return {@link ONTObject} around {@link OWLFacetRestriction}
@@ -212,6 +247,7 @@ public class ReadHelper {
     /**
      * Calculates an {@link OWLDataRange} wrapped by {@link ONTObject}.
      * Note: this method is recursive.
+     *
      * @param dr   {@link OntDR}
      * @param df   {@link NoCacheDataFactory}
      * @param seen Set of {@link Resource}
@@ -268,7 +304,6 @@ public class ReadHelper {
     }
 
     /**
-     *
      * @param ce {@link OntCE}
      * @return {@link ONTObject} around {@link OWLClassExpression}
      */
@@ -279,6 +314,7 @@ public class ReadHelper {
     /**
      * Calculates an {@link OWLClassExpression} wrapped by {@link ONTObject}.
      * Note: this method is recursive.
+     *
      * @param ce   {@link OntCE}
      * @param df   {@link NoCacheDataFactory}
      * @param seen Set of {@link Resource}
@@ -403,7 +439,7 @@ public class ReadHelper {
             OWLClassExpression owl = df.getOWLDataFactory().getOWLObjectOneOf(components.stream().map(ONTObject::getObject));
             return ONTObject.create(owl, _ce).appendWildcards(components);
         }
-        if (OntCE.ComplementOf.class.isInstance(ce)) {
+        if (ce instanceof OntCE.ComplementOf) {
             OntCE.ComplementOf _ce = (OntCE.ComplementOf) ce;
             ONTObject<? extends OWLClassExpression> c = found.get(_ce.getValue(), v -> calcClassExpression(v, df, seen));
             return ONTObject.create(df.getOWLDataFactory().getOWLObjectComplementOf(c.getObject()), _ce).append(c);

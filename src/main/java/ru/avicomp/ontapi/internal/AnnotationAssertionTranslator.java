@@ -15,7 +15,9 @@
 package ru.avicomp.ontapi.internal;
 
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -39,27 +41,39 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
     }
 
     /**
-     * Annotation assertion: the rule "s A t":
-     * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
+     * Answers the annotation assertion statements.
+     * The rule {@code s A t}, where {@code s} is an IRI or anonymous individual,
+     * {@code t} is an IRI, anonymous individual, or literal, and {@code A} is an annotation property.
      * Currently there is following default behaviour:
      * if the annotation value has its own annotations then the specified statement is skipped from consideration
      * but comes as annotation of some other axiom.
-     * Also it is skipped if load annotations is disabled in configuration.
+     * Also it is skipped if load annotations is disabled in the configuration.
      *
      * @param model {@link OntGraphModel} the model
      * @return Stream of {@link OntStatement}
+     * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
      */
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
-        if (!getConfig(model).loaderConfig().isLoadAnnotationAxioms()) return Stream.empty();
+        OntLoaderConfiguration conf = getConfig(model).loaderConfig();
+        if (!conf.isLoadAnnotationAxioms()) {
+            return Stream.empty();
+        }
+        OntID id = model.getID();
         return listStatements(model, null, null, null)
-                .filter(this::testStatement);
+                .filter(s -> !id.equals(s.getSubject()))
+                .filter(s -> testStatement(s, conf));
     }
 
     @Override
     public boolean testStatement(OntStatement statement) {
-        return ReadHelper.isAnnotationAssertionStatement(statement, getConfig(statement.getModel()).loaderConfig()) &&
-                ReadHelper.isEntityOrAnonymousIndividual(statement.getSubject());
+        if (statement.getSubject().canAs(OntID.class)) return false;
+        OntLoaderConfiguration conf = getConfig(statement.getModel()).loaderConfig();
+        return testStatement(statement, conf);
+    }
+
+    public boolean testStatement(OntStatement s, OntLoaderConfiguration c) {
+        return ReadHelper.isAnnotationAssertionStatement(s, c) && ReadHelper.isEntityOrAnonymousIndividual(s.getSubject());
     }
 
     @Override

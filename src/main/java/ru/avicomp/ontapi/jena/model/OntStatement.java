@@ -175,16 +175,33 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Answers {@code true}  if this is an annotation assertion.
+     * Answers {@code true} if this is an annotation assertion.
      * Annotation assertion is a statement {@code s A t}, where
-     * {@code s} is IRI or anonymous individual,
-     * {@code t} is IRI, anonymous individual, or literal,
-     * and {@code A} is annotation property.
+     * {@code s} is an IRI or anonymous individual,
+     * {@code t} is an IRI, anonymous individual, or literal,
+     * and {@code A} is an annotation property.
      *
      * @return {@code true} if predicate is {@link OntNAP}
      */
     default boolean isAnnotation() {
         return getPredicate().canAs(OntNAP.class);
+    }
+
+    /**
+     * Answers {@code true} if this statement is a part of {@link OntAnnotation Bulk Annotation Ontology Object}.
+     * This means that it is one of the following:
+     * <pre>{@code
+     * _:x rdf:type              owl:Annotation .
+     * _:x p                     v .
+     * _:x owl:annotatedSource   this .
+     * _:x owl:annotatedProperty x .
+     * _:x owl:annotatedTarget   y .
+     * }</pre>
+     *
+     * @return boolean, {@code true} if it is a part of bulk annotation object
+     */
+    default boolean isBulkAnnotation() {
+        return getSubject().canAs(OntAnnotation.class);
     }
 
     /**
@@ -258,7 +275,7 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Gets a typed subject.
+     * Gets a typed statement subject.
      *
      * @param type Class type
      * @param <N>  subtype of {@link RDFNode}

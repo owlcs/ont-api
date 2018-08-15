@@ -179,6 +179,22 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
+    public <N extends RDFNode> N getSubject(Class<N> type) {
+        return subject.as(type);
+    }
+
+    /**
+     * {@inheritDoc}
+     * In case of {@code true}, this method also caches {@link OntAnnotation} in the model.
+     *
+     * @return boolean
+     */
+    @Override
+    public boolean isBulkAnnotation() {
+        return getModel().getOntObject(OntAnnotation.class, subject.asNode()) != null;
+    }
+
+    @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(value, "Null value.");

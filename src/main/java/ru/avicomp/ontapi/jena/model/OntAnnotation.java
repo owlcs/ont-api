@@ -19,8 +19,8 @@ import org.apache.jena.rdf.model.RDFNode;
 import java.util.stream.Stream;
 
 /**
- * An annotation ont-object.
- * It's an anonymous jena-resource ({@link OntObject Ontology Object}) with one of the two types:
+ * A Bulk Annotation {@link OntObject Ontology Object}.
+ * It's an anonymous jena-resource with one of the two types:
  * <ul>
  * <li>{@link ru.avicomp.ontapi.jena.vocabulary.OWL#Axiom owl:Axiom} for root annotations, it is usually owned by axiomatic statements.</li>
  * <li>{@link ru.avicomp.ontapi.jena.vocabulary.OWL#Annotation owl:Annotation} for sub-annotations,

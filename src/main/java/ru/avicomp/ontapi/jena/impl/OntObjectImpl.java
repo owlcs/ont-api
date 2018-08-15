@@ -115,7 +115,18 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return mode -> new MultiOntObjectFactory(finder, null, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
     }
 
-    protected static boolean canAs(Class<? extends RDFNode> view, Node node, EnhGraph graph) {
+    /**
+     * Checks if the given {@link Node Node} can be viewed as the given type.
+     * This method caches the enhanced node, if possible, in the model,
+     * and, opposite to {@link OntGraphModelImpl#getOntObject(Class, Node)},
+     * takes care about possible graph recursions.
+     *
+     * @param view  Class-type
+     * @param node  {@link Node}
+     * @param graph {@link EnhGraph}, assumed to be {@link OntGraphModelImpl}
+     * @return {@code true} if the node can be safely casted to the specified type
+     */
+    public static boolean canAs(Class<? extends RDFNode> view, Node node, EnhGraph graph) {
         return ((OntGraphModelImpl) graph).fetchNodeAs(node, view) != null;
     }
 
@@ -167,6 +178,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     /**
      * {@inheritDoc}
+     *
      * @return {@code true} if the root statement belongs to the base graph
      */
     @Override
@@ -210,6 +222,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     /**
      * {@inheritDoc}
+     *
      * @param property {@link Property}
      * @return Optional around {@link OntStatement}
      */
@@ -222,8 +235,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     /**
      * {@inheritDoc}
+     *
      * @param property {@link Property}, the predicate
-     * @param value   {@link RDFNode}, the object
+     * @param value    {@link RDFNode}, the object
      * @return Optional around {@link OntStatement}
      */
     @Override
@@ -284,6 +298,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     /**
      * {@inheritDoc}
+     *
      * @return {@link StmtIterator}
      */
     @Override
@@ -293,6 +308,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     /**
      * {@inheritDoc}
+     *
      * @param p {@link Property}, the predicate to search, can be {@code null}
      * @return {@link StmtIterator}
      */
@@ -306,6 +322,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * Creates a new {@link OntStatement} instance using the given {@link Triple} and {@link Property}.
      * The object and (if possible) the predicate property of the new statenebt are cached inside model
      * Auxiliary method.
+     *
      * @param p {@link Property}, can be {@code null}
      * @param t {@link Triple}, not {@code null}
      * @return new {@link OntStatement} around the triple
@@ -320,6 +337,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * Lists all annotation property assertions (so called plain annotations) attached to this object
      * plus all bulk annotations of the root statement.
+     *
      * @return Stream of {@link OntStatement}s
      */
     @Override
@@ -358,6 +376,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     /**
      * {@inheritDoc}
+     *
      * @return this instance
      */
     @Override
@@ -428,9 +447,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     /**
      * {@inheritDoc}
+     *
      * @param predicate {@link Property} predicate
-     * @param view Class type
-     * @param <O> any sub-type of {@link RDFNode}
+     * @param view      Class type
+     * @param <O>       any sub-type of {@link RDFNode}
      * @return Stream of nodes
      */
     @Override

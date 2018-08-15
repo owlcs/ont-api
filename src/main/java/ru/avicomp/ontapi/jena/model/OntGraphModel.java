@@ -180,12 +180,14 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the ont-entity for the specified type and uri.
-     * This method can be used to wrap builtin entities, which are not belonging to the graph in fact.
+     * This method can be used to wrap builtin entities, which, in fact, are not belonging to the graph,
+     * but can be considered as belonged to the model.
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not null.
      * @param uri, String, not null.
      * @param <E>  type of ont-entity
-     * @return {@link OntEntity} or null
+     * @return {@link OntEntity} or {@code null}
+     * @see #fetchOntEntity(Class, String)
      */
     <E extends OntEntity> E getOntEntity(Class<E> type, String uri);
 

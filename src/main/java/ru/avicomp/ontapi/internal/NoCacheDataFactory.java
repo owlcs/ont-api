@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * A DataFactory without cache.
+ * An Internal Data Factory without cache.
  * <p>
  * Created by @szuev on 15.03.2018.
  */
@@ -88,7 +88,6 @@ public class NoCacheDataFactory implements InternalDataFactory {
         String label = //NodeFmtLib.encodeBNodeLabel(individual.asNode().getBlankNodeLabel());
                 individual.asNode().getBlankNodeLabel();
         return ONTObject.create(getOWLDataFactory().getOWLAnonymousIndividual(label), individual);
-
     }
 
     @Override
