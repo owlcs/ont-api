@@ -10,13 +10,12 @@
  * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- *
  */
 
 package ru.avicomp.ontapi.internal;
 
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
@@ -40,7 +39,7 @@ public interface ConfigProvider {
      * <p>
      * Created by @szuev on 05.04.2017.
      *
-     * @see OWLDataFactory
+     * @see DataFactory
      * @see org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration
      * @see OWLOntologyWriterConfiguration
      * @see OntLoaderConfiguration
@@ -50,9 +49,9 @@ public interface ConfigProvider {
         /**
          * Returns data-factory reference.
          *
-         * @return {@link OWLDataFactory}
+         * @return {@link DataFactory}
          */
-        OWLDataFactory dataFactory();
+        DataFactory dataFactory();
 
         /**
          * Returns loader-configuration settings.
@@ -83,13 +82,13 @@ public interface ConfigProvider {
      * Default (dummy) implementation of {@link Config}.
      */
     class Dummy implements Config {
-        private static final OWLDataFactory DATA_FACTORY = OntManagers.getDataFactory();
+        private static final DataFactory DATA_FACTORY = OntManagers.getDataFactory();
         private static final OntConfig GLOBAL_CONFIG = new OntConfig();
         private static final OntLoaderConfiguration LOADER_CONFIGURATION = GLOBAL_CONFIG.buildLoaderConfiguration();
         private static final OntWriterConfiguration WRITER_CONFIGURATION = GLOBAL_CONFIG.buildWriterConfiguration();
 
         @Override
-        public OWLDataFactory dataFactory() {
+        public DataFactory dataFactory() {
             return DATA_FACTORY;
         }
 

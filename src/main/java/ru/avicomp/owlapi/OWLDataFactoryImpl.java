@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.util.VersionInfo;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.owlapi.axioms.*;
 import ru.avicomp.owlapi.objects.*;
 import ru.avicomp.owlapi.objects.ce.*;
@@ -49,7 +50,7 @@ import static ru.avicomp.owlapi.InternalizedEntities.*;
  * @see ru.avicomp.ontapi.internal.InternalDataFactory
  */
 @SuppressWarnings("NullableProblems")
-public class OWLDataFactoryImpl implements OWLDataFactory {
+public class OWLDataFactoryImpl implements DataFactory {
 
     private static final String LEXICAL_VALUE_CANNOT_BE_NULL = "lexicalValue cannot be null";
     private static final String LITERAL_CANNOT_BE_NULL = "literal cannot be null";

@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.OntologyConfigurator;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.OWLAdapter;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyBuilderImpl;
 import ru.avicomp.ontapi.config.OntConfig;
@@ -82,7 +83,7 @@ public class OWLManager {
         LOGGER.debug("New {}", typeName("OntologyManager"));
         return DEBUG_USE_OWL ?
                 new OntManagers.OWLAPIImplProfile().create(df, lock) :
-                new OntManagers.ONTManagerProfile().create(df, lock);
+                new OntManagers.ONTManagerProfile().create(OWLAdapter.get().asONT(df), lock);
     }
 
     private static String typeName(String base) {
@@ -119,7 +120,7 @@ public class OWLManager {
      */
     public static OWLOntologyBuilder createOntologyBuilder() {
         return OWLManager.DEBUG_USE_OWL ?
-                (OWLOntologyBuilder) (m, i) -> new OntManagers.OWLAPIImplProfile().createOWLOntologyImpl(m, i) :
+                (m, i) -> new OntManagers.OWLAPIImplProfile().createOWLOntologyImpl(m, i) :
                 new OntologyBuilderImpl();
     }
 

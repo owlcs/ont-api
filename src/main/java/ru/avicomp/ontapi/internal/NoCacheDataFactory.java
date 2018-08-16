@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.internal;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -132,7 +133,7 @@ public class NoCacheDataFactory implements InternalDataFactory {
     }
 
     @Override
-    public OWLDataFactory getOWLDataFactory() {
+    public DataFactory getOWLDataFactory() {
         return config.dataFactory();
     }
 

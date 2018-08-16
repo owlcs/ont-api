@@ -55,9 +55,9 @@ public class OntManagers implements OWLOntologyManagerFactory {
     /**
      * Gets the global data factory that can be used to create OWL API objects.
      *
-     * @return {@link OWLDataFactory} impl
+     * @return {@link DataFactory} impl
      */
-    public static OWLDataFactory getDataFactory() {
+    public static DataFactory getDataFactory() {
         return DEFAULT_PROFILE.dataFactory();
     }
 
@@ -164,7 +164,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      */
     public static class ONTManagerProfile implements Profile {
 
-        public static final OWLDataFactory DEFAULT_DATA_FACTORY = new OWLDataFactoryImpl();
+        public static final DataFactory DEFAULT_DATA_FACTORY = new OWLDataFactoryImpl();
 
         @Override
         public OntologyManager create(boolean concurrent) {
@@ -180,21 +180,21 @@ public class OntManagers implements OWLOntologyManagerFactory {
         /**
          * Creates a ready to use fresh ONT-API-impl Ontology Manager.
          *
-         * @param dataFactory {@link OWLDataFactory} instance
+         * @param dataFactory {@link DataFactory} instance
          * @param lock        {@link ReadWriteLock} r/w lock
          * @return {@link OntologyManager}
          */
-        public OntologyManager create(OWLDataFactory dataFactory, ReadWriteLock lock) {
+        public OntologyManager create(DataFactory dataFactory, ReadWriteLock lock) {
             OntologyFactory factory = createOntologyFactory(createOntologyBuilder());
             return create(dataFactory, factory, lock);
         }
 
-        public OntologyManager create(OWLDataFactory dataFactory, OntologyFactory factory, ReadWriteLock lock) {
+        public OntologyManager create(DataFactory dataFactory, OntologyFactory factory, ReadWriteLock lock) {
             return new OntologyManagerImpl(dataFactory, factory, lock);
         }
 
         @Override
-        public OWLDataFactory dataFactory() {
+        public DataFactory dataFactory() {
             return DEFAULT_DATA_FACTORY;
         }
 

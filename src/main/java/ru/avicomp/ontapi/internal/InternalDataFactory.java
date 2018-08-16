@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.internal;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
@@ -58,7 +59,7 @@ public interface InternalDataFactory {
 
     ONTObject<IRI> asIRI(OntObject s);
 
-    OWLDataFactory getOWLDataFactory();
+    DataFactory getOWLDataFactory();
 
     default IRI toIRI(String str) {
         return IRI.create(Objects.requireNonNull(str, "Null IRI."));

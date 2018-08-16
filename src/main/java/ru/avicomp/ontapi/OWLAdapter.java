@@ -14,10 +14,7 @@
 
 package ru.avicomp.ontapi;
 
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
-import org.semanticweb.owlapi.model.OntologyConfigurator;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
@@ -57,6 +54,21 @@ public class OWLAdapter {
             return (OntologyManager) manager;
         } catch (ClassCastException c) {
             throw new OntApiException("Wrong Ontology Manager", c);
+        }
+    }
+
+    /**
+     * Wraps {@link OWLDataFactory} as {@link DataFactory}.
+     *
+     * @param factory {@link OWLDataFactory}
+     * @return {@link DataFactory}
+     * @throws OntApiException if wrong instance specified
+     */
+    public DataFactory asONT(OWLDataFactory factory) {
+        try {
+            return (DataFactory) factory;
+        } catch (ClassCastException c) {
+            throw new OntApiException("Wrong Ontology Data Factory", c);
         }
     }
 

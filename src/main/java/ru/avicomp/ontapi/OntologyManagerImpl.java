@@ -85,7 +85,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected final RWLockedCollection<OWLStorerFactory> ontologyStorers;
     // primary parameters:
     protected final ReadWriteLock lock;
-    protected final OWLDataFactory dataFactory;
+    protected final DataFactory dataFactory;
     // the collection of ontologies:
     protected final OntologyCollection content;
 
@@ -93,11 +93,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * Constructs a manager instance which is ready to use.
      * OntologyFactory as parameter since a manager without it is useless.
      *
-     * @param dataFactory     {@link OWLDataFactory} - a factory to provide OWL Axioms and other OWL objects, not null
+     * @param dataFactory     {@link DataFactory} - a factory to provide OWL Axioms and other OWL objects, not null
      * @param ontologyFactory {@link OntologyFactory} - a factory to create and load ontologies, not null
      * @param readWriteLock   {@link ReadWriteLock} - lock to synchronize multithreading behaviour, can be null for a single-thread applications
      */
-    public OntologyManagerImpl(OWLDataFactory dataFactory, OntologyFactory ontologyFactory, ReadWriteLock readWriteLock) {
+    public OntologyManagerImpl(DataFactory dataFactory, OntologyFactory ontologyFactory, ReadWriteLock readWriteLock) {
         this(dataFactory, readWriteLock, PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
         this.ontologyFactories.add(Objects.requireNonNull(ontologyFactory, "Null Ontology Factory"));
     }
@@ -111,7 +111,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param sorting     {@link PriorityCollectionSorting} OWL-API enum, can be null.
      *                    Can't avoid using this parameter that is actually useless in ONT-API
      */
-    protected OntologyManagerImpl(OWLDataFactory dataFactory, ReadWriteLock lock, PriorityCollectionSorting sorting) {
+    protected OntologyManagerImpl(DataFactory dataFactory, ReadWriteLock lock, PriorityCollectionSorting sorting) {
         this.dataFactory = Objects.requireNonNull(dataFactory, "Null Data Factory");
         this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
         PriorityCollectionSorting _sorting = sorting == null ? PriorityCollectionSorting.NEVER : sorting;
@@ -153,7 +153,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     @Override
-    public OWLDataFactory getOWLDataFactory() {
+    public DataFactory getOWLDataFactory() {
         return dataFactory;
     }
 
@@ -2246,7 +2246,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         @Override
-        public OWLDataFactory dataFactory() {
+        public DataFactory dataFactory() {
             return manager.getOWLDataFactory();
         }
 
