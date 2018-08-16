@@ -29,8 +29,8 @@ import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.owlapi.objects.OWLAnnotationImplNotAnnotated;
 import ru.avicomp.ontapi.utils.OntIRI;
-import ru.avicomp.owlapi.objects.OWLAnnotationImplNotAnnotated;
 
 import java.util.*;
 import java.util.stream.Collectors;

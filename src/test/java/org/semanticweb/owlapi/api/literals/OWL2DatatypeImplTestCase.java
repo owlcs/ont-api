@@ -20,7 +20,7 @@ import org.semanticweb.owlapi.model.DataRangeType;
 import org.semanticweb.owlapi.model.EntityType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDatatype;
-import ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl;
+import ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
 
 import java.util.HashSet;
 import java.util.Set;

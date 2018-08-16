@@ -186,7 +186,7 @@ public abstract class ONTObject<O extends OWLObject> {
      * @param key {@link OWLObject}
      * @param <O> class-type of owl-object
      * @return Optional around {@link ONTObject}
-     * @see ru.avicomp.owlapi.OWLObjectImpl#equals(Object)
+     * @see ru.avicomp.ontapi.owlapi.OWLObjectImpl#equals(Object)
      */
     public static <O extends OWLObject> Optional<ONTObject<O>> find(Collection<ONTObject<O>> set, O key) {
         int h = OntApiException.notNull(key, "null key").hashCode();

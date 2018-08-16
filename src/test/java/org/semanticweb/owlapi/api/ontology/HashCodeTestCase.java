@@ -16,8 +16,8 @@ package org.semanticweb.owlapi.api.ontology;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl;
-import ru.avicomp.owlapi.objects.literal.OWLLiteralImpl;
+import ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
+import ru.avicomp.ontapi.owlapi.objects.literal.OWLLiteralImpl;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,11 +35,11 @@ public class HashCodeTestCase {
 
     @Test
     public void testSetContainsInt() {
-        ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl datatype = new ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl(
+        ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl datatype = new ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl(
                 OWL2Datatype.XSD_INTEGER.getIRI());
         OWLLiteral litNoComp = new OWLLiteralImpl("3", null, datatype);
         OWLLiteral litNoComp2 = new OWLLiteralImpl("3", null, datatype);
-        OWLLiteral litIntImpl = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplInteger(3);
+        OWLLiteral litIntImpl = new ru.avicomp.ontapi.owlapi.objects.literal.OWLLiteralImplInteger(3);
         assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
@@ -49,11 +49,11 @@ public class HashCodeTestCase {
 
     @Test
     public void testSetContainsDouble() {
-        ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl datatype = new ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl(
+        ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl datatype = new ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl(
                 OWL2Datatype.XSD_DOUBLE.getIRI());
         OWLLiteral litNoComp = new OWLLiteralImpl("3.0", null, datatype);
         OWLLiteral litNoComp2 = new OWLLiteralImpl("3.0", null, datatype);
-        OWLLiteral litIntImpl = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplDouble(3.0D);
+        OWLLiteral litIntImpl = new ru.avicomp.ontapi.owlapi.objects.literal.OWLLiteralImplDouble(3.0D);
         assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
@@ -63,11 +63,11 @@ public class HashCodeTestCase {
 
     @Test
     public void testSetContainsFloat() {
-        ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl datatype = new ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl(
+        ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl datatype = new ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl(
                 OWL2Datatype.XSD_FLOAT.getIRI());
         OWLLiteral litNoComp = new OWLLiteralImpl("3.0", null, datatype);
         OWLLiteral litNoComp2 = new OWLLiteralImpl("3.0", null, datatype);
-        OWLLiteral litIntImpl = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplFloat(3.0F);
+        OWLLiteral litIntImpl = new ru.avicomp.ontapi.owlapi.objects.literal.OWLLiteralImplFloat(3.0F);
         assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
@@ -77,11 +77,11 @@ public class HashCodeTestCase {
 
     @Test
     public void testSetContainsBoolean() {
-        ru.avicomp.owlapi.objects.entity.OWLDatatypeImpl datatype = new OWLDatatypeImpl(
+        ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl datatype = new OWLDatatypeImpl(
                 OWL2Datatype.XSD_BOOLEAN.getIRI());
         OWLLiteral litNoComp = new OWLLiteralImpl("true", null, datatype);
         OWLLiteral litNoComp2 = new OWLLiteralImpl("true", null, datatype);
-        OWLLiteral litIntImpl = new ru.avicomp.owlapi.objects.literal.OWLLiteralImplBoolean(true);
+        OWLLiteral litIntImpl = new ru.avicomp.ontapi.owlapi.objects.literal.OWLLiteralImplBoolean(true);
         assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);

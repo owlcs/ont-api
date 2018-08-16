@@ -31,7 +31,7 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import ru.avicomp.owlapi.objects.OWLAnonymousIndividualImpl;
+import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
 import java.util.*;
 import java.util.function.Function;

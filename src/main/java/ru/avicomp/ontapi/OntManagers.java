@@ -20,7 +20,6 @@ import com.google.common.reflect.Reflection;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.owlapi.OWLDataFactoryImpl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -164,7 +163,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      */
     public static class ONTManagerProfile implements Profile {
 
-        public static final DataFactory DEFAULT_DATA_FACTORY = new OWLDataFactoryImpl();
+        public static final DataFactory DEFAULT_DATA_FACTORY = new DataFactoryImpl();
 
         @Override
         public OntologyManager create(boolean concurrent) {

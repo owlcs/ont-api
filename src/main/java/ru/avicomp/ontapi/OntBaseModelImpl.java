@@ -30,7 +30,7 @@ import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.utils.Graphs;
-import ru.avicomp.owlapi.OWLObjectImpl;
+import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

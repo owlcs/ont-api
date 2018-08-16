@@ -21,7 +21,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.semanticweb.owlapi.api.baseclasses.TestBase;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.SWRLAtom;
-import ru.avicomp.owlapi.axioms.SWRLRuleImpl;
+import ru.avicomp.ontapi.owlapi.axioms.SWRLRuleImpl;
 
 import javax.annotation.Nonnull;
 import java.util.*;

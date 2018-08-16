@@ -19,7 +19,6 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.api.baseclasses.TestBase;
 import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -28,6 +27,7 @@ import org.semanticweb.owlapi.profiles.Profiles;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
+import ru.avicomp.owlapi.OWLManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
