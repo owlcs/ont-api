@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.utils;
 
+import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -47,7 +48,7 @@ import java.util.stream.Stream;
 public class TestUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestUtils.class);
 
-    private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(NodeID.getNodeID());
+    private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(BlankNodeId.create());
 
     public static OntologyModel createModel(OntIRI iri) {
         return createModel(iri.toOwlOntologyID());

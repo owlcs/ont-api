@@ -14,6 +14,8 @@
 
 package ru.avicomp.ontapi;
 
+import org.apache.jena.graph.BlankNodeId;
+import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 
 /**
@@ -24,4 +26,12 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
  * @since 1.3.0
  */
 public interface DataFactory extends OWLDataFactory {
+
+    /**
+     * Creates an {@link OWLAnonymousIndividual OWL-API Anonymous Individual} for the given {@link BlankNodeId Jena Blank Node Id}.
+     *
+     * @param id {@link BlankNodeId}, not null
+     * @return {@link OWLAnonymousIndividual} instance
+     */
+    OWLAnonymousIndividual getOWLAnonymousIndividual(BlankNodeId id);
 }

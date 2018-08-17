@@ -63,8 +63,10 @@ public class AxiomsByEntityTest {
 
     @Test
     public void testAxioms() {
-        OWLOntology expected = data.createOntology(OntManagers.createOWL());
-        OntologyModel actual = (OntologyModel) data.createOntology(OntManagers.createONT());
+        List<OWLAxiom> axioms = data.createTestAxioms().peek(x -> LOGGER.debug("ADD: {}", x)).collect(Collectors.toList());
+
+        OWLOntology expected = data.createOntology(OntManagers.createOWL(), axioms);
+        OntologyModel actual = (OntologyModel) data.createOntology(OntManagers.createONT(), axioms);
 
         data.testAxioms(expected, actual);
 
@@ -413,10 +415,10 @@ public class AxiomsByEntityTest {
             Assert.assertEquals(message, expected, actual);
         }
 
-        OWLOntology createOntology(OWLOntologyManager manager) {
+        OWLOntology createOntology(OWLOntologyManager manager, List<OWLAxiom> axioms) {
             OWLOntology res = create(getURI(), manager);
-            createTestAxioms().forEach(a -> manager.applyChange(new AddAxiom(res, a)));
-            res.axioms().map(String::valueOf).forEach(LOGGER::debug);
+            axioms.forEach(a -> manager.applyChange(new AddAxiom(res, a)));
+            res.axioms().forEach(x -> LOGGER.debug("Added: {}", x));
             LOGGER.debug("{} created.", toString(res));
             return res;
         }

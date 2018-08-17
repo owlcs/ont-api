@@ -83,12 +83,11 @@ public class NoCacheDataFactory implements InternalDataFactory {
 
     @Override
     public ONTObject<? extends OWLIndividual> get(OntIndividual individual) {
+        DataFactory df = getOWLDataFactory();
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
-            return ONTObject.create(getOWLDataFactory().getOWLNamedIndividual(toIRI(individual)), individual);
+            return ONTObject.create(df.getOWLNamedIndividual(toIRI(individual)), individual);
         }
-        String label = //NodeFmtLib.encodeBNodeLabel(individual.asNode().getBlankNodeLabel());
-                individual.asNode().getBlankNodeLabel();
-        return ONTObject.create(getOWLDataFactory().getOWLAnonymousIndividual(label), individual);
+        return ONTObject.create(df.getOWLAnonymousIndividual(individual.asNode().getBlankNodeId()), individual);
     }
 
     @Override

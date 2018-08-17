@@ -13,6 +13,7 @@
  */
 package ru.avicomp.ontapi.owlapi.objects;
 
+import org.apache.jena.graph.BlankNodeId;
 import org.semanticweb.owlapi.model.NodeID;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
@@ -21,28 +22,35 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
+ * An ON-API implementation of {@link OWLAnonymousIndividual},
+ * encapsulated {@link BlankNodeId Jena Bkank Node Id}.
+ *
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  * @since 1.2.0
  */
 public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymousIndividual {
 
-    private final NodeID nodeId;
+    private final BlankNodeId id;
 
     /**
      * @param nodeID node id
      */
-    public OWLAnonymousIndividualImpl(NodeID nodeID) {
-        nodeId = Objects.requireNonNull(nodeID, "nodeID cannot be null");
+    public OWLAnonymousIndividualImpl(BlankNodeId nodeID) {
+        this.id = Objects.requireNonNull(nodeID, "nodeID cannot be null");
+    }
+
+    public BlankNodeId getBlankNodeId() {
+        return id;
     }
 
     @Override
     public NodeID getID() {
-        return nodeId;
+        return NodeID.getNodeID(id.getLabelString());
     }
 
     @Override
     public String toStringID() {
-        return nodeId.getID();
+        return getID().getID();
     }
 
     @Override

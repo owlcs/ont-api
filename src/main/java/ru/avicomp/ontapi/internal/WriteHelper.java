@@ -29,6 +29,7 @@ import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,11 +61,17 @@ public class WriteHelper {
     }
 
     private static Resource toResource(OWLIndividual individual) {
-        return individual.isAnonymous() ? toResource(individual.asOWLAnonymousIndividual().getID()) : toResource(individual.asOWLNamedIndividual().getIRI());
+        return individual.isAnonymous() ? toResource(individual.asOWLAnonymousIndividual()) : toResource(individual.asOWLNamedIndividual().getIRI());
     }
 
-    public static Resource toResource(NodeID id) {
-        return new ResourceImpl(NodeFactory.createBlankNode(id.getID()), null);
+    public static Resource toResource(OWLAnonymousIndividual individual) {
+        Node n;
+        if (individual instanceof OWLAnonymousIndividualImpl) {
+            n = NodeFactory.createBlankNode(((OWLAnonymousIndividualImpl) individual).getBlankNodeId());
+        } else {
+            n = NodeFactory.createBlankNode(individual.toStringID());
+        }
+        return new ResourceImpl(n, null);
     }
 
     private static Resource toResource(IRI iri) {
@@ -227,7 +234,7 @@ public class WriteHelper {
     }
 
     public static OntIndividual.Anonymous getAnonymousIndividual(OntGraphModel model, OWLAnonymousIndividual ai) {
-        Resource res = toResource(OntApiException.notNull(ai, "Null anonymous individual.").getID()).inModel(model);
+        Resource res = toResource(OntApiException.notNull(ai, "Null anonymous individual.")).inModel(model);
         if (!res.canAs(OntIndividual.Anonymous.class)) {
             //throw new OntApiException("Anonymous individual should be created first: " + ai + ".");
             return Models.asAnonymousIndividual(res);

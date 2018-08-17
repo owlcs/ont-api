@@ -17,11 +17,11 @@ package ru.avicomp.ontapi.tests.model;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.OwlObjects;
+import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 
 /**
@@ -98,6 +98,27 @@ public class MiscOntModelTest extends OntModelTestBase {
                 .peek(x -> LOGGER.debug("AxiomWithInverseOf: {}", x)).count());
 
         Assert.assertEquals(2, ((OntologyModel) o).asGraphModel().statements(null, OWL.inverseOf, null).count());
+    }
 
+    @Test
+    public void testAnonymousIndividuals() {
+        OntologyManager manager = OntManagers.createONT();
+        OWLDataFactory df = manager.getOWLDataFactory();
+        OntologyModel o = manager.createOntology();
+
+        OntGraphModel m = o.asGraphModel();
+        OntIndividual ti1 = m.getOWLThing().createIndividual();
+        OWLAnonymousIndividual ni1 = df.getOWLAnonymousIndividual();
+        o.add(df.getOWLClassAssertionAxiom(df.getOWLNothing(), ni1));
+        ReadWriteUtils.print(m);
+        LOGGER.debug("Put: {}, {}", ti1, ni1);
+
+        OWLAnonymousIndividual ti2 = o.classAssertionAxioms(df.getOWLThing()).findFirst().orElseThrow(AssertionError::new)
+                .getIndividual().asOWLAnonymousIndividual();
+        OntIndividual ni2 = m.getOWLNothing().individuals().findFirst().orElseThrow(AssertionError::new);
+        LOGGER.debug("Get: {}, {}", ti2, ni2);
+
+        Assert.assertEquals("_:" + ti1.getId().getLabelString(), ti2.toStringID());
+        Assert.assertEquals(ni1.toStringID(), "_:" + ni2.getId().getLabelString());
     }
 }

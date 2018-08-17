@@ -78,16 +78,16 @@ public class ParsersStorersTestCase extends TestBase {
         LOGGER.debug("Test Data:");
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(data);
         LOGGER.debug("Original axioms:");
-        data.axioms().forEach(a -> LOGGER.debug("{}", a));
+        data.axioms().forEach(a -> LOGGER.debug("DATA AXIOM {}", a));
 
         stores.createStorer().storeOntology(data, target, format);
         OWLOntology res = getAnonymousOWLOntology();
-        LOGGER.debug("After store:");
-        LOGGER.debug(target.toString());
+        LOGGER.debug("After store:\n{}", target.toString());
 
         try {
-            OWLDocumentFormat resultFormat = parsers.createParser().parse(new StringDocumentSource(target), res, new OWLOntologyLoaderConfiguration());
-            LOGGER.debug("Result format: " + resultFormat.getClass().getSimpleName());
+            OWLDocumentFormat resultFormat = parsers.createParser()
+                    .parse(new StringDocumentSource(target), res, new OWLOntologyLoaderConfiguration());
+            LOGGER.debug("Result format: {}", resultFormat.getClass().getSimpleName());
         } catch (OWLParserException e) {
             if (expectParse) {
                 LOGGER.debug("ParsersStorersTestCase.test() {}", target);
@@ -98,14 +98,14 @@ public class ParsersStorersTestCase extends TestBase {
             }
         }
         LOGGER.debug("Axioms after parsing:");
-        res.axioms().forEach(a -> LOGGER.debug("{}", a));
+        res.axioms().forEach(a -> LOGGER.debug("RESULT AXIOM {}", a));
         if (!expectRoundtrip) {
             LOGGER.warn("Don't check the axiom contents.");
             return;
         }
         // original method doesn't care about annotations attached to axiom. so we save the same behaviour.
         String test = String.valueOf(trimAxiom(object));
-        final String bNodePattern = "_:\\w+";
+        final String bNodePattern = "_:[^\\s)]+";
         final String bNodeValue = "_:id";
         List<String> axioms = res.axioms()
                 .map(ParsersStorersTestCase::trimAxiom)

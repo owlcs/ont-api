@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi;
 
+import org.apache.jena.graph.BlankNodeId;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.util.VersionInfo;
@@ -223,13 +224,17 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLAnonymousIndividual getOWLAnonymousIndividual(String nodeId) {
-        Objects.requireNonNull(nodeId, ID_CANNOT_BE_NULL);
-        return new OWLAnonymousIndividualImpl(NodeID.getNodeID(nodeId));
+        return getOWLAnonymousIndividual(BlankNodeId.create(nodeId));
     }
 
     @Override
     public OWLAnonymousIndividual getOWLAnonymousIndividual() {
-        return new OWLAnonymousIndividualImpl(NodeID.getNodeID(null));
+        return getOWLAnonymousIndividual(BlankNodeId.create());
+    }
+
+    @Override
+    public OWLAnonymousIndividual getOWLAnonymousIndividual(BlankNodeId id) {
+        return new OWLAnonymousIndividualImpl(Objects.requireNonNull(id, ID_CANNOT_BE_NULL));
     }
 
     @Override
