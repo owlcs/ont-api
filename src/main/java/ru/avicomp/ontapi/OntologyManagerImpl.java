@@ -1706,16 +1706,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         OntologyModel ont = (OntologyModel) ontology;
         if (!format.isJena()) {
-            // The following code may not work correctly without expanding axioms for some OWL-API formats such as ManchesterSyntax.
-            // The cache cleaning encourages repeated reading of the graph, and, thus, leads the axioms to a uniform view.
-            // Without this operation, the axiomatic representation would look slightly different and the reload test
-            // (loading/saving in different formats) would not passed.
-            // Some of the storers require explicitly having declarations, but some storers and parsers do not,
-            // this may lead to exception.
-            // Some of the axioms can be user defined, that is, may contain annotations,
-            // which should be described in common uniform way before saving.
-            // TODO(3): this logic should be rethought: clearCache is very expensive operation for large ontologies
-            ont.clearCache();
+            ((InternalModelHolder) ont).getBase().clearCacheIfNeeded();
             try {
                 for (OWLStorerFactory storer : getOntologyStorers()) {
                     OWLStorer writer = storer.createStorer();

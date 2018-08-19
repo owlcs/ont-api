@@ -506,7 +506,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @param type Class type
      * @param <O>  {@link OWLAnnotation} or subtype of {@link OWLAxiom}
-     *  @return {@link ObjectTriplesMap cache bucket} of {@link OWLObject} of the given class-type
+     * @return {@link ObjectTriplesMap cache bucket} of {@link OWLObject} of the given class-type
      */
     @SuppressWarnings("unchecked")
     protected <O extends OWLObject> ObjectTriplesMap<O> readObjectTriples(Class<? extends OWLObject> type) {
@@ -568,7 +568,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Loads (if needed) and returns the triples-map of Ontology {@link OWLAnnotation OWL Annotation}s.
      * Auxiliary method.
      *
-     *  @return {@link ObjectTriplesMap cache bucket} of ontology {@link OWLAnnotation annotation}s.
+     * @return {@link ObjectTriplesMap cache bucket} of ontology {@link OWLAnnotation annotation}s.
      */
     @SuppressWarnings("unchecked")
     protected ObjectTriplesMap<OWLAnnotation> getAnnotationTripleStore() {
@@ -588,6 +588,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         clearObjectsCaches();
         try {
             getGraph().getEventManager().register(listener);
+            store.manual = true;
             writer.accept(object);
         } catch (Exception e) {
             throw new OntApiException(String.format("OWLObject: %s, message: %s", object, e.getMessage()), e);
@@ -616,7 +617,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Deletes a triple from the base graph and clears standard jena cache for it.
+     * Deletes a triple from the base graph and clears the standard jena model cache for it.
      *
      * @param triple {@link Triple}
      */
@@ -634,6 +635,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     @Override
     public InternalModel removeAll() {
         clearCache();
+        getNodeCache().clear();
         super.removeAll();
         return this;
     }
@@ -682,6 +684,37 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
+     * Invalidates the cache if needed.
+     * <p>
+     * The OWL-API serialization may not work correctly without explicit expansion of axioms into
+     * a strictly defined form. The cache cleaning encourages repeated reading of the encapsulated graph,
+     * and, thus, leads the axioms to a uniform view.
+     * Without this operation, the axiomatic representation would look slightly different
+     * and the reload test (loading/saving in different formats) would not passed.
+     * Also, absence of uniformed axiomatic view may lead to exceptions,
+     * since some of the OWL-storers require explicit declarations, which may not be present,
+     * if the ontology was assembled manually.
+     * It is important to invalidate whole the cache, since user-defined axioms may content parts of other axioms,
+     * such as annotation assertions, declarations, data-range definitions, etc.
+     */
+    public void clearCacheIfNeeded() {
+        if (hasManuallyAddedAxioms()) {
+            clearCache();
+        }
+    }
+
+    /**
+     * Answers whether there are manually added axioms in the cache.
+     * For optimization: if the graph has not been changed after reading,
+     * then the cache is in a state strictly fixed by internal mechanisms, so there is no need to reset the cache.
+     *
+     * @return boolean
+     */
+    public boolean hasManuallyAddedAxioms() {
+        return getCacheMap().values().stream().anyMatch(m -> m.manual);
+    }
+
+    /**
      * Invalidates {@link #objects} and {@link #cacheDataFactory} caches.
      * Auxiliary method.
      */
@@ -697,7 +730,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         components.invalidateAll();
         clearObjectsCaches();
     }
-
 
     @Override
     public String toString() {
@@ -716,6 +748,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         protected final Class<O> type;
         protected final Map<O, ONTObject<O>> map;
         protected LoadingCache<O, Set<Triple>> triples = Caffeine.newBuilder().softValues().build(this::loadTripleSet);
+        // a state flag that responds whether some axioms have been manually added to this map
+        protected boolean manual;
 
         public ObjectTriplesMap(Class<O> type, Map<O, ONTObject<O>> map) {
             this.type = type;
