@@ -192,7 +192,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
 
     @Override
     public Stream<OWLImportsDeclaration> importsDeclarations() {
-        return base.importDeclarations();
+        return base.listOWLImportDeclarations();
     }
 
     @Override
@@ -218,12 +218,12 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
 
     @Override
     public Stream<OWLClass> classesInSignature() {
-        return base.classes();
+        return base.listOWLClasses();
     }
 
     @Override
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
-        return base.anonymousIndividuals();
+        return base.listOWLAnonymousIndividuals();
     }
 
     @Override
@@ -233,27 +233,27 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
 
     @Override
     public Stream<OWLNamedIndividual> individualsInSignature() {
-        return base.namedIndividuals();
+        return base.listOWLNamedIndividuals();
     }
 
     @Override
     public Stream<OWLDataProperty> dataPropertiesInSignature() {
-        return base.dataProperties();
+        return base.listOWLDataProperties();
     }
 
     @Override
     public Stream<OWLObjectProperty> objectPropertiesInSignature() {
-        return base.objectProperties();
+        return base.listOWLObjectProperties();
     }
 
     @Override
     public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
-        return base.annotationProperties();
+        return base.listOWLAnnotationProperties();
     }
 
     @Override
     public Stream<OWLDatatype> datatypesInSignature() {
-        return base.datatypes();
+        return base.listOWLDatatypes();
     }
 
     @Override
@@ -264,7 +264,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
 
     @Override
     public Stream<OWLEntity> entitiesInSignature(@Nullable IRI entityIRI) {
-        return base.entities(entityIRI);
+        return base.listOWLEntities(entityIRI);
     }
 
     @Override
@@ -463,23 +463,20 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * <li>Disjoint class axioms where the specified class is an operand in the disjoint class axiom</li>
      * <li>Disjoint union axioms, where the specified class is the named class that is equivalent to the disjoint union</li>
      * </ul>
+     * This method may walk over the whole axiom cache in the {@link #base internal model} or read graph directly, as it sees fit.
      *
      * @param clazz The class whose describing axioms are to be retrieved.
      * @return A stream of class axioms that describe the class.
      */
     @Override
     public Stream<OWLClassAxiom> axioms(@Nonnull OWLClass clazz) {
-        Stream<? extends OWLClassAxiom> subClassOf = base.axioms(OWLSubClassOfAxiom.class)
-                .filter(a -> Objects.equals(a.getSubClass(), clazz));
+        Stream<? extends OWLClassAxiom> subClassOf = base.listOWLSubClassOfAxioms(clazz);
         Stream<? extends OWLClassAxiom> disjointUnion = base.axioms(OWLDisjointUnionAxiom.class)
                 .filter(a -> Objects.equals(a.getOWLClass(), clazz));
-        Stream<? extends OWLClassAxiom> nary = Stream.of(
-                OWLDisjointClassesAxiom.class,
-                OWLEquivalentClassesAxiom.class
-        ).map(c -> base.axioms(c))
-                .flatMap(Function.identity())
-                .filter(a -> a.operands().anyMatch(c -> Objects.equals(c, clazz)));
-        return Stream.of(subClassOf, disjointUnion, nary).flatMap(Function.identity());
+        Stream<? extends OWLClassAxiom> disjoint = base.axioms(OWLDisjointClassesAxiom.class)
+                .filter(a -> a.operands().anyMatch(clazz::equals));
+        Stream<? extends OWLClassAxiom> equivalent = base.listOWLEquivalentClassesAxioms(clazz);
+        return Stream.of(subClassOf, disjointUnion, disjoint, equivalent).flatMap(Function.identity());
     }
 
     /**
@@ -632,14 +629,17 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     }
 
     /**
-     * Generic search method: results all axioms which refer object, are instances of type.
-     * WARNING: it differs from original OWL-API method.
-     * For internal use only.
+     * Generic search method: results all axioms which refer the given object.
+     * This method may walk over the whole axiom cache in the {@link #base internal model} or read graph directly,
+     * as it sees fit.
+     * Functionally it differs from the original OWL-API method: it can handle a wider class of cases.
+     * For internal usage only.
      *
-     * @param type     {@link Class Class&lt;OWLAxiom&gt;}, not null, type of axioms.
-     * @param view     {@link Class Class&lt;OWLObject&gt;}. anything. ignored.
-     * @param object   {@link OWLObject} to find occurrences.
-     * @param position {@link Navigation} used in conjunction with {@code object} for some several kinds of axioms.
+     * @param type     {@link Class Class&lt;OWLAxiom&gt;}, not null, type of axiom
+     * @param view     {@link Class Class&lt;OWLObject&gt;} anything, ignored
+     * @param object   {@link OWLObject} to find occurrences
+     * @param position {@link Navigation} used in conjunction with {@code object} for some several kinds of axioms
+     * @param <A>      subtype of {@link OWLAxiom}
      * @return Stream of {@link OWLAxiom}s
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java#L544'>uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl#axioms(Class, Class, OWLObject, Navigation)</a>
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/Internals.java#L495'>uk.ac.manchester.cs.owl.owlapi.Internals#get(Class, Class, Navigation)</a>
@@ -647,11 +647,11 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     @SuppressWarnings("unchecked")
     @Override
     public <A extends OWLAxiom> Stream<A> axioms(@Nonnull Class<A> type,
-                                                 @Nullable Class<? extends OWLObject> view,
+                                                 @Nullable Class<? extends OWLObject> view, // not used
                                                  @Nonnull OWLObject object,
                                                  @Nullable Navigation position) {
         if (OWLDeclarationAxiom.class.equals(type) && object instanceof OWLEntity && Navigation.IN_SUB_POSITION.equals(position)) {
-            return (Stream<A>) base.axioms(OWLDeclarationAxiom.class).filter(a -> object.equals(a.getEntity()));
+            return (Stream<A>) base.listOWLDeclarationAxioms((OWLEntity) object);
         }
         if (OWLSubObjectPropertyOfAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
             return (Stream<A>) base.axioms(OWLSubObjectPropertyOfAxiom.class)
@@ -662,13 +662,17 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
         if (OWLSubAnnotationPropertyOfAxiom.class.equals(type) && object instanceof OWLAnnotationProperty) {
-            // the difference: this axiom type is ignored in original OWL-API method:
+            // the difference: this axiom type is ignored in the original OWL-API method:
             return (Stream<A>) base.axioms(OWLSubAnnotationPropertyOfAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
         if (OWLSubClassOfAxiom.class.equals(type) && object instanceof OWLClassExpression) {
+            OWLClassExpression c = (OWLClassExpression) object;
+            if (c.isOWLClass() && Navigation.IN_SUB_POSITION.equals(position)) {
+                return (Stream<A>) base.listOWLSubClassOfAxioms(c.asOWLClass());
+            }
             return (Stream<A>) base.axioms(OWLSubClassOfAxiom.class)
-                    .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperClass() : a.getSubClass()));
+                    .filter(a -> c.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperClass() : a.getSubClass()));
         }
         if (OWLInverseObjectPropertiesAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
             return (Stream<A>) base.axioms(OWLInverseObjectPropertiesAxiom.class)
@@ -687,7 +691,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
                 return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class).filter(a -> object.equals(a.getValue()));
             }
             if (Navigation.IN_SUB_POSITION.equals(position) && object instanceof OWLAnnotationSubject) {
-                return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class).filter(a -> object.equals(a.getSubject()));
+                return (Stream<A>) base.listOWLAnnotationAssertionAxioms((OWLAnnotationSubject) object);
             }
         }
         if (OWLDisjointUnionAxiom.class.equals(type) && object instanceof OWLClassExpression) {
@@ -880,7 +884,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
      * Also please note: an exception is expected if the encapsulated graph is not {@link GraphMem}.
      *
      * @param out {@link ObjectOutputStream}
-     * @throws IOException if I/O errors occur while writing to the underlying <code>OutputStream</code>
+     * @throws IOException     if I/O errors occur while writing to the underlying <code>OutputStream</code>
      * @throws OntApiException in case this instance encapsulates graph which is not stored in memory
      */
     private void writeObject(ObjectOutputStream out) throws IOException, OntApiException {

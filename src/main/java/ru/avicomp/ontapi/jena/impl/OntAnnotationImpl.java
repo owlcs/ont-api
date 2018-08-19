@@ -35,6 +35,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -56,6 +57,8 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static final Set<Resource> EXTRA_ROOT_TYPES =
             Stream.of(OWL.AllDisjointClasses, OWL.AllDisjointProperties, OWL.AllDifferent, OWL.NegativePropertyAssertion)
                     .collect(Iter.toUnmodifiableSet());
+    public static final List<Resource> ROOT_TYPES = Stream.concat(Stream.of(OWL.Axiom, OWL.Annotation), EXTRA_ROOT_TYPES.stream())
+            .collect(Iter.toUnmodifiableList());
     public static final Set<Node> EXTRA_ROOT_TYPES_AS_NODES = EXTRA_ROOT_TYPES.stream()
             .map(FrontsNode::asNode)
             .collect(Iter.toUnmodifiableSet());
@@ -114,10 +117,11 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
 
     @Override
     public Stream<OntAnnotation> descendants() {
-        return getModel().statements(null, OWL.annotatedSource, this)
-                .map(OntStatement::getSubject)
-                .filter(s -> s.canAs(OntAnnotation.class))
-                .map(s -> s.as(OntAnnotation.class));
+        return Iter.asStream(getModel().listStatements(null, OWL.annotatedSource, this)
+                .mapWith(OntStatement.class::cast)
+                .mapWith(OntStatement::getSubject)
+                .filterKeep(s -> s.canAs(OntAnnotation.class))
+                .mapWith(s -> s.as(OntAnnotation.class)));
     }
 
     @Override

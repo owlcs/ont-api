@@ -62,7 +62,7 @@ class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObject
     @Override
     public boolean testStatement(OntStatement statement) {
         if (!statement.getPredicate().equals(OWL.inverseOf) || !statement.getObject().isResource()) return false;
-        OntObject subject = statement.getSubject();
+        OntObject subject = statement.getSubject(OntObject.class);
         OntObject object = statement.getObject().as(OntObject.class);
         // to not take into account the object property expressions:
         return (subject.isURIResource() || subject.hasType(OWL.ObjectProperty))

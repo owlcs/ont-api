@@ -90,7 +90,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     // Any change in the graph must reset these caches.
     // TODO: better to remove this cache at all (replace with cacheDataFactory)
     protected LoadingCache<Class<? extends OWLObject>, Set<? extends OWLObject>> objects =
-            Caffeine.newBuilder().softValues().build(this::readObjects);
+            Caffeine.newBuilder().softValues().build(this::readOWLObjects);
 
     /**
      * Creates an RDF Graph Buffer Model instance.
@@ -160,7 +160,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @return Stream of {@link OWLImportsDeclaration}s
      */
-    public Stream<OWLImportsDeclaration> importDeclarations() {
+    public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
         return getID().imports().map(cacheDataFactory::toIRI).map(i -> getConfig().dataFactory().getOWLImportsDeclaration(i));
     }
 
@@ -180,7 +180,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @param iri {@link IRI}
      * @return List of {@link OWLEntity}s.
      */
-    public Stream<OWLEntity> entities(IRI iri) {
+    public Stream<OWLEntity> listOWLEntities(IRI iri) {
         if (iri == null) return Stream.empty();
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
         List<ONTObject<? extends OWLEntity>> res = new ArrayList<>();
@@ -211,8 +211,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLIndividual}s
      * @see OntGraphModel#classAssertions()
      */
-    public Stream<OWLIndividual> individuals() {
-        return objects(OWLIndividual.class);
+    public Stream<OWLIndividual> listOWLIndividuals() {
+        return listOWLObjects(OWLIndividual.class);
     }
 
     /**
@@ -220,8 +220,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @return Stream of {@link OWLAnonymousIndividual}s
      */
-    public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
-        return objects(OWLAnonymousIndividual.class);
+    public Stream<OWLAnonymousIndividual> listOWLAnonymousIndividuals() {
+        return listOWLObjects(OWLAnonymousIndividual.class);
     }
 
     /**
@@ -229,8 +229,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @return Stream of {@link OWLNamedIndividual}s
      */
-    public Stream<OWLNamedIndividual> namedIndividuals() {
-        return objects(OWLNamedIndividual.class);
+    public Stream<OWLNamedIndividual> listOWLNamedIndividuals() {
+        return listOWLObjects(OWLNamedIndividual.class);
     }
 
     /**
@@ -238,8 +238,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @return Stream of {@link OWLClass}es.
      */
-    public Stream<OWLClass> classes() {
-        return objects(OWLClass.class);
+    public Stream<OWLClass> listOWLClasses() {
+        return listOWLObjects(OWLClass.class);
     }
 
     /**
@@ -247,8 +247,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @return Stream of {@link OWLDataProperty}s
      */
-    public Stream<OWLDataProperty> dataProperties() {
-        return objects(OWLDataProperty.class);
+    public Stream<OWLDataProperty> listOWLDataProperties() {
+        return listOWLObjects(OWLDataProperty.class);
     }
 
     /**
@@ -256,8 +256,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @return Stream of {@link OWLObjectProperty}s
      */
-    public Stream<OWLObjectProperty> objectProperties() {
-        return objects(OWLObjectProperty.class);
+    public Stream<OWLObjectProperty> listOWLObjectProperties() {
+        return listOWLObjects(OWLObjectProperty.class);
     }
 
     /**
@@ -265,8 +265,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @return Stream of {@link OWLAnnotationProperty}s
      */
-    public Stream<OWLAnnotationProperty> annotationProperties() {
-        return objects(OWLAnnotationProperty.class);
+    public Stream<OWLAnnotationProperty> listOWLAnnotationProperties() {
+        return listOWLObjects(OWLAnnotationProperty.class);
     }
 
     /**
@@ -274,8 +274,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @return Stream of {@link OWLDatatype}s.
      */
-    public Stream<OWLDatatype> datatypes() {
-        return objects(OWLDatatype.class);
+    public Stream<OWLDatatype> listOWLDatatypes() {
+        return listOWLObjects(OWLDatatype.class);
     }
 
     /**
@@ -286,7 +286,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLObject}s.
      */
     @SuppressWarnings("unchecked")
-    protected <O extends OWLObject> Stream<O> objects(Class<O> type) {
+    protected <O extends OWLObject> Stream<O> listOWLObjects(Class<O> type) {
         return (Stream<O>) Objects.requireNonNull(objects.get(type), "Nothing found. Type: " + type).stream();
     }
 
@@ -297,7 +297,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @param <O>  subtype of {@link OWLObject}
      * @return Set of object
      */
-    protected <O extends OWLObject> Set<O> readObjects(Class<O> type) {
+    protected <O extends OWLObject> Set<O> readOWLObjects(Class<O> type) {
         return Stream.concat(
                 annotations().map(a -> OwlObjects.objects(type, a)).flatMap(Function.identity()),
                 axioms().map(a -> OwlObjects.objects(type, a)).flatMap(Function.identity()))
@@ -335,6 +335,47 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> annotations() {
         return getAnnotationTripleStore().objects();
+    }
+
+    /**
+     * Lists {@link OWLDeclarationAxiom Declaration Axiom}s for the specified {@link OWLEntity entity}.
+     *
+     * @param e {@link OWLEntity}, not null
+     * @return Stream of {@link OWLDeclarationAxiom}s
+     */
+    public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
+        return axioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
+    }
+
+    /**
+     * Lists {@link OWLAnnotationAssertionAxiom Annotation Assertion Axiom}s with the given {@link OWLAnnotationSubject subject}.
+     *
+     * @param s {@link OWLAnnotationSubject}, not null
+     * @return Stream of {@link OWLAnnotationAssertionAxiom}s
+     */
+    public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
+        return axioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
+    }
+
+    /**
+     * Lists {@link OWLSubClassOfAxiom SubClassOf Axiom}s by the given sub {@link OWLClass class}.
+     *
+     * @param sub {@link OWLClass}, not null
+     * @return Stream of {@link OWLSubClassOfAxiom}s
+     */
+    public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxioms(OWLClass sub) {
+        return axioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
+    }
+
+    /**
+     * Lists {@link OWLEquivalentClassesAxiom EquivalentClasses Axiom}s by the given {@link OWLClass class}-component.
+     *
+     * @param o {@link OWLClass}, not null
+     * @return Stream of {@link OWLEquivalentClassesAxiom}s
+     * @see AbstractNaryTranslator#axioms(OntGraphModel)
+     */
+    public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass o) {
+        return axioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(o::equals));
     }
 
     /**
@@ -591,9 +632,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return {@link Model}
      */
     @Override
-    public Model removeAll() {
+    public InternalModel removeAll() {
         clearCache();
-        return super.removeAll();
+        super.removeAll();
+        return this;
     }
 
     /**

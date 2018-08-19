@@ -19,7 +19,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
-import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
@@ -66,7 +65,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return {@link OntStatementImpl} fresh instance
      */
     public static OntStatementImpl createOntStatementImpl(Triple t, OntGraphModelImpl m) {
-        return createOntStatementImpl(new ResourceImpl(t.getSubject(), m), t.getPredicate(), t.getObject(), m);
+        return createOntStatementImpl(new OntObjectImpl(t.getSubject(), m), t.getPredicate(), t.getObject(), m);
     }
 
     /**
@@ -191,7 +190,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      */
     @Override
     public boolean isBulkAnnotation() {
-        return getModel().getOntObject(OntAnnotation.class, subject.asNode()) != null;
+        return subject.isAnon() && getModel().getOntObject(OntAnnotation.class, subject.asNode()) != null;
     }
 
     @Override
@@ -278,7 +277,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * Warning: returns not lazy stream
+     * Warning: works with in-memory statements.
      *
      * @return Stream of ont-statements.
      */
@@ -312,7 +311,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return {@link OWL#Axiom {@code owl:Axiom}} or {@link OWL#Annotation {@code owl:Annotation}}
      */
     protected Resource getAnnotationResourceType() {
-        return detectAnnotationRootType(getSubject());
+        return detectAnnotationRootType(subject);
     }
 
     /**
@@ -340,10 +339,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return Stream of {@link Resource}s
      */
     protected static Stream<Resource> listAnnotations(Model m, Resource t, Resource s, Property p, RDFNode o) {
-        return Iter.asStream(m.listResourcesWithProperty(OWL.annotatedSource, s))
-                .filter(r -> r.hasProperty(RDF.type, t))
-                .filter(r -> r.hasProperty(OWL.annotatedProperty, p))
-                .filter(r -> r.hasProperty(OWL.annotatedTarget, o));
+        return Iter.asStream(m.listResourcesWithProperty(OWL.annotatedSource, s)
+                .filterKeep(r -> r.hasProperty(RDF.type, t))
+                .filterKeep(r -> r.hasProperty(OWL.annotatedProperty, p))
+                .filterKeep(r -> r.hasProperty(OWL.annotatedTarget, o)));
     }
 
     /**
@@ -374,9 +373,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param s {@link Resource} the subject resource to test
      * @return {@link OWL#Axiom} or {@link OWL#Annotation}
      */
-    protected static Resource detectAnnotationRootType(OntObject s) {
-        if (s.isAnon() && s.types()
-                .anyMatch(t -> OWL.Axiom.equals(t) || OWL.Annotation.equals(t) || OntAnnotationImpl.EXTRA_ROOT_TYPES.contains(t))) {
+    protected static Resource detectAnnotationRootType(Resource s) {
+        Model m = s.getModel();
+        if (s.isAnon() && OntAnnotationImpl.ROOT_TYPES.stream().anyMatch(t -> m.contains(s, RDF.type, t))) {
             return OWL.Annotation;
         }
         return OWL.Axiom;

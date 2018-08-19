@@ -113,7 +113,7 @@ public class CachedStatementImpl extends OntStatementImpl {
 
     @Override
     protected Resource getAnnotationResourceType() {
-        return annotationResourceType == null ? annotationResourceType = detectAnnotationRootType(getSubject()) : annotationResourceType;
+        return annotationResourceType == null ? annotationResourceType = detectAnnotationRootType(subject) : annotationResourceType;
     }
 
     protected class CachedOntAnnImpl extends AttachedAnnotationImpl {

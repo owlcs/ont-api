@@ -75,12 +75,12 @@ public class ReadHelper {
     }
 
     /**
-     * Answers {@code true} if the given {@link OntObject} is an OWL-Entity or Anonymous Individual
+     * Answers {@code true} if the given {@link Resource} is an OWL-Entity or Anonymous Individual
      *
-     * @param o {@link OntObject}
+     * @param o {@link Resource}
      * @return boolean
      */
-    public static boolean isEntityOrAnonymousIndividual(OntObject o) {
+    public static boolean isEntityOrAnonymousIndividual(Resource o) {
         return o.isURIResource() || o.canAs(OntIndividual.Anonymous.class);
     }
 
@@ -88,13 +88,13 @@ public class ReadHelper {
      * Answers if the given {@link OntStatement} can be considered as annotation property assertion.
      *
      * @param s {@link OntStatement}, not null
-     * @param c {@link OntLoaderConfiguration}, config
+     * @param withBulk {@code true} if bulk annotations are allowed by the config
      * @return {@code true} if the specified statement is annotation property assertion
      */
-    public static boolean isAnnotationAssertionStatement(OntStatement s, OntLoaderConfiguration c) {
+    public static boolean isAnnotationAssertionStatement(OntStatement s, boolean withBulk) {
         return s.isAnnotation()
                 && !s.isBulkAnnotation()
-                && (ReadHelper.isAllowBulkAnnotationAssertions(c) || !ReadHelper.hasAnnotations(s));
+                && (withBulk || !ReadHelper.hasAnnotations(s));
     }
 
     /**
@@ -127,33 +127,13 @@ public class ReadHelper {
     public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement stm, NoCacheDataFactory factory) {
         Set<ONTObject<OWLAnnotation>> res = getAllAnnotations(stm, factory);
         OntLoaderConfiguration conf = factory.config.loaderConfig();
-        if (isAnnotationAssertionsAllowed(conf) && isDeclarationStatement(stm)) {
+        if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(stm)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
-            annotations(stm).filter(s -> isAnnotationAssertionStatement(s, conf))
+            annotations(stm).filter(s -> isAnnotationAssertionStatement(s, conf.isAllowBulkAnnotationAssertions()))
                     .map(a -> getAnnotation(a, factory)).forEach(res::remove);
         }
         return res;
-    }
-
-    /**
-     * by default annotation axioms are allowed.
-     *
-     * @param conf {@link OntLoaderConfiguration}
-     * @return true if annotation axioms are allowed
-     */
-    private static boolean isAnnotationAssertionsAllowed(OntLoaderConfiguration conf) {
-        return conf == null || conf.isLoadAnnotationAxioms();
-    }
-
-    /**
-     * by default we prefer bulk annotation assertions rather then annotated declarations.
-     *
-     * @param conf {@link OntLoaderConfiguration}
-     * @return true if bulk assertions are preferable.
-     */
-    public static boolean isAllowBulkAnnotationAssertions(OntLoaderConfiguration conf) {
-        return conf == null || conf.isAllowBulkAnnotationAssertions();
     }
 
     /**
@@ -190,7 +170,7 @@ public class ReadHelper {
     }
 
     private static ONTObject<OWLAnnotation> getHierarchicalAnnotations(OntStatement root, InternalDataFactory df) {
-        OntObject subject = root.getSubject();
+        Resource subject = root.getSubject();
         ONTObject<OWLAnnotationProperty> p = df.get(root.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = df.get(root.getObject());
         Set<ONTObject<OWLAnnotation>> children = annotations(root).map(a -> getHierarchicalAnnotations(a, df)).collect(Collectors.toSet());

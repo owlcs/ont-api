@@ -90,13 +90,13 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
                                BiFunction<Collection<ONTObject<? extends OWL>>,
                                        Collection<ONTObject<OWLAnnotation>>, Axiom> creator) {
         Collection<ONTObject<? extends OWL>> members;
-        OntObject subject = statement.getSubject();
+        Resource subject = statement.getSubject();
         OntDisjoint<ONT> disjoint = null;
         if (subject.canAs(getDisjointView())) {
             disjoint = subject.as(getDisjointView());
             members = disjoint.members().map(membersExtractor).collect(Collectors.toSet());
         } else {
-            members = Stream.of(statement.getSubject(), statement.getObject()).map(r -> r.as(getView()))
+            members = Stream.of(subject, statement.getObject()).map(r -> r.as(getView()))
                     .map(membersExtractor).collect(Collectors.toSet());
         }
         Axiom axiom = creator.apply(members, annotations);

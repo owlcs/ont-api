@@ -1659,7 +1659,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#saveOntology(OWLOntology, OWLDocumentFormat, OWLOntologyDocumentTarget)</a>
      */
     @Override
-    public void saveOntology(@Nonnull OWLOntology ontology, @Nonnull OWLDocumentFormat ontologyFormat, @Nonnull OWLOntologyDocumentTarget documentTarget) throws OWLOntologyStorageException {
+    public void saveOntology(@Nonnull OWLOntology ontology,
+                             @Nonnull OWLDocumentFormat ontologyFormat,
+                             @Nonnull OWLOntologyDocumentTarget documentTarget) throws OWLOntologyStorageException {
         getLock().readLock().lock();
         try {
             write(ontology, ontologyFormat, documentTarget);
@@ -1668,23 +1670,60 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
     }
 
-    protected void write(OWLOntology ontology, OWLDocumentFormat doc, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
+    /**
+     * Writes the specified ontology to the specified output target in the specified ontology format.
+     * It is a functional equivalent of the method {@link OWLOntologyManager#saveOntology(OWLOntology, OWLDocumentFormat, OWLOntologyDocumentTarget)}.
+     * <p>
+     * Please note: currently it does not throw an {@link UnsupportedOperationException} exception
+     * in case of the given ontology does not belong to the manager.
+     * The reasone: contrary to the javadoc in the interface,
+     * the original OWL-API (e.g. 5.1.5) implementation of that method {@code saveOntology(...)}
+     * does not require ontology to be present inside the manager.
+     * TODO(1): it seems to be a mistake - this method must work only with ontologies belonging to the manager.
+     * <p>
+     * Also, working with prefixes, which are hidden in the second method parameter, in OWL-API implementation
+     * is delegated to the particular {@link OWLStorer}.
+     * But the behaviour of these srorers is unpredictable and has very poor documentation.
+     * Studying the code of specific {@link OWLStorer OWL-Storer}s shows, that some of them (Turtle)
+     * take into account the specified prefixes, but the others (Functional Syntax) do not.
+     * Instead, the latter handle prefixes for a given ontology from its manager,
+     * that may not even coincide with this (see notice above).
+     * TODO(2): this cannot be correct, there must be a unified behavior.
+     *
+     * @param ontology {@link OWLOntology}, expected to be {@link OntologyModel} belonging to the manager
+     * @param doc      {@link OWLDocumentFormat} format
+     * @param target   {@link OWLOntologyDocumentTarget}
+     * @throws OWLOntologyStorageException if the ontology could not be saved
+     * @throws UnknownOWLOntologyException if the specified ontology is not managed by this manager
+     * @throws OntApiException             if some other unexpected error occurred
+     */
+    public void write(OWLOntology ontology,
+                      OWLDocumentFormat doc,
+                      OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
         if (!(ontology instanceof OntologyModel))
             throw new OntApiException.Unsupported("Unsupported OWLOntology instance: " + this);
         OntFormat format = OntApiException.notNull(OntFormat.get(doc), "Can't determine format: " + doc);
+
         OntologyModel ont = (OntologyModel) ontology;
         if (!format.isJena()) {
-            // It does not work correctly without expanding axioms for some OWL-API formats such as ManchesterSyntaxDocumentFormat.
-            // The cache cleaning encourages extracting hidden axioms (declarations) in an explicit form while getting axioms.
-            // TODO: this logic must be rethought: clearCache is very expensive operation for large ontologies
+            // The following code may not work correctly without expanding axioms for some OWL-API formats such as ManchesterSyntax.
+            // The cache cleaning encourages repeated reading of the graph, and, thus, leads the axioms to a uniform view.
+            // Without this operation, the axiomatic representation would look slightly different and the reload test
+            // (loading/saving in different formats) would not passed.
+            // Some of the storers require explicitly having declarations, but some storers and parsers do not,
+            // this may lead to exception.
+            // Some of the axioms can be user defined, that is, may contain annotations,
+            // which should be described in common uniform way before saving.
+            // TODO(3): this logic should be rethought: clearCache is very expensive operation for large ontologies
             ont.clearCache();
             try {
-                for (OWLStorerFactory storerFactory : getOntologyStorers()) {
-                    OWLStorer writer = storerFactory.createStorer();
-                    if (writer.canStoreOntology(doc)) {
-                        writer.storeOntology(ont, target, doc);
-                        return;
+                for (OWLStorerFactory storer : getOntologyStorers()) {
+                    OWLStorer writer = storer.createStorer();
+                    if (!writer.canStoreOntology(doc)) {
+                        continue;
                     }
+                    writer.storeOntology(ont, target, doc);
+                    return;
                 }
                 throw new OWLStorerNotFoundException(doc);
             } catch (IOException e) {
@@ -1711,7 +1750,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             throw new OWLOntologyStorageException("Null output stream, format = " + doc);
         }
         Model model = ont.asGraphModel().getBaseModel();
-        PrefixManager pm = doc instanceof PrefixManager ? (PrefixManager) doc : null;
+        PrefixManager pm = doc.isPrefixOWLDocumentFormat() ? doc.asPrefixOWLDocumentFormat() : null;
         setDefaultPrefix(pm, ont);
         Map<String, String> newPrefixes = pm != null ? pm.getPrefixName2PrefixMap() : Collections.emptyMap();
         Map<String, String> initPrefixes = model.getNsPrefixMap();
@@ -1923,7 +1962,14 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         protected void fireStartedLoadingEvent(OWLOntologyID id, IRI doc) {
             if (loadCount.get() != importsLoadCount.get()) {
-                LOGGER.warn("Runtime Warning: Parsers should load imported ontologies using the makeImportLoadRequest method. ID={}, DOC-IRI={}", id, doc);
+                // Contrary to the following message,
+                // in ONT-API the standard (OWL-API) loading mechanisms
+                // are used in case of the ontology has imports in a format syntax which is not supported by Jena.
+                // This may considered as a bug or inappropriate usage - right now not sure.
+                // But in these circumstances, the message does not seem informative but rather annoying.
+                // That's why the logger level has been decreased from warn to debug.
+                LOGGER.debug("[{} => {}] Runtime Warning: Parsers should load imported ontologies using the " +
+                        "makeImportLoadRequest method.", doc, id);
             }
             fireStartedLoadingEvent(id, doc, loadCount.get() > 0);
             loadCount.incrementAndGet();

@@ -31,6 +31,7 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,7 +54,11 @@ public class WriteHelper {
         return toResource(object);
     }
 
-    public static Resource toResource(OWLObject object) {
+    public static Optional<Resource> resource(OWLObject o) throws OntApiException {
+        return o == null ? Optional.empty() : Optional.of(toResource(o));
+    }
+
+    public static Resource toResource(OWLObject object) throws OntApiException {
         if (object instanceof OWLIndividual) {
             return toResource((OWLIndividual) object);
         }

@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     /**
-     * Writes an axiom in a model.
+     * Writes the given axiom to the model.
      *
      * @param axiom {@link OWLAxiom OWL-API axiom object}
      * @param model {@link OntGraphModel ONT-API Jena Model}
@@ -58,11 +58,21 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      */
     public Stream<ONTObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
         return statements(model)
-                // CacheStatement helps to speed up a little if the ontology model has a lot of annotations,
-                // otherwise, it may even slow down the process of axioms collecting ...
-                .map(OntStatementImpl::createCachedOntStatementImpl)
-                .flatMap(Models::split)
+                .flatMap(this::split)
                 .map(this::toAxiom);
+    }
+
+    /**
+     * Splits the statement.
+     *
+     * @param s {@link OntStatement}
+     * @return Stream of {@link OntStatement}s
+     * @see Models#split(OntStatement)
+     */
+    protected Stream<OntStatement> split(OntStatement s) {
+        // CacheStatement helps to speed up a little if the ontology model has a lot of annotations,
+        // otherwise, it may even slow down the process of axioms collecting ...
+        return Models.split(OntStatementImpl.createCachedOntStatementImpl(s));
     }
 
     /**

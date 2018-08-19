@@ -36,8 +36,8 @@ public class NamespacesTestCase extends TestBase {
         for (Namespaces n : Namespaces.values()) {
             IRI iri = IRI.create(n.getPrefixIRI(), "test");
             boolean reservedVocabulary = iri.isReservedVocabulary();
-            assertTrue(iri + " reserved? Should be " + reserved.contains(n) + " but is " + reservedVocabulary,
-                    reservedVocabulary == reserved.contains(n));
+            assertEquals(iri + " reserved? Should be " + reserved.contains(n) + " but is " + reservedVocabulary,
+                    reservedVocabulary, reserved.contains(n));
         }
     }
 
@@ -52,6 +52,7 @@ public class NamespacesTestCase extends TestBase {
         assertEquals(OWL2Datatype.XSD_STRING.getDatatype(df), df.getOWLDatatype(v));
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test(expected = IllegalArgumentException.class)
     public void shouldFailToParseInvalidString() {
         // given
@@ -64,6 +65,7 @@ public class NamespacesTestCase extends TestBase {
 
     @Test
     public void shouldSetPrefix() throws OWLOntologyCreationException, OWLOntologyStorageException {
+        // what is going on here?
         OWLClass item = df.getOWLClass("http://test.owl/test#", "item");
         OWLDeclarationAxiom declaration = df.getOWLDeclarationAxiom(item);
         OWLOntology o1 = m.createOntology();
@@ -73,11 +75,13 @@ public class NamespacesTestCase extends TestBase {
         m.addAxiom(o1, declaration);
         StringDocumentTarget t1 = new StringDocumentTarget();
         m.saveOntology(o1, t1);
+
         OWLOntology o2 = m1.createOntology();
         FunctionalSyntaxDocumentFormat pm2 = new FunctionalSyntaxDocumentFormat();
         pm2.setPrefix(":", "http://test.owl/test#");
         m1.addAxiom(o2, declaration);
         StringDocumentTarget t2 = new StringDocumentTarget();
+        // saving o1 using m1 ? WTF? why then is o2 here??
         m1.saveOntology(o1, pm2, t2);
         assertTrue(t2.toString().contains("Declaration(Class(:item))"));
         assertEquals(t1.toString(), t2.toString());

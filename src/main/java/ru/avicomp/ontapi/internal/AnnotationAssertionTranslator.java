@@ -16,10 +16,7 @@ package ru.avicomp.ontapi.internal;
 
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntID;
-import ru.avicomp.ontapi.jena.model.OntNAP;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -59,27 +56,28 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
         if (!conf.isLoadAnnotationAxioms()) {
             return Stream.empty();
         }
+        boolean withBulk = conf.isAllowBulkAnnotationAssertions();
         OntID id = model.getID();
         return listStatements(model, null, null, null)
                 .filter(s -> !id.equals(s.getSubject()))
-                .filter(s -> testStatement(s, conf));
+                .filter(s -> testStatement(s, withBulk));
     }
 
     @Override
     public boolean testStatement(OntStatement statement) {
         if (statement.getSubject().canAs(OntID.class)) return false;
         OntLoaderConfiguration conf = getConfig(statement.getModel()).loaderConfig();
-        return testStatement(statement, conf);
+        return testStatement(statement, conf.isAllowBulkAnnotationAssertions());
     }
 
-    public boolean testStatement(OntStatement s, OntLoaderConfiguration c) {
-        return ReadHelper.isAnnotationAssertionStatement(s, c) && ReadHelper.isEntityOrAnonymousIndividual(s.getSubject());
+    public boolean testStatement(OntStatement s, boolean withBulk) {
+        return ReadHelper.isAnnotationAssertionStatement(s, withBulk) && ReadHelper.isEntityOrAnonymousIndividual(s.getSubject());
     }
 
     @Override
     public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement) {
         InternalDataFactory reader = getDataFactory(statement.getModel());
-        ONTObject<? extends OWLAnnotationSubject> s = reader.get(statement.getSubject());
+        ONTObject<? extends OWLAnnotationSubject> s = reader.get(statement.getSubject(OntObject.class));
         ONTObject<OWLAnnotationProperty> p = reader.get(statement.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = reader.get(statement.getObject());
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);

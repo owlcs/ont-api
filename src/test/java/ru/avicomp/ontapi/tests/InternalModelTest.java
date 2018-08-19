@@ -137,10 +137,10 @@ public class InternalModelTest {
         InternalModel jena = loadInternalModel(file, format);
         debugPrint(jena, owl);
 
-        test(OWLClass.class, jena.classes(), owl.classesInSignature());
-        test(OWLDatatype.class, jena.datatypes(), owl.datatypesInSignature());
-        test(OWLNamedIndividual.class, jena.namedIndividuals(), owl.individualsInSignature());
-        test(OWLAnonymousIndividual.class, jena.anonymousIndividuals(), owl.anonymousIndividuals());
+        test(OWLClass.class, jena.listOWLClasses(), owl.classesInSignature());
+        test(OWLDatatype.class, jena.listOWLDatatypes(), owl.datatypesInSignature());
+        test(OWLNamedIndividual.class, jena.listOWLNamedIndividuals(), owl.individualsInSignature());
+        test(OWLAnonymousIndividual.class, jena.listOWLAnonymousIndividuals(), owl.anonymousIndividuals());
         Set<OWLAnnotationProperty> expectedAnnotationProperties = owl.annotationPropertiesInSignature().collect(Collectors.toSet());
         Set<OWLDataProperty> expectedDataProperties = owl.dataPropertiesInSignature().collect(Collectors.toSet());
         Set<OWLObjectProperty> expectedObjectProperties = owl.objectPropertiesInSignature().collect(Collectors.toSet());
@@ -168,9 +168,9 @@ public class InternalModelTest {
         expectedDataProperties.removeAll(illegalDataProperties);
         expectedObjectProperties.removeAll(illegalObjectProperties);
 
-        test(OWLDataProperty.class, jena.dataProperties(), expectedDataProperties.stream());
-        test(OWLAnnotationProperty.class, jena.annotationProperties(), expectedAnnotationProperties.stream());
-        test(OWLObjectProperty.class, jena.objectProperties(), expectedObjectProperties.stream());
+        test(OWLDataProperty.class, jena.listOWLDataProperties(), expectedDataProperties.stream());
+        test(OWLAnnotationProperty.class, jena.listOWLAnnotationProperties(), expectedAnnotationProperties.stream());
+        test(OWLObjectProperty.class, jena.listOWLObjectProperties(), expectedObjectProperties.stream());
     }
 
     @Test
@@ -194,13 +194,13 @@ public class InternalModelTest {
         OWLOntology owl = loadOWLOntology(file);
         InternalModel jena = loadInternalModel(file, format);
         debugPrint(jena, owl);
-        test(OWLClass.class, jena.classes(), owl.classesInSignature());
-        test(OWLDatatype.class, jena.datatypes(), owl.datatypesInSignature());
-        test(OWLNamedIndividual.class, jena.namedIndividuals(), owl.individualsInSignature());
-        test(OWLAnonymousIndividual.class, jena.anonymousIndividuals(), owl.anonymousIndividuals());
-        test(OWLAnnotationProperty.class, jena.annotationProperties(), owl.annotationPropertiesInSignature());
-        test(OWLObjectProperty.class, jena.objectProperties(), owl.objectPropertiesInSignature());
-        test(OWLDataProperty.class, jena.dataProperties(), owl.dataPropertiesInSignature());
+        test(OWLClass.class, jena.listOWLClasses(), owl.classesInSignature());
+        test(OWLDatatype.class, jena.listOWLDatatypes(), owl.datatypesInSignature());
+        test(OWLNamedIndividual.class, jena.listOWLNamedIndividuals(), owl.individualsInSignature());
+        test(OWLAnonymousIndividual.class, jena.listOWLAnonymousIndividuals(), owl.anonymousIndividuals());
+        test(OWLAnnotationProperty.class, jena.listOWLAnnotationProperties(), owl.annotationPropertiesInSignature());
+        test(OWLObjectProperty.class, jena.listOWLObjectProperties(), owl.objectPropertiesInSignature());
+        test(OWLDataProperty.class, jena.listOWLDataProperties(), owl.dataPropertiesInSignature());
     }
 
     private void debugPrint(InternalModel jena, OWLOntology owl) {
