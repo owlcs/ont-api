@@ -24,17 +24,21 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
+import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
@@ -344,17 +348,38 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLDeclarationAxiom}s
      */
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
-        return axioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
+        // even there are no changes in OWLDeclarationAxioms, they can be affected by some other user-defined axiom,
+        // so need check whole cache:
+        if (hasManuallyAddedAxioms()) {
+            return axioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
+        }
+        // in the case of a large ontology, the direct traverse over the graph works significantly faster:
+        DeclarationTranslator t = (DeclarationTranslator) AxiomParserProvider.get(OWLDeclarationAxiom.class);
+        OntEntity res = getOntObject(WriteHelper.getEntityView(e), WriteHelper.toResource(e).asNode());
+        if (res == null) return Stream.empty();
+        OntStatement s = res.getRoot();
+        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s).getObject());
     }
 
     /**
-     * Lists {@link OWLAnnotationAssertionAxiom Annotation Assertion Axiom}s with the given {@link OWLAnnotationSubject subject}.
+     * Lists {@link OWLAnnotationAssertionAxiom Annotation Assertion Axiom}s
+     * with the given {@link OWLAnnotationSubject subject}.
      *
      * @param s {@link OWLAnnotationSubject}, not null
      * @return Stream of {@link OWLAnnotationAssertionAxiom}s
      */
     public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
-        return axioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
+        if (hasManuallyAddedAxioms()) {
+            return axioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
+        }
+        OntLoaderConfiguration c = getConfig().loaderConfig();
+        boolean withBulk = c.isAllowBulkAnnotationAssertions();
+        AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
+        return localStatements(WriteHelper.toResource(s), null, null)
+                .filter(x -> t.testStatement(x, withBulk))
+                .flatMap(t::split)
+                .map(t::toAxiom)
+                .map(ONTObject::getObject);
     }
 
     /**
@@ -364,18 +389,35 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLSubClassOfAxiom}s
      */
     public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxioms(OWLClass sub) {
-        return axioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
+        if (hasManuallyAddedAxioms()) {
+            return axioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
+        }
+        SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
+        return localStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
+                .filter(t::filter)
+                .flatMap(t::split)
+                .map(t::toAxiom)
+                .map(ONTObject::getObject);
     }
 
     /**
      * Lists {@link OWLEquivalentClassesAxiom EquivalentClasses Axiom}s by the given {@link OWLClass class}-component.
      *
-     * @param o {@link OWLClass}, not null
+     * @param c {@link OWLClass}, not null
      * @return Stream of {@link OWLEquivalentClassesAxiom}s
      * @see AbstractNaryTranslator#axioms(OntGraphModel)
      */
-    public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass o) {
-        return axioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(o::equals));
+    public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass c) {
+        if (hasManuallyAddedAxioms()) {
+            return axioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
+        }
+        EquivalentClassesTranslator t = (EquivalentClassesTranslator) AxiomParserProvider.get(OWLEquivalentClassesAxiom.class);
+        Resource r = WriteHelper.toResource(c);
+        return Stream.concat(localStatements(r, OWL.equivalentClass, null), localStatements(null, OWL.equivalentClass, r))
+                .filter(t::testStatement)
+                .flatMap(t::split)
+                .map(t::toAxiom)
+                .map(ONTObject::getObject);
     }
 
     /**
@@ -675,15 +717,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Gets objects cache as {@code Map}.
-     *
-     * @return Map, Class-types as keys, {@link ObjectTriplesMap}s as values
-     */
-    protected Map<Class<? extends OWLObject>, ObjectTriplesMap<? extends OWLObject>> getCacheMap() {
-        return components.asMap();
-    }
-
-    /**
      * Invalidates the cache if needed.
      * <p>
      * The OWL-API serialization may not work correctly without explicit expansion of axioms into
@@ -712,6 +745,15 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     public boolean hasManuallyAddedAxioms() {
         return getCacheMap().values().stream().anyMatch(m -> m.manual);
+    }
+
+    /**
+     * Gets objects cache as {@code Map}.
+     *
+     * @return Map, Class-types as keys, {@link ObjectTriplesMap}s as values
+     */
+    protected Map<Class<? extends OWLObject>, ObjectTriplesMap<? extends OWLObject>> getCacheMap() {
+        return components.asMap();
     }
 
     /**
