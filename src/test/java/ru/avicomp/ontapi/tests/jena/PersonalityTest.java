@@ -49,8 +49,8 @@ public class PersonalityTest {
     @Test
     public void testClassDatatypePunn() {
         String ns = "http://ex.com#";
-        OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX)
+                .setNsPrefixes(OntModelFactory.STANDARD);
         OntCE c1 = m.createOntEntity(OntClass.class, ns + "class1");
         OntCE c2 = m.createOntEntity(OntClass.class, ns + "class2");
         OntIndividual i1 = c1.createIndividual(ns + "indi1");
@@ -93,8 +93,8 @@ public class PersonalityTest {
     @Test
     public void testPropertyPunn() {
         String ns = "http://ex.com#";
-        OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX)
+                .setNsPrefixes(OntModelFactory.STANDARD);
         OntCE c1 = m.createOntEntity(OntClass.class, ns + "class1");
         OntNOP p1 = m.createOntEntity(OntNOP.class, ns + "prop1");
         OntOPE p2 = m.createOntEntity(OntNOP.class, ns + "prop2").createInverse();
@@ -147,8 +147,8 @@ public class PersonalityTest {
         OntPersonality personality = buildCustomPersonality();
 
         String ns = "http://ex.com#";
-        OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX)
+                .setNsPrefixes(OntModelFactory.STANDARD);
         OntCE c1 = m.createOntEntity(OntClass.class, ns + "class1");
         OntNDP p1 = m.createOntEntity(OntNDP.class, ns + "prop1");
         OntDT d1 = m.createOntEntity(OntDT.class, ns + "dt1");

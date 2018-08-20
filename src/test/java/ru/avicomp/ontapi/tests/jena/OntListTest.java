@@ -44,8 +44,7 @@ public class OntListTest {
 
     @Test
     public void testCommonFunctionality1() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
@@ -88,8 +87,7 @@ public class OntListTest {
 
     @Test
     public void testCommonFunctionality2() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
@@ -138,8 +136,7 @@ public class OntListTest {
 
     @Test
     public void testGetAndClear1() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
@@ -166,8 +163,7 @@ public class OntListTest {
 
     @Test
     public void testGetAndClear2() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
@@ -191,8 +187,7 @@ public class OntListTest {
 
     @Test
     public void testMixedList() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
@@ -219,8 +214,7 @@ public class OntListTest {
 
     @Test
     public void testListAnnotations() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
@@ -277,8 +271,7 @@ public class OntListTest {
 
     @Test
     public void testListSpec() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
@@ -378,8 +371,7 @@ public class OntListTest {
 
     @Test
     public void testPropertyChain() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
@@ -414,8 +406,7 @@ public class OntListTest {
 
     @Test
     public void testDisjointUnion() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = m.createOntEntity(OntClass.class, "c");
         OntCE ce1, ce3, ce4;
         OntCE ce2 = m.createComplementOf(ce1 = m.createOntEntity(OntClass.class, "c1"));
@@ -459,8 +450,7 @@ public class OntListTest {
 
     @Test
     public void testHasKey() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = m.createOntEntity(OntClass.class, "c");
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
@@ -507,8 +497,7 @@ public class OntListTest {
 
     @Test
     public void testDisjointPropertiesOntList() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
@@ -533,8 +522,7 @@ public class OntListTest {
 
     @Test
     public void testDisjointClassIndividualsOntList() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
         OntCE ce1 = m.createOntEntity(OntClass.class, "c1");
         OntCE ce3 = m.createHasSelf(m.createOntEntity(OntNOP.class, "p1"));

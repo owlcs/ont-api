@@ -58,8 +58,7 @@ public class OWLTransformTest {
 
     @Test
     public void testParseZeroHeader() throws OWLOntologyCreationException {
-        Model m = ModelFactory.createDefaultModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        Model m = ModelFactory.createDefaultModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.createResource("http://class").addProperty(RDF.type, OWL.Class);
         String txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
 
@@ -78,8 +77,7 @@ public class OWLTransformTest {
     public void testParseMultipleHeader() throws OWLOntologyCreationException {
         String ontIRI = "http://o";
         String verIRI = "http://v";
-        Model m = ModelFactory.createDefaultModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        Model m = ModelFactory.createDefaultModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.createResource("http://class").addProperty(RDF.type, OWL.Class);
         m.createResource().addProperty(RDF.type, OWL.Ontology);
         m.createResource("http://ont1").addProperty(RDF.type, OWL.Ontology);
@@ -107,8 +105,7 @@ public class OWLTransformTest {
 
     @Test
     public void testUnparsableTriples() throws OWLOntologyCreationException {
-        Model m = ModelFactory.createDefaultModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        Model m = ModelFactory.createDefaultModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.createResource("http://ont").addProperty(RDF.type, OWL.Ontology);
 
         Resource clazz = m.createResource("http://class").addProperty(RDF.type, RDFS.Class);

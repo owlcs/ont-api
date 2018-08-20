@@ -243,9 +243,7 @@ public class OntModelTest {
     public void testCreateProperties() {
         String ns = "http://test.com/graph/7#";
 
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
-        m.setNsPrefix("test", ns);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("test", ns);
         OntNAP a1 = m.createOntEntity(OntNAP.class, ns + "a-p-1");
         OntNAP a2 = m.createOntEntity(OntNAP.class, ns + "a-p-2");
         m.createOntEntity(OntNOP.class, ns + "o-p-1");
@@ -266,10 +264,11 @@ public class OntModelTest {
         String uri = "http://test.com/graph/3";
         String ns = uri + "#";
 
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefix("test", ns);
-        m.setNsPrefixes(OntModelFactory.STANDARD);
-        m.setID(uri);
+        OntGraphModel m = OntModelFactory.createModel()
+                .setNsPrefix("test", ns)
+                .setNsPrefixes(OntModelFactory.STANDARD)
+                .setID(uri)
+                .getModel();
 
         OntNDP ndp1 = m.createOntEntity(OntNDP.class, ns + "dataProperty1");
         OntDT dt1 = m.createOntEntity(OntDT.class, ns + "dataType1");
@@ -310,11 +309,11 @@ public class OntModelTest {
         String uri = "http://test.com/graph/4";
         String ns = uri + "#";
 
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setID(uri);
-        m.setNsPrefix("test", ns);
-        m.setNsPrefix("SWRL", SWRL.NS);
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel()
+                .setID(uri).getModel()
+                .setNsPrefix("test", ns)
+                .setNsPrefix("SWRL", SWRL.NS)
+                .setNsPrefixes(OntModelFactory.STANDARD);
 
         OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
         OntClass cl2 = m.createOntEntity(OntClass.class, ns + "Class2");
@@ -358,18 +357,14 @@ public class OntModelTest {
     public void testCreateImports() {
         String baseURI = "http://test.com/graph/5";
         String baseNS = baseURI + "#";
-        OntGraphModel base = OntModelFactory.createModel();
-        base.setNsPrefixes(OntModelFactory.STANDARD);
-        base.setID(baseURI);
+        OntGraphModel base = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID(baseURI).getModel();
         OntClass cl1 = base.createOntEntity(OntClass.class, baseNS + "Class1");
         OntClass cl2 = base.createOntEntity(OntClass.class, baseNS + "Class2");
 
         String childURI = "http://test.com/graph/6";
         String childNS = childURI + "#";
-        OntGraphModel child = OntModelFactory.createModel();
-        child.setNsPrefixes(OntModelFactory.STANDARD);
-        child.setID(childURI);
-        child.addImport(base);
+        OntGraphModel child = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+                .setID(childURI).getModel().addImport(base);
         OntClass cl3 = child.createOntEntity(OntClass.class, childNS + "Class3");
         cl3.addSubClassOf(child.createIntersectionOf(Arrays.asList(cl1, cl2)));
         cl3.createIndividual(childNS + "Individual1");
@@ -388,14 +383,12 @@ public class OntModelTest {
 
     @Test
     public void testAssemblySimplestOntology() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.setID("http://example.com/xxx");
 
         String schemaNS = m.getID().getURI() + "#";
         String dataNS = m.getID().getURI() + "/data#";
-        m.setNsPrefix("schema", schemaNS);
-        m.setNsPrefix("data", dataNS);
+        m.setNsPrefix("schema", schemaNS).setNsPrefix("data", dataNS);
 
         OntDT email = m.createOntEntity(OntDT.class, schemaNS + "email");
         OntDT phone = m.createOntEntity(OntDT.class, schemaNS + "phone");
@@ -447,8 +440,7 @@ public class OntModelTest {
 
     @Test
     public void testCreateEntities() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         createEntityTest(m, "a-p", OntNAP.class);
         createEntityTest(m, "o-p", OntNOP.class);
         createEntityTest(m, "d-p", OntNDP.class);
@@ -471,8 +463,7 @@ public class OntModelTest {
 
     @Test
     public void testObjectsContent() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         // properties:
         OntNDP p1 = m.createOntEntity(OntNDP.class, "p1");
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
@@ -544,8 +535,7 @@ public class OntModelTest {
 
     @Test
     public void testRemoveObjects() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
         OntCE class1 = m.createOntEntity(OntClass.class, "C-1");
         OntCE class2 = m.createOntEntity(OntClass.class, "C-2");
@@ -571,8 +561,7 @@ public class OntModelTest {
 
     @Test
     public void testDataRanges() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntFR f1 = m.createFacetRestriction(OntFR.MaxExclusive.class, m.createTypedLiteral(12));
         OntFR f2 = m.createFacetRestriction(OntFR.Pattern.class, m.createTypedLiteral("\\d+"));
         OntFR f3 = m.createFacetRestriction(OntFR.LangRange.class, m.createTypedLiteral("^r.*"));

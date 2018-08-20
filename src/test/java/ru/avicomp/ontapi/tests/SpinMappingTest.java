@@ -133,9 +133,8 @@ public class SpinMappingTest {
         OntGraphModel mapping = manager.createGraphModel("http://spin.avicomp.ru");
         OntGraphModel spinmapl = manager.getGraphModel(SpinModels.SPINMAPL.getIRI().getIRIString());
 
-        mapping.addImport(spinmapl).addImport(source).addImport(target);
+        mapping.addImport(spinmapl).addImport(source).addImport(target).setNsPrefixes(OntModelFactory.STANDARD);
 
-        mapping.setNsPrefixes(OntModelFactory.STANDARD);
         Stream.of(SpinModels.SP, SpinModels.SPIN, SpinModels.SPINMAP, SpinModels.SPINMAPL)
                 .forEach(m -> mapping.setNsPrefix(m.name().toLowerCase(), m.getIRI() + "#"));
 
@@ -176,8 +175,7 @@ public class SpinMappingTest {
         LOGGER.debug("Create the source model.");
         String uri = "http://source.avicomp.ru";
         String ns = uri + "#";
-        OntGraphModel res = manager.createGraphModel(uri);
-        res.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntEntity(OntClass.class, ns + "ClassSource");
         OntNDP prop1 = res.createOntEntity(OntNDP.class, ns + "prop1");
         OntNDP prop2 = res.createOntEntity(OntNDP.class, ns + "prop2");
@@ -208,8 +206,7 @@ public class SpinMappingTest {
         LOGGER.debug("Create the target model.");
         String uri = "http://target.avicomp.ru";
         String ns = uri + "#";
-        OntGraphModel res = manager.createGraphModel(uri);
-        res.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntEntity(OntClass.class, ns + "ClassTarget");
         OntNDP prop = res.createOntEntity(OntNDP.class, ns + "targetProperty");
         prop.addRange(res.getOntEntity(OntDT.class, XSD.xstring));

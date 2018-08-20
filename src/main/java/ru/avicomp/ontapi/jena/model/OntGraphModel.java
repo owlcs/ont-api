@@ -18,12 +18,14 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -390,6 +392,30 @@ public interface OntGraphModel extends Model {
     OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
 
     OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body);
+
+    /*
+     * ================================================
+     * Overridden methods inherited from PrefixMapping:
+     * ================================================
+     */
+
+    @Override
+    OntGraphModel setNsPrefix(String prefix, String uri);
+
+    @Override
+    OntGraphModel removeNsPrefix(String prefix);
+
+    @Override
+    OntGraphModel clearNsPrefixMap();
+
+    @Override
+    OntGraphModel setNsPrefixes(PrefixMapping other);
+
+    @Override
+    OntGraphModel setNsPrefixes(Map<String, String> map);
+
+    @Override
+    OntGraphModel withDefaultMappings(PrefixMapping map);
 
     /*
      * ===================================

@@ -72,9 +72,10 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
         OntologyModel result = OntManagers.createONT().createOntology(iri.toOwlOntologyID());
-        OntGraphModel jena = result.asGraphModel();
-        jena.setNsPrefix("", iri.getIRIString() + "#");
-        jena.getID().setVersionIRI(ver.getIRIString());
+        OntGraphModel jena = result.asGraphModel()
+                .setNsPrefix("", iri.getIRIString() + "#")
+                .getID().setVersionIRI(ver.getIRIString())
+                .getModel();
 
         OWLClass owlSimple1 = factory.getOWLClass(iri.addFragment("Simple1"));
         OWLClass owlSimple2 = factory.getOWLClass(iri.addFragment("Simple2"));

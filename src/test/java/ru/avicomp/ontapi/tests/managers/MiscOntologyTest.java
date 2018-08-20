@@ -96,8 +96,7 @@ public class MiscOntologyTest {
     }
 
     private Graph makeGraphWithRecursion() {
-        Model m = OntModelFactory.createDefaultModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        Model m = OntModelFactory.createDefaultModel().setNsPrefixes(OntModelFactory.STANDARD);
         Resource anon = m.createResource().addProperty(RDF.type, OWL.Class);
         anon.addProperty(OWL.complementOf, anon);
         return m.getGraph();

@@ -85,8 +85,7 @@ public class ModelUtilsTest {
 
     @Test
     public void testAddLabels() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntID id = m.getID();
         id.addLabel("lab1");
         id.addLabel("lab1", "e1");

@@ -44,9 +44,7 @@ public class OntAnnotationsTest {
         String uri = "http://test.com/graph/1";
         String ns = uri + "#";
 
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefix("test", ns);
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefix("test", ns).setNsPrefixes(OntModelFactory.STANDARD);
 
         LOGGER.debug("1) Assign version-iri and ontology comment.");
         m.setID(uri).setVersionIRI(ns + "1.0.1");
@@ -127,10 +125,11 @@ public class OntAnnotationsTest {
         String uri = "http://test.com/graph/2";
         String ns = uri + "#";
 
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefix("test", ns);
-        m.setNsPrefixes(OntModelFactory.STANDARD);
-        m.setID(uri);
+        OntGraphModel m = OntModelFactory.createModel()
+                .setNsPrefix("test", ns)
+                .setNsPrefixes(OntModelFactory.STANDARD)
+                .setID(uri)
+                .getModel();
 
         OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
         OntClass cl2 = m.createOntEntity(OntClass.class, ns + "Class2");
@@ -176,8 +175,7 @@ public class OntAnnotationsTest {
     @Test
     public void testRemoveAnnotations() {
         LOGGER.debug("Create a model");
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.getID().addAnnotation(m.getAnnotationProperty(org.apache.jena.vocabulary.OWL.versionInfo), "anonymous ontology", "en");
 
         OntNDP p = m.createOntEntity(OntNDP.class, "x");
@@ -242,8 +240,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testListObjectAnnotations() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = m.createOntEntity(OntClass.class, "C");
         clazz.addComment("xxx");
         ReadWriteUtils.print(m);
@@ -275,8 +272,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testClearAnnotations() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNAP nap = m.createOntEntity(OntNAP.class, "nap");
         nap.addComment("test1").addAnnotation(nap, "sub-test1");
         m.asStatement(nap.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "test2").addAnnotation(m.getRDFSLabel(), "sub-test2");
@@ -306,8 +302,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testRemoveAnnotatedObject() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
         OntCE class1 = m.createOntEntity(OntClass.class, "C-1");
         m.asStatement(class1.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "Class1::1")
@@ -345,8 +340,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testAnnotationFunctionality() {
-        OntGraphModel m = OntModelFactory.createModel();
-        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         Resource r = m.createResource("A").addProperty(m.createProperty("B"), "C");
         OntStatement base = m.statements(r, null, null).findFirst().orElseThrow(AssertionError::new);
 

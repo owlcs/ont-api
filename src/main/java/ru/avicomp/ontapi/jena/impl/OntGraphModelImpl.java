@@ -21,6 +21,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.shared.PrefixMapping;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -30,10 +31,7 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -521,6 +519,46 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     @Override
     public OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body) {
         return OntSWRLImpl.createImp(this, head, body);
+    }
+
+    public PrefixMapping getPrefixMapping() {
+        return getGraph().getPrefixMapping();
+    }
+
+    @Override
+    public OntGraphModelImpl setNsPrefix(String prefix, String uri) {
+        getPrefixMapping().setNsPrefix(prefix, uri);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl removeNsPrefix(String prefix) {
+        getPrefixMapping().removeNsPrefix(prefix);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl clearNsPrefixMap() {
+        getPrefixMapping().clearNsPrefixMap();
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl setNsPrefixes(PrefixMapping pm) {
+        getPrefixMapping().setNsPrefixes(pm);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl setNsPrefixes(Map<String, String> map) {
+        getPrefixMapping().setNsPrefixes(map);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl withDefaultMappings(PrefixMapping other) {
+        getPrefixMapping().withDefaultMappings(other);
+        return this;
     }
 
     @Override

@@ -233,7 +233,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(2, a.signature(Imports.INCLUDED).count());
         Assert.assertEquals(2, a.asGraphModel().listClasses().count());
 
-        Assert.assertEquals(0, a.asGraphModel().removeImport(b.asGraphModel()).imports().count());
+        Assert.assertEquals(0, a.asGraphModel().removeImport("b").imports().count());
         Assert.assertEquals(0, a.imports().count());
         Assert.assertEquals(0, a.asGraphModel().imports().count());
         Assert.assertEquals(1, a.signature(Imports.INCLUDED).count());
@@ -300,7 +300,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         OntModelFactory.createModel(a.asGraphModel().getGraph()).addImport(m.getGraphModel("http://c"));
         Assert.assertEquals(11, a.axioms(Imports.INCLUDED).count());
         Assert.assertEquals(11, a.asGraphModel().listClasses().count());
-        OntModelFactory.createModel(a.asGraphModel().getGraph()).removeImport(m.getGraphModel("http://c"));
+        OntModelFactory.createModel(a.asGraphModel().getGraph()).removeImport("http://c");
         Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
         Assert.assertEquals(10, a.asGraphModel().listClasses().count());
     }
