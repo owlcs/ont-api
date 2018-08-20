@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -52,6 +52,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ExtendedProperties extends Properties {
+
     public ExtendedProperties() {
         super();
     }
@@ -60,6 +61,18 @@ public class ExtendedProperties extends Properties {
         super(defaults);
     }
 
+    /**
+     * Reads a {@code List} from the {@link Properties} Map.
+     * The keys in the Properties must be in the format "{@code key}.list.{@code type}.index",
+     * where "list" is a fixed delimiter, and "index" is an integer position of the element in the resulting {@code List}.
+     *
+     * @param key  String, key-prefix
+     * @param type Class-type, one of the following:
+     *             {@link Class}, {@link Enum}, {@link Boolean}, {@link Integer}, {@link Long}, {@link Double}
+     * @param <T>  a generic type of the returned list
+     * @return {@link List}, not {@code null}
+     * @see #setListProperty(String, List)
+     */
     @SuppressWarnings("unchecked")
     public <T> List<T> getListProperty(String key, Class<T> type) {
         List<T> res = new ArrayList<>();
@@ -83,6 +96,17 @@ public class ExtendedProperties extends Properties {
                 .findFirst().orElseThrow(() -> new RuntimeException(type + " is not supported."));
     }
 
+    /**
+     * Gets a typed Object value from the {@link Properties} Map.
+     * The keys in the Properties must be in the format {@code key}.{@code type}.
+     *
+     * @param key  String, key-prefix
+     * @param type Class-type, one of the following:
+     *             {@link Class}, {@link Enum}, {@link Boolean}, {@link Integer}, {@link Long}, {@link Double}
+     * @param <T>  a type of the returned value
+     * @return Object value
+     * @see #setTypedProperty(String, Object)
+     */
     @SuppressWarnings("unchecked")
     public <T> T getTypedProperty(String key, Class<T> type) {
         MapType map = getMapType(type);
@@ -95,6 +119,15 @@ public class ExtendedProperties extends Properties {
         }
     }
 
+    /**
+     * Puts the object of the type {@link T} to the {@link Properties} Map.
+     *
+     * @param key   String, key-prefix
+     * @param value Object, allowed to be of one of the following types:
+     *              {@link Class}, {@link Enum}, {@link Boolean}, {@link Integer}, {@link Long}, {@link Double}
+     * @param <T>   a type of the input value
+     * @see #getTypedProperty(String, Class)
+     */
     public <T> void setTypedProperty(String key, T value) {
         if (value instanceof List) {
             setListProperty(key, (List<?>) value);
@@ -106,6 +139,65 @@ public class ExtendedProperties extends Properties {
         } catch (Exception e) {
             throw new RuntimeException("Unable to set property '" + key + "'", e);
         }
+    }
+
+    /**
+     * Writes the given list to the {@link Properties} Map
+     *
+     * @param key    String, key-prefix
+     * @param values List of values that are allowed to be one of the following types:
+     *               {@link Class}, {@link Enum}, {@link Boolean}, {@link Integer}, {@link Long}, {@link Double}
+     * @param <T>    a generic type of the input list
+     * @see #getListProperty(String, Class)
+     */
+    public <T> void setListProperty(String key, List<T> values) {
+        if (values.isEmpty()) return;
+        MapType map = getMapType(values.get(0).getClass());
+        for (int i = 0; i < values.size(); i++) {
+            String val;
+            try {
+                val = map.toString(values.get(i));
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to set list property [" + key + ":" + i + "]", e);
+            }
+            setProperty(map.toListKey(key, i), val);
+        }
+    }
+
+    public List<?> getListProperty(String key) {
+        for (MapType map : MapType.values()) {
+            if (!containsKey(map.toListKey(key, 0))) continue;
+            return getListProperty(key, map.type);
+        }
+        return null;
+    }
+
+    public List<String> getStringListProperty(String key) {
+        return getListProperty(key, String.class);
+    }
+
+    public Class getClassProperty(String key) {
+        return getTypedProperty(key, Class.class);
+    }
+
+    public Enum getEnumProperty(String key) {
+        return getTypedProperty(key, Enum.class);
+    }
+
+    public Boolean getBooleanProperty(String key) {
+        return getTypedProperty(key, Boolean.class);
+    }
+
+    public Integer getIntegerProperty(String key) {
+        return getTypedProperty(key, Integer.class);
+    }
+
+    public Long getLongProperty(String key) {
+        return getTypedProperty(key, Long.class);
+    }
+
+    public Double getDoubleProperty(String key) {
+        return getTypedProperty(key, Double.class);
     }
 
     protected enum MapType {
@@ -177,7 +269,8 @@ public class ExtendedProperties extends Properties {
             public String toKey(String key) {
                 return key;
             }
-        },;
+        },
+        ;
         protected final Class<?> type;
 
         MapType(Class<?> t) {
@@ -205,55 +298,5 @@ public class ExtendedProperties extends Properties {
         public boolean isSupported(Class<?> clazz) {
             return Objects.equals(type, clazz);
         }
-    }
-
-    public <T> void setListProperty(String key, List<T> values) {
-        if (values.isEmpty()) return;
-        MapType map = getMapType(values.get(0).getClass());
-        for (int i = 0; i < values.size(); i++) {
-            String val;
-            try {
-                val = map.toString(values.get(i));
-            } catch (Exception e) {
-                throw new RuntimeException("Unable to set list property [" + key + ":" + i + "]", e);
-            }
-            setProperty(map.toListKey(key, i), val);
-        }
-    }
-
-    public List<?> getListProperty(String key) {
-        for (MapType map : MapType.values()) {
-            if (!containsKey(map.toListKey(key, 0))) continue;
-            return getListProperty(key, map.type);
-        }
-        return null;
-    }
-
-    public List<String> getStringListProperty(String key) {
-        return getListProperty(key, String.class);
-    }
-
-    public Class getClassProperty(String key) {
-        return getTypedProperty(key, Class.class);
-    }
-
-    public Enum getEnumProperty(String key) {
-        return getTypedProperty(key, Enum.class);
-    }
-
-    public Boolean getBooleanProperty(String key) {
-        return getTypedProperty(key, Boolean.class);
-    }
-
-    public Integer getIntegerProperty(String key) {
-        return getTypedProperty(key, Integer.class);
-    }
-
-    public Long getLongProperty(String key) {
-        return getTypedProperty(key, Long.class);
-    }
-
-    public Double getDoubleProperty(String key) {
-        return getTypedProperty(key, Double.class);
     }
 }

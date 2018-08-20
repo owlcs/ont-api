@@ -69,7 +69,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     }
 
     protected Object get(OntConfig.OptionSetting key) {
-        return map.getOrDefault(key, key.getDefaultValue());
+        return key.fromMap(map);
     }
 
     protected OntLoaderConfiguration set(OntConfig.OptionSetting key, Object o) {

@@ -75,7 +75,7 @@ public class OntConfig extends OntologyConfigurator {
     protected GraphTransformers.Store transformers;
 
     protected Object get(OptionSetting key) {
-        return map.getOrDefault(key, key.getDefaultValue());
+        return key.fromMap(map);
     }
 
     protected OntConfig put(OptionSetting key, Object value) {
@@ -864,11 +864,22 @@ public class OntConfig extends OntologyConfigurator {
         }
     }
 
+    /**
+     * Interface for working with IRI scheme.
+     * It is used as parameter in {@link OntConfig} and {@link OntLoaderConfiguration}.
+     */
+    @FunctionalInterface
     public interface Scheme extends Serializable {
+
+        /**
+         * Returns this scheme as String
+         *
+         * @return String
+         */
         String key();
 
         /**
-         * Answers iff IRI schema is the same.
+         * Answers {@code true} if the given IRI has this schema.
          *
          * @param iri {@link IRI}
          * @return boolean
@@ -878,7 +889,31 @@ public class OntConfig extends OntologyConfigurator {
         }
     }
 
+    /**
+     * Auxiliary interface, which provides an uniform way to work with option settings.
+     */
+    @FunctionalInterface
     public interface OptionSetting {
+
+        /**
+         * Returns the default value.
+         * @return a {@link Serializable} object
+         */
         Serializable getDefaultValue();
+
+        /**
+         * Gets a value from map.
+         * It is a functional equivalent of the expression {@code map.getOrDefault(key, key.getDefaultValue()}.
+         *
+         * @param map {@link Map} where {@link OptionSetting} is a key, any object is a value
+         * @return Object, value
+         */
+        default Object fromMap(Map<OptionSetting, Object> map) {
+            Object res = map.get(this);
+            if (res != null) {
+                return res;
+            }
+            return getDefaultValue();
+        }
     }
 }
