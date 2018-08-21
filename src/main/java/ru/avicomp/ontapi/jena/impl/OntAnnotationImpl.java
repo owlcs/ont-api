@@ -21,6 +21,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.CommonOntObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntMaker;
@@ -37,7 +38,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -63,7 +63,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
             .map(FrontsNode::asNode)
             .collect(Iter.toUnmodifiableSet());
     public static OntObjectFactory annotationFactory = new CommonOntObjectFactory(new OntMaker.Default(OntAnnotationImpl.class),
-            OntAnnotationImpl::findRootAnnotations,
+            OntAnnotationImpl::listRootAnnotations,
             OntAnnotationImpl::testAnnotation);
 
     /**
@@ -131,12 +131,20 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         return model.createStatement(this, property, value);
     }
 
-    public static Stream<Node> findRootAnnotations(EnhGraph eg) {
-        return Stream.concat(Stream.of(OWL.Axiom.asNode()), EXTRA_ROOT_TYPES_AS_NODES.stream())
-                .map(t -> eg.asGraph().find(Node.ANY, RDF.type.asNode(), t))
-                .map(Iter::asStream)
-                .flatMap(Function.identity())
-                .map(Triple::getSubject);
+    /**
+     * Lists all root {@link Node}s of top-level {@link OntAnnotation}s in the given model.
+     * In OWL2 a top-level annotation must have one of the following {@code rdf:type}s:
+     * {@link OWL#Axiom owl:Axiom}, {@link OWL#AllDisjointClasses owl:AllDisjointClasses},
+     * {@link OWL#AllDisjointProperties owl:AllDisjointProperties}, {@link OWL#AllDifferent owl:AllDifferent} or
+     * {@link OWL#NegativePropertyAssertion owl:NegativePropertyAssertion}
+     *
+     * @param eg {@link EnhGraph} model to serach in
+     * @return {@link ExtendedIterator} of {@link Node}s
+     */
+    public static ExtendedIterator<Node> listRootAnnotations(EnhGraph eg) {
+        return Iter.flatMap(Iter.of(OWL.Axiom.asNode()).andThen(EXTRA_ROOT_TYPES_AS_NODES.iterator()),
+                t -> eg.asGraph().find(Node.ANY, RDF.type.asNode(), t))
+                .mapWith(Triple::getSubject);
     }
 
     public static boolean testAnnotation(Node node, EnhGraph graph) {

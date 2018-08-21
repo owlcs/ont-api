@@ -19,14 +19,19 @@ import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.stream.Stream;
 
 /**
- * Extended {@link Implementation} factory, the base class for any our ont object factories.
- * Used to bind implementation(node) and interface.
- * Also for searching nodes and for performing graph changes related to the node (e.g. creating a resource-declaration by interface).
+ * Extended {@link Implementation} factory,
+ * the base class for any {@link ru.avicomp.ontapi.jena.model.OntObject Ontology Object} factories.
+ * Used to bind implementation (node) and interface.
+ * Also, in addition to the standard jena methods,
+ * this implementation includes the functionalities of searching for nodes
+ * and graph transforming in accordance with the specified interface.
  * <p>
  * Created by @szuev on 03.11.2016.
  */
@@ -58,15 +63,24 @@ public abstract class OntObjectFactory extends Implementation {
     /**
      * Returns stream of nodes with interface that this factory encapsulates.
      *
-     * @param eg The graph containing the node
+     * @param eg the graph containing the node
      * @return the stream of enhanced and suitability nodes.
      */
+    @Deprecated
     public Stream<EnhNode> find(EnhGraph eg) {
-        return Stream.empty();
+        return Iter.asStream(iterator(eg));
     }
 
     /**
-     * checks that the wrapping (node, eg) would succeed.
+     * Returns an {@link ExtendedIterator ExtendedIterator} of {@link EnhNode node}s with interface that this factory encapsulates.
+     *
+     * @param eg {@link EnhGraph}
+     * @return {@link ExtendedIterator} of {@link EnhNode}s
+     */
+    public abstract ExtendedIterator<EnhNode> iterator(EnhGraph eg);
+
+    /**
+     * Checks that the wrapping (node, eg) would succeed.
      *
      * @param node node the node to test for suitability
      * @param eg   the enhanced graph the node appears in

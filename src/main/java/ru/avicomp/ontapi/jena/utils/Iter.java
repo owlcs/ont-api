@@ -14,17 +14,17 @@
 
 package ru.avicomp.ontapi.jena.utils;
 
+import org.apache.jena.atlas.iterator.FilterUnique;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.StmtIteratorImpl;
 import org.apache.jena.util.iterator.ClosableIterator;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
@@ -90,4 +90,63 @@ public class Iter {
         return Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList);
     }
 
+    /**
+     * Returns an {@link ExtendedIterator Extended Iterator} consisting of the results of replacing each element of
+     * the given {@code base} iterator with the contents of a mapped iterator produced
+     * by applying the provided mapping function ({@code map}) to each element.
+     * A functional equivalent of {@link Stream#flatMap(Function)}, but for {@link ExtendedIterator}s.
+     *
+     * @param base {@link ExtendedIterator} with elements of type {@link F}
+     * @param map  {@link Function} map-function, Object of type {@link F} is an input, an {@link Iterator} of type {@link T} is an output
+     * @param <F>  the element type of the base iterator
+     * @param <T>  the element type of the new iterator
+     * @return new {@link ExtendedIterator} of type {@link T}
+     */
+    public static <F, T> ExtendedIterator<T> flatMap(ExtendedIterator<F> base, Function<F, ? extends Iterator<T>> map) {
+        return WrappedIterator.createIteratorIterator(base.mapWith(map).mapWith(i -> i));
+    }
+
+    /**
+     * Returns an {@link ExtendedIterator Extended Iterator} consisting of the elements
+     * of the given {@code base} iterator, additionally performing the provided {@code action}
+     * on each element as elements are consumed from the resulting iterator.
+     * A functional equivalent of {@link Stream#peek(Consumer)}, but for {@link ExtendedIterator}s.
+     *
+     * @param base   {@link ExtendedIterator} with elements of type {@link X}
+     * @param action {@link Consumer} action
+     * @param <X>    the element type of the input and output iterators
+     * @return new {@link ExtendedIterator} of type {@link X}
+     */
+    public static <X> ExtendedIterator<X> peek(ExtendedIterator<X> base, Consumer<? super X> action) {
+        return base.mapWith(x -> {
+            action.accept(x);
+            return x;
+        });
+    }
+
+    /**
+     * Returns an {@link ExtendedIterator Extended Iterator} consisting of the distinct elements
+     * (according to {@link Object#equals(Object)}) of the given iterator.
+     * A functional equivalent of {@link Stream#distinct()}, but for {@link ExtendedIterator}s.
+     * Warning: the result is temporary stored in memory!
+     *
+     * @param base {@link ExtendedIterator} with elements of type {@link X}
+     * @param <X>  the element type of the input and output iterators
+     * @return new {@link ExtendedIterator} of type {@link X} without duplicates
+     */
+    public static <X> ExtendedIterator<X> distinct(ExtendedIterator<X> base) {
+        return base.filterKeep(new FilterUnique<>());
+    }
+
+    /**
+     * Creates a new {@link ExtendedIterator Extended Iterator}} containing the specified elements
+     *
+     * @param members Array of elements of the type {@link X}
+     * @param <X>     the element type of the new iterator
+     * @return a fresh {@link ExtendedIterator} instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <X> ExtendedIterator<X> of(X... members) {
+        return WrappedIterator.create(Arrays.asList(members).iterator());
+    }
 }

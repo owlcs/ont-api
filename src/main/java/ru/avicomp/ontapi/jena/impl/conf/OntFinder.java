@@ -19,35 +19,51 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * To perform the preliminary search resources in model,
- * then the result stream will be filtered by {@link OntFilter}
- * Used in the factory {@link CommonOntObjectFactory}.
+ * Class-helper to perform the preliminary resource search in a model,
+ * Subsequently, the search result Stream will be filtered by the {@link OntFilter} instance.
+ * Used as a component in the factory {@link CommonOntObjectFactory} implementation.
  * <p>
  * Created by szuev on 07.11.2016.
  */
 @FunctionalInterface
 public interface OntFinder {
-    OntFinder ANY_SUBJECT = eg -> Iter.asStream(eg.asGraph().find(Triple.ANY).mapWith(Triple::getSubject)).distinct();
-    OntFinder ANY_SUBJECT_AND_OBJECT = eg -> Iter.asStream(eg.asGraph().find(Triple.ANY))
-            .map(t -> Stream.of(t.getSubject(), t.getObject())).flatMap(Function.identity()).distinct();
-    OntFinder ANYTHING = eg -> Iter.asStream(eg.asGraph().find(Triple.ANY))
-            .map(t -> Stream.of(t.getSubject(), t.getPredicate(), t.getObject()))
-            .flatMap(Function.identity()).distinct();
+    OntFinder ANY_SUBJECT = eg -> Graphs.subjects(eg.asGraph());
+    OntFinder ANY_SUBJECT_AND_OBJECT = eg -> Graphs.subjectsAndObjects(eg.asGraph());
+    OntFinder ANYTHING = eg -> Graphs.all(eg.asGraph());
     OntFinder TYPED = new ByPredicate(RDF.type);
 
-    Stream<Node> find(EnhGraph eg);
+    /**
+     * Returns an iterator over the nodes in the given model, which satisfy some criterion,
+     * specific to this {@link OntFinder}.
+     * It is expected that the result does not contain duplicates.
+     *
+     * @param eg {@link EnhGraph}, model
+     * @return {@link ExtendedIterator} of {@link Node}s
+     */
+    ExtendedIterator<Node> iterator(EnhGraph eg);
+
+    /**
+     * Lists the nodes from the specified model by the encapsulated criterion.
+     *
+     * @param eg {@link EnhGraph}, model
+     * @return {@link Stream} of {@link Node}s
+     */
+    default Stream<Node> find(EnhGraph eg) {
+        return Iter.asStream(iterator(eg));
+    }
 
     default OntFinder restrict(OntFilter filter) {
         OntJenaException.notNull(filter, "Null restriction filter.");
-        return eg -> find(eg).filter(n -> filter.test(n, eg));
+        return eg -> iterator(eg).filterKeep(n -> filter.test(n, eg));
     }
 
     class ByType implements OntFinder {
@@ -58,8 +74,8 @@ public interface OntFinder {
         }
 
         @Override
-        public Stream<Node> find(EnhGraph eg) {
-            return Iter.asStream(eg.asGraph().find(Node.ANY, RDF.type.asNode(), type).mapWith(Triple::getSubject)).distinct();
+        public ExtendedIterator<Node> iterator(EnhGraph eg) {
+            return eg.asGraph().find(Node.ANY, RDF.type.asNode(), type).mapWith(Triple::getSubject);
         }
     }
 
@@ -71,8 +87,8 @@ public interface OntFinder {
         }
 
         @Override
-        public Stream<Node> find(EnhGraph eg) {
-            return Iter.asStream(eg.asGraph().find(Node.ANY, predicate, Node.ANY).mapWith(Triple::getSubject)).distinct();
+        public ExtendedIterator<Node> iterator(EnhGraph eg) {
+            return Iter.distinct(eg.asGraph().find(Node.ANY, predicate, Node.ANY).mapWith(Triple::getSubject));
         }
     }
 }

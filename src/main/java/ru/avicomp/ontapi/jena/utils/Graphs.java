@@ -14,16 +14,16 @@
 
 package ru.avicomp.ontapi.jena.utils;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.*;
 import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphWrapper;
+import org.apache.jena.sparql.util.graph.GraphUtils;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -43,8 +43,8 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 06.02.2017.
  *
- * @see org.apache.jena.graph.GraphUtil
- * @see org.apache.jena.sparql.util.graph.GraphUtils
+ * @see GraphUtil
+ * @see GraphUtils
  */
 @SuppressWarnings("WeakerAccess")
 public class Graphs {
@@ -341,5 +341,39 @@ public class Graphs {
      */
     public static Node createNode(String iri) {
         return iri == null ? NodeFactory.createBlankNode() : NodeFactory.createURI(iri);
+    }
+
+    /**
+     * Lists all unique subject nodes in the given graph.
+     * Warning: the result is stored in-memory!
+     *
+     * @param g {@link Graph}
+     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all subjects in the graph
+     */
+    public static ExtendedIterator<Node> subjects(Graph g) {
+        return GraphUtil.listSubjects(g, Node.ANY, Node.ANY);
+    }
+
+    /**
+     * Lists all unique nodes in the given graph, which are used as subject or object.
+     * Warning: the result is stored in-memory!
+     *
+     * @param g {@link Graph}, not null
+     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all subjects or objects in the graph
+     */
+    public static ExtendedIterator<Node> subjectsAndObjects(Graph g) {
+        return WrappedIterator.create(GraphUtils.allNodes(g));
+    }
+
+    /**
+     * Lists all unique nodes in the given graph.
+     * Warning: the result is stored in-memory!
+     *
+     * @param g {@link Graph}, not null
+     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all nodes in the graph
+     */
+    public static ExtendedIterator<Node> all(Graph g) {
+        Set<Node> res = Iter.flatMap(g.find(Triple.ANY), t -> Iter.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet();
+        return WrappedIterator.create(res.iterator());
     }
 }

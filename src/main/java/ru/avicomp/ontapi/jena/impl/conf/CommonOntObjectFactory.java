@@ -18,9 +18,8 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
-
-import java.util.stream.Stream;
 
 /**
  * Default implementation of {@link OntObjectFactory}.
@@ -82,8 +81,8 @@ public class CommonOntObjectFactory extends OntObjectFactory {
     }
 
     @Override
-    public Stream<EnhNode> find(EnhGraph eg) {
-        return finder.restrict(filter).find(eg).map(n -> maker.instance(n, eg));
+    public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
+        return finder.restrict(filter).iterator(eg).mapWith(n -> maker.instance(n, eg));
     }
 
     @Override

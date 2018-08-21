@@ -18,6 +18,8 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Factory to combine several factories.
+ * A {@link OntObjectFactory Ontology Object Factory} implementation that combines several other factories.
  * <p>
  * Created by szuev on 07.11.2016.
  */
@@ -37,10 +39,9 @@ public class MultiOntObjectFactory extends OntObjectFactory {
     private OntFilter fittingFilter;
 
     /**
-     * The main constructor
      *
-     * @param finder        {@link OntFinder}, optional. if null then uses only array of sub-factories to search
-     * @param fittingFilter {@link OntFilter}, optional. to trim searching
+     * @param finder        {@link OntFinder}, optional, if null then uses only array of sub-factories to search
+     * @param fittingFilter {@link OntFilter}, optional, to trim searching
      * @param factories     the array of factories to combine, not null, not empty.
      */
     public MultiOntObjectFactory(OntFinder finder, OntFilter fittingFilter, OntObjectFactory... factories) {
@@ -48,7 +49,6 @@ public class MultiOntObjectFactory extends OntObjectFactory {
         this.fittingFilter = fittingFilter;
         this.factories = unbend(factories);
     }
-
 
     private static List<OntObjectFactory> unbend(OntObjectFactory... factories) {
         return Arrays.stream(factories)
@@ -75,11 +75,13 @@ public class MultiOntObjectFactory extends OntObjectFactory {
     }
 
     @Override
-    public Stream<EnhNode> find(EnhGraph eg) {
+    public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
         if (finder != null) {
-            return finder.find(eg).map(n -> doWrap(n, eg)).filter(Objects::nonNull);
+            return finder.iterator(eg).mapWith(n -> doWrap(n, eg)).filterDrop(Objects::isNull);
         }
-        return factories().map(f -> f.find(eg)).flatMap(Function.identity()).distinct();
+        // in ONT-API the following code is not used:
+        return WrappedIterator.create(factories().flatMap(f -> f.find(eg)).distinct().iterator());
+
     }
 
     public OntFinder getFinder() {
