@@ -674,6 +674,13 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
             return (Stream<A>) base.axioms(OWLSubClassOfAxiom.class)
                     .filter(a -> c.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperClass() : a.getSubClass()));
         }
+        if (OWLEquivalentClassesAxiom.class.equals(type) && Navigation.IN_SUB_POSITION.equals(position) && object instanceof OWLClassExpression) {
+            OWLClassExpression c = (OWLClassExpression) object;
+            if (c.isOWLClass()) {
+                return (Stream<A>) base.listOWLEquivalentClassesAxioms(c.asOWLClass());
+            }
+            return (Stream<A>) base.axioms(OWLEquivalentClassesAxiom.class).filter(a -> a.contains(c));
+        }
         if (OWLInverseObjectPropertiesAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
             return (Stream<A>) base.axioms(OWLInverseObjectPropertiesAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSecondProperty() : a.getFirstProperty()));
