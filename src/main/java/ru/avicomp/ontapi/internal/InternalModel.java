@@ -210,16 +210,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     }
 
     /**
-     * Lists all named and anonymous individuals as OWL-API objects.
-     *
-     * @return Stream of {@link OWLIndividual}s
-     * @see OntGraphModel#classAssertions()
-     */
-    public Stream<OWLIndividual> listOWLIndividuals() {
-        return listOWLObjects(OWLIndividual.class);
-    }
-
-    /**
      * Lists all anonymous individuals in the form of OWL-API objects.
      *
      * @return Stream of {@link OWLAnonymousIndividual}s

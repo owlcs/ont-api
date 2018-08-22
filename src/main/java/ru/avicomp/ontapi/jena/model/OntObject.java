@@ -126,6 +126,7 @@ public interface OntObject extends OntResource {
      * Lists all top-level statements related to this object (i.e. with subject={@code this}).
      *
      * @return Stream of all statements
+     * @see #listProperties()
      */
     Stream<OntStatement> statements();
 

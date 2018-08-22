@@ -81,7 +81,6 @@ public class MultiOntObjectFactory extends OntObjectFactory {
         }
         // in ONT-API the following code is not used:
         return WrappedIterator.create(factories().flatMap(f -> f.find(eg)).distinct().iterator());
-
     }
 
     public OntFinder getFinder() {

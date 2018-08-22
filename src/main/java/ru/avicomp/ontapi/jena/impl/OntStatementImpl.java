@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -177,6 +178,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         return subject instanceof OntObject ? (OntObject) subject : subject.as(OntObject.class);
     }
 
+    public Node getSubjectNode() {
+        return subject.asNode();
+    }
+
     @Override
     public <N extends RDFNode> N getSubject(Class<N> type) {
         return subject.as(type);
@@ -256,24 +261,40 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         return this;
     }
 
-    protected Stream<Statement> properties() {
-        return Iter.asStream(subject.listProperties());
-    }
-
     @Override
     public Stream<OntAnnotation> annotationResources() {
+        return Iter.asStream(listAnnotationResources());
+    }
+
+    /**
+     * Returns the iterator of annotation objects attached to this statement.
+     *
+     * @return {@link ExtendedIterator} of {@link OntAnnotation}s
+     * @see #annotationResources()
+     */
+    public ExtendedIterator<OntAnnotation> listAnnotationResources() {
         return listOntAnnotationResources(this, getAnnotationResourceType(), (r, s) -> new AttachedAnnotationImpl(r, s, getModel()));
     }
 
     @Override
     public Optional<OntAnnotation> asAnnotationResource() {
-        try (Stream<OntAnnotation> res = annotationResources().sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR)) {
-            return res.findFirst();
-        }
+        List<OntAnnotation> res = this.getSortedAnnotations();
+        return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));
+        //try (Stream<OntAnnotation> res = annotationResources().sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR)) {
+        //    return res.findFirst();
+        //}
     }
 
+    /**
+     * Returns the {@code List} of annotations sorted by the some internal order.
+     * @return List of {@link OntAnnotation}s
+     * @see #listAnnotationResources()
+     */
     public List<OntAnnotation> getSortedAnnotations() {
-        return annotationResources().sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR).collect(Collectors.toList());
+        List<OntAnnotation> res = listAnnotationResources().toList();
+        res.sort(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR);
+        return res;
+        //return annotationResources().sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR).collect(Collectors.toList());
     }
 
     /**
@@ -304,7 +325,6 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         return res.stream().map(OntAnnotation::getBase);
     }
 
-
     /**
      * Returns the rdf:type of attached annotation objects.
      *
@@ -320,12 +340,13 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param base  base ont-statement
      * @param type  owl:Axiom or owl:Annotation
      * @param maker BiFunction to produce OntAnnotation resource
-     * @return Stream of {@link OntAnnotation}
+     * @return {@link ExtendedIterator} of {@link OntAnnotation}
      */
-    protected static Stream<OntAnnotation> listOntAnnotationResources(OntStatementImpl base, Resource type,
+    protected static ExtendedIterator<OntAnnotation> listOntAnnotationResources(OntStatementImpl base,
+                                                                                Resource type,
                                                                       BiFunction<Resource, OntStatementImpl, OntAnnotation> maker) {
         return listAnnotations(base.getModel(), type, base.getSubject(), base.getPredicate(), base.getObject())
-                .map(r -> maker.apply(r, base));
+                .mapWith(r -> maker.apply(r, base));
     }
 
     /**
@@ -336,13 +357,17 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param s {@link Resource} subject
      * @param p {@link Property} predicate
      * @param o {@link RDFNode} object
-     * @return Stream of {@link Resource}s
+     * @return {@link ExtendedIterator} of {@link Resource}s
      */
-    protected static Stream<Resource> listAnnotations(Model m, Resource t, Resource s, Property p, RDFNode o) {
-        return Iter.asStream(m.listResourcesWithProperty(OWL.annotatedSource, s)
-                .filterKeep(r -> r.hasProperty(RDF.type, t))
-                .filterKeep(r -> r.hasProperty(OWL.annotatedProperty, p))
-                .filterKeep(r -> r.hasProperty(OWL.annotatedTarget, o)));
+    protected static ExtendedIterator<Resource> listAnnotations(Model m, Resource t, Resource s, Property p, RDFNode o) {
+        return m.listStatements(null, OWL.annotatedSource, s)
+                .filterKeep(x -> hasSpecProperties(x, t, p, o))
+                .mapWith(Statement::getSubject);
+    }
+
+    private static boolean hasSpecProperties(Statement s, Resource t, Property p, RDFNode o) {
+        Resource r = s.getSubject();
+        return r.hasProperty(RDF.type, t) && r.hasProperty(OWL.annotatedProperty, p) && r.hasProperty(OWL.annotatedTarget, o);
     }
 
     /**

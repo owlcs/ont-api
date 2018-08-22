@@ -22,6 +22,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -32,14 +33,13 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Base model to work through jena only.
- * This is our analogue of {@link org.apache.jena.ontology.impl.OntModelImpl} to work in accordance with OWL2 DL specification.
+ * Base model ONT-API implementation to work through jena only.
+ * This is an analogue of {@link org.apache.jena.ontology.impl.OntModelImpl} to work in accordance with OWL2 DL specification.
  * <p>
  * Created by @szuev on 27.10.2016.
  *
@@ -49,8 +49,6 @@ import java.util.stream.Stream;
 public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     /**
-     * The main constructor.
-     *
      * @param graph       {@link Graph}
      * @param personality {@link OntPersonality}
      */
@@ -104,10 +102,8 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @throws OntJenaException if creation is not possible by some reason.
      */
     public static Resource createOntologyID(Model model, String uri) throws OntJenaException {
-        List<Statement> prev = Iter.asStream(model.listResourcesWithProperty(RDF.type, OWL.Ontology))
-                .map(s -> Iter.asStream(s.listProperties()))
-                .flatMap(Function.identity())
-                .collect(Collectors.toList());
+        List<Statement> prev = Iter.flatMap(model.listStatements(null, RDF.type, OWL.Ontology),
+                s -> s.getSubject().listProperties()).toList();
         if (prev.stream()
                 .filter(s -> OWL.imports.equals(s.getPredicate()))
                 .map(Statement::getObject)
@@ -192,14 +188,27 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     /**
-     * To retrieve the stream of {@link OntObject}s
+     * Retrieves the stream of {@link OntObject Ontology Object}s.
+     * The result object will be cached inside model.
      *
-     * @param type Class
-     * @return Stream
+     * @param type {@link Class} the type of {@link OntObject}, not null
+     * @param <O>  subtype of {@link OntObject}
+     * @return Stream of {@link OntObject}s
      */
     @Override
-    public <T extends OntObject> Stream<T> ontObjects(Class<T> type) {
-        return getPersonality().getOntImplementation(type).find(this).map(e -> getNodeAs(e.asNode(), type));
+    public <O extends OntObject> Stream<O> ontObjects(Class<O> type) {
+        return Iter.asStream(listOntObjects(type));
+    }
+
+    /**
+     * Lists all {@link OntObject Ontology Objects} and caches them inside the model.
+     *
+     * @param type {@link Class} the type of {@link OntObject}, not null
+     * @param <O>  subtype of {@link OntObject}
+     * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
+     */
+    public <O extends OntObject> ExtendedIterator<O> listOntObjects(Class<O> type) {
+        return getPersonality().getOntImplementation(type).iterator(this).mapWith(e -> getNodeAs(e.asNode(), type));
     }
 
     @Override
@@ -208,7 +217,30 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
                 .filter(RDFNode::isURIResource)
                 .flatMap(r -> OntEntity.entityTypes().map(t -> getOntEntity(t, r)).filter(Objects::nonNull));*/
         // this looks faster:
-        return OntEntity.entityTypes().map(this::ontEntities).flatMap(Function.identity());
+        return Iter.asStream(listOntEntities());
+    }
+
+    /**
+     * Lists all Ontology Entities.
+     * Built-ins are not included.
+     *
+     * @return {@link ExtendedIterator Extended Iterator} of {@link OntEntity}s
+     */
+    public ExtendedIterator<OntEntity> listOntEntities() {
+        return Iter.flatMap(OntEntity.listEntityTypes(), t -> listOntEntities(t).mapWith(e -> e));
+    }
+
+    /**
+     * List all Ontology Entittes with the given class-type.
+     *
+     * @param type {@link Class} the type of {@link OntEntity}, not null
+     * @param <E>  subtype of {@link OntEntity}
+     * @return {@link ExtendedIterator Extended Iterator} of {@link OntEntity}s with the given type
+     * @see #ontEntities(Class)
+     * @see OntEntity#listEntityTypes()
+     */
+    public <E extends OntEntity> ExtendedIterator<E> listOntEntities(Class<E> type) {
+        return listOntObjects(type);
     }
 
     /**
@@ -218,7 +250,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @return Stream of {@link OntEntity}s.
      */
     public Stream<OntEntity> ambiguousEntities(boolean withImports) {
-        Set<Class<? extends OntEntity>> types = OntEntity.entityTypes().collect(Collectors.toSet());
+        Set<Class<? extends OntEntity>> types = OntEntity.listEntityTypes().toSet();
         return ontEntities().filter(e -> withImports || e.isLocal()).filter(e -> types.stream()
                 .filter(view -> e.canAs(view) && (withImports || e.as(view).isLocal())).count() > 1);
     }
@@ -297,17 +329,17 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public Stream<OntStatement> statements() {
-        return Iter.asStream(listStatements()).map(OntStatement.class::cast);
+        return Iter.asStream(listStatements().mapWith(OntStatement.class::cast));
     }
 
     @Override
     public Stream<OntStatement> statements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(listStatements(s, p, o)).map(OntStatement.class::cast);
+        return Iter.asStream(listStatements(s, p, o).mapWith(OntStatement.class::cast));
     }
 
     @Override
     public Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(listLocalStatements(s, p, o)).map(OntStatement.class::cast);
+        return Iter.asStream(listLocalStatements(s, p, o).mapWith(OntStatement.class::cast));
     }
 
     @Override
@@ -565,4 +597,5 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     public String toString() {
         return String.format("OntGraphModel{%s}", getID());
     }
+
 }

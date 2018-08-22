@@ -16,12 +16,12 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.UnsupportedPolymorphismException;
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
@@ -299,7 +299,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * {@inheritDoc}
      *
-     * @return {@link StmtIterator}
+     * @return {@link StmtIterator} which contains {@link OntStatement}s
      */
     @Override
     public StmtIterator listProperties() {
@@ -356,7 +356,19 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link OntStatement}s
      */
     public Stream<OntStatement> assertions() {
-        return statements().filter(OntStatement::isAnnotation);
+        return Iter.asStream(listAssertions());
+    }
+
+    /**
+     * Returns an iterator over object's annotation property assertions.
+     * The annotation assertion is a statements with an {@link OntNAP annotation property} as predicate.
+     *
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
+     */
+    public ExtendedIterator<OntStatement> listAssertions() {
+        return listProperties()
+                .filterKeep(s -> ((OntStatement) s).isAnnotation())
+                .mapWith(OntStatement.class::cast);
     }
 
     /**
@@ -448,17 +460,28 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * {@inheritDoc}
      *
-     * @param predicate {@link Property} predicate
-     * @param view      Class type
+     * @param predicate {@link Property} predicate, can be null
+     * @param type      Interface to find and cast, not null
      * @param <O>       any sub-type of {@link RDFNode}
-     * @return Stream of nodes
+     * @return Stream of {@link RDFNode node}s of the {@link O} type
      */
     @Override
-    public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> view) {
-        return objects(predicate)
-                .filter(n -> n.canAs(view))
-                .map(FrontsNode::asNode)
-                .map(n -> getModel().getNodeAs(n, view));
+    public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type) {
+        return Iter.asStream(listObjects(predicate, type));
+    }
+
+    /**
+     * Lists all objects for the given predicate and type.
+     *
+     * @param predicate {@link Property}, can be null
+     * @param type      Interface to find and cast, not null
+     * @param <O>       subtype of {@link RDFNode rdf-node}
+     * @return {@link ExtendedIterator} of {@link RDFNode node}s of the {@link O} type
+     */
+    public <O extends RDFNode> ExtendedIterator<O> listObjects(Property predicate, Class<O> type) {
+        return listProperties(predicate)
+                .filterKeep(n -> n.getObject().canAs(type))
+                .mapWith(n -> getModel().getNodeAs(n.getObject().asNode(), type));
     }
 
     /**
@@ -468,7 +491,17 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link RDFNode}s
      */
     public Stream<RDFNode> objects(Property predicate) {
-        return Iter.asStream(listProperties(predicate).mapWith(Statement::getObject));
+        return Iter.asStream(listObjects(predicate));
+    }
+
+    /**
+     * Lists all objects for the given predicate.
+     *
+     * @param predicate {@link Property}
+     * @return {@link ExtendedIterator} of {@link RDFNode}s
+     */
+    public ExtendedIterator<RDFNode> listObjects(Property predicate) {
+        return listProperties(predicate).mapWith(Statement::getObject);
     }
 
     @Override

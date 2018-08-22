@@ -70,8 +70,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @see Models#split(OntStatement)
      */
     protected Stream<OntStatement> split(OntStatement s) {
-        // CacheStatement helps to speed up a little if the ontology model has a lot of annotations,
-        // otherwise, it may even slow down the process of axioms collecting ...
+        // CacheStatement helps to speed up a little if the ontology model has a lot of tree-like annotations,
+        // otherwise, it may even slow down (but in an insignificant manner) the process of axioms collecting ...
+        // Currently I do not observe that it brings any harm
         return Models.split(OntStatementImpl.createCachedOntStatementImpl(s));
     }
 

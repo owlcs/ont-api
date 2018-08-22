@@ -145,7 +145,7 @@ public class Iter {
      * @param <X>     the element type of the new iterator
      * @return a fresh {@link ExtendedIterator} instance
      */
-    @SuppressWarnings("unchecked")
+    @SafeVarargs // Creating an iterator from an array is safe
     public static <X> ExtendedIterator<X> of(X... members) {
         return WrappedIterator.create(Arrays.asList(members).iterator());
     }

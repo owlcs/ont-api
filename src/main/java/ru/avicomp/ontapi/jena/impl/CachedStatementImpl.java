@@ -18,6 +18,8 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntNAP;
@@ -25,7 +27,6 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -96,14 +97,10 @@ public class CachedStatementImpl extends OntStatementImpl {
     @Override
     public List<OntAnnotation> getSortedAnnotations() {
         if (resources != null) return resources;
-        return resources = listOntAnnotationResources(this, getAnnotationResourceType(), (r, s) -> new CachedOntAnnImpl(r, s, getModel()))
-                .sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR).collect(Collectors.toList());
-    }
-
-    @Override
-    public Optional<OntAnnotation> asAnnotationResource() {
-        List<OntAnnotation> res = this.getSortedAnnotations();
-        return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));
+        List<OntAnnotation> res = listOntAnnotationResources(this, getAnnotationResourceType(),
+                (r, s) -> new CachedOntAnnImpl(r, s, getModel())).toList();
+        res.sort(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR);
+        return resources = res;
     }
 
     @Override
@@ -130,18 +127,19 @@ public class CachedStatementImpl extends OntStatementImpl {
         }
 
         @Override
-        public Stream<OntStatement> assertions() {
-            return (assertions == null ? assertions = super.assertions().map(CachedStatementImpl::new).collect(Collectors.toSet()) : assertions).stream();
-        }
-
-        public Set<OntAnnotation> getChildren() {
-            if (children != null) return children;
-            return children = super.descendants().collect(Collectors.toSet());
+        public ExtendedIterator<OntStatement> listAssertions() {
+            if (assertions == null) {
+                assertions = super.listAssertions().mapWith(s -> (OntStatement) new CachedStatementImpl(s)).toSet();
+            }
+            return WrappedIterator.create(assertions.iterator());
         }
 
         @Override
-        public Stream<OntAnnotation> descendants() {
-            return getChildren().stream();
+        public ExtendedIterator<OntAnnotation> listDescendants() {
+            if (children == null) {
+                children = super.listDescendants().toSet();
+            }
+            return WrappedIterator.create(children.iterator());
         }
 
         @Override

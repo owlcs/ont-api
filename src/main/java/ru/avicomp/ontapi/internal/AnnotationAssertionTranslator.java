@@ -71,7 +71,8 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
     }
 
     public boolean testStatement(OntStatement s, boolean withBulk) {
-        return ReadHelper.isAnnotationAssertionStatement(s, withBulk) && ReadHelper.isEntityOrAnonymousIndividual(s.getSubject());
+        return ReadHelper.isAnnotationAssertionStatement(s, withBulk)
+                && ReadHelper.isEntityOrAnonymousIndividual(s.getSubject());
     }
 
     @Override

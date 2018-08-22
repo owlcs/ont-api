@@ -114,6 +114,16 @@ public class Models {
     }
 
     /**
+     * Answers {@code true} if the given statement belongs to some []-list.
+     *
+     * @param s {@link Statement}, not null
+     * @return boolean
+     */
+    public static boolean isInList(Statement s) {
+        return RDF.first.equals(s.getPredicate()) || RDF.rest.equals(s.getPredicate()) || RDF.nil.equals(s.getObject());
+    }
+
+    /**
      * Converts rdf-node to anonymous individual.
      * The result anonymous individual could be true (instance of some owl class) or fake (any blank node).
      *

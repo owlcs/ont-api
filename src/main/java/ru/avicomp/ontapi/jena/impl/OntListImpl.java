@@ -269,7 +269,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         if (!listType.isURIResource()) throw new IllegalArgumentException("List type must have URI");
     }
 
-    private static Stream<Resource> listAnnotations(Model m, Resource subject, Property predicate, RDFNode obj) {
+    private static ExtendedIterator<Resource> listAnnotations(Model m, Resource subject, Property predicate, RDFNode obj) {
         return OntStatementImpl.listAnnotations(m, OWL.Axiom, subject, predicate, obj);
     }
 
@@ -349,8 +349,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             throw new OntJenaException.IllegalState(Models.toString(s) + " does not exist");
         }
         if (!objectRDFList.equals(list)) {
-            listAnnotations(m, subject, predicate, objectRDFList)
-                    .collect(Collectors.toSet())
+            listAnnotations(m, subject, predicate, objectRDFList).toSet()
                     .forEach(a -> m.remove(a, OWL.annotatedTarget, objectRDFList).add(a, OWL.annotatedTarget, list));
             m.getNodeCache().remove(objectRDFList.asNode());
         }

@@ -37,6 +37,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,7 +92,9 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     @Override
     public Stream<OntStatement> spec() {
         //return SPEC.stream().map(this::getRequiredProperty);
-        return statements().filter(s -> SPEC.contains(s.getPredicate()) || s.isAnnotation());
+        return Iter.asStream(listProperties()
+                .filterKeep(s -> SPEC.contains(s.getPredicate()) || ((OntStatement) s).isAnnotation())
+                .mapWith(OntStatement.class::cast));
     }
 
     @Override
@@ -104,10 +107,10 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     }
 
     @Override
-    public Stream<OntStatement> assertions() {
-        return statements()
-                .filter(st -> !OntAnnotationImpl.SPEC.contains(st.getPredicate()))
-                .filter(OntStatement::isAnnotation);
+    public ExtendedIterator<OntStatement> listAssertions() {
+        return listProperties()
+                .filterKeep(s -> !SPEC.contains(s.getPredicate()) && ((OntStatement) s).isAnnotation())
+                .mapWith(OntStatement.class::cast);
     }
 
     @Override
@@ -117,11 +120,22 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
 
     @Override
     public Stream<OntAnnotation> descendants() {
-        return Iter.asStream(getModel().listStatements(null, OWL.annotatedSource, this)
-                .mapWith(OntStatement.class::cast)
-                .mapWith(OntStatement::getSubject)
-                .filterKeep(s -> s.canAs(OntAnnotation.class))
-                .mapWith(s -> s.as(OntAnnotation.class)));
+        return Iter.asStream(listDescendants());
+    }
+
+    /**
+     * Returns an interator over all descendants of this ont-annotation resource.
+     *
+     * @return {@link ExtendedIterator} of {@link OntAnnotation}s
+     */
+    public ExtendedIterator<OntAnnotation> listDescendants() {
+        OntGraphModelImpl m = getModel();
+        return m.listStatements(null, OWL.annotatedSource, this)
+                .mapWith(s -> m.getOntObject(OntAnnotation.class, ((OntStatementImpl) s).getSubjectNode()))
+                .filterDrop(Objects::isNull);
+        /*return getModel().listStatements(null, OWL.annotatedSource, this)
+                .filterKeep(s -> s.getSubject().canAs(OntAnnotation.class))
+                .mapWith(s -> s.getSubject().as(OntAnnotation.class));*/
     }
 
     @Override

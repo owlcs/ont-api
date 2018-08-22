@@ -64,9 +64,8 @@ public abstract class OntObjectFactory extends Implementation {
      * Returns stream of nodes with interface that this factory encapsulates.
      *
      * @param eg the graph containing the node
-     * @return the stream of enhanced and suitability nodes.
+     * @return the stream of enhanced and suitability nodes
      */
-    @Deprecated
     public Stream<EnhNode> find(EnhGraph eg) {
         return Iter.asStream(iterator(eg));
     }

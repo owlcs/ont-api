@@ -14,6 +14,9 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
+import ru.avicomp.ontapi.jena.utils.Iter;
+
 import java.util.stream.Stream;
 
 /**
@@ -34,10 +37,20 @@ public interface OntEntity extends OntObject {
     /**
      * Returns entity types as stream.
      *
-     * @return Stream of entities types.
+     * @return Stream of OWL-entity types
      */
     static Stream<Class<? extends OntEntity>> entityTypes() {
-        return Stream.of(OntClass.class, OntDT.class, OntIndividual.Named.class, OntNOP.class, OntNAP.class, OntNDP.class);
+        return Iter.asStream(listEntityTypes());
+    }
+
+    /**
+     * Lists all OWL entity types.
+     *
+     * @return {@link ExtendedIterator} of OWL entity Class-types
+     * @since 1.3.0
+     */
+    static ExtendedIterator<Class<? extends OntEntity>> listEntityTypes() {
+        return Iter.of(OntClass.class, OntDT.class, OntIndividual.Named.class, OntNOP.class, OntNAP.class, OntNDP.class);
     }
 
     /**
