@@ -16,34 +16,43 @@ package ru.avicomp.ontapi.jena.model;
 
 import ru.avicomp.ontapi.OntApiException;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * An Ontology ID.
- * Each {@link OntGraphModel OWL2 Obtology} must have the only one {@link OntID id} inside.
- * Please note: this interface does not affect the structure of the rdf-graph, it works only with graph statements.
+ * Interface encapsulating an Ontology Identifier.
+ * Each {@link OntGraphModel OWL2 Obtology} must have one and only one {@link OntID Ontology ID} inside.
+ * <p>
+ * Please note: the methods of this interface do not affect the hierarchical structure of the graph
+ * to which this resource is attached, they only affect the structure of the graph itself.
+ * In other words, calling the methods {@link #removeImport(String)} does not remove the sub-graph
+ * from the main {@link ru.avicomp.ontapi.jena.UnionGraph Union Graph}.
+ * Similar, calling the method {@link #addImport(String)} simply adds the corresponding triple to the base graph.
  * <p>
  * Created by szuev on 09.11.2016.
+ *
+ * @see <a href='https://www.w3.org/TR/owl-syntax/#Ontology_IRI_and_Version_IRI'>3.1 Ontology IRI and Version IRI</a>
  */
 public interface OntID extends OntObject {
 
     /**
-     * Returns an iri from {@code @this owl:versionIRI @iri} statement.
+     * Returns an IRI from the right side of {@code this owl:versionIRI IRI} statement.
      *
-     * @return String, iri or null
+     * @return String IRI or {@code null}
      */
     String getVersionIRI();
 
     /**
-     * Assigns a new version iri to this ontology id object.
-     * Null argument means that current version iri should be deleted.
-     * @param uri String, can be null.
-     * @return this id-object to allow cascading calls
+     * Assigns a new version IRI to this Ontology ID object.
+     * A {@code null} argument means that current version IRI should be deleted.
+     *
+     * @param uri String, can be {@code null}.
+     * @return this ID to allow cascading calls
      */
     OntID setVersionIRI(String uri);
 
     /**
-     * Adds a triple {@code @this owl:import @uri}.
+     * Adds the triple {@code this owl:import uri} to this resource.
      *
      * @param uri String, not null
      * @return this id-object to allow cascading calls
@@ -52,7 +61,8 @@ public interface OntID extends OntObject {
     OntID addImport(String uri) throws OntApiException;
 
     /**
-     * Removes a triple {@code this @owl:import @uri} from this resource.
+     * Removes the triple {@code this owl:import uri} from this resource.
+     *
      * @param uri String, not null
      * @return this id-object to allow cascading calls
      */
@@ -60,8 +70,22 @@ public interface OntID extends OntObject {
 
     /**
      * Lists all {@code owl:import}s.
+     *
      * @return Stream of Strings
      */
     Stream<String> imports();
+
+    /**
+     * Indicates whether the given {@link OntID Ontology ID} is equal to this one in OWL2 terms.
+     * This means that the IDs must have the same IRI + version IRI pairs.
+     * If the method returns {@code true}, then two ontologies can not be coexist in the same scope.
+     *
+     * @param other {@link OntID}
+     * @return {@code true} in case the IDs are the same, otherwise {@code false}
+     * @since 1.3.0
+     */
+    default boolean sameAs(OntID other) {
+        return equals(other) && Objects.equals(getVersionIRI(), other.getVersionIRI());
+    }
 
 }

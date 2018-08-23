@@ -450,7 +450,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-1.ttl")));
         Assert.assertEquals("Wrong annotation assertions count", 1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
-        @SuppressWarnings("ConstantConditions") OWLAnnotationAssertionAxiom axiom = o.axioms(AxiomType.ANNOTATION_ASSERTION).findFirst().get();
+        OWLAnnotationAssertionAxiom axiom = o.axioms(AxiomType.ANNOTATION_ASSERTION).findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals("Wrong value", df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
         Assert.assertEquals("Wrong subject", c.getIRI(), axiom.getSubject());
         Assert.assertEquals("Wrong predicate", p1, axiom.getProperty());
@@ -583,7 +583,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         LOGGER.debug("4) Reload original ontology.");
         IRI ver = IRI.create("http://version/2");
         txt += String.format("<%s> <%s> <%s> .", iri, OWL.versionIRI, ver);
-        LOGGER.debug("\n" + txt + "\n");
+        LOGGER.debug("To Load: \n{}\n", txt);
         OWLOntology o2 = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(txt));
         Assert.assertEquals("Incorrect ontologies count", count + 2, manager.ontologies().count());
         List<OWLAnnotation> actual = o2.annotations().sorted().collect(Collectors.toList());

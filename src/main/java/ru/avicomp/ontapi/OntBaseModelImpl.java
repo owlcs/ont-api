@@ -25,9 +25,11 @@ import org.semanticweb.owlapi.model.parameters.Navigation;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
+import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
@@ -46,13 +48,14 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * An abstract {@link OWLOntology OWL-API Ontology} implementation with methods to read information in the form of OWL-Objects from the underling graph-model.
- * It's our analogy of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl</a>.
+ * An abstract {@link OWLOntology OWL-API Ontology} implementation with methods to read information
+ * in the form of {@link OWLObject OWL Object}s from the underling graph-model.
+ * It's an analogy of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl</a>.
  * <p>
  * Created by @szuev on 03.12.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntology, ConfigProvider, InternalModelHolder {
+public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, InternalModelHolder {
     // binary format to provide serialization:
     protected static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
 
@@ -60,6 +63,7 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     protected transient OntologyManagerImpl managerBackCopy;
 
     protected OWLOntologyID ontologyID;
+    protected int hashCode;
 
     protected OntBaseModelImpl(Graph graph, OntologyManagerImpl.ModelConfig conf) {
         this.base = new InternalModel(OntApiException.notNull(graph, "Null graph."), OntApiException.notNull(conf, "Null conf."));
@@ -222,6 +226,11 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     }
 
     @Override
+    public Stream<OWLClassExpression> nestedClassExpressions() {
+        return accept(new OWLClassExpressionCollector()).stream();
+    }
+
+    @Override
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
         return base.listOWLAnonymousIndividuals();
     }
@@ -260,6 +269,11 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     public Stream<OWLEntity> signature() {
         return Stream.of(classesInSignature(), objectPropertiesInSignature(), dataPropertiesInSignature(),
                 individualsInSignature(), datatypesInSignature(), annotationPropertiesInSignature()).flatMap(Function.identity());
+    }
+
+    @Override
+    public boolean containsEntityInSignature(OWLEntity entity) {
+        return signature().anyMatch(o -> Objects.equals(o, entity));
     }
 
     @Override
@@ -912,5 +926,28 @@ public abstract class OntBaseModelImpl extends OWLObjectImpl implements OWLOntol
     @Override
     public String toString() {
         return String.format("Ontology(%s)", ontologyID);
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode == 0 ? hashCode = initHashCode() : hashCode;
+    }
+
+    @Override
+    public int compareTo(@Nullable OWLObject o) {
+        return OWLObjectImpl.DEFAULT_COMPARATOR.compare(this, Objects.requireNonNull(o));
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof OntologyModel)) {
+            return false;
+        }
+        OntGraphModel right = ((OntologyModel) obj).asGraphModel();
+        OntGraphModel left = getBase();
+        return left.getID().sameAs(right.getID());
     }
 }

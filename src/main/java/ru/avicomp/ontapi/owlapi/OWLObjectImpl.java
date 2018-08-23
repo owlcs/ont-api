@@ -23,7 +23,6 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * A base for any OWLObject in ONT-API.
@@ -32,6 +31,9 @@ import java.util.stream.StreamSupport;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class OWLObjectImpl implements OWLObject, Serializable {
+
+    public static final Comparator<OWLObject> DEFAULT_COMPARATOR = Comparator.comparingInt(OWLObject::typeIndex)
+            .thenComparing(o -> o.components().iterator(), OWLObjectImpl::compareIterators);
 
     /**
      * a convenience reference for an empty annotation set, saves on typing.
@@ -148,12 +150,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
 
     @Override
     public int compareTo(@Nullable OWLObject o) {
-        Objects.requireNonNull(o);
-        int diff = Integer.compare(typeIndex(), o.typeIndex());
-        if (diff != 0) {
-            return diff;
-        }
-        return compareIterators(components().iterator(), o.components().iterator());
+        return DEFAULT_COMPARATOR.compare(this, Objects.requireNonNull(o));
     }
 
     @Override
@@ -183,19 +180,6 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     protected Set<OWLAnonymousIndividual> addAnonymousIndividualsToSet(Set<OWLAnonymousIndividual> anons) {
         accept(new AnonymousIndividualCollector(anons));
         return anons;
-    }
-
-    /**
-     * A method to be used on collections that are sorted, immutable and do not contain nulls.
-     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
-     *
-     * @param c   sorted collection of distinct, nonnull elements; the collection must be immutable
-     * @param <T> element type
-     * @return stream that won't cause sorted() calls to sort the collection again
-     * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#streamFromSorted(Collection)
-     */
-    protected static <T> Stream<T> streamFromSorted(Collection<T> c) {
-        return StreamSupport.stream(Spliterators.spliterator(c, Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.SORTED | Spliterator.SIZED), false);
     }
 
     /**
