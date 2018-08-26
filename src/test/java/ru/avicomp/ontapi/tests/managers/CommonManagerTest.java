@@ -250,8 +250,11 @@ public class CommonManagerTest {
 
     @Test
     public void testLoadSplitBulkRootAnnotations() throws OWLOntologyCreationException {
-        OWLOntologyManager m = OntManagers.createONT();
-        m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
+        OntologyManager m = OntManagers.createONT();
+        Assert.assertTrue(m.getOntologyConfigurator().shouldLoadAnnotations());
+        Assert.assertFalse(m.getOntologyConfigurator().isSplitAxiomAnnotations());
+        m.getOntologyConfigurator().setLoadAnnotationAxioms(false).setSplitAxiomAnnotations(true);
+
         String file = "ontapi/test-annotations-3.ttl";
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);

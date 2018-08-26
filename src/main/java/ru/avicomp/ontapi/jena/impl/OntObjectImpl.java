@@ -121,7 +121,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * Checks if the given {@link Node Node} can be viewed as the given type.
      * This method caches the enhanced node, if possible, in the model,
-     * and, opposite to {@link OntGraphModelImpl#findNodeAs(Class, Node)},
+     * and, opposite to the method {@link UnionModel#findNodeAs(Node, Class)},
      * takes care about possible graph recursions.
      *
      * @param view  Class-type

@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
-import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
@@ -338,6 +337,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLDeclarationAxiom}s
      */
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
+        if (!getConfig().loaderConfig().isAllowReadDeclarations()) return Stream.empty();
         // even there are no changes in OWLDeclarationAxioms, they can be affected by some other user-defined axiom,
         // so need check whole cache:
         if (hasManuallyAddedAxioms()) {
@@ -362,12 +362,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         if (hasManuallyAddedAxioms()) {
             return axioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
-        OntLoaderConfiguration c = getConfig().loaderConfig();
-        boolean withBulk = c.isAllowBulkAnnotationAssertions();
+        Config c = getConfig();
+        boolean withBulk = c.loaderConfig().isAllowBulkAnnotationAssertions();
         AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
-        return localStatements(WriteHelper.toResource(s), null, null)
-                .filter(x -> t.testStatement(x, withBulk))
-                .flatMap(t::split)
+        return t.adjust(c, localStatements(WriteHelper.toResource(s), null, null)
+                .filter(x -> t.testStatement(x, withBulk)))
                 .map(t::toAxiom)
                 .map(ONTObject::getObject);
     }
@@ -383,9 +382,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             return axioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
         SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
-        return localStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
-                .filter(t::filter)
-                .flatMap(t::split)
+        return t.adjust(getConfig(), localStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
+                .filter(t::filter))
                 .map(t::toAxiom)
                 .map(ONTObject::getObject);
     }
@@ -403,9 +401,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
         EquivalentClassesTranslator t = (EquivalentClassesTranslator) AxiomParserProvider.get(OWLEquivalentClassesAxiom.class);
         Resource r = WriteHelper.toResource(c);
-        return Stream.concat(localStatements(r, OWL.equivalentClass, null), localStatements(null, OWL.equivalentClass, r))
-                .filter(t::testStatement)
-                .flatMap(t::split)
+        return t.adjust(getConfig(),
+                Stream.concat(localStatements(r, OWL.equivalentClass, null), localStatements(null, OWL.equivalentClass, r))
+                        .filter(t::testStatement))
                 .map(t::toAxiom)
                 .map(ONTObject::getObject);
     }

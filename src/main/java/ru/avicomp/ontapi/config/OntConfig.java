@@ -36,27 +36,18 @@ import java.util.stream.Stream;
  * Note: this configuration is mutable, while load and write configs are not.
  * Additional (new) ONT-API methods:
  * <ul>
- * <li>{@link #getPersonality()}</li>
- * <li>{@link #setPersonality(OntPersonality)}</li>
- * <li>{@link #getGraphTransformers()}</li>
- * <li>{@link #setGraphTransformers(GraphTransformers.Store)}</li>
- * <li>{@link #isPerformTransformation()}</li>
- * <li>{@link #setPerformTransformation(boolean)}</li>
- * <li>{@link #getSupportedSchemes()}</li>
- * <li>{@link #setSupportedSchemes(List)}</li>
- * <li>{@link #disableWebAccess()} (since 1.1.0)</li>
- * <li>{@link #isAllowReadDeclarations()}</li>
- * <li>{@link #setAllowReadDeclarations(boolean)}</li>
- * <li>{@link #isAllowBulkAnnotationAssertions()}</li>
- * <li>{@link #setAllowBulkAnnotationAssertions(boolean)}</li>
- * <li>{@link #isIgnoreAnnotationAxiomOverlaps()}</li>
- * <li>{@link #setIgnoreAnnotationAxiomOverlaps(boolean)}</li>
- * <li>{@link #isUseOWLParsersToLoad()}</li>
- * <li>{@link #setUseOWLParsersToLoad(boolean)}</li>
- * <li>{@link #isControlImports()}</li>
- * <li>{@link #setControlImports(boolean)} </li>
- * <li>{@link #isIgnoreAxiomsReadErrors()} (since 1.1.0)</li>
- * <li>{@link #setIgnoreAxiomsReadErrors(boolean)} (since 1.1.0)</li>
+ * <li>{@link #getPersonality()} and {@link #setPersonality(OntPersonality)}</li>
+ * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers.Store)}</li>
+ * <li>{@link #isPerformTransformation()} and {@link #setPerformTransformation(boolean)}</li>
+ * <li>{@link #getSupportedSchemes()} and {@link #setSupportedSchemes(List)}</li>
+ * <li>{@link #disableWebAccess()} (<b>since 1.1.0</b>)</li>
+ * <li>{@link #isAllowReadDeclarations()} and {@link #setAllowReadDeclarations(boolean)}</li>
+ * <li>{@link #isAllowBulkAnnotationAssertions()} and {@link #setAllowBulkAnnotationAssertions(boolean)}</li>
+ * <li>{@link #isIgnoreAnnotationAxiomOverlaps()} and {@link #setIgnoreAnnotationAxiomOverlaps(boolean)}</li>
+ * <li>{@link #isUseOWLParsersToLoad()} and {@link #setUseOWLParsersToLoad(boolean)}</li>
+ * <li>{@link #isControlImports()} and {@link #setControlImports(boolean)} </li>
+ * <li>{@link #isIgnoreAxiomsReadErrors()} and {@link #setIgnoreAxiomsReadErrors(boolean)} (<b>since 1.1.0</b>)</li>
+ * <li>{@link #isSplitAxiomAnnotations()} and {@link #setSplitAxiomAnnotations(boolean)} (<b>since 1.3.0</b>)</li>
  * </ul>
  * <p>
  * Created by szuev on 27.02.2017.
@@ -68,6 +59,7 @@ import java.util.stream.Stream;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class OntConfig extends OntologyConfigurator {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntConfig.class);
+    private static final long serialVersionUID = 656765031127374396L;
 
     protected final Map<OptionSetting, Object> map = new HashMap<>();
     // WARNING: OntPersonality is not serializable!
@@ -84,7 +76,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config setter.
+     * ONT-API manager load config setter.
      *
      * @param p {@link OntPersonality} the personality
      * @return this instance
@@ -96,7 +88,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config getter.
+     * ONT-API manager load config getter.
      *
      * @return {@link OntPersonality}
      * @see OntLoaderConfiguration#getPersonality()
@@ -106,7 +98,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config setter.
+     * ONT-API manager load config setter.
      *
      * @param t {@link ru.avicomp.ontapi.transforms.GraphTransformers.Store}
      * @return this instance
@@ -118,7 +110,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config getter.
+     * ONT-API manager load config getter.
      *
      * @return {@link ru.avicomp.ontapi.transforms.GraphTransformers.Store}
      * @see OntLoaderConfiguration#getGraphTransformers()
@@ -128,7 +120,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config getter.
+     * ONT-API manager load config getter.
      *
      * @return List of supported {@link Scheme schemes}
      * @see OntLoaderConfiguration#getSupportedSchemes()
@@ -139,7 +131,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config setter.
+     * ONT-API manager load config setter.
      *
      * @param schemes List of {@link Scheme}
      * @return this instance
@@ -161,9 +153,9 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config getter.
+     * ONT-API manager load config getter.
      *
-     * @return true if transformation is enabled
+     * @return {@code true} if transformation is enabled
      * @see OntLoaderConfiguration#isPerformTransformation()
      * @see ru.avicomp.ontapi.transforms.Transform
      */
@@ -172,9 +164,9 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config setter.
+     * ONT-API manager load config setter.
      *
-     * @param b true to enable transformation (by default it is enabled)
+     * @param b {@code true} to enable transformation (by default it is enabled)
      * @return {@link OntConfig} this instance
      * @see OntLoaderConfiguration#setPerformTransformation(boolean)
      */
@@ -183,9 +175,9 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config getter.
+     * ONT-API manager load config getter.
      *
-     * @return true if bulk annotations are allowed (it is by default)
+     * @return {@code true} if bulk annotations are allowed (it is by default)
      * @see OntLoaderConfiguration#isAllowBulkAnnotationAssertions()
      */
     public boolean isAllowBulkAnnotationAssertions() {
@@ -193,9 +185,9 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config setter.
+     * ONT-API manager load config setter.
      *
-     * @param b true to enable bulk annotations
+     * @param b {@code true} to enable bulk annotations
      * @return this instance
      * @see OntLoaderConfiguration#setAllowBulkAnnotationAssertions(boolean)
      */
@@ -204,9 +196,9 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config getter.
+     * ONT-API manager load config getter.
      *
-     * @return true if declarations are enabled (default)
+     * @return {@code true} if declarations are enabled (default)
      * @see OntLoaderConfiguration#isAllowReadDeclarations()
      */
     public boolean isAllowReadDeclarations() {
@@ -214,7 +206,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config setter.
+     * ONT-API manager load config setter.
      *
      * @param b boolean enable/disable declarations
      * @return this instance
@@ -225,9 +217,9 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config getter.
+     * ONT-API manager load config getter.
      *
-     * @return true if annotation axiom overlaps are ignored (default)
+     * @return {@code true} if annotation axiom overlaps are ignored (default)
      * @see OntLoaderConfiguration#isIgnoreAnnotationAxiomOverlaps()
      */
     public boolean isIgnoreAnnotationAxiomOverlaps() {
@@ -235,7 +227,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config setter.
+     * ONT-API manager load config setter.
      *
      * @param b boolean to enable/disable this config parameter
      * @return this instance
@@ -246,9 +238,9 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config getter.
+     * ONT-API manager load config getter.
      *
-     * @return true if ONT-API loading disabled (false by default)
+     * @return {@code true} if ONT-API loading disabled (false by default)
      * @see OntLoaderConfiguration#isUseOWLParsersToLoad()
      */
     public boolean isUseOWLParsersToLoad() {
@@ -257,7 +249,7 @@ public class OntConfig extends OntologyConfigurator {
 
     /**
      * Sets an {@link #isUseOWLParsersToLoad()} parameter.
-     * It is an ONT-API(NEW) manager load config setter.
+     * It is an ONT-API manager load config setter.
      * Used in {@link ru.avicomp.ontapi.OntologyFactoryImpl Default Ontology Factory Implementation} to choose preferable way to load.
      * If this parameter is set to {@code true} then Apache Jena loading mechanisms are used in case it is supported both by Jena and OWL-API.
      * Otherwise, loading is performed by using native OWL-API Parsers, which do not read full graph, but assemble it axiom by axiom.
@@ -277,10 +269,10 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config getter.
+     * ONT-API manager load config getter.
      * See {@link #setUseOWLParsersToLoad(boolean)} description.
      *
-     * @return true if any errors while reading axioms are ignored (by default false)
+     * @return {@code true} if any errors while reading axioms are ignored (by default false)
      * @see OntLoaderConfiguration#isIgnoreAxiomsReadErrors()
      * @since 1.1.0
      */
@@ -289,7 +281,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager load config setter.
+     * ONT-API manager load config setter.
      *
      * @param b boolean to enable/disable ignoring axioms reading errors
      * @return this instance
@@ -301,9 +293,64 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager write config getter.
+     * ONT-API manager load config getter.
+     * Answers {@code true} if the axiom-annotations-split functionality is enabled in the config.
+     * If this parameter is set to {@code true}, each bulk annotation will generate a separated axiom.
+     * Otherwise, all bulk-annotations go together with the main triple as a single axiom.
+     * Consider the following ontology snippet:
+     * <pre>{@code
+     * <A>     a                owl:Class ;
+     *         rdfs:subClassOf  owl:Thing .
+     * [ a                      owl:Axiom ;
+     *   rdfs:comment           "X" ;
+     *   rdfs:label             "Z" ;
+     *   owl:annotatedProperty  rdfs:subClassOf ;
+     *   owl:annotatedSource    <A> ;
+     *   owl:annotatedTarget    owl:Thing
+     * ] .
+     * [ a                      owl:Axiom ;
+     *   rdfs:comment           "W" ;
+     *   owl:annotatedProperty  rdfs:subClassOf ;
+     *   owl:annotatedSource    <A> ;
+     *   owl:annotatedTarget    owl:Thing
+     * ] .
+     * }</pre>
+     * If {@code isSplitAxiomAnnotations()} equals {@code true} the ontology above gives the two following axioms:
+     * <pre>{@code
+     * SubClassOf(Annotation(rdfs:comment "W"^^xsd:string) <A> owl:Thing)
+     * SubClassOf(Annotation(rdfs:comment "X"^^xsd:string) Annotation(rdfs:label "Z"^^xsd:string) <A> owl:Thing)
+     * }</pre>
+     * If {@code isSplitAxiomAnnotations()} equals {@code false}, there is only single {@code SubClassOf} axiom:
+     * <pre>{@code
+     * SubClassOf(Annotation(rdfs:comment "W"^^xsd:string) Annotation(rdfs:comment "X"^^xsd:string) Annotation(rdfs:label "Z"^^xsd:string) <string:A> owl:Thing)
+     * }</pre>
      *
-     * @return true if control-imports are enabled (it is by default)
+     * @return boolean
+     * @see OntLoaderConfiguration#isSplitAxiomAnnotations()
+     * @since 1.3.0
+     */
+    public boolean isSplitAxiomAnnotations() {
+        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS);
+    }
+
+    /**
+     * ONT-API manager load config setter.
+     * Changes the axiom-annotations-split setting to the given state.
+     *
+     * @param b boolean
+     * @return this instance
+     * @see OntLoaderConfiguration#setSplitAxiomAnnotations(boolean)
+     * @since 1.3.0
+     */
+    public OntConfig setSplitAxiomAnnotations(boolean b) {
+        return put(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS, b);
+    }
+
+    /**
+     * ONT-API manager write config getter.
+     * By default 'ont.api.write.conf.control.imports' is enabled.
+     *
+     * @return {@code true} if 'ont.api.write.conf.control.imports' is enabled
      * @see OntWriterConfiguration#isControlImports()
      */
     public boolean isControlImports() {
@@ -311,7 +358,7 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API(NEW) manager write config setter.
+     * ONT-API manager write config setter.
      *
      * @param b boolean to enable/disable this config parameter
      * @return this instance
@@ -897,6 +944,7 @@ public class OntConfig extends OntologyConfigurator {
 
         /**
          * Returns the default value.
+         *
          * @return a {@link Serializable} object
          */
         Serializable getDefaultValue();

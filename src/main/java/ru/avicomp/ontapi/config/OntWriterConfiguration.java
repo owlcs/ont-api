@@ -30,6 +30,7 @@ import java.util.Objects;
 @SuppressWarnings("WeakerAccess")
 public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
 
+    private static final long serialVersionUID = 2369276991908772369L;
     protected final Map<OntConfig.OptionSetting, Object> map = new HashMap<>();
 
     public OntWriterConfiguration(OWLOntologyWriterConfiguration owl) {

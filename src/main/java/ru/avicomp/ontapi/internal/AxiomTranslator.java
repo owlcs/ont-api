@@ -56,20 +56,23 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @throws JenaException unable to read axioms of this type.
      */
     public Stream<ONTObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
-        return statements(model)
-                .flatMap(this::split)
-                .map(this::toAxiom);
+        ConfigProvider.Config conf = getConfig(model);
+        return adjust(conf, statements(model)).map(this::toAxiom);
     }
 
     /**
-     * Splits the statement.
-     *
-     * @param s {@link OntStatement}
+     * Performs common operations on the stream of {@link OntStatement Ontology Statement}s
+     * before converting them into axioms.
+     * @param conf {@link ConfigProvider.Config} configuration
+     * @param statements Stream of {@link OntStatement}s
      * @return Stream of {@link OntStatement}s
-     * @see Models#split(OntStatement)
      */
-    protected Stream<OntStatement> split(OntStatement s) {
-        return Models.split(Models.createCachedStatement(s));
+    protected Stream<OntStatement> adjust(ConfigProvider.Config conf, Stream<OntStatement> statements) {
+        Stream<OntStatement> res = statements.map(Models::createCachedStatement);
+        if (conf.loaderConfig().isSplitAxiomAnnotations()) {
+            return res.flatMap(Models::split);
+        }
+        return res;
     }
 
     /**

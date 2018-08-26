@@ -21,12 +21,16 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.io.IRIDocumentSource;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.internal.AxiomParserProvider;
 import ru.avicomp.ontapi.internal.WriteHelper;
 import ru.avicomp.ontapi.jena.model.OntClass;
@@ -37,6 +41,8 @@ import ru.avicomp.ontapi.utils.OntIRI;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.TestUtils;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -461,36 +467,85 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testLoadSplitBulkAnnotations() throws Exception {
-        OWLOntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createONT();
+        OntLoaderConfiguration conf = m.getOntologyConfigurator().buildLoaderConfiguration().setSplitAxiomAnnotations(true);
+        Assert.assertFalse(m.getOntologyLoaderConfiguration().isSplitAxiomAnnotations());
+
+        IRI file = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-2.ttl"));
+        OWLOntologyDocumentSource src = new IRIDocumentSource(file, OntFormat.TURTLE.createOwlFormat(), null);
+        OntologyModel o = m.loadOntologyFromOntologyDocument(src, conf);
+
         OWLDataFactory df = m.getOWLDataFactory();
         OWLAnnotationProperty p1 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym");
         OWLAnnotationProperty p2 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasDbXref");
         OWLClass c = df.getOWLClass("http://purl.obolibrary.org/obo/TTO_1006537");
+        Assert.assertEquals("Wrong annotation assertions count", 2, o.axioms(AxiomType.ANNOTATION_ASSERTION)
+                .peek(x -> LOGGER.debug("Axiom {}", x))
+                .peek(axiom -> {
+                    Assert.assertEquals("Wrong value", df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
+                    Assert.assertEquals("Wrong subject", c.getIRI(), axiom.getSubject());
+                    Assert.assertEquals("Wrong predicate", p1, axiom.getProperty());
+                    List<OWLAnnotation> sub = axiom.annotationsAsList();
+                    Assert.assertEquals("Wrong count of sub-annotations", 1, sub.size());
+                    Assert.assertEquals("Wrong predicate", p2, sub.get(0).getProperty());
+                })
+                .count());
+    }
 
+    @Test
+    public void testLoadNoSplitBulkAnnotations() throws Exception {
+        OWLOntologyManager m = OntManagers.createONT();
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-2.ttl")));
-        Assert.assertEquals("Wrong annotation assertions count", 2, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+        ReadWriteUtils.print(o);
+        List<OWLAnnotationAssertionAxiom> list = o.axioms(AxiomType.ANNOTATION_ASSERTION).collect(Collectors.toList());
+        Assert.assertEquals(1, list.size());
+        OWLAnnotationAssertionAxiom axiom = list.get(0);
 
-        o.axioms(AxiomType.ANNOTATION_ASSERTION).forEach(axiom -> {
-            Assert.assertEquals("Wrong value", df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
-            Assert.assertEquals("Wrong subject", c.getIRI(), axiom.getSubject());
-            Assert.assertEquals("Wrong predicate", p1, axiom.getProperty());
-            List<OWLAnnotation> sub = axiom.annotationsAsList();
-            Assert.assertEquals("Wrong count of sub-annotations", 1, sub.size());
-            Assert.assertEquals("Wrong predicate", p2, sub.get(0).getProperty());
-        });
+        OWLDataFactory df = m.getOWLDataFactory();
+        OWLAnnotationProperty p1 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym");
+        OWLAnnotationProperty p2 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasDbXref");
+        OWLClass c = df.getOWLClass("http://purl.obolibrary.org/obo/TTO_1006537");
+        Assert.assertEquals("Wrong value", df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
+        Assert.assertEquals("Wrong subject", c.getIRI(), axiom.getSubject());
+        Assert.assertEquals("Wrong predicate", p1, axiom.getProperty());
+        List<OWLAnnotation> sub = axiom.annotations().sorted().collect(Collectors.toList());
+        Assert.assertEquals("Wrong count of sub-annotations", 2, sub.size());
+        Assert.assertEquals("Wrong predicate", p2, sub.get(0).getProperty());
+        Assert.assertEquals("Wrong predicate", p2, sub.get(1).getProperty());
+        Assert.assertEquals("CASSPC:46467", sub.get(0).getValue().asLiteral()
+                .orElseThrow(AssertionError::new).getLiteral());
+        Assert.assertEquals("CASSPC:6553", sub.get(1).getValue().asLiteral()
+                .orElseThrow(AssertionError::new).getLiteral());
     }
 
     @Test
     public void testLoadRootSplitBulkAnnotations() throws Exception {
-        OWLOntologyManager m = OntManagers.createONT();
-        String file = "ontapi/test-annotations-3.ttl";
-        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
-        o.axioms().forEach(x -> LOGGER.debug("{}", x));
+        OntologyManager m = OntManagers.createONT();
+        Path file = Paths.get(ReadWriteUtils.getResourceURI("ontapi/test-annotations-3.ttl"));
+        FileDocumentSource src = new FileDocumentSource(file.toFile());
+        OWLOntology o = m.loadOntologyFromOntologyDocument(src, m.getOntologyLoaderConfiguration()
+                .setSplitAxiomAnnotations(true));
+        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
         Assert.assertEquals("Wrong declarations count", 3, o.axioms(AxiomType.DECLARATION).count());
         Assert.assertEquals("Wrong annotations count", 1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
         o.axioms(AxiomType.DECLARATION).forEach(a -> {
             int expected = a.getEntity().isOWLClass() ? 1 : 0;
             Assert.assertEquals("Wrong annotations count: ", expected, a.annotations().count());
+        });
+    }
+
+    @Test
+    public void testLoadRootNoSplitBulkAnnotations() throws Exception {
+        OWLOntologyManager m = OntManagers.createONT();
+        String file = "ontapi/test-annotations-3.ttl";
+        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
+        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("Axiom: {}", x)).count());
+
+        Assert.assertEquals("Wrong declarations count", 2, o.axioms(AxiomType.DECLARATION).count());
+        Assert.assertEquals("Wrong annotations count", 1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+        o.axioms(AxiomType.DECLARATION).forEach(a -> {
+            Assert.assertEquals("Wrong annotations count: ", a.getEntity().isOWLClass() ? 2 : 0,
+                    a.annotations().count());
         });
     }
 

@@ -42,6 +42,7 @@ import java.util.*;
 @SuppressWarnings({"WeakerAccess", "SameParameterValue", "unused"})
 public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntLoaderConfiguration.class);
+    private static final long serialVersionUID = 1599596390911768315L;
 
     protected final Map<OntConfig.OptionSetting, Object> map = new HashMap<>();
 
@@ -224,7 +225,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * By default annotated annotation assertions are allowed.
      * See the example in the description of {@link #setAllowBulkAnnotationAssertions(boolean)}
      *
-     * @return true if annotation assertions could be annotated.
+     * @return {@code true} if annotation assertions could be annotated.
      * @see #setAllowBulkAnnotationAssertions(boolean)
      * @see #setLoadAnnotationAxioms(boolean)
      * @see #isLoadAnnotationAxioms()
@@ -279,7 +280,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * By default it is {@code true}.
      * See description of {@link #setAllowReadDeclarations(boolean)}.
      *
-     * @return true if declarations are allowed in the structural view
+     * @return {@code true} if declarations are allowed in the structural view
      */
     public boolean isAllowReadDeclarations() {
         return (boolean) get(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS);
@@ -294,7 +295,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * if you have the same ontology but different formats.
      * Using this method you can change global behaviour.
      *
-     * @param b true to skip declarations while reading graph
+     * @param b {@code true} to skip declarations while reading graph
      * @return new or the same instance of config.
      */
     public OntLoaderConfiguration setAllowReadDeclarations(boolean b) {
@@ -306,7 +307,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * By default it is {@code true}.
      * See description of {@link #setIgnoreAnnotationAxiomOverlaps(boolean)}.
      *
-     * @return true if possible ambiguities with annotation axioms should be ignored.
+     * @return {@code true} if possible ambiguities with annotation axioms should be ignored.
      */
     public boolean isIgnoreAnnotationAxiomOverlaps() {
         return (boolean) get(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS);
@@ -345,11 +346,12 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
 
     /**
      * ONT-API config setter.
-     * To choose the preferable way to load ontology from a document source (ONT-API (Jena+OWL-API) vs pure OWL-API).
+     * Changes the preferable way to load ontology from a document source (ONT-API (Jena+OWL-API) vs pure OWL-API).
+     * Caution: do not enable this setting without valid reasons.
      * For more information see description for the {@link OntConfig}'s method with the same name.
      *
-     * @param b true to use pure OWL-API parsers to load.
-     * @return this or new config.
+     * @param b {@code true} to use pure OWL-API parsers to load
+     * @return this or new config
      * @see OntConfig#setUseOWLParsersToLoad(boolean)
      */
     public OntLoaderConfiguration setUseOWLParsersToLoad(boolean b) {
@@ -358,10 +360,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
 
     /**
      * ONT-API config getter.
-     * Answers should be throwing exception in case unable to read axioms of some type from a graph.
+     * Answers whether there should be an exception in case unable to read axioms of some type from a graph,
+     * or silently ignore that buggy situation.
      * Note: it manages behaviour of a whole axiom type, not a single axiom instance.
      *
-     * @return true if errors while axioms reading must be ignored
+     * @return {@code true} if errors while axioms reading must be ignored
      * @see OntConfig#isIgnoreAxiomsReadErrors()
      * @since 1.1.0
      */
@@ -371,15 +374,40 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
 
     /**
      * ONT-API config setter.
-     * Changes 'ont.api.load.conf.ignore.axioms.read.errors' parameter.
+     * Changes 'ont.api.load.conf.ignore.axioms.read.errors' config parameter.
      *
-     * @param b true to ignore errors while reading axioms of some type from a graph, false to trow exception
+     * @param b {@code true} to ignore errors while reading axioms of some type from a graph, false to trow exception
      * @return this or new config
      * @see OntConfig#setIgnoreAxiomsReadErrors(boolean)
      * @since 1.1.0
      */
     public OntLoaderConfiguration setIgnoreAxiomsReadErrors(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS, b);
+    }
+
+    /**
+     * ONT-API config getter.
+     * Answers {@code true} if the axiom-annotations-split functionality is enabled in this configuration.
+     *
+     * @return {@code true} if this setting is enabled
+     * @see OntConfig#isSplitAxiomAnnotations()
+     * @since 1.3.0
+     */
+    public boolean isSplitAxiomAnnotations() {
+        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS);
+    }
+
+    /**
+     * ONT-API config setter.
+     * Changes the axiom-annotations-split setting to the given state.
+     *
+     * @param b boolean {@code true} to enable 'ont.api.load.conf.split.axiom.annotations' setting
+     * @return this or new config
+     * @see OntConfig#setSplitAxiomAnnotations(boolean)
+     * @since 1.3.0
+     */
+    public OntLoaderConfiguration setSplitAxiomAnnotations(boolean b) {
+        return set(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS, b);
     }
 
     /**
@@ -397,7 +425,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     /**
      * see description for {@link #isLoadAnnotationAxioms()}
      *
-     * @param b true to enable reading and writing annotation axioms
+     * @param b {@code true} to enable reading and writing annotation axioms
      * @return instance of new config.
      * @see OWLOntologyLoaderConfiguration#setLoadAnnotationAxioms(boolean)
      */

@@ -84,9 +84,11 @@ public class ImportsOntModelTest extends OntModelTestBase {
     }
 
     @Test
-    public void testOWLAddImports() {
+    public void testAddImportsWithControl() {
         OntIRI baseIRI = OntIRI.create("http://test.test/add-import/base");
         OntologyManager manager = OntManagers.createConcurrentONT();
+        manager.getOntologyConfigurator().setControlImports(true);
+
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         OntologyModel base = manager.createOntology(baseIRI);
