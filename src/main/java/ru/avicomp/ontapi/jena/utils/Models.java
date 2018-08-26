@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A helper to work with {@link Model Jena Model}s (mainly with {@link ru.avicomp.ontapi.jena.model.OntGraphModel})
- * and its related objects (i.e. {@link Resource Jena Resourec}, {@link Statement Jena Statement}).
+ * A class-helper to work with {@link Model Jena Model}s (mainly with {@link ru.avicomp.ontapi.jena.model.OntGraphModel})
+ * and its related objects: {@link Resource Jena Resource}, {@link Statement Jena Statement} and {@link OntStatement Ontology Statement}.
  * <p>
  * Created by szuev on 20.10.2016.
  */
@@ -62,13 +62,13 @@ public class Models {
     public static final Literal FALSE = ResourceFactory.createTypedLiteral(Boolean.FALSE);
 
     /**
-     * Builds typed list from Stream of RDFNode's
+     * Builds typed list from the Stream of RDFNode's.
      *
      * @param model   Model
      * @param type    type of list to create
      * @param members Stream of members
      * @return the head of created list.
-     * @deprecated using stream as input parameter is a bad idea,
+     * @deprecated using stream as input parameter is a bad idea
      */
     @Deprecated
     public static Resource createTypedList(Model model, Resource type, Stream<? extends RDFNode> members) {
@@ -82,6 +82,7 @@ public class Models {
      * @param type    {@link Resource} the type for new []-list
      * @param members Collection of {@link RDFNode}s
      * @return anonymous resource - the header of the typed []-list
+     * @see ru.avicomp.ontapi.jena.model.OntList
      */
     public static RDFList createTypedList(Model model, Resource type, Collection<? extends RDFNode> members) {
         return createTypedList(model, type, members.iterator());
@@ -97,6 +98,7 @@ public class Models {
      * @param type    {@link Resource} the type for new []-list
      * @param members {@link Iterator} of {@link RDFNode}s
      * @return anonymous resource - the header of the typed []-list
+     * @see ru.avicomp.ontapi.jena.model.OntList
      */
     public static RDFList createTypedList(Model model, Resource type, Iterator<? extends RDFNode> members) {
         return OntListImpl.createTypedList((EnhGraph) model, type, members);
@@ -118,6 +120,7 @@ public class Models {
      *
      * @param s {@link Statement}, not null
      * @return boolean
+     * @since 1.3.0
      */
     public static boolean isInList(Statement s) {
         return RDF.first.equals(s.getPredicate()) || RDF.rest.equals(s.getPredicate()) || RDF.nil.equals(s.getObject());
@@ -125,27 +128,23 @@ public class Models {
 
     /**
      * Converts rdf-node to anonymous individual.
-     * The result anonymous individual could be true (instance of some owl class) or fake (any blank node).
+     * The result anonymous individual could be "true" (instance of some owl class) or "fake"
+     * (any blank node can be represented as it).
      *
      * @param node {@link RDFNode}
      * @return {@link OntIndividual.Anonymous}
-     * @throws OntJenaException if node can be present as anonymous individual
+     * @throws OntJenaException if the node cannot be present as anonymous individual
      */
     public static OntIndividual.Anonymous asAnonymousIndividual(RDFNode node) {
-        if (OntJenaException.notNull(node, "Null node.").canAs(OntIndividual.Anonymous.class))
-            return node.as(OntIndividual.Anonymous.class);
-        if (node.isAnon()) {
-            return new OntIndividualImpl.AnonymousImpl(node.asNode(), (EnhGraph) node.getModel());
-        }
-        throw new OntJenaException.Conversion(node + " could not be " + OntIndividual.Anonymous.class);
+        return OntIndividualImpl.createAnonymousIndividual(node);
     }
 
     /**
      * Replaces namespaces map with new one.
      *
-     * @param mapping  {@link PrefixMapping} object
-     * @param prefixes Map of new prefixes to set.
-     * @return Map of previous prefixes.
+     * @param mapping  {@link PrefixMapping} to modify
+     * @param prefixes Map of new prefixes to set
+     * @return Map of previously associated prefixes
      */
     public static Map<String, String> setNsPrefixes(PrefixMapping mapping, Map<String, String> prefixes) {
         Map<String, String> init = mapping.getNsPrefixMap();
@@ -155,12 +154,13 @@ public class Models {
     }
 
     /**
-     * Lists all literal string values with specified lang found by subject and predicate.
+     * Lists all literal string values with specified lang found by the subject and predicate.
      *
      * @param subject   {@link Resource}
      * @param predicate {@link Property}
      * @param lang      String lang, maybe null or empty
      * @return Stream of Strings
+     * @since 1.3.0
      */
     public static Stream<String> langValues(Resource subject, Property predicate, String lang) {
         return Iter.asStream(subject.listProperties(predicate))
@@ -182,6 +182,7 @@ public class Models {
      * Recursively deletes all resource children.
      *
      * @param inModel Resource from a model
+     * @since 1.3.0
      */
     public static void deleteAll(Resource inModel) {
         deleteAll(inModel, new HashSet<>());
@@ -281,11 +282,14 @@ public class Models {
     }
 
     /**
-     * Splits the statement on several equivalent ones but with disjoint annotations.
-     * This method is useful in case there are several b-nodes for each annotations instead a single one.
-     * It is not canonical way to add sub-annotations and should not be widely used, since it is redundant.
-     * So usually the result stream contains only a single element: the specified OntStatement instance.
-     * Consider an example:
+     * Splits the statement into several equivalent ones but with disjoint annotations.
+     * Each of the returned statements is equal to the given, the difference is only in the related annotations.
+     * <p>
+     * This method can be used in case there are several typed b-nodes for each annotation assertions instead of a single one.
+     * Such situation is not canonical way and should not be widely used, since it is redundant.
+     * So usually the result stream contains only a single element: the same {@code OntStatement} instance as the input.
+     *
+     * The following code demonstrates that non-canonical way of writing annotations with two or more b-nodes:
      * <pre>{@code
      * s A t .
      * _:b0  a                     owl:Axiom .
@@ -299,10 +303,11 @@ public class Models {
      * _:b1  owl:annotatedProperty A .
      * _:b1  owl:annotatedTarget   t .
      * }</pre>
-     * Here the statement ("s A t") has two sub-annotations ("this A1 t1" and "this A2 t2"),
-     * but they are spread over different resources.
-     * In this case the method returns stream of two ont-statement, and each of them has only one sub-annotation.
-     * For generality, here is an example of a correct and equivalent graph:
+     * Here the statement {@code s A t} has two annotations,
+     * but they are spread over different resources (statements {@code _:b0 A1 t1} and {@code _:b1 A2 t2}).
+     * For this example, the method returns stream of two {@code OntStatement}s, and each of them has only one annotation.
+     * For generality, below is an example of the correct and equivalent way to write these annotations,
+     * which is the preferred since it is more compact:
      * <pre>{@code
      * s A t .
      * [ a                      owl:Axiom ;
@@ -316,10 +321,22 @@ public class Models {
      *
      * @param statement {@link OntStatement} the statement to split
      * @return Stream of {@link OntStatement ont-statements}, not empty,
-     * each element equals to this statement but has different related annotations.
+     * each element equals to the input statement but has different related annotations
      */
     public static Stream<OntStatement> split(OntStatement statement) {
         return ((OntStatementImpl) statement).split();
+    }
+
+    /**
+     * Creates a read-only wrapper for the given {@link OntStatement Ontology Statement} with in-memory caches.
+     * This wrapper can be used to minimize graph access and speed-up the annotation calculations.
+     * If there are many tree-like annotations in the ontology model, this speed-up may be noticeable.
+     *
+     * @param delegate {@link OntStatement}
+     * @return {@link OntStatement}
+     */
+    public static OntStatement createCachedStatement(OntStatement delegate) {
+        return OntStatementImpl.createCachedOntStatementImpl(delegate);
     }
 
     /**
@@ -328,6 +345,7 @@ public class Models {
      * @param st {@link Statement}, not null
      * @param pm {@link PrefixMapping}, not null
      * @return String
+     * @since 1.3.0
      */
     public static String toString(Statement st, PrefixMapping pm) {
         return String.format("[%s, %s, %s]",
@@ -341,6 +359,7 @@ public class Models {
      *
      * @param inModel {@link Statement}, not null
      * @return String
+     * @since 1.3.0
      */
     public static String toString(Statement inModel) {
         return toString(inModel, inModel.getModel());
@@ -354,6 +373,7 @@ public class Models {
      * @param ont     {@link OntGraphModel} the ontology to insert, must be named
      * @param replace if {@code true} existing graphs will be replaced with new one,
      *                otherwise the model will be inserted only if there is {@code owl:import} without a graph
+     * @since 1.3.0
      */
     public static void insert(Supplier<Stream<OntGraphModel>> manager, OntGraphModel ont, boolean replace) {
         String uri = Objects.requireNonNull(ont.getID().getURI(), "Must be named ontology");
@@ -371,15 +391,27 @@ public class Models {
     }
 
     /**
-     * Lists all models that are associated with the given model in the form of a flat stream.
-     * Note: this is a recursive method.
+     * Recursively lists all models that are associated with the given model in the form of a flat stream.
+     * In normal situation, each of the models must have {@code owl:imports} statement in the overlying graph.
      *
      * @param m {@link OntGraphModel}
      * @return Stream of models, not empty (contains at least the input model)
      * @see Graphs#flat(Graph)
+     * @since 1.3.0
      */
     public static Stream<OntGraphModel> flat(OntGraphModel m) {
-        return Stream.concat(Stream.of(m), m.imports().map(Models::flat).flatMap(Function.identity()));
+        return Stream.concat(Stream.of(m), m.imports().flatMap(Models::flat));
     }
 
+    /**
+     * Recursively lists all annotations for the given {@link OntStatement Ontology Statement}
+     * in the form of a flat stream.
+     *
+     * @param st {@link OntStatement}
+     * @return Stream of {@link OntStatement}s, each of them is annotation property assertion
+     * @since 1.3.0
+     */
+    public static Stream<OntStatement> flat(OntStatement st) {
+        return Stream.concat(st.annotations(), st.annotations().flatMap(Models::flat));
+    }
 }

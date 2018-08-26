@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * [ a                      owl:Axiom ;
  *   rdfs:comment           "some comment 1", "some comment 2"@fr ;
  *   owl:annotatedProperty  rdf:type ;
- *   owl:annotatedSource    <http://example.test.org#SomeClassN1> ;
+ *   owl:annotatedSource    <Class> ;
  *   owl:annotatedTarget    owl:Class
  * ] .
  * }</pre>
@@ -46,7 +46,7 @@ public interface OntAnnotation extends OntObject {
 
     /**
      * Returns the base statement, i.e. statement to which this bulk-annotation is attached.
-     * In the example above it is the statement {@code <http://example.test.org#SomeClassN1> rdf:type owl:Class}.
+     * In the example above it is the statement {@code <Class> rdf:type owl:Class}.
      *
      * @return {@link OntStatement}
      */

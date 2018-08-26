@@ -23,6 +23,7 @@ import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -334,21 +335,61 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public Stream<OntStatement> statements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(listStatements(s, p, o).mapWith(OntStatement.class::cast));
+        return Iter.asStream(listOntStatements(s, p, o));
     }
 
     @Override
     public Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(listLocalStatements(s, p, o).mapWith(OntStatement.class::cast));
+        return Iter.asStream(listLocalStatements(s, p, o));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param s {@link Resource} the subject sought, can be {@code null}
+     * @param p {@link Property} the predicate sought, can be {@code null}
+     * @param o {@link RDFNode} the object sought, can be {@code null}
+     * @return {@link StmtIterator} of {@link OntStatement}s
+     */
     @Override
     public StmtIterator listStatements(Resource s, Property p, RDFNode o) {
         return Iter.createStmtIterator(getGraph().find(asNode(s), asNode(p), asNode(o)), this::asStatement);
     }
 
-    public StmtIterator listLocalStatements(Resource s, Property p, RDFNode o) {
-        return Iter.createStmtIterator(getBaseGraph().find(asNode(s), asNode(p), asNode(o)), this::asStatement);
+    /**
+     * Returns an {@link ExtendedIterator extended iterator} over all the statements in the model that match a pattern.
+     * The statements selected are those whose subject matches the {@code s} argument,
+     * whose predicate matches the {@code p} argument
+     * and whose object matches the {@code o} argument.
+     * If an argument is {@code null} it matches anything.
+     * The method is equivalent to the expression {@code listStatements(s, p, o).mapWith(OntStatement.class::cast)}.
+     *
+     * @param s {@link Resource} the subject sought, can be {@code null}
+     * @param p {@link Property} the predicate sought, can be {@code null}
+     * @param o {@link RDFNode} the object sought, can be {@code null}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
+     * @see #listStatements(Resource, Property, RDFNode)
+     * @since 1.3.0
+     */
+    public ExtendedIterator<OntStatement> listOntStatements(Resource s, Property p, RDFNode o) {
+        return WrappedIterator.create(getGraph().find(asNode(s), asNode(p), asNode(o)).mapWith(this::asStatement));
+    }
+
+    /**
+     * Lists all statements in the <b>base</b> model that match a pattern
+     * in the form of {@link ExtendedIterator Extended Iterator}.
+     * The method is equivalent to the expression
+     * {@code listStatements(s, p, o).mapWith(OntStatement.class::cast).filterKeep(OntStatement::isLocal)}.
+     *
+     * @param s {@link Resource} the subject sought, can be {@code null}
+     * @param p {@link Property} the predicate sought, can be {@code null}
+     * @param o {@link RDFNode} the object sought, can be {@code null}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s, which are local to the base graph
+     * @see #listStatements(Resource, Property, RDFNode)
+     * @since 1.3.0
+     */
+    public ExtendedIterator<OntStatement> listLocalStatements(Resource s, Property p, RDFNode o) {
+        return WrappedIterator.create(getBaseGraph().find(asNode(s), asNode(p), asNode(o)).mapWith(this::asStatement));
     }
 
     @Override

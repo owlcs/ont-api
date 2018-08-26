@@ -270,7 +270,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     private static ExtendedIterator<Resource> listAnnotations(Model m, Resource subject, Property predicate, RDFNode obj) {
-        return OntStatementImpl.listAnnotations(m, OWL.Axiom, subject, predicate, obj);
+        return OntStatementImpl.listAnnotationResources(m, OWL.Axiom, subject, predicate, obj);
     }
 
     /**

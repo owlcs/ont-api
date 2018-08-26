@@ -18,6 +18,7 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.RDFNode;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntCE;
@@ -65,7 +66,6 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
     public static Configurable<OntObjectFactory> abstractIndividualFactory = buildMultiFactory(FINDER, null,
             Entities.INDIVIDUAL, anonymousIndividualFactory);
 
-
     public OntIndividualImpl(Node n, EnhGraph m) {
         super(n, m);
     }
@@ -74,6 +74,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         if (!node.isBlank()) {
             return false;
         }
+        // todo: rewrite with lazy iterator:
         Set<Node> types = eg.asGraph().find(node, RDF.type.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
         if (types.stream().anyMatch(o -> OntObjectImpl.canAs(OntCE.class, o, eg))) { // class assertion:
             return true;
@@ -95,6 +96,15 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
         // any other blank node could be treated as anonymous individual.
         return true;
+    }
+
+    public static OntIndividual.Anonymous createAnonymousIndividual(RDFNode node) {
+        if (OntJenaException.notNull(node, "Null node.").canAs(OntIndividual.Anonymous.class))
+            return node.as(OntIndividual.Anonymous.class);
+        if (node.isAnon()) {
+            return new OntIndividualImpl.AnonymousImpl(node.asNode(), (EnhGraph) node.getModel());
+        }
+        throw new OntJenaException.Conversion(node + " could not be " + OntIndividual.Anonymous.class);
     }
 
     @Override
@@ -146,7 +156,6 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
      * for notations and self-education see our main <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Quick Refs</a>
      */
     public static class AnonymousImpl extends OntIndividualImpl implements OntIndividual.Anonymous {
-
 
         public AnonymousImpl(Node n, EnhGraph m) {
             super(n, m);

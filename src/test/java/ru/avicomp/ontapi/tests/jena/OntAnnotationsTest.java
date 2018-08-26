@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.impl.CachedAnnotationImpl;
+import ru.avicomp.ontapi.jena.impl.CachedStatementImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
@@ -31,6 +33,8 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * To test annotated statements ({@link OntStatement}) and annotations within ont objects ({@link OntObject}).
@@ -63,7 +67,8 @@ public class OntAnnotationsTest {
         LOGGER.debug("3) Annotate annotation {}", label2);
         OntStatement seeAlsoForLabel2 = label2.addAnnotation(m.getAnnotationProperty(RDFS.seeAlso),
                 ResourceFactory.createResource("http://see.also/1"));
-        OntStatement labelForLabel2 = label2.addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label"));
+        OntStatement labelForLabel2 = label2.addAnnotation(m.getRDFSLabel(),
+                ResourceFactory.createPlainLiteral("label"));
         ReadWriteUtils.print(m);
         cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertTrue("Can't find owl:Axiom section.", m.contains(null, RDF.type, OWL.Axiom));
@@ -75,18 +80,27 @@ public class OntAnnotationsTest {
         OntStatement annotationForLabelForLabel2 = labelForLabel2.addAnnotation(nap1,
                 ResourceFactory.createPlainLiteral("comment to see label"));
         ReadWriteUtils.print(m);
-        Assert.assertEquals("Expected two roots with owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation)
-                .filterKeep(s -> !m.contains(null, null, s.getSubject())).filterKeep(new UniqueFilter<>()).toList().size());
-        Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
-        Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
+        Assert.assertEquals("Expected two roots with owl:Annotation.", 2,
+                m.listStatements(null, RDF.type, OWL.Annotation)
+                        .filterKeep(s -> !m.contains(null, null, s.getSubject()))
+                        .filterKeep(new UniqueFilter<>()).toList().size());
+        Assert.assertEquals("Expected two owl:Annotation.", 2,
+                m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Expected single owl:Axiom.", 1,
+                m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
         LOGGER.debug("5) Delete annotations for {}", labelForLabel2);
-        labelForLabel2.deleteAnnotation(annotationForLabelForLabel2.getPredicate().as(OntNAP.class), annotationForLabelForLabel2.getObject());
+        labelForLabel2.deleteAnnotation(annotationForLabelForLabel2.getPredicate().as(OntNAP.class),
+                annotationForLabelForLabel2.getObject());
         ReadWriteUtils.print(m);
-        Assert.assertEquals("Expected one root with owl:Annotation.", 1, m.listStatements(null, RDF.type, OWL.Annotation)
-                .filterKeep(s -> !m.contains(null, null, s.getSubject())).filterKeep(new UniqueFilter<>()).toList().size());
-        Assert.assertEquals("Expected single owl:Annotation.", 1, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
-        Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
+        Assert.assertEquals("Expected one root with owl:Annotation.", 1,
+                m.listStatements(null, RDF.type, OWL.Annotation)
+                        .filterKeep(s -> !m.contains(null, null, s.getSubject()))
+                        .filterKeep(new UniqueFilter<>()).toList().size());
+        Assert.assertEquals("Expected single owl:Annotation.", 1,
+                m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Expected single owl:Axiom.", 1,
+                m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
 
         LOGGER.debug("6) Delete all annotations for {}", label2);
@@ -104,8 +118,10 @@ public class OntAnnotationsTest {
                 .addAnnotation(m.getRDFSComment(), ResourceFactory.createPlainLiteral("test3"));
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals("Expected two owl:Annotation.", 2, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
-        Assert.assertEquals("Expected single owl:Axiom.", 1, m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
+        Assert.assertEquals("Expected two owl:Annotation.", 2,
+                m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Expected single owl:Axiom.", 1,
+                m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
         Assert.assertEquals("Expected 3 root annotations for class " + cl, 2, cl.annotations()
                 .peek(a -> LOGGER.debug("Annotation: '{}'", a)).count());
 
@@ -115,7 +131,8 @@ public class OntAnnotationsTest {
                 .peek(OntStatement::clearAnnotations)
                 .peek(x -> LOGGER.debug("[{}] CONTENT: {}", cl.getLocalName(), Models.toString(x))).count());
         ReadWriteUtils.print(m);
-        Assert.assertEquals("Found annotations for class " + cl, 0, cl.annotations().peek(a -> LOGGER.warn("Annotation: '{}'", a)).count());
+        Assert.assertEquals("Found annotations for class " + cl, 0, cl.annotations()
+                .peek(a -> LOGGER.warn("Annotation: '{}'", a)).count());
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
         Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL.Annotation));
     }
@@ -137,17 +154,22 @@ public class OntAnnotationsTest {
         OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "AnnotationProperty1");
 
         OntDisjoint.Classes disjointClasses = m.createDisjointClasses(Arrays.asList(cl1, cl2, cl3));
-        Assert.assertEquals("Incorrect owl:AllDisjointClasses number", 1, m.ontObjects(OntDisjoint.Classes.class).count());
+        Assert.assertEquals("Incorrect owl:AllDisjointClasses number", 1,
+                m.ontObjects(OntDisjoint.Classes.class).count());
 
         disjointClasses.addLabel("label1", "en");
-        disjointClasses.addLabel("comment", "kjpopo").addAnnotation(nap1, ResourceFactory.createTypedLiteral("some txt"));
+        disjointClasses.addLabel("comment", "kjpopo")
+                .addAnnotation(nap1, ResourceFactory.createTypedLiteral("some txt"));
         ReadWriteUtils.print(m);
         Assert.assertEquals("Expected two assertions", 2, disjointClasses.as(OntAnnotation.class).assertions().count());
         Assert.assertEquals("Expected two annotations", 2, disjointClasses.as(OntAnnotation.class)
-                .annotations().peek(a -> LOGGER.debug("{}", Models.toString(a))).count());
+                .annotations().peek(a -> LOGGER.debug("1: {}", Models.toString(a))).count());
+        Assert.assertEquals("Expected three flat annotations", 3, Models.flat(disjointClasses.getRoot())
+                .peek(a -> LOGGER.debug("2: {}", Models.toString(a))).count());
 
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
-        Assert.assertEquals("Should be single owl:Annotation", 1, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Should be single owl:Annotation", 1,
+                m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
 
         OntNOP nop1 = m.createOntEntity(OntNOP.class, ns + "ObjectProperty1");
         OntIndividual.Named ind1 = cl1.createIndividual(ns + "Individual1");
@@ -158,7 +180,8 @@ public class OntAnnotationsTest {
         nopa.addLabel("label1")
                 .addAnnotation(m.getRDFSLabel(), ResourceFactory.createTypedLiteral("label2"))
                 .addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label3"));
-        Assert.assertEquals("Should be 3 owl:Annotation", 3, m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("Should be 3 owl:Annotation", 3,
+                m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
 
         ReadWriteUtils.print(m);
 
@@ -176,17 +199,19 @@ public class OntAnnotationsTest {
     public void testRemoveAnnotations() {
         LOGGER.debug("Create a model");
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        m.getID().addAnnotation(m.getAnnotationProperty(org.apache.jena.vocabulary.OWL.versionInfo), "anonymous ontology", "en");
+        m.getID().addAnnotation(m.getAnnotationProperty(OWL.versionInfo), "anonymous ontology", "en");
 
         OntNDP p = m.createOntEntity(OntNDP.class, "x");
         OntClass c = m.createOntEntity(OntClass.class, "c");
         OntDT dt = m.getOntEntity(OntDT.class, RDFS.Literal);
         p.addRange(dt).addAnnotation(m.getRDFSComment(), "This is a range", null);
-        p.addDomain(c).addAnnotation(m.getRDFSLabel(), "This is a domain", null).addAnnotation(m.getRDFSLabel(), "label", "hg");
+        p.addDomain(c).addAnnotation(m.getRDFSLabel(), "This is a domain", null)
+                .addAnnotation(m.getRDFSLabel(), "label", "hg");
 
         OntIndividual i = c.createIndividual("i");
         p.addNegativeAssertion(i, ResourceFactory.createPlainLiteral("test"))
-                .addAnnotation(m.getRDFSComment(), "This is a negative data property assertion", null).addAnnotation(m.getRDFSLabel(), "Label", "lk");
+                .addAnnotation(m.getRDFSComment(), "This is a negative data property assertion", null)
+                .addAnnotation(m.getRDFSLabel(), "Label", "lk");
         ReadWriteUtils.print(m);
 
         LOGGER.debug("Remove annotated components");
@@ -259,7 +284,8 @@ public class OntAnnotationsTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, clazz.annotations().peek(a -> LOGGER.debug("{}", Models.toString(a))).count());
 
-        clazz.addSubClassOf(m.getOWLThing()).addAnnotation(m.getRDFSComment(), "mmm").addAnnotation(m.getRDFSComment(), "ggg");
+        clazz.addSubClassOf(m.getOWLThing()).addAnnotation(m.getRDFSComment(), "mmm")
+                .addAnnotation(m.getRDFSComment(), "ggg");
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, m.listClasses().findFirst().orElseThrow(AssertionError::new)
                 .annotations().peek(a -> LOGGER.debug("{}", Models.toString(a))).count());
@@ -275,9 +301,11 @@ public class OntAnnotationsTest {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNAP nap = m.createOntEntity(OntNAP.class, "nap");
         nap.addComment("test1").addAnnotation(nap, "sub-test1");
-        m.asStatement(nap.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "test2").addAnnotation(m.getRDFSLabel(), "sub-test2");
+        m.asStatement(nap.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "test2")
+                .addAnnotation(m.getRDFSLabel(), "sub-test2");
 
-        OntStatement subPropertyOf = nap.addSubPropertyOf(m.getOWLBottomDataProperty().addProperty(RDF.type, OWL.AnnotationProperty).as(OntNAP.class));
+        OntStatement subPropertyOf = nap.addSubPropertyOf(m.getOWLBottomDataProperty()
+                .addProperty(RDF.type, OWL.AnnotationProperty).as(OntNAP.class));
         subPropertyOf.addAnnotation(m.getRDFSLabel(), "test3")
                 .addAnnotation(m.getRDFSLabel(), "sub-test3")
                 .addAnnotation(m.getRDFSLabel(), "sub-sub-test3");
@@ -312,8 +340,10 @@ public class OntAnnotationsTest {
         long size1 = m.size();
 
         OntCE class2 = m.createComplementOf(class1);
-        class2.addComment("Class2::1").addAnnotation(m.getRDFSComment(), "Class2::1::1").addAnnotation(m.getRDFSComment(), "Class2::1::1::1");
-        class2.addComment("Class2::2").addAnnotation(m.getRDFSComment(), "Class2::2::1").addAnnotation(m.getRDFSComment(), "Class2::2::1::1");
+        class2.addComment("Class2::1").addAnnotation(m.getRDFSComment(), "Class2::1::1")
+                .addAnnotation(m.getRDFSComment(), "Class2::1::1::1");
+        class2.addComment("Class2::2").addAnnotation(m.getRDFSComment(), "Class2::2::1")
+                .addAnnotation(m.getRDFSComment(), "Class2::2::1::1");
         long size2 = m.size();
 
         OntCE class3 = m.createIntersectionOf(Arrays.asList(class2, m.getOWLNothing()));
@@ -376,7 +406,8 @@ public class OntAnnotationsTest {
         Assert.assertEquals(size, m.statements().count());
 
         // success deletion 'annotation-1':
-        Assert.assertEquals("C", base.deleteAnnotation(s1.getPredicate().as(OntNAP.class), s1.getObject()).getObject().asLiteral().getLexicalForm());
+        Assert.assertEquals("C", base.deleteAnnotation(s1.getPredicate().as(OntNAP.class),
+                s1.getObject()).getObject().asLiteral().getLexicalForm());
         ReadWriteUtils.print(m);
         Assert.assertEquals(1, base.annotations().count());
         OntStatement s2 = annotation.annotations().findFirst().orElseThrow(AssertionError::new);
@@ -447,4 +478,160 @@ public class OntAnnotationsTest {
         Assert.assertEquals(2, model.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertEquals(1, model.statements(null, RDF.type, OWL.Annotation).count());
     }
+
+    @Test
+    public void testAnnotationSplitting() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass clazz = m.createOntEntity(OntClass.class, "A");
+        OntStatement subClassOf = clazz.addSubClassOf(m.getOWLThing());
+
+        Assert.assertEquals(0, subClassOf.annotations().count());
+        subClassOf.addAnnotation(m.getRDFSLabel(), "label1").addAnnotation(m.getRDFSComment(), "comment1");
+        OntStatement sub = subClassOf.addAnnotation(m.getRDFSLabel(), "label2")
+                .addAnnotation(m.getRDFSComment(), "comment2");
+        sub.addAnnotation(m.getRDFSLabel(), "label3");
+        sub.addAnnotation(m.getRDFSLabel(), "label4");
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(2, subClassOf.annotations().count());
+        Assert.assertEquals(1, Models.split(subClassOf).count());
+        Assert.assertEquals(6, Models.flat(subClassOf).peek(x -> LOGGER.debug("1: {}", x)).count());
+        Assert.assertEquals(2, Models.flat(sub).peek(x -> LOGGER.debug("2: {}", x)).count());
+
+        sub.deleteAnnotation(m.getRDFSLabel(), m.createLiteral("label4"));
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(5, Models.flat(subClassOf).peek(x -> LOGGER.debug("3: {}", x)).count());
+
+        Resource annotation = m.createResource(null, OWL.Axiom);
+        Assert.assertEquals(1, Models.split(subClassOf).count());
+        annotation.addProperty(OWL.annotatedSource, clazz)
+                .addProperty(OWL.annotatedProperty, RDFS.subClassOf)
+                .addProperty(OWL.annotatedTarget, OWL.Thing);
+
+        List<OntStatement> split1 = Models.split(subClassOf).collect(Collectors.toList());
+        Assert.assertEquals(2, split1.size());
+        Assert.assertEquals(2, split1.get(0).annotations().count());
+        Assert.assertEquals(0, split1.get(1).annotations().count());
+        annotation.addProperty(m.getRDFSComment(), "comment3");
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(3, subClassOf.annotations().count());
+        Assert.assertEquals(2, split1.get(0).annotations().count());
+        Assert.assertEquals(1, split1.get(1).annotations().count());
+        Assert.assertEquals(split1.get(0), split1.get(1));
+        Assert.assertEquals(subClassOf, split1.get(1));
+        Assert.assertEquals(5, Models.flat(split1.get(0)).peek(x -> LOGGER.debug("4: {}", x)).count());
+        Assert.assertEquals(1, Models.flat(split1.get(1)).peek(x -> LOGGER.debug("5: {}", x)).count());
+
+        OntStatement foundSubClassOf = m.statements(clazz, RDFS.subClassOf, OWL.Thing)
+                .findFirst().orElseThrow(AssertionError::new);
+        Assert.assertEquals(3, foundSubClassOf.annotations().peek(x -> LOGGER.debug("6: {}", x)).count());
+        Assert.assertEquals(6, Models.flat(foundSubClassOf).peek(x -> LOGGER.debug("7: {}", x)).count());
+
+        OntStatement declaration = clazz.getRoot();
+        declaration.addAnnotation(m.getRDFSLabel(), "comment4").addAnnotation(m.getRDFSLabel(), "label5");
+        declaration.addAnnotation(m.getRDFSComment(), "comment5");
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(3, Models.flat(declaration).peek(x -> LOGGER.debug("8: {}", x)).count());
+        Assert.assertEquals(1, Models.split(declaration).count());
+        m.createResource(null, OWL.Axiom)
+                .addProperty(OWL.annotatedSource, clazz)
+                .addProperty(OWL.annotatedProperty, RDF.type)
+                .addProperty(OWL.annotatedTarget, OWL.Class)
+                .addProperty(m.getRDFSComment(), "comment6");
+        m.createResource(null, OWL.Axiom)
+                .addProperty(OWL.annotatedSource, clazz)
+                .addProperty(OWL.annotatedProperty, RDF.type)
+                .addProperty(OWL.annotatedTarget, OWL.Class)
+                .addProperty(m.getRDFSComment(), "comment7");
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(5, Models.flat(declaration).peek(x -> LOGGER.debug("9: {}", x)).count());
+        List<OntStatement> split2 = Models.split(declaration).collect(Collectors.toList());
+        Assert.assertEquals(2, split2.size());
+        Assert.assertEquals(3, split2.get(0).annotations().count());
+        Assert.assertEquals(1, split2.get(1).annotations().count());
+    }
+
+
+    @Test
+    public void testCachedAnnotations() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass clazz = m.createOntEntity(OntClass.class, "A");
+        clazz.getRoot().addAnnotation(m.getRDFSLabel(), "X");
+        clazz.getRoot().addAnnotation(m.getRDFSLabel(), "Y");
+        m.createResource(null, OWL.Axiom)
+                .addProperty(OWL.annotatedSource, clazz)
+                .addProperty(OWL.annotatedProperty, RDF.type)
+                .addProperty(OWL.annotatedTarget, OWL.Class)
+                .addProperty(m.getRDFSComment(), "Z")
+                .addProperty(m.getRDFSComment(), "S");
+        m.createResource(null, OWL.Axiom)
+                .addProperty(OWL.annotatedSource, clazz)
+                .addProperty(OWL.annotatedProperty, RDF.type)
+                .addProperty(OWL.annotatedTarget, OWL.Class)
+                .addProperty(m.getRDFSComment(), "R");
+        ReadWriteUtils.print(m);
+
+        clazz.getRoot().annotations()
+                .filter(a -> a.getObject().asLiteral().getLexicalForm().equals("S"))
+                .findFirst().orElseThrow(AssertionError::new)
+                .addAnnotation(m.getRDFSLabel(), "G");
+
+        Assert.assertEquals(2, clazz.getRoot().annotationResources().count());
+        Assert.assertEquals(5, clazz.getRoot().annotations().peek(x -> LOGGER.debug("Annotation: {}", x)).count());
+        List<OntAnnotation> list = clazz.getRoot().getAnnotationList();
+        OntAnnotation first = list.get(0);
+        Assert.assertEquals(1, first.getBase().annotationResources()
+                .peek(x -> LOGGER.debug("{}:: R: {}", first, x)).count());
+        Assert.assertFalse(first.getBase().isRoot());
+        Assert.assertEquals(1, first.descendants().findFirst()
+                .orElseThrow(AssertionError::new)
+                .assertions().peek(x -> LOGGER.debug("Descendant assertion: {}", x)).count());
+
+        OntStatement cachedRoot = Models.createCachedStatement(clazz.getRoot());
+        Assert.assertEquals(5, cachedRoot.annotations().count());
+        Assert.assertEquals(2, cachedRoot.annotationResources().count());
+        Assert.assertEquals(2, cachedRoot.getAnnotationList().size());
+        Assert.assertEquals(1, cachedRoot.getAnnotationList().get(0).descendants().findFirst()
+                .orElseThrow(AssertionError::new)
+                .assertions().count());
+
+        first.addAnnotation(m.getRDFSComment(), "Q");
+        first.getBase().addAnnotation(m.getRDFSComment(), "W");
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(4, first.assertions().count());
+        Assert.assertEquals(1, first.descendants().count());
+
+        Assert.assertEquals(7, clazz.getRoot().annotations().peek(x -> LOGGER.debug("All root ann: {}", x)).count());
+
+        Assert.assertEquals(0, Models.split(clazz.getRoot()).collect(Collectors.toList()).get(1)
+                .asAnnotationResource().orElseThrow(AssertionError::new)
+                .descendants()
+                .peek(x -> LOGGER.debug("Second des: {}, {}", x, x.getBase())).count());
+
+        List<OntStatement> split = Models.split(Models.createCachedStatement(clazz.getRoot()))
+                .collect(Collectors.toList());
+        Assert.assertEquals(2, split.size());
+        split.forEach(s -> Assert.assertTrue(s instanceof CachedStatementImpl));
+        Assert.assertEquals(6, split.get(0).annotations().peek(x -> LOGGER.debug("Split first ann: {}", x))
+                .peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
+        Assert.assertEquals(7, Models.flat(split.get(0))
+                .peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
+        Assert.assertEquals(1, Models.flat(split.get(1))
+                .peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
+        Assert.assertEquals(1, split.get(0).annotationResources()
+                .peek(s -> Assert.assertTrue(s instanceof CachedAnnotationImpl)).count());
+        Assert.assertEquals(1, split.get(1).annotationResources()
+                .peek(s -> Assert.assertTrue(s instanceof CachedAnnotationImpl)).count());
+        Assert.assertEquals(4, split.get(0).asAnnotationResource().orElseThrow(AssertionError::new)
+                .assertions().peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
+        Assert.assertEquals(1, split.get(0).asAnnotationResource().orElseThrow(AssertionError::new)
+                .descendants().peek(s -> Assert.assertTrue(s instanceof CachedAnnotationImpl))
+                .peek(x -> LOGGER.debug("Split first des: {}, {}", x, x.getBase())).count());
+
+        Assert.assertEquals(0, split.get(1).asAnnotationResource().orElseThrow(AssertionError::new)
+                .descendants().peek(s -> Assert.assertTrue(s instanceof CachedAnnotationImpl))
+                .peek(x -> LOGGER.debug("Split second des: {}, {}", x, x.getBase())).count());
+    }
+
 }

@@ -20,7 +20,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.JenaException;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Models;
@@ -70,10 +69,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @see Models#split(OntStatement)
      */
     protected Stream<OntStatement> split(OntStatement s) {
-        // CacheStatement helps to speed up a little if the ontology model has a lot of tree-like annotations,
-        // otherwise, it may even slow down (but in an insignificant manner) the process of axioms collecting ...
-        // Currently I do not observe that it brings any harm
-        return Models.split(OntStatementImpl.createCachedOntStatementImpl(s));
+        return Models.split(Models.createCachedStatement(s));
     }
 
     /**

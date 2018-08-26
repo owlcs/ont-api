@@ -19,16 +19,18 @@ import org.apache.jena.rdf.model.Statement;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An Ontology RDF Statement.
+ * An Ontology RDF {@link Statement}.
  * <p>
- * This is not a {@link org.apache.jena.rdf.model.Resource}.
- * OWL2 Annotations can be attached to this statement recursively.
+ * This is <b>not</b> a {@link org.apache.jena.rdf.model.Resource}.
+ * This is an extended {@link Statement Jena Model Statement} with possibility to add, delete and find annotations
+ * in the same form of {@code OntStatement} or {@link OntAnnotation Ontology Annotation} resources,
  * <p>
  * Created by @szuev on 13.11.2016.
  *
@@ -65,10 +67,10 @@ public interface OntStatement extends Statement {
 
     /**
      * Lists all annotations related to the statement.
-     * The returned stream consists of annotation assertions listed from top-level bulk annotations and
-     * plain annotation assertions for special case of root statement.
+     * The returned stream consists of annotation assertions listed from the top-level bulk annotations and
+     * plain annotation assertions in the special case of the root statement.
      *
-     * @return Stream of {@link OntStatement annotation assertion statements}
+     * @return Stream (unordered) of {@link OntStatement annotation assertion statements}
      * with {@link OntNAP annotation property} as predicates, can be empty
      * @see #asAnnotationResource()
      */
@@ -89,7 +91,7 @@ public interface OntStatement extends Statement {
     OntStatement deleteAnnotation(OntNAP property, RDFNode value) throws OntJenaException;
 
     /**
-     * Returns the stream of annotation objects attached to this statement.
+     * Returns the stream of the annotation objects attached to this statement.
      * E.g. for the statement {@code s A t} the annotation object looks like
      * <pre>{@code
      * _:b0 a owl:Axiom .
@@ -100,10 +102,21 @@ public interface OntStatement extends Statement {
      * }</pre>
      * Technically, although it does not make sense, it is possible that the given statement has several such b-nodes.
      *
-     * @return Stream of {@link OntAnnotation} resources
+     * @return Stream (unordered) of {@link OntAnnotation} resources
      * @see #asAnnotationResource() to get first annotation-object
+     * @see #getAnnotationList() to get all annotation-objects in a fixed order
      */
     Stream<OntAnnotation> annotationResources();
+
+    /**
+     * Returns the list of the annotation objects attached to this statement
+     * in the form of {@link List} with a fixed order.
+     *
+     * @return {@link List} of {@link OntAnnotation Ontology Annotation}s
+     * @see #annotationResources()
+     * @since 1.3.0
+     */
+    List<OntAnnotation> getAnnotationList();
 
     /**
      * Answers {@code true} if this statement is a root (i.e. it is a main definition of an OntObject).
@@ -136,13 +149,16 @@ public interface OntStatement extends Statement {
 
     /**
      * Returns the primary annotation object (resource) which is related to this statement.
-     * It is assumed that this method always returns the same result if no changes in graph made,
+     * It is assumed that this method always returns the same result if no changes in graph is made,
      * even after graph reloading.
      *
      * @return Optional around of {@link OntAnnotation}, can be empty
-     * @see #annotationResources()
+     * @see #getAnnotationList()
      */
-    Optional<OntAnnotation> asAnnotationResource();
+    default Optional<OntAnnotation> asAnnotationResource() {
+        List<OntAnnotation> res = this.getAnnotationList();
+        return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));
+    }
 
     /**
      * Lists all annotations by the property.
@@ -239,7 +255,7 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Answers iff this statement has any annotations attached (both plain and bulk).
+     * Answers {@code true} if this statement has any annotations attached (either plain or bulk).
      *
      * @return {@code true} if it is annotated
      */

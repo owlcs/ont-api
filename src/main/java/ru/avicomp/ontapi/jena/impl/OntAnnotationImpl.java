@@ -18,9 +18,7 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.CommonOntObjectFactory;
@@ -39,13 +37,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The implementation of Annotation OntObject.
+ * The implementation of {@link OntAnnotation Annotation} {@link OntObject Ontology Object}.
  * Note: the search is carried out only for the root annotations:
- * the result of snippet {@code model.ontObjects(OntAnnotation.class)} would not contain nested annotations.
+ * the result of snippet {@code model.ontObjects(OntAnnotation.class)} would not contain the nested annotations.
  * <p>
  * Created by @szuev on 26.03.2017.
  */
@@ -73,8 +70,8 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
      * but the provided order should be preserved after graph reload.
      */
     public static final Comparator<OntAnnotation> DEFAULT_ANNOTATION_COMPARATOR = (left, right) -> {
-        Set<OntStatement> leftSet = listRelatedStatements(left).collect(Collectors.toSet());
-        Set<OntStatement> rightSet = listRelatedStatements(right).collect(Collectors.toSet());
+        Set<OntStatement> leftSet = listRelatedStatements(left).toSet();
+        Set<OntStatement> rightSet = listRelatedStatements(right).toSet();
         int res = Integer.compare(leftSet.size(), rightSet.size());
         while (res == 0) {
             OntStatement s1 = removeMin(leftSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
@@ -89,12 +86,30 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         super(n, m);
     }
 
+    /**
+     * Creates a new annotation b-node resource with the given type and base statement.
+     *
+     * @param model {@link Model}
+     * @param base  base ont-statement
+     * @param type  owl:Axiom or owl:Annotation
+     * @return {@link OntAnnotation} the anonymous resource with specified type.
+     */
+    public static OntAnnotation createAnnotation(Model model, Statement base, Resource type) {
+        Resource res = Objects.requireNonNull(model).createResource();
+        if (!model.contains(Objects.requireNonNull(base))) {
+            throw new OntJenaException.IllegalArgument("Can't find " + Models.toString(base));
+        }
+        res.addProperty(RDF.type, type);
+        res.addProperty(OWL.annotatedSource, base.getSubject());
+        res.addProperty(OWL.annotatedProperty, base.getPredicate());
+        res.addProperty(OWL.annotatedTarget, base.getObject());
+        return res.as(OntAnnotation.class);
+    }
+
     @Override
     public Stream<OntStatement> spec() {
         //return SPEC.stream().map(this::getRequiredProperty);
-        return Iter.asStream(listProperties()
-                .filterKeep(s -> SPEC.contains(s.getPredicate()) || ((OntStatement) s).isAnnotation())
-                .mapWith(OntStatement.class::cast));
+        return Iter.asStream(listStatements().filterKeep(s -> SPEC.contains(s.getPredicate()) || s.isAnnotation()));
     }
 
     @Override
@@ -108,9 +123,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
 
     @Override
     public ExtendedIterator<OntStatement> listAssertions() {
-        return listProperties()
-                .filterKeep(s -> !SPEC.contains(s.getPredicate()) && ((OntStatement) s).isAnnotation())
-                .mapWith(OntStatement.class::cast);
+        return listStatements().filterKeep(s -> !SPEC.contains(s.getPredicate()) && s.isAnnotation());
     }
 
     @Override
@@ -124,13 +137,13 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     }
 
     /**
-     * Returns an interator over all descendants of this ont-annotation resource.
+     * Returns an iterator over all descendants of this ont-annotation resource.
      *
      * @return {@link ExtendedIterator} of {@link OntAnnotation}s
      */
     public ExtendedIterator<OntAnnotation> listDescendants() {
         OntGraphModelImpl m = getModel();
-        return m.listStatements(null, OWL.annotatedSource, this)
+        return listAnnotatedSources()
                 .mapWith(s -> m.getOntObject(OntAnnotation.class, ((OntStatementImpl) s).getSubjectNode()))
                 .filterDrop(Objects::isNull);
         /*return getModel().listStatements(null, OWL.annotatedSource, this)
@@ -138,11 +151,20 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
                 .mapWith(s -> s.getSubject().as(OntAnnotation.class));*/
     }
 
+    protected ExtendedIterator<OntStatement> listAnnotatedSources() {
+        return getModel().listOntStatements(null, OWL.annotatedSource, this);
+    }
+
     @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
         OntGraphModelImpl model = getModel();
         model.add(this, property, value);
         return model.createStatement(this, property, value);
+    }
+
+    @Override
+    public Class<? extends OntObject> getActualClass() {
+        return OntAnnotation.class;
     }
 
     /**
@@ -186,11 +208,12 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
      * Lists annotation assertions plus sub-annotation root statements.
      *
      * @param annotation {@link OntAnnotation}
-     * @return Stream of {@link OntStatement}s
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @since 1.3.0
      */
-    public static Stream<OntStatement> listRelatedStatements(OntAnnotation annotation) {
-        return Stream.concat(annotation.assertions(), annotation.descendants().map(OntObject::getRoot));
+    public static ExtendedIterator<OntStatement> listRelatedStatements(OntAnnotation annotation) {
+        OntAnnotationImpl a = (OntAnnotationImpl) annotation;
+        return a.listAssertions().andThen(a.listDescendants().mapWith(OntObject::getRoot));
     }
 
 }

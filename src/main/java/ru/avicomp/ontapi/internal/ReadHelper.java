@@ -127,7 +127,7 @@ public class ReadHelper {
     public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement stm, NoCacheDataFactory factory) {
         Set<ONTObject<OWLAnnotation>> res = getAllAnnotations(stm, factory);
         OntLoaderConfiguration conf = factory.config.loaderConfig();
-        if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(stm)) {
+        if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(stm)) { // todo: this looks extremely inefficient:
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
             annotations(stm).filter(s -> isAnnotationAssertionStatement(s, conf.isAllowBulkAnnotationAssertions()))

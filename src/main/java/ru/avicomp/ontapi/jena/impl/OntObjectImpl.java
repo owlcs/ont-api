@@ -22,9 +22,9 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
-import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -32,7 +32,6 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,7 +44,8 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OntObjectImpl extends ResourceImpl implements OntObject {
 
-    public static OntObjectFactory objectFactory = new CommonOntObjectFactory(new OntMaker.Default(OntObjectImpl.class), OntFinder.ANY_SUBJECT, OntFilter.URI.or(OntFilter.BLANK));
+    public static OntObjectFactory objectFactory = new CommonOntObjectFactory(new OntMaker.Default(OntObjectImpl.class),
+            OntFinder.ANY_SUBJECT, OntFilter.URI.or(OntFilter.BLANK));
 
     public OntObjectImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -58,9 +58,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param subject {@link OntObjectImpl}, the subject
      * @param type    URI-{@link Resource}, the type
      * @return Optional around {@link OntStatement}, which is never empty
-     * @throws OntJenaException.IllegalState in case there is no root statement within the graph for the specified parameters
+     * @throws OntJenaException.IllegalState in case there is no root statement
+     *                                       within the graph for the specified parameters
      */
-    protected static Optional<OntStatement> getRequiredRootStatement(OntObjectImpl subject, Resource type) throws OntJenaException.IllegalState {
+    protected static Optional<OntStatement> getRequiredRootStatement(OntObjectImpl subject, Resource type)
+            throws OntJenaException.IllegalState {
         // there are no built-in named individuals:
         Optional<OntStatement> res = getOptionalRootStatement(subject, type);
         if (!res.isPresent())
@@ -159,10 +161,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     public Optional<OntStatement> findRootStatement() {
         OntGraphModelImpl m = getModel();
-        try (Stream<RDFNode> objects = m.statements(this, RDF.type, null).map(Statement::getObject)) {
-            return objects.findFirst()
-                    .map(o -> m.createStatement(this, RDF.type, o))
-                    .map(OntStatementImpl::asRootStatement);
+        try (Stream<RDFNode> objects = objects(RDF.type)) {
+            return objects.findFirst().map(o -> m.createStatement(this, RDF.type, o).asRootStatement());
         }
     }
 
@@ -173,7 +173,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public Stream<OntStatement> content() {
-        return Stream.concat(spec(), statements().filter(x -> !x.isAnnotation()).collect(Collectors.toSet()).stream()).distinct();
+        return Stream.concat(spec(), statements().filter(x -> !x.isAnnotation()).collect(Collectors.toSet()).stream())
+                .distinct();
     }
 
     /**
@@ -242,14 +243,15 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public Optional<OntStatement> statement(Property property, RDFNode value) {
-        try (Stream<OntStatement> res = statements(property).filter(s -> Objects.equals(s.getObject(), value))) {
+        try (Stream<OntStatement> res = getModel().statements(this, property, value)) {
             return res.findFirst();
         }
     }
 
     /**
-     * Returns an ont-statement with given subject and property.
-     * If more than one statement with the given subject and property exists in the model, it is undefined which will be returned.
+     * Returns an ont-statement with the given subject and property.
+     * If more than one statement that match the patter exists in the model,
+     * it is undefined which will be returned.
      * If none exist, an exception is thrown.
      *
      * @param property {@link Property}, the predicate
@@ -282,24 +284,26 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntObjectImpl remove(Property property, RDFNode value) {
-        getModel().removeAll(this, OntJenaException.notNull(property, "Null property."), OntJenaException.notNull(value, "Null value."));
+        getModel().removeAll(this, OntJenaException.notNull(property, "Null property."),
+                OntJenaException.notNull(value, "Null value."));
         return this;
     }
 
     @Override
     public Stream<OntStatement> statements(Property property) {
-        return Iter.asStream(listProperties(property).mapWith(OntStatement.class::cast));
+        return Iter.asStream(listStatements(property));
     }
 
     @Override
     public Stream<OntStatement> statements() {
-        return Iter.asStream(listProperties().mapWith(OntStatement.class::cast));
+        return Iter.asStream(listStatements());
     }
 
     /**
      * {@inheritDoc}
      *
      * @return {@link StmtIterator} which contains {@link OntStatement}s
+     * @see #listStatements()
      */
     @Override
     public StmtIterator listProperties() {
@@ -307,10 +311,24 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
+     * Returns an {@link ExtendedIterator Extended Iterator} over all the properties of this resource.
+     * The model associated with this resource is search and an iterator is
+     * returned which iterates over all the statements which have this resource as a subject.
+     *
+     * @return {@link ExtendedIterator} over all the {@link OntStatement}s about this object
+     * @see #listProperties()
+     * @since 1.3.0
+     */
+    public ExtendedIterator<OntStatement> listStatements() {
+        return listStatements(null);
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @param p {@link Property}, the predicate to search, can be {@code null}
      * @return {@link StmtIterator}
+     * @see #listStatements(Property)
      */
     @Override
     public StmtIterator listProperties(Property p) {
@@ -319,15 +337,30 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
+     * Lists all the values of the property {@code p}.
+     * Returns an {@link ExtendedIterator Extended Iterator} over all the statements in the associated model whose
+     * subject is this resource and whose predicate is {@code p}.
+     *
+     * @param p {@link Property}, the predicate sought, can be {@code null}
+     * @return {@link ExtendedIterator} over the {@link OntStatement}s
+     * @see #listStatements(Property)
+     * @since 1.3.0
+     */
+    public ExtendedIterator<OntStatement> listStatements(Property p) {
+        return WrappedIterator.create(getModel().getGraph().find(asNode(), OntGraphModelImpl.asNode(p), Node.ANY)
+                .mapWith(t -> createOntStatement(p, t)));
+    }
+
+    /**
      * Creates a new {@link OntStatement} instance using the given {@link Triple} and {@link Property}.
-     * The object and (if possible) the predicate property of the new statenebt are cached inside model
+     * The object and (if possible) the predicate property of the new statement are cached inside model
      * Auxiliary method.
      *
      * @param p {@link Property}, can be {@code null}
      * @param t {@link Triple}, not {@code null}
      * @return new {@link OntStatement} around the triple
      */
-    protected OntStatement createOntStatement(Property p, Triple t) {
+    protected OntStatementImpl createOntStatement(Property p, Triple t) {
         OntGraphModelImpl m = getModel();
         Property property = p == null ? m.getNodeAs(t.getPredicate(), Property.class) : p;
         RDFNode object = m.getNodeAs(t.getObject(), RDFNode.class);
@@ -339,21 +372,35 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * plus all bulk annotations of the root statement.
      *
      * @return Stream of {@link OntStatement}s
+     * @see #listAnnotations()
      */
     @Override
     public Stream<OntStatement> annotations() {
-        Stream<OntStatement> res = assertions();
+        return Iter.asStream(listAnnotations());
+    }
+
+    /**
+     * Lists all related annotation assertions.
+     *
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
+     * @see #annotations()
+     * @since 1.3.0
+     */
+    public ExtendedIterator<OntStatement> listAnnotations() {
+        ExtendedIterator<OntStatement> res = listAssertions();
         Optional<OntStatement> main = findRootStatement();
-        if (main.isPresent()) {
-            res = Stream.concat(res, main.get().annotationResources().flatMap(OntAnnotation::assertions));
+        if (!main.isPresent()) {
+            return res;
         }
-        return res;
+        OntStatementImpl s = (OntStatementImpl) main.get();
+        return res.andThen(Iter.flatMap(s.listAnnotationResources(), a -> ((OntAnnotationImpl) a).listAssertions()));
     }
 
     /**
      * Lists all annotation property assertions (so called plain annotations) attached to this object.
      *
      * @return Stream of {@link OntStatement}s
+     * @see #listAssertions()
      */
     public Stream<OntStatement> assertions() {
         return Iter.asStream(listAssertions());
@@ -364,11 +411,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * The annotation assertion is a statements with an {@link OntNAP annotation property} as predicate.
      *
      * @return {@link ExtendedIterator} of {@link OntStatement}s
+     * @since 1.3.0
+     * @see #assertions()
      */
     public ExtendedIterator<OntStatement> listAssertions() {
-        return listProperties()
-                .filterKeep(s -> ((OntStatement) s).isAnnotation())
-                .mapWith(OntStatement.class::cast);
+        return listStatements().filterKeep(OntStatement::isAnnotation);
     }
 
     /**
@@ -394,7 +441,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public OntObjectImpl clearAnnotations() {
         // for built-ins
-        assertions().peek(OntStatement::clearAnnotations).collect(Collectors.toSet()).forEach(a -> getModel().remove(a));
+        assertions().peek(OntStatement::clearAnnotations).collect(Collectors.toSet())
+                .forEach(a -> getModel().remove(a));
         // for others
         findRootStatement().ifPresent(OntStatement::clearAnnotations);
         return this;
@@ -439,11 +487,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     public <T extends RDFNode> T getRequiredObject(Property predicate, Class<T> view) {
         return object(predicate, view)
-                .orElseThrow(() -> new OntJenaException(String.format("Can't find required object [%s @%s %s]", this, predicate, viewAsString(view))));
+                .orElseThrow(() -> new OntJenaException(
+                        String.format("Can't find required object [%s @%s %s]", this, predicate, viewAsString(view))));
     }
 
     /**
-     * Finds a <b>first</b> object with the given {@code type} attached to this ontology object on the given {@code predicate}.
+     * Finds a <b>first</b> object with the given {@code rdf:type}
+     * attached to this ontology object on the given {@code predicate}.
      * The result is unpredictable in case there more then one statement for these conditions.
      *
      * @param predicate {@link Property}
@@ -477,11 +527,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param type      Interface to find and cast, not null
      * @param <O>       subtype of {@link RDFNode rdf-node}
      * @return {@link ExtendedIterator} of {@link RDFNode node}s of the {@link O} type
+     * @since 1.3.0
+     * @see #object(Property, Class)
      */
     public <O extends RDFNode> ExtendedIterator<O> listObjects(Property predicate, Class<O> type) {
+        OntGraphModelImpl m = getModel();
         return listProperties(predicate)
-                .filterKeep(n -> n.getObject().canAs(type))
-                .mapWith(n -> getModel().getNodeAs(n.getObject().asNode(), type));
+                .filterKeep(s -> s.getObject().canAs(type))
+                .mapWith(s -> m.getNodeAs(s.getObject().asNode(), type));
     }
 
     /**
@@ -489,6 +542,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @param predicate {@link Property}
      * @return Stream of {@link RDFNode}s
+     * @see #listObjects(Property)
      */
     public Stream<RDFNode> objects(Property predicate) {
         return Iter.asStream(listObjects(predicate));
@@ -499,6 +553,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @param predicate {@link Property}
      * @return {@link ExtendedIterator} of {@link RDFNode}s
+     * @see #objects(Property)
+     * @since 1.3.0
      */
     public ExtendedIterator<RDFNode> listObjects(Property predicate) {
         return listProperties(predicate).mapWith(Statement::getObject);

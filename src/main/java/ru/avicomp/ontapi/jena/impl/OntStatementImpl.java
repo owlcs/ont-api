@@ -28,33 +28,37 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An implementation of {@link OntStatement OntStatement}.
- * This is an extended Jena {@link StatementImpl} with possibility to add annotations in the same form of  OntStatement.
- * Annotations can be plain (annotation assertion) or bulk (anonymous resource with rdf:type {@code owl:Axiom} or {@code owl:Annotation},
- * see {@link OntAnnotation}).
+ * An implementation of {@link OntStatement Ontology Statement}.
+ * This is an extended Jena {@link StatementImpl} with possibility to add, delete and find annotations
+ * in the same form of {@code OntStatement}.
+ * Annotations can be plain (annotation assertion) or bulk (anonymous resource with
+ * {@code rdf:type} {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation},
+ * for more details see {@link OntAnnotation}).
  * The examples of how to write bulk-annotations in RDF-graph see here:
  * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.2 Translation of Annotations</a>.
  * <p>
  * Created by @szuev on 12.11.2016.
+ *
+ * @see OntAnnotationImpl
  */
 @SuppressWarnings("WeakerAccess")
 public class OntStatementImpl extends StatementImpl implements OntStatement {
 
-    public OntStatementImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
-        super(subject, predicate, object, (ModelCom) model);
+    public OntStatementImpl(Statement statement) throws ClassCastException, NullPointerException {
+        this(statement.getSubject(), statement.getPredicate(), statement.getObject(),
+                (OntGraphModel) statement.getModel());
     }
 
-    public OntStatementImpl(Statement statement) throws ClassCastException, NullPointerException {
-        this(statement.getSubject(), statement.getPredicate(), statement.getObject(), (OntGraphModel) statement.getModel());
+    public OntStatementImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
+        super(subject, predicate, object, (ModelCom) model);
     }
 
     /**
@@ -109,14 +113,14 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * Creates a wrapper for the given ont-statement with in-memory caches.
-     * Currently just for debugging.
+     * Creates a read-only wrapper for the given ont-statement with in-memory caches.
      *
      * @param delegate {@link OntStatement}
-     * @return {@link OntStatement}
+     * @return {@link CachedStatementImpl}
      */
-    public static OntStatement createCachedOntStatementImpl(OntStatement delegate) {
-        return delegate instanceof CachedStatementImpl ? delegate : new CachedStatementImpl(delegate);
+    public static CachedStatementImpl createCachedOntStatementImpl(OntStatement delegate) {
+        return delegate instanceof CachedStatementImpl ?
+                (CachedStatementImpl) delegate : new CachedStatementImpl(delegate);
     }
 
     /**
@@ -129,13 +133,16 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param m {@link OntGraphModelImpl} model
      * @return {@link OntStatementImpl}
      */
-    public static OntStatementImpl createNotAnnotatedOntStatementImpl(Resource s, Property p, RDFNode o, OntGraphModelImpl m) {
+    public static OntStatementImpl createNotAnnotatedOntStatementImpl(Resource s,
+                                                                      Property p,
+                                                                      RDFNode o,
+                                                                      OntGraphModelImpl m) {
         return new OntStatementImpl(s, p, o, m) {
             @Override
             public OntStatement addAnnotation(OntNAP property, RDFNode value) {
                 throw new OntJenaException.Unsupported("Sub-annotations are not supported (attempt to annotate " +
-                        Models.toString(this) +
-                        " with predicate " + m.shortForm(property.getURI()) + " and value " + value + ")");
+                        Models.toString(this) + " with predicate " + m.shortForm(property.getURI()) +
+                        " and value " + value + ")");
             }
         };
     }
@@ -170,7 +177,8 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     public boolean isAnnotationRootStatement() {
-        return subject.isAnon() && RDF.type.equals(predicate) && (OWL.Axiom.equals(object) || OWL.Annotation.equals(object));
+        return subject.isAnon() && RDF.type.equals(predicate) &&
+                (OWL.Axiom.equals(object) || OWL.Annotation.equals(object));
     }
 
     @Override
@@ -203,21 +211,39 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(value, "Null value.");
         if (isRootStatement()) {
-            model.add(getSubject(), OntJenaException.notNull(property, "Null property."), OntJenaException.notNull(value, "Null value."));
+            model.add(getSubject(), OntJenaException.notNull(property, "Null property."),
+                    OntJenaException.notNull(value, "Null value."));
             return getModel().createStatement(getSubject(), property, value);
         }
         return asAnnotationResource()
-                .orElseGet(() -> createAnnotationObject(getModel(), OntStatementImpl.this, getAnnotationResourceType()))
+                .orElseGet(() -> OntAnnotationImpl.createAnnotation(getModel(),
+                        OntStatementImpl.this, getAnnotationResourceType()))
                 .addAnnotation(property, value);
     }
 
     @Override
     public Stream<OntStatement> annotations() {
-        Stream<OntStatement> res = annotationResources().flatMap(OntAnnotation::assertions);
+        return Iter.asStream(listAnnotations());
+    }
+
+    /**
+     * Lists all annotation assertion statements related to this one.
+     *
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
+     * @see #annotations()
+     * @since 1.3.0
+     */
+    public ExtendedIterator<OntStatement> listAnnotations() {
+        ExtendedIterator<OntStatement> res = Iter.flatMap(listAnnotationResources(),
+                a -> ((OntAnnotationImpl) a).listAssertions());
         if (isRootStatement()) {
-            return Stream.concat(getSubject().statements().filter(OntStatement::isAnnotation), res);
+            return listSubjectAssertions().andThen(res);
         }
         return res;
+    }
+
+    protected ExtendedIterator<OntStatement> listSubjectAssertions() {
+        return ((OntObjectImpl) getSubject()).listAssertions();
     }
 
     @Override
@@ -228,7 +254,8 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         if (isRootStatement()) {
             Set<OntStatement> assertions = model.statements(getSubject(), property, value).collect(Collectors.toSet());
             if (isAnnotationRootStatement()) {
-                // if it is anon bulk annotation root statement, deletion can break down the structure of annotation object
+                // if it is anon bulk annotation root statement,
+                // deletion can break down the structure of annotation object
                 throw new OntJenaException("Direct removing assertions from Annotation resource is prohibited");
             }
             assertions.forEach(model::remove);
@@ -273,60 +300,30 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @see #annotationResources()
      */
     public ExtendedIterator<OntAnnotation> listAnnotationResources() {
-        return listOntAnnotationResources(this, getAnnotationResourceType(), (r, s) -> new AttachedAnnotationImpl(r, s, getModel()));
-    }
-
-    @Override
-    public Optional<OntAnnotation> asAnnotationResource() {
-        List<OntAnnotation> res = this.getSortedAnnotations();
-        return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));
-        //try (Stream<OntAnnotation> res = annotationResources().sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR)) {
-        //    return res.findFirst();
-        //}
+        return listAnnotationResources(getModel(), getAnnotationResourceType(), this)
+                .mapWith(this::wrapAsOntAnnotation);
     }
 
     /**
      * Returns the {@code List} of annotations sorted by the some internal order.
+     *
      * @return List of {@link OntAnnotation}s
      * @see #listAnnotationResources()
+     * @see OntAnnotationImpl#DEFAULT_ANNOTATION_COMPARATOR
      */
-    public List<OntAnnotation> getSortedAnnotations() {
-        List<OntAnnotation> res = listAnnotationResources().toList();
+    @Override
+    public List<OntAnnotation> getAnnotationList() {
+        List<OntAnnotation> res = getAnnotationResourcesAsList();
         res.sort(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR);
         return res;
-        //return annotationResources().sorted(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR).collect(Collectors.toList());
+    }
+
+    protected List<OntAnnotation> getAnnotationResourcesAsList() {
+        return listAnnotationResources().toList();
     }
 
     /**
-     * Warning: works with in-memory statements.
-     *
-     * @return Stream of ont-statements.
-     */
-    public Stream<OntStatement> split() {
-        List<OntAnnotation> res = getSortedAnnotations();
-        if (res.size() < 2) {
-            return Stream.of(this);
-        }
-        if (isRootStatement()) {
-            OntAnnotation first = res.remove(0);
-            OntStatementImpl r = new OntStatementImpl(this) {
-                @Override
-                public boolean isRootStatement() {
-                    return true;
-                }
-
-                @Override
-                public Stream<OntAnnotation> annotationResources() {
-                    return Stream.of(first);
-                }
-            };
-            return Stream.concat(Stream.of(r), res.stream().map(OntAnnotation::getBase));
-        }
-        return res.stream().map(OntAnnotation::getBase);
-    }
-
-    /**
-     * Returns the rdf:type of attached annotation objects.
+     * Returns the {@code rdf:type} of the attached annotation objects.
      *
      * @return {@link OWL#Axiom {@code owl:Axiom}} or {@link OWL#Annotation {@code owl:Annotation}}
      */
@@ -335,22 +332,20 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * Returns annotation objects corresponding to the given statement and rdfs-type
+     * Returns annotation objects corresponding to the given statement and rdf-type.
+     * For internal usage.
      *
-     * @param base  base ont-statement
-     * @param type  owl:Axiom or owl:Annotation
-     * @param maker BiFunction to produce OntAnnotation resource
-     * @return {@link ExtendedIterator} of {@link OntAnnotation}
+     * @param m {@link Model}
+     * @param t {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}
+     * @param s {@link Statement}, the base statement
+     * @return {@link ExtendedIterator} of {@link OntAnnotation}s
      */
-    protected static ExtendedIterator<OntAnnotation> listOntAnnotationResources(OntStatementImpl base,
-                                                                                Resource type,
-                                                                      BiFunction<Resource, OntStatementImpl, OntAnnotation> maker) {
-        return listAnnotations(base.getModel(), type, base.getSubject(), base.getPredicate(), base.getObject())
-                .mapWith(r -> maker.apply(r, base));
+    public static ExtendedIterator<Resource> listAnnotationResources(Model m, Resource t, Statement s) {
+        return listAnnotationResources(m, t, s.getSubject(), s.getPredicate(), s.getObject());
     }
 
     /**
-     * Lists all (bulk) annotations anonymous resources form the specified model.
+     * Lists all (bulk) annotation anonymous resources form the specified model, type and SPO.
      *
      * @param m {@link Model}
      * @param t {@link Resource} either {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}
@@ -359,7 +354,11 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param o {@link RDFNode} object
      * @return {@link ExtendedIterator} of {@link Resource}s
      */
-    protected static ExtendedIterator<Resource> listAnnotations(Model m, Resource t, Resource s, Property p, RDFNode o) {
+    public static ExtendedIterator<Resource> listAnnotationResources(Model m,
+                                                                     Resource t,
+                                                                     Resource s,
+                                                                     Property p,
+                                                                     RDFNode o) {
         return m.listStatements(null, OWL.annotatedSource, s)
                 .filterKeep(x -> hasSpecProperties(x, t, p, o))
                 .mapWith(Statement::getSubject);
@@ -367,27 +366,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     private static boolean hasSpecProperties(Statement s, Resource t, Property p, RDFNode o) {
         Resource r = s.getSubject();
-        return r.hasProperty(RDF.type, t) && r.hasProperty(OWL.annotatedProperty, p) && r.hasProperty(OWL.annotatedTarget, o);
-    }
-
-    /**
-     * Creates new annotation section (anonymous resource with the given type).
-     *
-     * @param model {@link Model}
-     * @param base  base ont-statement
-     * @param type  owl:Axiom or owl:Annotation
-     * @return {@link OntAnnotation} the anonymous resource with specified type.
-     */
-    protected static OntAnnotation createAnnotationObject(Model model, Statement base, Resource type) {
-        Resource res = Objects.requireNonNull(model).createResource();
-        if (!model.contains(Objects.requireNonNull(base))) {
-            throw new OntJenaException.IllegalArgument("Can't find " + Models.toString(base));
-        }
-        res.addProperty(RDF.type, type);
-        res.addProperty(OWL.annotatedSource, base.getSubject());
-        res.addProperty(OWL.annotatedProperty, base.getPredicate());
-        res.addProperty(OWL.annotatedTarget, base.getObject());
-        return res.as(OntAnnotation.class);
+        return r.hasProperty(RDF.type, t)
+                && r.hasProperty(OWL.annotatedProperty, p)
+                && r.hasProperty(OWL.annotatedTarget, o);
     }
 
     /**
@@ -407,31 +388,76 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * An {@link OntAnnotationImpl} with reference to itself.
+     * Splits he statement into several equivalent ones but with disjoint annotations.
+     * Warning: this method stores annotation-resources to memory.
+     *
+     * @return Stream of {@link OntStatement}s
      */
-    protected static class AttachedAnnotationImpl extends OntAnnotationImpl {
-        private final OntStatement base;
-
-        public AttachedAnnotationImpl(Resource subject, OntStatement base, OntGraphModelImpl m) {
-            super(subject.asNode(), m);
-            this.base = base;
+    public Stream<OntStatement> split() {
+        List<OntAnnotation> res = getAnnotationList();
+        if (res.size() < 2) {
+            return Stream.of(this);
         }
-
-        @Override
-        public OntStatement getBase() {
-            return new OntStatementImpl(base.getSubject(), base.getPredicate(), base.getObject(), getModel()) {
-
-                @Override
-                public Stream<OntStatement> annotations() {
-                    return assertions();
-                }
-
-                @Override
-                public Optional<OntAnnotation> asAnnotationResource() {
-                    return Optional.of(AttachedAnnotationImpl.this);
-                }
-            };
+        if (isRootStatement()) {
+            OntStatement first = createRootStatement(res.remove(0));
+            return Stream.concat(Stream.of(first), res.stream().map(OntAnnotation::getBase));
         }
+        return res.stream().map(OntAnnotation::getBase);
     }
 
+    protected OntStatementImpl createRootStatement(OntAnnotation resource) {
+        return new OntStatementImpl(this) {
+            @Override
+            public boolean isRootStatement() {
+                return true;
+            }
+
+            @Override
+            public List<OntAnnotation> getAnnotationList() {
+                return Collections.singletonList(resource);
+            }
+
+            @Override
+            public ExtendedIterator<OntAnnotation> listAnnotationResources() {
+                return Iter.of(resource);
+            }
+        };
+    }
+
+    protected OntStatementImpl createBaseStatement(OntAnnotationImpl resource) {
+        return new OntStatementImpl(this) {
+            @Override
+            public ExtendedIterator<OntStatement> listAnnotations() {
+                return resource.listAssertions();
+            }
+
+            @Override
+            public List<OntAnnotation> getAnnotationList() {
+                return Collections.singletonList(resource);
+            }
+
+            @Override
+            public ExtendedIterator<OntAnnotation> listAnnotationResources() {
+                return Iter.of(resource);
+            }
+        };
+    }
+
+    /**
+     * Wraps the given resource as {@link OntAnnotationImpl Ontology Annotation Implementation} with reference to itself.
+     * The base statement of this annotation resource equals to this statement, but with several restrictions:
+     * 1) all its annotations are assertions of the annotation resource,
+     * 2) it is not possible to list all other annotation resources with except of the given resource.
+     *
+     * @param annotation {@link Resource}
+     * @return {@link OntAnnotationImpl}
+     */
+    protected OntAnnotationImpl wrapAsOntAnnotation(Resource annotation) {
+        return new OntAnnotationImpl(annotation.asNode(), getModel()) {
+            @Override
+            public OntStatement getBase() {
+                return createBaseStatement(this);
+            }
+        };
+    }
 }

@@ -14,7 +14,6 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -24,36 +23,38 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * An OntStatementImpl with in-memory cache.
- * Can be useful in case some repetitive operations with annotations are expected.
- * Experimental.
- * Warning: graph may change during working with this instance.
+ * An {@code OntStatementImpl} with in-memory caches.
+ * Can be useful in case some repetitive read operations with annotations are expected.
+ * It is read only {@link OntStatement Ontology Statement} implementation: modifying is not allowed.
+ * Note: the graph may change during working with instance of this class.
  * <p>
  * Created by @szuev on 13.03.2018.
+ * @see CachedAnnotationImpl
  */
 @SuppressWarnings("WeakerAccess")
 public class CachedStatementImpl extends OntStatementImpl {
+
     private Resource annotationResourceType;
-    private List<OntAnnotation> resources;
-    private Set<OntStatement> assertions;
-    private final boolean root;
+    private List<OntAnnotation> annotationResources;
+    private Set<OntStatement> assertionStatements;
+    private final boolean isRoot;
 
     public CachedStatementImpl(Statement delegate) {
         super(delegate);
-        this.root = delegate instanceof OntStatementImpl && ((OntStatementImpl) delegate).isRootStatement();
+        this.isRoot = delegate instanceof OntStatementImpl && ((OntStatementImpl) delegate).isRootStatement();
     }
 
     @Override
     public boolean isRootStatement() {
-        return root;
+        return isRoot;
     }
 
     @Override
@@ -62,50 +63,37 @@ public class CachedStatementImpl extends OntStatementImpl {
         throw new OntJenaException.Unsupported("Currently #asRoot transformation is not supported for " + Models.toString(this));
     }
 
-    protected void clear() {
-        resources = null;
-        assertions = null;
+    @Override
+    protected ExtendedIterator<OntStatement> listSubjectAssertions() {
+        Set<OntStatement> res = assertionStatements == null ? assertionStatements = getAssertionStatementsAsSet() : assertionStatements;
+        return WrappedIterator.create(res.iterator());
     }
 
     @Override
-    public OntStatement addAnnotation(OntNAP property, RDFNode value) {
-        clear();
-        return new CachedStatementImpl(super.addAnnotation(property, value));
+    public ExtendedIterator<OntAnnotation> listAnnotationResources() {
+        return WrappedIterator.create(this.getAnnotationList().iterator());
     }
 
     @Override
-    public Stream<OntStatement> annotations() {
-        return getAssertions().stream();
-    }
-
-    public Set<OntStatement> getAssertions() {
-        return assertions == null ? assertions = super.annotations().map(CachedStatementImpl::new).collect(Collectors.toSet()) : assertions;
+    public List<OntAnnotation> getAnnotationList() {
+        if (annotationResources != null) return annotationResources;
+        return annotationResources = super.getAnnotationList();
     }
 
     @Override
-    public CachedStatementImpl deleteAnnotation(OntNAP property, RDFNode value) {
-        clear();
-        super.deleteAnnotation(property, value);
-        return this;
+    protected List<OntAnnotation> getAnnotationResourcesAsList() {
+        return super.listAnnotationResources().toList();
     }
 
-    @Override
-    public Stream<OntAnnotation> annotationResources() {
-        return getSortedAnnotations().stream();
-    }
-
-    @Override
-    public List<OntAnnotation> getSortedAnnotations() {
-        if (resources != null) return resources;
-        List<OntAnnotation> res = listOntAnnotationResources(this, getAnnotationResourceType(),
-                (r, s) -> new CachedOntAnnImpl(r, s, getModel())).toList();
-        res.sort(OntAnnotationImpl.DEFAULT_ANNOTATION_COMPARATOR);
-        return resources = res;
+    protected Set<OntStatement> getAssertionStatementsAsSet() {
+        return super.listSubjectAssertions().mapWith(x -> (OntStatement) new CachedStatementImpl(x)).toSet();
     }
 
     @Override
     public boolean hasAnnotations() {
-        return !getAssertions().isEmpty();
+        if (annotationResources != null && !annotationResources.isEmpty()) return true;
+        if (assertionStatements != null && !assertionStatements.isEmpty()) return true;
+        return !listAnnotations().toSet().isEmpty();
     }
 
     @Override
@@ -113,50 +101,73 @@ public class CachedStatementImpl extends OntStatementImpl {
         return annotationResourceType == null ? annotationResourceType = detectAnnotationRootType(subject) : annotationResourceType;
     }
 
-    protected class CachedOntAnnImpl extends AttachedAnnotationImpl {
-        private Set<OntStatement> assertions;
-        private Set<OntAnnotation> children;
-
-        public CachedOntAnnImpl(Resource subject, OntStatement base, OntGraphModelImpl m) {
-            super(subject, base, m);
-        }
-
-        protected void clear() {
-            assertions = null;
-            children = null;
-        }
-
-        @Override
-        public ExtendedIterator<OntStatement> listAssertions() {
-            if (assertions == null) {
-                assertions = super.listAssertions().mapWith(s -> (OntStatement) new CachedStatementImpl(s)).toSet();
-            }
-            return WrappedIterator.create(assertions.iterator());
-        }
-
-        @Override
-        public ExtendedIterator<OntAnnotation> listDescendants() {
-            if (children == null) {
-                children = super.listDescendants().toSet();
-            }
-            return WrappedIterator.create(children.iterator());
-        }
-
-        @Override
-        public OntStatement addAnnotation(OntNAP property, RDFNode value) {
-            clear();
-            return new CachedStatementImpl(super.addAnnotation(property, value));
-        }
-
-        @Override
-        public Resource removeProperties() {
-            throw new OntJenaException.Unsupported();
-        }
-
-        @Override
-        public Resource removeAll(Property p) {
-            clear();
-            return super.removeAll(p);
-        }
+    @Override
+    public OntStatement addAnnotation(OntNAP property, RDFNode value) {
+        return noModify();
     }
+
+    @Override
+    public CachedStatementImpl deleteAnnotation(OntNAP property, RDFNode value) {
+        return noModify();
+    }
+
+    protected <R> R noModify() {
+        throw new OntJenaException.Unsupported(Models.toString(this) + ": modifying is not allowed.");
+    }
+
+    @Override
+    protected OntStatementImpl createRootStatement(OntAnnotation resource) {
+        return new CachedStatementImpl(this) {
+            @Override
+            public boolean isRootStatement() {
+                return true;
+            }
+
+            @Override
+            public List<OntAnnotation> getAnnotationList() {
+                return Collections.singletonList(resource);
+            }
+
+            @Override
+            public ExtendedIterator<OntAnnotation> listAnnotationResources() {
+                return Iter.of(resource);
+            }
+        };
+    }
+
+    @Override
+    protected OntStatementImpl createBaseStatement(OntAnnotationImpl resource) {
+        return new CachedStatementImpl(this) {
+            @Override
+            public ExtendedIterator<OntStatement> listAnnotations() {
+                return resource.listAssertions();
+            }
+
+            @Override
+            public List<OntAnnotation> getAnnotationList() {
+                return Collections.singletonList(resource);
+            }
+
+            @Override
+            public ExtendedIterator<OntAnnotation> listAnnotationResources() {
+                return Iter.of(resource);
+            }
+        };
+    }
+
+    @Override
+    protected OntAnnotationImpl wrapAsOntAnnotation(Resource annotation) {
+        return new CachedAnnotationImpl(annotation.asNode(), getModel()) {
+            @Override
+            public OntStatement getBase() {
+                return createBaseStatement(this);
+            }
+
+            @Override
+            protected <R> R noModify() {
+                return CachedStatementImpl.this.noModify();
+            }
+        };
+    }
+
 }
