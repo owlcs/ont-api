@@ -98,6 +98,26 @@ public class UnionModel extends ModelCom {
     }
 
     /**
+     * Returns a {@link RDFNode} for the given type and, if it is present, caches it in the model.
+     * Works silently: no exceptions are expected.
+     *
+     * @param node {@link Node}
+     * @param type {@link Class}-type
+     * @param <N>  any subtype of {@link RDFNode}
+     * @return {@link RDFNode} or {@code null}
+     * @see #getNodeAs(Node, Class)
+     * @since 1.3.0
+     */
+    public <N extends RDFNode> N findNodeAs(Node node, Class<N> type) {
+        try {
+            return getNodeAs(node, type);
+        } catch (OntJenaException.Conversion ignore) {
+            // ignore
+            return null;
+        }
+    }
+
+    /**
      * Answer an enhanced node that wraps the given node and conforms to the given interface type.
      *
      * @param node A node (assumed to be in this graph)

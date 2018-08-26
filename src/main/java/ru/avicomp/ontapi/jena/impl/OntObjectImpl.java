@@ -32,6 +32,7 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -120,7 +121,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * Checks if the given {@link Node Node} can be viewed as the given type.
      * This method caches the enhanced node, if possible, in the model,
-     * and, opposite to {@link OntGraphModelImpl#getOntObject(Class, Node)},
+     * and, opposite to {@link OntGraphModelImpl#findNodeAs(Class, Node)},
      * takes care about possible graph recursions.
      *
      * @param view  Class-type
@@ -533,8 +534,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public <O extends RDFNode> ExtendedIterator<O> listObjects(Property predicate, Class<O> type) {
         OntGraphModelImpl m = getModel();
         return listProperties(predicate)
-                .filterKeep(s -> s.getObject().canAs(type))
-                .mapWith(s -> m.getNodeAs(s.getObject().asNode(), type));
+                .mapWith(s -> m.findNodeAs(s.getObject().asNode(), type))
+                .filterDrop(Objects::isNull);
     }
 
     /**

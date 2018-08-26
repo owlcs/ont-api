@@ -261,31 +261,13 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
         return statements(null, RDF.type, null)
                 .filter(s -> s.getObject().canAs(OntCE.class))
                 .map(OntStatement::getSubject)
-                .map(s -> getOntObject(OntIndividual.class, s.asNode()))
+                .map(s -> findNodeAs(s.asNode(), OntIndividual.class))
                 .filter(Objects::nonNull);
     }
 
     @Override
     public <E extends OntEntity> E getOntEntity(Class<E> type, String uri) {
-        return getOntObject(type, NodeFactory.createURI(OntJenaException.notNull(uri, "Null uri.")));
-    }
-
-    /**
-     * Returns a typed {@link OntObject Ontology Object} and, if it is present, caches it in the model.
-     * Works silently: no exceptions are expected.
-     *
-     * @param type Class
-     * @param node {@link Node}
-     * @param <O>  any subtype of {@link OntObject}
-     * @return {@link OntObject} or {@code null}
-     */
-    public <O extends OntObject> O getOntObject(Class<O> type, Node node) {
-        try { // returns not null in case it is present in graph or built-in.
-            return getNodeAs(node, type);
-        } catch (OntJenaException.Conversion ignore) {
-            // ignore
-            return null;
-        }
+        return findNodeAs(NodeFactory.createURI(OntJenaException.notNull(uri, "Null uri.")), type);
     }
 
     @Override

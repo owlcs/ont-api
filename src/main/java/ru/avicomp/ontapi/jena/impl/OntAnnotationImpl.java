@@ -144,7 +144,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public ExtendedIterator<OntAnnotation> listDescendants() {
         OntGraphModelImpl m = getModel();
         return listAnnotatedSources()
-                .mapWith(s -> m.getOntObject(OntAnnotation.class, ((OntStatementImpl) s).getSubjectNode()))
+                .mapWith(s -> m.findNodeAs(((OntStatementImpl) s).getSubjectNode(), OntAnnotation.class))
                 .filterDrop(Objects::isNull);
         /*return getModel().listStatements(null, OWL.annotatedSource, this)
                 .filterKeep(s -> s.getSubject().canAs(OntAnnotation.class))
