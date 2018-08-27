@@ -24,7 +24,7 @@ import org.apache.jena.sparql.graph.GraphWrapper;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
-import ru.avicomp.ontapi.jena.ConcurrentGraph;
+import ru.avicomp.ontapi.jena.RWLockedGraph;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -72,7 +72,7 @@ public class Graphs {
      * @param graph {@link Graph}
      * @return {@link Graph}
      * @see GraphWrapper
-     * @see ConcurrentGraph
+     * @see RWLockedGraph
      * @see UnionGraph
      * @see Polyadic
      * @see Dyadic
@@ -81,8 +81,8 @@ public class Graphs {
         if (graph instanceof GraphWrapper) {
             return getBase(((GraphWrapper) graph).get());
         }
-        if (graph instanceof ConcurrentGraph) {
-            return getBase(((ConcurrentGraph) graph).get());
+        if (graph instanceof RWLockedGraph) {
+            return getBase(((RWLockedGraph) graph).get());
         }
         if (graph instanceof UnionGraph) {
             return getBase(((UnionGraph) graph).getBaseGraph());
@@ -286,7 +286,7 @@ public class Graphs {
     }
 
     /**
-     * Makes a concurrent version of the given Graph by wrapping it as ConcurrentGraph.
+     * Makes a concurrent version of the given Graph by wrapping it as {@link RWLockedGraph}.
      * If the input is an UnionGraph, only the base (primary) graph will contain the specified R/W lock.
      * The result graph has the same structure as specified.
      *
@@ -295,11 +295,11 @@ public class Graphs {
      * @return {@link Graph} with {@link ReadWriteLock}
      */
     public static Graph asConcurrent(Graph graph, ReadWriteLock lock) {
-        if (graph instanceof ConcurrentGraph) {
-            return asConcurrent(((ConcurrentGraph) graph).get(), lock);
+        if (graph instanceof RWLockedGraph) {
+            return asConcurrent(((RWLockedGraph) graph).get(), lock);
         }
         if (!(graph instanceof UnionGraph)) {
-            return new ConcurrentGraph(graph, lock);
+            return new RWLockedGraph(graph, lock);
         }
         UnionGraph u = (UnionGraph) graph;
         Graph base = asConcurrent(u.getBaseGraph(), lock);
@@ -318,8 +318,8 @@ public class Graphs {
      * @return {@link Graph}
      */
     public static Graph asNonConcurrent(Graph graph) {
-        if (graph instanceof ConcurrentGraph) {
-            return ((ConcurrentGraph) graph).get();
+        if (graph instanceof RWLockedGraph) {
+            return ((RWLockedGraph) graph).get();
         }
         if (!(graph instanceof UnionGraph)) {
             return graph;

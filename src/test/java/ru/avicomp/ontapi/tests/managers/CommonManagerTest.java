@@ -29,8 +29,8 @@ import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.internal.ReadHelper;
-import ru.avicomp.ontapi.jena.ConcurrentGraph;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.RWLockedGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntEntity;
@@ -133,10 +133,10 @@ public class CommonManagerTest {
         Assert.assertNotNull(managerLock);
         Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o1).getLock());
         Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o2).getLock());
-        Assert.assertTrue("(1)Not concurrent graph!", ((OntologyModel) o1).asGraphModel().getBaseGraph() instanceof ConcurrentGraph);
-        Assert.assertTrue("(2)Not concurrent graph!", ((OntologyModel) o2).asGraphModel().getBaseGraph() instanceof ConcurrentGraph);
-        Assert.assertEquals(managerLock, ((ConcurrentGraph) ((OntologyModel) o1).asGraphModel().getBaseGraph()).lock());
-        Assert.assertEquals(managerLock, ((ConcurrentGraph) ((OntologyModel) o2).asGraphModel().getBaseGraph()).lock());
+        Assert.assertTrue("(1)Not concurrent graph!", ((OntologyModel) o1).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
+        Assert.assertTrue("(2)Not concurrent graph!", ((OntologyModel) o2).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
+        Assert.assertEquals(managerLock, ((RWLockedGraph) ((OntologyModel) o1).asGraphModel().getBaseGraph()).lock());
+        Assert.assertEquals(managerLock, ((RWLockedGraph) ((OntologyModel) o2).asGraphModel().getBaseGraph()).lock());
 
         o1.axioms().forEach(a -> LOGGER.debug("{}", a));
         ((OntologyModel) o1).asGraphModel().createOntEntity(OntClass.class, "urn:c1").createIndividual("urn:i");

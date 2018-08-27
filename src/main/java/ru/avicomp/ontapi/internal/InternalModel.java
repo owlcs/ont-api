@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.RWLockedGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -129,7 +130,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Jena model method.
      * Since in ONT-API we use another kind of lock this method is disabled (i.e. R/W Lock inside manager).
      *
-     * @see ru.avicomp.ontapi.jena.ConcurrentGraph
+     * @see RWLockedGraph
      */
     @Override
     public Lock getLock() {
@@ -164,7 +165,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLImportsDeclaration}s
      */
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
-        return getID().imports().map(cacheDataFactory::toIRI).map(i -> getConfig().dataFactory().getOWLImportsDeclaration(i));
+        return release(getID().imports().map(cacheDataFactory::toIRI).map(i -> getConfig().dataFactory().getOWLImportsDeclaration(i)));
     }
 
     /**
@@ -292,8 +293,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     protected <O extends OWLObject> Set<O> readOWLObjects(Class<O> type) {
         return Stream.concat(
-                annotations().map(a -> OwlObjects.objects(type, a)).flatMap(Function.identity()),
-                axioms().map(a -> OwlObjects.objects(type, a)).flatMap(Function.identity()))
+                annotations().flatMap(a -> OwlObjects.objects(type, a)),
+                axioms().flatMap(a -> OwlObjects.objects(type, a)))
                 .collect(Collectors.toSet());
     }
 
@@ -365,10 +366,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         Config c = getConfig();
         boolean withBulk = c.loaderConfig().isAllowBulkAnnotationAssertions();
         AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
-        return t.adjust(c, localStatements(WriteHelper.toResource(s), null, null)
+        return release(t.adjust(c, localStatements(WriteHelper.toResource(s), null, null)
                 .filter(x -> t.testStatement(x, withBulk)))
                 .map(t::toAxiom)
-                .map(ONTObject::getObject);
+                .map(ONTObject::getObject));
     }
 
     /**
@@ -382,10 +383,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             return axioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
         SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
-        return t.adjust(getConfig(), localStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
+        return release(t.adjust(getConfig(), localStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filter(t::filter))
                 .map(t::toAxiom)
-                .map(ONTObject::getObject);
+                .map(ONTObject::getObject));
     }
 
     /**
@@ -401,31 +402,79 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
         EquivalentClassesTranslator t = (EquivalentClassesTranslator) AxiomParserProvider.get(OWLEquivalentClassesAxiom.class);
         Resource r = WriteHelper.toResource(c);
-        return t.adjust(getConfig(),
+        return release(t.adjust(getConfig(),
                 Stream.concat(localStatements(r, OWL.equivalentClass, null), localStatements(null, OWL.equivalentClass, r))
                         .filter(t::testStatement))
                 .map(t::toAxiom)
-                .map(ONTObject::getObject);
+                .map(ONTObject::getObject));
     }
 
     /**
-     * The main method for loading and getting axioms.
-     * <p>
-     * If {@link Config#parallel()} is true then collecting must not go beyond this method, otherwise it is allowed to be lazy.
-     * This is due to the fact that OWL-API uses ReadWriteLock-mechanism everywhere and therefore there is a dangerous
-     * of ConcurrentModificationException (in case use of standard java collections api) or deadlocks (in case of concurrent collections),
-     * if we allow some processing outside the method.
-     * <p>
+     * Lists all axioms.
+     *
+     * @return Stream of {@link OWLAxiom}s
+     */
+    public Stream<OWLAxiom> axioms() {
+        return axioms(AxiomType.AXIOM_TYPES);
+    }
+
+    /**
+     * Lists axioms for the specified types.
      *
      * @param types Set of {@link AxiomType}s
      * @return Stream of {@link OWLAxiom}
      * @see #annotations()
      */
     public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
-        Stream<OWLAxiom> res = types.stream()
+        return release(types.stream()
                 .map(t -> getAxiomTripleStore(t.getActualClass()))
                 .flatMap(ObjectTriplesMap::objects)
-                .map(OWLAxiom.class::cast);
+                .map(OWLAxiom.class::cast));
+    }
+
+    /**
+     * Lists axioms of the given class-type.
+     *
+     * @param view Class
+     * @param <A>  type of axiom
+     * @return Stream of {@link OWLAxiom}s.
+     */
+    public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
+        return axioms(AxiomType.getTypeForClass(OntApiException.notNull(view, "Null axiom class type.")));
+    }
+
+    /**
+     * Lists axioms of the given axiom-type.
+     *
+     * @param type {@link AxiomType}
+     * @param <A>  type of axiom
+     * @return Stream of {@link OWLAxiom}s.
+     */
+    @SuppressWarnings("unchecked")
+    public <A extends OWLAxiom> Stream<A> axioms(AxiomType<A> type) {
+        return (Stream<A>) getAxiomTripleStore(type).objects();
+    }
+
+    /**
+     * Performs final actions before release over the axiom stream.
+     * <p>
+     * Currently, it is only for ensuring safety if it is a multithreaded environment,
+     * as indicated by the parameter {@link Config#parallel()}.
+     * If {@link Config#parallel()} is {@code true} then the collecting must not go beyond this method,
+     * otherwise it is allowed to be lazy.
+     * This class does not produce parallel streams due to dangerous of livelocks or even deadlocks
+     * while interacting with load-cache, which is used {@code ConcurrentMap} inside.
+     * On the other hand, OWL-API implementation (and, as a consequence, ONT-API) uses {@code ReadWriteLock} everywhere
+     * and therefore without this method there is a dangerous of {@link ConcurrentModificationException},
+     * if some processing are allowed outside the method.
+     *
+     * @param res Stream of {@link R}s
+     * @param <R> anything
+     * @return Stream of {@link R}s
+     */
+    protected <R> Stream<R> release(Stream<R> res) {
+        // use ArrayList since it is faster in common cases than HashSet,
+        // and unique is provided by other mechanisms:
         return getConfig().parallel() ? res.collect(Collectors.toList()).stream() : res;
     }
 
@@ -471,38 +520,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             AxiomType.AXIOM_TYPES.forEach(t -> getAxiomTripleStore(t.getActualClass()));
         }
         return getAxiomTripleStore(a.getAxiomType()).contains(a);
-    }
-
-    /**
-     * Lists all axioms.
-     *
-     * @return Stream of {@link OWLAxiom}s.
-     */
-    public Stream<OWLAxiom> axioms() {
-        return axioms(AxiomType.AXIOM_TYPES);
-    }
-
-    /**
-     * Lists axioms of the given class-type.
-     *
-     * @param view Class
-     * @param <A>  type of axiom
-     * @return Stream of {@link OWLAxiom}s.
-     */
-    public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
-        return axioms(AxiomType.getTypeForClass(OntApiException.notNull(view, "Null axiom class type.")));
-    }
-
-    /**
-     * Lists axioms of the given axiom-type.
-     *
-     * @param type {@link AxiomType}
-     * @param <A>  type of axiom
-     * @return Stream of {@link OWLAxiom}s.
-     */
-    @SuppressWarnings("unchecked")
-    public <A extends OWLAxiom> Stream<A> axioms(AxiomType<A> type) {
-        return (Stream<A>) getAxiomTripleStore(type).objects();
     }
 
     /**
@@ -591,7 +608,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return {@link ObjectTriplesMap cache bucket} of ontology {@link OWLAnnotation annotation}s
      */
     protected ObjectTriplesMap<OWLAnnotation> readAnnotationTriples() {
-        return ObjectTriplesMap.create(OWLAnnotation.class, ReadHelper.getObjectAnnotations(getID(), cacheDataFactory).stream());
+        return ObjectTriplesMap.create(OWLAnnotation.class, ReadHelper.objectAnnotations(getID(), cacheDataFactory));
     }
 
     /**

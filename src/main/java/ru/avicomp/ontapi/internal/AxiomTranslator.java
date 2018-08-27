@@ -63,7 +63,8 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     /**
      * Performs common operations on the stream of {@link OntStatement Ontology Statement}s
      * before converting them into axioms.
-     * @param conf {@link ConfigProvider.Config} configuration
+     *
+     * @param conf       {@link ConfigProvider.Config} configuration
      * @param statements Stream of {@link OntStatement}s
      * @return Stream of {@link OntStatement}s
      */

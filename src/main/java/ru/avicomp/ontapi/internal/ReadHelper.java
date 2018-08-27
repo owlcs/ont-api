@@ -87,68 +87,44 @@ public class ReadHelper {
     /**
      * Answers if the given {@link OntStatement} can be considered as annotation property assertion.
      *
-     * @param s {@link OntStatement}, not null
+     * @param s        {@link OntStatement}, not null
      * @param withBulk {@code true} if bulk annotations are allowed by the config
      * @return {@code true} if the specified statement is annotation property assertion
      */
     public static boolean isAnnotationAssertionStatement(OntStatement s, boolean withBulk) {
         return s.isAnnotation()
                 && !s.isBulkAnnotation()
-                && (withBulk || !ReadHelper.hasAnnotations(s));
-    }
-
-    /**
-     * Lists all annotations for the given {@link OntStatement Ontology Statement}.
-     *
-     * @param statement {@link OntStatement}
-     * @return Stream of {@link OntStatement}s
-     */
-    public static Stream<OntStatement> annotations(OntStatement statement) {
-        return statement.annotations();
-    }
-
-    /**
-     * Answers if the given statement has annotations.
-     *
-     * @param statement {@link OntStatement}
-     * @return boolean
-     */
-    public static boolean hasAnnotations(OntStatement statement) {
-        return statement.hasAnnotations();
+                && (withBulk || !s.hasAnnotations());
     }
 
     /**
      * Returns the container with set of {@link OWLAnnotation} associated with the specified statement.
      *
-     * @param stm     {@link OntStatement}
-     * @param factory {@link InternalDataFactory}
+     * @param statement {@link OntStatement}
+     * @param df        {@link InternalDataFactory}
      * @return a set of wraps {@link ONTObject} around {@link OWLAnnotation}
      */
-    public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement stm, NoCacheDataFactory factory) {
-        Set<ONTObject<OWLAnnotation>> res = getAllAnnotations(stm, factory);
-        OntLoaderConfiguration conf = factory.config.loaderConfig();
-        if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(stm)) { // todo: this looks extremely inefficient:
+    public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement, NoCacheDataFactory df) {
+        Stream<OntStatement> res = statement.annotations();
+        OntLoaderConfiguration conf = df.config.loaderConfig();
+        if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
+            boolean withBulk = conf.isAllowBulkAnnotationAssertions();
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
-            annotations(stm).filter(s -> isAnnotationAssertionStatement(s, conf.isAllowBulkAnnotationAssertions()))
-                    .map(a -> getAnnotation(a, factory)).forEach(res::remove);
+            res = res.filter(s -> !isAnnotationAssertionStatement(s, withBulk));
         }
-        return res;
+        return res.map(a -> getAnnotation(a, df)).collect(Collectors.toSet());
     }
 
     /**
-     * Returns all annotations related to the object (including assertions).
+     * Lists all annotations related to the object (including assertions).
      *
      * @param obj {@link OntObject}
      * @param df  {@link InternalDataFactory}
-     * @return a set of {@link ONTObject} for {@link OWLAnnotation}
+     * @return Stream of {@link ONTObject}s of {@link OWLAnnotation}
      */
-    public static Set<ONTObject<OWLAnnotation>> getObjectAnnotations(OntObject obj, InternalDataFactory df) {
-        return getAllAnnotations(obj.getRoot(), df);
-    }
-
-    private static Set<ONTObject<OWLAnnotation>> getAllAnnotations(OntStatement statement, InternalDataFactory df) {
-        return annotations(statement).map(a -> getAnnotation(a, df)).collect(Collectors.toSet());
+    public static Stream<ONTObject<OWLAnnotation>> objectAnnotations(OntObject obj, InternalDataFactory df) {
+        return obj.annotations().map(a -> getAnnotation(a, df));
     }
 
     /**
@@ -159,7 +135,7 @@ public class ReadHelper {
      * @return {@link ONTObject} around {@link OWLAnnotation}
      */
     public static ONTObject<OWLAnnotation> getAnnotation(OntStatement ann, InternalDataFactory df) {
-        return hasAnnotations(ann) ? getHierarchicalAnnotations(ann, df) : getPlainAnnotation(ann, df);
+        return ann.hasAnnotations() ? getHierarchicalAnnotations(ann, df) : getPlainAnnotation(ann, df);
     }
 
     private static ONTObject<OWLAnnotation> getPlainAnnotation(OntStatement ann, InternalDataFactory df) {
@@ -173,7 +149,7 @@ public class ReadHelper {
         Resource subject = root.getSubject();
         ONTObject<OWLAnnotationProperty> p = df.get(root.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = df.get(root.getObject());
-        Set<ONTObject<OWLAnnotation>> children = annotations(root).map(a -> getHierarchicalAnnotations(a, df)).collect(Collectors.toSet());
+        Set<ONTObject<OWLAnnotation>> children = root.annotations().map(a -> getHierarchicalAnnotations(a, df)).collect(Collectors.toSet());
         OWLAnnotation object = df.getOWLDataFactory().getOWLAnnotation(p.getObject(), v.getObject(), children.stream().map(ONTObject::getObject));
         ONTObject<OWLAnnotation> res = ONTObject.create(object, root);
         if (subject.canAs(OntAnnotation.class)) {

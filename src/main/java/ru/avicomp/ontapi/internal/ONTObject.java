@@ -16,11 +16,10 @@ package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.CollectionGraph;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -76,9 +75,7 @@ public abstract class ONTObject<O extends OWLObject> {
      * @return graph
      */
     public Graph toGraph() {
-        Graph res = OntModelFactory.createDefaultGraph();
-        GraphUtil.add(res, triples().iterator());
-        return res;
+        return new CollectionGraph(triples().collect(Collectors.toSet()));
     }
 
     @Override
