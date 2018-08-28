@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -24,39 +25,32 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
- * example:
+ * Example:
  * <pre>{@code
  * pizza:hasBase owl:inverseOf pizza:isBaseOf ;
  * }</pre>
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObjectPropertiesAxiom> {
+public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObjectPropertiesAxiom> {
     @Override
     public void write(OWLInverseObjectPropertiesAxiom axiom, OntGraphModel model) {
         WriteHelper.writeTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(), axiom.annotations());
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         // NOTE as a precaution: the first (commented) way is not correct
         // since it includes anonymous object property expressions (based on owl:inverseOf),
-        // which could be treat as separated axioms, but OWL-API doesn't think so.
+        // which might be treat as separated axioms, but OWL-API doesn't think so.
         /*return model.statements(null, OWL.inverseOf, null)
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(OntOPE.class))
                 .filter(s -> s.getObject().canAs(OntOPE.class));*/
-        return model.ontObjects(OntOPE.class)
-                .map(subj -> subj.inverseOf().map(obj -> subj.statement(OWL.inverseOf, obj)))
-                .flatMap(Function.identity())
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(OntStatement::isLocal);
+        return listStatements(model, null, OWL.inverseOf, null) // skip {@code _:x owl:inverseOf PN}
+                .filterDrop(s -> s.getSubject().isAnon() && s.getObject().isURIResource());
     }
 
     @Override

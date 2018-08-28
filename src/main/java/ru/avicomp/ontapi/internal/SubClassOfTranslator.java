@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -24,7 +25,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
  * Examples:
@@ -42,8 +42,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
-        return listStatements(model, null, RDFS.subClassOf, null).filter(this::filter);
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
+        return listStatements(model, null, RDFS.subClassOf, null).filterKeep(this::filter);
     }
 
     @Override

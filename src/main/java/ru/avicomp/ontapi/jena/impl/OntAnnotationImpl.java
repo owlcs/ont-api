@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
@@ -50,6 +51,10 @@ import java.util.stream.Stream;
 public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static final Set<Property> REQUIRED_PROPERTIES = Stream.of(OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
             .collect(Iter.toUnmodifiableSet());
+    private static final Set<Node> REQUIRED_PROPERTY_NODES = REQUIRED_PROPERTIES.stream().map(FrontsNode::asNode)
+            .collect(Iter.toUnmodifiableSet());
+    private static final Node AXIOM = OWL.Axiom.asNode();
+    private static final Node ANNOTATION = OWL.Annotation.asNode();
     public static final Set<Property> SPEC = Stream.concat(Stream.of(RDF.type), REQUIRED_PROPERTIES.stream())
             .collect(Iter.toUnmodifiableSet());
     public static final Set<Resource> EXTRA_ROOT_TYPES =
@@ -184,16 +189,29 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     }
 
     public static boolean testAnnotation(Node node, EnhGraph graph) {
+        return testAnnotation(node, graph.asGraph());
+    }
+
+    public static boolean testAnnotation(Node node, Graph graph) {
         if (!node.isBlank()) return false;
-        Set<Node> types = graph.asGraph().find(node, RDF.type.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
-        if ((types.contains(OWL.Axiom.asNode()) || types.contains(OWL.Annotation.asNode())) &&
-                REQUIRED_PROPERTIES.stream()
-                        .map(FrontsNode::asNode)
-                        .allMatch(p -> graph.asGraph().contains(node, p, Node.ANY))) {
-            return true;
+        ExtendedIterator<Node> types = graph.find(node, RDF.Nodes.type, Node.ANY).mapWith(Triple::getObject);
+        try {
+            while (types.hasNext()) {
+                Node t = types.next();
+                if (AXIOM.equals(t) || ANNOTATION.equals(t)) {
+                    // test spec
+                    Set<Node> props = graph.find(node, Node.ANY, Node.ANY).mapWith(Triple::getPredicate).toSet();
+                    return props.containsAll(REQUIRED_PROPERTY_NODES);
+                }
+                // special cases: owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion
+                if (OntAnnotationImpl.EXTRA_ROOT_TYPES_AS_NODES.contains(t)) {
+                    return true;
+                }
+            }
+        } finally {
+            types.close();
         }
-        // special cases: owl:AllDisjointClasses, owl:AllDisjointProperties, owl:AllDifferent or owl:NegativePropertyAssertion
-        return EXTRA_ROOT_TYPES_AS_NODES.stream().anyMatch(types::contains);
+        return false;
     }
 
     private static <S> S removeMin(Set<S> notEmptySet,

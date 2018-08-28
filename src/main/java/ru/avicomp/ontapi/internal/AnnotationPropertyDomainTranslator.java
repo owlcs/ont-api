@@ -14,6 +14,8 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -22,11 +24,9 @@ import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
- * domain for annotation property.
- * see {@link AbstractPropertyDomainTranslator}
+ * Translator for {@link AbstractPropertyDomainTranslator}.
  * <p>
  * Created by @szuev on 30.09.2016.
  */
@@ -40,20 +40,20 @@ public class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTr
      * Returns {@link OntStatement}s defining the {@link OWLAnnotationPropertyDomainAxiom} axiom.
      *
      * @param model {@link OntGraphModel}
-     * @return {@link OntStatement}
+     * @return {@link ExtendedIterator} {@link OntStatement}s
      */
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         OntLoaderConfiguration conf = getConfig(model).loaderConfig();
-        if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
-        return super.statements(model)
-                .filter(s -> s.getObject().isURIResource())
-                .filter(s -> ReadHelper.testAnnotationAxiomOverlaps(s, conf, AxiomType.OBJECT_PROPERTY_DOMAIN, AxiomType.DATA_PROPERTY_DOMAIN));
+        if (!conf.isLoadAnnotationAxioms()) return NullIterator.instance();
+        return super.listStatements(model)
+                .filterKeep(s ->
+                        ReadHelper.testAnnotationAxiomOverlaps(s, conf, AxiomType.OBJECT_PROPERTY_DOMAIN, AxiomType.DATA_PROPERTY_DOMAIN));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
-        return super.testStatement(statement) && statement.getObject().isURIResource();
+    protected boolean filter(OntStatement statement) {
+        return super.filter(statement) && statement.getObject().isURIResource();
     }
 
     @Override

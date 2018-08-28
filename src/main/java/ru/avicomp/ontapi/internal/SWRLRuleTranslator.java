@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLRule;
@@ -41,8 +42,8 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
-        return model.ontObjects(OntSWRL.Imp.class).filter(OntObject::isLocal).map(OntObject::getRoot);
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
+        return listOntObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
     }
 
     @Override

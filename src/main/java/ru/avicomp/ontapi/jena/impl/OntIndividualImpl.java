@@ -77,7 +77,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
         boolean hasType = false;
         // class-assertion:
-        ExtendedIterator<Node> types = eg.asGraph().find(node, RDF.type.asNode(), Node.ANY).mapWith(Triple::getObject);
+        ExtendedIterator<Node> types = eg.asGraph().find(node, RDF.Nodes.type, Node.ANY).mapWith(Triple::getObject);
         try {
             while (types.hasNext()) {
                 if (OntObjectImpl.canAs(OntCE.class, types.next(), eg)) return true;

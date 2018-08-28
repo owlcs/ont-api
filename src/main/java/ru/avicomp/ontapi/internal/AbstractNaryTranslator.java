@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -72,9 +73,9 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     abstract Class<ONT> getView();
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         return listStatements(model, null, getPredicate(), null)
-                .filter(s -> s.getSubject().canAs(getView()));
+                .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 
     @Override

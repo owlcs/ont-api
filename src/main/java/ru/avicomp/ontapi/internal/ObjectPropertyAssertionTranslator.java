@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
@@ -24,7 +25,6 @@ import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
  * example:
@@ -50,18 +50,18 @@ public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObject
     }
 
     /**
-     * positive object property assertion: "a1 PN a2"
-     * see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
+     * Lists positive object property assertion: {@code a1 PN a2}.
+     * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
      *
      * @param model {@link OntGraphModel} the model
-     * @return Stream of {@link OntStatement}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         return listStatements(model, null, null, null)
-                .filter(OntStatement::isObject)
-                .filter(s -> s.getSubject().canAs(OntIndividual.class))
-                .filter(s -> s.getObject().canAs(OntIndividual.class));
+                .filterKeep(s -> s.isObject()
+                        && s.getSubject().canAs(OntIndividual.class)
+                        && s.getObject().canAs(OntIndividual.class));
     }
 
     @Override

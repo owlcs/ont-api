@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,10 +22,13 @@ import ru.avicomp.ontapi.OntApiException;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Axiom Graph Translator loader.
+ * Axiom Graph Translator accessor.
  * <p>
  * Created by @szuev on 28.09.2016.
  */
@@ -37,22 +40,50 @@ public abstract class AxiomParserProvider {
         return ParserHolder.PARSERS;
     }
 
+    /**
+     * Returns the {@link AxiomTranslator Axiom Translator} for the specified class-type.
+     *
+     * @param type {@link Class}, not null
+     * @param <A>  subclass of {@link OWLAxiom}
+     * @return {@link AxiomTranslator} of the type of {@link A}
+     */
     public static <A extends OWLAxiom> AxiomTranslator<A> get(Class<A> type) {
         return get(AxiomType.getTypeForClass(type));
     }
 
+    /**
+     * Finds the {@link AxiomTranslator Axiom Translator} for the given {@link OWLAxiom OWL Axiom}.
+     *
+     * @param axiom axiom, not null
+     * @param <A>   subclass of {@link OWLAxiom}
+     * @return {@link AxiomTranslator} of the type of {@link A}
+     */
+    @SuppressWarnings("unchecked")
     public static <A extends OWLAxiom> AxiomTranslator<A> get(A axiom) {
-        return get(OntApiException.notNull(axiom, "Null axiom.").getAxiomType());
+        return (AxiomTranslator<A>) get(OntApiException.notNull(axiom, "Null axiom.").getAxiomType());
+    }
+
+    /**
+     * Returns the {@link AxiomTranslator Axiom Translator} for the specified {@link AxiomType Axiom Type}.
+     *
+     * @param type {@link AxiomType}, not null
+     * @param <A>  subclass of {@link OWLAxiom}
+     * @return {@link AxiomTranslator} of the type of {@link A}
+     */
+    @SuppressWarnings("unchecked")
+    public static <A extends OWLAxiom> AxiomTranslator<A> get(AxiomType<A> type) {
+        return OntApiException.notNull((AxiomTranslator<A>) getParsers().get(OntApiException.notNull(type, "Null axiom type")),
+                "Can't find parser for axiom " + type.getActualClass());
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends OWLAxiom> AxiomTranslator<T> get(AxiomType<? extends OWLAxiom> type) {
-        return OntApiException.notNull((AxiomTranslator<T>) getParsers().get(OntApiException.notNull(type, "Null axiom type")), "Can't find parser for axiom " + type.getActualClass());
+    static <A extends OWLAxiom> AxiomTranslator<A> getByType(AxiomType<? extends OWLAxiom> type) {
+        return (AxiomTranslator<A>) get(type);
     }
 
     private static class ParserHolder {
 
-        // 39 types.
+        // 39 axiom types:
         private static final List<Class<? extends AxiomTranslator>> TRANSLATORS = Arrays.asList(
                 ru.avicomp.ontapi.internal.DataPropertyDomainTranslator.class,
                 ru.avicomp.ontapi.internal.SameIndividualTranslator.class,
@@ -99,7 +130,7 @@ public abstract class AxiomParserProvider {
         static {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.trace("There are following axiom-parsers (" + PARSERS.size() + "): ");
-                PARSERS.forEach((type, parser) -> LOGGER.trace(type + " ::: " + parser.getClass()));
+                PARSERS.forEach((t, p) -> LOGGER.trace("{} ::: {}", t, p.getClass()));
             }
         }
 
@@ -108,7 +139,7 @@ public abstract class AxiomParserProvider {
             Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> res = new HashMap<>();
             // to be sure that list of types are exactly the same in ont-api as in owl-api:
             AxiomType.AXIOM_TYPES.forEach(type -> {
-                Class<? extends AxiomTranslator> parserClass = findParserClass(TRANSLATORS, type);
+                Class<? extends AxiomTranslator> parserClass = findParserClass(type);
                 try {
                     res.put(type, parserClass.newInstance());
                 } catch (InstantiationException | IllegalAccessException e) {
@@ -118,14 +149,15 @@ public abstract class AxiomParserProvider {
             return res;
         }
 
-        private static Class<? extends AxiomTranslator> findParserClass(Collection<Class<? extends AxiomTranslator>> classes, AxiomType<? extends OWLAxiom> type) {
-            return classes.stream()
+        private static Class<? extends AxiomTranslator> findParserClass(AxiomType<? extends OWLAxiom> type) {
+            return ParserHolder.TRANSLATORS.stream()
                     .filter(p -> isRelatedToAxiom(p, type.getActualClass()))
                     .findFirst()
                     .orElseThrow(() -> new OntApiException("Can't find parser class for type '" + type + "'"));
         }
 
-        private static boolean isRelatedToAxiom(Class<? extends AxiomTranslator> parserClass, Class<? extends OWLAxiom> actualClass) {
+        private static boolean isRelatedToAxiom(Class<? extends AxiomTranslator> parserClass,
+                                                Class<? extends OWLAxiom> actualClass) {
             ParameterizedType type = ((ParameterizedType) parserClass.getGenericSuperclass());
             if (type == null) return false;
             for (Type t : type.getActualTypeArguments()) {

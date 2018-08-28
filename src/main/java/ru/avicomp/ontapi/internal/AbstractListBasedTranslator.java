@@ -18,6 +18,7 @@ import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.OntApiException;
@@ -43,7 +44,7 @@ import java.util.stream.Stream;
  * </ul>
  * Created by @szuev on 18.10.2016.
  */
-abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
+public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
         ONT_SUBJECT extends OntObject, OWL_SUBJECT extends OWLObject,
         ONT_MEMBER extends OntObject, OWL_MEMBER extends OWLObject> extends AxiomTranslator<Axiom> {
 
@@ -61,10 +62,9 @@ abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         return listStatements(model, null, getPredicate(), null)
-                .filter(s -> s.getSubject().canAs(getView()))
-                .filter(s -> s.getObject().canAs(RDFList.class));
+                .filterKeep(s -> s.getSubject().canAs(getView()) && s.getObject().canAs(RDFList.class));
     }
 
     @Override

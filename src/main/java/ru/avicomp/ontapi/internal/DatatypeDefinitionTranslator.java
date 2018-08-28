@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLDatatype;
@@ -25,7 +26,6 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
  * Example:
@@ -42,10 +42,10 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         return listStatements(model, null, OWL.equivalentClass, null)
-                .filter(s -> s.getSubject().canAs(OntDT.class))
-                .filter(s -> s.getObject().canAs(OntDR.class));
+                .filterKeep(s -> s.getSubject().canAs(OntDT.class)
+                        && s.getObject().canAs(OntDR.class));
     }
 
     @Override

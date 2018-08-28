@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -66,11 +67,9 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
-        return Stream.concat(
-                super.statements(model),
-                model.ontObjects(getDisjointView()).map(OntObject::getRoot).filter(OntStatement::isLocal)
-        );
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
+        return super.listStatements(model)
+                .andThen(listOntObjects(model, getDisjointView()).mapWith(OntObject::getRoot));
     }
 
     @Override

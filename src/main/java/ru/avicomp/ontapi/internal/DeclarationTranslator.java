@@ -14,6 +14,8 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -25,7 +27,6 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -41,9 +42,9 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
-        if (!getConfig(model).loaderConfig().isAllowReadDeclarations()) return Stream.empty();
-        return model.ontEntities().map(OntObject::getRoot).filter(Objects::nonNull).filter(OntStatement::isLocal);
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
+        if (!getConfig(model).loaderConfig().isAllowReadDeclarations()) return NullIterator.instance();
+        return listEntities(model).mapWith(OntObject::getRoot);
     }
 
     @Override

@@ -14,6 +14,8 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -21,10 +23,9 @@ import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
- * see {@link AbstractSubPropertyTranslator}
+ * See {@link AbstractSubPropertyTranslator}.
  *
  * Created by @szuev on 30.09.2016.
  */
@@ -48,14 +49,14 @@ public class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTransl
      * Returns {@link OntStatement}s defining the {@link OWLSubAnnotationPropertyOfAxiom} axiom.
      *
      * @param model {@link OntGraphModel}
-     * @return {@link OntStatement}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         OntLoaderConfiguration conf = getConfig(model).loaderConfig();
-        if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
-        return super.statements(model)
-                .filter(s -> ReadHelper.testAnnotationAxiomOverlaps(s, conf,
+        if (!conf.isLoadAnnotationAxioms()) return NullIterator.instance();
+        return super.listStatements(model)
+                .filterKeep(s -> ReadHelper.testAnnotationAxiomOverlaps(s, conf,
                         AxiomType.SUB_OBJECT_PROPERTY, AxiomType.SUB_DATA_PROPERTY));
     }
 

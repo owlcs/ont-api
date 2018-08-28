@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
@@ -21,10 +22,8 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
-import java.util.stream.Stream;
-
 /**
- * base class for {@link SubObjectPropertyOfTranslator}, {@link SubDataPropertyOfTranslator} and {@link SubAnnotationPropertyOfTranslator}
+ * The base class for {@link SubObjectPropertyOfTranslator}, {@link SubDataPropertyOfTranslator} and {@link SubAnnotationPropertyOfTranslator}.
  * Example:
  * {@code foaf:msnChatID  rdfs:subPropertyOf foaf:nick .}
  * <p>
@@ -38,10 +37,10 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
 
     abstract Class<P> getView();
 
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    @Override
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         return listStatements(model, null, RDFS.subPropertyOf, null)
-                .filter(s -> s.getSubject().canAs(getView()))
-                .filter(s -> s.getObject().canAs(getView()));
+                .filterKeep(s -> s.getSubject().canAs(getView()) && s.getObject().canAs(getView()));
     }
 
     @Override

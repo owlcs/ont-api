@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import java.util.Collection;
 
 /**
- * object property with owl:AsymmetricProperty type
+ * Translator for axiom defining as object property with {@code owl:AsymmetricProperty} type.
  *
  * Created by @szuev on 18.10.2016.
  */

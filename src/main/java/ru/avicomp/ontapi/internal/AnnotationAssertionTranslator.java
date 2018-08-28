@@ -14,12 +14,13 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
  * Examples:
@@ -47,19 +48,19 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
      * Also it is skipped if load annotations is disabled in the configuration.
      *
      * @param model {@link OntGraphModel} the model
-     * @return Stream of {@link OntStatement}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
      */
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         OntLoaderConfiguration conf = getConfig(model).loaderConfig();
         if (!conf.isLoadAnnotationAxioms()) {
-            return Stream.empty();
+            return NullIterator.instance();
         }
         boolean withBulk = conf.isAllowBulkAnnotationAssertions();
         OntID id = model.getID();
         return listStatements(model, null, null, null)
-                .filter(s -> !id.equals(s.getSubject()) && testStatement(s, withBulk));
+                .filterKeep(s -> !id.equals(s.getSubject()) && testStatement(s, withBulk));
     }
 
     @Override

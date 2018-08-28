@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.HasProperty;
 import org.semanticweb.owlapi.model.HasRange;
@@ -22,10 +23,8 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
-import java.util.stream.Stream;
-
 /**
- * base class for {@link DataPropertyRangeTranslator} and {@link ObjectPropertyRangeTranslator} and {@link AnnotationPropertyRangeTranslator}
+ * The base class for {@link DataPropertyRangeTranslator} and {@link ObjectPropertyRangeTranslator} and {@link AnnotationPropertyRangeTranslator}.
  * example:
  * <pre>{@code foaf:name rdfs:range rdfs:Literal}</pre>
  * <p>
@@ -40,14 +39,17 @@ public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & H
     abstract Class<P> getView();
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
-        return listStatements(model, null, RDFS.range, null)
-                .filter(s -> s.getSubject().canAs(getView()));
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
+        return listStatements(model, null, RDFS.range, null).filterKeep(this::filter);
+    }
+
+    protected boolean filter(OntStatement statement) {
+        return statement.getSubject().canAs(getView());
     }
 
     @Override
     public boolean testStatement(OntStatement statement) {
-        return statement.getPredicate().equals(RDFS.range) && statement.getSubject().canAs(getView());
+        return statement.getPredicate().equals(RDFS.range) && filter(statement);
     }
 
 }

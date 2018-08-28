@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.HasDomain;
 import org.semanticweb.owlapi.model.HasProperty;
@@ -22,11 +23,9 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
-import java.util.stream.Stream;
-
 /**
- * base class for {@link ObjectPropertyDomainTranslator} and {@link DataPropertyDomainTranslator} and {@link AnnotationPropertyDomainTranslator}
- * for rdfs:domain predicate.
+ * The base class for {@link ObjectPropertyDomainTranslator} and {@link DataPropertyDomainTranslator} and {@link AnnotationPropertyDomainTranslator}.
+ * The for {@code rdfs:domain} predicate.
  * <p>
  * Created by @szuev on 30.09.2016.
  */
@@ -39,14 +38,17 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
     abstract Class<P> getView();
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
-        return listStatements(model, null, RDFS.domain, null)
-                .filter(s -> s.getSubject().canAs(getView()));
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
+        return listStatements(model, null, RDFS.domain, null).filterKeep(this::filter);
+    }
+
+    protected boolean filter(OntStatement statement) {
+        return statement.getSubject().canAs(getView());
     }
 
     @Override
     public boolean testStatement(OntStatement statement) {
         return statement.getPredicate().equals(RDFS.domain)
-                && statement.getSubject().canAs(getView());
+                && filter(statement);
     }
 }

@@ -18,6 +18,7 @@ import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -28,6 +29,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
@@ -43,7 +45,6 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -366,8 +367,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         Config c = getConfig();
         boolean withBulk = c.loaderConfig().isAllowBulkAnnotationAssertions();
         AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
-        return release(t.adjust(c, localStatements(WriteHelper.toResource(s), null, null)
-                .filter(x -> t.testStatement(x, withBulk)))
+        ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(s), null, null)
+                .filterKeep(x -> t.testStatement(x, withBulk));
+        return release(t.adjust(c, Iter.asStream(res))
                 .map(t::toAxiom)
                 .map(ONTObject::getObject));
     }
@@ -383,8 +385,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
             return axioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
         SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
-        return release(t.adjust(getConfig(), localStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
-                .filter(t::filter))
+        ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
+                .filterKeep(t::filter);
+        return release(t.adjust(getConfig(), Iter.asStream(res))
                 .map(t::toAxiom)
                 .map(ONTObject::getObject));
     }
@@ -402,9 +405,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
         EquivalentClassesTranslator t = (EquivalentClassesTranslator) AxiomParserProvider.get(OWLEquivalentClassesAxiom.class);
         Resource r = WriteHelper.toResource(c);
-        return release(t.adjust(getConfig(),
-                Stream.concat(localStatements(r, OWL.equivalentClass, null), localStatements(null, OWL.equivalentClass, r))
-                        .filter(t::testStatement))
+        ExtendedIterator<OntStatement> res = listLocalStatements(r, OWL.equivalentClass, null)
+                .andThen(listLocalStatements(null, OWL.equivalentClass, r))
+                .filterKeep(t::testStatement);
+        return release(t.adjust(getConfig(), Iter.asStream(res))
                 .map(t::toAxiom)
                 .map(ONTObject::getObject));
     }
@@ -485,7 +489,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @see #add(OWLAnnotation)
      */
     public void add(OWLAxiom axiom) {
-        add(axiom, getAxiomTripleStore(axiom.getAxiomType()), a -> AxiomParserProvider.get(a.getAxiomType()).write(a, InternalModel.this));
+        add(axiom, getAxiomTripleStore(axiom.getAxiomType()), a -> AxiomParserProvider.getByType(a.getAxiomType())
+                .write(a, InternalModel.this));
     }
 
     /**
@@ -570,9 +575,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         if (start != null) {
             Duration d = Duration.between(start, Instant.now());
             // commons-lang3 is included in jena-arq (3.6.0)
-            LOGGER.debug("[{}]{}:::{}s", getID(),
+            LOGGER.debug("[{}]{}:::{}s{}", getID(),
                     StringUtils.rightPad("[" + type.getSimpleName() + "]", 42),
-                    d.get(ChronoUnit.SECONDS) + d.get(ChronoUnit.NANOS) / 1_000_000_000.0);
+                    String.format(Locale.ENGLISH, "%.3f", d.toMillis() / 1000.0),
+                    res.size() != 0 ? "(" + res.size() + ")" : ""
+            );
         }
         return res;
     }
@@ -888,6 +895,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
 
         public Stream<O> objects() {
             return map.keySet().stream();
+        }
+
+        public int size() {
+            return map.size();
         }
 
         /**

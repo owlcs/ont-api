@@ -19,16 +19,13 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDataPropertyDomainAxiom;
 import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
- * see {@link AbstractPropertyDomainTranslator}
- * rdfs:domain
+ * Translator for {@link AbstractPropertyDomainTranslator} (statement with predicate {@code rdfs:domain}).
  * <p>
  * Created by @szuev on 28.09.2016.
  */
@@ -39,13 +36,8 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
-        return super.statements(model).filter(s -> s.getObject().canAs(OntCE.class));
-    }
-
-    @Override
-    public boolean testStatement(OntStatement statement) {
-        return super.testStatement(statement) && statement.getObject().canAs(OntCE.class);
+    protected boolean filter(OntStatement statement) {
+        return super.filter(statement) && statement.getObject().canAs(OntCE.class);
     }
 
     @Override

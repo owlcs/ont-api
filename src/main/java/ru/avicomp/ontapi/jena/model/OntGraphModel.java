@@ -157,7 +157,7 @@ public interface OntGraphModel extends Model {
 
     /**
      * Lists all entities declared in the model.
-     * Builtins are not included.
+     * Built-ins are not included.
      * The retrieved entities can belong to the underlying graphs also.
      * Note: this method returns non-distinct stream - the duplicate elements (by equals and hasCode, not by real type)
      * means that there is so called punning.
@@ -223,6 +223,7 @@ public interface OntGraphModel extends Model {
      * @return Stream of {@link OntStatement}
      * @see OntGraphModel#statements(Resource, Property, RDFNode)
      * @see OntStatement#isLocal()
+     * @since 1.3.0
      */
     Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o);
 

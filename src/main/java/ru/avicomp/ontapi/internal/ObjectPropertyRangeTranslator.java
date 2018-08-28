@@ -19,15 +19,13 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
- * see {@link AbstractPropertyRangeTranslator}
+ * See {@link AbstractPropertyRangeTranslator}.
  * <p>
  * Created by @szuev on 28.09.2016.
  */
@@ -38,13 +36,8 @@ public class ObjectPropertyRangeTranslator extends AbstractPropertyRangeTranslat
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
-        return super.statements(model).filter(s -> s.getObject().canAs(OntCE.class));
-    }
-
-    @Override
-    public boolean testStatement(OntStatement statement) {
-        return super.testStatement(statement) && statement.getObject().canAs(OntCE.class);
+    protected boolean filter(OntStatement statement) {
+        return super.filter(statement) && statement.getObject().canAs(OntCE.class);
     }
 
     @Override

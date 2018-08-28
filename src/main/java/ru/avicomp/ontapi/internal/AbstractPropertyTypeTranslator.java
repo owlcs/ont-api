@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.HasProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -22,10 +23,8 @@ import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.stream.Stream;
-
 /**
- * Base class to read and write axiom which is related to simple typed triple associated with object or data property.
+ * The base class to read and write axiom which is related to simple typed triple associated with object or data property.
  * List of sub-classes:
  * {@link FunctionalDataPropertyTranslator},
  * {@link FunctionalObjectPropertyTranslator},
@@ -49,9 +48,9 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         return listStatements(model, null, RDF.type, getType())
-                .filter(s -> s.getSubject().canAs(getView()));
+                .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 
     @Override

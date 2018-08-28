@@ -214,16 +214,16 @@ public class ReadHelper {
     public static ONTObject<? extends OWLDataRange> calcDataRange(OntDR dr,
                                                                   NoCacheDataFactory df,
                                                                   Set<Resource> seen) {
-        if (OntApiException.notNull(dr, "Null data range.").isAnon() && seen.contains(dr)) {
+        if (OntApiException.notNull(dr, "Null data range").isURIResource()) {
+            return ONTObject.create(df.getOWLDataFactory().getOWLDatatype(df.toIRI(dr.getURI())), dr);
+        }
+        if (seen.contains(dr)) {
             throw new OntApiException("Recursive loop on data range " + dr);
         }
         NoCacheDataFactory.SimpleMap<OntDR, ONTObject<? extends OWLDataRange>> found = df.dataRangeStore();
         ONTObject<? extends OWLDataRange> r = found.get(dr);
         if (r != null) return r;
         seen.add(dr);
-        if (dr.isURIResource()) {
-            return ONTObject.create(df.getOWLDataFactory().getOWLDatatype(df.toIRI(dr.getURI())), dr);
-        }
         Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) dr).getActualClass(),
                 "Can't determine view of data range " + dr);
         if (OntDR.Restriction.class.equals(view)) {
@@ -281,16 +281,16 @@ public class ReadHelper {
     public static ONTObject<? extends OWLClassExpression> calcClassExpression(OntCE ce,
                                                                               NoCacheDataFactory df,
                                                                               Set<Resource> seen) {
-        if (ce.isAnon() && seen.contains(ce)) {
+        if (OntApiException.notNull(ce, "Null class expression").isURIResource()) {
+            return ONTObject.create(df.getOWLDataFactory().getOWLClass(df.toIRI(ce.getURI())), ce);
+        }
+        if (seen.contains(ce)) {
             throw new OntApiException("Recursive loop on class expression " + ce);
         }
         NoCacheDataFactory.SimpleMap<OntCE, ONTObject<? extends OWLClassExpression>> found = df.classExpressionStore();
         ONTObject<? extends OWLClassExpression> res = found.get(ce);
         if (res != null) return res;
         seen.add(ce);
-        if (ce.isURIResource()) {
-            return ONTObject.create(df.getOWLDataFactory().getOWLClass(df.toIRI(ce.getURI())), ce);
-        }
         Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) ce).getActualClass(),
                 "Can't determine type of class expression " + ce);
         if (OntCE.ObjectSomeValuesFrom.class.equals(view) ||

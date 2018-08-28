@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -21,7 +22,6 @@ import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
  * property that belongs to individual.
@@ -36,18 +36,18 @@ public class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataProp
     }
 
     /**
-     * positive data property assertion: the rule "a R v":
-     * see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
+     * Lists positive data property assertions: the rule {@code a R v}.
+     * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
      *
      * @param model {@link OntGraphModel} the model
-     * @return Stream of {@link OntStatement}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         return listStatements(model, null, null, null)
-                .filter(OntStatement::isData)
-                .filter(s -> s.getObject().isLiteral())
-                .filter(s -> s.getSubject().canAs(OntIndividual.class));
+                .filterKeep(s -> s.isData()
+                        && s.getObject().isLiteral()
+                        && s.getSubject().canAs(OntIndividual.class));
     }
 
     @Override

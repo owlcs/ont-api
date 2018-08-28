@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -22,7 +23,6 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
  * Creating individual (both named and anonymous):
@@ -43,9 +43,9 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     }
 
     @Override
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         return listStatements(model, null, RDF.type, null)
-                .filter(s -> s.getObject().canAs(OntCE.class) && s.getSubject().canAs(OntIndividual.class));
+                .filterKeep(s -> s.getObject().canAs(OntCE.class) && s.getSubject().canAs(OntIndividual.class));
     }
 
     @Override
