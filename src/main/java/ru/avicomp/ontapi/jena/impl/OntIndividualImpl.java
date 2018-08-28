@@ -19,6 +19,7 @@ import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntCE;
@@ -74,27 +75,42 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         if (!node.isBlank()) {
             return false;
         }
-        // todo: rewrite with lazy iterator:
-        Set<Node> types = eg.asGraph().find(node, RDF.type.asNode(), Node.ANY).mapWith(Triple::getObject).toSet();
-        if (types.stream().anyMatch(o -> OntObjectImpl.canAs(OntCE.class, o, eg))) { // class assertion:
-            return true;
+        boolean hasType = false;
+        // class-assertion:
+        ExtendedIterator<Node> types = eg.asGraph().find(node, RDF.type.asNode(), Node.ANY).mapWith(Triple::getObject);
+        try {
+            while (types.hasNext()) {
+                if (OntObjectImpl.canAs(OntCE.class, types.next(), eg)) return true;
+                hasType = true;
+            }
+        } finally {
+            types.close();
         }
-        if (!types.isEmpty()) { // any other typed statement,
+        // any other typed statement:
+        if (hasType) {
             return false;
         }
-        // _:x @built-in-predicate @any
-        try (Stream<Triple> triples = Iter.asStream(eg.asGraph().find(node, Node.ANY, Node.ANY))) {
-            if (triples.map(Triple::getPredicate).anyMatch(BUILT_IN_SUBJECT_PREDICATE_SET::contains)) {
-                return false;
+        // _:x @built-in-predicate @any:
+        ExtendedIterator<Node> bySubject = eg.asGraph().find(node, Node.ANY, Node.ANY).mapWith(Triple::getPredicate);
+        try {
+            while (bySubject.hasNext()) {
+                if (BUILT_IN_SUBJECT_PREDICATE_SET.contains(bySubject.next()))
+                    return false;
             }
+        } finally {
+            bySubject.close();
         }
-        // @any @built-in-predicate _:x
-        try (Stream<Triple> triples = Iter.asStream(eg.asGraph().find(Node.ANY, Node.ANY, node))) {
-            if (triples.map(Triple::getPredicate).anyMatch(BUILT_IN_OBJECT_PREDICATE_SET::contains)) {
-                return false;
+        // _:x @built-in-predicate @any:
+        ExtendedIterator<Node> byObject = eg.asGraph().find(Node.ANY, Node.ANY, node).mapWith(Triple::getPredicate);
+        try {
+            while (byObject.hasNext()) {
+                if (BUILT_IN_OBJECT_PREDICATE_SET.contains(byObject.next()))
+                    return false;
             }
+        } finally {
+            byObject.close();
         }
-        // any other blank node could be treated as anonymous individual.
+        // any other blank node could be treated as anonymous individual:
         return true;
     }
 
@@ -102,7 +118,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         if (OntJenaException.notNull(node, "Null node.").canAs(OntIndividual.Anonymous.class))
             return node.as(OntIndividual.Anonymous.class);
         if (node.isAnon()) {
-            return new OntIndividualImpl.AnonymousImpl(node.asNode(), (EnhGraph) node.getModel());
+            return new AnonymousImpl(node.asNode(), (EnhGraph) node.getModel());
         }
         throw new OntJenaException.Conversion(node + " could not be " + OntIndividual.Anonymous.class);
     }

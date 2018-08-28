@@ -17,9 +17,13 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
@@ -107,12 +111,8 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         @Override
         public OntNOP getDirect() {
             OntGraphModelImpl m = getModel();
-            List<Resource> res = m.statements(this, OWL.inverseOf, null)
-                    .map(Statement::getObject)
-                    .map(RDFNode::asResource)
-                    .filter(RDFNode::isURIResource)
-                    .distinct()
-                    .collect(Collectors.toList());
+            List<Resource> res = Iter.distinct(listObjects(OWL.inverseOf, Resource.class)
+                    .filterKeep(RDFNode::isURIResource)).toList();
             if (res.size() != 1)
                 throw new OntJenaException.IllegalState("Expected one and only one owl:inverseOf statement, but found: [" +
                         this + " owl:inverseOf " + res + "]");

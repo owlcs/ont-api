@@ -59,8 +59,7 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
         boolean withBulk = conf.isAllowBulkAnnotationAssertions();
         OntID id = model.getID();
         return listStatements(model, null, null, null)
-                .filter(s -> !id.equals(s.getSubject()))
-                .filter(s -> testStatement(s, withBulk));
+                .filter(s -> !id.equals(s.getSubject()) && testStatement(s, withBulk));
     }
 
     @Override

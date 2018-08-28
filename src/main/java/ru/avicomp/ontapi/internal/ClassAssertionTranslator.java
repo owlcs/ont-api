@@ -45,8 +45,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     @Override
     public Stream<OntStatement> statements(OntGraphModel model) {
         return listStatements(model, null, RDF.type, null)
-                .filter(s -> s.getObject().canAs(OntCE.class))
-                .filter(s -> s.getSubject().canAs(OntIndividual.class));
+                .filter(s -> s.getObject().canAs(OntCE.class) && s.getSubject().canAs(OntIndividual.class));
     }
 
     @Override

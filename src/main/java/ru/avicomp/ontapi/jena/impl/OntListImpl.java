@@ -24,6 +24,7 @@ import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -382,12 +383,24 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public Stream<E> members() {
+        return Iter.asStream(listMembers());
+    }
+
+    /**
+     * Lists all elements of type {@link E} from this list.
+     * Note: the list may contain nodes with incompatible type, in this case they will be skipped.
+     *
+     * @return {@link ExtendedIterator} of {@link E}-elements
+     */
+    public ExtendedIterator<E> listMembers() {
+        Iterator<List<Triple>> it = createRDFListIterator();
+        if (it == null) return NullIterator.instance();
         OntGraphModelImpl m = getModel();
-        return createTripleStream()
-                .map(l -> createRDFFirst(m, l))
-                .map(Statement::getObject)
-                .filter(this::isValid)
-                .map(this::cast);
+        return WrappedIterator.create(it)
+                .mapWith(l -> createRDFFirst(m, l))
+                .mapWith(Statement::getObject)
+                .filterKeep(this::isValid)
+                .mapWith(this::cast);
     }
 
     @Override
@@ -395,17 +408,6 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         RDFList list = getRDFList();
         if (isEmpty(list)) return Stream.empty();
         return createSafeRDFListStream(list.asNode()).flatMap(this::toListStatements);
-    }
-
-    /**
-     * Lists all batches of triples that belong to this ONT-List.
-     *
-     * @return Stream of {@link Triple} {@link List}s, can be empty for nil-list
-     */
-    public Stream<List<Triple>> createTripleStream() {
-        RDFList list = getRDFList();
-        if (isEmpty(list)) return Stream.empty();
-        return createRDFListStream(list.asNode());
     }
 
     /**
