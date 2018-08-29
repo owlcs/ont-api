@@ -416,6 +416,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      *
      * @return if {@code false} all annotation axioms (assertion, range and domain) will be discarded on loading.
      * @see OWLOntologyLoaderConfiguration#isLoadAnnotationAxioms()
+     * @see OntConfig#shouldLoadAnnotations()
      */
     @Override
     public boolean isLoadAnnotationAxioms() {

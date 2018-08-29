@@ -67,6 +67,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     }
 
     /**
+     * Creates an OWL Axiom from a statement.
+     *
+     * @param statement {@link OntStatement} the statement which determines the axiom
+     * @return {@link ONTObject} around {@link OWLAxiom}
+     */
+    public abstract ONTObject<Axiom> toAxiom(OntStatement statement);
+
+    /**
      * Performs common operations on the stream of {@link OntStatement Ontology Statement}s
      * before converting them into axioms.
      *
@@ -76,7 +84,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      */
     protected Stream<OntStatement> adjust(ConfigProvider.Config conf, Stream<OntStatement> statements) {
         Stream<OntStatement> res = statements.map(Models::createCachedStatement);
-        if (conf.loaderConfig().isSplitAxiomAnnotations()) {
+        if (conf.isSplitAxiomAnnotations()) {
             return res.flatMap(Models::split);
         }
         return res;
@@ -88,7 +96,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @param model {@link OntGraphModel ONT-API Jena Model}
      * @return Stream of {@link OntStatement}, always local (not from imports)
      */
-    public Stream<OntStatement> statements(OntGraphModel model) {
+    public final Stream<OntStatement> statements(OntGraphModel model) {
         return Iter.asStream(listStatements(model));
     }
 
@@ -101,6 +109,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     protected abstract ExtendedIterator<OntStatement> listStatements(OntGraphModel model);
 
     /**
+     * Tests if the specified statement answers the axiom definition.
+     *
+     * @param statement {@link OntStatement} any statement, not necessarily local.
+     * @return true if the statement corresponds axiom type.
+     */
+    public abstract boolean testStatement(OntStatement statement);
+
+    /**
      * Lists all model statements, which belong to the base graph, using the given SPO.
      * Placed here for more control.
      * Not sure that the methods to work with {@code ExtendedIterator}
@@ -109,13 +125,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * But they are needed to make the axioms listing a bit faster.
      *
      * @param model {@link OntGraphModel}
-     * @param s {@link Resource}, can be {@code null}
-     * @param p {@link Property}, can be {@code null}
-     * @param o {@link RDFNode}, can be {@code null}
+     * @param s     {@link Resource}, can be {@code null}
+     * @param p     {@link Property}, can be {@code null}
+     * @param o     {@link RDFNode}, can be {@code null}
      * @return {@link ExtendedIterator} of {@link OntStatement}s local to the base model graph
      * @see OntGraphModel#localStatements(Resource, Property, RDFNode)
+     * @since 1.3.0
      */
-    protected static ExtendedIterator<OntStatement> listStatements(OntGraphModel model, Resource s, Property p, RDFNode o) {
+    public static ExtendedIterator<OntStatement> listStatements(OntGraphModel model, Resource s, Property p, RDFNode o) {
         if (model instanceof OntGraphModelImpl) {
             return ((OntGraphModelImpl) model).listLocalStatements(s, p, o);
         }
@@ -124,12 +141,15 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     /**
      * Lists all ontology objects with the given {@code type}, which are defined in the base graph.
+     *
      * @param model {@link OntGraphModel}
-     * @param type {@link Class}-type
-     * @param <O> subclass of {@link OntObject}
+     * @param type  {@link Class}-type
+     * @param <O>   subclass of {@link OntObject}
      * @return {@link ExtendedIterator} of ontology objects of the type {@link O}
+     * @see OntGraphModel#ontObjects(Class)
+     * @since 1.3.0
      */
-    protected static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModel model, Class<O> type) {
+    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModel model, Class<O> type) {
         ExtendedIterator<O> res;
         if (model instanceof OntGraphModelImpl) {
             res = ((OntGraphModelImpl) model).listOntObjects(type);
@@ -144,8 +164,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      *
      * @param model {@link OntGraphModel}
      * @return {@link ExtendedIterator} of {@link OntEntity}s
+     * @see OntGraphModel#ontEntities()
+     * @since 1.3.0
      */
-    protected static ExtendedIterator<OntEntity> listEntities(OntGraphModel model) {
+    public static ExtendedIterator<OntEntity> listEntities(OntGraphModel model) {
         ExtendedIterator<OntEntity> res;
         if (model instanceof OntGraphModelImpl) {
             res = ((OntGraphModelImpl) model).listOntEntities();
@@ -158,22 +180,6 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     private static <R> ExtendedIterator<R> asIterator(Stream<R> stream) {
         return WrappedIterator.create(stream.iterator());
     }
-
-    /**
-     * Tests if the specified statement answers the axiom definition.
-     *
-     * @param statement {@link OntStatement} any statement, not necessarily local.
-     * @return true if the statement corresponds axiom type.
-     */
-    public abstract boolean testStatement(OntStatement statement);
-
-    /**
-     * Creates an OWL Axiom from a statement.
-     *
-     * @param statement {@link OntStatement} the statement which determines the axiom
-     * @return {@link ONTObject} around {@link OWLAxiom}
-     */
-    public abstract ONTObject<Axiom> toAxiom(OntStatement statement);
 
     /**
      * Gets the config from model's settings or dummy if it is naked Jena model.

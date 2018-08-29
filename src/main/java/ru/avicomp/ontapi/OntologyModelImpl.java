@@ -257,7 +257,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         }
 
         @Override
-        public ConfigProvider.Config getConfig() {
+        public Config getConfig() {
             lock.readLock().lock();
             try {
                 return delegate().getConfig();

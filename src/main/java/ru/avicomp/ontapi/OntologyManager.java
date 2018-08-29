@@ -67,21 +67,65 @@ public interface OntologyManager extends OWLOntologyManager {
     DataFactory getOWLDataFactory();
 
     /**
-     * Returns a loading config, that is an immutable extended instance of
+     * Returns the managers global config,
+     * which is an extended {@link OntologyConfigurator OWL API Configurator} and
+     * also a factory to create the snapshot configs {@link OntLoaderConfiguration} and {@link  OntWriterConfiguration}).
+     * It contains settings for managing both loading and writing behaviour, including ONT-API specific settings.
+     * This configuration is modifiable, but any change in it affects existing ontologies only
+     * if the methods {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} or
+     * {@link #setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)} have not been called.
+     * If none of these two methods were called, then both newly added and existing ontologies pick up the config changes.
+     * Otherwise it is almost useless. This is the OWL-API behaviour.
+     * Also, changes in this configuration do not affect on ontologies, loaded with the
+     * {@link #loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)} method.
+     * <p>
+     * The initial state of the {@link OntConfig} is copied from {@code /ontapi.properties} file,
+     * which should be placed in the classpath of the application.
+     *
+     * @return {@link OntConfig}, not {@code null}
+     * @see #setOntologyConfigurator(OntologyConfigurator) a setter to pass some external configurator
+     */
+    @Override
+    OntConfig getOntologyConfigurator();
+
+    /**
+     * Sets {@link OntologyConfigurator}.
+     * If both{@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} and
+     * {@link #setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)} methods were called,
+     * then the configuration has already been overridden and it makes no sense in calling this method.
+     * The same applies to the direct modifying configuration using {@link #getOntologyLoaderConfiguration()} reference.
+     * Also note, the changes in global config have no effect on ontologies, loaded by the method
+     * {@link #loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)}.
+     *
+     * @param conf {@link OntologyConfigurator} or {@code null} to reset defaults
+     * @see #getOntologyLoaderConfiguration() to get direct reference to modify
+     */
+    void setOntologyConfigurator(@Nullable OntologyConfigurator conf);
+
+    /**
+     * Returns a loading config, that is an immutable extended version of the
      * {@link OWLOntologyLoaderConfiguration OWL-API Ontology Loader Configuration}.
      * Be warned: it is a read only accessor, to change configuration create a new config instance (using any its setter)
      * and pass it back to the manager using
      * the {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} method.
-     * Any ontology has its own config,
-     * which reflects managers state at the moment of creating or loading.
      *
-     * @return {@link OntLoaderConfiguration}
+     * @return {@link OntLoaderConfiguration}, not {@code null}
      */
     @Override
     OntLoaderConfiguration getOntologyLoaderConfiguration();
 
     /**
-     * Returns a writer config, that is an immutable extended instance of
+     * Sets the {@link OntLoaderConfiguration Ontology Loader Configuration}.
+     * Any ontology from the manager will reflect this configuration, but only if it was not loaded by the
+     * {@link #loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)} method.
+     * Also note: calling this method overrides the global configuration settings related to the loading process.
+     *
+     * @param conf {@link OWLOntologyLoaderConfiguration} or {@code null} to reset defaults
+     */
+    void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration conf);
+
+    /**
+     * Returns a writer config, that is an immutable extended version of
      * {@link OWLOntologyWriterConfiguration OWL-API Ontology Writer Configuration}.
      * For more information see notes in the description of the {@link #getOntologyLoaderConfiguration()} method.
      *
@@ -91,16 +135,12 @@ public interface OntologyManager extends OWLOntologyManager {
     OntWriterConfiguration getOntologyWriterConfiguration();
 
     /**
-     * Returns the managers config, which is an extended {@link OntologyConfigurator OWL API Global Configuration} and
-     * also a factory to create the snapshot configs {@link OntLoaderConfiguration} and {@link  OntWriterConfiguration}).
-     * This configuration is modifiable, but any change in it does not affect existing ontologies,
-     * only newly added ontologies pick up these settings (unless specific configurations are explicitly specified).
-     * The initial state is copied from {@code /ontapi.properties} file, which should be placed in class path of application.
+     * Sets {@link OntWriterConfiguration Ontology Writer Configuration}.
+     * For more information see notes in the description of the {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} method.
      *
-     * @return {@link OntConfig}
+     * @param conf {@link OWLOntologyWriterConfiguration} or {@code null} to reset defaults
      */
-    @Override
-    OntConfig getOntologyConfigurator();
+    void setOntologyWriterConfiguration(@Nullable OWLOntologyWriterConfiguration conf);
 
     /**
      * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link OntologyFactory Ontology Factories}

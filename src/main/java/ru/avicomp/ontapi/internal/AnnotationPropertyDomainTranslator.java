@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.internal;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -44,7 +43,7 @@ public class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTr
      */
     @Override
     protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        OntLoaderConfiguration conf = getConfig(model).loaderConfig();
+        ConfigProvider.Config conf = getConfig(model);
         if (!conf.isLoadAnnotationAxioms()) return NullIterator.instance();
         return super.listStatements(model)
                 .filterKeep(s ->

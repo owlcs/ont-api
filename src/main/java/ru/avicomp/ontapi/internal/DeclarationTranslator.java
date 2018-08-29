@@ -43,7 +43,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        if (!getConfig(model).loaderConfig().isAllowReadDeclarations()) return NullIterator.instance();
+        if (!getConfig(model).isAllowReadDeclarations()) return NullIterator.instance();
         return listEntities(model).mapWith(OntObject::getRoot);
     }
 

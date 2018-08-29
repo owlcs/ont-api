@@ -19,7 +19,6 @@ import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
@@ -50,17 +49,17 @@ public class ReadHelper {
      * e.g. "P rdfs:range C" could be treated as "A rdfs:range U", but not vice versa.
      *
      * @param statement {@link OntStatement} to test
-     * @param conf      {@link OntLoaderConfiguration}
+     * @param conf      {@link ConfigProvider.Config}
      * @param o         {@link AxiomType#SUB_OBJECT_PROPERTY} or {@link AxiomType#OBJECT_PROPERTY_DOMAIN} or {@link AxiomType#OBJECT_PROPERTY_RANGE}
      * @param d         {@link AxiomType#SUB_DATA_PROPERTY} or {@link AxiomType#DATA_PROPERTY_DOMAIN} or {@link AxiomType#DATA_PROPERTY_RANGE}
      * @return true if the statement is good to be represented in the form of annotation axiom.
      */
     protected static boolean testAnnotationAxiomOverlaps(OntStatement statement,
-                                                         OntLoaderConfiguration conf,
+                                                         ConfigProvider.Config conf,
                                                          AxiomType<? extends OWLObjectPropertyAxiom> o,
                                                          AxiomType<? extends OWLDataPropertyAxiom> d) {
-        return conf == null || !(conf.isIgnoreAnnotationAxiomOverlaps() &&
-                Stream.of(d, o).map(AxiomParserProvider::get).anyMatch(a -> a.testStatement(statement)));
+        return !conf.isIgnoreAnnotationAxiomOverlaps() ||
+                Stream.of(d, o).map(AxiomParserProvider::get).noneMatch(a -> a.testStatement(statement));
     }
 
     /**
@@ -101,12 +100,12 @@ public class ReadHelper {
      * Returns the container with set of {@link OWLAnnotation} associated with the specified statement.
      *
      * @param statement {@link OntStatement}
+     * @param conf      {@link ConfigProvider.Config}
      * @param df        {@link InternalDataFactory}
      * @return a set of wraps {@link ONTObject} around {@link OWLAnnotation}
      */
-    public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement, NoCacheDataFactory df) {
+    public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement, ConfigProvider.Config conf, NoCacheDataFactory df) {
         Stream<OntStatement> res = statement.annotations();
-        OntLoaderConfiguration conf = df.config.loaderConfig();
         if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
             boolean withBulk = conf.isAllowBulkAnnotationAssertions();
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)

@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.internal;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Collection;
@@ -53,7 +52,7 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
      */
     @Override
     protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        OntLoaderConfiguration conf = getConfig(model).loaderConfig();
+        ConfigProvider.Config conf = getConfig(model);
         if (!conf.isLoadAnnotationAxioms()) {
             return NullIterator.instance();
         }
@@ -66,7 +65,7 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
     @Override
     public boolean testStatement(OntStatement statement) {
         if (statement.getSubject().canAs(OntID.class)) return false;
-        OntLoaderConfiguration conf = getConfig(statement.getModel()).loaderConfig();
+        ConfigProvider.Config conf = getConfig(statement.getModel());
         return testStatement(statement, conf.isAllowBulkAnnotationAssertions());
     }
 

@@ -14,63 +14,102 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
-import ru.avicomp.ontapi.config.OntWriterConfiguration;
+import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
 /**
- * This is an internal object to provide access to the {@link Config} with access to the OWL-API containers with settings.
+ * This is an internal object to provide access to the {@link Config},
+ * which is a mixed collection of different settings intended to glue the OWL-API into Jena interface.
  * <p>
  * Created by @szuev on 06.04.2017.
  */
-public interface ConfigProvider {
+public interface ConfigProvider { // todo: rename to Configurable(Model) ? InternalConfigHolder ?
     Config DEFAULT_CONFIG = new Dummy();
     InternalDataFactory DEFAULT_DATA_FACTORY = new NoCacheDataFactory(DEFAULT_CONFIG);
 
-    ConfigProvider.Config getConfig();
+    Config getConfig();
 
     /**
-     * The config.
-     * It may content reference to the manager as well,
-     * but default implementation ({@link #DEFAULT_CONFIG}) is not intended to work with such things.
+     * A container with various configuration settings
+     * to manage mappings of the structural representation to RDF and vice versa.
      * <p>
      * Created by @szuev on 05.04.2017.
      *
      * @see DataFactory
-     * @see org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration
-     * @see OWLOntologyWriterConfiguration
-     * @see OntLoaderConfiguration
+     * @see OntPersonality
      */
     interface Config {
 
         /**
-         * Returns data-factory reference.
+         * Returns the reference to the OWL data-factory.
+         * TODO: it seems that this method is superfluous here.
          *
          * @return {@link DataFactory}
          */
         DataFactory dataFactory();
 
         /**
-         * Returns loader-configuration settings.
+         * Returns an {@link OntPersonality Ontology Personality},
+         * a class-mapping that is responsible for jena-polymorphism.
+         * Using some of the ONT-personalities it is possible to hide illegal punnings.
          *
-         * @return {@link OntLoaderConfiguration}
+         * @return {@link OntPersonality}
+         * @see ru.avicomp.ontapi.jena.impl.conf.OntModelConfig
          */
-        OntLoaderConfiguration loaderConfig();
+        OntPersonality getPersonality();
 
         /**
-         * Returns writer-configuration settings.
-         *
-         * @return {@link OntWriterConfiguration}
+         * Answers whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded.
+         * If {@code true} Annotation Property Domain, Property Range, Assertion and SubAnnotationPropertyOf axioms are skipped.
+         * @return boolean
          */
-        OntWriterConfiguration writerConfig();
+        boolean isLoadAnnotationAxioms();
+
+        /**
+         * Answers whether bulk-annotations is allowed in declaration axioms or
+         * they should go separately as annotation assertion axioms.
+         *
+         * @return boolean
+         */
+        boolean isAllowBulkAnnotationAssertions();
+
+        /**
+         * Answers whether the Range, Domain and SubClassOf axioms should be separated
+         * in case there is a punning with annotation property and some other property (data or object).
+         *
+         * @return boolean
+         */
+        boolean isIgnoreAnnotationAxiomOverlaps();
+
+        /**
+         * Answers whether the declaration axioms should be allowed.
+         * In OWL-API declarations are not always mandatory.
+         *
+         * @return boolean
+         */
+        boolean isAllowReadDeclarations();
+
+        /**
+         * Answers whether the different bulk annotations for the same axiom should go as different axioms.
+         *
+         * @return boolean
+         */
+        boolean isSplitAxiomAnnotations();
+
+        /**
+         * Answers whether errors that arise when parsing axioms from a graph should be ignored.
+         *
+         * @return boolean
+         */
+        boolean isIgnoreAxiomsReadErrors();
 
         /**
          * Answers whether the behaviour should be concurrent oriented.
          *
-         * @return true if parallel mode is enabled.
+         * @return {@code true} if parallel mode is enabled
          */
         default boolean parallel() {
             return false;
@@ -79,27 +118,51 @@ public interface ConfigProvider {
     }
 
     /**
-     * Default (dummy) implementation of {@link Config}.
+     * Dummy implementation of the {@link Config}.
      */
     class Dummy implements Config {
         private static final DataFactory DATA_FACTORY = OntManagers.getDataFactory();
-        private static final OntConfig GLOBAL_CONFIG = new OntConfig();
-        private static final OntLoaderConfiguration LOADER_CONFIGURATION = GLOBAL_CONFIG.buildLoaderConfiguration();
-        private static final OntWriterConfiguration WRITER_CONFIGURATION = GLOBAL_CONFIG.buildWriterConfiguration();
+        private static final OntLoaderConfiguration LOADER_CONFIGURATION = new OntConfig().buildLoaderConfiguration();
+
+        @Override
+        public OntPersonality getPersonality() {
+            return LOADER_CONFIGURATION.getPersonality();
+        }
+
+        @Override
+        public boolean isLoadAnnotationAxioms() {
+            return LOADER_CONFIGURATION.isLoadAnnotationAxioms();
+        }
+
+        @Override
+        public boolean isAllowBulkAnnotationAssertions() {
+            return LOADER_CONFIGURATION.isAllowBulkAnnotationAssertions();
+        }
+
+        @Override
+        public boolean isIgnoreAnnotationAxiomOverlaps() {
+            return LOADER_CONFIGURATION.isIgnoreAnnotationAxiomOverlaps();
+        }
+
+        @Override
+        public boolean isAllowReadDeclarations() {
+            return LOADER_CONFIGURATION.isAllowReadDeclarations();
+        }
+
+        @Override
+        public boolean isSplitAxiomAnnotations() {
+            return LOADER_CONFIGURATION.isSplitAxiomAnnotations();
+        }
+
+        @Override
+        public boolean isIgnoreAxiomsReadErrors() {
+            return LOADER_CONFIGURATION.isIgnoreAxiomsReadErrors();
+        }
 
         @Override
         public DataFactory dataFactory() {
             return DATA_FACTORY;
         }
 
-        @Override
-        public OntLoaderConfiguration loaderConfig() {
-            return LOADER_CONFIGURATION;
-        }
-
-        @Override
-        public OntWriterConfiguration writerConfig() {
-            return WRITER_CONFIGURATION;
-        }
     }
 }

@@ -67,6 +67,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.OWLOntologyCreationHandler, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntologyManagerImpl.class);
+    private static final long serialVersionUID = -4764329329583952286L;
     // listeners:
     protected final ListenersHolder listeners = new ListenersHolder();
     // configs:
@@ -121,13 +122,15 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             @Override
             protected void onAdd(OWLOntologyFactory f) {
                 if (f instanceof OntologyFactory) return;
-                throw new OntApiException("Wrong argument: " + f + ". Only " + OntologyFactory.class.getSimpleName() + " can be accepted.");
+                throw new OntApiException("Wrong argument: " + f + ". " +
+                        "Only " + OntologyFactory.class.getSimpleName() + " can be accepted.");
             }
         };
         this.parserFactories = new RWLockedCollection<>(this.lock, _sorting);
         this.ontologyStorers = new RWLockedCollection<>(this.lock, _sorting);
         this.configProvider = new ConcurrentConfig(this.lock);
-        this.content = new OntologyCollection(isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet());
+        this.content = new OntologyCollection(isConcurrent() ?
+                CollectionFactory.createSyncSet() : CollectionFactory.createSet());
     }
 
     /**
@@ -159,7 +162,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @return {@link OntConfig}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyConfigurator()</a>
      */
     @Override
     public OntConfig getOntologyConfigurator() {
@@ -173,10 +175,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param conf {@link OntologyConfigurator}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setOntologyConfigurator(OntologyConfigurator)</a>
      */
     @Override
-    public void setOntologyConfigurator(@Nonnull OntologyConfigurator conf) {
+    public void setOntologyConfigurator(OntologyConfigurator conf) {
         getLock().writeLock().lock();
         try {
             configProvider = OWLAdapter.get().asONT(conf);
@@ -189,18 +190,20 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * Sets {@link OntLoaderConfiguration} config to the manager.
      *
      * @param conf {@link OWLOntologyLoaderConfiguration}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)</a>
      */
     @Override
     public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
             OntLoaderConfiguration config = OWLAdapter.get().asONT(conf);
-            if (Objects.equals(loaderConfig, config)) return;
-            loaderConfig = config;
-            content.values() // todo: need reset cache only if there is changes in the settings related to the axioms.
-                    .filter(i -> Objects.equals(loaderConfig, i.getModelConfig().loaderConfig()))
-                    .map(OntInfo::get).forEach(OntologyModel::clearCache);
+            OntLoaderConfiguration was = this.loaderConfig;
+            if (Objects.equals(was, config)) return;
+            boolean hasChanges = ModelConfig.hasChanges(was, config);
+            content.values()
+                    .filter(i -> i.getModelConfig().hasLoaderConfig() ? i.getModelConfig().hasChanges(config) : hasChanges)
+                    .map(OntInfo::get) // todo: no need clear whole cache
+                    .forEach(OntologyModel::clearCache);
+            this.loaderConfig = config;
         } finally {
             getLock().writeLock().unlock();
         }
@@ -208,7 +211,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @return {@link OntLoaderConfiguration}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyLoaderConfiguration()</a>
      */
     @Override
     public OntLoaderConfiguration getOntologyLoaderConfiguration() {
@@ -224,7 +226,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * Sets {@link OWLOntologyWriterConfiguration} config to the manager and also passes it inside interior models.
      *
      * @param conf {@link OWLOntologyWriterConfiguration}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)</a>
      */
     @Override
     public void setOntologyWriterConfiguration(@Nullable OWLOntologyWriterConfiguration conf) {
@@ -239,7 +240,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @return {@link OntWriterConfiguration}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyWriterConfiguration()</a>
      */
     @Override
     @Nonnull
@@ -254,7 +254,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @return {@link org.semanticweb.owlapi.util.PriorityCollection} of {@link OWLOntologyFactory}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyFactories()</a>
      */
     @Override
     public RWLockedCollection<OWLOntologyFactory> getOntologyFactories() {
@@ -283,7 +282,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param strategy {@link OWLOntologyChangeBroadcastStrategy}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setDefaultChangeBroadcastStrategy(OWLOntologyChangeBroadcastStrategy)</a>
      */
     @Override
     public void setDefaultChangeBroadcastStrategy(@Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
@@ -297,7 +295,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link OWLOntologyChangeListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addOntologyChangeListener(OWLOntologyChangeListener)</a>
      */
     @Override
     public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener) {
@@ -313,7 +310,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param listener {@link OWLOntologyChangeListener}
      * @param strategy {@link OWLOntologyChangeBroadcastStrategy}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addOntologyChangeListener(OWLOntologyChangeListener, OWLOntologyChangeBroadcastStrategy)</a>
      */
     @Override
     public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener, @Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
@@ -327,7 +323,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link OWLOntologyChangeListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntologyChangeListener(OWLOntologyChangeListener)</a>
      */
     @Override
     public void removeOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener) {
@@ -341,7 +336,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link ImpendingOWLOntologyChangeListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addImpendingOntologyChangeListener(ImpendingOWLOntologyChangeListener)</a>
      */
     @Override
     public void addImpendingOntologyChangeListener(@Nonnull ImpendingOWLOntologyChangeListener listener) {
@@ -355,7 +349,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link ImpendingOWLOntologyChangeListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeImpendingOntologyChangeListener(ImpendingOWLOntologyChangeListener)</a>
      */
     @Override
     public void removeImpendingOntologyChangeListener(@Nonnull ImpendingOWLOntologyChangeListener listener) {
@@ -369,7 +362,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link OWLOntologyChangesVetoedListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addOntologyChangesVetoedListener(OWLOntologyChangesVetoedListener)</a>
      */
     @Override
     public void addOntologyChangesVetoedListener(@Nonnull OWLOntologyChangesVetoedListener listener) {
@@ -383,7 +375,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link OWLOntologyChangesVetoedListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntologyChangesVetoedListener(OWLOntologyChangesVetoedListener)</a>
      */
     @Override
     public void removeOntologyChangesVetoedListener(@Nonnull OWLOntologyChangesVetoedListener listener) {
@@ -397,7 +388,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link MissingImportListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addMissingImportListener(MissingImportListener)</a>
      */
     @Override
     public void addMissingImportListener(@Nonnull MissingImportListener listener) {
@@ -411,7 +401,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link MissingImportListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeMissingImportListener(MissingImportListener)</a>
      */
     @Override
     public void removeMissingImportListener(@Nonnull MissingImportListener listener) {
@@ -425,7 +414,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link OWLOntologyLoaderListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addOntologyLoaderListener(OWLOntologyLoaderListener)</a>
      */
     @Override
     public void addOntologyLoaderListener(@Nonnull OWLOntologyLoaderListener listener) {
@@ -439,7 +427,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link OWLOntologyLoaderListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntologyLoaderListener(OWLOntologyLoaderListener)</a>
      */
     @Override
     public void removeOntologyLoaderListener(@Nonnull OWLOntologyLoaderListener listener) {
@@ -453,7 +440,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link OWLOntologyChangeProgressListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addOntologyChangeProgessListener(OWLOntologyChangeProgressListener)</a>
      */
     @Override
     public void addOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
@@ -467,7 +453,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param listener {@link OWLOntologyChangeProgressListener}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntologyChangeProgessListener(OWLOntologyChangeProgressListener)</a>
      */
     @Override
     public void removeOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
@@ -482,7 +467,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param id {@link OWLOntologyID}
      * @return {@link OntologyModel}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#createOntology(OWLOntologyID)</a>
      */
     @Override
     public OntologyModel createOntology(@Nonnull OWLOntologyID id) {
@@ -530,7 +514,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param ontologies            Stream of {@link OWLOntology}s
      * @param copyLogicalAxiomsOnly boolean
      * @return {@link OntologyModel}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#createOntology(IRI, Stream, boolean)</a>
      */
     @Override
     public OntologyModel createOntology(@Nonnull IRI iri, @Nonnull Stream<OWLOntology> ontologies, boolean copyLogicalAxiomsOnly) {
@@ -554,7 +537,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param axioms Stream of {@link OWLAxiom}s
      * @param iri    {@link IRI}
      * @return {@link OntologyModel}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#createOntology(Stream, IRI)</a>
      */
     @Override
     public OntologyModel createOntology(@Nonnull Stream<OWLAxiom> axioms, @Nonnull IRI iri) {
@@ -608,7 +590,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param id {@link OWLOntologyID}
      * @return {@link IRI}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#computeDocumentIRI(OWLOntologyID)</a>
      */
     @Nullable
     protected IRI computeDocumentIRI(OWLOntologyID id) {
@@ -628,7 +609,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      *
      * @param id The ontology ID for which a document IRI is to be retrieved
      * @return The document IRI that corresponds to the ontology IRI, or null if no physical URI can be found.
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getDocumentIRIFromMappers(OWLOntologyID)</a>
      */
     @Nullable
     protected IRI getDocumentIRIFromMappers(OWLOntologyID id) {
@@ -659,7 +639,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      *
      * @param iri {@link IRI}
      * @return {@link OntologyModel}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(IRI)</a>
      */
     @Override
     @Nullable
@@ -683,7 +662,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      *
      * @param id {@link OWLOntologyID}
      * @return {@link OntologyModel}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(OWLOntologyID)</a>
      */
     @Override
     public OntologyModel getOntology(@Nonnull OWLOntologyID id) {
@@ -725,7 +703,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param iri {@link IRI}
      * @return boolean
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(IRI)</a>
      */
     @Override
     public boolean contains(@Nonnull IRI iri) {
@@ -741,7 +718,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param id {@link OWLOntologyID}
      * @return boolean
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(OWLOntologyID)</a>
      */
     @Override
     public boolean contains(@Nonnull OWLOntologyID id) {
@@ -756,7 +732,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param ontology {@link OWLOntology}
      * @return boolean
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(OWLOntology)</a>
      */
     @Override
     public boolean contains(@Nonnull OWLOntology ontology) {
@@ -781,7 +756,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param iri {@link IRI}
      * @return boolean
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#containsVersion(IRI)</a>
      */
     @Override
     public boolean containsVersion(@Nonnull IRI iri) {
@@ -795,7 +769,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param ontology {@link OWLOntology}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntology(OWLOntology)</a>
      */
     @Override
     public void removeOntology(OWLOntology ontology) {
@@ -809,7 +782,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param id {@link OWLOntologyID}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntology(OWLOntologyID)</a>
      */
     @Override
     public void removeOntology(@Nonnull OWLOntologyID id) {
@@ -822,7 +794,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#clearOntologies()</a>
+
      */
     @Override
     public void clearOntologies() {
@@ -843,8 +815,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * Last possibility is an import by document IRI; if the ontology is not found by IRI, check by document IRI.
      *
      * @param declaration {@link OWLImportsDeclaration}
-     * @return {@link OntologyModel}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getImportedOntology(OWLImportsDeclaration)</a>
+     * @return {@link OntologyModel} or {@code null}
      */
     @Override
     public OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration) {
@@ -888,7 +859,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @return {@link IRI}, not null
      * @throws UnknownOWLOntologyException id ontology not found
      * @throws OntApiException             if document not found
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyDocumentIRI(OWLOntology)</a>
      */
     @Nonnull
     @Override
@@ -917,7 +887,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param ontology    {@link OWLOntology}
      * @param documentIRI {@link IRI}, the source
      * @throws UnknownOWLOntologyException e
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setOntologyDocumentIRI(OWLOntology, IRI)</a>
      */
     @Override
     public void setOntologyDocumentIRI(@Nonnull OWLOntology ontology, @Nonnull IRI documentIRI) {
@@ -934,18 +903,17 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * Note: the difference is the exception is not thrown in original implementation in case no ontology found.
      *
-     * @param ontology       {@link OWLOntology}
-     * @param ontologyFormat {@link OWLDocumentFormat}
+     * @param ontology {@link OWLOntology}
+     * @param format   {@link OWLDocumentFormat}
      * @throws UnknownOWLOntologyException e
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#setOntologyFormat(OWLOntology, OWLDocumentFormat)</a>
      * @see org.semanticweb.owlapi.model.OWLOntologyFactory.OWLOntologyCreationHandler#setOntologyFormat(OWLOntology, OWLDocumentFormat)
      */
     @Override
-    public void setOntologyFormat(@Nonnull OWLOntology ontology, @Nonnull OWLDocumentFormat ontologyFormat) {
+    public void setOntologyFormat(@Nonnull OWLOntology ontology, @Nonnull OWLDocumentFormat format) {
         getLock().writeLock().lock();
         try {
             OWLOntologyID id = ontology.getOntologyID();
-            content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addFormat(ontologyFormat);
+            content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addFormat(format);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -954,7 +922,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param ontology {@link OWLOntology}
      * @return {@link OWLDocumentFormat} or {@code null}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntologyFormat(OWLOntology)</a>
      */
     @Nullable
     @Override
@@ -973,7 +940,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      *
      * @param ont {@link OWLOntology}
      * @throws ClassCastException ex
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#ontologyCreated(OWLOntology)</a>
      */
     @Override
     public void ontologyCreated(@Nonnull OWLOntology ont) {
@@ -991,7 +957,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param ontology {@link OWLOntology}
      * @return Stream of {@link OWLOntology}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#directImports(OWLOntology)</a>
      */
     @Override
     public Stream<OWLOntology> directImports(@Nonnull OWLOntology ontology) {
@@ -1009,7 +974,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param ontology {@link OWLOntology}
      * @return Stream of {@link OWLOntology}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#imports(OWLOntology)</a>
      */
     @Override
     public Stream<OWLOntology> imports(@Nonnull OWLOntology ontology) {
@@ -1027,7 +991,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param ont    {@link OWLOntology}
      * @param result Set of {@link OWLOntology}
      * @return the same set of {@link OWLOntology}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getImports(OWLOntology, Set)</a>
      */
     protected Set<OWLOntology> getImports(OWLOntology ont, Set<OWLOntology> result) {
         directImports(ont).filter(result::add).forEach(o -> getImports(o, result));
@@ -1037,14 +1000,13 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param ontology {@link OWLOntology}
      * @return Stream of {@link OWLOntology}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#importsClosure(OWLOntology)</a>
      */
     @Override
     public Stream<OWLOntology> importsClosure(@Nonnull OWLOntology ontology) {
         getLock().readLock().lock();
         try {
             Set<OWLOntology> res = isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet();
-            getImportsClosure(ontology, res);
+            collectImportsClosure(ontology, res);
             return res.stream();
         } finally {
             getLock().readLock().unlock();
@@ -1052,26 +1014,17 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @param ontology   {@link OWLOntology}
-     * @param ontologies Set {@link OWLOntology}
-     * @return Set {@link OWLOntology}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getImportsClosure(OWLOntology, Set)</a>
+     * @param ontology {@link OWLOntology}
+     * @param res      Set {@link OWLOntology}
      */
-    protected Set<OWLOntology> getImportsClosure(OWLOntology ontology, Set<OWLOntology> ontologies) {
-        getLock().readLock().lock();
-        try {
-            ontologies.add(ontology);
-            directImports(ontology).filter(o -> !ontologies.contains(o)).forEach(o -> getImportsClosure(o, ontologies));
-            return ontologies;
-        } finally {
-            getLock().readLock().unlock();
-        }
+    protected void collectImportsClosure(OWLOntology ontology, Set<OWLOntology> res) {
+        res.add(ontology);
+        directImports(ontology).filter(o -> !res.contains(o)).forEach(o -> collectImportsClosure(o, res));
     }
 
     /**
      * @param ontology {@link OWLOntology}
      * @return List of {@link OWLOntology}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getSortedImportsClosure(OWLOntology)</a>
      */
     @Override
     public List<OWLOntology> getSortedImportsClosure(@Nonnull OWLOntology ontology) {
@@ -1085,7 +1038,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @return Stream of {@link OWLOntology}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#ontologies()</a>
      */
     @Override
     public Stream<OWLOntology> ontologies() {
@@ -1100,7 +1052,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param iri {@link IRI}
      * @return Stream of {@link OWLOntologyID}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#ontologyIDsByVersion(IRI)</a>
      */
     @Override
     public Stream<OWLOntologyID> ontologyIDsByVersion(@Nonnull IRI iri) {
@@ -1116,7 +1067,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param ont   {@link OWLOntology}
      * @param axiom {@link OWLAxiom}
      * @return {@link ChangeApplied}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addAxiom(OWLOntology, OWLAxiom)</a>
      */
     @Override
     public ChangeApplied addAxiom(@Nonnull OWLOntology ont, @Nonnull OWLAxiom axiom) {
@@ -1127,7 +1077,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param ont    {@link OWLOntology}
      * @param axioms Stream of {@link OWLAxiom}
      * @return {@link ChangeApplied}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#addAxioms(OWLOntology, Stream)</a>
      */
     @Override
     public ChangeApplied addAxioms(@Nonnull OWLOntology ont, @Nonnull Stream<? extends OWLAxiom> axioms) {
@@ -1138,7 +1087,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param ont   {@link OWLOntology}
      * @param axiom {@link OWLAxiom}
      * @return {@link ChangeApplied}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeAxiom(OWLOntology, OWLAxiom)</a>
      */
     @Override
     public ChangeApplied removeAxiom(@Nonnull OWLOntology ont, @Nonnull OWLAxiom axiom) {
@@ -1149,7 +1097,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param ont    {@link OWLOntology}
      * @param axioms Stream of {@link OWLAxiom}
      * @return {@link ChangeApplied}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeAxioms(OWLOntology, Stream)</a>
      */
     @Override
     public ChangeApplied removeAxioms(@Nonnull OWLOntology ont, @Nonnull Stream<? extends OWLAxiom> axioms) {
@@ -1159,7 +1106,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param change {@link OWLOntologyChange}
      * @return {@link ChangeApplied}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#applyChange(OWLOntologyChange)</a>
      */
     @Override
     public ChangeApplied applyChange(@Nonnull OWLOntologyChange change) {
@@ -1171,7 +1117,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      *
      * @param changes List of {@link OWLOntologyChange}s
      * @return {@link ChangeDetails}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#applyChangesAndGetDetails(List)</a>
      * @since owl-api 5.1.1
      * @since ont-api 1.1.0
      */
@@ -1214,7 +1159,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param rollbackRequested boolean
      * @param allNoOps          boolean
      * @param appliedChanges    List of {@link OWLOntologyChange}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#actuallyApply(List, AtomicBoolean, AtomicBoolean, List)</a>
      */
     protected void actuallyApply(List<? extends OWLOntologyChange> changes, AtomicBoolean rollbackRequested,
                                  AtomicBoolean allNoOps, List<OWLOntologyChange> appliedChanges) {
@@ -1238,7 +1182,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * @param appliedChanges List of {@link OWLOntologyChange}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#rollBack(List)</a>
      */
     protected void rollBack(List<OWLOntologyChange> appliedChanges) {
         for (OWLOntologyChange c : appliedChanges) {
@@ -1252,7 +1195,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param change {@link OWLOntologyChange}
      * @return {@link ChangeApplied}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#enactChangeApplication(OWLOntologyChange)</a>
      */
     protected ChangeApplied enactChangeApplication(OWLOntologyChange change) {
         if (!isChangeApplicable(change)) {
@@ -1271,17 +1213,19 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param change {@link OWLOntologyChange}
      * @return boolean
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#isChangeApplicable(OWLOntologyChange)</a>
      */
     protected boolean isChangeApplicable(OWLOntologyChange change) {
         OWLOntologyID id = change.getOntology().getOntologyID();
-        Optional<OWLOntologyLoaderConfiguration> conf = content.get(id).map(OntInfo::getModelConfig).map(ConfigProvider.Config::loaderConfig);
-        return !(conf.isPresent() && !conf.get().isLoadAnnotationAxioms() && change.isAddAxiom() && change.getAxiom() instanceof OWLAnnotationAxiom);
+        Optional<ModelConfig> conf = content.get(id)
+                .map(OntInfo::getModelConfig);
+        return !(conf.isPresent()
+                && !conf.get().isLoadAnnotationAxioms()
+                && change.isAddAxiom()
+                && change.getAxiom() instanceof OWLAnnotationAxiom);
     }
 
     /**
      * @param change {@link OWLOntologyChange}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#checkForOntologyIDChange(OWLOntologyChange)</a>
      */
     protected void checkForOntologyIDChange(OWLOntologyChange change) {
         if (!(change instanceof SetOntologyID)) {
@@ -1302,7 +1246,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * not for keeping correct state of manager.
      *
      * @param change {@link OWLOntologyChange}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#checkForImportsChange(OWLOntologyChange)</a>
      */
     protected void checkForImportsChange(OWLOntologyChange change) {
         if (!change.isImportChange()) {
@@ -1312,7 +1255,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         OntologyModel ontology = (OntologyModel) change.getOntology();
         OWLOntologyID id = ontology.getOntologyID();
         Optional<OntWriterConfiguration> conf = content.get(id).map(OntInfo::getModelConfig)
-                .map(ConfigProvider.Config::writerConfig);
+                .map(ModelConfig::writerConfig);
         if (!conf.isPresent() || !conf.get().isControlImports()) {
             return;
         }
@@ -1341,7 +1284,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param settings {@link OntologyCopy}
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException ex
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)</a>
      */
     @Override
     public OntologyModel copyOntology(@Nonnull OWLOntology source, @Nonnull OntologyCopy settings) throws OWLOntologyCreationException {
@@ -1400,7 +1342,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      *
      * @param o          {@link OWLOntology o}, must be our (ONT) object.
      * @param owlManager {@link OWLOntologyManager} any OWL manager.
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)</a>
      */
     protected void rollBackMoving(OWLOntology o, OWLOntologyManager owlManager) {
         ontologyCreated(o);
@@ -1422,7 +1363,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param source {@link IRI}
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException ex
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#loadOntology(IRI)</a>
      */
     @Override
     public OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException {
@@ -1439,7 +1379,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param conf   {@link OWLOntologyLoaderConfiguration}
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException ex
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)</a>
      */
     @Override
     public OntologyModel loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source, @Nonnull OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
@@ -1459,7 +1398,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param conf        {@link OWLOntologyLoaderConfiguration}
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException ex
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#loadOntology(IRI, boolean, OWLOntologyLoaderConfiguration)</a>
      */
     protected OntologyModel load(IRI iri, boolean allowExists, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         // Check for matches on the ontology IRI first
@@ -1495,7 +1433,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param conf   {@link OWLOntologyLoaderConfiguration}
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException if smth wrong
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#loadOntology(IRI, OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)</a>
      */
     protected OntologyModel load(@Nullable IRI iri, OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         listeners.fireStartedLoadingEvent(new OWLOntologyID(Optional.ofNullable(iri), Optional.empty()), source.getDocumentIRI());
@@ -1526,7 +1463,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException        can't load
      * @throws OWLOntologyFactoryNotFoundException no factory
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#load(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)</a>
      */
     protected OntologyModel load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf)
             throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
@@ -1571,7 +1507,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * So we just skip this method.
      *
      * @param o {@link OWLOntology}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#fixIllegalPunnings(OWLOntology)</a>
      */
     @SuppressWarnings("unused")
     protected void fixIllegalPunnings(OWLOntology o) {
@@ -1586,7 +1521,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param conf        {@link OWLOntologyLoaderConfiguration}, not null
      * @return {@link OntologyModel}, can be null
      * @throws OWLOntologyCreationException ex
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#loadImports(OWLImportsDeclaration, OWLOntologyLoaderConfiguration)</a>
      */
     protected OntologyModel loadImports(OWLImportsDeclaration declaration, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         listeners.incrementImportsLoadCount();
@@ -1609,7 +1543,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param declaration {@link OWLImportsDeclaration}
      * @param conf        {@link OWLOntologyLoaderConfiguration}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#makeLoadImportRequest(OWLImportsDeclaration, OWLOntologyLoaderConfiguration)</a>
      */
     @Override
     public void makeLoadImportRequest(@Nonnull OWLImportsDeclaration declaration, @Nonnull OWLOntologyLoaderConfiguration conf) {
@@ -1635,7 +1568,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param ontologyFormat {@link OWLDocumentFormat}
      * @param documentIRI    {@link IRI}
      * @throws OWLOntologyStorageException ex
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#saveOntology(OWLOntology, OWLDocumentFormat, IRI)</a>
      * @see org.semanticweb.owlapi.util.AbstractOWLStorer#storeOntology(OWLOntology, IRI, OWLDocumentFormat)
      */
     @Override
@@ -1656,7 +1588,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param ontologyFormat {@link OWLDocumentFormat}
      * @param documentTarget {@link OWLOntologyDocumentTarget}
      * @throws OWLOntologyStorageException ex
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#saveOntology(OWLOntology, OWLDocumentFormat, OWLOntologyDocumentTarget)</a>
      */
     @Override
     public void saveOntology(@Nonnull OWLOntology ontology,
@@ -1799,7 +1730,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param in {@link ObjectInputStream}
      * @throws IOException            exception
      * @throws ClassNotFoundException exception
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#readObject(ObjectInputStream)</a>
      * @see OntBaseModelImpl#readObject(ObjectInputStream)
      * @see OntologyModelImpl.Concurrent#readObject(ObjectInputStream)
      */
@@ -1808,7 +1738,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         loaderConfig = (OntLoaderConfiguration) in.readObject();
         writerConfig = (OntWriterConfiguration) in.readObject();
         content.values().forEach(info -> {
-            ConfigProvider.Config conf = info.getModelConfig();
+            ModelConfig conf = info.getModelConfig();
             InternalModelHolder m = (InternalModelHolder) info.get();
             UnionGraph baseGraph = m.getBase().getGraph();
             Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
@@ -1825,7 +1755,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * @param out {@link ObjectInputStream}
      * @throws IOException exception
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#writeObject(ObjectOutputStream)</a>
      */
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
@@ -1846,12 +1775,13 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * Listeners holder.
-     * This is just for simplification code.
-     * All working with listeners should be here.
+     * Was added is just for simplification code.
+     * Any working with listeners should be placed here.
      */
     @SuppressWarnings("UnusedReturnValue")
     protected static class ListenersHolder implements Serializable {
-        private static final String BADLISTENER = "BADLY BEHAVING LISTENER: {} has been removed";
+        private static final String BAD_LISTENER = "BADLY BEHAVING LISTENER: {} has been removed";
+        private static final long serialVersionUID = 6728609023804778746L;
         protected final List<MissingImportListener> missingImportsListeners = new ArrayList<>();
         protected final List<OWLOntologyLoaderListener> loaderListeners = new ArrayList<>();
         protected final List<OWLOntologyChangeProgressListener> progressListeners = new ArrayList<>();
@@ -1933,7 +1863,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         /**
          * @param evt {@link MissingImportEvent}
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#fireMissingImportEvent(MissingImportEvent)</a>
          */
         protected void fireMissingImportEvent(MissingImportEvent evt) {
             missingImportsListeners.forEach(l -> l.importMissing(evt));
@@ -1943,7 +1872,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
          * @param id       {@link OWLOntologyID}
          * @param doc      {@link IRI}
          * @param imported boolean
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#fireStartedLoadingEvent(OWLOntologyID, IRI, boolean)</a>
          */
         protected void fireStartedLoadingEvent(OWLOntologyID id, IRI doc, boolean imported) {
             for (OWLOntologyLoaderListener listener : loaderListeners) {
@@ -1972,7 +1900,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
          * @param doc      {@link IRI}
          * @param imported boolean
          * @param ex       {@link Exception}
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#fireFinishedLoadingEvent(OWLOntologyID, IRI, boolean, Exception)</a>
          */
         protected void fireFinishedLoadingEvent(OWLOntologyID id, IRI doc, boolean imported, @Nullable Exception ex) {
             for (OWLOntologyLoaderListener listener : loaderListeners) {
@@ -1990,7 +1917,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         /**
          * @param size int
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#fireBeginChanges(int)</a>
          */
         protected void fireBeginChanges(int size) {
             if (!broadcastChanges.get()) {
@@ -2000,14 +1926,14 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 try {
                     listener.begin(size);
                 } catch (Exception e) {
-                    LOGGER.warn(BADLISTENER, e.getMessage(), e);
+                    LOGGER.warn(BAD_LISTENER, e.getMessage(), e);
                     progressListeners.remove(listener);
                 }
             }
         }
 
         /**
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#fireEndChanges()</a>
+
          */
         protected void fireEndChanges() {
             if (!broadcastChanges.get()) {
@@ -2017,7 +1943,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 try {
                     listener.end();
                 } catch (Exception e) {
-                    LOGGER.warn(BADLISTENER, e.getMessage(), e);
+                    LOGGER.warn(BAD_LISTENER, e.getMessage(), e);
                     progressListeners.remove(listener);
                 }
             }
@@ -2025,7 +1951,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         /**
          * @param change {@link OWLOntologyChange}
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#fireChangeApplied(OWLOntologyChange)</a>
          */
         protected void fireChangeApplied(OWLOntologyChange change) {
             if (!broadcastChanges.get()) {
@@ -2038,7 +1963,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 try {
                     listener.appliedChange(change);
                 } catch (Exception e) {
-                    LOGGER.warn(BADLISTENER, e.getMessage(), e);
+                    LOGGER.warn(BAD_LISTENER, e.getMessage(), e);
                     progressListeners.remove(listener);
                 }
             }
@@ -2047,7 +1972,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         /**
          * @param changes List of {@link OWLOntologyChange}
          * @param veto    {@link OWLOntologyChangeVetoException}
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#broadcastOntologyChangesVetoed(List, OWLOntologyChangeVetoException)</a>
          */
         protected void broadcastOntologyChangesVetoed(List<? extends OWLOntologyChange> changes, OWLOntologyChangeVetoException veto) {
             vetoListeners.forEach(l -> l.ontologyChangesVetoed(changes, veto));
@@ -2055,7 +1979,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         /**
          * @param changes List of {@link OWLOntologyChange}
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#broadcastChanges</a>
          */
         protected void broadcastChanges(List<? extends OWLOntologyChange> changes) {
             if (!broadcastChanges.get()) {
@@ -2075,7 +1998,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                     // to prevent the other listeners from receiving events.
                     strategy.broadcastChanges(listener, changes);
                 } catch (Exception e) {
-                    LOGGER.warn(BADLISTENER, e.getMessage(), e);
+                    LOGGER.warn(BAD_LISTENER, e.getMessage(), e);
                     listenerMap.remove(listener);
                 }
             }
@@ -2083,7 +2006,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         /**
          * @param changes List of {@link OWLOntologyChange}
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#broadcastImpendingChanges(List)</a>
          */
         protected void broadcastImpendingChanges(List<? extends OWLOntologyChange> changes) {
             if (!broadcastChanges.get()) {
@@ -2119,13 +2041,15 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
 
     /**
-     * The 'collection' of {@link OntInfo}s which wrap {@link OntologyModel}s.
-     * To be sure that all members are in consistent state.
-     * We can't use Map like in the initial OWL-API implementation since Ontology ID ({@link OWLOntologyID})
-     * could be changed externally (e.g. directly from jena graph)
-     * But perhaps we can introduce some caches to speed up if necessary.
+     * Class-Collection of {@link OntInfo}s which wrap {@link OntologyModel}s.
+     * It was introduced to be sure that all members are in the consistent state.
+     * It is not possible to use different {@code Map}s with {@link OWLOntologyID Ontology ID} as keys
+     * like in the original OWL-API implementation,
+     * since anything, including that ID, can be changed externally (e.g. directly in the jena graph
+     * using shadow {@link ru.avicomp.ontapi.jena.model.OntGraphModel} interface).
      */
     public class OntologyCollection implements Serializable {
+        private static final long serialVersionUID = 3693502109998760296L;
         protected final Collection<OntInfo> map;
 
         public OntologyCollection(Collection<OntInfo> c) {
@@ -2176,29 +2100,24 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Container for {@link OntologyModel}.
-     * For internal usage only.
-     * It has been introduced to provide better synchronization of ontology different parts and also for serialization.
-     * The {@link InternalModel} are not Serializable since it is an extended Jena-model and could be considered separately.
-     * Also it has no reference to manager by the same architectural reasons.
-     * So it is important to be sure that this container and internal model are in consistent state...
-     * This applies mainly to the load and write configs which contain in the {@link ConfigProvider.Config} instance.
+     * An internal container-wrapper for {@link OntologyModel}.
+     * This class is designed to provide better synchronization of various parts of
+     * the {@link OntologyModel Ontology Model}s that belong to the manager.
      *
-     * @see OntologyManagerImpl#setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)
-     * @see OntologyManagerImpl#setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)
      * @see ModelConfig
      */
     @SuppressWarnings("UnusedReturnValue")
     public class OntInfo implements Serializable {
+        private static final long serialVersionUID = 5894845199098931128L;
         protected final OntologyModel ont;
-        protected final ConfigProvider.Config conf;
+        protected final ModelConfig conf;
         protected IRI documentIRI;
         protected OWLImportsDeclaration declaration;
         protected OWLDocumentFormat format;
 
         public OntInfo(@Nonnull OntologyModel ont) {
             this.ont = ont;
-            this.conf = ((ConfigProvider) ont).getConfig();
+            this.conf = (ModelConfig) ((ConfigProvider) ont).getConfig();
         }
 
         @Nonnull
@@ -2211,17 +2130,17 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         public OntInfo addFormat(OWLDocumentFormat format) {
-            this.format = format;
+            this.format = Objects.requireNonNull(format);
             return this;
         }
 
         public OntInfo addDocumentIRI(IRI iri) {
-            documentIRI = iri;
+            this.documentIRI = Objects.requireNonNull(iri);
             return this;
         }
 
         public OntInfo addImportDeclaration(OWLImportsDeclaration declaration) {
-            this.declaration = declaration;
+            this.declaration = Objects.requireNonNull(declaration);
             return this;
         }
 
@@ -2236,7 +2155,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         @Nonnull
-        public ConfigProvider.Config getModelConfig() {
+        public ModelConfig getModelConfig() {
             return conf;
         }
 
@@ -2247,11 +2166,14 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * This implementation of {@link ConfigProvider.Config} has a reference to manager inside.
-     * This is in order to provide access to the manager's settings also.
+     * The implementation of {@link ConfigProvider.Config} that has a reference to the manager inside.
+     * This is need in order to provide access to the manager's settings.
+     *
+     * @see OntologyManager#setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)
+     * @see OntologyManager#setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)
      */
-    @SuppressWarnings("UnusedReturnValue")
     public static class ModelConfig implements ConfigProvider.Config, Serializable {
+        private static final long serialVersionUID = 3681978037818003272L;
         protected OntLoaderConfiguration modelLoaderConf;
         protected OntWriterConfiguration modelWriterConf;
         protected OntologyManagerImpl manager;
@@ -2270,16 +2192,33 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return res;
         }
 
-        public boolean setLoaderConf(OntLoaderConfiguration conf) {
-            if (Objects.equals(loaderConfig(), conf)) return false;
-            this.modelLoaderConf = conf;
-            return true;
+        public boolean hasLoaderConfig() {
+            return modelLoaderConf != null;
         }
 
-        public boolean setWriterConf(OntWriterConfiguration conf) {
-            if (Objects.equals(writerConfig(), conf)) return false;
-            this.modelWriterConf = conf;
-            return true;
+        public void setLoaderConf(OntLoaderConfiguration conf) {
+            if (Objects.equals(loaderConfig(), conf)) return;
+            this.modelLoaderConf = conf;
+        }
+
+        /**
+         * Returns loader-configuration settings,
+         * which can be global (belong to the manager) or specific to the ontology instance.
+         *
+         * @return {@link OntLoaderConfiguration}, not {@code null}
+         */
+        public OntLoaderConfiguration loaderConfig() {
+            return this.modelLoaderConf == null ? manager.getOntologyLoaderConfiguration() : this.modelLoaderConf;
+        }
+
+        /**
+         * Returns writer-configuration settings,
+         * which can be global (belong to the manager) or specific to the ontology instance.
+         *
+         * @return {@link OntWriterConfiguration}, not {@code null}
+         */
+        public OntWriterConfiguration writerConfig() {
+            return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
         }
 
         @Override
@@ -2288,19 +2227,69 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         @Override
-        public OntLoaderConfiguration loaderConfig() {
-            return this.modelLoaderConf == null ? manager.getOntologyLoaderConfiguration() : this.modelLoaderConf;
+        public OntPersonality getPersonality() {
+            return loaderConfig().getPersonality();
         }
 
         @Override
-        public OntWriterConfiguration writerConfig() {
-            return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
+        public boolean isLoadAnnotationAxioms() {
+            return loaderConfig().isLoadAnnotationAxioms();
+        }
+
+        @Override
+        public boolean isAllowBulkAnnotationAssertions() {
+            return loaderConfig().isAllowBulkAnnotationAssertions();
+        }
+
+        @Override
+        public boolean isIgnoreAnnotationAxiomOverlaps() {
+            return loaderConfig().isIgnoreAnnotationAxiomOverlaps();
+        }
+
+        @Override
+        public boolean isAllowReadDeclarations() {
+            return loaderConfig().isAllowReadDeclarations();
+        }
+
+        @Override
+        public boolean isSplitAxiomAnnotations() {
+            return loaderConfig().isSplitAxiomAnnotations();
+        }
+
+        @Override
+        public boolean isIgnoreAxiomsReadErrors() {
+            return loaderConfig().isIgnoreAxiomsReadErrors();
         }
 
         @Override
         public boolean parallel() {
             return manager.isConcurrent();
         }
+
+        public boolean hasChanges(OntLoaderConfiguration other) {
+            return hasChanges(loaderConfig(), other);
+        }
+
+        /**
+         * Answers whether the specified configs are different in the settings concerning axioms reading.
+         *
+         * @param left  {@link OntLoaderConfiguration}, can be {@code null}
+         * @param right {@link OntLoaderConfiguration}, can be {@code null}
+         * @return {@code true} if configs have equivalent axioms settings
+         */
+        public static boolean hasChanges(OntLoaderConfiguration left, OntLoaderConfiguration right) {
+            if (left == null && right != null) return true;
+            if (left != null && right == null) return true;
+            if (left == right)
+                return false;
+            if (left.isLoadAnnotationAxioms() != right.isLoadAnnotationAxioms()) return true;
+            if (left.isAllowBulkAnnotationAssertions() != right.isAllowBulkAnnotationAssertions()) return true;
+            if (left.isIgnoreAnnotationAxiomOverlaps() != right.isIgnoreAnnotationAxiomOverlaps()) return true;
+            if (left.isAllowReadDeclarations() != right.isAllowReadDeclarations()) return true;
+            if (left.isSplitAxiomAnnotations() != right.isSplitAxiomAnnotations()) return true;
+            return left.isIgnoreAxiomsReadErrors() != right.isIgnoreAxiomsReadErrors();
+        }
+
     }
 
     /**
@@ -2308,6 +2297,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * Created by @szuev on 05.07.2018.
      */
     public static class ConcurrentConfig extends OntConfig {
+        private static final long serialVersionUID = 5910609264963651991L;
         protected final ReadWriteLock lock;
 
         public ConcurrentConfig(ReadWriteLock lock) {

@@ -105,7 +105,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @param config {@link ru.avicomp.ontapi.internal.ConfigProvider.Config}
      */
     public InternalModel(Graph base, ConfigProvider.Config config) {
-        super(base, config.loaderConfig().getPersonality());
+        super(base, config.getPersonality());
         this.config = config;
         this.cacheDataFactory = new CacheDataFactory(config);
         //new NoCacheDataFactory(config);
@@ -116,10 +116,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     /**
      * Returns the model config instance.
      *
-     * @return {@link ConfigProvider.Config}
+     * @return {@link Config}
      */
     @Override
-    public ConfigProvider.Config getConfig() {
+    public Config getConfig() {
         return config;
     }
 
@@ -166,7 +166,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLImportsDeclaration}s
      */
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
-        return release(getID().imports().map(cacheDataFactory::toIRI).map(i -> getConfig().dataFactory().getOWLImportsDeclaration(i)));
+        return release(getID().imports().map(cacheDataFactory::toIRI)
+                .map(i -> cacheDataFactory.getOWLDataFactory().getOWLImportsDeclaration(i)));
     }
 
     /**
@@ -339,7 +340,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLDeclarationAxiom}s
      */
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
-        if (!getConfig().loaderConfig().isAllowReadDeclarations()) return Stream.empty();
+        if (!getConfig().isAllowReadDeclarations()) return Stream.empty();
         // even there are no changes in OWLDeclarationAxioms, they can be affected by some other user-defined axiom,
         // so need check whole cache:
         if (hasManuallyAddedAxioms()) {
@@ -364,12 +365,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         if (hasManuallyAddedAxioms()) {
             return axioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
-        Config c = getConfig();
-        boolean withBulk = c.loaderConfig().isAllowBulkAnnotationAssertions();
+        Config conf = getConfig();
+        boolean withBulk = conf.isAllowBulkAnnotationAssertions();
         AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
         ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, withBulk));
-        return release(t.adjust(c, Iter.asStream(res))
+        return release(t.adjust(conf, Iter.asStream(res))
                 .map(t::toAxiom)
                 .map(ONTObject::getObject));
     }
@@ -589,7 +590,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         try {
             return super.fetchNodeAs(node, view);
         } catch (OntJenaException e) {
-            if (!getConfig().loaderConfig().isIgnoreAxiomsReadErrors()) {
+            if (!getConfig().isIgnoreAxiomsReadErrors()) {
                 throw new OntApiException(e);
             }
             LOGGER.warn("Found a problem inside ontology <{}>: {}", getID(), e.getMessage());

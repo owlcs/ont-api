@@ -120,7 +120,7 @@ public class NoCacheDataFactory implements InternalDataFactory {
 
     @Override
     public Collection<ONTObject<OWLAnnotation>> get(OntStatement statement) {
-        return ReadHelper.getAnnotations(statement, this);
+        return ReadHelper.getAnnotations(statement, config, this);
     }
 
     public SimpleMap<OntCE, ONTObject<? extends OWLClassExpression>> classExpressionStore() {
