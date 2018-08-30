@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 
@@ -42,12 +43,12 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, RDFS.subClassOf, null).filterKeep(this::filter);
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, RDFS.subClassOf, null).filterKeep(this::filter);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.getPredicate().equals(RDFS.subClassOf) && filter(statement);
     }
 
@@ -56,11 +57,10 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLClassExpression> sub = reader.get(statement.getSubject(OntCE.class));
         ONTObject<? extends OWLClassExpression> sup = reader.get(statement.getObject().as(OntCE.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLSubClassOfAxiom res = reader.getOWLDataFactory()
                 .getOWLSubClassOfAxiom(sub.getObject(), sup.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(sub).append(sup);

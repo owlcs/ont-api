@@ -89,7 +89,7 @@ public class InternalModelTest {
 
         InternalModel model = new InternalModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph(), ConfigProvider.DEFAULT_CONFIG);
 
-        Set<OWLAnnotation> annotations = model.annotations().collect(Collectors.toSet());
+        Set<OWLAnnotation> annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
 
@@ -97,14 +97,14 @@ public class InternalModelTest {
         OWLAnnotation bulk = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("the label"),
                 Stream.of(factory.getRDFSComment("just comment to ontology annotation")));
         model.add(bulk);
-        annotations = model.annotations().collect(Collectors.toSet());
+        annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect annotations count", 5, annotations.size());
 
         LOGGER.debug("Create plain(assertion) annotation.");
         OWLAnnotation plain = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), IRI.create("http://please.click.me/"));
         model.add(plain);
-        annotations = model.annotations().collect(Collectors.toSet());
+        annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect annotations count", 6, annotations.size());
 
@@ -115,7 +115,7 @@ public class InternalModelTest {
         LOGGER.debug("Delete {}", comment);
         model.remove(comment);
 
-        annotations = model.annotations().collect(Collectors.toSet());
+        annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
     }
@@ -185,7 +185,7 @@ public class InternalModelTest {
             Axiom axiom = e.getObject();
             Set<Triple> triples = e.triples().collect(Collectors.toSet());
             Assert.assertNotNull("Null axiom", axiom);
-            Assert.assertTrue("No associated triples", triples != null && !triples.isEmpty());
+            Assert.assertTrue("No associated triples", !triples.isEmpty());
             LOGGER.debug("{} {}", axiom, triples);
         });
     }

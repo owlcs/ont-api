@@ -42,10 +42,9 @@ public class AsymmetricObjectPropertyTranslator extends AbstractPropertyTypeTran
     }
 
     @Override
-    public ONTObject<OWLAsymmetricObjectPropertyAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLAsymmetricObjectPropertyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLAsymmetricObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLAsymmetricObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(p);

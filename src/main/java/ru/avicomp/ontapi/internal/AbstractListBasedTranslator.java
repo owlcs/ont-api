@@ -62,13 +62,13 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, getPredicate(), null)
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, getPredicate(), null)
                 .filterKeep(s -> s.getSubject().canAs(getView()) && s.getObject().canAs(RDFList.class));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.getSubject().equals(getPredicate())
                 && statement.getSubject().canAs(getView())
                 && statement.getObject().canAs(RDFList.class);

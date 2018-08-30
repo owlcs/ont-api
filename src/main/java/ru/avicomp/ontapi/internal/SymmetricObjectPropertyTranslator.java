@@ -44,10 +44,9 @@ public class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTrans
     }
 
     @Override
-    public ONTObject<OWLSymmetricObjectPropertyAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLSymmetricObjectPropertyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLSymmetricObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLSymmetricObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(p);

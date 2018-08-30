@@ -33,6 +33,7 @@ import java.util.stream.Stream;
  * }</pre>
  * <p>
  * Created by @szuev on 18.10.2016.
+ *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Object_Subproperties'>9.2.1 Object Subproperties</a>
  */
 public class SubPropertyChainOfTranslator extends AbstractListBasedTranslator<OWLSubPropertyChainOfAxiom, OntOPE, OWLObjectPropertyExpression, OntOPE, OWLObjectPropertyExpression> {
@@ -57,18 +58,12 @@ public class SubPropertyChainOfTranslator extends AbstractListBasedTranslator<OW
     }
 
     @Override
-    public ONTObject<OWLSubPropertyChainOfAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
-        return makeAxiom(
-                statement,
-                reader::get,
-                OntOPE::findPropertyChain,
-                reader::get,
-                Collectors.toList(),
+    public ONTObject<OWLSubPropertyChainOfAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+        return makeAxiom(statement, reader::get, OntOPE::findPropertyChain, reader::get, Collectors.toList(),
                 (s, m) -> reader.getOWLDataFactory().getOWLSubPropertyChainOfAxiom(
                         m.stream().map(ONTObject::getObject).collect(Collectors.toList()),
                         s.getObject(),
-                        ONTObject.extract(reader.get(statement))));
+                        ONTObject.extract(reader.get(statement, config))));
     }
 
 }

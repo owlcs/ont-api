@@ -39,29 +39,34 @@ public class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTran
     /**
      * Returns {@link OntStatement}s defining the {@link OWLAnnotationPropertyRangeAxiom} axiom.
      *
-     * @param model {@link OntGraphModel}
+     * @param model  {@link OntGraphModel}
+     * @param config {@link ConfigProvider.Config}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        ConfigProvider.Config conf = getConfig(model);
-        if (!conf.isLoadAnnotationAxioms()) return NullIterator.instance();
-        return super.listStatements(model)
-                .filterKeep(s -> ReadHelper.testAnnotationAxiomOverlaps(s, conf,
-                        AxiomType.OBJECT_PROPERTY_RANGE, AxiomType.DATA_PROPERTY_RANGE));
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
+        return super.listStatements(model, config);
     }
 
     @Override
-    public boolean filter(OntStatement statement) {
-        return super.filter(statement) && statement.getObject().isURIResource();
+    public boolean filter(OntStatement statement, ConfigProvider.Config config) {
+        return super.filter(statement, config)
+                && statement.getObject().isURIResource()
+                && ReadHelper.testAnnotationAxiomOverlaps(statement, config,
+                AxiomType.OBJECT_PROPERTY_RANGE, AxiomType.DATA_PROPERTY_RANGE);
     }
 
     @Override
-    public ONTObject<OWLAnnotationPropertyRangeAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+        return config.isLoadAnnotationAxioms() && super.testStatement(statement, config);
+    }
+
+    @Override
+    public ONTObject<OWLAnnotationPropertyRangeAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<OWLAnnotationProperty> p = reader.get(statement.getSubject(getView()));
         ONTObject<IRI> d = reader.asIRI(statement.getObject().as(OntObject.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLAnnotationPropertyRangeAxiom res = reader.getOWLDataFactory()
                 .getOWLAnnotationPropertyRangeAxiom(p.getObject(), d.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(p).append(d);

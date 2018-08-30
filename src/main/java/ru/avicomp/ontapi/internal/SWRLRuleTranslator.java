@@ -22,6 +22,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -42,24 +43,23 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listOntObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listOntObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.getSubject().canAs(OntSWRL.Imp.class);
     }
 
     @Override
-    public ONTObject<SWRLRule> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<SWRLRule> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         OntSWRL.Imp imp = statement.getSubject(OntSWRL.Imp.class);
 
         Collection<ONTObject<? extends SWRLAtom>> head = imp.head().map(reader::get).collect(Collectors.toList());
         Collection<ONTObject<? extends SWRLAtom>> body = imp.body().map(reader::get).collect(Collectors.toList());
 
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         SWRLRule res = reader.getOWLDataFactory()
                 .getSWRLRule(body.stream().map(ONTObject::getObject).collect(Collectors.toList()),
                         head.stream().map(ONTObject::getObject).collect(Collectors.toList()), ONTObject.extract(annotations));

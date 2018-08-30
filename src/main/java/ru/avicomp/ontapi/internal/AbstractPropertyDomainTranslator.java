@@ -22,10 +22,11 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 /**
  * The base class for {@link ObjectPropertyDomainTranslator} and {@link DataPropertyDomainTranslator} and {@link AnnotationPropertyDomainTranslator}.
- * The for {@code rdfs:domain} predicate.
+ * The for mapping statement with {@code rdfs:domain} predicate.
  * <p>
  * Created by @szuev on 30.09.2016.
  */
@@ -38,17 +39,16 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
     abstract Class<P> getView();
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, RDFS.domain, null).filterKeep(this::filter);
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, RDFS.domain, null).filterKeep(s -> filter(s, config));
     }
 
-    protected boolean filter(OntStatement statement) {
+    protected boolean filter(OntStatement statement, ConfigProvider.Config config) {
         return statement.getSubject().canAs(getView());
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
-        return statement.getPredicate().equals(RDFS.domain)
-                && filter(statement);
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+        return RDFS.domain.equals(statement.getPredicate()) && filter(statement, config);
     }
 }

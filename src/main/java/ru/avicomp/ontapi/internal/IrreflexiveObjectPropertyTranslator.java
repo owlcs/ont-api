@@ -46,10 +46,9 @@ public class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTra
     }
 
     @Override
-    public ONTObject<OWLIrreflexiveObjectPropertyAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLIrreflexiveObjectPropertyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLIrreflexiveObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLIrreflexiveObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(p);

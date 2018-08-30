@@ -28,7 +28,7 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
  */
 public interface ConfigProvider { // todo: rename to Configurable(Model) ? InternalConfigHolder ?
     Config DEFAULT_CONFIG = new Dummy();
-    InternalDataFactory DEFAULT_DATA_FACTORY = new NoCacheDataFactory(DEFAULT_CONFIG);
+    InternalDataFactory DEFAULT_DATA_FACTORY = new NoCacheDataFactory(OntManagers.getDataFactory());
 
     Config getConfig();
 

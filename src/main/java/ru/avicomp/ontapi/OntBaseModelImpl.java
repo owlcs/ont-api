@@ -180,7 +180,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
 
     @Override
     public Stream<OWLAnnotation> annotations() {
-        return base.annotations();
+        return base.listOWLAnnotations();
     }
 
     /*
@@ -288,7 +288,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
 
     @Override
     public boolean isDeclared(@Nullable OWLEntity owlEntity) {
-        return base.axioms(OWLDeclarationAxiom.class).map(OWLDeclarationAxiom::getEntity)
+        return base.listOWLAxioms(OWLDeclarationAxiom.class).map(OWLDeclarationAxiom::getEntity)
                 .anyMatch(obj -> obj.equals(owlEntity));
     }
 
@@ -365,12 +365,12 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
 
     @Override
     public Stream<OWLAxiom> axioms() {
-        return base.axioms();
+        return base.listOWLAxioms();
     }
 
     @Override
     public <T extends OWLAxiom> Stream<T> axioms(@Nonnull AxiomType<T> axiomType) {
-        return base.axioms(axiomType);
+        return base.listOWLAxioms(axiomType);
     }
 
     /**
@@ -383,7 +383,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
                 OWLDisjointUnionAxiom.class,
                 OWLEquivalentClassesAxiom.class,
                 OWLSubClassOfAxiom.class)
-                .map(c -> base.axioms(c)).flatMap(Function.identity());
+                .map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
     }
 
     /**
@@ -409,7 +409,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
                 OWLFunctionalObjectPropertyAxiom.class,
                 OWLInverseFunctionalObjectPropertyAxiom.class,
                 OWLAsymmetricObjectPropertyAxiom.class
-        ).map(c -> base.axioms(c)).flatMap(Function.identity());
+        ).map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
     }
 
     /**
@@ -427,7 +427,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
                 OWLEquivalentDataPropertiesAxiom.class,
 
                 OWLFunctionalDataPropertyAxiom.class
-        ).map(c -> base.axioms(c)).flatMap(Function.identity());
+        ).map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
     }
 
     /**
@@ -446,7 +446,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
 
                 OWLSameIndividualAxiom.class,
                 OWLDifferentIndividualsAxiom.class
-        ).map(c -> base.axioms(c)).flatMap(Function.identity());
+        ).map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
     }
 
     /**
@@ -465,7 +465,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
                 OWLDisjointDataPropertiesAxiom.class,
                 OWLDisjointObjectPropertiesAxiom.class,
                 OWLDifferentIndividualsAxiom.class
-        ).map(c -> base.axioms(c)).flatMap(Function.identity());
+        ).map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
     }
 
     /**
@@ -485,9 +485,9 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
     @Override
     public Stream<OWLClassAxiom> axioms(@Nonnull OWLClass clazz) {
         Stream<? extends OWLClassAxiom> subClassOf = base.listOWLSubClassOfAxioms(clazz);
-        Stream<? extends OWLClassAxiom> disjointUnion = base.axioms(OWLDisjointUnionAxiom.class)
+        Stream<? extends OWLClassAxiom> disjointUnion = base.listOWLAxioms(OWLDisjointUnionAxiom.class)
                 .filter(a -> Objects.equals(a.getOWLClass(), clazz));
-        Stream<? extends OWLClassAxiom> disjoint = base.axioms(OWLDisjointClassesAxiom.class)
+        Stream<? extends OWLClassAxiom> disjoint = base.listOWLAxioms(OWLDisjointClassesAxiom.class)
                 .filter(a -> a.operands().anyMatch(clazz::equals));
         Stream<? extends OWLClassAxiom> equivalent = base.listOWLEquivalentClassesAxioms(clazz);
         return Stream.of(subClassOf, disjointUnion, disjoint, equivalent).flatMap(Function.identity());
@@ -513,14 +513,14 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
      */
     @Override
     public Stream<OWLObjectPropertyAxiom> axioms(@Nonnull OWLObjectPropertyExpression property) {
-        Stream<? extends OWLObjectPropertyAxiom> subPropertyOf = base.axioms(OWLSubObjectPropertyOfAxiom.class)
+        Stream<? extends OWLObjectPropertyAxiom> subPropertyOf = base.listOWLAxioms(OWLSubObjectPropertyOfAxiom.class)
                 .filter(a -> Objects.equals(a.getSubProperty(), property));
         @SuppressWarnings("unchecked")
         Stream<? extends OWLObjectPropertyAxiom> nary = Stream.of(
                 OWLEquivalentObjectPropertiesAxiom.class,
                 OWLDisjointObjectPropertiesAxiom.class,
                 OWLInverseObjectPropertiesAxiom.class
-        ).map(c -> base.axioms(c))
+        ).map(c -> base.listOWLAxioms(c))
                 .flatMap(Function.identity())
                 .map(OWLNaryPropertyAxiom.class::cast)
                 .filter(a -> a.operands().anyMatch(o -> Objects.equals(o, property)))
@@ -535,7 +535,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
                 OWLFunctionalObjectPropertyAxiom.class,
                 OWLInverseFunctionalObjectPropertyAxiom.class,
                 OWLAsymmetricObjectPropertyAxiom.class
-        ).map(c -> base.axioms(c))
+        ).map(c -> base.listOWLAxioms(c))
                 .flatMap(Function.identity())
                 .map(OWLUnaryPropertyAxiom.class::cast)
                 .filter(a -> Objects.equals(a.getProperty(), property))
@@ -560,14 +560,14 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
      */
     @Override
     public Stream<OWLDataPropertyAxiom> axioms(@Nonnull OWLDataProperty property) {
-        Stream<? extends OWLDataPropertyAxiom> subPropertyOf = base.axioms(OWLSubDataPropertyOfAxiom.class)
+        Stream<? extends OWLDataPropertyAxiom> subPropertyOf = base.listOWLAxioms(OWLSubDataPropertyOfAxiom.class)
                 .filter(a -> Objects.equals(a.getSubProperty(), property));
         @SuppressWarnings("unchecked")
         Stream<? extends OWLDataPropertyAxiom> nary = Stream.of(
                 OWLEquivalentDataPropertiesAxiom.class,
                 OWLDisjointDataPropertiesAxiom.class,
                 OWLInverseObjectPropertiesAxiom.class
-        ).map(c -> base.axioms(c))
+        ).map(c -> base.listOWLAxioms(c))
                 .flatMap(Function.identity())
                 .map(OWLNaryPropertyAxiom.class::cast)
                 .filter(a -> a.operands().anyMatch(o -> Objects.equals(o, property)))
@@ -576,7 +576,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
                 OWLDataPropertyDomainAxiom.class,
                 OWLDataPropertyRangeAxiom.class,
                 OWLFunctionalDataPropertyAxiom.class
-        ).map(c -> base.axioms(c))
+        ).map(c -> base.listOWLAxioms(c))
                 .flatMap(Function.identity())
                 .map(OWLUnaryPropertyAxiom.class::cast)
                 .filter(a -> Objects.equals(a.getProperty(), property))
@@ -602,12 +602,12 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
      */
     @Override
     public Stream<OWLIndividualAxiom> axioms(@Nonnull OWLIndividual individual) {
-        Stream<? extends OWLIndividualAxiom> classAssertion = base.axioms(OWLClassAssertionAxiom.class)
+        Stream<? extends OWLIndividualAxiom> classAssertion = base.listOWLAxioms(OWLClassAssertionAxiom.class)
                 .filter(a -> Objects.equals(a.getIndividual(), individual));
         Stream<? extends OWLIndividualAxiom> nary = Stream.of(
                 OWLSameIndividualAxiom.class,
                 OWLDifferentIndividualsAxiom.class
-        ).map(c -> base.axioms(c))
+        ).map(c -> base.listOWLAxioms(c))
                 .flatMap(Function.identity())
                 .map(OWLNaryIndividualAxiom.class::cast)
                 .filter(a -> a.operands().anyMatch(o -> Objects.equals(o, individual)));
@@ -616,7 +616,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
                 OWLDataPropertyAssertionAxiom.class,
                 OWLNegativeObjectPropertyAssertionAxiom.class,
                 OWLNegativeDataPropertyAssertionAxiom.class
-        ).map(c -> base.axioms(c))
+        ).map(c -> base.listOWLAxioms(c))
                 .flatMap(Function.identity())
                 .map(OWLPropertyAssertionAxiom.class::cast)
                 .filter(a -> Objects.equals(a.getSubject(), individual));
@@ -625,13 +625,13 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
 
     @Override
     public Stream<OWLDatatypeDefinitionAxiom> axioms(@Nonnull OWLDatatype datatype) {
-        return base.axioms(OWLDatatypeDefinitionAxiom.class).filter(a -> datatype.equals(a.getDatatype()));
+        return base.listOWLAxioms(OWLDatatypeDefinitionAxiom.class).filter(a -> datatype.equals(a.getDatatype()));
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> Stream<T> axioms(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key) {
-        return (Stream<T>) base.axioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)
+        return (Stream<T>) base.listOWLAxioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)
                 .map(type -> (AxiomType<T>) type)
                 .collect(Collectors.toSet())).filter(a -> filter.pass(a, key));
     }
@@ -668,16 +668,16 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
             return (Stream<A>) base.listOWLDeclarationAxioms((OWLEntity) object);
         }
         if (OWLSubObjectPropertyOfAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
-            return (Stream<A>) base.axioms(OWLSubObjectPropertyOfAxiom.class)
+            return (Stream<A>) base.listOWLAxioms(OWLSubObjectPropertyOfAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
         if (OWLSubDataPropertyOfAxiom.class.equals(type) && object instanceof OWLDataPropertyExpression) {
-            return (Stream<A>) base.axioms(OWLSubDataPropertyOfAxiom.class)
+            return (Stream<A>) base.listOWLAxioms(OWLSubDataPropertyOfAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
         if (OWLSubAnnotationPropertyOfAxiom.class.equals(type) && object instanceof OWLAnnotationProperty) {
             // the difference: this axiom type is ignored in the original OWL-API method:
-            return (Stream<A>) base.axioms(OWLSubAnnotationPropertyOfAxiom.class)
+            return (Stream<A>) base.listOWLAxioms(OWLSubAnnotationPropertyOfAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperProperty() : a.getSubProperty()));
         }
         if (OWLSubClassOfAxiom.class.equals(type) && object instanceof OWLClassExpression) {
@@ -685,7 +685,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
             if (c.isOWLClass() && Navigation.IN_SUB_POSITION.equals(position)) {
                 return (Stream<A>) base.listOWLSubClassOfAxioms(c.asOWLClass());
             }
-            return (Stream<A>) base.axioms(OWLSubClassOfAxiom.class)
+            return (Stream<A>) base.listOWLAxioms(OWLSubClassOfAxiom.class)
                     .filter(a -> c.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSuperClass() : a.getSubClass()));
         }
         if (OWLEquivalentClassesAxiom.class.equals(type) && Navigation.IN_SUB_POSITION.equals(position) && object instanceof OWLClassExpression) {
@@ -693,35 +693,35 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
             if (c.isOWLClass()) {
                 return (Stream<A>) base.listOWLEquivalentClassesAxioms(c.asOWLClass());
             }
-            return (Stream<A>) base.axioms(OWLEquivalentClassesAxiom.class).filter(a -> a.contains(c));
+            return (Stream<A>) base.listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.contains(c));
         }
         if (OWLInverseObjectPropertiesAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
-            return (Stream<A>) base.axioms(OWLInverseObjectPropertiesAxiom.class)
+            return (Stream<A>) base.listOWLAxioms(OWLInverseObjectPropertiesAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getSecondProperty() : a.getFirstProperty()));
         }
         if (OWLObjectPropertyAssertionAxiom.class.equals(type) && object instanceof OWLIndividual) {
-            return (Stream<A>) base.axioms(OWLObjectPropertyAssertionAxiom.class)
+            return (Stream<A>) base.listOWLAxioms(OWLObjectPropertyAssertionAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getObject() : a.getSubject()));
         }
         if (OWLNegativeObjectPropertyAssertionAxiom.class.equals(type) && object instanceof OWLIndividual) {
-            return (Stream<A>) base.axioms(OWLNegativeObjectPropertyAssertionAxiom.class)
+            return (Stream<A>) base.listOWLAxioms(OWLNegativeObjectPropertyAssertionAxiom.class)
                     .filter(a -> object.equals(Navigation.IN_SUPER_POSITION.equals(position) ? a.getObject() : a.getSubject()));
         }
         if (OWLAnnotationAssertionAxiom.class.equals(type)) {
             if (Navigation.IN_SUPER_POSITION.equals(position) && object instanceof OWLAnnotationObject) {
-                return (Stream<A>) base.axioms(OWLAnnotationAssertionAxiom.class).filter(a -> object.equals(a.getValue()));
+                return (Stream<A>) base.listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> object.equals(a.getValue()));
             }
             if (Navigation.IN_SUB_POSITION.equals(position) && object instanceof OWLAnnotationSubject) {
                 return (Stream<A>) base.listOWLAnnotationAssertionAxioms((OWLAnnotationSubject) object);
             }
         }
         if (OWLDisjointUnionAxiom.class.equals(type) && object instanceof OWLClassExpression) {
-            return (Stream<A>) base.axioms(OWLDisjointUnionAxiom.class)
+            return (Stream<A>) base.listOWLAxioms(OWLDisjointUnionAxiom.class)
                     .filter(a -> Navigation.IN_SUPER_POSITION.equals(position) ?
                             a.classExpressions().anyMatch(object::equals) : object.equals(a.getOWLClass()));
         }
         if (OWLSubPropertyChainOfAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
-            return (Stream<A>) base.axioms(OWLSubPropertyChainOfAxiom.class)
+            return (Stream<A>) base.listOWLAxioms(OWLSubPropertyChainOfAxiom.class)
                     .filter(a -> Navigation.IN_SUPER_POSITION.equals(position) ?
                             a.getPropertyChain().stream().anyMatch(object::equals) : object.equals(a.getSuperProperty()));
         }
@@ -738,10 +738,10 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
             return (Stream<A>) axioms((OWLIndividual) object);
         }
         if (OWLNaryAxiom.class.isAssignableFrom(type)) {
-            return base.axioms(type).filter(a -> ((OWLNaryAxiom) a).operands().anyMatch(o -> Objects.equals(o, object)));
+            return base.listOWLAxioms(type).filter(a -> ((OWLNaryAxiom) a).operands().anyMatch(o -> Objects.equals(o, object)));
         }
         // default:
-        return base.axioms(type).filter(a -> OwlObjects.objects(object.getClass(), a).anyMatch(object::equals));
+        return base.listOWLAxioms(type).filter(a -> OwlObjects.objects(object.getClass(), a).anyMatch(object::equals));
     }
 
     @Override
@@ -761,15 +761,15 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
 
     @Override
     public Stream<OWLLogicalAxiom> logicalAxioms() {
-        return base.axioms(AxiomType.AXIOM_TYPES.stream().filter(AxiomType::isLogical).collect(Collectors.toSet())).map(OWLLogicalAxiom.class::cast);
+        return base.listOWLAxioms(AxiomType.AXIOM_TYPES.stream().filter(AxiomType::isLogical).collect(Collectors.toSet())).map(OWLLogicalAxiom.class::cast);
     }
 
     @Override
     public Stream<OWLClassAxiom> generalClassAxioms() {
-        Stream<OWLSubClassOfAxiom> subClassOfAxioms = base.axioms(OWLSubClassOfAxiom.class)
+        Stream<OWLSubClassOfAxiom> subClassOfAxioms = base.listOWLAxioms(OWLSubClassOfAxiom.class)
                 .filter(a -> a.getSubClass().isAnonymous());
         Stream<? extends OWLNaryClassAxiom> naryClassAxioms = Stream.of(OWLEquivalentClassesAxiom.class, OWLDisjointClassesAxiom.class)
-                .map(base::axioms).flatMap(Function.identity())
+                .map(base::listOWLAxioms).flatMap(Function.identity())
                 .filter(a -> a.classExpressions().allMatch(IsAnonymous::isAnonymous));
         return Stream.concat(subClassOfAxioms, naryClassAxioms);
     }
@@ -863,7 +863,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
     @SuppressWarnings("RedundantStreamOptionalCall") // java8 compile bug on map
     @Override
     public boolean contains(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key) {
-        return base.axioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)
+        return base.listOWLAxioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)
                 .map(type -> type)
                 .collect(Collectors.toSet())).anyMatch(a -> filter.pass(a, key));
     }

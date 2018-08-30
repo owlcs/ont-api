@@ -34,10 +34,10 @@ import java.util.function.Function;
  */
 @SuppressWarnings("WeakerAccess")
 public class NoCacheDataFactory implements InternalDataFactory {
-    protected final ConfigProvider.Config config;
+    protected final DataFactory factory;
 
-    public NoCacheDataFactory(ConfigProvider.Config config) {
-        this.config = config;
+    public NoCacheDataFactory(DataFactory factory) {
+        this.factory = factory;
     }
 
     @Override
@@ -119,7 +119,7 @@ public class NoCacheDataFactory implements InternalDataFactory {
     }
 
     @Override
-    public Collection<ONTObject<OWLAnnotation>> get(OntStatement statement) {
+    public Collection<ONTObject<OWLAnnotation>> get(OntStatement statement, ConfigProvider.Config config) {
         return ReadHelper.getAnnotations(statement, config, this);
     }
 
@@ -133,7 +133,7 @@ public class NoCacheDataFactory implements InternalDataFactory {
 
     @Override
     public DataFactory getOWLDataFactory() {
-        return config.dataFactory();
+        return factory;
     }
 
     /**

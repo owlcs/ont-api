@@ -18,6 +18,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 
@@ -46,41 +47,37 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
      * but comes as annotation of some other axiom.
      * Also it is skipped if load annotations is disabled in the configuration.
      *
-     * @param model {@link OntGraphModel} the model
+     * @param model  {@link OntGraphModel} the model
+     * @param config {@link ConfigProvider.Config}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
      */
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        ConfigProvider.Config conf = getConfig(model);
-        if (!conf.isLoadAnnotationAxioms()) {
-            return NullIterator.instance();
-        }
-        boolean withBulk = conf.isAllowBulkAnnotationAssertions();
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
         OntID id = model.getID();
-        return listStatements(model, null, null, null)
-                .filterKeep(s -> !id.equals(s.getSubject()) && testStatement(s, withBulk));
+        return Models.listStatements(model, null, null, null)
+                .filterKeep(s -> !id.equals(s.getSubject()) && filter(s, config));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+        if (!config.isLoadAnnotationAxioms()) return false;
         if (statement.getSubject().canAs(OntID.class)) return false;
-        ConfigProvider.Config conf = getConfig(statement.getModel());
-        return testStatement(statement, conf.isAllowBulkAnnotationAssertions());
+        return filter(statement, config);
     }
 
-    public boolean testStatement(OntStatement s, boolean withBulk) {
-        return ReadHelper.isAnnotationAssertionStatement(s, withBulk)
+    public boolean filter(OntStatement s, ConfigProvider.Config c) {
+        return ReadHelper.isAnnotationAssertionStatement(s, c)
                 && ReadHelper.isEntityOrAnonymousIndividual(s.getSubject());
     }
 
     @Override
-    public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLAnnotationSubject> s = reader.get(statement.getSubject(OntObject.class));
         ONTObject<OWLAnnotationProperty> p = reader.get(statement.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = reader.get(statement.getObject());
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLAnnotationAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
                         ONTObject.extract(annotations));

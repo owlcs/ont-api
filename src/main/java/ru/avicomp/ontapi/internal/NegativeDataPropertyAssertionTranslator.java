@@ -41,13 +41,12 @@ public class NegativeDataPropertyAssertionTranslator extends AbstractNegativePro
     }
 
     @Override
-    public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         OntNPA.DataAssertion npa = statement.getSubject(getView());
         ONTObject<? extends OWLIndividual> s = reader.get(npa.getSource());
         ONTObject<OWLDataProperty> p = reader.get(npa.getProperty());
         ONTObject<OWLLiteral> o = reader.get(npa.getTarget());
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLNegativeDataPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLNegativeDataPropertyAssertionAxiom(p.getObject(),
                         s.getObject(), o.getObject(), ONTObject.extract(annotations));

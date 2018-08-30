@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 
@@ -54,30 +55,27 @@ public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObject
      * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
      *
      * @param model {@link OntGraphModel} the model
+     * @param config {@link ConfigProvider.Config}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, null, null)
-                .filterKeep(s -> s.isObject()
-                        && s.getSubject().canAs(OntIndividual.class)
-                        && s.getObject().canAs(OntIndividual.class));
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, null, null).filterKeep(s -> testStatement(s, config));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.isObject()
                 && statement.getSubject().canAs(OntIndividual.class)
                 && statement.getObject().canAs(OntIndividual.class);
     }
 
     @Override
-    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLIndividual> subject = reader.get(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLObjectPropertyExpression> property = reader.get(statement.getPredicate().as(OntOPE.class));
         ONTObject<? extends OWLIndividual> object = reader.get(statement.getObject().as(OntIndividual.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
                         ONTObject.extract(annotations));

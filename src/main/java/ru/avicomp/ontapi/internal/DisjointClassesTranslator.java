@@ -62,9 +62,8 @@ public class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLD
     }
 
     @Override
-    public ONTObject<OWLDisjointClassesAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
-        return makeAxiom(statement, reader.get(statement),
+    public ONTObject<OWLDisjointClassesAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+        return makeAxiom(statement, reader.get(statement, config),
                 reader::get,
                 (members, annotations) -> reader.getOWLDataFactory()
                         .getOWLDisjointClassesAxiom(ONTObject.extractWildcards(members), ONTObject.extract(annotations)));

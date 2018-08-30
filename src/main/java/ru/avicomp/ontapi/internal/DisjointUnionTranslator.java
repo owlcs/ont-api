@@ -34,6 +34,7 @@ import java.util.stream.Stream;
  * }</pre>
  * <p>
  * Created by @szuev on 17.10.2016.
+ *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions'>9.1.4 Disjoint Union of Class Expressions</a>
  */
 public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisjointUnionAxiom, OntClass, OWLClassExpression, OntCE, OWLClassExpression> {
@@ -58,17 +59,10 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
     }
 
     @Override
-    public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
-        return makeAxiom(
-                statement,
-                reader::get,
-                OntClass::findDisjointUnion,
-                reader::get,
-                Collectors.toSet(),
-                (s, m) -> reader.getOWLDataFactory().getOWLDisjointUnionAxiom(
-                        s.getObject().asOWLClass(),
+    public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+        return makeAxiom(statement, reader::get, OntClass::findDisjointUnion, reader::get, Collectors.toSet(),
+                (s, m) -> reader.getOWLDataFactory().getOWLDisjointUnionAxiom(s.getObject().asOWLClass(),
                         ONTObject.extractWildcards(m),
-                        ONTObject.extract(reader.get(statement))));
+                        ONTObject.extract(reader.get(statement, config))));
     }
 }

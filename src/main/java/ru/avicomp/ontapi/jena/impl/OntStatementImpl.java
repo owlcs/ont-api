@@ -392,12 +392,8 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * Splits he statement into several equivalent ones but with disjoint annotations.
      * Warning: this method stores annotation-resources to memory.
      *
-     * @return Stream of {@link OntStatement}s
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
-    public Stream<OntStatement> split() {
-        return Iter.asStream(listSplitStatements());
-    }
-
     public ExtendedIterator<OntStatement> listSplitStatements() {
         List<OntAnnotation> res = getAnnotationList();
         if (res.size() < 2) {

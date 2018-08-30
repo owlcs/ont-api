@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
@@ -43,24 +44,23 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, RDF.type, null)
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, RDF.type, null)
                 .filterKeep(s -> s.getObject().canAs(OntCE.class) && s.getSubject().canAs(OntIndividual.class));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.isDeclaration()
                 && statement.getObject().canAs(OntCE.class)
                 && statement.getSubject().canAs(OntIndividual.class);
     }
 
     @Override
-    public ONTObject<OWLClassAssertionAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLClassAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLIndividual> i = reader.get(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLClassExpression> ce = reader.get(statement.getObject().as(OntCE.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLClassAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLClassAssertionAxiom(ce.getObject(), i.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(i).append(ce);

@@ -23,14 +23,15 @@ import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
 import ru.avicomp.ontapi.jena.impl.OntListImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
@@ -324,7 +325,18 @@ public class Models {
      * each element equals to the input statement but has different related annotations
      */
     public static Stream<OntStatement> split(OntStatement statement) {
-        return ((OntStatementImpl) statement).split();
+        return Iter.asStream(listSplitStatements(statement));
+    }
+
+    /**
+     * See description for {@link #split(OntStatement)}
+     *
+     * @param statement {@link OntStatement}, not {@code null}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
+     * @since 1.3.0
+     */
+    public static ExtendedIterator<OntStatement> listSplitStatements(OntStatement statement) {
+        return ((OntStatementImpl) statement).listSplitStatements();
     }
 
     /**
@@ -413,5 +425,67 @@ public class Models {
      */
     public static Stream<OntStatement> flat(OntStatement st) {
         return Stream.concat(st.annotations(), st.annotations().flatMap(Models::flat));
+    }
+
+    /**
+     * Lists all model statements, which belong to the base graph, using the given SPO.
+     * It is placed here because there is no certainty that the methods for working with {@code ExtendedIterator}
+     * (like {@link OntGraphModelImpl#listLocalStatements(Resource, Property, RDFNode)})
+     * should be placed in the public interfaces: {@code Stream}-based analogues are almost the same but more functional.
+     * But the ability to work with {@code ExtendedIterator} is sometimes needed, since the iterator works a bit faster.
+     *
+     * @param model {@link OntGraphModel}
+     * @param s     {@link Resource}, can be {@code null}
+     * @param p     {@link Property}, can be {@code null}
+     * @param o     {@link RDFNode}, can be {@code null}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s local to the base model graph
+     * @see OntGraphModel#localStatements(Resource, Property, RDFNode)
+     * @since 1.3.0
+     */
+    public static ExtendedIterator<OntStatement> listStatements(OntGraphModel model, Resource s, Property p, RDFNode o) {
+        if (model instanceof OntGraphModelImpl) {
+            return ((OntGraphModelImpl) model).listLocalStatements(s, p, o);
+        }
+        return WrappedIterator.create(model.localStatements(s, p, o).iterator());
+    }
+
+    /**
+     * Lists all ontology objects with the given {@code type}, which are defined in the base graph.
+     * See also {@link #listStatements(OntGraphModel, Resource, Property, RDFNode)} description.
+     *
+     * @param model {@link OntGraphModel}
+     * @param type  {@link Class}-type
+     * @param <O>   subclass of {@link OntObject}
+     * @return {@link ExtendedIterator} of ontology objects of the type {@link O}
+     * @see OntGraphModel#ontObjects(Class)
+     * @since 1.3.0
+     */
+    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModel model, Class<O> type) {
+        ExtendedIterator<O> res;
+        if (model instanceof OntGraphModelImpl) {
+            res = ((OntGraphModelImpl) model).listOntObjects(type);
+        } else {
+            res = WrappedIterator.create(model.ontObjects(type).iterator());
+        }
+        return res.filterKeep(OntObject::isLocal);
+    }
+
+    /**
+     * Lists all OWL entities that are defined in the base graph.
+     * See also {@link #listStatements(OntGraphModel, Resource, Property, RDFNode)} description.
+     *
+     * @param model {@link OntGraphModel}
+     * @return {@link ExtendedIterator} of {@link OntEntity}s
+     * @see OntGraphModel#ontEntities()
+     * @since 1.3.0
+     */
+    public static ExtendedIterator<OntEntity> listEntities(OntGraphModel model) {
+        ExtendedIterator<OntEntity> res;
+        if (model instanceof OntGraphModelImpl) {
+            res = ((OntGraphModelImpl) model).listOntEntities();
+        } else {
+            res = WrappedIterator.create(model.ontEntities().iterator());
+        }
+        return res.filterKeep(OntObject::isLocal);
     }
 }

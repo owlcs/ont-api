@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -48,13 +49,13 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, RDF.type, getType())
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, RDF.type, getType())
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.getObject().equals(getType())
                 && statement.isDeclaration()
                 && statement.getSubject().canAs(getView());

@@ -35,6 +35,7 @@ import java.util.stream.Stream;
  * }</pre>
  * <p>
  * Created by @szuev on 17.10.2016.
+ *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a>
  */
 public class HasKeyTranslator extends AbstractListBasedTranslator<OWLHasKeyAxiom, OntCE, OWLClassExpression, OntDOP, OWLPropertyExpression> {
@@ -59,17 +60,10 @@ public class HasKeyTranslator extends AbstractListBasedTranslator<OWLHasKeyAxiom
     }
 
     @Override
-    public ONTObject<OWLHasKeyAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
-        return makeAxiom(
-                statement,
-                reader::get,
-                OntCE::findHasKey,
-                reader::get,
-                Collectors.toSet(),
-                (s, m) -> reader.getOWLDataFactory().getOWLHasKeyAxiom(
-                        s.getObject(),
+    public ONTObject<OWLHasKeyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+        return makeAxiom(statement, reader::get, OntCE::findHasKey, reader::get, Collectors.toSet(),
+                (s, m) -> reader.getOWLDataFactory().getOWLHasKeyAxiom(s.getObject(),
                         ONTObject.extractWildcards(m),
-                        ONTObject.extract(reader.get(statement))));
+                        ONTObject.extract(reader.get(statement, config))));
     }
 }

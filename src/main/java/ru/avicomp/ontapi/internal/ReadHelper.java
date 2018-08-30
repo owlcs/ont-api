@@ -59,7 +59,7 @@ public class ReadHelper {
                                                          AxiomType<? extends OWLObjectPropertyAxiom> o,
                                                          AxiomType<? extends OWLDataPropertyAxiom> d) {
         return !conf.isIgnoreAnnotationAxiomOverlaps() ||
-                Stream.of(d, o).map(AxiomParserProvider::get).noneMatch(a -> a.testStatement(statement));
+                Stream.of(d, o).map(AxiomParserProvider::get).noneMatch(a -> a.testStatement(statement, conf));
     }
 
     /**
@@ -86,14 +86,14 @@ public class ReadHelper {
     /**
      * Answers if the given {@link OntStatement} can be considered as annotation property assertion.
      *
-     * @param s        {@link OntStatement}, not null
-     * @param withBulk {@code true} if bulk annotations are allowed by the config
+     * @param s      {@link OntStatement}, not {@code null}
+     * @param config {@link ConfigProvider.Config}, not {@code null}
      * @return {@code true} if the specified statement is annotation property assertion
      */
-    public static boolean isAnnotationAssertionStatement(OntStatement s, boolean withBulk) {
+    public static boolean isAnnotationAssertionStatement(OntStatement s, ConfigProvider.Config config) {
         return s.isAnnotation()
                 && !s.isBulkAnnotation()
-                && (withBulk || !s.hasAnnotations());
+                && (config.isAllowBulkAnnotationAssertions() || !s.hasAnnotations());
     }
 
     /**
@@ -107,10 +107,9 @@ public class ReadHelper {
     public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement, ConfigProvider.Config conf, NoCacheDataFactory df) {
         Stream<OntStatement> res = statement.annotations();
         if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
-            boolean withBulk = conf.isAllowBulkAnnotationAssertions();
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
-            res = res.filter(s -> !isAnnotationAssertionStatement(s, withBulk));
+            res = res.filter(s -> !isAnnotationAssertionStatement(s, conf));
         }
         return res.map(a -> getAnnotation(a, df)).collect(Collectors.toSet());
     }

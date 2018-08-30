@@ -20,8 +20,8 @@ import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
-import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
@@ -41,7 +41,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
         // NOTE as a precaution: the first (commented) way is not correct
         // since it includes anonymous object property expressions (based on owl:inverseOf),
         // which might be treat as separated axioms, but OWL-API doesn't think so.
@@ -49,26 +49,23 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(OntOPE.class))
                 .filter(s -> s.getObject().canAs(OntOPE.class));*/
-        return listStatements(model, null, OWL.inverseOf, null) // skip {@code _:x owl:inverseOf PN}
+        return Models.listStatements(model, null, OWL.inverseOf, null) // skip {@code _:x owl:inverseOf PN}
                 .filterDrop(s -> s.getSubject().isAnon() && s.getObject().isURIResource());
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
-        if (!statement.getPredicate().equals(OWL.inverseOf) || !statement.getObject().isResource()) return false;
-        OntObject subject = statement.getSubject(OntObject.class);
-        OntObject object = statement.getObject().as(OntObject.class);
-        // to not take into account the object property expressions:
-        return (subject.isURIResource() || subject.hasType(OWL.ObjectProperty))
-                && (object.isURIResource() || object.hasType(OWL.ObjectProperty));
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+        if (!OWL.inverseOf.equals(statement.getPredicate())) return false;
+        // skip {@code _:x owl:inverseOf PN} (inverse object property expression):
+        if (!statement.getSubject().isAnon() || !statement.getObject().isURIResource()) return false;
+        return statement.getSubject().canAs(OntOPE.class) && statement.getObject().canAs(OntOPE.class);
     }
 
     @Override
-    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLObjectPropertyExpression> f = reader.get(statement.getSubject(OntOPE.class));
         ONTObject<? extends OWLObjectPropertyExpression> s = reader.get(statement.getObject().as(OntOPE.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLInverseObjectPropertiesAxiom res = reader.getOWLDataFactory()
                 .getOWLInverseObjectPropertiesAxiom(f.getObject(), s.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(f).append(s);

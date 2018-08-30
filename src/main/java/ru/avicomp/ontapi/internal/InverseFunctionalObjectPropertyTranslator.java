@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import java.util.Collection;
 
 /**
- * example:
+ * Example:
  * <pre>{@code
  * pizza:hasBase rdf:type owl:InverseFunctionalProperty
  * }</pre>
@@ -44,10 +44,9 @@ public class InverseFunctionalObjectPropertyTranslator extends AbstractPropertyT
     }
 
     @Override
-    public ONTObject<OWLInverseFunctionalObjectPropertyAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLInverseFunctionalObjectPropertyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLInverseFunctionalObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLInverseFunctionalObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(p);

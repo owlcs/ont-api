@@ -44,10 +44,9 @@ public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTran
     }
 
     @Override
-    public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLTransitiveObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLTransitiveObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(p);

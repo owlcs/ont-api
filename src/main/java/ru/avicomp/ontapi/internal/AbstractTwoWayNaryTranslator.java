@@ -22,6 +22,7 @@ import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
@@ -67,14 +68,14 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return super.listStatements(model)
-                .andThen(listOntObjects(model, getDisjointView()).mapWith(OntObject::getRoot));
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return super.listStatements(model, config)
+                .andThen(Models.listOntObjects(model, getDisjointView()).mapWith(OntObject::getRoot));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
-        return super.testStatement(statement) || statement.getSubject().canAs(getDisjointView());
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+        return super.testStatement(statement, config) || statement.getSubject().canAs(getDisjointView());
     }
 
     abstract Resource getMembersType();

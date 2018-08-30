@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLPropertyAssertionAxiom;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
@@ -42,13 +43,13 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, RDF.type, OWL.NegativePropertyAssertion)
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, RDF.type, OWL.NegativePropertyAssertion)
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.getObject().equals(OWL.NegativePropertyAssertion)
                 && statement.isDeclaration()
                 && statement.getSubject().canAs(getView());

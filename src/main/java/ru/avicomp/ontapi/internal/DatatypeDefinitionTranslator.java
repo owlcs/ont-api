@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
@@ -42,25 +43,24 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, OWL.equivalentClass, null)
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, OWL.equivalentClass, null)
                 .filterKeep(s -> s.getSubject().canAs(OntDT.class)
                         && s.getObject().canAs(OntDR.class));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.getPredicate().equals(OWL.equivalentClass)
                 && statement.getSubject().canAs(OntDT.class)
                 && statement.getObject().canAs(OntDR.class);
     }
 
     @Override
-    public ONTObject<OWLDatatypeDefinitionAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLDatatypeDefinitionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<OWLDatatype> dt = reader.get(statement.getSubject(OntDT.class));
         ONTObject<? extends OWLDataRange> dr = reader.get(statement.getObject().as(OntDR.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLDatatypeDefinitionAxiom res = reader.getOWLDataFactory()
                 .getOWLDatatypeDefinitionAxiom(dt.getObject(), dr.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(dt).append(dr);

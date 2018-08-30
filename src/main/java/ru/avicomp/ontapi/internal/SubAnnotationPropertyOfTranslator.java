@@ -48,23 +48,32 @@ public class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTransl
      * Returns {@link OntStatement}s defining the {@link OWLSubAnnotationPropertyOfAxiom} axiom.
      *
      * @param model {@link OntGraphModel}
+     * @param config {@link ConfigProvider.Config}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        ConfigProvider.Config conf = getConfig(model);
-        if (!conf.isLoadAnnotationAxioms()) return NullIterator.instance();
-        return super.listStatements(model)
-                .filterKeep(s -> ReadHelper.testAnnotationAxiomOverlaps(s, conf,
-                        AxiomType.SUB_OBJECT_PROPERTY, AxiomType.SUB_DATA_PROPERTY));
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
+        return super.listStatements(model, config);
     }
 
     @Override
-    public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    protected boolean filter(OntStatement statement, ConfigProvider.Config config) {
+        return super.filter(statement, config)
+                && ReadHelper.testAnnotationAxiomOverlaps(statement, config,
+                AxiomType.SUB_OBJECT_PROPERTY, AxiomType.SUB_DATA_PROPERTY);
+    }
+
+    @Override
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+        return config.isLoadAnnotationAxioms() && super.testStatement(statement, config);
+    }
+
+    @Override
+    public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<OWLAnnotationProperty> sub = reader.get(statement.getSubject(OntNAP.class));
         ONTObject<OWLAnnotationProperty> sup = reader.get(statement.getObject().as(OntNAP.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLSubAnnotationPropertyOfAxiom res = reader.getOWLDataFactory()
                 .getOWLSubAnnotationPropertyOfAxiom(sub.getObject(), sup.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations).append(sub).append(sup);

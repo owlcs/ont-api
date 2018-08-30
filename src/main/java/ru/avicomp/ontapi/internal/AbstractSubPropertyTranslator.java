@@ -21,11 +21,12 @@ import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 /**
  * The base class for {@link SubObjectPropertyOfTranslator}, {@link SubDataPropertyOfTranslator} and {@link SubAnnotationPropertyOfTranslator}.
  * Example:
- * {@code foaf:msnChatID  rdfs:subPropertyOf foaf:nick .}
+ * {@code foaf:msnChatID rdfs:subPropertyOf foaf:nick .}
  * <p>
  * Created by @szuev on 30.09.2016.
  */
@@ -38,16 +39,17 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
     abstract Class<P> getView();
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, RDFS.subPropertyOf, null)
-                .filterKeep(s -> s.getSubject().canAs(getView()) && s.getObject().canAs(getView()));
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, RDFS.subPropertyOf, null).filterKeep(s -> filter(s, config));
+    }
+
+    protected boolean filter(OntStatement statement, ConfigProvider.Config config) {
+        return statement.getSubject().canAs(getView()) && statement.getObject().canAs(getView());
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
-        return statement.getPredicate().equals(RDFS.subPropertyOf)
-                && statement.getSubject().canAs(getView())
-                && statement.getObject().canAs(getView());
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+        return statement.getPredicate().equals(RDFS.subPropertyOf) && filter(statement, config);
     }
 
     @Override

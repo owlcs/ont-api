@@ -16,15 +16,16 @@ package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Base class for following axioms:
@@ -73,20 +74,23 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     abstract Class<ONT> getView();
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return listStatements(model, null, getPredicate(), null)
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        return Models.listStatements(model, null, getPredicate(), null)
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.getPredicate().equals(getPredicate()) && statement.getSubject().canAs(getView());
     }
 
     @Override
-    public Stream<ONTObject<Axiom>> axioms(OntGraphModel model) {
+    public ExtendedIterator<ONTObject<Axiom>> listAxioms(OntGraphModel model,
+                                                         InternalDataFactory factory,
+                                                         ConfigProvider.Config config) {
         Map<Axiom, ONTObject<Axiom>> res = new HashMap<>(); // memory!
-        super.axioms(model).forEach(c -> res.compute(c.getObject(), (a, w) -> w == null ? c : w.append(c)));
-        return new HashSet<>(res.values()).stream();
+        super.listAxioms(model, factory, config)
+                .forEachRemaining(c -> res.compute(c.getObject(), (a, w) -> w == null ? c : w.append(c)));
+        return WrappedIterator.create(res.values().iterator());
     }
 }

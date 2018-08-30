@@ -34,6 +34,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -107,7 +108,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     public InternalModel(Graph base, ConfigProvider.Config config) {
         super(base, config.getPersonality());
         this.config = config;
-        this.cacheDataFactory = new CacheDataFactory(config);
+        this.cacheDataFactory = new CacheDataFactory(config.dataFactory());
         //new NoCacheDataFactory(config);
         //new MapDataFactory(config);
         getGraph().getEventManager().register(new DirectListener());
@@ -177,7 +178,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * the encapsulated graph still may contain some triples.
      */
     public boolean isOntologyEmpty() {
-        return axioms().count() == 0 && annotations().count() == 0;
+        return listOWLAxioms().count() == 0 && listOWLAnnotations().count() == 0;
     }
 
     /**
@@ -295,8 +296,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     protected <O extends OWLObject> Set<O> readOWLObjects(Class<O> type) {
         return Stream.concat(
-                annotations().flatMap(a -> OwlObjects.objects(type, a)),
-                axioms().flatMap(a -> OwlObjects.objects(type, a)))
+                listOWLAnnotations().flatMap(a -> OwlObjects.objects(type, a)),
+                listOWLAxioms().flatMap(a -> OwlObjects.objects(type, a)))
                 .collect(Collectors.toSet());
     }
 
@@ -326,10 +327,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Gets all ontology header annotations.
      *
      * @return Stream of {@link OWLAnnotation}
-     * @see #axioms(Set)
+     * @see #listOWLAxioms(Set)
      */
     @SuppressWarnings("unchecked")
-    public Stream<OWLAnnotation> annotations() {
+    public Stream<OWLAnnotation> listOWLAnnotations() {
         return getAnnotationTripleStore().objects();
     }
 
@@ -340,18 +341,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLDeclarationAxiom}s
      */
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
-        if (!getConfig().isAllowReadDeclarations()) return Stream.empty();
+        Config conf = getConfig();
+        if (!conf.isAllowReadDeclarations()) return Stream.empty();
         // even there are no changes in OWLDeclarationAxioms, they can be affected by some other user-defined axiom,
         // so need check whole cache:
         if (hasManuallyAddedAxioms()) {
-            return axioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
+            return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
         DeclarationTranslator t = (DeclarationTranslator) AxiomParserProvider.get(OWLDeclarationAxiom.class);
         OntEntity res = findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityView(e));
         if (res == null) return Stream.empty();
         OntStatement s = res.getRoot();
-        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s).getObject());
+        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, cacheDataFactory, conf).getObject());
     }
 
     /**
@@ -362,17 +364,15 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLAnnotationAssertionAxiom}s
      */
     public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
-        if (hasManuallyAddedAxioms()) {
-            return axioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
-        }
         Config conf = getConfig();
-        boolean withBulk = conf.isAllowBulkAnnotationAssertions();
-        AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
+        if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
+        if (hasManuallyAddedAxioms()) {
+            return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
+        }
+        AxiomTranslator<OWLAnnotationAssertionAxiom> t = AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
         ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(s), null, null)
-                .filterKeep(x -> t.testStatement(x, withBulk));
-        return release(t.adjust(conf, Iter.asStream(res))
-                .map(t::toAxiom)
-                .map(ONTObject::getObject));
+                .filterKeep(x -> t.testStatement(x, conf));
+        return release(Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject)));
     }
 
     /**
@@ -383,14 +383,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxioms(OWLClass sub) {
         if (hasManuallyAddedAxioms()) {
-            return axioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
+            return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
         SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
         ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
-        return release(t.adjust(getConfig(), Iter.asStream(res))
-                .map(t::toAxiom)
-                .map(ONTObject::getObject));
+        Config conf = getConfig();
+        return release(Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject)));
     }
 
     /**
@@ -402,16 +401,15 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      */
     public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass c) {
         if (hasManuallyAddedAxioms()) {
-            return axioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
+            return listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
         }
         EquivalentClassesTranslator t = (EquivalentClassesTranslator) AxiomParserProvider.get(OWLEquivalentClassesAxiom.class);
         Resource r = WriteHelper.toResource(c);
+        Config conf = getConfig();
         ExtendedIterator<OntStatement> res = listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(listLocalStatements(null, OWL.equivalentClass, r))
-                .filterKeep(t::testStatement);
-        return release(t.adjust(getConfig(), Iter.asStream(res))
-                .map(t::toAxiom)
-                .map(ONTObject::getObject));
+                .filterKeep(s -> t.testStatement(s, conf));
+        return release(Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject)));
     }
 
     /**
@@ -419,8 +417,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @return Stream of {@link OWLAxiom}s
      */
-    public Stream<OWLAxiom> axioms() {
-        return axioms(AxiomType.AXIOM_TYPES);
+    public Stream<OWLAxiom> listOWLAxioms() {
+        return listOWLAxioms(AxiomType.AXIOM_TYPES);
     }
 
     /**
@@ -428,9 +426,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      *
      * @param types Set of {@link AxiomType}s
      * @return Stream of {@link OWLAxiom}
-     * @see #annotations()
+     * @see #listOWLAnnotations()
      */
-    public Stream<OWLAxiom> axioms(Set<AxiomType<? extends OWLAxiom>> types) {
+    public Stream<OWLAxiom> listOWLAxioms(Set<AxiomType<? extends OWLAxiom>> types) {
         return release(types.stream()
                 .map(t -> getAxiomTripleStore(t.getActualClass()))
                 .flatMap(ObjectTriplesMap::objects)
@@ -444,8 +442,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @param <A>  type of axiom
      * @return Stream of {@link OWLAxiom}s.
      */
-    public <A extends OWLAxiom> Stream<A> axioms(Class<A> view) {
-        return axioms(AxiomType.getTypeForClass(OntApiException.notNull(view, "Null axiom class type.")));
+    public <A extends OWLAxiom> Stream<A> listOWLAxioms(Class<A> view) {
+        return listOWLAxioms(AxiomType.getTypeForClass(OntApiException.notNull(view, "Null axiom class type.")));
     }
 
     /**
@@ -456,7 +454,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLAxiom}s.
      */
     @SuppressWarnings("unchecked")
-    public <A extends OWLAxiom> Stream<A> axioms(AxiomType<A> type) {
+    public <A extends OWLAxiom> Stream<A> listOWLAxioms(AxiomType<A> type) {
         return (Stream<A>) getAxiomTripleStore(type).objects();
     }
 
@@ -1044,11 +1042,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         protected final LoadingCache<String, IRI> iris;
 
         /**
-         * @param config {@link ConfigProvider.Config}
+         * @param factory {@link DataFactory}
          * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternalsImpl.java#L63'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl#builder(CacheLoader)</a>
          */
-        public CacheDataFactory(ConfigProvider.Config config) {
-            super(config);
+        public CacheDataFactory(DataFactory factory) {
+            super(factory);
             // '2048' is from OWL-API DataFactory impl:
             int size = 2048;
             this.classExpressions = buildSync(size, super::get);
@@ -1188,8 +1186,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         private Map<OntIndividual, ONTObject<? extends OWLIndividual>> individuals = new HashMap<>();
         private Map<Literal, ONTObject<OWLLiteral>> literals = new HashMap<>();
 
-        public MapDataFactory(Config config) {
-            super(config);
+        public MapDataFactory(DataFactory factory) {
+            super(factory);
         }
 
         @Override

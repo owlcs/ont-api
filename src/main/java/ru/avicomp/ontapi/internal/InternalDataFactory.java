@@ -55,7 +55,7 @@ public interface InternalDataFactory {
 
     ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
 
-    Collection<ONTObject<OWLAnnotation>> get(OntStatement statement);
+    Collection<ONTObject<OWLAnnotation>> get(OntStatement statement, ConfigProvider.Config config);
 
     ONTObject<IRI> asIRI(OntObject s);
 

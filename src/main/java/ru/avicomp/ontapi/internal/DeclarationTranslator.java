@@ -24,6 +24,7 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
@@ -42,23 +43,22 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        if (!getConfig(model).isAllowReadDeclarations()) return NullIterator.instance();
-        return listEntities(model).mapWith(OntObject::getRoot);
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+        if (!config.isAllowReadDeclarations()) return NullIterator.instance();
+        return Models.listEntities(model).mapWith(OntObject::getRoot);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement) {
+    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
         return statement.isDeclaration()
                 && statement.getSubject().isURIResource()
                 && Stream.of(Entities.values()).map(Entities::type).anyMatch(t -> statement.getObject().equals(t));
     }
 
     @Override
-    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement) {
-        InternalDataFactory reader = getDataFactory(statement.getModel());
+    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
         ONTObject<? extends OWLEntity> entity = reader.get(statement.getSubject(OntEntity.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations);
     }

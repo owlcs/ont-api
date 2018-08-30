@@ -14,18 +14,11 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
-import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
@@ -34,6 +27,7 @@ import java.util.stream.Stream;
 
 /**
  * The base abstract class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
+ * It is designed to work with any {@link OntGraphModel}, but is optimized to use {@link InternalModel}.
  * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>.
  * Additional info about annotations translation <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>.
  * One more (and most useful) link: <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick Reference Guide</a>.
@@ -55,39 +49,51 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     public abstract void write(Axiom axiom, OntGraphModel model);
 
     /**
-     * Reads all model axioms in form of stream.
+     * Reads all model axioms in the form of stream.
      *
      * @param model {@link OntGraphModel ONT-API Jena Model}
-     * @return Stream of {@link ONTObject} around {@link OWLAxiom}
-     * @throws JenaException unable to read axioms of this type.
+     * @return Stream of {@link ONTObject}s that wrap {@link Axiom}s
+     * @throws JenaException unable to read axioms of this type
      */
-    public Stream<ONTObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
+    public final Stream<ONTObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
         ConfigProvider.Config conf = getConfig(model);
-        return adjust(conf, statements(model)).map(this::toAxiom);
+        InternalDataFactory factory = getDataFactory(model);
+        return Iter.asStream(listAxioms(model, factory, conf));
     }
 
     /**
-     * Creates an OWL Axiom from a statement.
+     * Returns an {@link ExtendedIterator Extended Iterator} of all model {@link Axiom}s.
      *
-     * @param statement {@link OntStatement} the statement which determines the axiom
-     * @return {@link ONTObject} around {@link OWLAxiom}
+     * @param model   {@link OntGraphModel ONT-API Jena Model}
+     * @param factory {@link InternalDataFactory} to produce OWL-API Objects
+     * @param config  {@link ConfigProvider.Config} to control process
+     * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
+     * @throws JenaException unable to read axioms of this type
      */
-    public abstract ONTObject<Axiom> toAxiom(OntStatement statement);
+    public ExtendedIterator<ONTObject<Axiom>> listAxioms(OntGraphModel model,
+                                                         InternalDataFactory factory,
+                                                         ConfigProvider.Config config) throws JenaException {
+        return translate(listStatements(model, config), factory, config);
+    }
 
     /**
-     * Performs common operations on the stream of {@link OntStatement Ontology Statement}s
-     * before converting them into axioms.
+     * Maps each {@link OntStatement Ontology Statement} from the given iterator to the {@link Axiom} instance
+     * and returns a new iterator containing {@link OWLAxiom}s.
      *
-     * @param conf       {@link ConfigProvider.Config} configuration
-     * @param statements Stream of {@link OntStatement}s
-     * @return Stream of {@link OntStatement}s
+     * @param statements {@link ExtendedIterator} of {@link OntStatement}s
+     * @param factory    {@link InternalDataFactory} to produce OWL-API Objects
+     * @param config     {@link ConfigProvider.Config} to control process
+     * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
+     * @throws JenaException unable to read axioms of this type
      */
-    protected Stream<OntStatement> adjust(ConfigProvider.Config conf, Stream<OntStatement> statements) {
-        Stream<OntStatement> res = statements.map(Models::createCachedStatement);
-        if (conf.isSplitAxiomAnnotations()) {
-            return res.flatMap(Models::split);
+    protected ExtendedIterator<ONTObject<Axiom>> translate(ExtendedIterator<OntStatement> statements,
+                                                           InternalDataFactory factory,
+                                                           ConfigProvider.Config config) {
+        if (!config.isSplitAxiomAnnotations()) {
+            return statements.mapWith(s -> toAxiom(Models.createCachedStatement(s), factory, config));
         }
-        return res;
+        return Iter.flatMap(statements.mapWith(Models::createCachedStatement),
+                Models::listSplitStatements).mapWith(s -> toAxiom(s, factory, config));
     }
 
     /**
@@ -97,89 +103,49 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return Stream of {@link OntStatement}, always local (not from imports)
      */
     public final Stream<OntStatement> statements(OntGraphModel model) {
-        return Iter.asStream(listStatements(model));
+        return Iter.asStream(listStatements(model, getConfig(model)));
+    }
+
+    /**
+     * Tests that the given statement defines the axiom.
+     *
+     * @param statement {@link OntStatement}
+     * @return {@code true} if the statement defines the axiom
+     */
+    public final boolean testStatement(OntStatement statement) {
+        return testStatement(statement, getConfig(statement.getModel()));
     }
 
     /**
      * Lists all statements for the base graph of the given model that match this axiom definition.
      *
-     * @param model {@link OntGraphModel Ontology Jena Model}
+     * @param model  {@link OntGraphModel Ontology Jena Model}
+     * @param config {@link ConfigProvider.Config} control settings
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
-    protected abstract ExtendedIterator<OntStatement> listStatements(OntGraphModel model);
+    public abstract ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config);
 
     /**
      * Tests if the specified statement answers the axiom definition.
      *
      * @param statement {@link OntStatement} any statement, not necessarily local.
+     * @param config    {@link ConfigProvider.Config} control settings
      * @return true if the statement corresponds axiom type.
      */
-    public abstract boolean testStatement(OntStatement statement);
+    public abstract boolean testStatement(OntStatement statement, ConfigProvider.Config config);
 
     /**
-     * Lists all model statements, which belong to the base graph, using the given SPO.
-     * Placed here for more control.
-     * Not sure that the methods to work with {@code ExtendedIterator}
-     * (like {@link OntGraphModelImpl#listLocalStatements(Resource, Property, RDFNode)})
-     * should be placed in public interface: {@code Stream}-based analogues are almost the same but more functional.
-     * But they are needed to make the axioms listing a bit faster.
+     * Creates an OWL Axiom from a statement.
      *
-     * @param model {@link OntGraphModel}
-     * @param s     {@link Resource}, can be {@code null}
-     * @param p     {@link Property}, can be {@code null}
-     * @param o     {@link RDFNode}, can be {@code null}
-     * @return {@link ExtendedIterator} of {@link OntStatement}s local to the base model graph
-     * @see OntGraphModel#localStatements(Resource, Property, RDFNode)
-     * @since 1.3.0
+     * @param statement {@link OntStatement} the statement which determines the axiom
+     * @param factory   {@link InternalDataFactory} the data factory to create OWL-API objects
+     * @param config    {@link ConfigProvider.Config} to control process
+     * @return {@link ONTObject} around {@link OWLAxiom}
+     * @throws JenaException if no possible to get axiom from the statement
      */
-    public static ExtendedIterator<OntStatement> listStatements(OntGraphModel model, Resource s, Property p, RDFNode o) {
-        if (model instanceof OntGraphModelImpl) {
-            return ((OntGraphModelImpl) model).listLocalStatements(s, p, o);
-        }
-        return asIterator(model.localStatements(s, p, o));
-    }
-
-    /**
-     * Lists all ontology objects with the given {@code type}, which are defined in the base graph.
-     *
-     * @param model {@link OntGraphModel}
-     * @param type  {@link Class}-type
-     * @param <O>   subclass of {@link OntObject}
-     * @return {@link ExtendedIterator} of ontology objects of the type {@link O}
-     * @see OntGraphModel#ontObjects(Class)
-     * @since 1.3.0
-     */
-    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModel model, Class<O> type) {
-        ExtendedIterator<O> res;
-        if (model instanceof OntGraphModelImpl) {
-            res = ((OntGraphModelImpl) model).listOntObjects(type);
-        } else {
-            res = asIterator(model.ontObjects(type));
-        }
-        return res.filterKeep(OntObject::isLocal);
-    }
-
-    /**
-     * Lists all OWL entities that are defined in the base graph.
-     *
-     * @param model {@link OntGraphModel}
-     * @return {@link ExtendedIterator} of {@link OntEntity}s
-     * @see OntGraphModel#ontEntities()
-     * @since 1.3.0
-     */
-    public static ExtendedIterator<OntEntity> listEntities(OntGraphModel model) {
-        ExtendedIterator<OntEntity> res;
-        if (model instanceof OntGraphModelImpl) {
-            res = ((OntGraphModelImpl) model).listOntEntities();
-        } else {
-            res = asIterator(model.ontEntities());
-        }
-        return res.filterKeep(OntObject::isLocal);
-    }
-
-    private static <R> ExtendedIterator<R> asIterator(Stream<R> stream) {
-        return WrappedIterator.create(stream.iterator());
-    }
+    protected abstract ONTObject<Axiom> toAxiom(OntStatement statement,
+                                                InternalDataFactory factory,
+                                                ConfigProvider.Config config) throws JenaException;
 
     /**
      * Gets the config from model's settings or dummy if it is naked Jena model.
