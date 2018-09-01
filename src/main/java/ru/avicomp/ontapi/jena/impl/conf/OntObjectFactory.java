@@ -88,12 +88,13 @@ public abstract class OntObjectFactory extends Implementation {
     public abstract boolean canWrap(Node node, EnhGraph eg);
 
     /**
-     * For internal use only.
-     * Does wrapping without any checking.
+     * Does wrapping {@link Node} to {@link EnhNode} without any checking or throwing exception.
+     * Note: some realisation may return {@code null}
+     * For internal usage only.
      *
      * @param node {@link Node}
      * @param eg   {@link EnhGraph}
-     * @return {@link EnhNode}. Note: some realisation may allow null
+     * @return {@link EnhNode}
      */
     protected abstract EnhNode doWrap(Node node, EnhGraph eg);
 

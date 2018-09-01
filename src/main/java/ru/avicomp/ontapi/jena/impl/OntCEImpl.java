@@ -16,22 +16,21 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -119,11 +118,164 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     public static OntObjectFactory abstractAnonymousCEFactory = new MultiOntObjectFactory(OntFinder.TYPED, null,
             abstractNoneRestrictionCEFactory, abstractRestrictionCEFactory);
 
-    public static Configurable<OntObjectFactory> abstractCEFactory = buildMultiFactory(OntFinder.TYPED, CE_FITTING_FILTER,
-            Entities.CLASS, abstractAnonymousCEFactory);
+    /*public static Configurable<OntObjectFactory> abstractCEFactory = buildMultiFactory(OntFinder.TYPED, CE_FITTING_FILTER,
+            Entities.CLASS, abstractAnonymousCEFactory);*/
+    public static Configurable<OntObjectFactory> abstractCEFactory = ClassExpressionFactory::build;
 
     public OntCEImpl(Node n, EnhGraph m) {
         super(n, m);
+    }
+
+    @Deprecated
+    protected static OntObjectFactory createCEFactory(Class<? extends OntCEImpl> impl, Property predicate) {
+        OntMaker maker = new OntMaker.WithType(impl, OWL.Class);
+        OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Class)).and(new OntFilter.HasPredicate(predicate));
+        return new CommonOntObjectFactory(maker, CLASS_FINDER, filter);
+    }
+
+    protected static OntObjectFactory createCEFactory(Class<? extends OntCEImpl> impl, Property predicate, Class<? extends RDFNode> view) {
+        OntMaker maker = new OntMaker.WithType(impl, OWL.Class);
+        OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Class))
+                .and((n, g) -> {
+                    ExtendedIterator<Triple> res = g.asGraph().find(n, predicate.asNode(), Node.ANY);
+                    try {
+                        while (res.hasNext()) {
+                            if (OntObjectImpl.canAs(view, res.next().getObject(), g)) return true;
+                        }
+                    } finally {
+                        res.close();
+                    }
+                    return false;
+                });
+        return new CommonOntObjectFactory(maker, CLASS_FINDER, filter);
+    }
+
+    protected static OntObjectFactory createRestrictionFactory(Class<? extends CardinalityRestrictionCEImpl> impl,
+                                                               RestrictionType restrictionType,
+                                                               CardinalityType cardinalityType) {
+        OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
+        OntFilter filter = RESTRICTION_FILTER
+                .and(cardinalityType.getFilter())
+                .and(restrictionType.getFilter());
+        return new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
+    }
+
+    protected static OntObjectFactory createRestrictionFactory(Class<? extends ComponentRestrictionCEImpl> impl,
+                                                               RestrictionType propertyType,
+                                                               ObjectRestrictionType objectType,
+                                                               Property predicate) {
+        OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
+        OntFilter filter = RESTRICTION_FILTER
+                .and(propertyType.getFilter())
+                .and(objectType.getFilter(predicate));
+        return new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
+    }
+
+    protected static OntObjectFactory createNaryFactory(Class<? extends NaryRestrictionCEImpl> impl,
+                                                        Property predicate) {
+        OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
+        OntFilter filter = RESTRICTION_FILTER
+                .and(new OntFilter.HasPredicate(predicate))
+                .and(new OntFilter.HasPredicate(OWL.onProperties));
+        return new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
+    }
+
+    public static boolean isQualified(OntObject c) {
+        return c != null && !(OWL.Thing.equals(c) || RDFS.Literal.equals(c));
+    }
+
+    protected static CardinalityType getCardinalityType(Class<? extends CardinalityRestrictionCE> view) {
+        if (ObjectMinCardinality.class.equals(view) || DataMinCardinality.class.equals(view)) {
+            return CardinalityType.MIN;
+        }
+        if (ObjectMaxCardinality.class.equals(view) || DataMaxCardinality.class.equals(view)) {
+            return CardinalityType.MAX;
+        }
+        return CardinalityType.EXACTLY;
+    }
+
+    protected static Literal createNonNegativeIntegerLiteral(int n) {
+        if (n < 0) throw new IllegalArgumentException("Can't accept negative value.");
+        return ResourceFactory.createTypedLiteral(String.valueOf(n), XSDDatatype.XSDnonNegativeInteger);
+    }
+
+    protected static Resource createOnPropertyRestriction(OntGraphModelImpl model, OntPE onProperty) {
+        OntJenaException.notNull(onProperty, "Null property.");
+        return model.createResource().addProperty(RDF.type, OWL.Restriction).addProperty(OWL.onProperty, onProperty);
+    }
+
+    public static <CE extends ComponentRestrictionCE> CE createComponentRestrictionCE(OntGraphModelImpl model,
+                                                                                      Class<CE> view,
+                                                                                      OntPE onProperty,
+                                                                                      RDFNode other,
+                                                                                      Property predicate) {
+        OntJenaException.notNull(other, "Null expression.");
+        Resource res = createOnPropertyRestriction(model, onProperty).addProperty(predicate, other);
+        return model.getNodeAs(res.asNode(), view);
+    }
+
+    public static <CE extends CardinalityRestrictionCE> CE createCardinalityRestrictionCE(OntGraphModelImpl model,
+                                                                                          Class<CE> view,
+                                                                                          OntPE onProperty,
+                                                                                          int cardinality,
+                                                                                          OntObject object) {
+        Literal value = createNonNegativeIntegerLiteral(cardinality);
+        Resource res = createOnPropertyRestriction(model, onProperty);
+        boolean qualified = isQualified(object);
+        model.add(res, getCardinalityType(view).getPredicate(qualified), value);
+        if (qualified) {
+            model.add(res, onProperty instanceof OntOPE ? OWL.onClass : OWL.onDataRange, object);
+        }
+        return model.getNodeAs(res.asNode(), view);
+    }
+
+    public static <CE extends ComponentsCE> CE createComponentsCE(OntGraphModelImpl model,
+                                                                  Class<CE> view,
+                                                                  Property predicate,
+                                                                  Iterator<? extends OntObject> components) {
+        OntJenaException.notNull(components, "Null components stream.");
+        Resource res = model.createResource(OWL.Class).addProperty(predicate, model.createList(components));
+        return model.getNodeAs(res.asNode(), view);
+    }
+
+    public static HasSelf createHasSelf(OntGraphModelImpl model, OntOPE onProperty) {
+        Resource res = createOnPropertyRestriction(model, onProperty).addProperty(OWL.hasSelf, Models.TRUE);
+        return model.getNodeAs(res.asNode(), HasSelf.class);
+    }
+
+    public static ComplementOf createComplementOf(OntGraphModelImpl model, OntCE other) {
+        OntJenaException.notNull(other, "Null class expression.");
+        Resource res = model.createResource(OWL.Class).addProperty(OWL.complementOf, other);
+        return model.getNodeAs(res.asNode(), ComplementOf.class);
+    }
+
+    public static OntIndividual.Anonymous createAnonymousIndividual(OntGraphModelImpl model, OntCE source) {
+        return model.getNodeAs(model.createResource(source).asNode(), OntIndividual.Anonymous.class);
+    }
+
+    public static OntIndividual.Named createNamedIndividual(OntGraphModelImpl model, OntCE source, String uri) {
+        Resource res = model.createResource(OntJenaException.notNull(uri, "Null uri"), source)
+                .addProperty(RDF.type, OWL.NamedIndividual);
+        return model.getNodeAs(res.asNode(), OntIndividual.Named.class);
+    }
+
+    public static OntList<OntDOP> createHasKey(OntGraphModelImpl m, OntCE clazz, Stream<? extends OntDOP> collection) {
+        return OntListImpl.create(m, clazz, OWL.hasKey, OntDOP.class, collection.distinct().map(OntDOP.class::cast).iterator());
+    }
+
+    public static Optional<OntList<OntDOP>> findHasKey(OntCE clazz, RDFNode list) {
+        return clazz.listHasKeys()
+                .filter(r -> Objects.equals(r, list))
+                .findFirst();
+    }
+
+    public static Stream<OntList<OntDOP>> listHasKeys(OntGraphModelImpl m, OntCE clazz) {
+        return OntListImpl.stream(m, clazz, OWL.hasKey, OntDOP.class);
+    }
+
+    public static void removeHasKey(OntCE clazz, RDFNode rdfList) throws OntJenaException.IllegalArgument {
+        clazz.remove(OWL.hasKey, clazz.findHasKey(rdfList)
+                .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find list " + rdfList)).clearAnnotations().clear());
     }
 
     @Override
@@ -172,6 +324,101 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     @Override
     public void removeHasKey() {
         clearAll(OWL.hasKey);
+    }
+
+    protected enum ObjectRestrictionType implements PredicateFilterProvider {
+        CLASS {
+            @Override
+            public Class<OntCE> view() {
+                return OntCE.class;
+            }
+        },
+        DATA_RANGE {
+            @Override
+            public Class<OntDR> view() {
+                return OntDR.class;
+            }
+        },
+        INDIVIDUAL {
+            @Override
+            public Class<OntIndividual> view() {
+                return OntIndividual.class;
+            }
+        },
+        LITERAL {
+            @Override
+            public Class<Literal> view() {
+                return Literal.class;
+            }
+
+        },
+        ;
+    }
+
+    protected enum RestrictionType implements PredicateFilterProvider {
+        DATA {
+            @Override
+            public Class<OntNDP> view() {
+                return OntNDP.class;
+            }
+        },
+        OBJECT {
+            @Override
+            public Class<OntOPE> view() {
+                return OntOPE.class;
+            }
+        },
+        ;
+
+        public OntFilter getFilter() {
+            return getFilter(OWL.onProperty);
+        }
+    }
+
+    protected enum CardinalityType {
+        EXACTLY(OWL.qualifiedCardinality, OWL.cardinality),
+        MAX(OWL.maxQualifiedCardinality, OWL.maxCardinality),
+        MIN(OWL.minQualifiedCardinality, OWL.minCardinality);
+        protected final Property qualifiedPredicate, predicate;
+
+        CardinalityType(Property qualifiedPredicate, Property predicate) {
+            this.qualifiedPredicate = qualifiedPredicate;
+            this.predicate = predicate;
+        }
+
+        public OntFilter getFilter() {
+            return (n, g) -> g.asGraph().contains(n, qualifiedPredicate.asNode(), Node.ANY)
+                    || g.asGraph().contains(n, predicate.asNode(), Node.ANY);
+        }
+
+        public Property getPredicate(boolean isQualified) {
+            return isQualified ? qualifiedPredicate : predicate;
+        }
+    }
+
+    /**
+     * Technical interface to make predicate filter for restrictions
+     */
+    private interface PredicateFilterProvider {
+
+        Class<? extends RDFNode> view();
+
+        default OntFilter getFilter(Property predicate) {
+            return (node, graph) -> testObjects(predicate, node, graph);
+        }
+
+        default boolean testObjects(Property predicate, Node node, EnhGraph graph) {
+            Class<? extends RDFNode> v = view();
+            ExtendedIterator<Triple> res = graph.asGraph().find(node, predicate.asNode(), Node.ANY);
+            try {
+                while (res.hasNext()) {
+                    if (OntObjectImpl.canAs(v, res.next().getObject(), graph)) return true;
+                }
+            } finally {
+                res.close();
+            }
+            return false;
+        }
     }
 
     public static class ObjectSomeValuesFromImpl extends ComponentRestrictionCEImpl<OntCE, OntOPE> implements ObjectSomeValuesFrom {
@@ -597,7 +844,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     /**
-     * TODO: currently it is read-only
+     * TODO: currently it is a read-only object, no way to modify, since I don't know how to check input parameters
      */
     protected static abstract class NaryRestrictionCEImpl<O extends OntObject, P extends OntDOP> extends OntCEImpl implements NaryRestrictionCE<O, P> {
         protected final Property predicate;
@@ -623,7 +870,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public void setValue(O value) {
-            throw new OntJenaException("TODO");
+            throw new OntJenaException.Unsupported("TODO");
         }
 
         @Override
@@ -640,94 +887,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         public OntList<P> getList() {
             return OntListImpl.asSafeOntList(getRequiredObject(OWL.onProperties, RDFList.class), getModel(),
                     this, predicate, null, propertyType);
-        }
-    }
-
-    protected enum ObjectRestrictionType implements PredicateFilterProvider {
-        CLASS {
-            @Override
-            public Class<OntCE> view() {
-                return OntCE.class;
-            }
-        },
-        DATA_RANGE {
-            @Override
-            public Class<OntDR> view() {
-                return OntDR.class;
-            }
-        },
-        INDIVIDUAL {
-            @Override
-            public Class<OntIndividual> view() {
-                return OntIndividual.class;
-            }
-        },
-        LITERAL {
-            @Override
-            public Class<Literal> view() {
-                return Literal.class;
-            }
-
-        },
-        ;
-    }
-
-    protected enum RestrictionType implements PredicateFilterProvider {
-        DATA {
-            @Override
-            public Class<OntNDP> view() {
-                return OntNDP.class;
-            }
-        },
-        OBJECT {
-            @Override
-            public Class<OntOPE> view() {
-                return OntOPE.class;
-            }
-        },
-        ;
-
-        public OntFilter getFilter() {
-            return getFilter(OWL.onProperty);
-        }
-    }
-
-    /**
-     * Technical interface to make predicate filter for restrictions
-     */
-    private interface PredicateFilterProvider {
-
-        Class<? extends RDFNode> view();
-
-        default OntFilter getFilter(Property predicate) {
-            return (node, graph) -> testObjects(predicate, node, graph);
-        }
-
-        default boolean testObjects(Property predicate, Node node, EnhGraph graph) {
-            Class<? extends RDFNode> v = view();
-            try (Stream<Node> objects = Iter.asStream(graph.asGraph().find(node, predicate.asNode(), Node.ANY)).map(Triple::getObject)) {
-                return objects.anyMatch(o -> OntObjectImpl.canAs(v, o, graph));
-            }
-        }
-    }
-
-    protected enum CardinalityType {
-        EXACTLY(OWL.qualifiedCardinality, OWL.cardinality),
-        MAX(OWL.maxQualifiedCardinality, OWL.maxCardinality),
-        MIN(OWL.minQualifiedCardinality, OWL.minCardinality);
-        protected final Property qualifiedPredicate, predicate;
-
-        CardinalityType(Property qualifiedPredicate, Property predicate) {
-            this.qualifiedPredicate = qualifiedPredicate;
-            this.predicate = predicate;
-        }
-
-        public OntFilter getFilter() {
-            return (n, g) -> g.asGraph().contains(n, qualifiedPredicate.asNode(), Node.ANY) || g.asGraph().contains(n, predicate.asNode(), Node.ANY);
-        }
-
-        public Property getPredicate(boolean isQualified) {
-            return isQualified ? qualifiedPredicate : predicate;
         }
     }
 
@@ -750,157 +909,127 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
     }
 
-    @Deprecated
-    protected static OntObjectFactory createCEFactory(Class<? extends OntCEImpl> impl, Property predicate) {
-        OntMaker maker = new OntMaker.WithType(impl, OWL.Class);
-        OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Class)).and(new OntFilter.HasPredicate(predicate));
-        return new CommonOntObjectFactory(maker, CLASS_FINDER, filter);
-    }
+    /**
+     * Created by @ssz on 01.09.2018.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static class ClassExpressionFactory extends OntObjectFactory {
+        private static final Node CLASS = OWL.Class.asNode();
+        private static final Node RESTRICTION = OWL.Restriction.asNode();
+        private final OntObjectFactory namedClass;
+        private final Collection<OntObjectFactory> anonymousClasses, restrictions;
 
-    protected static OntObjectFactory createCEFactory(Class<? extends OntCEImpl> impl, Property predicate, Class<? extends RDFNode> view) {
-        OntMaker maker = new OntMaker.WithType(impl, OWL.Class);
-        OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Class))
-                .and((n, g) -> {
-                    try (Stream<Triple> s = Iter.asStream(g.asGraph().find(n, predicate.asNode(), Node.ANY))) {
-                        return s.map(Triple::getObject).anyMatch(o -> OntObjectImpl.canAs(view, o, g));
+        protected ClassExpressionFactory(OntObjectFactory namedClass,
+                                         Collection<OntObjectFactory> anonymousClasses,
+                                         Collection<OntObjectFactory> restrictions) {
+            this.namedClass = namedClass;
+            this.anonymousClasses = anonymousClasses;
+            this.restrictions = restrictions;
+        }
+
+        public static OntObjectFactory build(Configurable.Mode m) {
+            return new ClassExpressionFactory(Entities.CLASS.select(m),
+                    Arrays.asList(unionOfCEFactory
+                            , intersectionOfCEFactory
+                            , oneOfCEFactory
+                            , complementOfCEFactory),
+                    Arrays.asList(objectSomeValuesOfCEFactory
+                            , dataSomeValuesOfCEFactory
+                            , objectAllValuesOfCEFactory
+                            , dataAllValuesOfCEFactory
+                            , objectHasValueCEFactory
+                            , dataHasValueCEFactory
+                            , dataMinCardinalityCEFactory
+                            , objectMinCardinalityCEFactory
+                            , dataMaxCardinalityCEFactory
+                            , objectMaxCardinalityCEFactory
+                            , dataCardinalityCEFactory
+                            , objectCardinalityCEFactory
+                            , hasSelfCEFactory
+                            , naryDataAllValuesFromCEFactory
+                            , naryDataSomeValuesFromCEFactory));
+        }
+
+        private static EnhNode map(Collection<OntObjectFactory> factories, Node n, EnhGraph g) {
+            for (OntObjectFactory f : factories) {
+                EnhNode r = map(f, n, g);
+                if (r != null) return r;
+            }
+            return null;
+        }
+
+        private static EnhNode map(OntObjectFactory f, Node n, EnhGraph g) {
+            try {
+                return f.wrap(n, g);
+            } catch (ConversionException c) {
+                return null;
+            }
+        }
+
+        @Override
+        public ExtendedIterator<EnhNode> iterator(EnhGraph g) {
+            return g.asGraph().find(Node.ANY, RDF.Nodes.type, CLASS)
+                    .mapWith(t -> {
+                        Node n = t.getSubject();
+                        return n.isURI() ? map(namedClass, n, g) : map(anonymousClasses, n, g);
+                    })
+                    .andThen(g.asGraph().find(Node.ANY, RDF.Nodes.type, RESTRICTION)
+                            .mapWith(t -> map(restrictions, t.getSubject(), g)))
+                    .filterDrop(Objects::isNull);
+        }
+
+        @Override
+        public boolean canWrap(Node node, EnhGraph eg) {
+            if (node.isURI()) {
+                return namedClass.canWrap(node, eg);
+            }
+            if (eg.asGraph().contains(node, RDF.Nodes.type, RESTRICTION)) {
+                for (OntObjectFactory f : restrictions) {
+                    if (f.canWrap(node, eg)) return true;
+                }
+                return false;
+            }
+            for (OntObjectFactory f : anonymousClasses) {
+                if (f.canWrap(node, eg)) return true;
+            }
+            return false;
+        }
+
+        @Override
+        protected EnhNode doWrap(Node node, EnhGraph eg) {
+            if (node.isURI()) {
+                return map(namedClass, node, eg);
+            }
+            if (eg.asGraph().contains(node, RDF.Nodes.type, CLASS)) {
+                return map(anonymousClasses, node, eg);
+            }
+            return map(restrictions, node, eg);
+        }
+
+        @Override
+        public EnhNode wrap(Node node, EnhGraph eg) throws ConversionException {
+            if (node.isURI()) {
+                return namedClass.wrap(node, eg);
+            }
+            ConversionException ex = new ConversionException("Can't convert node " + node + " to Class Expression.");
+            if (eg.asGraph().contains(node, RDF.Nodes.type, RESTRICTION)) {
+                for (OntObjectFactory f : restrictions) {
+                    try {
+                        return f.wrap(node, eg);
+                    } catch (ConversionException c) {
+                        ex.addSuppressed(c);
                     }
-                });
-        return new CommonOntObjectFactory(maker, CLASS_FINDER, filter);
-    }
-
-    protected static OntObjectFactory createRestrictionFactory(Class<? extends CardinalityRestrictionCEImpl> impl, RestrictionType restrictionType, CardinalityType cardinalityType) {
-        OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
-        OntFilter filter = RESTRICTION_FILTER
-                .and(cardinalityType.getFilter())
-                .and(restrictionType.getFilter());
-        return new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
-    }
-
-    protected static OntObjectFactory createRestrictionFactory(Class<? extends ComponentRestrictionCEImpl> impl,
-                                                               RestrictionType propertyType,
-                                                               ObjectRestrictionType objectType,
-                                                               Property predicate) {
-        OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
-        OntFilter filter = RESTRICTION_FILTER
-                .and(propertyType.getFilter())
-                .and(objectType.getFilter(predicate));
-        return new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
-    }
-
-    protected static OntObjectFactory createNaryFactory(Class<? extends NaryRestrictionCEImpl> impl, Property predicate) {
-        OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
-        OntFilter filter = RESTRICTION_FILTER
-                .and(new OntFilter.HasPredicate(predicate))
-                .and(new OntFilter.HasPredicate(OWL.onProperties));
-        return new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
-    }
-
-    public static boolean isQualified(OntObject c) {
-        return c != null && !(OWL.Thing.equals(c) || RDFS.Literal.equals(c));
-    }
-
-    protected static CardinalityType getCardinalityType(Class<? extends CardinalityRestrictionCE> view) {
-        if (ObjectMinCardinality.class.equals(view) || DataMinCardinality.class.equals(view)) {
-            return CardinalityType.MIN;
+                }
+                throw ex;
+            }
+            for (OntObjectFactory f : anonymousClasses) {
+                try {
+                    return f.wrap(node, eg);
+                } catch (ConversionException c) {
+                    ex.addSuppressed(c);
+                }
+            }
+            throw ex;
         }
-        if (ObjectMaxCardinality.class.equals(view) || DataMaxCardinality.class.equals(view)) {
-            return CardinalityType.MAX;
-        }
-        return CardinalityType.EXACTLY;
-    }
-
-    protected static Literal createNonNegativeIntegerLiteral(int n) {
-        if (n < 0) throw new IllegalArgumentException("Can't accept negative value.");
-        return ResourceFactory.createTypedLiteral(String.valueOf(n), XSDDatatype.XSDnonNegativeInteger);
-    }
-
-    protected static Resource createOnPropertyRestriction(OntGraphModelImpl model, OntPE onProperty) {
-        OntJenaException.notNull(onProperty, "Null property.");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, OWL.Restriction);
-        model.add(res, OWL.onProperty, onProperty);
-        return res;
-    }
-
-    public static <CE extends ComponentRestrictionCE> CE createComponentRestrictionCE(OntGraphModelImpl model,
-                                                                                      Class<CE> view,
-                                                                                      OntPE onProperty,
-                                                                                      RDFNode other,
-                                                                                      Property predicate) {
-        OntJenaException.notNull(other, "Null expression.");
-        Resource res = createOnPropertyRestriction(model, onProperty);
-        model.add(res, predicate, other);
-        return model.getNodeAs(res.asNode(), view);
-    }
-
-    public static <CE extends CardinalityRestrictionCE> CE createCardinalityRestrictionCE(OntGraphModelImpl model,
-                                                                                          Class<CE> view,
-                                                                                          OntPE onProperty,
-                                                                                          int cardinality,
-                                                                                          OntObject object) {
-        Literal value = createNonNegativeIntegerLiteral(cardinality);
-        Resource res = createOnPropertyRestriction(model, onProperty);
-        boolean qualified = isQualified(object);
-        model.add(res, getCardinalityType(view).getPredicate(qualified), value);
-        if (qualified) {
-            model.add(res, onProperty instanceof OntOPE ? OWL.onClass : OWL.onDataRange, object);
-        }
-        return model.getNodeAs(res.asNode(), view);
-    }
-
-    public static <CE extends ComponentsCE> CE createComponentsCE(OntGraphModelImpl model,
-                                                                  Class<CE> view,
-                                                                  Property predicate,
-                                                                  Stream<? extends OntObject> components) {
-        OntJenaException.notNull(components, "Null components stream.");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, OWL.Class);
-        model.add(res, predicate, model.createList(components.iterator()));
-        return model.getNodeAs(res.asNode(), view);
-    }
-
-    public static HasSelf createHasSelf(OntGraphModelImpl model, OntOPE onProperty) {
-        Resource res = createOnPropertyRestriction(model, onProperty).addProperty(OWL.hasSelf, Models.TRUE);
-        return model.getNodeAs(res.asNode(), HasSelf.class);
-    }
-
-    public static ComplementOf createComplementOf(OntGraphModelImpl model, OntCE other) {
-        OntJenaException.notNull(other, "Null class expression.");
-        Resource res = model.createResource();
-        model.add(res, RDF.type, OWL.Class);
-        model.add(res, OWL.complementOf, other);
-        return model.getNodeAs(res.asNode(), ComplementOf.class);
-    }
-
-    public static OntIndividual.Anonymous createAnonymousIndividual(OntGraphModelImpl model, OntCE source) {
-        Resource res = model.createResource();
-        model.add(res, RDF.type, source);
-        return model.getNodeAs(res.asNode(), OntIndividual.Anonymous.class);
-    }
-
-    public static OntIndividual.Named createNamedIndividual(OntGraphModelImpl model, OntCE source, String uri) {
-        Resource res = model.createResource(OntJenaException.notNull(uri, "Null uri"));
-        model.add(res, RDF.type, source);
-        model.add(res, RDF.type, OWL.NamedIndividual);
-        return model.getNodeAs(res.asNode(), OntIndividual.Named.class);
-    }
-
-    public static OntList<OntDOP> createHasKey(OntGraphModelImpl m, OntCE clazz, Stream<? extends OntDOP> collection) {
-        return OntListImpl.create(m, clazz, OWL.hasKey, OntDOP.class, collection.distinct().map(OntDOP.class::cast).iterator());
-    }
-
-    public static Optional<OntList<OntDOP>> findHasKey(OntCE clazz, RDFNode list) {
-        return clazz.listHasKeys()
-                .filter(r -> Objects.equals(r, list))
-                .findFirst();
-    }
-
-    public static Stream<OntList<OntDOP>> listHasKeys(OntGraphModelImpl m, OntCE clazz) {
-        return OntListImpl.stream(m, clazz, OWL.hasKey, OntDOP.class);
-    }
-
-    public static void removeHasKey(OntCE clazz, RDFNode rdfList) throws OntJenaException.IllegalArgument {
-        clazz.remove(OWL.hasKey, clazz.findHasKey(rdfList)
-                .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find list " + rdfList)).clearAnnotations().clear());
     }
 }

@@ -496,17 +496,17 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public OntCE.UnionOf createUnionOf(Collection<OntCE> classes) {
-        return OntCEImpl.createComponentsCE(this, OntCE.UnionOf.class, OWL.unionOf, classes.stream());
+        return OntCEImpl.createComponentsCE(this, OntCE.UnionOf.class, OWL.unionOf, classes.iterator());
     }
 
     @Override
     public OntCE.IntersectionOf createIntersectionOf(Collection<OntCE> classes) {
-        return OntCEImpl.createComponentsCE(this, OntCE.IntersectionOf.class, OWL.intersectionOf, classes.stream());
+        return OntCEImpl.createComponentsCE(this, OntCE.IntersectionOf.class, OWL.intersectionOf, classes.iterator());
     }
 
     @Override
     public OntCE.OneOf createOneOf(Collection<OntIndividual> individuals) {
-        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL.oneOf, individuals.stream());
+        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL.oneOf, individuals.iterator());
     }
 
     @Override

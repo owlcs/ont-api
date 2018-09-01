@@ -156,7 +156,7 @@ public class GraphTransformersTest {
                 .forEach((type, axioms) -> {
                     LOGGER.debug("AXIOMS[{}]::{}", type, axioms.size());
                     if (!AxiomType.ANNOTATION_ASSERTION.equals(type))
-                        axioms.forEach(x -> LOGGER.info("AXIOM::{}", x));
+                        axioms.forEach(x -> LOGGER.debug("AXIOM::{}", x));
                 });
         assertGraphSize(m, SpinModels.SPINMAPL, 1922);
         assertGraphSize(m, SpinModels.SMF, 1223);

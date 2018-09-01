@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 /**
  * To filter resources.
- * Used in factory ({@link CommonOntObjectFactory}).
+ * Used by {@link CommonOntObjectFactory default factory} implementation.
  * <p>
  * Created by szuev on 07.11.2016.
  */
@@ -87,7 +87,7 @@ public interface OntFilter {
 
         @Override
         public boolean test(Node node, EnhGraph eg) {
-            return eg.asGraph().contains(node, RDF.type.asNode(), type);
+            return eg.asGraph().contains(node, RDF.Nodes.type, type);
         }
     }
 
