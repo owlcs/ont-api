@@ -14,11 +14,10 @@
 
 package ru.avicomp.ontapi.tests;
 
+import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
@@ -42,11 +41,12 @@ import java.util.stream.Stream;
  */
 public class RaceTest {
     // constants for test tuning:
-    private static final long TIMEOUT = 15_000;
-    private static final PrintStream OUT = LoggerFactory.getLogger(RaceTest.class).isDebugEnabled() ? System.out : ReadWriteUtils.NULL_OUT;
+    private static final long TIMEOUT = 15_000; // 15s
+    private static final Logger LOGGER = LoggerFactory.getLogger(RaceTest.class);
+    private static final PrintStream OUT = LOGGER.isDebugEnabled() ? System.out : ReadWriteUtils.NULL_OUT;
     private static final boolean ADD_WITH_ANNOTATIONS = true;
-    private static final int ADD_THREADS_NUM = 1;
-    private static final int REMOVE_THREADS_NUM = 6;
+    private static final int ADD_THREADS_NUM = 6;
+    private static final int REMOVE_THREADS_NUM = 4;
 
     @Test
     public void test() throws InterruptedException, ExecutionException {
@@ -57,16 +57,18 @@ public class RaceTest {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         ExecutorService service = Executors.newFixedThreadPool(ADD_THREADS_NUM + REMOVE_THREADS_NUM);
         List<Future<?>> res = new ArrayList<>();
+        LOGGER.debug("Start racing");
         for (int i = 0; i < ADD_THREADS_NUM; i++)
             res.add(service.submit(() -> add(o, random, flag)));
         for (int i = 0; i < REMOVE_THREADS_NUM; i++)
-            res.add(service.submit(() -> remove(o, flag)));
+            res.add(service.submit(() -> remove(o, random, flag)));
         service.shutdown();
         Thread.sleep(TIMEOUT);
         flag.set(false);
         for (Future<?> f : res) {
             f.get();
         }
+        LOGGER.debug("Fin.");
     }
 
     /**
@@ -82,23 +84,27 @@ public class RaceTest {
                 Stream.of(df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("comm"), df.getRDFSLabel("lab"))).collect(Collectors.toList()) :
                 Collections.emptyList();
         while (ready.get()) {
-            OWLAxiom a = df.getOWLSubClassOfAxiom(df.getOWLClass(IRI.create("test", "clazz" + random.nextInt())), df.getOWLThing(), annotations);
-            if (OUT != null)
-                OUT.println("+ " + a);
+            OWLClass c = df.getOWLClass(IRI.create("test", "clazz" + random.nextInt()));
+            OWLAxiom a = df.getOWLSubClassOfAxiom(c, df.getOWLThing(), annotations);
+            OUT.println("+ " + a);
             o.add(a);
+            long l = o.subClassAxiomsForSubClass(c).count();
+            Assert.assertTrue(l == 0 || l == 1);
         }
     }
 
     /**
-     * Removes axioms in loop
-     * @param o {@link OntologyModel}
-     * @param ready {@link AtomicBoolean}
+     * Removes axioms in loop.
+     *
+     * @param o      {@link OntologyModel}
+     * @param random {@link ThreadLocalRandom}
+     * @param ready  {@link AtomicBoolean}
      */
-    private static void remove(OntologyModel o, AtomicBoolean ready) {
+    private static void remove(OntologyModel o, ThreadLocalRandom random, AtomicBoolean ready) {
         while (ready.get()) {
-            o.axioms().findFirst().ifPresent(a -> {
-                if (OUT != null)
-                    OUT.println("- " + a);
+            Stream<? extends OWLAxiom> axioms = random.nextBoolean() ? o.axioms() : o.generalClassAxioms();
+            axioms.findFirst().ifPresent(a -> {
+                OUT.println("- " + a);
                 o.remove(a);
             });
         }

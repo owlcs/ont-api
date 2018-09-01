@@ -103,10 +103,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * Creates an RDF Graph Buffer Model instance.
      * For internal usage only.
      *
-     * @param base   {@link Graph}
+     * @param base        {@link Graph}
      * @param personality {@link OntPersonality}
-     * @param factory {@link DataFactory}
-     * @param config {@link InternalConfig}
+     * @param factory     {@link DataFactory}
+     * @param config      {@link InternalConfig}
      */
     public InternalModel(Graph base, OntPersonality personality, DataFactory factory, InternalConfig config) {
         super(base, personality);
@@ -169,8 +169,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * @return Stream of {@link OWLImportsDeclaration}s
      */
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
-        return release(getID().imports().map(cacheDataFactory::toIRI)
-                .map(i -> cacheDataFactory.getOWLDataFactory().getOWLImportsDeclaration(i)));
+        return getID().imports().map(cacheDataFactory::toIRI)
+                .map(i -> cacheDataFactory.getOWLDataFactory().getOWLImportsDeclaration(i));
     }
 
     /**
@@ -374,7 +374,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         AxiomTranslator<OWLAnnotationAssertionAxiom> t = AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
         ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, conf));
-        return release(Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject)));
+        return Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject));
     }
 
     /**
@@ -391,7 +391,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
         InternalConfig conf = getConfig().snapshot();
-        return release(Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject)));
+        return Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject));
     }
 
     /**
@@ -411,7 +411,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         ExtendedIterator<OntStatement> res = listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(listLocalStatements(null, OWL.equivalentClass, r))
                 .filterKeep(s -> t.testStatement(s, conf));
-        return release(Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject)));
+        return Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject));
     }
 
     /**
@@ -431,10 +431,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * @see #listOWLAnnotations()
      */
     public Stream<OWLAxiom> listOWLAxioms(Set<AxiomType<? extends OWLAxiom>> types) {
-        return release(types.stream()
+        return types.stream()
                 .map(t -> getAxiomTripleStore(t.getActualClass()))
                 .flatMap(ObjectTriplesMap::objects)
-                .map(OWLAxiom.class::cast));
+                .map(OWLAxiom.class::cast);
     }
 
     /**
@@ -458,30 +458,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     @SuppressWarnings("unchecked")
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(AxiomType<A> type) {
         return (Stream<A>) getAxiomTripleStore(type).objects();
-    }
-
-    /**
-     * Performs final actions before release over the axiom stream.
-     * <p>
-     * Currently, it is only for ensuring safety if it is a multithreaded environment,
-     * as indicated by the parameter {@link InternalConfig#parallel()}.
-     * If {@link InternalConfig#parallel()} is {@code true} then the collecting must not go beyond this method,
-     * otherwise it is allowed to be lazy.
-     * This class does not produce parallel streams due to dangerous of livelocks or even deadlocks
-     * while interacting with load-cache, which is used {@code ConcurrentMap} inside.
-     * On the other hand, OWL-API implementation (and, as a consequence, ONT-API) uses {@code ReadWriteLock} everywhere
-     * and therefore without this method there is a dangerous of {@link ConcurrentModificationException},
-     * if some processing are allowed outside the method.
-     * TODO: move to some overlying interface
-     *
-     * @param res Stream of {@link R}s
-     * @param <R> anything
-     * @return Stream of {@link R}s
-     */
-    protected <R> Stream<R> release(Stream<R> res) {
-        // use ArrayList since it is faster in common cases than HashSet,
-        // and unique is provided by other mechanisms:
-        return getConfig().parallel() ? res.collect(Collectors.toList()).stream() : res;
     }
 
     /**
