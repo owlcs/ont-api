@@ -35,12 +35,12 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
         return OntNDP.class;
     }
 
-    protected boolean filter(OntStatement statement, ConfigProvider.Config config) {
+    protected boolean filter(OntStatement statement, InternalConfig config) {
         return super.filter(statement, config) && statement.getObject().canAs(OntDR.class);
     }
 
     @Override
-    public ONTObject<OWLDataPropertyRangeAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLDataPropertyRangeAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<OWLDataProperty> p = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLDataRange> d = reader.get(statement.getObject().as(OntDR.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);

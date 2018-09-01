@@ -49,13 +49,13 @@ public class ReadHelper {
      * e.g. "P rdfs:range C" could be treated as "A rdfs:range U", but not vice versa.
      *
      * @param statement {@link OntStatement} to test
-     * @param conf      {@link ConfigProvider.Config}
+     * @param conf      {@link InternalConfig}
      * @param o         {@link AxiomType#SUB_OBJECT_PROPERTY} or {@link AxiomType#OBJECT_PROPERTY_DOMAIN} or {@link AxiomType#OBJECT_PROPERTY_RANGE}
      * @param d         {@link AxiomType#SUB_DATA_PROPERTY} or {@link AxiomType#DATA_PROPERTY_DOMAIN} or {@link AxiomType#DATA_PROPERTY_RANGE}
      * @return true if the statement is good to be represented in the form of annotation axiom.
      */
     protected static boolean testAnnotationAxiomOverlaps(OntStatement statement,
-                                                         ConfigProvider.Config conf,
+                                                         InternalConfig conf,
                                                          AxiomType<? extends OWLObjectPropertyAxiom> o,
                                                          AxiomType<? extends OWLDataPropertyAxiom> d) {
         return !conf.isIgnoreAnnotationAxiomOverlaps() ||
@@ -87,10 +87,10 @@ public class ReadHelper {
      * Answers if the given {@link OntStatement} can be considered as annotation property assertion.
      *
      * @param s      {@link OntStatement}, not {@code null}
-     * @param config {@link ConfigProvider.Config}, not {@code null}
+     * @param config {@link InternalConfig}, not {@code null}
      * @return {@code true} if the specified statement is annotation property assertion
      */
-    public static boolean isAnnotationAssertionStatement(OntStatement s, ConfigProvider.Config config) {
+    public static boolean isAnnotationAssertionStatement(OntStatement s, InternalConfig config) {
         return s.isAnnotation()
                 && !s.isBulkAnnotation()
                 && (config.isAllowBulkAnnotationAssertions() || !s.hasAnnotations());
@@ -100,11 +100,11 @@ public class ReadHelper {
      * Returns the container with set of {@link OWLAnnotation} associated with the specified statement.
      *
      * @param statement {@link OntStatement}
-     * @param conf      {@link ConfigProvider.Config}
+     * @param conf      {@link InternalConfig}
      * @param df        {@link InternalDataFactory}
      * @return a set of wraps {@link ONTObject} around {@link OWLAnnotation}
      */
-    public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement, ConfigProvider.Config conf, NoCacheDataFactory df) {
+    public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement, InternalConfig conf, NoCacheDataFactory df) {
         Stream<OntStatement> res = statement.annotations();
         if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
@@ -255,14 +255,6 @@ public class ReadHelper {
             return ONTObject.create(res, _dr);
         }
         throw new OntApiException("Unsupported data range expression " + dr);
-    }
-
-    /**
-     * @param ce {@link OntCE}
-     * @return {@link ONTObject} around {@link OWLClassExpression}
-     */
-    public static ONTObject<? extends OWLClassExpression> fetchClassExpression(OntCE ce) {
-        return AxiomTranslator.getDataFactory(ce.getModel()).get(ce);
     }
 
     /**

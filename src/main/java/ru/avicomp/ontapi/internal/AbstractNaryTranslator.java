@@ -74,20 +74,20 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     abstract Class<ONT> getView();
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         return Models.listStatements(model, null, getPredicate(), null)
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         return statement.getPredicate().equals(getPredicate()) && statement.getSubject().canAs(getView());
     }
 
     @Override
     public ExtendedIterator<ONTObject<Axiom>> listAxioms(OntGraphModel model,
                                                          InternalDataFactory factory,
-                                                         ConfigProvider.Config config) {
+                                                         InternalConfig config) {
         Map<Axiom, ONTObject<Axiom>> res = new HashMap<>(); // memory!
         super.listAxioms(model, factory, config)
                 .forEachRemaining(c -> res.compute(c.getObject(), (a, w) -> w == null ? c : w.append(c)));

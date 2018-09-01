@@ -43,12 +43,12 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         return Models.listStatements(model, null, RDFS.subClassOf, null).filterKeep(this::filter);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         return statement.getPredicate().equals(RDFS.subClassOf) && filter(statement);
     }
 
@@ -57,7 +57,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<? extends OWLClassExpression> sub = reader.get(statement.getSubject(OntCE.class));
         ONTObject<? extends OWLClassExpression> sup = reader.get(statement.getObject().as(OntCE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);

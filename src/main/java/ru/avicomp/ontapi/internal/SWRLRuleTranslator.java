@@ -43,17 +43,17 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         return Models.listOntObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         return statement.getSubject().canAs(OntSWRL.Imp.class);
     }
 
     @Override
-    public ONTObject<SWRLRule> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<SWRLRule> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         OntSWRL.Imp imp = statement.getSubject(OntSWRL.Imp.class);
 
         Collection<ONTObject<? extends SWRLAtom>> head = imp.head().map(reader::get).collect(Collectors.toList());

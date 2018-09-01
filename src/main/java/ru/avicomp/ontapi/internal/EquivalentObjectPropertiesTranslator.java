@@ -47,7 +47,7 @@ public class EquivalentObjectPropertiesTranslator extends AbstractNaryTranslator
     }
 
     @Override
-    public ONTObject<OWLEquivalentObjectPropertiesAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLEquivalentObjectPropertiesAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> a = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLObjectPropertyExpression> b = reader.get(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);

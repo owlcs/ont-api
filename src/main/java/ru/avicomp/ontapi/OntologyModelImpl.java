@@ -17,9 +17,7 @@ package ru.avicomp.ontapi;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
-import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.RWLockedGraph;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
@@ -46,6 +44,7 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
 @SuppressWarnings("WeakerAccess")
 public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel {
 
+    private static final long serialVersionUID = -2882895355499914294L;
     protected transient ChangeProcessor changer;
 
     /**
@@ -186,7 +185,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      * Created by szuev on 22.12.2016.
      */
     @SuppressWarnings("WeakerAccess")
-    public static class Concurrent extends OWLOntologyWrapper implements OntologyModel, ConfigProvider, InternalModelHolder {
+    public static class Concurrent extends OWLOntologyWrapper implements OntologyModel, InternalModelHolder {
+
+        private static final long serialVersionUID = 5823394836022970162L;
 
         protected Concurrent(OntologyModelImpl delegate, ReadWriteLock lock) {
             super(delegate, lock);
@@ -251,16 +252,6 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             lock.readLock().lock();
             try {
                 delegate().clearCache();
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-
-        @Override
-        public Config getConfig() {
-            lock.readLock().lock();
-            try {
-                return delegate().getConfig();
             } finally {
                 lock.readLock().unlock();
             }

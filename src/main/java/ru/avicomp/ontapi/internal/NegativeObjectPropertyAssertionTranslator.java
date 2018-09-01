@@ -44,7 +44,7 @@ public class NegativeObjectPropertyAssertionTranslator extends AbstractNegativeP
     }
 
     @Override
-    public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         OntNPA.ObjectAssertion npa = statement.getSubject(getView());
         ONTObject<? extends OWLIndividual> s = reader.get(npa.getSource());
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(npa.getProperty());

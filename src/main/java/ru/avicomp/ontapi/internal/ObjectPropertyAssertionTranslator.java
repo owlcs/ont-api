@@ -55,23 +55,23 @@ public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObject
      * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
      *
      * @param model {@link OntGraphModel} the model
-     * @param config {@link ConfigProvider.Config}
+     * @param config {@link InternalConfig}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         return Models.listStatements(model, null, null, null).filterKeep(s -> testStatement(s, config));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         return statement.isObject()
                 && statement.getSubject().canAs(OntIndividual.class)
                 && statement.getObject().canAs(OntIndividual.class);
     }
 
     @Override
-    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<? extends OWLIndividual> subject = reader.get(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLObjectPropertyExpression> property = reader.get(statement.getPredicate().as(OntOPE.class));
         ONTObject<? extends OWLIndividual> object = reader.get(statement.getObject().as(OntIndividual.class));

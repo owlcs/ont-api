@@ -39,16 +39,16 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
     abstract Class<P> getView();
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         return Models.listStatements(model, null, RDFS.domain, null).filterKeep(s -> filter(s, config));
     }
 
-    protected boolean filter(OntStatement statement, ConfigProvider.Config config) {
+    protected boolean filter(OntStatement statement, InternalConfig config) {
         return statement.getSubject().canAs(getView());
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         return RDFS.domain.equals(statement.getPredicate()) && filter(statement, config);
     }
 }

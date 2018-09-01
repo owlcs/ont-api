@@ -59,7 +59,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
     }
 
     @Override
-    public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         return makeAxiom(statement, reader::get, OntClass::findDisjointUnion, reader::get, Collectors.toSet(),
                 (s, m) -> reader.getOWLDataFactory().getOWLDisjointUnionAxiom(s.getObject().asOWLClass(),
                         ONTObject.extractWildcards(m),

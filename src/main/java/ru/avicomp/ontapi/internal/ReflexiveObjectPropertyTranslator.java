@@ -44,7 +44,7 @@ public class ReflexiveObjectPropertyTranslator extends AbstractPropertyTypeTrans
     }
 
     @Override
-    public ONTObject<OWLReflexiveObjectPropertyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLReflexiveObjectPropertyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLReflexiveObjectPropertyAxiom res = reader.getOWLDataFactory()

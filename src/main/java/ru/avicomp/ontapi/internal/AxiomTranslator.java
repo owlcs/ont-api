@@ -56,7 +56,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @throws JenaException unable to read axioms of this type
      */
     public final Stream<ONTObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
-        ConfigProvider.Config conf = getConfig(model);
+        InternalConfig conf = getConfig(model).snapshot();
         InternalDataFactory factory = getDataFactory(model);
         return Iter.asStream(listAxioms(model, factory, conf));
     }
@@ -66,13 +66,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      *
      * @param model   {@link OntGraphModel ONT-API Jena Model}
      * @param factory {@link InternalDataFactory} to produce OWL-API Objects
-     * @param config  {@link ConfigProvider.Config} to control process
+     * @param config  {@link InternalConfig} to control process
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
     public ExtendedIterator<ONTObject<Axiom>> listAxioms(OntGraphModel model,
                                                          InternalDataFactory factory,
-                                                         ConfigProvider.Config config) throws JenaException {
+                                                         InternalConfig config) throws JenaException {
         return translate(listStatements(model, config), factory, config);
     }
 
@@ -82,13 +82,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      *
      * @param statements {@link ExtendedIterator} of {@link OntStatement}s
      * @param factory    {@link InternalDataFactory} to produce OWL-API Objects
-     * @param config     {@link ConfigProvider.Config} to control process
+     * @param config     {@link InternalConfig} to control process
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
     protected ExtendedIterator<ONTObject<Axiom>> translate(ExtendedIterator<OntStatement> statements,
                                                            InternalDataFactory factory,
-                                                           ConfigProvider.Config config) {
+                                                           InternalConfig config) {
         if (!config.isSplitAxiomAnnotations()) {
             return statements.mapWith(s -> toAxiom(Models.createCachedStatement(s), factory, config));
         }
@@ -103,7 +103,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return Stream of {@link OntStatement}, always local (not from imports)
      */
     public final Stream<OntStatement> statements(OntGraphModel model) {
-        return Iter.asStream(listStatements(model, getConfig(model)));
+        return Iter.asStream(listStatements(model, getConfig(model).snapshot()));
     }
 
     /**
@@ -113,48 +113,48 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@code true} if the statement defines the axiom
      */
     public final boolean testStatement(OntStatement statement) {
-        return testStatement(statement, getConfig(statement.getModel()));
+        return testStatement(statement, getConfig(statement.getModel()).snapshot());
     }
 
     /**
-     * Lists all statements for the base graph of the given model that match this axiom definition.
+     * Lists all statements from the base graph of the given model that match this axiom definition.
      *
      * @param model  {@link OntGraphModel Ontology Jena Model}
-     * @param config {@link ConfigProvider.Config} control settings
+     * @param config {@link InternalConfig} control settings
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
-    public abstract ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config);
+    public abstract ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config);
 
     /**
      * Tests if the specified statement answers the axiom definition.
      *
      * @param statement {@link OntStatement} any statement, not necessarily local.
-     * @param config    {@link ConfigProvider.Config} control settings
+     * @param config    {@link InternalConfig} control settings
      * @return true if the statement corresponds axiom type.
      */
-    public abstract boolean testStatement(OntStatement statement, ConfigProvider.Config config);
+    public abstract boolean testStatement(OntStatement statement, InternalConfig config);
 
     /**
      * Creates an OWL Axiom from a statement.
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @param factory   {@link InternalDataFactory} the data factory to create OWL-API objects
-     * @param config    {@link ConfigProvider.Config} to control process
+     * @param config    {@link InternalConfig} to control process
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get axiom from the statement
      */
-    protected abstract ONTObject<Axiom> toAxiom(OntStatement statement,
-                                                InternalDataFactory factory,
-                                                ConfigProvider.Config config) throws JenaException;
+    public abstract ONTObject<Axiom> toAxiom(OntStatement statement,
+                                             InternalDataFactory factory,
+                                             InternalConfig config) throws JenaException;
 
     /**
      * Gets the config from model's settings or dummy if it is naked Jena model.
      *
      * @param model {@link OntGraphModel}
-     * @return {@link ConfigProvider.Config}
+     * @return {@link InternalConfig}
      */
-    public static ConfigProvider.Config getConfig(OntGraphModel model) {
-        return model instanceof ConfigProvider ? ((ConfigProvider) model).getConfig() : ConfigProvider.DEFAULT_CONFIG;
+    public static InternalConfig getConfig(OntGraphModel model) {
+        return model instanceof InternalModel ? ((InternalModel) model).getConfig() : InternalConfig.DEFAULT;
     }
 
     /**
@@ -164,6 +164,6 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link InternalDataFactory}
      */
     public static InternalDataFactory getDataFactory(OntGraphModel model) {
-        return model instanceof InternalModel ? ((InternalModel) model).getDataFactory() : ConfigProvider.DEFAULT_DATA_FACTORY;
+        return model instanceof InternalModel ? ((InternalModel) model).getDataFactory() : InternalDataFactory.DEFAULT;
     }
 }

@@ -43,13 +43,13 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         return Models.listStatements(model, null, RDF.type, OWL.NegativePropertyAssertion)
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         return statement.getObject().equals(OWL.NegativePropertyAssertion)
                 && statement.isDeclaration()
                 && statement.getSubject().canAs(getView());

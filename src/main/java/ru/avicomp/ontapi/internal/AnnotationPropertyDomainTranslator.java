@@ -39,17 +39,17 @@ public class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTr
      * Returns {@link OntStatement}s defining the {@link OWLAnnotationPropertyDomainAxiom} axiom.
      *
      * @param model {@link OntGraphModel}
-     * @param config {@link ConfigProvider.Config}
+     * @param config {@link InternalConfig}
      * @return {@link ExtendedIterator} {@link OntStatement}s
      */
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
         return super.listStatements(model, config);
     }
 
     @Override
-    protected boolean filter(OntStatement statement, ConfigProvider.Config config) {
+    protected boolean filter(OntStatement statement, InternalConfig config) {
         return super.filter(statement, config)
                 && statement.getObject().isURIResource()
                 && ReadHelper.testAnnotationAxiomOverlaps(statement, config,
@@ -57,12 +57,12 @@ public class AnnotationPropertyDomainTranslator extends AbstractPropertyDomainTr
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         return config.isLoadAnnotationAxioms() && super.testStatement(statement, config);
     }
 
     @Override
-    public ONTObject<OWLAnnotationPropertyDomainAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLAnnotationPropertyDomainAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<OWLAnnotationProperty> p = reader.get(statement.getSubject(getView()));
         ONTObject<IRI> d = reader.asIRI(statement.getObject().as(OntObject.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);

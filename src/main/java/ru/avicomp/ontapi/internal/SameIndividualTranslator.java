@@ -46,7 +46,7 @@ public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndi
     }
 
     @Override
-    public ONTObject<OWLSameIndividualAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLSameIndividualAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<? extends OWLIndividual> a = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLIndividual> b = reader.get(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);

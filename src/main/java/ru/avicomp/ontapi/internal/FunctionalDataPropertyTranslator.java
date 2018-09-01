@@ -44,7 +44,7 @@ public class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTransl
     }
 
     @Override
-    public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<OWLDataProperty> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLFunctionalDataPropertyAxiom res = reader.getOWLDataFactory()

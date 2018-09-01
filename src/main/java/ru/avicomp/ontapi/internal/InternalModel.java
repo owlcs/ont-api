@@ -40,6 +40,7 @@ import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.RWLockedGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
@@ -80,11 +81,11 @@ import java.util.stream.Stream;
  * Created by @szuev on 26.10.2016.
  */
 @SuppressWarnings({"WeakerAccess"})
-public class InternalModel extends OntGraphModelImpl implements OntGraphModel, ConfigProvider {
+public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
     // Configuration settings
-    private final ConfigProvider.Config config;
+    private final InternalConfig config;
     // The main axioms & header annotations cache.
     // Used to work through OWL-API interfaces. The use of jena model methods must clear this cache.
     protected LoadingCache<Class<? extends OWLObject>, ObjectTriplesMap<? extends OWLObject>> components =
@@ -103,12 +104,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * For internal usage only.
      *
      * @param base   {@link Graph}
-     * @param config {@link ru.avicomp.ontapi.internal.ConfigProvider.Config}
+     * @param personality {@link OntPersonality}
+     * @param factory {@link DataFactory}
+     * @param config {@link InternalConfig}
      */
-    public InternalModel(Graph base, ConfigProvider.Config config) {
-        super(base, config.getPersonality());
+    public InternalModel(Graph base, OntPersonality personality, DataFactory factory, InternalConfig config) {
+        super(base, personality);
         this.config = config;
-        this.cacheDataFactory = new CacheDataFactory(config.dataFactory());
+        this.cacheDataFactory = new CacheDataFactory(factory);
         //new NoCacheDataFactory(config);
         //new MapDataFactory(config);
         getGraph().getEventManager().register(new DirectListener());
@@ -117,10 +120,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
     /**
      * Returns the model config instance.
      *
-     * @return {@link Config}
+     * @return {@link InternalConfig}
      */
-    @Override
-    public Config getConfig() {
+    public InternalConfig getConfig() {
         return config;
     }
 
@@ -341,7 +343,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLDeclarationAxiom}s
      */
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
-        Config conf = getConfig();
+        InternalConfig conf = getConfig().snapshot();
         if (!conf.isAllowReadDeclarations()) return Stream.empty();
         // even there are no changes in OWLDeclarationAxioms, they can be affected by some other user-defined axiom,
         // so need check whole cache:
@@ -364,7 +366,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * @return Stream of {@link OWLAnnotationAssertionAxiom}s
      */
     public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
-        Config conf = getConfig();
+        InternalConfig conf = getConfig().snapshot();
         if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
@@ -388,7 +390,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
         ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
-        Config conf = getConfig();
+        InternalConfig conf = getConfig().snapshot();
         return release(Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject)));
     }
 
@@ -405,7 +407,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
         }
         EquivalentClassesTranslator t = (EquivalentClassesTranslator) AxiomParserProvider.get(OWLEquivalentClassesAxiom.class);
         Resource r = WriteHelper.toResource(c);
-        Config conf = getConfig();
+        InternalConfig conf = getConfig().snapshot();
         ExtendedIterator<OntStatement> res = listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(listLocalStatements(null, OWL.equivalentClass, r))
                 .filterKeep(s -> t.testStatement(s, conf));
@@ -462,14 +464,15 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, C
      * Performs final actions before release over the axiom stream.
      * <p>
      * Currently, it is only for ensuring safety if it is a multithreaded environment,
-     * as indicated by the parameter {@link Config#parallel()}.
-     * If {@link Config#parallel()} is {@code true} then the collecting must not go beyond this method,
+     * as indicated by the parameter {@link InternalConfig#parallel()}.
+     * If {@link InternalConfig#parallel()} is {@code true} then the collecting must not go beyond this method,
      * otherwise it is allowed to be lazy.
      * This class does not produce parallel streams due to dangerous of livelocks or even deadlocks
      * while interacting with load-cache, which is used {@code ConcurrentMap} inside.
      * On the other hand, OWL-API implementation (and, as a consequence, ONT-API) uses {@code ReadWriteLock} everywhere
      * and therefore without this method there is a dangerous of {@link ConcurrentModificationException},
      * if some processing are allowed outside the method.
+     * TODO: move to some overlying interface
      *
      * @param res Stream of {@link R}s
      * @param <R> anything

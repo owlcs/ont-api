@@ -48,12 +48,12 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
      * Also it is skipped if load annotations is disabled in the configuration.
      *
      * @param model  {@link OntGraphModel} the model
-     * @param config {@link ConfigProvider.Config}
+     * @param config {@link InternalConfig}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
      */
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
         OntID id = model.getID();
         return Models.listStatements(model, null, null, null)
@@ -61,19 +61,19 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         if (!config.isLoadAnnotationAxioms()) return false;
         if (statement.getSubject().canAs(OntID.class)) return false;
         return filter(statement, config);
     }
 
-    public boolean filter(OntStatement s, ConfigProvider.Config c) {
+    public boolean filter(OntStatement s, InternalConfig c) {
         return ReadHelper.isAnnotationAssertionStatement(s, c)
                 && ReadHelper.isEntityOrAnonymousIndividual(s.getSubject());
     }
 
     @Override
-    public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<? extends OWLAnnotationSubject> s = reader.get(statement.getSubject(OntObject.class));
         ONTObject<OWLAnnotationProperty> p = reader.get(statement.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = reader.get(statement.getObject());

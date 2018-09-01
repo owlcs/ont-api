@@ -26,9 +26,7 @@ import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
-import ru.avicomp.ontapi.internal.ConfigProvider;
 import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.utils.Graphs;
@@ -55,9 +53,10 @@ import java.util.stream.StreamSupport;
  * Created by @szuev on 03.12.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, InternalModelHolder {
+public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHolder {
     // binary format to provide serialization:
     protected static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
+    private static final long serialVersionUID = 7605836729147058594L;
 
     protected transient InternalModel base;
     protected transient OntologyManagerImpl managerBackCopy;
@@ -66,7 +65,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
     protected int hashCode;
 
     protected OntBaseModelImpl(Graph graph, OntologyManagerImpl.ModelConfig conf) {
-        this.base = new InternalModel(OntApiException.notNull(graph, "Null graph."), OntApiException.notNull(conf, "Null conf."));
+        this.base = InternalModelHolder.createInternalModel(graph, conf);
     }
 
     @Override
@@ -76,17 +75,16 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
 
     @Override
     public void setBase(InternalModel m) {
-        base = m;
+        base = Objects.requireNonNull(m);
     }
 
-    @Override
     public OntologyManagerImpl.ModelConfig getConfig() {
         return (OntologyManagerImpl.ModelConfig) base.getConfig();
     }
 
     @Override
     public OntologyManager getOWLOntologyManager() {
-        return getConfig().manager();
+        return getConfig().getManager();
     }
 
     /**
@@ -881,11 +879,11 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
 
     /**
      * Reads the object while serialization.
-     * Note: only base graph!
+     * Note: only the base graph is serialized.
      *
      * @param in {@link ObjectInputStream}
-     * @throws IOException            if an I/O error occurs.
-     * @throws ClassNotFoundException if the class of a serialized object could not be found.
+     * @throws IOException            if an I/O error occurs
+     * @throws ClassNotFoundException if the class of a serialized object could not be found
      * @see OntologyManagerImpl#readObject(ObjectInputStream)
      * @see OntologyModelImpl.Concurrent#readObject(ObjectInputStream)
      */
@@ -894,7 +892,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, ConfigProvider, I
         Graph base = new GraphMem();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
-        setBase(new InternalModel(base, ConfigProvider.DEFAULT_CONFIG));
+        setBase(InternalModelHolder.createInternalModel(base));
     }
 
     /**

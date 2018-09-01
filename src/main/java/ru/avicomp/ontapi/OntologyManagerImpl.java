@@ -33,9 +33,8 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
-import ru.avicomp.ontapi.internal.ConfigProvider;
+import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -1255,7 +1254,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         OntologyModel ontology = (OntologyModel) change.getOntology();
         OWLOntologyID id = ontology.getOntologyID();
         Optional<OntWriterConfiguration> conf = content.get(id).map(OntInfo::getModelConfig)
-                .map(ModelConfig::writerConfig);
+                .map(ModelConfig::getWriterConfig);
         if (!conf.isPresent() || !conf.get().isControlImports()) {
             return;
         }
@@ -1747,7 +1746,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                             .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);
             imports.forEach(baseGraph::addGraph);
-            InternalModel baseModel = new InternalModel(baseGraph, conf);
+            InternalModel baseModel = InternalModelHolder.createInternalModel(baseGraph, conf);
             m.setBase(baseModel);
         });
     }
@@ -1763,11 +1762,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Creates {@link ru.avicomp.ontapi.internal.ConfigProvider.Config} with reference to manager inside.
+     * Creates {@link InternalConfig} with reference to manager inside.
      *
      * @return {@link ModelConfig}
-     * @see ConfigProvider
-     * @see ru.avicomp.ontapi.internal.ConfigProvider.Config
+     * @see InternalConfig
      */
     public ModelConfig createModelConfig() {
         return new ModelConfig(this);
@@ -2115,9 +2113,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         protected OWLImportsDeclaration declaration;
         protected OWLDocumentFormat format;
 
-        public OntInfo(@Nonnull OntologyModel ont) {
+        public OntInfo(@Nonnull OntologyModel ont) throws ClassCastException {
             this.ont = ont;
-            this.conf = (ModelConfig) ((ConfigProvider) ont).getConfig();
+            this.conf = (ModelConfig) ((InternalModelHolder) ont).getBase().getConfig();
         }
 
         @Nonnull
@@ -2166,23 +2164,23 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * The implementation of {@link ConfigProvider.Config} that has a reference to the manager inside.
+     * The implementation of {@link InternalConfig} that has a reference to the manager inside.
      * This is need in order to provide access to the manager's settings.
      *
      * @see OntologyManager#setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)
      * @see OntologyManager#setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)
      */
-    public static class ModelConfig implements ConfigProvider.Config, Serializable {
+    public static class ModelConfig implements InternalConfig, Serializable {
         private static final long serialVersionUID = 3681978037818003272L;
         protected OntLoaderConfiguration modelLoaderConf;
         protected OntWriterConfiguration modelWriterConf;
         protected OntologyManagerImpl manager;
 
         public ModelConfig(OntologyManagerImpl m) {
-            this.manager = m;
+            this.manager = Objects.requireNonNull(m);
         }
 
-        public OntologyManagerImpl manager() {
+        public OntologyManagerImpl getManager() {
             return manager;
         }
 
@@ -2197,7 +2195,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         public void setLoaderConf(OntLoaderConfiguration conf) {
-            if (Objects.equals(loaderConfig(), conf)) return;
+            if (Objects.equals(getLoaderConfig(), conf)) return;
             this.modelLoaderConf = conf;
         }
 
@@ -2207,7 +2205,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
          *
          * @return {@link OntLoaderConfiguration}, not {@code null}
          */
-        public OntLoaderConfiguration loaderConfig() {
+        public OntLoaderConfiguration getLoaderConfig() {
             return this.modelLoaderConf == null ? manager.getOntologyLoaderConfiguration() : this.modelLoaderConf;
         }
 
@@ -2217,48 +2215,46 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
          *
          * @return {@link OntWriterConfiguration}, not {@code null}
          */
-        public OntWriterConfiguration writerConfig() {
+        public OntWriterConfiguration getWriterConfig() {
             return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
         }
 
-        @Override
-        public DataFactory dataFactory() {
+        public DataFactory getDataFactory() {
             return manager.getOWLDataFactory();
         }
 
-        @Override
         public OntPersonality getPersonality() {
-            return loaderConfig().getPersonality();
+            return getLoaderConfig().getPersonality();
         }
 
         @Override
         public boolean isLoadAnnotationAxioms() {
-            return loaderConfig().isLoadAnnotationAxioms();
+            return getLoaderConfig().isLoadAnnotationAxioms();
         }
 
         @Override
         public boolean isAllowBulkAnnotationAssertions() {
-            return loaderConfig().isAllowBulkAnnotationAssertions();
+            return getLoaderConfig().isAllowBulkAnnotationAssertions();
         }
 
         @Override
         public boolean isIgnoreAnnotationAxiomOverlaps() {
-            return loaderConfig().isIgnoreAnnotationAxiomOverlaps();
+            return getLoaderConfig().isIgnoreAnnotationAxiomOverlaps();
         }
 
         @Override
         public boolean isAllowReadDeclarations() {
-            return loaderConfig().isAllowReadDeclarations();
+            return getLoaderConfig().isAllowReadDeclarations();
         }
 
         @Override
         public boolean isSplitAxiomAnnotations() {
-            return loaderConfig().isSplitAxiomAnnotations();
+            return getLoaderConfig().isSplitAxiomAnnotations();
         }
 
         @Override
         public boolean isIgnoreAxiomsReadErrors() {
-            return loaderConfig().isIgnoreAxiomsReadErrors();
+            return getLoaderConfig().isIgnoreAxiomsReadErrors();
         }
 
         @Override
@@ -2267,7 +2263,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         public boolean hasChanges(OntLoaderConfiguration other) {
-            return hasChanges(loaderConfig(), other);
+            return hasChanges(getLoaderConfig(), other);
         }
 
         /**

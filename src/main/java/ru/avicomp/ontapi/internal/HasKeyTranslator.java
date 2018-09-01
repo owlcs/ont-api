@@ -60,7 +60,7 @@ public class HasKeyTranslator extends AbstractListBasedTranslator<OWLHasKeyAxiom
     }
 
     @Override
-    public ONTObject<OWLHasKeyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLHasKeyAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         return makeAxiom(statement, reader::get, OntCE::findHasKey, reader::get, Collectors.toSet(),
                 (s, m) -> reader.getOWLDataFactory().getOWLHasKeyAxiom(s.getObject(),
                         ONTObject.extractWildcards(m),

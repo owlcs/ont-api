@@ -43,20 +43,20 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         if (!config.isAllowReadDeclarations()) return NullIterator.instance();
         return Models.listEntities(model).mapWith(OntObject::getRoot);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         return statement.isDeclaration()
                 && statement.getSubject().isURIResource()
                 && Stream.of(Entities.values()).map(Entities::type).anyMatch(t -> statement.getObject().equals(t));
     }
 
     @Override
-    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<? extends OWLEntity> entity = reader.get(statement.getSubject(OntEntity.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getObject(), ONTObject.extract(annotations));

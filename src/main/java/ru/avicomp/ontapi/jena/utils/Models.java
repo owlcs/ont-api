@@ -329,7 +329,8 @@ public class Models {
     }
 
     /**
-     * See description for {@link #split(OntStatement)}
+     * Lists split statements.
+     * See description for the {@link #split(OntStatement)} method.
      *
      * @param statement {@link OntStatement}, not {@code null}
      * @return {@link ExtendedIterator} of {@link OntStatement}s

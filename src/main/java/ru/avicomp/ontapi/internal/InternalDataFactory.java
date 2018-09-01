@@ -19,6 +19,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
@@ -36,6 +37,8 @@ import java.util.Objects;
  * @see ONTObject
  */
 public interface InternalDataFactory {
+
+    InternalDataFactory DEFAULT = new NoCacheDataFactory(OntManagers.getDataFactory());
 
     void clear();
 
@@ -55,7 +58,7 @@ public interface InternalDataFactory {
 
     ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
 
-    Collection<ONTObject<OWLAnnotation>> get(OntStatement statement, ConfigProvider.Config config);
+    Collection<ONTObject<OWLAnnotation>> get(OntStatement statement, InternalConfig config);
 
     ONTObject<IRI> asIRI(OntObject s);
 

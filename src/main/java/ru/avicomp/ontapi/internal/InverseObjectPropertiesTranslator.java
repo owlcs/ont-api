@@ -41,7 +41,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, ConfigProvider.Config config) {
+    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         // NOTE as a precaution: the first (commented) way is not correct
         // since it includes anonymous object property expressions (based on owl:inverseOf),
         // which might be treat as separated axioms, but OWL-API doesn't think so.
@@ -54,7 +54,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, ConfigProvider.Config config) {
+    public boolean testStatement(OntStatement statement, InternalConfig config) {
         if (!OWL.inverseOf.equals(statement.getPredicate())) return false;
         // skip {@code _:x owl:inverseOf PN} (inverse object property expression):
         if (!statement.getSubject().isAnon() || !statement.getObject().isURIResource()) return false;
@@ -62,7 +62,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     }
 
     @Override
-    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, ConfigProvider.Config config) {
+    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> f = reader.get(statement.getSubject(OntOPE.class));
         ONTObject<? extends OWLObjectPropertyExpression> s = reader.get(statement.getObject().as(OntOPE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);

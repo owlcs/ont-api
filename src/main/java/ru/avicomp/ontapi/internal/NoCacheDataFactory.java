@@ -28,7 +28,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * An Internal Data Factory without cache.
+ * An Internal Data Factory impl without cache.
  * <p>
  * Created by @szuev on 15.03.2018.
  */
@@ -119,7 +119,7 @@ public class NoCacheDataFactory implements InternalDataFactory {
     }
 
     @Override
-    public Collection<ONTObject<OWLAnnotation>> get(OntStatement statement, ConfigProvider.Config config) {
+    public Collection<ONTObject<OWLAnnotation>> get(OntStatement statement, InternalConfig config) {
         return ReadHelper.getAnnotations(statement, config, this);
     }
 
