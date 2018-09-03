@@ -117,11 +117,11 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     }
 
     /**
-     * TODO: debug
+     * Performs translation {@code OntStatement -> OWLAxiom} using default settings.
      *
-     * @param statement
-     * @return
-     * @throws JenaException
+     * @param statement {@link OntStatement}
+     * @return {@link ONTObject} around {@link OWLAxiom}
+     * @throws JenaException if no possible to translate statement to axiom
      */
     public final ONTObject<Axiom> toAxiom(OntStatement statement) throws JenaException {
         return toAxiom(statement, getDataFactory(statement.getModel()), getConfig(statement.getModel()).snapshot());

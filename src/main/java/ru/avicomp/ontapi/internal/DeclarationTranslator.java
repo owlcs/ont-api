@@ -50,10 +50,12 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
-        if (!statement.isDeclaration()) return false;
+        if (!statement.getSubject().isURIResource()) return false;
         if (!statement.getObject().isURIResource()) return false;
+        if (!statement.isDeclaration()) return false;
         return Entities.find(statement.getResource())
-                .filter(e -> statement.getModel().getOntEntity(e.getClassType(), statement.getSubject()) != null)
+                .map(Entities::getClassType)
+                .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .isPresent();
     }
 
