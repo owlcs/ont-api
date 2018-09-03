@@ -106,6 +106,7 @@ public interface InternalConfig {
             map.put(Snapshot.Key.ALLOW_DECLARATIONS, delegate.isAllowReadDeclarations());
             map.put(Snapshot.Key.SPLIT_AXIOM_ANNOTATIONS, delegate.isSplitAxiomAnnotations());
             map.put(Snapshot.Key.IGNORE_READ_ERRORS, delegate.isIgnoreAxiomsReadErrors());
+
         }
 
         @Override
@@ -136,6 +137,11 @@ public interface InternalConfig {
         @Override
         public boolean isIgnoreAxiomsReadErrors() {
             return map.get(Snapshot.Key.IGNORE_READ_ERRORS);
+        }
+
+        @Override
+        public InternalConfig snapshot() {
+            return this;
         }
 
         private enum Key {

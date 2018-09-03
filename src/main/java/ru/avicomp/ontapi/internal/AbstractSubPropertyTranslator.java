@@ -49,7 +49,7 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
-        return statement.getPredicate().equals(RDFS.subPropertyOf) && filter(statement, config);
+        return RDFS.subPropertyOf.equals(statement.getPredicate()) && filter(statement, config);
     }
 
     @Override

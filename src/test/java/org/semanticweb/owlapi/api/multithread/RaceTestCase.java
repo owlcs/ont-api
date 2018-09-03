@@ -141,27 +141,6 @@ public class RaceTestCase {
                 }
             }
 
-            /**
-             * TODO: investigate and fix - sometimes (although very rare) there is ConcurrentModificationException:
-             * java.util.ConcurrentModificationException
-             * at java.util.HashMap$KeySpliterator.forEachRemaining(HashMap.java:1558)
-             * at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:481)
-             * at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:471)
-             * at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
-             * at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
-             * at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
-             * at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
-             * at java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:270)
-             * at java.util.stream.Streams$StreamBuilderImpl.forEachRemaining(Streams.java:419)
-             * at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:481)
-             * at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:471)
-             * at java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:708)
-             * at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
-             * at java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:499)
-             * at org.semanticweb.owlapi.api.multithread.RaceTestCase$RaceTestCaseRunner$SubClassLHSCallback.race(RaceTestCase.java:148)
-             * at org.semanticweb.owlapi.api.multithread.RaceTestCase$RaceTestCaseRunner.racing(RaceTestCase.java:81)
-             * at org.semanticweb.owlapi.api.multithread.RaceTestCase.testSubClassLHS(RaceTestCase.java:43)
-             */
             @Override
             public void race() {
                 List<OWLSubClassOfAxiom> list1 = ontology

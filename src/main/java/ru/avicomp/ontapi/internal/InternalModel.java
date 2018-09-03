@@ -18,7 +18,6 @@ import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -42,6 +41,7 @@ import ru.avicomp.ontapi.jena.RWLockedGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import javax.annotation.Nonnull;
@@ -74,9 +74,10 @@ import java.util.stream.Stream;
  * if you have such a large ontology that can not even be partially placed in memory
  * (that is, the set of axioms of any type, but with the exclusion of their components, exceeds the memory limit),
  * then this solution won't work.
- * To work with such large ontologies, it is recommended to use {@link AxiomParserProvider#get(AxiomType)} directly.
+ * To work with such large ontologies, it is recommended to use {@link AxiomTranslator Axiom Translator}s directly
+ * (see {@link AxiomParserProvider#get(AxiomType)}).
  * <p>
- * TODO: Should it return {@link ONTObject}s, not just naked {@link OWLObject}s? It seems it would be very convenient and could make this class useful not only as part of inner implementation.
+ * TODO: Should it return {@link ONTObject}s, not just naked {@link OWLObject}s? It seems it would be more convenient and could make this class useful not only as part of inner implementation.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
@@ -84,6 +85,10 @@ import java.util.stream.Stream;
 public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
+    // working with sorted axiom types list should be a little bit faster:
+    // the first are the declarations and widely used axioms, it is good for the data-factory cache
+    public static final List<AxiomType<? extends OWLAxiom>> AXIOM_TYPES = AxiomType.AXIOM_TYPES.stream().sorted()
+            .collect(Iter.toUnmodifiableList());
     // Configuration settings
     private final InternalConfig config;
     // The main axioms & header annotations cache.
@@ -118,7 +123,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     }
 
     /**
-     * Returns the model config instance.
+     * Returns the model {@code InternalConfig} instance.
      *
      * @return {@link InternalConfig}
      */
@@ -126,6 +131,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         return config;
     }
 
+    /**
+     * Returns the {@code InternalDataFactory}, a helper to read OWL-API objects.
+     *
+     * @return {@link InternalDataFactory}
+     */
     public InternalDataFactory getDataFactory() {
         return cacheDataFactory;
     }
@@ -271,7 +281,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     /**
      * Lists all named data-ranges (i.e. datatypes) in the form of OWL-API objects.
      *
-     * @return Stream of {@link OWLDatatype}s.
+     * @return Stream of {@link OWLDatatype}s
      */
     public Stream<OWLDatatype> listOWLDatatypes() {
         return listOWLObjects(OWLDatatype.class);
@@ -282,7 +292,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      *
      * @param type Class type of owl-object.
      * @param <O>  type of owl-object
-     * @return Stream of {@link OWLObject}s.
+     * @return Stream of {@link OWLObject}s
      */
     @SuppressWarnings("unchecked")
     protected <O extends OWLObject> Stream<O> listOWLObjects(Class<O> type) {
@@ -329,7 +339,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * Gets all ontology header annotations.
      *
      * @return Stream of {@link OWLAnnotation}
-     * @see #listOWLAxioms(Set)
+     * @see #listOWLAxioms(Collection)
      */
     @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> listOWLAnnotations() {
@@ -338,6 +348,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     /**
      * Lists {@link OWLDeclarationAxiom Declaration Axiom}s for the specified {@link OWLEntity entity}.
+     * Note: method returns non-cached axioms.
      *
      * @param e {@link OWLEntity}, not null
      * @return Stream of {@link OWLDeclarationAxiom}s
@@ -361,6 +372,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     /**
      * Lists {@link OWLAnnotationAssertionAxiom Annotation Assertion Axiom}s
      * with the given {@link OWLAnnotationSubject subject}.
+     * Note: method returns non-cached axioms.
      *
      * @param s {@link OWLAnnotationSubject}, not null
      * @return Stream of {@link OWLAnnotationAssertionAxiom}s
@@ -379,6 +391,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     /**
      * Lists {@link OWLSubClassOfAxiom SubClassOf Axiom}s by the given sub {@link OWLClass class}.
+     * Note: method returns non-cached axioms.
      *
      * @param sub {@link OWLClass}, not null
      * @return Stream of {@link OWLSubClassOfAxiom}s
@@ -396,6 +409,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
 
     /**
      * Lists {@link OWLEquivalentClassesAxiom EquivalentClasses Axiom}s by the given {@link OWLClass class}-component.
+     * Note: method returns non-cached axioms.
      *
      * @param c {@link OWLClass}, not null
      * @return Stream of {@link OWLEquivalentClassesAxiom}s
@@ -420,17 +434,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * @return Stream of {@link OWLAxiom}s
      */
     public Stream<OWLAxiom> listOWLAxioms() {
-        return listOWLAxioms(AxiomType.AXIOM_TYPES);
+        return listOWLAxioms(AXIOM_TYPES);
     }
 
     /**
      * Lists axioms for the specified types.
      *
-     * @param types Set of {@link AxiomType}s
+     * @param types Collection of {@link AxiomType}s
      * @return Stream of {@link OWLAxiom}
      * @see #listOWLAnnotations()
      */
-    public Stream<OWLAxiom> listOWLAxioms(Set<AxiomType<? extends OWLAxiom>> types) {
+    public Stream<OWLAxiom> listOWLAxioms(Collection<AxiomType<? extends OWLAxiom>> types) {
         return types.stream()
                 .map(t -> getAxiomTripleStore(t.getActualClass()))
                 .flatMap(ObjectTriplesMap::objects)
@@ -500,7 +514,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      */
     public boolean contains(OWLAxiom a) {
         if (!getCacheMap().containsKey(a.getClass())) { // as a hack: make sure cache is initialized
-            AxiomType.AXIOM_TYPES.forEach(t -> getAxiomTripleStore(t.getActualClass()));
+            AXIOM_TYPES.forEach(t -> getAxiomTripleStore(t.getActualClass()));
         }
         return getAxiomTripleStore(a.getAxiomType()).contains(a);
     }

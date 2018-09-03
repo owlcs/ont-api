@@ -75,7 +75,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
-        return super.testStatement(statement, config) || statement.getSubject().canAs(getDisjointView());
+        return super.testStatement(statement, config) || (RDF.type.equals(statement.getPredicate()) && statement.getSubject().canAs(getDisjointView()));
     }
 
     abstract Resource getMembersType();

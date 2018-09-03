@@ -51,7 +51,7 @@ public class RecursionTransformTest {
     }
 
     /**
-     * TODO: sometimes (but very rare) there is StackOverflowError:
+     * TODO: although right now this transformer is disabled, so it is doesn't matter, but sometimes (but very rare) there is StackOverflowError:
      * java.lang.StackOverflowError
      * at java.util.stream.Streams$StreamBuilderImpl.forEachRemaining(Streams.java:419)
      * at java.util.stream.Streams$ConcatSpliterator.forEachRemaining(Streams.java:742)

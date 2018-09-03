@@ -19,6 +19,7 @@ import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.Entities;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -28,7 +29,6 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
  * Declaration of OWLEntity.
@@ -50,14 +50,20 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
-        return statement.isDeclaration()
-                && statement.getSubject().isURIResource()
-                && Stream.of(Entities.values()).map(Entities::type).anyMatch(t -> statement.getObject().equals(t));
+        if (!statement.isDeclaration()) return false;
+        if (!statement.getObject().isURIResource()) return false;
+        return Entities.find(statement.getResource())
+                .filter(e -> statement.getModel().getOntEntity(e.getClassType(), statement.getSubject()) != null)
+                .isPresent();
     }
 
     @Override
     public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
-        ONTObject<? extends OWLEntity> entity = reader.get(statement.getSubject(OntEntity.class));
+        OntEntity e = Entities.find(statement.getResource())
+                .map(Entities::getClassType)
+                .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
+                .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement " + statement));
+        ONTObject<? extends OWLEntity> entity = reader.get(e);
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getObject(), ONTObject.extract(annotations));
         return ONTObject.create(res, statement).append(annotations);

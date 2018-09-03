@@ -19,22 +19,22 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
  * This is an enumeration of all entity (configurable-)factories.
  * <p>
  * Created by szuev on 03.11.2016.
+ *
+ * @see OntEntity
  */
 public enum Entities implements Configurable<OntObjectFactory> {
-    CLASS(OntClassImpl.class, OWL.Class) {
+    CLASS(OWL.Class, OntClassImpl.class) {
         @Override
         Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
@@ -50,8 +50,13 @@ public enum Entities implements Configurable<OntObjectFactory> {
         Set<Resource> builtInURIs() {
             return BUILTIN.classes();
         }
+
+        @Override
+        public Class<OntClass> getClassType() {
+            return OntClass.class;
+        }
     },
-    DATATYPE(OntDatatypeImpl.class, RDFS.Datatype) {
+    DATATYPE(RDFS.Datatype, OntDatatypeImpl.class) {
         @Override
         Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
@@ -67,8 +72,13 @@ public enum Entities implements Configurable<OntObjectFactory> {
         Set<Resource> builtInURIs() {
             return BUILTIN.datatypes();
         }
+
+        @Override
+        public Class<OntDT> getClassType() {
+            return OntDT.class;
+        }
     },
-    ANNOTATION_PROPERTY(OntAPropertyImpl.class, OWL.AnnotationProperty) {
+    ANNOTATION_PROPERTY(OWL.AnnotationProperty, OntAPropertyImpl.class) {
         @Override
         Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
@@ -83,8 +93,13 @@ public enum Entities implements Configurable<OntObjectFactory> {
         Set<Property> builtInURIs() {
             return BUILTIN.annotationProperties();
         }
+
+        @Override
+        public Class<OntNAP> getClassType() {
+            return OntNAP.class;
+        }
     },
-    DATA_PROPERTY(OntDPropertyImpl.class, OWL.DatatypeProperty) {
+    DATA_PROPERTY(OWL.DatatypeProperty, OntDPropertyImpl.class) {
         @Override
         Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
@@ -101,8 +116,13 @@ public enum Entities implements Configurable<OntObjectFactory> {
         Set<Property> builtInURIs() {
             return BUILTIN.datatypeProperties();
         }
+
+        @Override
+        public Class<OntNDP> getClassType() {
+            return OntNDP.class;
+        }
     },
-    OBJECT_PROPERTY(OntOPEImpl.NamedPropertyImpl.class, OWL.ObjectProperty) {
+    OBJECT_PROPERTY(OWL.ObjectProperty, OntOPEImpl.NamedPropertyImpl.class) {
         @Override
         Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
@@ -119,25 +139,47 @@ public enum Entities implements Configurable<OntObjectFactory> {
         Set<Property> builtInURIs() {
             return BUILTIN.objectProperties();
         }
+
+        @Override
+        public Class<OntNOP> getClassType() {
+            return OntNOP.class;
+        }
     },
-    INDIVIDUAL(OntIndividualImpl.NamedImpl.class, OWL.NamedIndividual);
+    INDIVIDUAL(OWL.NamedIndividual, OntIndividualImpl.NamedImpl.class) {
+        @Override
+        public Class<OntIndividual.Named> getClassType() {
+            return OntIndividual.Named.class;
+        }
+    };
 
     public static final BuiltIn.Vocabulary BUILTIN = BuiltIn.get();
 
     public static final Configurable<OntObjectFactory> ALL = OntObjectImpl.concatFactories(OntFinder.TYPED, values());
 
     private final Class<? extends OntObjectImpl> impl;
-    private final Resource type;
+    private final Resource resourceType;
     private final Map<Mode, OntObjectFactory> registry = new HashMap<>();
 
-    Entities(Class<? extends OntObjectImpl> impl, Resource type) {
+    Entities(Resource resourceType, Class<? extends OntObjectImpl> impl) {
         this.impl = impl;
-        this.type = type;
+        this.resourceType = resourceType;
     }
 
-    public Resource type() {
-        return type;
+    /**
+     * Returns entity resource-type.
+     *
+     * @return {@link Resource}
+     */
+    public Resource getResourceType() {
+        return resourceType;
     }
+
+    /**
+     * Returns entity class-type.
+     *
+     * @return {@link Class}
+     */
+    public abstract Class<? extends OntEntity> getClassType();
 
     Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
         return Stream.empty();
@@ -145,6 +187,19 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
     Set<? extends Resource> builtInURIs() {
         return Collections.emptySet();
+    }
+
+    /**
+     * Finds the entity by the resource-type.
+     *
+     * @param type {@link Resource}
+     * @return {@link Optional} of {@link Entities}
+     */
+    public static Optional<Entities> find(Resource type) {
+        for (Entities e : values()) {
+            if (Objects.equals(e.resourceType, type)) return Optional.of(e);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -183,14 +238,14 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
     private OntObjectFactory makeDefault(Mode mode) {
         OntModelConfig.StdMode m = mode instanceof OntModelConfig.StdMode ? (OntModelConfig.StdMode) mode : OntModelConfig.StdMode.LAX;
-        OntFinder finder = new OntFinder.ByType(type);
+        OntFinder finder = new OntFinder.ByType(resourceType);
 
         OntFilter illegalPunningsFilter = OntFilter.TRUE.accumulate(bannedTypes(m)
                 .map(OntFilter.HasType::new).map(OntFilter::negate).toArray(OntFilter[]::new));
 
-        OntFilter filter = new OntFilter.OneOf(builtInURIs()).or(OntFilter.URI.and(new OntFilter.HasType(type).and(illegalPunningsFilter)));
+        OntFilter filter = new OntFilter.OneOf(builtInURIs()).or(OntFilter.URI.and(new OntFilter.HasType(resourceType).and(illegalPunningsFilter)));
         //OntFilter filter = OntFilter.URI.and((new OntFilter.HasType(type).and(illegalPunningsFilter)).or(new OntFilter.OneOf(builtInURIs())));
-        OntMaker maker = new OntMaker.WithType(impl, type).restrict(illegalPunningsFilter);
+        OntMaker maker = new OntMaker.WithType(impl, resourceType).restrict(illegalPunningsFilter);
 
         return new CommonOntObjectFactory(maker, finder, filter);
     }

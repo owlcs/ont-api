@@ -759,7 +759,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
 
     @Override
     public Stream<OWLLogicalAxiom> logicalAxioms() {
-        return base.listOWLAxioms(AxiomType.AXIOM_TYPES.stream().filter(AxiomType::isLogical).collect(Collectors.toSet())).map(OWLLogicalAxiom.class::cast);
+        return base.listOWLAxioms(InternalModel.AXIOM_TYPES.stream()
+                .filter(AxiomType::isLogical).collect(Collectors.toList())).map(OWLLogicalAxiom.class::cast);
     }
 
     @Override

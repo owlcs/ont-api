@@ -64,14 +64,17 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         return Models.listStatements(model, null, getPredicate(), null)
-                .filterKeep(s -> s.getSubject().canAs(getView()) && s.getObject().canAs(RDFList.class));
+                .filterKeep(this::filter);
+    }
+
+    protected boolean filter(OntStatement statement) {
+        return statement.getSubject().canAs(getView())
+                && statement.getObject().canAs(RDFList.class);
     }
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
-        return statement.getSubject().equals(getPredicate())
-                && statement.getSubject().canAs(getView())
-                && statement.getObject().canAs(RDFList.class);
+        return getPredicate().equals(statement.getPredicate()) && filter(statement);
     }
 
     ONTObject<Axiom> makeAxiom(OntStatement statement,

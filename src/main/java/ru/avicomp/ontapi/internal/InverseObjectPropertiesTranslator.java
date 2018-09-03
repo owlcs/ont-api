@@ -57,7 +57,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     public boolean testStatement(OntStatement statement, InternalConfig config) {
         if (!OWL.inverseOf.equals(statement.getPredicate())) return false;
         // skip {@code _:x owl:inverseOf PN} (inverse object property expression):
-        if (!statement.getSubject().isAnon() || !statement.getObject().isURIResource()) return false;
+        if (statement.getSubject().isAnon() && statement.getObject().isURIResource()) return false;
         return statement.getSubject().canAs(OntOPE.class) && statement.getObject().canAs(OntOPE.class);
     }
 

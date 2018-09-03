@@ -117,6 +117,17 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     }
 
     /**
+     * TODO: debug
+     *
+     * @param statement
+     * @return
+     * @throws JenaException
+     */
+    public final ONTObject<Axiom> toAxiom(OntStatement statement) throws JenaException {
+        return toAxiom(statement, getDataFactory(statement.getModel()), getConfig(statement.getModel()).snapshot());
+    }
+
+    /**
      * Lists all statements from the base graph of the given model that match this axiom definition.
      *
      * @param model  {@link OntGraphModel Ontology Jena Model}
