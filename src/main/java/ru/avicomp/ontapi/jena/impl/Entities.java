@@ -14,13 +14,13 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.*;
@@ -36,19 +36,19 @@ import java.util.stream.Stream;
 public enum Entities implements Configurable<OntObjectFactory> {
     CLASS(OWL.Class, OntClassImpl.class) {
         @Override
-        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
+        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case MEDIUM:
                 case STRICT:
-                    return Stream.of(RDFS.Datatype);
+                    return Collections.singleton(RDFS.Datatype);
                 default:
-                    return Stream.empty();
+                    return Collections.emptySet();
             }
         }
 
         @Override
-        Set<Resource> builtInURIs() {
-            return BUILTIN.classes();
+        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
+            return vocabulary.classes();
         }
 
         @Override
@@ -58,19 +58,19 @@ public enum Entities implements Configurable<OntObjectFactory> {
     },
     DATATYPE(RDFS.Datatype, OntDatatypeImpl.class) {
         @Override
-        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
+        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case MEDIUM:
                 case STRICT:
-                    return Stream.of(OWL.Class);
+                    return Collections.singleton(OWL.Class);
                 default:
-                    return Stream.empty();
+                    return Collections.emptySet();
             }
         }
 
         @Override
-        Set<Resource> builtInURIs() {
-            return BUILTIN.datatypes();
+        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
+            return vocabulary.datatypes();
         }
 
         @Override
@@ -80,18 +80,18 @@ public enum Entities implements Configurable<OntObjectFactory> {
     },
     ANNOTATION_PROPERTY(OWL.AnnotationProperty, OntAPropertyImpl.class) {
         @Override
-        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
+        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case STRICT:
-                    return Stream.of(OWL.ObjectProperty, OWL.DatatypeProperty);
+                    return Stream.of(OWL.ObjectProperty, OWL.DatatypeProperty).collect(Iter.toUnmodifiableSet());
                 default:
-                    return Stream.empty();
+                    return Collections.emptySet();
             }
         }
 
         @Override
-        Set<Property> builtInURIs() {
-            return BUILTIN.annotationProperties();
+        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
+            return Collections.unmodifiableSet(vocabulary.annotationProperties());
         }
 
         @Override
@@ -101,20 +101,20 @@ public enum Entities implements Configurable<OntObjectFactory> {
     },
     DATA_PROPERTY(OWL.DatatypeProperty, OntDPropertyImpl.class) {
         @Override
-        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
+        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case STRICT:
-                    return Stream.of(OWL.ObjectProperty, OWL.AnnotationProperty);
+                    return Stream.of(OWL.ObjectProperty, OWL.AnnotationProperty).collect(Iter.toUnmodifiableSet());
                 case MEDIUM:
-                    return Stream.of(OWL.ObjectProperty);
+                    return Collections.singleton(OWL.ObjectProperty);
                 default:
-                    return Stream.empty();
+                    return Collections.emptySet();
             }
         }
 
         @Override
-        Set<Property> builtInURIs() {
-            return BUILTIN.datatypeProperties();
+        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
+            return Collections.unmodifiableSet(vocabulary.datatypeProperties());
         }
 
         @Override
@@ -124,20 +124,20 @@ public enum Entities implements Configurable<OntObjectFactory> {
     },
     OBJECT_PROPERTY(OWL.ObjectProperty, OntOPEImpl.NamedPropertyImpl.class) {
         @Override
-        Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
+        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
             switch (mode) {
                 case STRICT:
-                    return Stream.of(OWL.DatatypeProperty, OWL.AnnotationProperty);
+                    return Stream.of(OWL.DatatypeProperty, OWL.AnnotationProperty).collect(Iter.toUnmodifiableSet());
                 case MEDIUM:
-                    return Stream.of(OWL.DatatypeProperty);
+                    return Collections.singleton(OWL.DatatypeProperty);
                 default:
-                    return Stream.empty();
+                    return Collections.emptySet();
             }
         }
 
         @Override
-        Set<Property> builtInURIs() {
-            return BUILTIN.objectProperties();
+        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
+            return Collections.unmodifiableSet(vocabulary.objectProperties());
         }
 
         @Override
@@ -152,6 +152,7 @@ public enum Entities implements Configurable<OntObjectFactory> {
         }
     };
 
+    // don't use this ref, going to delete:
     public static final BuiltIn.Vocabulary BUILTIN = BuiltIn.get();
 
     public static final Configurable<OntObjectFactory> ALL = OntObjectImpl.concatFactories(OntFinder.TYPED, values());
@@ -181,11 +182,28 @@ public enum Entities implements Configurable<OntObjectFactory> {
      */
     public abstract Class<? extends OntEntity> getClassType();
 
-    Stream<Resource> bannedTypes(OntModelConfig.StdMode mode) {
-        return Stream.empty();
+    /**
+     * Returns illegal punnings set.
+     *
+     * @param mode {@link OntModelConfig.StdMode}
+     * @return Set of {@link Resource}s
+     */
+    Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
+        return Collections.emptySet();
     }
 
-    Set<? extends Resource> builtInURIs() {
+    Set<Resource> builtInURIs() {
+        return builtInURIs(BUILTIN);
+    }
+
+    /**
+     * Answers a Set of built-in resources specific to the entity.
+     *
+     * @param vocabulary {@link BuiltIn.Vocabulary}
+     * @return Set of {@link Resource}s
+     */
+    @SuppressWarnings("SameParameterValue")
+    Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
         return Collections.emptySet();
     }
 
@@ -197,7 +215,20 @@ public enum Entities implements Configurable<OntObjectFactory> {
      */
     public static Optional<Entities> find(Resource type) {
         for (Entities e : values()) {
-            if (Objects.equals(e.resourceType, type)) return Optional.of(e);
+            if (Objects.equals(e.getResourceType(), type)) return Optional.of(e);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Finds the entity by the class-type.
+     *
+     * @param type {@link Class}
+     * @return {@link Optional} of {@link Entities}
+     */
+    public static Optional<Entities> find(Class<? extends OntEntity> type) {
+        for (Entities e : values()) {
+            if (Objects.equals(e.getClassType(), type)) return Optional.of(e);
         }
         return Optional.empty();
     }
@@ -233,21 +264,30 @@ public enum Entities implements Configurable<OntObjectFactory> {
 
     @Override
     public OntObjectFactory select(Mode m) {
-        return registry.getOrDefault(m, makeDefault(m));
+        if (registry.containsKey(m)) {
+            return registry.get(m);
+        }
+        return createDefaultFactory(m);
     }
 
-    private OntObjectFactory makeDefault(Mode mode) {
+    public OntObjectFactory createDefaultFactory(Mode mode) {
         OntModelConfig.StdMode m = mode instanceof OntModelConfig.StdMode ? (OntModelConfig.StdMode) mode : OntModelConfig.StdMode.LAX;
+        Set<Resource> bannedTypes = bannedTypes(m);
+        Set<Resource> builtinURIs = builtInURIs();
+
         OntFinder finder = new OntFinder.ByType(resourceType);
 
-        OntFilter illegalPunningsFilter = OntFilter.TRUE.accumulate(bannedTypes(m)
+        OntFilter illegalPunningsFilter = OntFilter.TRUE.accumulate(bannedTypes.stream()
                 .map(OntFilter.HasType::new).map(OntFilter::negate).toArray(OntFilter[]::new));
 
-        OntFilter filter = new OntFilter.OneOf(builtInURIs()).or(OntFilter.URI.and(new OntFilter.HasType(resourceType).and(illegalPunningsFilter)));
-        //OntFilter filter = OntFilter.URI.and((new OntFilter.HasType(type).and(illegalPunningsFilter)).or(new OntFilter.OneOf(builtInURIs())));
+        OntFilter standardEntity = new OntFilter.HasType(resourceType).and(illegalPunningsFilter);
+        OntFilter builtInEntity = new OntFilter.OneOf(builtinURIs);
+        OntFilter filter = OntFilter.URI.and(standardEntity.or(builtInEntity));
+
         OntMaker maker = new OntMaker.WithType(impl, resourceType).restrict(illegalPunningsFilter);
 
         return new CommonOntObjectFactory(maker, finder, filter);
     }
+
 
 }

@@ -104,6 +104,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         throw new OntJenaException("Not uri resource " + res);
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected static Configurable<OntObjectFactory> buildMultiFactory(OntFinder finder,
                                                                       OntFilter filter,
                                                                       Configurable<? extends OntObjectFactory> configurable,
@@ -136,6 +137,16 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * {@inheritDoc}
      *
+     * @return {@code true} if the root statement belongs to the base graph
+     */
+    @Override
+    public boolean isLocal() {
+        return findRootStatement().map(OntStatement::isLocal).orElse(false);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
      * @return {@link OntStatement}
      */
     @Override
@@ -162,8 +173,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     public Optional<OntStatement> findRootStatement() {
         OntGraphModelImpl m = getModel();
-        try (Stream<RDFNode> objects = objects(RDF.type)) {
-            return objects.findFirst().map(o -> m.createStatement(this, RDF.type, o).asRootStatement());
+        ExtendedIterator<RDFNode> res = listObjects(RDF.type);
+        try {
+            return res.hasNext() ?
+                    Optional.of(res.next()).map(o -> m.createStatement(this, RDF.type, o).asRootStatement()) :
+                    Optional.empty();
+        } finally {
+            res.close();
         }
     }
 
@@ -176,16 +192,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public Stream<OntStatement> content() {
         return Stream.concat(spec(), statements().filter(x -> !x.isAnnotation()).collect(Collectors.toSet()).stream())
                 .distinct();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @return {@code true} if the root statement belongs to the base graph
-     */
-    @Override
-    public boolean isLocal() {
-        return findRootStatement().map(OntStatement::isLocal).orElse(false);
     }
 
     /**

@@ -102,8 +102,9 @@ public class Iter {
      * @param <T>  the element type of the new iterator
      * @return new {@link ExtendedIterator} of type {@link T}
      */
+    @SuppressWarnings("unchecked")
     public static <F, T> ExtendedIterator<T> flatMap(ExtendedIterator<F> base, Function<F, ? extends Iterator<T>> map) {
-        return WrappedIterator.createIteratorIterator(base.mapWith(map).mapWith(i -> i));
+        return WrappedIterator.createIteratorIterator((Iterator<Iterator<T>>) base.mapWith(map));
     }
 
     /**

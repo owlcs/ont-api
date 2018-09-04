@@ -56,18 +56,20 @@ public interface OntGraphModel extends Model {
     /**
      * Returns the base Graph, i.e. the primary Graph without any sub graphs.
      * Only the base graph is allowed to be edited from this interface.
-     * To get whole union graph use method {@link #getGraph()}.
+     * To get the whole union graph use method {@link #getGraph()}.
      *
      * @return {@link Graph}
+     * @see #getGraph()
      */
     Graph getBaseGraph();
 
     /**
-     * Returns the standard model that corresponds the base graph (see {@link #getBaseGraph()}).
-     * Note: there is a Jena-builtin Personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model})
+     * Returns the {@link Model standard jena model} that corresponds the base graph (see {@link #getBaseGraph()}).
+     * Note: there is a Jena Builtin Personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model})
      * inside the returned model.
      *
      * @return {@link Model}
+     * @see #getBaseGraph()
      */
     Model getBaseModel();
 

@@ -18,14 +18,12 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.jena.model.OntPE;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-
-import java.util.stream.Stream;
 
 /**
  * Property Expression base impl-class.
@@ -38,10 +36,15 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
 
     public static final OntFilter INVERSE_OF_FILTER = (n, g) -> {
         if (!n.isBlank()) return false;
-        try (Stream<Node> objects = Iter.asStream(g.asGraph().find(n, OWL.inverseOf.asNode(), Node.ANY))
-                .map(Triple::getObject)) {
-            return objects.anyMatch(o -> OntObjectImpl.canAs(OntNOP.class, o, g));
+        ExtendedIterator<Triple> res = g.asGraph().find(n, OWL.inverseOf.asNode(), Node.ANY);
+        try {
+            while (res.hasNext()) {
+                if (OntObjectImpl.canAs(OntNOP.class, res.next().getObject(), g)) return true;
+            }
+        } finally {
+            res.close();
         }
+        return false;
     };
 
     public static OntObjectFactory inversePropertyFactory = new CommonOntObjectFactory(new OntMaker.Default(OntOPEImpl.InversePropertyImpl.class),

@@ -227,6 +227,16 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         return Iter.asStream(listAnnotations());
     }
 
+    @Override
+    public boolean hasAnnotations() {
+        ExtendedIterator<OntStatement> res = listAnnotations();
+        try {
+            return res.hasNext();
+        } finally {
+            res.close();
+        }
+    }
+
     /**
      * Lists all annotation assertion statements related to this one.
      *

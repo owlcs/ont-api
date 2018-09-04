@@ -15,11 +15,14 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
+import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.List;
@@ -105,13 +108,13 @@ public class ReadHelper {
      * @return a set of wraps {@link ONTObject} around {@link OWLAnnotation}
      */
     public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement, InternalConfig conf, NoCacheDataFactory df) {
-        Stream<OntStatement> res = statement.annotations();
+        ExtendedIterator<OntStatement> res = listAnnotations(statement);
         if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
-            res = res.filter(s -> !isAnnotationAssertionStatement(s, conf));
+            res = res.filterDrop(s -> isAnnotationAssertionStatement(s, conf));
         }
-        return res.map(a -> getAnnotation(a, df)).collect(Collectors.toSet());
+        return res.mapWith(a -> getAnnotation(a, df)).toSet();
     }
 
     /**
@@ -147,13 +150,26 @@ public class ReadHelper {
         Resource subject = root.getSubject();
         ONTObject<OWLAnnotationProperty> p = df.get(root.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = df.get(root.getObject());
-        Set<ONTObject<OWLAnnotation>> children = root.annotations().map(a -> getHierarchicalAnnotations(a, df)).collect(Collectors.toSet());
+        Set<ONTObject<OWLAnnotation>> children = listAnnotations(root).mapWith(a -> getHierarchicalAnnotations(a, df)).toSet();
         OWLAnnotation object = df.getOWLDataFactory().getOWLAnnotation(p.getObject(), v.getObject(), children.stream().map(ONTObject::getObject));
         ONTObject<OWLAnnotation> res = ONTObject.create(object, root);
         if (subject.canAs(OntAnnotation.class)) {
             res = res.append(subject.as(OntAnnotation.class));
         }
         return res.append(p).append(v).append(children);
+    }
+
+    /**
+     * Returns an iterator over all annotations of the given statement.
+     *
+     * @param s {@link OntStatement}
+     * @return {@link ExtendedIterator}
+     */
+    public static ExtendedIterator<OntStatement> listAnnotations(OntStatement s) {
+        if (s instanceof OntStatementImpl) {
+            return ((OntStatementImpl) s).listAnnotations();
+        }
+        return WrappedIterator.create(s.annotations().iterator());
     }
 
     /**
@@ -196,7 +212,6 @@ public class ReadHelper {
             return df.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.LANG_RANGE, literal);
         throw new OntApiException("Unsupported facet restriction " + fr);
     }
-
 
     /**
      * Calculates an {@link OWLDataRange} wrapped by {@link ONTObject}.

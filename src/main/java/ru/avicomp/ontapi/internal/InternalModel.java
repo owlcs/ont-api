@@ -598,7 +598,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * @return {@link ObjectTriplesMap cache bucket} of {@link OWLAxiom}s of the given class-type
      */
     protected <A extends OWLAxiom> ObjectTriplesMap<A> readAxiomTriples(Class<A> type) {
-        return ObjectTriplesMap.create(type, AxiomParserProvider.get(type).axioms(InternalModel.this));
+        return ObjectTriplesMap.create(type, Iter.asStream(AxiomParserProvider.get(type)
+                .listAxioms(InternalModel.this, cacheDataFactory, getConfig().snapshot())));
     }
 
     /**

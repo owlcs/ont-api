@@ -19,14 +19,12 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * To filter resources.
@@ -44,16 +42,28 @@ public interface OntFilter {
     boolean test(Node n, EnhGraph g);
 
     default OntFilter and(OntFilter other) {
-        OntJenaException.notNull(other, "Null and-filter.");
-        return (Node n, EnhGraph g) -> test(n, g) && other.test(n, g);
+        if (Objects.requireNonNull(other, "Null and-filter.").equals(TRUE)) {
+            return this;
+        }
+        if (this.equals(TRUE)) return other;
+        if (other.equals(FALSE)) return FALSE;
+        if (this.equals(FALSE)) return FALSE;
+        return (Node n, EnhGraph g) -> this.test(n, g) && other.test(n, g);
     }
 
     default OntFilter or(OntFilter other) {
-        OntJenaException.notNull(other, "Null or-filter.");
-        return (Node n, EnhGraph g) -> test(n, g) || other.test(n, g);
+        if (Objects.requireNonNull(other, "Null or-filter.").equals(TRUE)) {
+            return TRUE;
+        }
+        if (this.equals(TRUE)) return TRUE;
+        if (other.equals(FALSE)) return this;
+        if (this.equals(FALSE)) return other;
+        return (Node n, EnhGraph g) -> this.test(n, g) || other.test(n, g);
     }
 
     default OntFilter negate() {
+        if (this.equals(TRUE)) return FALSE;
+        if (this.equals(FALSE)) return TRUE;
         return (Node n, EnhGraph g) -> !test(n, g);
     }
 
@@ -69,7 +79,7 @@ public interface OntFilter {
         protected final Node predicate;
 
         public HasPredicate(Property predicate) {
-            this.predicate = OntJenaException.notNull(predicate, "Null predicate.").asNode();
+            this.predicate = Objects.requireNonNull(predicate, "Null predicate.").asNode();
         }
 
         @Override
@@ -82,7 +92,7 @@ public interface OntFilter {
         protected final Node type;
 
         public HasType(Resource type) {
-            this.type = OntJenaException.notNull(type, "Null type.").asNode();
+            this.type = Objects.requireNonNull(type, "Null type.").asNode();
         }
 
         @Override
@@ -95,13 +105,18 @@ public interface OntFilter {
         protected final Set<Node> nodes;
 
         public OneOf(Collection<? extends RDFNode> types) {
-            this.nodes = Optional.ofNullable(types).orElse(Collections.emptySet())
-                    .stream().map(RDFNode::asNode).collect(Collectors.toSet());
+            this.nodes = Objects.requireNonNull(types).stream().map(RDFNode::asNode).collect(Iter.toUnmodifiableSet());
         }
 
         @Override
         public boolean test(Node n, EnhGraph g) {
             return nodes.contains(n);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (nodes.isEmpty() && FALSE == o) return true;
+            return super.equals(o);
         }
     }
 }

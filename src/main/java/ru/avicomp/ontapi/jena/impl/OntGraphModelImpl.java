@@ -183,6 +183,20 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
         return getGraph().getUnderlying().graphs().map(g -> new OntGraphModelImpl(g, personality));
     }
 
+    /**
+     * Gets the top-level {@link OntGraphModelImpl Ontology Graph Model impl}.
+     * This model may contain import declarations, but cannot contain sub-models.
+     *
+     * @return {@link OntGraphModelImpl}
+     * @see #getBaseModel()
+     * @since 1.3.0
+     */
+    public OntGraphModelImpl getTopModel() {
+        if (getGraph().getUnderlying().hasSubGraphs())
+            return new OntGraphModelImpl(getBaseGraph(), getPersonality());
+        return this;
+    }
+
     @Override
     public InfModel getInferenceModel(Reasoner reasoner) {
         return new InfModelImpl(OntJenaException.notNull(reasoner, "Null reasoner.").bind(getGraph()));
@@ -202,14 +216,37 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     /**
-     * Lists all {@link OntObject Ontology Objects} and caches them inside the model.
+     * Lists all {@link OntObject Ontology Object}s and caches them inside this model.
      *
      * @param type {@link Class} the type of {@link OntObject}, not null
      * @param <O>  subtype of {@link OntObject}
      * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
      */
     public <O extends OntObject> ExtendedIterator<O> listOntObjects(Class<O> type) {
-        return getPersonality().getOntImplementation(type).iterator(this).mapWith(e -> getNodeAs(e.asNode(), type));
+        return listOntObjects(this, type);
+    }
+
+    /**
+     * The same as {@link #listOntObjects(Class)}, but for the base graph.
+     *
+     * @param type {@link Class} the type of {@link OntObject}, not null
+     * @param <O>  subtype of {@link OntObject}
+     * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
+     */
+    public <O extends OntObject> ExtendedIterator<O> listLocalOntObjects(Class<O> type) {
+        return listOntObjects(getTopModel(), type);
+    }
+
+    /**
+     * Lists all {@code OntObject}s for the given {@code OntGraphModelImpl}.
+     *
+     * @param m    {@link OntGraphModelImpl} the impl to cache
+     * @param type {@link Class} the type of {@link OntObject}, not null
+     * @param <O>  subtype of {@link OntObject}
+     * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
+     */
+    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModelImpl m, Class<O> type) {
+        return m.getPersonality().getOntImplementation(type).iterator(m).mapWith(e -> m.getNodeAs(e.asNode(), type));
     }
 
     @Override
@@ -226,22 +263,23 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * Built-ins are not included.
      *
      * @return {@link ExtendedIterator Extended Iterator} of {@link OntEntity}s
+     * @see #listLocalOntEntities()
+     * @see OntEntity#listEntityTypes()
      */
+    @SuppressWarnings("unchecked")
     public ExtendedIterator<OntEntity> listOntEntities() {
-        return Iter.flatMap(OntEntity.listEntityTypes(), t -> listOntEntities(t).mapWith(e -> e));
+        return Iter.flatMap(OntEntity.listEntityTypes(), t -> (ExtendedIterator<OntEntity>) listOntObjects(t));
     }
 
     /**
-     * List all Ontology Entittes with the given class-type.
+     * The same as {@link #listOntEntities()} but for the base graph.
      *
-     * @param type {@link Class} the type of {@link OntEntity}, not null
-     * @param <E>  subtype of {@link OntEntity}
-     * @return {@link ExtendedIterator Extended Iterator} of {@link OntEntity}s with the given type
-     * @see #ontEntities(Class)
-     * @see OntEntity#listEntityTypes()
+     * @return {@link ExtendedIterator Extended Iterator} of {@link OntEntity}s
+     * @see #listOntEntities()
      */
-    public <E extends OntEntity> ExtendedIterator<E> listOntEntities(Class<E> type) {
-        return listOntObjects(type);
+    @SuppressWarnings("unchecked")
+    public ExtendedIterator<OntEntity> listLocalOntEntities() {
+        return Iter.flatMap(OntEntity.listEntityTypes(), t -> (ExtendedIterator<OntEntity>) listLocalOntObjects(t));
     }
 
     /**

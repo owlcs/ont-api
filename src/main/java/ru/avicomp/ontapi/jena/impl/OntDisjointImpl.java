@@ -23,6 +23,7 @@ import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
@@ -31,7 +32,6 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -113,24 +113,27 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
 
     private static OntFilter getHasMembersOfFilter(Class<? extends RDFNode> view, boolean allowEmptyList, Property... predicates) {
         return (node, eg) -> {
-            try (Stream<Node> nodes = listRoots(node, eg.asGraph(), predicates)) {
-                return nodes.anyMatch(n -> testList(n, eg, view, allowEmptyList));
+            ExtendedIterator<Node> res = listRoots(node, eg.asGraph(), predicates);
+            try {
+                while (res.hasNext()) {
+                    if (testList(res.next(), eg, view, allowEmptyList)) return true;
+                }
+            } finally {
+                res.close();
             }
+            return false;
         };
     }
 
-    private static Stream<Node> listRoots(Node node, Graph graph, Property... predicates) {
-        return Stream.of(predicates)
-                .map(predicate -> Iter.asStream(graph.find(node, predicate.asNode(), Node.ANY).mapWith(Triple::getObject)))
-                .flatMap(Function.identity());
+    private static ExtendedIterator<Node> listRoots(Node node, Graph graph, Property... predicates) {
+        return Iter.flatMap(Iter.of(predicates), p -> graph.find(node, p.asNode(), Node.ANY).mapWith(Triple::getObject));
     }
 
     private static boolean testList(Node node, EnhGraph graph, Class<? extends RDFNode> view, boolean allowEmptyList) {
         if (!RDFListImpl.factory.canWrap(node, graph)) return false;
         if (view == null) return true;
         RDFList list = RDFListImpl.factory.wrap(node, graph).as(RDFList.class);
-        return (list.isEmpty() && allowEmptyList) || Iter.asStream(list.iterator())
-                .map(RDFNode::asNode)
+        return (list.isEmpty() && allowEmptyList) || Iter.asStream(list.iterator().mapWith(RDFNode::asNode))
                 .anyMatch(n -> OntObjectImpl.canAs(view, n, graph));
     }
 

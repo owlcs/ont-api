@@ -20,11 +20,12 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import ru.avicomp.ontapi.jena.OntJenaException;
+import org.apache.jena.util.iterator.NullIterator;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -62,7 +63,8 @@ public interface OntFinder {
     }
 
     default OntFinder restrict(OntFilter filter) {
-        OntJenaException.notNull(filter, "Null restriction filter.");
+        if (Objects.requireNonNull(filter, "Null restriction filter.").equals(OntFilter.TRUE)) return this;
+        if (filter.equals(OntFilter.FALSE)) return eg -> NullIterator.instance();
         return eg -> iterator(eg).filterKeep(n -> filter.test(n, eg));
     }
 
@@ -70,12 +72,12 @@ public interface OntFinder {
         protected final Node type;
 
         public ByType(Resource type) {
-            this.type = OntJenaException.notNull(type, "Null type.").asNode();
+            this.type = Objects.requireNonNull(type, "Null type.").asNode();
         }
 
         @Override
         public ExtendedIterator<Node> iterator(EnhGraph eg) {
-            return eg.asGraph().find(Node.ANY, RDF.type.asNode(), type).mapWith(Triple::getSubject);
+            return eg.asGraph().find(Node.ANY, RDF.Nodes.type, type).mapWith(Triple::getSubject);
         }
     }
 
@@ -83,7 +85,7 @@ public interface OntFinder {
         protected final Node predicate;
 
         public ByPredicate(Property predicate) {
-            this.predicate = OntJenaException.notNull(predicate, "Null predicate.").asNode();
+            this.predicate = Objects.requireNonNull(predicate, "Null predicate.").asNode();
         }
 
         @Override

@@ -289,7 +289,7 @@ public class Models {
      * This method can be used in case there are several typed b-nodes for each annotation assertions instead of a single one.
      * Such situation is not canonical way and should not be widely used, since it is redundant.
      * So usually the result stream contains only a single element: the same {@code OntStatement} instance as the input.
-     *
+     * <p>
      * The following code demonstrates that non-canonical way of writing annotations with two or more b-nodes:
      * <pre>{@code
      * s A t .
@@ -462,13 +462,10 @@ public class Models {
      * @since 1.3.0
      */
     public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModel model, Class<O> type) {
-        ExtendedIterator<O> res;
         if (model instanceof OntGraphModelImpl) {
-            res = ((OntGraphModelImpl) model).listOntObjects(type);
-        } else {
-            res = WrappedIterator.create(model.ontObjects(type).iterator());
+            return ((OntGraphModelImpl) model).listLocalOntObjects(type);
         }
-        return res.filterKeep(OntObject::isLocal);
+        return WrappedIterator.create(model.ontObjects(type).iterator()).filterKeep(OntObject::isLocal);
     }
 
     /**
@@ -481,12 +478,9 @@ public class Models {
      * @since 1.3.0
      */
     public static ExtendedIterator<OntEntity> listEntities(OntGraphModel model) {
-        ExtendedIterator<OntEntity> res;
         if (model instanceof OntGraphModelImpl) {
-            res = ((OntGraphModelImpl) model).listOntEntities();
-        } else {
-            res = WrappedIterator.create(model.ontEntities().iterator());
+            return ((OntGraphModelImpl) model).listLocalOntEntities();
         }
-        return res.filterKeep(OntObject::isLocal);
+        return WrappedIterator.create(model.ontEntities().iterator()).filterKeep(OntObject::isLocal);
     }
 }
