@@ -286,7 +286,7 @@ public interface OntCE extends OntObject {
 
     /*
      * ============================
-     * all known Class Expressions:
+     * All known Class Expressions:
      * ============================
      */
 
@@ -314,12 +314,6 @@ public interface OntCE extends OntObject {
     interface DataMinCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
     }
 
-    /*
-     * ======================================
-     * Technical interfaces for abstract CEs:
-     * ======================================
-     */
-
     interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
     }
 
@@ -334,12 +328,6 @@ public interface OntCE extends OntObject {
 
     interface HasSelf extends RestrictionCE, ONProperty<OntOPE> {
     }
-
-    /*
-     * ============================
-     * Interfaces for Abstract CEs:
-     * ============================
-     */
 
     interface UnionOf extends ComponentsCE<OntCE> {
     }
@@ -360,9 +348,9 @@ public interface OntCE extends OntObject {
     }
 
     /*
-     * =====================================
-     * Abstract class expression interfaces:
-     * =====================================
+     * ===========================
+     * Abstract class expressions:
+     * ===========================
      */
 
     interface ComponentsCE<O extends OntObject> extends OntCE, Components<O> {

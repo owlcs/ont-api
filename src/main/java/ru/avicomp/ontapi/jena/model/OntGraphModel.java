@@ -65,8 +65,8 @@ public interface OntGraphModel extends Model {
 
     /**
      * Returns the {@link Model standard jena model} that corresponds the base graph (see {@link #getBaseGraph()}).
-     * Note: there is a Jena Builtin Personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model})
-     * inside the returned model.
+     * Note: there is the {@link org.apache.jena.enhanced.BuiltinPersonalities#model Jena Builtin Personality}
+     * within the returned model.
      *
      * @return {@link Model}
      * @see #getBaseGraph()
@@ -74,13 +74,15 @@ public interface OntGraphModel extends Model {
     Model getBaseModel();
 
     /**
-     * Returns the inference model shadow.
-     * Note(1): there is a jena-builtin personality ({@link org.apache.jena.enhanced.BuiltinPersonalities#model})
-     * inside the returned model.
-     * Note(2): any changes in the returned {@link InfModel inf model} do not affect on this model.
+     * Creates the inference model shadow using this model as data.
+     * Note(1): there is the {@link org.apache.jena.enhanced.BuiltinPersonalities#model Jena Builtin Personality}
+     * within the returned model.
+     * Note(2): any changes in the returned {@link InfModel Inference Model} do not affect on this model.
      *
      * @param reasoner {@link Reasoner}, not null.
      * @return {@link InfModel}
+     * @throws org.apache.jena.reasoner.ReasonerException if the data is ill-formed according to the
+     * constraints imposed by this reasoner.
      */
     InfModel getInferenceModel(Reasoner reasoner);
 
@@ -148,14 +150,14 @@ public interface OntGraphModel extends Model {
     Stream<OntGraphModel> imports();
 
     /**
-     * Lists all ont-objects for the specified type.
+     * Lists all ont-objects of the specified type.
      *
-     * @param type {@link Class} the type of {@link OntObject}, not null
-     * @param <O>  ont-object subtype
-     * @return Stream of {@link OntObject}s
+     * @param type {@link Class} the concrete type of {@link OntObject}, not {@code null}
+     * @param <O>  any ont-object subtype
+     * @return Stream of {@link OntObject}s of the type {@link O}
      * @see #ontEntities()
      */
-    <O extends OntObject> Stream<O> ontObjects(Class<O> type);
+    <O extends OntObject> Stream<O> ontObjects(Class<? extends O> type);
 
     /**
      * Lists all entities declared in the model.
@@ -274,16 +276,16 @@ public interface OntGraphModel extends Model {
     OntGraphModel removeOntStatement(OntStatement statement);
 
     /**
-     * Creates an owl-entity by type and uri.
+     * Creates an owl-entity by the {@code type} and {@code iri}.
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not null
-     * @param uri, String, not null
+     * @param iri String, not null
      * @param <E>  type of ont-entity
      * @return {@link OntEntity}
      * @throws OntJenaException.Creation in case something is wrong
      * @see #getOntEntity(Class, String)
      */
-    <E extends OntEntity> E createOntEntity(Class<E> type, String uri);
+    <E extends OntEntity> E createOntEntity(Class<E> type, String iri);
 
     /**
      * Creates a facet restriction by the given type and literal value.

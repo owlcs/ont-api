@@ -129,12 +129,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
      * @return a fresh {@link OntList} instance which wraps an existing []-list within the model Graph
      * @see #asSafeOntList(RDFList, OntGraphModelImpl, OntObject, Property, Resource, Class)
      */
-    public static <N extends RDFNode> OntList<N> asOntList(RDFList list,
-                                                           OntGraphModelImpl model,
-                                                           OntObject subject,
-                                                           Property predicate,
-                                                           Resource listType,
-                                                           Class<N> elementType) {
+    public static <N extends RDFNode> OntListImpl<N> asOntList(RDFList list,
+                                                               OntGraphModelImpl model,
+                                                               OntObject subject,
+                                                               Property predicate,
+                                                               Resource listType,
+                                                               Class<N> elementType) {
         checkRequiredInput(model, subject, predicate, listType, elementType);
         Objects.requireNonNull(list, "Null RDF-List");
         return new OntListImpl<N>(subject, predicate, list, listType, model, elementType) {
@@ -162,12 +162,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
      * @return a fresh {@link OntList} instance which wraps an existing []-list within the model Graph
      * @see #asOntList(RDFList, OntGraphModelImpl, OntObject, Property, Resource, Class)
      */
-    protected static <N extends RDFNode> OntList<N> asSafeOntList(RDFList list,
-                                                                  OntGraphModelImpl model,
-                                                                  OntObject subject,
-                                                                  Property predicate,
-                                                                  Resource listType,
-                                                                  Class<N> elementType) {
+    protected static <N extends RDFNode> OntListImpl<N> asSafeOntList(RDFList list,
+                                                                      OntGraphModelImpl model,
+                                                                      OntObject subject,
+                                                                      Property predicate,
+                                                                      Resource listType,
+                                                                      Class<N> elementType) {
         return new OntListImpl<N>(subject, predicate, list, listType, model, elementType) {
             @Override
             public boolean isValid(RDFNode n) {

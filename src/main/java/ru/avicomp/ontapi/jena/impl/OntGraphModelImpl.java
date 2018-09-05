@@ -67,7 +67,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     /**
-     * Synchronizes imports with graph hierarchy with personality.
+     * Synchronizes import declarations with the graph hierarchy.
      *
      * @param personality {@link OntPersonality}
      */
@@ -192,8 +192,9 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @since 1.3.0
      */
     public OntGraphModelImpl getTopModel() {
-        if (getGraph().getUnderlying().hasSubGraphs())
+        if (getGraph().getUnderlying().hasSubGraphs()) {
             return new OntGraphModelImpl(getBaseGraph(), getPersonality());
+        }
         return this;
     }
 
@@ -211,7 +212,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @return Stream of {@link OntObject}s
      */
     @Override
-    public <O extends OntObject> Stream<O> ontObjects(Class<O> type) {
+    public <O extends OntObject> Stream<O> ontObjects(Class<? extends O> type) {
         return Iter.asStream(listOntObjects(type));
     }
 
@@ -222,7 +223,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @param <O>  subtype of {@link OntObject}
      * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
      */
-    public <O extends OntObject> ExtendedIterator<O> listOntObjects(Class<O> type) {
+    public <O extends OntObject> ExtendedIterator<O> listOntObjects(Class<? extends O> type) {
         return listOntObjects(this, type);
     }
 
@@ -233,7 +234,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @param <O>  subtype of {@link OntObject}
      * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
      */
-    public <O extends OntObject> ExtendedIterator<O> listLocalOntObjects(Class<O> type) {
+    public <O extends OntObject> ExtendedIterator<O> listLocalOntObjects(Class<? extends O> type) {
         return listOntObjects(getTopModel(), type);
     }
 
@@ -245,7 +246,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @param <O>  subtype of {@link OntObject}
      * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
      */
-    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModelImpl m, Class<O> type) {
+    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModelImpl m, Class<? extends O> type) {
         return m.getPersonality().getOntImplementation(type).iterator(m).mapWith(e -> m.getNodeAs(e.asNode(), type));
     }
 
@@ -268,7 +269,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      */
     @SuppressWarnings("unchecked")
     public ExtendedIterator<OntEntity> listOntEntities() {
-        return Iter.flatMap(OntEntity.listEntityTypes(), t -> (ExtendedIterator<OntEntity>) listOntObjects(t));
+        return Iter.flatMap(OntEntity.listEntityTypes(), this::listOntObjects);
     }
 
     /**
@@ -279,7 +280,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      */
     @SuppressWarnings("unchecked")
     public ExtendedIterator<OntEntity> listLocalOntEntities() {
-        return Iter.flatMap(OntEntity.listEntityTypes(), t -> (ExtendedIterator<OntEntity>) listLocalOntObjects(t));
+        return Iter.flatMap(OntEntity.listEntityTypes(), this::listLocalOntObjects);
     }
 
     /**
@@ -309,11 +310,11 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     @Override
-    public <T extends OntEntity> T createOntEntity(Class<T> type, String uri) {
+    public <T extends OntEntity> T createOntEntity(Class<T> type, String iri) {
         try {
-            return createOntObject(type, uri);
+            return createOntObject(type, iri);
         } catch (OntJenaException.Creation e) { // illegal punning:
-            throw new OntJenaException(String.format("Can't add entity [%s: %s]: perhaps it's illegal punning.", type.getSimpleName(), uri), e);
+            throw new OntJenaException(String.format("Can't add entity [%s: %s]: perhaps it's illegal punning.", type.getSimpleName(), iri), e);
         }
     }
 

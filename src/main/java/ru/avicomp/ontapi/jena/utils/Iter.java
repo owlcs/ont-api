@@ -96,15 +96,32 @@ public class Iter {
      * by applying the provided mapping function ({@code map}) to each element.
      * A functional equivalent of {@link Stream#flatMap(Function)}, but for {@link ExtendedIterator}s.
      *
-     * @param base {@link ExtendedIterator} with elements of type {@link F}
-     * @param map  {@link Function} map-function, Object of type {@link F} is an input, an {@link Iterator} of type {@link T} is an output
-     * @param <F>  the element type of the base iterator
-     * @param <T>  the element type of the new iterator
-     * @return new {@link ExtendedIterator} of type {@link T}
+     * @param base   {@link ExtendedIterator} with elements of type {@link F}
+     * @param mapper {@link Function} map-function with Object of type of {@link F} (or any super type) as an input,
+     *               and an {@link Iterator} of type {@link T} (or any extended type) as an output
+     * @param <F>    the element type of the base iterator (from)
+     * @param <T>    the element type of the new iterator (to)
+     * @return new {@link ExtendedIterator} of type {@link F}
      */
     @SuppressWarnings("unchecked")
-    public static <F, T> ExtendedIterator<T> flatMap(ExtendedIterator<F> base, Function<F, ? extends Iterator<T>> map) {
-        return WrappedIterator.createIteratorIterator((Iterator<Iterator<T>>) base.mapWith(map));
+    public static <T, F> ExtendedIterator<T> flatMap(ExtendedIterator<F> base,
+                                                     Function<? super F, ? extends Iterator<? extends T>> mapper) {
+        return WrappedIterator.createIteratorIterator(base.mapWith((Function<F, Iterator<T>>) mapper));
+    }
+
+    /**
+     * Creates a lazily concatenated {@link ExtendedIterator Extended Iterator} whose elements are all the
+     * elements of the first iterator followed by all the elements of the second iterator.
+     * A functional equivalent of {@link Stream#concat(Stream, Stream)}, but for {@link ExtendedIterator}s.
+     *
+     * @param a   the first iterator
+     * @param b   the second iterator
+     * @param <T> the type of iterator elements
+     * @return the concatenation of the two input iterators
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> ExtendedIterator<T> concat(ExtendedIterator<? extends T> a, ExtendedIterator<? extends T> b) {
+        return ((ExtendedIterator<T>) a).andThen(b);
     }
 
     /**

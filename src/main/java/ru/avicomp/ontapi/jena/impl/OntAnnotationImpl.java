@@ -184,7 +184,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
      */
     public static ExtendedIterator<Node> listRootAnnotations(EnhGraph eg) {
         return Iter.flatMap(Iter.of(OWL.Axiom.asNode()).andThen(EXTRA_ROOT_TYPES_AS_NODES.iterator()),
-                t -> eg.asGraph().find(Node.ANY, RDF.type.asNode(), t))
+                t -> eg.asGraph().find(Node.ANY, RDF.Nodes.type, t))
                 .mapWith(Triple::getSubject);
     }
 

@@ -281,7 +281,10 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
 
     @Override
     public Set<IRI> getPunnedIRIs(@Nonnull Imports imports) {
-        return base.ambiguousEntities(Imports.INCLUDED.equals(imports)).map(Resource::getURI).map(IRI::create).collect(Collectors.toSet());
+        return base.ambiguousEntities(Imports.INCLUDED.equals(imports))
+                .map(Resource::getURI)
+                .map(IRI::create)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -381,7 +384,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 OWLDisjointUnionAxiom.class,
                 OWLEquivalentClassesAxiom.class,
                 OWLSubClassOfAxiom.class)
-                .map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
+                .flatMap(c -> base.listOWLAxioms(c));
     }
 
     /**
@@ -407,7 +410,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 OWLFunctionalObjectPropertyAxiom.class,
                 OWLInverseFunctionalObjectPropertyAxiom.class,
                 OWLAsymmetricObjectPropertyAxiom.class
-        ).map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
+        ).flatMap(c -> base.listOWLAxioms(c));
     }
 
     /**
@@ -425,7 +428,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 OWLEquivalentDataPropertiesAxiom.class,
 
                 OWLFunctionalDataPropertyAxiom.class
-        ).map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
+        ).flatMap(c -> base.listOWLAxioms(c));
     }
 
     /**
@@ -444,7 +447,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
 
                 OWLSameIndividualAxiom.class,
                 OWLDifferentIndividualsAxiom.class
-        ).map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
+        ).flatMap(c -> base.listOWLAxioms(c));
     }
 
     /**
@@ -463,7 +466,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 OWLDisjointDataPropertiesAxiom.class,
                 OWLDisjointObjectPropertiesAxiom.class,
                 OWLDifferentIndividualsAxiom.class
-        ).map(c -> base.listOWLAxioms(c)).flatMap(Function.identity());
+        ).flatMap(c -> base.listOWLAxioms(c));
     }
 
     /**
@@ -518,8 +521,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 OWLEquivalentObjectPropertiesAxiom.class,
                 OWLDisjointObjectPropertiesAxiom.class,
                 OWLInverseObjectPropertiesAxiom.class
-        ).map(c -> base.listOWLAxioms(c))
-                .flatMap(Function.identity())
+        ).flatMap(c -> base.listOWLAxioms(c))
                 .map(OWLNaryPropertyAxiom.class::cast)
                 .filter(a -> a.operands().anyMatch(o -> Objects.equals(o, property)))
                 .map(OWLObjectPropertyAxiom.class::cast);
@@ -533,8 +535,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 OWLFunctionalObjectPropertyAxiom.class,
                 OWLInverseFunctionalObjectPropertyAxiom.class,
                 OWLAsymmetricObjectPropertyAxiom.class
-        ).map(c -> base.listOWLAxioms(c))
-                .flatMap(Function.identity())
+        ).flatMap(c -> base.listOWLAxioms(c))
                 .map(OWLUnaryPropertyAxiom.class::cast)
                 .filter(a -> Objects.equals(a.getProperty(), property))
                 .map(OWLObjectPropertyAxiom.class::cast);
@@ -565,8 +566,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 OWLEquivalentDataPropertiesAxiom.class,
                 OWLDisjointDataPropertiesAxiom.class,
                 OWLInverseObjectPropertiesAxiom.class
-        ).map(c -> base.listOWLAxioms(c))
-                .flatMap(Function.identity())
+        ).flatMap(c -> base.listOWLAxioms(c))
                 .map(OWLNaryPropertyAxiom.class::cast)
                 .filter(a -> a.operands().anyMatch(o -> Objects.equals(o, property)))
                 .map(OWLDataPropertyAxiom.class::cast);
@@ -574,8 +574,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 OWLDataPropertyDomainAxiom.class,
                 OWLDataPropertyRangeAxiom.class,
                 OWLFunctionalDataPropertyAxiom.class
-        ).map(c -> base.listOWLAxioms(c))
-                .flatMap(Function.identity())
+        ).flatMap(c -> base.listOWLAxioms(c))
                 .map(OWLUnaryPropertyAxiom.class::cast)
                 .filter(a -> Objects.equals(a.getProperty(), property))
                 .map(OWLDataPropertyAxiom.class::cast);
@@ -605,8 +604,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
         Stream<? extends OWLIndividualAxiom> nary = Stream.of(
                 OWLSameIndividualAxiom.class,
                 OWLDifferentIndividualsAxiom.class
-        ).map(c -> base.listOWLAxioms(c))
-                .flatMap(Function.identity())
+        ).flatMap(c -> base.listOWLAxioms(c))
                 .map(OWLNaryIndividualAxiom.class::cast)
                 .filter(a -> a.operands().anyMatch(o -> Objects.equals(o, individual)));
         Stream<? extends OWLIndividualAxiom> propertyAssertion = Stream.of(
@@ -614,8 +612,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 OWLDataPropertyAssertionAxiom.class,
                 OWLNegativeObjectPropertyAssertionAxiom.class,
                 OWLNegativeDataPropertyAssertionAxiom.class
-        ).map(c -> base.listOWLAxioms(c))
-                .flatMap(Function.identity())
+        ).flatMap(c -> base.listOWLAxioms(c))
                 .map(OWLPropertyAssertionAxiom.class::cast)
                 .filter(a -> Objects.equals(a.getSubject(), individual));
         return Stream.of(classAssertion, nary, propertyAssertion).flatMap(Function.identity());
@@ -768,7 +765,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
         Stream<OWLSubClassOfAxiom> subClassOfAxioms = base.listOWLAxioms(OWLSubClassOfAxiom.class)
                 .filter(a -> a.getSubClass().isAnonymous());
         Stream<? extends OWLNaryClassAxiom> naryClassAxioms = Stream.of(OWLEquivalentClassesAxiom.class, OWLDisjointClassesAxiom.class)
-                .map(base::listOWLAxioms).flatMap(Function.identity())
+                .flatMap(base::listOWLAxioms)
                 .filter(a -> a.classExpressions().allMatch(IsAnonymous::isAnonymous));
         return Stream.concat(subClassOfAxioms, naryClassAxioms);
     }
@@ -864,7 +861,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     public boolean contains(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key) {
         return base.listOWLAxioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)
                 .map(type -> type)
-                .collect(Collectors.toSet())).anyMatch(a -> filter.pass(a, key));
+                .collect(Collectors.toList())).anyMatch(a -> filter.pass(a, key));
     }
 
     @Override
