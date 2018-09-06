@@ -28,7 +28,6 @@ import ru.avicomp.ontapi.owlapi.objects.*;
 import ru.avicomp.ontapi.owlapi.objects.ce.*;
 import ru.avicomp.ontapi.owlapi.objects.dr.*;
 import ru.avicomp.ontapi.owlapi.objects.entity.*;
-import ru.avicomp.ontapi.owlapi.objects.literal.*;
 import ru.avicomp.ontapi.owlapi.objects.swrl.*;
 
 import java.time.Instant;
@@ -100,8 +99,6 @@ public class DataFactoryImpl implements DataFactory {
     private static final String ENTITY_TYPE_CANNOT_BE_NULL = "entityType cannot be null";
     private static final String ANNOTATIONS_CANNOT_BE_NULL = "annotations cannot be null";
 
-    private static final OWLLiteral NEGATIVE_FLOAT_ZERO = getBasicLiteral("-0.0", XSDFLOAT);
-
     private static void checkNotNegativeCardinality(long value) {
         if (value < 0) {
             throw new IllegalArgumentException(CARDINALITY_CANNOT_BE_NEGATIVE);
@@ -110,10 +107,6 @@ public class DataFactoryImpl implements DataFactory {
 
     private static void checkAnnotations(Collection<OWLAnnotation> o) {
         Objects.requireNonNull(o, ANNOTATIONS_CANNOT_BE_NULL);
-    }
-
-    public static boolean asBoolean(String str) {
-        return Boolean.parseBoolean(str) || "1".equals(str.trim());
     }
 
     @Override
@@ -239,13 +232,7 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLDatatype getOWLDatatype(IRI iri) {
-        Objects.requireNonNull(iri, IRI_CANNOT_BE_NULL);
-        return new OWLDatatypeImpl(iri);
-    }
-
-    @Override
-    public OWLLiteral getOWLLiteral(boolean value) {
-        return value ? TRUELITERAL : FALSELITERAL;
+        return new OWLDatatypeImpl(Objects.requireNonNull(iri, IRI_CANNOT_BE_NULL));
     }
 
     @Override
@@ -962,119 +949,39 @@ public class DataFactoryImpl implements DataFactory {
     }
 
     @Override
-    public OWLLiteral getOWLLiteral(String lexicalValue, OWLDatatype datatype) {
-        Objects.requireNonNull(lexicalValue, LEXICAL_VALUE_CANNOT_BE_NULL);
-        Objects.requireNonNull(datatype, DATATYPE_CANNOT_BE_NULL);
-        if (datatype.isRDFPlainLiteral() || datatype.equals(LANGSTRING)) {
-            int sep = lexicalValue.lastIndexOf('@');
-            if (sep != -1) {
-                String lex = lexicalValue.substring(0, sep);
-                String lang = lexicalValue.substring(sep + 1);
-                return getBasicLiteral(lex, lang, LANGSTRING);
-            } else {
-                return getBasicLiteral(lexicalValue, XSDSTRING);
-            }
-        }
-        // check the special cases
-        return parseSpecialCases(lexicalValue, datatype);
-    }
-
-    private static OWLLiteral getBasicLiteral(String lexicalValue, String lang, OWLDatatype datatype) {
-        return new OWLLiteralImpl(lexicalValue, lang, datatype);
-    }
-
-    private static OWLLiteral getBasicLiteral(String lexicalValue, OWLDatatype datatype) {
-        return getBasicLiteral(lexicalValue, "", datatype);
-    }
-
-    private OWLLiteral parseSpecialCases(String lexicalValue, OWLDatatype datatype) {
-        OWLLiteral literal;
-        try {
-            if (datatype.isString()) {
-                literal = getOWLLiteral(lexicalValue);
-            } else if (datatype.isBoolean()) {
-                literal = getOWLLiteral(asBoolean(lexicalValue.trim()));
-            } else if (datatype.isFloat()) {
-                literal = parseFloat(lexicalValue, datatype);
-            } else if (datatype.isDouble()) {
-                literal = getOWLLiteral(Double.parseDouble(lexicalValue));
-            } else if (datatype.isInteger()) {
-                literal = parseInteger(lexicalValue, datatype);
-            } else {
-                literal = getBasicLiteral(lexicalValue, datatype);
-            }
-        } catch (NumberFormatException e) {
-            // some literal is malformed, i.e., wrong format
-            literal = getBasicLiteral(lexicalValue, datatype);
-        }
-        return literal;
-    }
-
-    private static OWLLiteral parseFloat(String lexicalValue, OWLDatatype datatype) {
-        if ("-0.0".equals(lexicalValue.trim())) {
-            // according to some W3C test, this needs to be
-            // different from 0.0; Java floats disagree
-            return NEGATIVE_FLOAT_ZERO;
-        }
-        try {
-            return new OWLLiteralImplFloat(Float.parseFloat(lexicalValue));
-        } catch (NumberFormatException e) {
-            return getBasicLiteral(lexicalValue, datatype);
-        }
-    }
-
-    private static OWLLiteral parseInteger(String lexicalValue, OWLDatatype datatype) {
-        OWLLiteral literal;
-        // again, some W3C tests require padding zeroes to make
-        // literals different
-        if (lexicalValue.trim().charAt(0) == '0') {
-            literal = getBasicLiteral(lexicalValue, XSDINTEGER);
-        } else {
-            try {
-                // this is fine for values that can be parsed as
-                // ints - not all values are
-                literal = new OWLLiteralImplInteger(Integer.parseInt(lexicalValue));
-            } catch (NumberFormatException ex) {
-                // try as a big decimal
-                literal = getBasicLiteral(lexicalValue, datatype);
-            }
-        }
-        return literal;
+    public OWLLiteral getOWLLiteral(boolean b) {
+        return b ? TRUELITERAL : FALSELITERAL;
     }
 
     @Override
-    public OWLLiteral getOWLLiteral(int value) {
-        return new OWLLiteralImplInteger(value);
+    public OWLLiteral getOWLLiteral(int i) {
+        return OWLLiteralImpl.createLiteral(i);
     }
 
     @Override
-    public OWLLiteral getOWLLiteral(double value) {
-        return new OWLLiteralImplDouble(value);
+    public OWLLiteral getOWLLiteral(double d) {
+        return OWLLiteralImpl.createLiteral(d);
     }
 
     @Override
-    public OWLLiteral getOWLLiteral(float value) {
-        return new OWLLiteralImplFloat(value);
+    public OWLLiteral getOWLLiteral(float f) {
+        return OWLLiteralImpl.createLiteral(f);
     }
 
     @Override
-    public OWLLiteral getOWLLiteral(String value) {
-        Objects.requireNonNull(value, VALUE_CANNOT_BE_NULL);
-        return new OWLLiteralImplString(value);
+    public OWLLiteral getOWLLiteral(String txt) {
+        return OWLLiteralImpl.createLiteral(Objects.requireNonNull(txt, VALUE_CANNOT_BE_NULL));
     }
 
     @Override
-    public OWLLiteral getOWLLiteral(String literal, String lang) {
-        Objects.requireNonNull(literal, LITERAL_CANNOT_BE_NULL);
-        String normalisedLang;
-        if (lang == null) {
-            normalisedLang = "";
-        } else {
-            normalisedLang = lang.trim().toLowerCase(Locale.ENGLISH);
-        }
-        if (normalisedLang.isEmpty()) {
-            return new OWLLiteralImplString(literal);
-        } else return new OWLLiteralImplPlain(literal, normalisedLang);
+    public OWLLiteral getOWLLiteral(String txt, String lang) {
+        return OWLLiteralImpl.createLiteral(Objects.requireNonNull(txt, LITERAL_CANNOT_BE_NULL), lang);
+    }
+
+    @Override
+    public OWLLiteral getOWLLiteral(String txt, OWLDatatype dt) {
+        return OWLLiteralImpl.createLiteral(Objects.requireNonNull(txt, LEXICAL_VALUE_CANNOT_BE_NULL),
+                Objects.requireNonNull(dt, DATATYPE_CANNOT_BE_NULL));
     }
 
     @Override
