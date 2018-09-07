@@ -15,10 +15,12 @@ package org.semanticweb.owlapi.api.ontology;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 import ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
+import ru.avicomp.owlapi.OWLManager;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,15 +31,15 @@ import java.util.Set;
  * Research Group
  * @since 3.2.0
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({"javadoc", "SameParameterValue"})
 public class HashCodeTestCase {
 
     @Test
     public void testSetContainsInt() {
         OWLDatatypeImpl datatype = new OWLDatatypeImpl(OWL2Datatype.XSD_INTEGER.getIRI());
-        OWLLiteral litNoComp = OWLLiteralImpl.createLiteral("3", datatype);
-        OWLLiteral litNoComp2 = OWLLiteralImpl.createLiteral("3", datatype);
-        OWLLiteral litIntImpl = OWLLiteralImpl.createLiteral(3);
+        OWLLiteral litNoComp = create("3", datatype);
+        OWLLiteral litNoComp2 = create("3", datatype);
+        OWLLiteral litIntImpl = create(3);
         Assert.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
@@ -48,9 +50,9 @@ public class HashCodeTestCase {
     @Test
     public void testSetContainsDouble() {
         OWLDatatypeImpl datatype = new ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl(OWL2Datatype.XSD_DOUBLE.getIRI());
-        OWLLiteral litNoComp = OWLLiteralImpl.createLiteral("3.0", datatype);
-        OWLLiteral litNoComp2 = OWLLiteralImpl.createLiteral("3.0", datatype);
-        OWLLiteral litIntImpl = OWLLiteralImpl.createLiteral(3.0D);
+        OWLLiteral litNoComp = create("3.0", datatype);
+        OWLLiteral litNoComp2 = create("3.0", datatype);
+        OWLLiteral litIntImpl = create(3.0D);
         Assert.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
@@ -61,9 +63,9 @@ public class HashCodeTestCase {
     @Test
     public void testSetContainsFloat() {
         OWLDatatypeImpl datatype = new OWLDatatypeImpl(OWL2Datatype.XSD_FLOAT.getIRI());
-        OWLLiteral litNoComp = OWLLiteralImpl.createLiteral("3.0", datatype);
-        OWLLiteral litNoComp2 = OWLLiteralImpl.createLiteral("3.0", datatype);
-        OWLLiteral litIntImpl = OWLLiteralImpl.createLiteral(3.0F);
+        OWLLiteral litNoComp = create("3.0", datatype);
+        OWLLiteral litNoComp2 = create("3.0", datatype);
+        OWLLiteral litIntImpl = create(3.0F);
         Assert.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
@@ -74,13 +76,38 @@ public class HashCodeTestCase {
     @Test
     public void testSetContainsBoolean() {
         OWLDatatypeImpl datatype = new OWLDatatypeImpl(OWL2Datatype.XSD_BOOLEAN.getIRI());
-        OWLLiteral litNoComp = OWLLiteralImpl.createLiteral("true", datatype);
-        OWLLiteral litNoComp2 = OWLLiteralImpl.createLiteral("true", datatype);
-        OWLLiteral litIntImpl = OWLLiteralImpl.createLiteral(true);
+        OWLLiteral litNoComp = create("true", datatype);
+        OWLLiteral litNoComp2 = create("true", datatype);
+        OWLLiteral litIntImpl = create(true);
         Assert.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
         Assert.assertTrue(lncset.contains(litNoComp2));
         Assert.assertTrue(lncset.contains(litIntImpl));
+    }
+
+    private static OWLLiteral create(int i) {
+        return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplInteger(i) :
+                OWLLiteralImpl.createLiteral(i);
+    }
+
+    private static OWLLiteral create(double d) {
+        return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplDouble(d) :
+                OWLLiteralImpl.createLiteral(d);
+    }
+
+    private static OWLLiteral create(float f) {
+        return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplFloat(f) :
+                OWLLiteralImpl.createLiteral(f);
+    }
+
+    private static OWLLiteral create(boolean b) {
+        return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplBoolean(b) :
+                OWLLiteralImpl.createLiteral(b);
+    }
+
+    private static OWLLiteral create(String s, OWLDatatype d) {
+        return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImpl(s, null, d) :
+                OWLLiteralImpl.createLiteral(s, d);
     }
 }

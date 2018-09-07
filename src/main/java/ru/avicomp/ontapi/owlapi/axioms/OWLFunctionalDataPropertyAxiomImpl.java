@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import static ru.avicomp.ontapi.owlapi.InternalizedEntities.OWL_THING;
-import static ru.avicomp.ontapi.owlapi.InternalizedEntities.RDFSLITERAL;
+import static ru.avicomp.ontapi.owlapi.InternalizedEntities.RDFS_LITERAL;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
@@ -53,7 +53,7 @@ public class OWLFunctionalDataPropertyAxiomImpl extends OWLDataPropertyCharacter
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
         return new OWLSubClassOfAxiomImpl(OWL_THING,
-                new OWLDataMaxCardinalityImpl(getProperty(), 1, RDFSLITERAL),
+                new OWLDataMaxCardinalityImpl(getProperty(), 1, RDFS_LITERAL),
                 NO_ANNOTATIONS);
     }
 }

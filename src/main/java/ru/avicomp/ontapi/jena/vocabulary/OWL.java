@@ -29,6 +29,7 @@ public class OWL extends org.apache.jena.vocabulary.OWL2 {
      * The {@code owl:real} datatype does not directly provide any lexical forms.
      */
     public final static Resource real = resource("real");
+
     /**
      * The {@code owl:rational} datatype supports lexical forms defined by the following grammar
      * (whitespace within the grammar MUST be ignored and MUST NOT be included in the lexical forms of owl:rational,

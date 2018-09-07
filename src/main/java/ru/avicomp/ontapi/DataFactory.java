@@ -15,8 +15,10 @@
 package ru.avicomp.ontapi;
 
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.impl.LiteralLabel;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLLiteral;
 
 /**
  * An extended {@link OWLDataFactory OWL-API DataFactory} for creating entities, axioms and axiom components.
@@ -30,8 +32,16 @@ public interface DataFactory extends OWLDataFactory {
     /**
      * Creates an {@link OWLAnonymousIndividual OWL-API Anonymous Individual} for the given {@link BlankNodeId Jena Blank Node Id}.
      *
-     * @param id {@link BlankNodeId}, not null
+     * @param id {@link BlankNodeId}, not {@code null}
      * @return {@link OWLAnonymousIndividual} instance
      */
     OWLAnonymousIndividual getOWLAnonymousIndividual(BlankNodeId id);
+
+    /**
+     * Creates an {@link OWLLiteral OWL-API Literal} for the given {@link LiteralLabel Jena Literal Label}.
+     *
+     * @param label {@link LiteralLabel}, not {@code null}
+     * @return {@link OWLLiteral} istance
+     */
+    OWLLiteral getOWLLiteral(LiteralLabel label);
 }

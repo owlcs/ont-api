@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.owlapi.objects;
 
 import org.apache.jena.datatypes.BaseDatatype;
-import org.apache.jena.datatypes.DatatypeFormatException;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -26,6 +25,7 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.owlapi.InternalizedEntities;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
@@ -46,14 +46,14 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
     protected static TypeMapper typeMapper = TypeMapper.getInstance();
     public static final Map<String, OWLDatatype> BUILTIN_OWL_DATATYPES = Collections.unmodifiableMap(new HashMap<String, OWLDatatype>() {
         {
-            put(InternalizedEntities.LANGSTRING);
-            put(InternalizedEntities.RDFSLITERAL);
-            put(InternalizedEntities.PLAIN);
-            put(InternalizedEntities.XSDBOOLEAN);
-            put(InternalizedEntities.XSDDOUBLE);
-            put(InternalizedEntities.XSDFLOAT);
-            put(InternalizedEntities.XSDINTEGER);
-            put(InternalizedEntities.XSDSTRING);
+            put(InternalizedEntities.RDFS_LITERAL);
+            put(InternalizedEntities.RDF_LANG_STRING);
+            put(InternalizedEntities.RDF_PLAIN_LITERAL);
+            put(InternalizedEntities.XSD_STRING);
+            put(InternalizedEntities.XSD_BOOLEAN);
+            put(InternalizedEntities.XSD_DOUBLE);
+            put(InternalizedEntities.XSD_FLOAT);
+            put(InternalizedEntities.XSD_INTEGER);
         }
 
         private void put(OWLDatatype d) {
@@ -72,37 +72,99 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
         return newLiteral(LiteralLabelFactory.createTypedLiteral(s));
     }
 
+    /**
+     * Creates a literal impl by the given lexical from and language tag.
+     * The method normalises language tag to the trimmed lower-case form.
+     * Notice that language tag in general case may contain upper-case letters,
+     * and two similar but different strings are not equal.
+     * To create a literal with the retention of the syntax of a language-tag,
+     * use methods {@link #newLiteral(LiteralLabel)} or {@link #newLiteral(String, String, OWLDatatype)}
+     *
+     * @param val  String, lexical form, not {@code null}
+     * @param lang String, or {@code null} for Plain Literals
+     * @return {@link OWLLiteralImpl}
+     * @see #normalizeLanguageTag(String)
+     * @see #equals(Object)
+     */
     public static OWLLiteralImpl createLiteral(String val, String lang) {
-        // original logic is saved:
-        return newLiteral(LiteralLabelFactory.create(val, lang == null ? "" : lang.trim().toLowerCase(Locale.ENGLISH)));
+        return newLiteral(LiteralLabelFactory.create(val, normalizeLanguageTag(lang)));
     }
 
+    /**
+     * Creates a literal impl wrapping the given int number.
+     *
+     * @param i int
+     * @return {@link OWLLiteralImpl}
+     */
     public static OWLLiteralImpl createLiteral(int i) {
         return newLiteral(i, null, XSDDatatype.XSDinteger);
     }
 
+    /**
+     * Creates a literal impl wrapping the given boolean primitive.
+     *
+     * @param b boolean
+     * @return {@link OWLLiteralImpl}
+     */
     public static OWLLiteralImpl createLiteral(boolean b) {
         return newLiteral(LiteralLabelFactory.createTypedLiteral(b));
     }
 
+    /**
+     * Creates a literal impl wrapping the given double number.
+     *
+     * @param d double
+     * @return {@link OWLLiteralImpl}
+     */
     public static OWLLiteralImpl createLiteral(double d) {
         return newLiteral(LiteralLabelFactory.createTypedLiteral(d));
     }
 
+    /**
+     * Creates a literal impl wrapping the given float number.
+     *
+     * @param f float
+     * @return {@link OWLLiteralImpl}
+     */
     public static OWLLiteralImpl createLiteral(float f) {
         return newLiteral(LiteralLabelFactory.createTypedLiteral(f));
     }
 
+    /**
+     * Creates a literal impl by the given string and {@link OWLDatatype OWL Datatype}.
+     * If the datatype is {@link InternalizedEntities#RDF_PLAIN_LITERAL rdf:PlainLiteral} or
+     * {@link InternalizedEntities#RDF_LANG_STRING rdf:langString}
+     * the method will parse and normalize datatype from the first (String) argument,
+     * see {@link #createLiteral(String, String)} description.
+     * If the datatype is {@link InternalizedEntities#XSD_STRING xsd:string},
+     * then no parsing is performed and the returned literal will have the same lexical form as specified.
+     * In other cases the string is parsed, and the lexical form may differ from what was specified.
+     * For example, if the input are {@code "1e-07"} and {@link InternalizedEntities#XSD_DOUBLE xsd:double},
+     * the output will be {@code "1.OE7"^^xsd:double}.
+     *
+     * @param txt String, not {@code null}
+     * @param owl {@link OWLDatatype}, not {@code null}
+     * @return {@link OWLLiteralImpl}
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternalsImplNoCache.java#L139'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl#getOWLLiteral(String, OWLDatatype)</a>
+     * @see #normalizeLanguageTag(String)
+     * @see #equals(Object)
+     */
     public static OWLLiteralImpl createLiteral(String txt, OWLDatatype owl) {
-        if (owl.isRDFPlainLiteral() || InternalizedEntities.LANGSTRING.equals(owl)) {
+        if (owl.isRDFPlainLiteral() || InternalizedEntities.RDF_LANG_STRING.equals(owl)) {
             // original logic is saved:
+            String lex, lang;
+            RDFDatatype dt;
             int sep = txt.lastIndexOf('@');
             if (sep != -1) {
-                String lex = txt.substring(0, sep);
-                String lang = txt.substring(sep + 1);
-                return newLiteral(lex, lang, RDFLangString.rdfLangString);
+                lex = txt.substring(0, sep);
+                lang = normalizeLanguageTag(txt.substring(sep + 1));
+                dt = RDFLangString.rdfLangString;
+            } else {
+                lex = txt;
+                lang = null;
+                dt = XSDDatatype.XSDstring;
             }
-            return newLiteral(txt, null, XSDDatatype.XSDstring);
+            return newLiteral(lex, lang, dt);
         }
         if (owl.isString()) {
             return createLiteral(txt);
@@ -119,24 +181,92 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
         if (owl.isInteger()) {
             return parseInteger(txt, owl);
         }
-        return createDefaultLiteral(txt, owl);
+        return newLiteral(txt, null, owl);
+    }
+
+    /**
+     * Normalises the language tag
+     *
+     * @param lang String, possible {@code null}
+     * @return String
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternalsImplNoCache.java#L103'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl#getOWLLiteral(String, String)</a>
+     */
+    public static String normalizeLanguageTag(String lang) {
+        return lang == null ? "" : lang.trim().toLowerCase(Locale.ENGLISH);
+    }
+
+    @SuppressWarnings("unused")
+    public static OWLLiteralImpl parseBoolean(String txt, OWLDatatype dt) {
+        return createLiteral(parseBoolean(txt.trim()));
+    }
+
+    public static boolean parseBoolean(String str) {
+        return Boolean.parseBoolean(str) || "1".equals(str.trim());
+    }
+
+    public static OWLLiteralImpl parseDouble(String txt, OWLDatatype dt) {
+        try {
+            return createLiteral(Double.parseDouble(txt));
+        } catch (NumberFormatException e) {
+            return newLiteral(txt, null, dt);
+        }
+    }
+
+    public static OWLLiteralImpl parseFloat(String txt, OWLDatatype dt) {
+        if ("-0.0".equals(txt.trim())) {
+            // original comment: according to some W3C test, this needs to be different from 0.0; Java floats disagree
+            return newLiteral(txt, null, dt);
+        }
+        try {
+            return createLiteral(Float.parseFloat(txt));
+        } catch (NumberFormatException e) {
+            return newLiteral(txt, null, dt);
+        }
+    }
+
+    public static OWLLiteralImpl parseInteger(String txt, OWLDatatype dt) {
+        // original comment: again, some W3C tests require padding zeroes to make literals different
+        if ('0' == txt.trim().charAt(0)) {
+            return newLiteral(txt, null, dt);
+        }
+        try {
+            // original comment: this is fine for values that can be parsed as ints - not all values are
+            return createLiteral(Integer.parseInt(txt));
+        } catch (NumberFormatException ex) {
+            // original comment: try as a big decimal
+            return newLiteral(txt, null, dt);
+        }
+    }
+
+    /**
+     * Converts any instance of {@link OWLLiteral} to the {@link OWLLiteralImpl ONT-API Literal implementation}.
+     *
+     * @param literal {@link OWLLiteral}
+     * @return {@link OWLLiteralImpl}
+     */
+    public static OWLLiteralImpl asONT(OWLLiteral literal) {
+        if (literal instanceof OWLLiteralImpl) {
+            return (OWLLiteralImpl) literal;
+        }
+        return newLiteral(literal.getLiteral(), literal.getLang(), literal.getDatatype());
     }
 
     /**
      * Creates an {@link OWLLiteralImpl} instance by string value and {@link OWLDatatype OWL Datatype}.
      * This method works with {@link TypeMapper Jena Type Mapper}, but it does not change it.
      *
-     * @param txt String, not {@code null}
-     * @param owl {@link OWLDatatype}, not {@code null}
+     * @param txt  String, not {@code null}
+     * @param lang String, can be {@code null}
+     * @param owl  {@link OWLDatatype}, not {@code null}
      * @return {@link OWLLiteralImpl}
      */
-    public static OWLLiteralImpl createDefaultLiteral(String txt, OWLDatatype owl) {
+    public static OWLLiteralImpl newLiteral(String txt, String lang, OWLDatatype owl) {
         String uri = owl.getIRI().getIRIString();
         RDFDatatype dt = typeMapper.getTypeByName(uri);
         if (dt == null) { // do not litter the global manager:
             dt = new BaseDatatype(uri);
         }
-        OWLLiteralImpl res = newLiteral(txt, null, dt);
+        OWLLiteralImpl res = newLiteral(txt, lang, dt);
         res.owlDatatypeRef = new SoftReference<>(owl);
         return res;
     }
@@ -163,73 +293,11 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
         return new OWLLiteralImpl(label);
     }
 
-    @SuppressWarnings("unused")
-    public static OWLLiteralImpl parseBoolean(String txt, OWLDatatype owl) {
-        return createLiteral(parseBoolean(txt.trim()));
-    }
-
-    public static boolean parseBoolean(String str) {
-        return Boolean.parseBoolean(str) || "1".equals(str.trim());
-    }
-
-    public static OWLLiteralImpl parseDouble(String txt, OWLDatatype dt) {
-        try {
-            return createLiteral(Double.parseDouble(txt));
-        } catch (NumberFormatException e) {
-            return createDefaultLiteral(txt, dt);
-        }
-    }
-
-    public static OWLLiteralImpl parseFloat(String txt, OWLDatatype dt) {
-        if ("-0.0".equals(txt.trim())) {
-            // original comment: according to some W3C test, this needs to be different from 0.0; Java floats disagree
-            return createDefaultLiteral(txt, dt);
-        }
-        try {
-            return createLiteral(Float.parseFloat(txt));
-        } catch (NumberFormatException e) {
-            return createDefaultLiteral(txt, dt);
-        }
-    }
-
-    public static OWLLiteralImpl parseInteger(String txt, OWLDatatype dt) {
-        // original comment: again, some W3C tests require padding zeroes to make literals different
-        if ('0' == txt.trim().charAt(0)) {
-            return createDefaultLiteral(txt, dt);
-        }
-        try {
-            // original comment: this is fine for values that can be parsed as ints - not all values are
-            return createLiteral(Integer.parseInt(txt));
-        } catch (NumberFormatException ex) {
-            // original comment: try as a big decimal
-            return createDefaultLiteral(txt, dt);
-        }
-    }
-
-    public static boolean isDatatypeRegistered(RDFDatatype dt) {
-        return BaseDatatype.class != dt.getClass();
-    }
-
     /**
-     * Returns {@code true} if the literals are equal to each other.
-     * The method {@link LiteralLabel#equals(Object)} won't work for custom datatypes
-     * since them are not cached in the {@link TypeMapper}.
+     * Returns a {@link LiteralLabel Jena Literal Label}, that is encapsulated by this object.
      *
-     * @param left  {@link LiteralLabel}, can be {@code null}
-     * @param right {@link LiteralLabel}, can be {@code null}
-     * @return {@code true} if the arguments are equal to each other and {@code false} otherwise
-     * @see #createDefaultLiteral(String, OWLDatatype)
+     * @return {@link LiteralLabel}
      */
-    public static boolean equals(LiteralLabel left, LiteralLabel right) {
-        if (left == right) return true;
-        if (left == null || right == null) {
-            return false;
-        }
-        return Objects.equals(left.getLexicalForm(), right.getLexicalForm())
-                && Objects.equals(left.language(), right.language())
-                && Objects.equals(left.getDatatypeURI(), right.getDatatypeURI());
-    }
-
     public LiteralLabel getLiteralLabel() {
         return label;
     }
@@ -237,10 +305,6 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
     @Override
     public String getLiteral() {
         return label.getLexicalForm();
-    }
-
-    public Object getValue() throws DatatypeFormatException {
-        return label.getValue();
     }
 
     @Override
@@ -255,21 +319,32 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
         OWLDatatype res;
         if (owlDatatypeRef != null && (res = owlDatatypeRef.get()) != null)
             return res;
-        owlDatatypeRef = new SoftReference<>(res = calcDatatype());
+        owlDatatypeRef = new SoftReference<>(res = calcOWLDatatype());
         return res;
     }
 
-    public OWLDatatype calcDatatype() {
-        RDFDatatype dt = label.getDatatype();
-        if (dt != null) {
-            String uri = dt.getURI();
+    /**
+     * Calculates the {@link OWLDatatype} from the encapsulated {@link LiteralLabel}.
+     * Please note: in the special case of no-lang PlainLiteral (e.g. {@code '...'^^rdf:PlainLiteral})
+     * the method returns {@link InternalizedEntities#XSD_STRING},
+     * although the encapsulated label may contain {@link RDF#PlainLiteral} type.
+     *
+     * @return {@link OWLDatatype}
+     */
+    public OWLDatatype calcOWLDatatype() {
+        String uri = label.getDatatypeURI();
+        if (uri != null) {
+            if (RDF.PlainLiteral.getURI().equals(uri) && label.language().isEmpty()) {
+                // a special case of ".."^^rdf:PlainLiteral:
+                return InternalizedEntities.XSD_STRING;
+            }
             OWLDatatype owl = BUILTIN_OWL_DATATYPES.get(uri);
-            if (owl != null && isDatatypeRegistered(dt)) {
+            if (owl != null) {
                 return owl;
             }
             return new OWLDatatypeImpl(IRI.create(uri));
         }
-        return label.language().isEmpty() ? InternalizedEntities.PLAIN : InternalizedEntities.LANGSTRING;
+        return label.language().isEmpty() ? InternalizedEntities.XSD_STRING : InternalizedEntities.RDF_LANG_STRING;
     }
 
     @Override
@@ -337,6 +412,12 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
         return Float.parseFloat(res);
     }
 
+    /**
+     * Calculates a hash-code for lexical form.
+     * The original (OWL-API) logic is preserved.
+     *
+     * @return int
+     */
     protected int getLiteralHashCode() {
         if (label.isWellFormedRaw()) {
             Object value = label.getValue();
@@ -358,12 +439,23 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
         return OWLObject.hashIteration(hash, getLang().hashCode());
     }
 
+    /**
+     * Answers whether some other object is "equal to" this one.
+     * <p>
+     * The comparison is performed by the lexical form, language tag and {@link OWLDatatype OWL Datatype}.
+     * So, {@code "01"^^xsd:integer} and {@code "1"^^xsd:integer} are two different literals.
+     * Also, {@code "1e-07"^^xsd:double} and {@code "1.OE7"^^xsd:double} are not equal,
+     * although the expression {@code literal.getLiteralLabel().getValue()}
+     * will return equal objects for both literals from the mentioned pairs.
+     * Also note: the language tag is a {@code String}, and therefore the comparison is case sensitive, e.g.
+     * the tags "SU-su" and "su-su" are not equal.
+     *
+     * @param o {@link Object} anything
+     * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
+     */
     @Override
-    public boolean equals(@Nullable Object obj) {
-        if (obj instanceof OWLLiteralImpl) {
-            LiteralLabel other = ((OWLLiteralImpl) obj).label;
-            return equals(label, other);
-        }
-        return super.equals(obj);
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
+
 }

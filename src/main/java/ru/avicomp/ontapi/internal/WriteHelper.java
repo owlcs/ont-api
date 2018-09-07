@@ -14,11 +14,10 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.datatypes.BaseDatatype;
-import org.apache.jena.datatypes.RDFDatatype;
-import org.apache.jena.datatypes.TypeMapper;
+import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
@@ -30,6 +29,7 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 
 /**
  * Helper for the axioms translation to the rdf-form (writing to graph).
- *
+ * <p>
  * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2 Mapping from the Structural Specification to RDF Graphs</a>
  * for handling common graph triples (operator 'T') see chapter "2.1 Translation of Axioms without Annotations"
  * for handling annotations (operator 'TANN') see chapters "2.2 Translation of Annotations" and "2.3 Translation of Axioms with Annotations".
@@ -70,13 +70,12 @@ public class WriteHelper {
     }
 
     public static Resource toResource(OWLAnonymousIndividual individual) {
-        Node n;
-        if (individual instanceof OWLAnonymousIndividualImpl) {
-            n = NodeFactory.createBlankNode(((OWLAnonymousIndividualImpl) individual).getBlankNodeId());
-        } else {
-            n = NodeFactory.createBlankNode(individual.toStringID());
-        }
-        return new ResourceImpl(n, null);
+        return new ResourceImpl(toBlankNode(individual), null);
+    }
+
+    public static Node toBlankNode(OWLAnonymousIndividual individual) {
+        BlankNodeId id = OWLAnonymousIndividualImpl.asONT(individual).getBlankNodeId();
+        return NodeFactory.createBlankNode(id);
     }
 
     private static Resource toResource(IRI iri) {
@@ -91,9 +90,13 @@ public class WriteHelper {
         return ResourceFactory.createProperty(OntApiException.notNull(iri, "Null iri").getIRIString());
     }
 
-    public static Literal toLiteral(OWLLiteral owlLiteral) {
-        Node node = toLiteralNode(owlLiteral.getLiteral(), owlLiteral.getLang(), owlLiteral.getDatatype().getIRI().getIRIString());
-        return new LiteralImpl(node, null);
+    public static Literal toLiteral(OWLLiteral literal) {
+        return new LiteralImpl(toLiteralNode(literal), null);
+    }
+
+    public static Node toLiteralNode(OWLLiteral literal) {
+        LiteralLabel lab = OWLLiteralImpl.asONT(literal).getLiteralLabel();
+        return NodeFactory.createLiteral(lab);
     }
 
     public static Resource getType(OWLEntity entity) {
@@ -158,27 +161,48 @@ public class WriteHelper {
         throw new OntApiException("Unsupported " + facet);
     }
 
-    public static void writeAssertionTriple(OntGraphModel model, OWLObject subject, OWLPropertyExpression property, OWLObject object, Stream<OWLAnnotation> annotations) {
+    public static void writeAssertionTriple(OntGraphModel model,
+                                            OWLObject subject,
+                                            OWLPropertyExpression property,
+                                            OWLObject object,
+                                            Stream<OWLAnnotation> annotations) {
         OntObject s = addRDFNode(model, subject).as(OntObject.class);
         Property p = addRDFNode(model, property).as(Property.class);
         RDFNode o = addRDFNode(model, object);
         addAnnotations(s.addStatement(p, o), annotations);
     }
 
-    public static void writeDeclarationTriple(OntGraphModel model, OWLEntity subject, Property predicate, RDFNode object, Stream<OWLAnnotation> annotations) {
-        addAnnotations(toResource(subject).inModel(model).addProperty(predicate, object).as(getEntityView(subject)).getRoot(), annotations);
+    public static void writeDeclarationTriple(OntGraphModel model,
+                                              OWLEntity subject,
+                                              Property predicate,
+                                              RDFNode object,
+                                              Stream<OWLAnnotation> annotations) {
+        addAnnotations(toResource(subject)
+                .inModel(model).addProperty(predicate, object).as(getEntityView(subject)).getRoot(), annotations);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, OWLObject object, Stream<OWLAnnotation> annotations) {
+    public static void writeTriple(OntGraphModel model,
+                                   OWLObject subject,
+                                   Property predicate,
+                                   OWLObject object,
+                                   Stream<OWLAnnotation> annotations) {
         writeTriple(model, subject, predicate, addRDFNode(model, object), annotations);
     }
 
-    public static void writeTriple(OntGraphModel model, OWLObject subject, Property predicate, RDFNode object, Stream<OWLAnnotation> annotations) {
+    public static void writeTriple(OntGraphModel model,
+                                   OWLObject subject,
+                                   Property predicate,
+                                   RDFNode object,
+                                   Stream<OWLAnnotation> annotations) {
         OntObject s = addRDFNode(model, subject).as(OntObject.class);
         addAnnotations(s.addStatement(predicate, object), annotations);
     }
 
-    public static void writeList(OntGraphModel model, OWLObject subject, Property predicate, Stream<? extends OWLObject> objects, Stream<OWLAnnotation> annotations) {
+    public static void writeList(OntGraphModel model,
+                                 OWLObject subject,
+                                 Property predicate,
+                                 Stream<? extends OWLObject> objects,
+                                 Stream<OWLAnnotation> annotations) {
         OntObject s = addRDFNode(model, subject).as(OntObject.class);
         addAnnotations(s.addStatement(predicate, addRDFList(model, objects)), annotations);
     }
@@ -367,18 +391,9 @@ public class WriteHelper {
         throw new OntApiException("Unsupported property-expression: " + expression);
     }
 
-    private static Node toLiteralNode(String value, String lang, String dtURI) {
-        RDFDatatype type = TypeMapper.getInstance().getTypeByName(dtURI);
-        if (type == null) {
-            type = new BaseDatatype(dtURI);
-        }
-        return NodeFactory.createLiteral(value, lang, type);
-    }
-
     public static Literal addLiteral(OntGraphModel model, OWLLiteral literal) {
-        OWLDatatype owl = literal.getDatatype();
-        OntDT dt = addDataRange(model, owl).as(OntDT.class);
-        return model.asRDFNode(toLiteralNode(literal.getLiteral(), literal.getLang(), dt.getURI())).asLiteral();
+        addDataRange(model, literal.getDatatype()).as(OntDT.class);
+        return model.asRDFNode(toLiteralNode(literal)).asLiteral();
     }
 
     /**
@@ -434,7 +449,8 @@ public class WriteHelper {
                 return model.createSameIndividualsSWRLAtom(addSWRLObject(model, atom.getFirstArgument()).as(OntSWRL.IArg.class),
                         addSWRLObject(model, atom.getSecondArgument()).as(OntSWRL.IArg.class));
             }
-        }),;
+        }),
+        ;
 
         private final Translator<? extends SWRLAtom, ? extends OntSWRL.Atom> translator;
         private final Class<? extends SWRLAtom> type;
@@ -495,7 +511,8 @@ public class WriteHelper {
             OntDR.IntersectionOf translate(OntGraphModel model, OWLDataIntersectionOf expression) {
                 return model.createIntersectionOfDataRange(expression.operands().map(dr -> addRDFNode(model, dr).as(OntDR.class)).collect(Collectors.toList()));
             }
-        }),;
+        }),
+        ;
         private final DataRangeType type;
         private final Translator<? extends OWLDataRange, ? extends OntDR> translator;
 
@@ -650,7 +667,8 @@ public class WriteHelper {
             OntCE.ComplementOf translate(OntGraphModel model, OWLObjectComplementOf expression) {
                 return model.createComplementOf(addRDFNode(model, expression.getOperand()).as(OntCE.class));
             }
-        }),;
+        }),
+        ;
 
         private final ClassExpressionType type;
         private final Translator<? extends OWLClassExpression, ? extends OntCE> translator;

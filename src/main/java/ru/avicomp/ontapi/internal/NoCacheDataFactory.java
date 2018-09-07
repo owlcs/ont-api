@@ -92,20 +92,13 @@ public class NoCacheDataFactory implements InternalDataFactory {
 
     @Override
     public ONTObject<OWLLiteral> get(Literal literal) {
-        String txt = OntApiException.notNull(literal, "Null literal").getLexicalForm();
-        String lang = literal.getLanguage();
-        if (lang != null && !lang.isEmpty()) {
-            txt = txt + "@" + lang;
-        }
+        OWLLiteral owl = getOWLDataFactory().getOWLLiteral(literal.asNode().getLiteral());
+        ONTObject<OWLLiteral> res = ONTObject.create(owl);
         OntDT dt = literal.getModel().getResource(literal.getDatatypeURI()).as(OntDT.class);
-        ONTObject<OWLDatatype> owl;
-        if (dt.isBuiltIn()) {
-            owl = ONTObject.create(getOWLDataFactory().getOWLDatatype(toIRI(dt)));
-        } else {
-            owl = get(dt);
+        if (!dt.isBuiltIn()) {
+            return res.append(get(dt));
         }
-        OWLLiteral res = getOWLDataFactory().getOWLLiteral(txt, owl.getObject());
-        return ONTObject.create(res).append(owl);
+        return res;
     }
 
     @Override

@@ -13,6 +13,8 @@
  */
 package org.semanticweb.owlapi.api.syntax;
 
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.graph.impl.LiteralLabelFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.baseclasses.TestBase;
@@ -22,6 +24,7 @@ import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.owlapi.OWLManager;
 
 import java.util.Set;
@@ -76,7 +79,7 @@ public class TurtleTestCase extends TestBase {
     public void shouldParseFixedQuotesLiterals5() throws OWLOntologyCreationException {
         OWLOntology o = loadOntologyFromString(new StringDocumentSource(
                 "<urn:test#s> <urn:test#p> \"\"\"\"\"\\u0061\"\"\" .", iri, tf, null));
-        o.annotationAssertionAxioms(s).forEach(ax -> Assert.assertEquals("\"\"a", ((OWLLiteral) ax.getValue()).getLiteral()));
+        o.annotationAssertionAxioms(s).forEach(a -> Assert.assertEquals("\"\"a", ((OWLLiteral) a.getValue()).getLiteral()));
     }
 
     @Test
@@ -85,7 +88,8 @@ public class TurtleTestCase extends TestBase {
         String working = "@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .\n"
                 + " @prefix foaf:    <http://xmlns.com/foaf/0.1/> .\n"
                 + " foaf:fundedBy rdfs:isDefinedBy <http://xmlns.com/foaf/0.1/> .";
-        OWLAxiom expected = AnnotationAssertion(df.getRDFSIsDefinedBy(), IRI.create("http://xmlns.com/foaf/0.1/", "fundedBy"),
+        OWLAxiom expected = AnnotationAssertion(df.getRDFSIsDefinedBy(),
+                IRI.create("http://xmlns.com/foaf/0.1/", "fundedBy"),
                 IRI.create("http://xmlns.com/foaf/0.1/", ""));
         // when
         OWLOntology o = loadOntologyFromString(working);
@@ -113,7 +117,8 @@ public class TurtleTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(input);
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
         // then
-        OWLAxiom axioms = o.axioms(AxiomType.ANNOTATION_ASSERTION).findFirst().orElseThrow(() -> new AssertionError("Can't find annotation assertion."));
+        OWLAxiom axioms = o.axioms(AxiomType.ANNOTATION_ASSERTION).findFirst()
+                .orElseThrow(() -> new AssertionError("Can't find annotation assertion."));
         String s = axioms.toString();
         LOGGER.debug(s);
         Assert.assertTrue(s.contains("http://test.org/a1"));
@@ -126,7 +131,8 @@ public class TurtleTestCase extends TestBase {
     public void shouldRoundTripTurtleWithsharedBnodes() throws Exception {
         masterManager.getOntologyConfigurator().withRemapAllAnonymousIndividualsIds(false);
         try {
-            String input = "@prefix ex: <http://example.com/test> .\n ex:ex1 a ex:Something ; ex:prop1 _:a .\n _:a a ex:Something1 ; ex:prop2 _:b .\n _:b a ex:Something ; ex:prop3 _:a .";
+            String input = "@prefix ex: <http://example.com/test> .\n ex:ex1 a ex:Something ; ex:prop1 _:a ." +
+                    "\n _:a a ex:Something1 ; ex:prop2 _:b .\n _:b a ex:Something ; ex:prop3 _:a .";
             OWLOntology ontology = loadOntologyFromString(input);
             OWLOntology onto2 = roundTrip(ontology, new TurtleDocumentFormat());
             equal(ontology, onto2);
@@ -143,7 +149,7 @@ public class TurtleTestCase extends TestBase {
         OWLAnnotationProperty p = AnnotationProperty(IRI.create("http://dbpedia.org/ontology/", "areaTotal"));
         Assert.assertTrue(ontology.annotationPropertiesInSignature().anyMatch(ap -> ap.equals(p)));
         IRI i = IRI.create("http://dbpedia.org/resource/", "South_Africa");
-        Assert.assertTrue(ontology.containsAxiom(AnnotationAssertion(p, i, Literal("1.0E7", OWL2Datatype.XSD_DOUBLE))));
+        checkParsingScientificNotation(ontology, p, i, "1e+07");
     }
 
     @Test
@@ -153,7 +159,22 @@ public class TurtleTestCase extends TestBase {
         OWLAnnotationProperty p = AnnotationProperty(IRI.create("http://dbpedia.org/ontology/", "areaTotal"));
         Assert.assertTrue(ontology.annotationPropertiesInSignature().anyMatch(ap -> ap.equals(p)));
         IRI i = IRI.create("http://dbpedia.org/resource/", "South_Africa");
-        Assert.assertTrue(ontology.containsAxiom(AnnotationAssertion(p, i, Literal("1.0E-7", OWL2Datatype.XSD_DOUBLE))));
+        checkParsingScientificNotation(ontology, p, i, "1e-07");
+    }
+
+    private static void checkParsingScientificNotation(OWLOntology ontology, OWLAnnotationProperty p, IRI i, String lexForm) {
+        // Note: the literal "'1e+07'^^xsd:double" is valid, Jena does not perform any special transformations over literals
+        // Therefore here is a question: should two literals "'1e+07'^^xsd:double" and "'1.OE7'^^xsd:double" be equal or not?
+        // Since OWL-API compares literals by lexical form, datatype and lang-tag, the answer is NOT.
+        // That's why the original test won't work in ONT-API:
+        //Assert.assertTrue(ontology.containsAxiom(AnnotationAssertion(p, i, Literal("1.0E7", OWL2Datatype.XSD_DOUBLE))));
+        OWLLiteral literal_0 = Literal(lexForm, OWL2Datatype.XSD_DOUBLE);
+        OWLLiteral literal_1 = OWLManager.DEBUG_USE_OWL ? literal_0 :
+                ((DataFactory) DF).getOWLLiteral(LiteralLabelFactory.create(lexForm, XSDDatatype.XSDdouble));
+        Assert.assertTrue(ontology.containsAxiom(AnnotationAssertion(p, i, literal_1)));
+        OWLAnnotationAssertionAxiom a = ontology.axioms(AxiomType.ANNOTATION_ASSERTION).findFirst().orElseThrow(AssertionError::new);
+        OWLLiteral literal_2 = a.getValue().asLiteral().orElseThrow(AssertionError::new);
+        Assert.assertEquals(0, literal_0.parseDouble(), literal_2.parseDouble());
     }
 
     @Test

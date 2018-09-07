@@ -47,8 +47,8 @@ public class TestPlainLiteralTestCase extends TestBase {
                 + "        </rdf:Description>\n" + "    </rdf:RDF>";
         OWLOntology o = loadOntologyFromString(input);
         IRI i = IRI("urn:test#", "ind");
-        Assert.assertEquals(o.annotationAssertionAxioms(i).iterator().next(), AnnotationAssertion(RDFSComment(), i, Literal(
-                "test", OWL2Datatype.RDF_PLAIN_LITERAL)));
+        Assert.assertEquals(AnnotationAssertion(RDFSComment(), i, Literal("test", OWL2Datatype.RDF_PLAIN_LITERAL)),
+                o.annotationAssertionAxioms(i).iterator().next());
     }
 
     @Test

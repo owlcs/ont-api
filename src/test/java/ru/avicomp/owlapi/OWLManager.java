@@ -69,7 +69,7 @@ public class OWLManager {
      * @return An OWLDataFactory that can be used for creating OWL API objects.
      */
     public static OWLDataFactory getOWLDataFactory() {
-        return OntManagers.getDataFactory();
+        return DEBUG_USE_OWL ? OntManagers.createOWLProfile().dataFactory() : OntManagers.getDataFactory();
     }
 
     /**

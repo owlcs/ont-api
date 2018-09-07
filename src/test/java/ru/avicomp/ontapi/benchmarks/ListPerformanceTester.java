@@ -61,12 +61,12 @@ public class ListPerformanceTester {
 
     @Test
     public void comparePizzaLoadAxioms() {
-        compareListAxioms("/ontapi/pizza.ttl", OntFormat.TURTLE, 300, 945); // 0.56
+        compareListAxioms("/ontapi/pizza.ttl", OntFormat.TURTLE, 1000, 945); // 0.56
     }
 
     @Test
     public void compareFamilyLoadAxioms() {
-        compareListAxioms("/ontapi/family.ttl", OntFormat.TURTLE, 100, 2845); // 0.60
+        compareListAxioms("/ontapi/family.ttl", OntFormat.TURTLE, 800, 2845); // 0.60
     }
 
     @Test
@@ -92,7 +92,7 @@ public class ListPerformanceTester {
 
     @Test
     public void compareGalenLoadAxioms() {
-        compareListAxioms("/ontapi/galen.rdf", OntFormat.RDF_XML, 10, 96463); //0.27
+        compareListAxioms("/ontapi/galen.rdf", OntFormat.RDF_XML, 10, 96463); // 0.27
     }
 
     @Test

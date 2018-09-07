@@ -62,4 +62,18 @@ public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnon
     public Optional<OWLAnonymousIndividual> asAnonymousIndividual() {
         return Optional.of(this);
     }
+
+    /**
+     * Converts any instance of {@link OWLAnonymousIndividual} to the
+     * {@link OWLAnonymousIndividualImpl ONT-API Anonymous Individual implementation}.
+     *
+     * @param individual {@link OWLAnonymousIndividual}
+     * @return {@link OWLAnonymousIndividualImpl}
+     */
+    public static OWLAnonymousIndividualImpl asONT(OWLAnonymousIndividual individual) {
+        if (individual instanceof OWLAnonymousIndividualImpl) {
+            return (OWLAnonymousIndividualImpl) individual;
+        }
+        return new OWLAnonymousIndividualImpl(BlankNodeId.create(individual.toStringID()));
+    }
 }

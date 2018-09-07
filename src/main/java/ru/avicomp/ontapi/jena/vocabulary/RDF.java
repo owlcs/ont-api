@@ -25,8 +25,20 @@ import org.apache.jena.rdf.model.Resource;
  */
 public class RDF extends org.apache.jena.vocabulary.RDF {
 
+    /**
+     * This property is used explicitly in facet restrictions.
+     * Also, it can be used as literal type (e.g. 'test'^^rdf:PlainLiteral) in old ontologies based on RDF-1.0
+     *
+     * @see <a href='https://www.w3.org/TR/rdf-plain-literal'>rdf:PlainLiteral: A Datatype for RDF Plain Literals (Second Edition)</a>
+     */
     public final static Resource PlainLiteral = resource("PlainLiteral");
 
+    /**
+     * This property is used in facet restrictions.
+     * The facet {@code rdf:langRange} can be used to refer to a subset of strings containing the language tag.
+     *
+     * @see <a href='https://www.w3.org/TR/rdf-plain-literal/#langRange'>rdf:langRange</a>
+     */
     public static final Property langRange = property("langRange");
 
 }

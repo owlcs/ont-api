@@ -15,14 +15,13 @@
 package ru.avicomp.ontapi.owlapi;
 
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 import ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl;
 import ru.avicomp.ontapi.owlapi.objects.entity.OWLClassImpl;
 import ru.avicomp.ontapi.owlapi.objects.entity.OWLDataPropertyImpl;
 import ru.avicomp.ontapi.owlapi.objects.entity.OWLObjectPropertyImpl;
-
-import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
 
 /**
  * Entities that are commonly used in implementations.
@@ -34,33 +33,33 @@ import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
 @SuppressWarnings("WeakerAccess")
 public class InternalizedEntities {
 
-    public static final OWLClass OWL_THING = new ru.avicomp.ontapi.owlapi.objects.entity.OWLClassImpl(OWLRDFVocabulary.OWL_THING.getIRI());
+    public static final OWLClass OWL_THING = new OWLClassImpl(OWLRDFVocabulary.OWL_THING.getIRI());
     public static final OWLClass OWL_NOTHING = new OWLClassImpl(OWLRDFVocabulary.OWL_NOTHING.getIRI());
 
-    public static final OWLObjectProperty OWL_TOP_OBJECT_PROPERTY = new ru.avicomp.ontapi.owlapi.objects.entity.OWLObjectPropertyImpl(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI());
+    public static final OWLObjectProperty OWL_TOP_OBJECT_PROPERTY = new OWLObjectPropertyImpl(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI());
     public static final OWLObjectProperty OWL_BOTTOM_OBJECT_PROPERTY = new OWLObjectPropertyImpl(OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI());
 
-    public static final OWLDataProperty OWL_TOP_DATA_PROPERTY = new ru.avicomp.ontapi.owlapi.objects.entity.OWLDataPropertyImpl(OWLRDFVocabulary.OWL_TOP_DATA_PROPERTY.getIRI());
+    public static final OWLDataProperty OWL_TOP_DATA_PROPERTY = new OWLDataPropertyImpl(OWLRDFVocabulary.OWL_TOP_DATA_PROPERTY.getIRI());
     public static final OWLDataProperty OWL_BOTTOM_DATA_PROPERTY = new OWLDataPropertyImpl(OWLRDFVocabulary.OWL_BOTTOM_DATA_PROPERTY.getIRI());
 
-    public static final OWLAnnotationProperty RDFS_LABEL = new ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_LABEL.getIRI());
-    public static final OWLAnnotationProperty RDFS_COMMENT = new ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_COMMENT.getIRI());
-    public static final OWLAnnotationProperty RDFS_SEE_ALSO = new ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_SEE_ALSO.getIRI());
-    public static final OWLAnnotationProperty RDFS_IS_DEFINED_BY = new ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_IS_DEFINED_BY.getIRI());
-    public static final OWLAnnotationProperty OWL_BACKWARD_COMPATIBLE_WITH = new ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_BACKWARD_COMPATIBLE_WITH.getIRI());
-    public static final OWLAnnotationProperty OWL_INCOMPATIBLE_WITH = new ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_INCOMPATIBLE_WITH.getIRI());
-    public static final OWLAnnotationProperty OWL_VERSION_INFO = new ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_VERSION_INFO.getIRI());
+    public static final OWLAnnotationProperty RDFS_LABEL = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_LABEL.getIRI());
+    public static final OWLAnnotationProperty RDFS_COMMENT = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_COMMENT.getIRI());
+    public static final OWLAnnotationProperty RDFS_SEE_ALSO = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_SEE_ALSO.getIRI());
+    public static final OWLAnnotationProperty RDFS_IS_DEFINED_BY = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.RDFS_IS_DEFINED_BY.getIRI());
+    public static final OWLAnnotationProperty OWL_BACKWARD_COMPATIBLE_WITH = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_BACKWARD_COMPATIBLE_WITH.getIRI());
+    public static final OWLAnnotationProperty OWL_INCOMPATIBLE_WITH = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_INCOMPATIBLE_WITH.getIRI());
+    public static final OWLAnnotationProperty OWL_VERSION_INFO = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_VERSION_INFO.getIRI());
     public static final OWLAnnotationProperty OWL_DEPRECATED = new OWLAnnotationPropertyImpl(OWLRDFVocabulary.OWL_DEPRECATED.getIRI());
 
-    public static final OWLDatatype RDFSLITERAL = new OWL2DatatypeImpl(RDFS_LITERAL);
-    public static final OWLDatatype PLAIN = new OWL2DatatypeImpl(RDF_PLAIN_LITERAL);
-    public static final OWLDatatype LANGSTRING = new OWL2DatatypeImpl(RDF_LANG_STRING);
-    public static final OWLDatatype XSDBOOLEAN = new OWL2DatatypeImpl(XSD_BOOLEAN);
-    public static final OWLDatatype XSDDOUBLE = new OWL2DatatypeImpl(XSD_DOUBLE);
-    public static final OWLDatatype XSDFLOAT = new OWL2DatatypeImpl(XSD_FLOAT);
-    public static final OWLDatatype XSDINTEGER = new OWL2DatatypeImpl(XSD_INTEGER);
-    public static final OWLDatatype XSDSTRING = new OWL2DatatypeImpl(XSD_STRING);
+    public static final OWLDatatype RDFS_LITERAL = new OWL2DatatypeImpl(OWL2Datatype.RDFS_LITERAL);
+    public static final OWLDatatype RDF_PLAIN_LITERAL = new OWL2DatatypeImpl(OWL2Datatype.RDF_PLAIN_LITERAL);
+    public static final OWLDatatype RDF_LANG_STRING = new OWL2DatatypeImpl(OWL2Datatype.RDF_LANG_STRING);
+    public static final OWLDatatype XSD_STRING = new OWL2DatatypeImpl(OWL2Datatype.XSD_STRING);
+    public static final OWLDatatype XSD_BOOLEAN = new OWL2DatatypeImpl(OWL2Datatype.XSD_BOOLEAN);
+    public static final OWLDatatype XSD_DOUBLE = new OWL2DatatypeImpl(OWL2Datatype.XSD_DOUBLE);
+    public static final OWLDatatype XSD_FLOAT = new OWL2DatatypeImpl(OWL2Datatype.XSD_FLOAT);
+    public static final OWLDatatype XSD_INTEGER = new OWL2DatatypeImpl(OWL2Datatype.XSD_INTEGER);
 
-    public static final OWLLiteral TRUELITERAL = OWLLiteralImpl.createLiteral(true);
-    public static final OWLLiteral FALSELITERAL = OWLLiteralImpl.createLiteral(false);
+    public static final OWLLiteral TRUE_LITERAL = OWLLiteralImpl.createLiteral(true);
+    public static final OWLLiteral FALSE_LITERAL = OWLLiteralImpl.createLiteral(false);
 }
