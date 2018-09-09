@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi;
 
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.atlas.iterator.Iter;
@@ -33,7 +34,9 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
+import ru.avicomp.ontapi.internal.CacheDataFactory;
 import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalDataFactory;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
@@ -73,6 +76,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected OntConfig configProvider;
     protected transient OntLoaderConfiguration loaderConfig;
     protected transient OntWriterConfiguration writerConfig;
+    // Loading Cache for IRIs, that is shared between this manager ontologies,
+    // the magic number '2048' is taken from OWL-API impl
+    // (see uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl, v5)
+    private static final int IRI_CACHE_SIZE = 2048;
+    protected transient LoadingCache<String, IRI> iris = CacheDataFactory.build(IRI_CACHE_SIZE, IRI::create);
     // OntologyFactory collection:
     protected final RWLockedCollection<OWLOntologyFactory> ontologyFactories;
     // IRI mappers
@@ -1721,10 +1729,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * The 'hack' methods to provide correct serialization.
+     * This is a 'hack' methods to provide correct serialization.
      * It fixes graph links between different models:
      * ontology A with ontology B in the imports should have also {@link UnionGraph} inside,
-     * that consists of base graph from A and base graph from B.
+     * that consists of the base graph from A and the base graph from B.
      *
      * @param in {@link ObjectInputStream}
      * @throws IOException            exception
@@ -1736,6 +1744,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         in.defaultReadObject();
         loaderConfig = (OntLoaderConfiguration) in.readObject();
         writerConfig = (OntWriterConfiguration) in.readObject();
+        iris = CacheDataFactory.build(IRI_CACHE_SIZE, IRI::create);
         content.values().forEach(info -> {
             ModelConfig conf = info.getModelConfig();
             InternalModelHolder m = (InternalModelHolder) info.get();
@@ -1752,6 +1761,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * A companion for {@link #readObject(ObjectInputStream)}.
+     *
      * @param out {@link ObjectInputStream}
      * @throws IOException exception
      */
@@ -2219,8 +2230,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
         }
 
-        public DataFactory getDataFactory() {
-            return manager.getOWLDataFactory();
+        public InternalDataFactory getDataFactory() {
+            return new CacheDataFactory(manager.getOWLDataFactory(), manager.iris, CacheDataFactory.CACHE_SIZE);
         }
 
         public OntPersonality getPersonality() {

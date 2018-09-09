@@ -16,6 +16,7 @@ package ru.avicomp.ontapi;
 
 import org.apache.jena.graph.Graph;
 import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalDataFactory;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -44,7 +45,10 @@ public interface InternalModelHolder {
      * @return {@link InternalModel}
      */
     static InternalModel createInternalModel(Graph graph, OntologyManagerImpl.ModelConfig conf) {
-        return createInternalModel(graph, OntApiException.notNull(conf, "Null conf.").getPersonality(), conf.getDataFactory(), conf);
+        return createInternalModel(graph,
+                OntApiException.notNull(conf, "Null conf.").getPersonality(),
+                conf.getDataFactory(),
+                conf);
     }
 
     /**
@@ -54,7 +58,10 @@ public interface InternalModelHolder {
      * @return {@link InternalModel}
      */
     static InternalModel createInternalModel(Graph graph) {
-        return createInternalModel(graph, OntModelConfig.getPersonality(), OntManagers.getDataFactory(), InternalConfig.DEFAULT);
+        return createInternalModel(graph,
+                OntModelConfig.getPersonality(),
+                InternalDataFactory.DEFAULT,
+                InternalConfig.DEFAULT);
     }
 
     /**
@@ -62,13 +69,13 @@ public interface InternalModelHolder {
      *
      * @param graph       {@link Graph}, not {@code null}
      * @param personality {@link OntPersonality}, not {@code null}
-     * @param factory     {@link DataFactory}, not {@code null}
+     * @param factory     {@link ru.avicomp.ontapi.internal.InternalDataFactory}, not {@code null}
      * @param config      {@link InternalConfig}, not {@code null}
      * @return {@link InternalModel}
      */
     static InternalModel createInternalModel(Graph graph,
                                              OntPersonality personality,
-                                             DataFactory factory,
+                                             InternalDataFactory factory,
                                              InternalConfig config) {
         return new InternalModel(OntApiException.notNull(graph, "Null graph."),
                 OntApiException.notNull(personality, "Null personality."),

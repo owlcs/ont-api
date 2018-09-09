@@ -20,16 +20,15 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 import java.util.Objects;
 
 /**
  * Internal Data Factory to map {@link OntObject} =&gt; {@link OWLObject}.
- * Used by {@link InternalModel} while read objects from the graph.
+ * Used by the {@link InternalModel} while read objects from the graph.
+ * It is a functional analogue of {@code uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals}.
  * <p>
  * Created by @szuev on 14.03.2018.
  *
@@ -42,19 +41,35 @@ public interface InternalDataFactory {
 
     void clear();
 
-    ONTObject<? extends OWLClassExpression> get(OntCE ce);
+    DataFactory getOWLDataFactory();
 
-    ONTObject<? extends OWLDataRange> get(OntDR dr);
+    ONTObject<OWLClass> get(OntClass ce);
+
+    ONTObject<OWLDatatype> get(OntDT dr);
+
+    ONTObject<OWLObjectProperty> get(OntNOP nop);
 
     ONTObject<OWLAnnotationProperty> get(OntNAP nap);
 
     ONTObject<OWLDataProperty> get(OntNDP ndp);
 
+    ONTObject<OWLNamedIndividual> get(OntIndividual.Named i);
+
+    ONTObject<? extends OWLClassExpression> get(OntCE ce);
+
+    ONTObject<? extends OWLDataRange> get(OntDR dr);
+
     ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope);
+
+    ONTObject<? extends OWLPropertyExpression> get(OntDOP property);
 
     ONTObject<? extends OWLIndividual> get(OntIndividual i);
 
     ONTObject<OWLLiteral> get(Literal literal);
+
+    ONTObject<? extends OWLAnnotationValue> get(RDFNode value);
+
+    ONTObject<? extends OWLAnnotationSubject> get(OntObject subject);
 
     ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
 
@@ -62,91 +77,37 @@ public interface InternalDataFactory {
 
     ONTObject<IRI> asIRI(OntObject s);
 
-    DataFactory getOWLDataFactory();
+    default ONTObject<? extends OWLEntity> get(OntEntity e) {
+        if (e instanceof OntClass) {
+            return get((OntClass) e);
+        }
+        if (e instanceof OntDT) {
+            return get((OntDT) e);
+        }
+        if (e instanceof OntIndividual.Named) {
+            return get((OntIndividual.Named) e);
+        }
+        if (e instanceof OntNAP) {
+            return get((OntNAP) e);
+        }
+        if (e instanceof OntNDP) {
+            return get((OntNDP) e);
+        }
+        if (e instanceof OntNOP) {
+            return get((OntNOP) e);
+        }
+        throw new OntApiException("Unsupported " + e);
+    }
 
     default IRI toIRI(String str) {
         return IRI.create(Objects.requireNonNull(str, "Null IRI."));
-    }
-
-    default ONTObject<? extends OWLAnnotationValue> get(RDFNode value) {
-        if (OntApiException.notNull(value, "Null node").isLiteral()) {
-            return get(value.asLiteral());
-        }
-        if (value.isURIResource()) {
-            return asIRI(value.as(OntObject.class));
-        }
-        if (value.isAnon()) {
-            return get(Models.asAnonymousIndividual(value));
-        }
-        throw new OntApiException("Not an AnnotationValue " + value);
-    }
-
-    default ONTObject<? extends OWLAnnotationSubject> get(OntObject subject) {
-        if (OntApiException.notNull(subject, "Null resource").isURIResource()) {
-            return asIRI(subject);
-        }
-        if (subject.isAnon()) {
-            return get(Models.asAnonymousIndividual(subject));
-        }
-        throw new OntApiException("Not an AnnotationSubject " + subject);
-    }
-
-    @SuppressWarnings("unchecked")
-    default ONTObject<OWLClass> get(OntClass cl) {
-        return (ONTObject<OWLClass>) get((OntCE) cl);
-    }
-
-    @SuppressWarnings("unchecked")
-    default ONTObject<OWLDatatype> get(OntDT dt) {
-        return (ONTObject<OWLDatatype>) get((OntDR) dt);
-    }
-
-    @SuppressWarnings("unchecked")
-    default ONTObject<OWLObjectProperty> get(OntNOP nop) {
-        return (ONTObject<OWLObjectProperty>) get((OntOPE) nop);
-    }
-
-    @SuppressWarnings("unchecked")
-    default ONTObject<OWLNamedIndividual> get(OntIndividual.Named individual) {
-        return (ONTObject<OWLNamedIndividual>) get((OntIndividual) individual);
-    }
-
-    @SuppressWarnings("unchecked")
-    default ONTObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous individual) {
-        return (ONTObject<OWLAnonymousIndividual>) get((OntIndividual) individual);
-    }
-
-    default ONTObject<? extends OWLEntity> get(OntEntity entity) {
-        Class<? extends OntObject> type = OntApiException.notNull(((OntObjectImpl) entity).getActualClass(),
-                "Can't determine view of entity " + entity);
-        if (OntClass.class.equals(type)) {
-            return get((OntClass) entity);
-        } else if (OntDT.class.equals(type)) {
-            return get((OntDT) entity);
-        } else if (OntIndividual.Named.class.equals(type)) {
-            return get((OntIndividual.Named) entity);
-        } else if (OntNAP.class.equals(type)) {
-            return get((OntNAP) entity);
-        } else if (OntNDP.class.equals(type)) {
-            return get((OntNDP) entity);
-        } else if (OntNOP.class.equals(type)) {
-            return get((OntNOP) entity);
-        }
-        throw new OntApiException("Unsupported " + entity);
     }
 
     default ONTObject<? extends OWLPropertyExpression> get(OntPE property) {
         if (OntApiException.notNull(property, "Null property.").canAs(OntNAP.class)) {
             return get(property.as(OntNAP.class));
         }
-        // process Object Properties first to match OWL-API-impl behaviour
-        if (property.canAs(OntOPE.class)) {
-            return get(property.as(OntOPE.class));
-        }
-        if (property.canAs(OntNDP.class)) {
-            return get(property.as(OntNDP.class));
-        }
-        throw new OntApiException("Unsupported property " + property);
+        return get((OntDOP) property);
     }
 
 }

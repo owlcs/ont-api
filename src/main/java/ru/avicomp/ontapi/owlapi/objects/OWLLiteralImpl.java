@@ -266,9 +266,7 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
         if (dt == null) { // do not litter the global manager:
             dt = new BaseDatatype(uri);
         }
-        OWLLiteralImpl res = newLiteral(txt, lang, dt);
-        res.owlDatatypeRef = new SoftReference<>(owl);
-        return res;
+        return newLiteral(txt, lang, dt).putOWLDatatype(owl);
     }
 
     /**
@@ -345,6 +343,18 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
             return new OWLDatatypeImpl(IRI.create(uri));
         }
         return label.language().isEmpty() ? InternalizedEntities.XSD_STRING : InternalizedEntities.RDF_LANG_STRING;
+    }
+
+    /**
+     * Assigns the given {@link OWLDatatype OWL Datatype} to this literal.
+     * For internal usage only!
+     *
+     * @param owl {@link OWLDatatype}
+     * @return {@link OWLLiteralImpl} this instance
+     */
+    public OWLLiteralImpl putOWLDatatype(OWLDatatype owl) {
+        this.owlDatatypeRef = new SoftReference<>(owl);
+        return this;
     }
 
     @Override

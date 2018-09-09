@@ -15,17 +15,18 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * An Internal Data Factory impl without cache.
@@ -37,7 +38,7 @@ public class NoCacheDataFactory implements InternalDataFactory {
     protected final DataFactory factory;
 
     public NoCacheDataFactory(DataFactory factory) {
-        this.factory = factory;
+        this.factory = Objects.requireNonNull(factory);
     }
 
     @Override
@@ -60,6 +61,24 @@ public class NoCacheDataFactory implements InternalDataFactory {
     }
 
     @Override
+    public ONTObject<OWLClass> get(OntClass ce) {
+        IRI iri = toIRI(OntApiException.notNull(ce, "Null class."));
+        return ONTObject.create(getOWLDataFactory().getOWLClass(iri), ce);
+    }
+
+    @Override
+    public ONTObject<OWLDatatype> get(OntDT dr) {
+        IRI iri = toIRI(OntApiException.notNull(dr, "Null datatype."));
+        return ONTObject.create(getOWLDataFactory().getOWLDatatype(iri), dr);
+    }
+
+    @Override
+    public ONTObject<OWLObjectProperty> get(OntNOP nop) {
+        IRI iri = toIRI(OntApiException.notNull(nop, "Null object property."));
+        return ONTObject.create(getOWLDataFactory().getOWLObjectProperty(iri), nop);
+    }
+
+    @Override
     public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
         IRI iri = toIRI(OntApiException.notNull(nap, "Null annotation property."));
         return ONTObject.create(getOWLDataFactory().getOWLAnnotationProperty(iri), nap);
@@ -72,33 +91,85 @@ public class NoCacheDataFactory implements InternalDataFactory {
     }
 
     @Override
+    public ONTObject<OWLNamedIndividual> get(OntIndividual.Named i) {
+        IRI iri = toIRI(OntApiException.notNull(i, "Null individual."));
+        return ONTObject.create(getOWLDataFactory().getOWLNamedIndividual(iri), i);
+    }
+
+    @Override
     public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
         OntApiException.notNull(ope, "Null object property.");
-        if (ope.isAnon()) { //todo: handle inverse of inverseOf (?)
+        if (ope.isAnon()) {
             OWLObjectProperty op = getOWLDataFactory().getOWLObjectProperty(toIRI(ope.as(OntOPE.Inverse.class).getDirect()));
             return ONTObject.create(op.getInverseProperty(), ope);
         }
-        return ONTObject.create(getOWLDataFactory().getOWLObjectProperty(toIRI(ope)), ope);
+        return get(ope.as(OntNOP.class));
+    }
+
+    @Override
+    public ONTObject<? extends OWLPropertyExpression> get(OntDOP property) {
+        // process Object Properties first to match OWL-API-impl behaviour
+        if (property.canAs(OntOPE.class)) {
+            return get(property.as(OntOPE.class));
+        }
+        if (property.canAs(OntNDP.class)) {
+            return get(property.as(OntNDP.class));
+        }
+        throw new OntApiException("Unsupported property " + property);
     }
 
     @Override
     public ONTObject<? extends OWLIndividual> get(OntIndividual individual) {
         DataFactory df = getOWLDataFactory();
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
-            return ONTObject.create(df.getOWLNamedIndividual(toIRI(individual)), individual);
+            return get(individual.as(OntIndividual.Named.class));
         }
         return ONTObject.create(df.getOWLAnonymousIndividual(individual.asNode().getBlankNodeId()), individual);
     }
 
     @Override
     public ONTObject<OWLLiteral> get(Literal literal) {
-        OWLLiteral owl = getOWLDataFactory().getOWLLiteral(literal.asNode().getLiteral());
+        DataFactory df = getOWLDataFactory();
+        OWLLiteral owl = df.getOWLLiteral(literal.asNode().getLiteral());
         ONTObject<OWLLiteral> res = ONTObject.create(owl);
         OntDT dt = literal.getModel().getResource(literal.getDatatypeURI()).as(OntDT.class);
         if (!dt.isBuiltIn()) {
+            if (owl instanceof OWLLiteralImpl) {
+                ((OWLLiteralImpl) owl).putOWLDatatype(get(dt).getObject());
+            }
             return res.append(get(dt));
         }
         return res;
+    }
+
+    @Override
+    public ONTObject<? extends OWLAnnotationValue> get(RDFNode value) {
+        if (OntApiException.notNull(value, "Null node").isLiteral()) {
+            return get(value.asLiteral());
+        }
+        if (value.isURIResource()) {
+            return asIRI(value.as(OntObject.class));
+        }
+        if (value.isAnon()) {
+            return getAnonymous(Models.asAnonymousIndividual(value));
+        }
+        throw new OntApiException("Not an AnnotationValue " + value);
+    }
+
+    @Override
+    public ONTObject<? extends OWLAnnotationSubject> get(OntObject subject) {
+        if (OntApiException.notNull(subject, "Null resource").isURIResource()) {
+            return asIRI(subject);
+        }
+        if (subject.isAnon()) {
+            return getAnonymous(Models.asAnonymousIndividual(subject));
+        }
+        throw new OntApiException("Not an AnnotationSubject " + subject);
+    }
+
+    @SuppressWarnings("unchecked")
+    public ONTObject<OWLAnonymousIndividual> getAnonymous(OntIndividual.Anonymous individual) {
+        return (ONTObject<OWLAnonymousIndividual>) get(individual);
     }
 
     @Override
@@ -116,89 +187,9 @@ public class NoCacheDataFactory implements InternalDataFactory {
         return ReadHelper.getAnnotations(statement, config, this);
     }
 
-    public SimpleMap<OntCE, ONTObject<? extends OWLClassExpression>> classExpressionStore() {
-        return new NoOpMap<>();
-    }
-
-    public SimpleMap<OntDR, ONTObject<? extends OWLDataRange>> dataRangeStore() {
-        return new NoOpMap<>();
-    }
-
     @Override
     public DataFactory getOWLDataFactory() {
         return factory;
     }
 
-    /**
-     * A truncated "Map" with only three operations.
-     *
-     * @param <K> the type of keys maintained by this map
-     * @param <V> the type of mapped values
-     */
-    public interface SimpleMap<K, V> {
-        /**
-         * Returns the value to which the specified key is mapped, or {@code null} if this map contains no mapping for the key.
-         *
-         * @param key the key whose associated value is to be returned, not null.
-         * @return the value or null.
-         */
-        V get(K key);
-
-        /**
-         * Associates the specified value with the specified key in this map.
-         *
-         * @param key   key with which the specified value is to be associated, not null.
-         * @param value value to be associated with the specified key, not null.
-         */
-        void put(K key, V value);
-
-        /**
-         * If the specified key is not already associated with a value, attempts to compute its value using the given mapping
-         * function and enters it into this map unless {@code null}.
-         *
-         * @param key key with which the specified value is to be associated
-         * @param map the function to compute a value
-         * @return the current (existing or computed) value associated with the specified key.
-         */
-        default V get(K key, Function<? super K, ? extends V> map) {
-            V v = get(key);
-            if (v != null) return v;
-            v = Objects.requireNonNull(Objects.requireNonNull(map, "Null mapping function.").apply(key),
-                    "Null map result, key: " + key);
-            put(key, v);
-            return v;
-        }
-
-        static <K, V> SimpleMap<K, V> fromMap(Map<K, V> map) {
-            return new SimpleMap<K, V>() {
-                @Override
-                public V get(K key) {
-                    return map.get(key);
-                }
-
-                @Override
-                public void put(K key, V value) {
-                    map.put(key, value);
-                }
-            };
-        }
-    }
-
-    /**
-     * A fake implementation of {@link SimpleMap}.
-     *
-     * @param <K> the type of keys maintained by this map
-     * @param <V> the type of mapped values
-     */
-    public static class NoOpMap<K, V> implements SimpleMap<K, V> {
-        @Override
-        public V get(K key) {
-            return null;
-        }
-
-        @Override
-        public void put(K key, V value) {
-            // nothing
-        }
-    }
 }

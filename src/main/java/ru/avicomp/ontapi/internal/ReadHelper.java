@@ -14,13 +14,16 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.impl.OntListImpl;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.*;
@@ -107,7 +110,9 @@ public class ReadHelper {
      * @param df        {@link InternalDataFactory}
      * @return a set of wraps {@link ONTObject} around {@link OWLAnnotation}
      */
-    public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement, InternalConfig conf, NoCacheDataFactory df) {
+    public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement,
+                                                               InternalConfig conf,
+                                                               InternalDataFactory df) {
         ExtendedIterator<OntStatement> res = listAnnotations(statement);
         if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
@@ -150,26 +155,15 @@ public class ReadHelper {
         Resource subject = root.getSubject();
         ONTObject<OWLAnnotationProperty> p = df.get(root.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = df.get(root.getObject());
-        Set<ONTObject<OWLAnnotation>> children = listAnnotations(root).mapWith(a -> getHierarchicalAnnotations(a, df)).toSet();
-        OWLAnnotation object = df.getOWLDataFactory().getOWLAnnotation(p.getObject(), v.getObject(), children.stream().map(ONTObject::getObject));
+        Set<ONTObject<OWLAnnotation>> children = listAnnotations(root)
+                .mapWith(a -> getHierarchicalAnnotations(a, df)).toSet();
+        OWLAnnotation object = df.getOWLDataFactory()
+                .getOWLAnnotation(p.getObject(), v.getObject(), children.stream().map(ONTObject::getObject));
         ONTObject<OWLAnnotation> res = ONTObject.create(object, root);
         if (subject.canAs(OntAnnotation.class)) {
             res = res.append(subject.as(OntAnnotation.class));
         }
         return res.append(p).append(v).append(children);
-    }
-
-    /**
-     * Returns an iterator over all annotations of the given statement.
-     *
-     * @param s {@link OntStatement}
-     * @return {@link ExtendedIterator}
-     */
-    public static ExtendedIterator<OntStatement> listAnnotations(OntStatement s) {
-        if (s instanceof OntStatementImpl) {
-            return ((OntStatementImpl) s).listAnnotations();
-        }
-        return WrappedIterator.create(s.annotations().iterator());
     }
 
     /**
@@ -217,56 +211,51 @@ public class ReadHelper {
      * Calculates an {@link OWLDataRange} wrapped by {@link ONTObject}.
      * Note: this method is recursive.
      *
-     * @param dr   {@link OntDR}
-     * @param df   {@link NoCacheDataFactory}
-     * @param seen Set of {@link Resource}
+     * @param dr                  {@link OntDR Ontology Data Range} to map
+     * @param internalDataFactory {@link InternalDataFactory}
+     * @param seen                Set of {@link Resource}
      * @return {@link ONTObject} around {@link OWLDataRange}
      * @throws OntApiException if something is wrong.
      */
     @SuppressWarnings("unchecked")
     public static ONTObject<? extends OWLDataRange> calcDataRange(OntDR dr,
-                                                                  NoCacheDataFactory df,
+                                                                  InternalDataFactory internalDataFactory,
                                                                   Set<Resource> seen) {
         if (OntApiException.notNull(dr, "Null data range").isURIResource()) {
-            return ONTObject.create(df.getOWLDataFactory().getOWLDatatype(df.toIRI(dr.getURI())), dr);
+            return internalDataFactory.get(dr.as(OntDT.class));
         }
         if (seen.contains(dr)) {
             throw new OntApiException("Recursive loop on data range " + dr);
         }
-        NoCacheDataFactory.SimpleMap<OntDR, ONTObject<? extends OWLDataRange>> found = df.dataRangeStore();
-        ONTObject<? extends OWLDataRange> r = found.get(dr);
-        if (r != null) return r;
         seen.add(dr);
-        Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) dr).getActualClass(),
-                "Can't determine view of data range " + dr);
-        if (OntDR.Restriction.class.equals(view)) {
+        DataFactory df = internalDataFactory.getOWLDataFactory();
+        if (dr instanceof OntDR.Restriction) {
             OntDR.Restriction _dr = (OntDR.Restriction) dr;
-            ONTObject<OWLDatatype> d = df.get(_dr.getDatatype());
-            Set<ONTObject<OWLFacetRestriction>> restrictions = _dr.facetRestrictions().map(f -> getFacetRestriction(f, df))
-                    .collect(Collectors.toSet());
-            OWLDataRange res = df.getOWLDataFactory().getOWLDatatypeRestriction(d.getObject(), restrictions.stream().map(ONTObject::getObject).collect(Collectors.toList()));
+            ONTObject<OWLDatatype> d = internalDataFactory.get(_dr.getDatatype());
+            Set<ONTObject<OWLFacetRestriction>> restrictions = listMembers(_dr.getList())
+                    .mapWith(f -> getFacetRestriction(f, internalDataFactory)).toSet();
+            OWLDataRange res = df.getOWLDatatypeRestriction(d.getObject(),
+                    restrictions.stream().map(ONTObject::getObject).collect(Collectors.toList()));
             return ONTObject.create(res, dr).append(restrictions);
         }
-        if (OntDR.ComplementOf.class.equals(view)) {
+        if (dr instanceof OntDR.ComplementOf) {
             OntDR.ComplementOf _dr = (OntDR.ComplementOf) dr;
-            ONTObject<? extends OWLDataRange> d = found.get(_dr.getDataRange(), v -> calcDataRange(v, df, seen));
-            return ONTObject.create(df.getOWLDataFactory().getOWLDataComplementOf(d.getObject()), _dr).append(d);
+            ONTObject<? extends OWLDataRange> d = calcDataRange(_dr.getDataRange(), internalDataFactory, seen);
+            return ONTObject.create(df.getOWLDataComplementOf(d.getObject()), _dr).append(d);
         }
-        if (OntDR.UnionOf.class.equals(view) ||
-                OntDR.IntersectionOf.class.equals(view)) {
-            Set<ONTObject<? extends OWLDataRange>> dataRanges =
-                    (OntDR.UnionOf.class.equals(view) ? ((OntDR.UnionOf) dr).dataRanges() : ((OntDR.IntersectionOf) dr).dataRanges())
-                            .map(d -> found.get(d, v -> calcDataRange(v, df, seen)))
-                            .collect(Collectors.toSet());
-            OWLDataRange res = OntDR.UnionOf.class.equals(view) ?
-                    df.getOWLDataFactory().getOWLDataUnionOf(dataRanges.stream().map(ONTObject::getObject)) :
-                    df.getOWLDataFactory().getOWLDataIntersectionOf(dataRanges.stream().map(ONTObject::getObject));
-            return ONTObject.create(res, dr).appendWildcards(dataRanges);
+        if (dr instanceof OntDR.UnionOf || dr instanceof OntDR.IntersectionOf) {
+            OntDR.ComponentsDR<OntDR> _dr = (OntDR.ComponentsDR<OntDR>) dr;
+            Set<ONTObject<OWLDataRange>> dataRanges = listMembers(_dr.getList())
+                    .mapWith(d -> (ONTObject<OWLDataRange>) calcDataRange(d, internalDataFactory, seen)).toSet();
+            OWLDataRange res = dr instanceof OntDR.UnionOf ?
+                    df.getOWLDataUnionOf(dataRanges.stream().map(ONTObject::getObject)) :
+                    df.getOWLDataIntersectionOf(dataRanges.stream().map(ONTObject::getObject));
+            return ONTObject.create(res, dr).append(dataRanges);
         }
-        if (OntDR.OneOf.class.equals(view)) {
+        if (dr instanceof OntDR.OneOf) {
             OntDR.OneOf _dr = (OntDR.OneOf) dr;
-            Set<ONTObject<OWLLiteral>> literals = _dr.values().map(df::get).collect(Collectors.toSet());
-            OWLDataRange res = df.getOWLDataFactory().getOWLDataOneOf(literals.stream().map(ONTObject::getObject));
+            Set<ONTObject<OWLLiteral>> literals = _dr.values().map(internalDataFactory::get).collect(Collectors.toSet());
+            OWLDataRange res = df.getOWLDataOneOf(literals.stream().map(ONTObject::getObject));
             return ONTObject.create(res, _dr);
         }
         throw new OntApiException("Unsupported data range expression " + dr);
@@ -276,134 +265,135 @@ public class ReadHelper {
      * Calculates an {@link OWLClassExpression} wrapped by {@link ONTObject}.
      * Note: this method is recursive.
      *
-     * @param ce   {@link OntCE}
-     * @param df   {@link NoCacheDataFactory}
-     * @param seen Set of {@link Resource}
+     * @param ce                  {@link OntCE Ontology Class Expression} to map
+     * @param internalDataFactory {@link InternalDataFactory}
+     * @param seen                Set of {@link Resource},
+     *                            a subsidiary collection to prevent possible graph recursions (e.g. {@code _:b0 owl:complementOf _:b0})
      * @return {@link ONTObject} around {@link OWLClassExpression}
      * @throws OntApiException if something is wrong.
      */
     @SuppressWarnings("unchecked")
     public static ONTObject<? extends OWLClassExpression> calcClassExpression(OntCE ce,
-                                                                              NoCacheDataFactory df,
+                                                                              InternalDataFactory internalDataFactory,
                                                                               Set<Resource> seen) {
         if (OntApiException.notNull(ce, "Null class expression").isURIResource()) {
-            return ONTObject.create(df.getOWLDataFactory().getOWLClass(df.toIRI(ce.getURI())), ce);
+            return internalDataFactory.get(ce.as(OntClass.class));
         }
         if (seen.contains(ce)) {
             throw new OntApiException("Recursive loop on class expression " + ce);
         }
-        NoCacheDataFactory.SimpleMap<OntCE, ONTObject<? extends OWLClassExpression>> found = df.classExpressionStore();
-        ONTObject<? extends OWLClassExpression> res = found.get(ce);
-        if (res != null) return res;
         seen.add(ce);
-        Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) ce).getActualClass(),
-                "Can't determine type of class expression " + ce);
-        if (OntCE.ObjectSomeValuesFrom.class.equals(view) ||
-                OntCE.ObjectAllValuesFrom.class.equals(view)) {
+        DataFactory df = internalDataFactory.getOWLDataFactory();
+        Class<? extends OntObject> type = getType(ce);
+        if (OntCE.ObjectSomeValuesFrom.class.equals(type) || OntCE.ObjectAllValuesFrom.class.equals(type)) {
             OntCE.ComponentRestrictionCE<OntCE, OntOPE> _ce = (OntCE.ComponentRestrictionCE<OntCE, OntOPE>) ce;
-            ONTObject<? extends OWLObjectPropertyExpression> p = df.get(_ce.getOnProperty());
-            ONTObject<? extends OWLClassExpression> c = found.get(_ce.getValue(), v -> calcClassExpression(v, df, seen));
+            ONTObject<? extends OWLObjectPropertyExpression> p = internalDataFactory.get(_ce.getOnProperty());
+            ONTObject<? extends OWLClassExpression> c = calcClassExpression(_ce.getValue(), internalDataFactory, seen);
             OWLClassExpression owl;
-            if (OntCE.ObjectSomeValuesFrom.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLObjectSomeValuesFrom(p.getObject(), c.getObject());
-            else if (OntCE.ObjectAllValuesFrom.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLObjectAllValuesFrom(p.getObject(), c.getObject());
-            else
+            if (OntCE.ObjectSomeValuesFrom.class.equals(type)) {
+                owl = df.getOWLObjectSomeValuesFrom(p.getObject(), c.getObject());
+            } else if (OntCE.ObjectAllValuesFrom.class.equals(type)) {
+                owl = df.getOWLObjectAllValuesFrom(p.getObject(), c.getObject());
+            } else {
                 throw new OntApiException("Should never happen");
+            }
             return ONTObject.create(owl, _ce).append(p).append(c);
         }
-        if (OntCE.DataSomeValuesFrom.class.equals(view) ||
-                OntCE.DataAllValuesFrom.class.equals(view)) {
+        if (OntCE.DataSomeValuesFrom.class.equals(type) || OntCE.DataAllValuesFrom.class.equals(type)) {
             OntCE.ComponentRestrictionCE<OntDR, OntNDP> _ce = (OntCE.ComponentRestrictionCE<OntDR, OntNDP>) ce;
-            ONTObject<OWLDataProperty> p = df.get(_ce.getOnProperty());
-            ONTObject<? extends OWLDataRange> d = df.get(_ce.getValue());
+            ONTObject<OWLDataProperty> p = internalDataFactory.get(_ce.getOnProperty());
+            ONTObject<? extends OWLDataRange> d = internalDataFactory.get(_ce.getValue());
             OWLClassExpression owl;
-            if (OntCE.DataSomeValuesFrom.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLDataSomeValuesFrom(p.getObject(), d.getObject());
-            else if (OntCE.DataAllValuesFrom.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLDataAllValuesFrom(p.getObject(), d.getObject());
-            else
+            if (OntCE.DataSomeValuesFrom.class.equals(type)) {
+                owl = df.getOWLDataSomeValuesFrom(p.getObject(), d.getObject());
+            } else if (OntCE.DataAllValuesFrom.class.equals(type)) {
+                owl = df.getOWLDataAllValuesFrom(p.getObject(), d.getObject());
+            } else {
                 throw new OntApiException("Should never happen");
+            }
             return ONTObject.create(owl, _ce).append(p).append(d);
         }
-        if (OntCE.ObjectHasValue.class.equals(view)) {
+        if (OntCE.ObjectHasValue.class.equals(type)) {
             OntCE.ObjectHasValue _ce = (OntCE.ObjectHasValue) ce;
-            ONTObject<? extends OWLObjectPropertyExpression> p = df.get(_ce.getOnProperty());
-            ONTObject<? extends OWLIndividual> i = df.get(_ce.getValue());
-            return ONTObject.create(df.getOWLDataFactory().getOWLObjectHasValue(p.getObject(), i.getObject()), _ce).append(p).append(i);
+            ONTObject<? extends OWLObjectPropertyExpression> p = internalDataFactory.get(_ce.getOnProperty());
+            ONTObject<? extends OWLIndividual> i = internalDataFactory.get(_ce.getValue());
+            return ONTObject.create(df.getOWLObjectHasValue(p.getObject(), i.getObject()), _ce).append(p).append(i);
         }
-        if (OntCE.DataHasValue.class.equals(view)) {
+        if (OntCE.DataHasValue.class.equals(type)) {
             OntCE.DataHasValue _ce = (OntCE.DataHasValue) ce;
-            ONTObject<OWLDataProperty> p = df.get(_ce.getOnProperty());
-            ONTObject<OWLLiteral> l = df.get(_ce.getValue());
-            return ONTObject.create(df.getOWLDataFactory().getOWLDataHasValue(p.getObject(), l.getObject()), _ce).append(p);
+            ONTObject<OWLDataProperty> p = internalDataFactory.get(_ce.getOnProperty());
+            ONTObject<OWLLiteral> l = internalDataFactory.get(_ce.getValue());
+            return ONTObject.create(df.getOWLDataHasValue(p.getObject(), l.getObject()), _ce).append(p);
         }
-        if (OntCE.ObjectMinCardinality.class.equals(view) ||
-                OntCE.ObjectMaxCardinality.class.equals(view) ||
-                OntCE.ObjectCardinality.class.equals(view)) {
+        if (OntCE.ObjectMinCardinality.class.equals(type)
+                || OntCE.ObjectMaxCardinality.class.equals(type)
+                || OntCE.ObjectCardinality.class.equals(type)) {
             OntCE.CardinalityRestrictionCE<OntCE, OntOPE> _ce = (OntCE.CardinalityRestrictionCE<OntCE, OntOPE>) ce;
-            ONTObject<? extends OWLObjectPropertyExpression> p = df.get(_ce.getOnProperty());
-            ONTObject<? extends OWLClassExpression> c =
-                    found.get(_ce.getValue() == null ? _ce.getModel().getOWLThing() : _ce.getValue(),
-                            v -> calcClassExpression(v, df, seen));
+            ONTObject<? extends OWLObjectPropertyExpression> p = internalDataFactory.get(_ce.getOnProperty());
+            ONTObject<? extends OWLClassExpression> c = calcClassExpression(_ce.getValue() == null ?
+                    _ce.getModel().getOWLThing() : _ce.getValue(), internalDataFactory, seen);
             OWLObjectCardinalityRestriction owl;
-            if (OntCE.ObjectMinCardinality.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLObjectMinCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
-            else if (OntCE.ObjectMaxCardinality.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLObjectMaxCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
-            else if (OntCE.ObjectCardinality.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLObjectExactCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
-            else
+            if (OntCE.ObjectMinCardinality.class.equals(type)) {
+                owl = df.getOWLObjectMinCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
+            } else if (OntCE.ObjectMaxCardinality.class.equals(type)) {
+                owl = df.getOWLObjectMaxCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
+            } else if (OntCE.ObjectCardinality.class.equals(type)) {
+                owl = df.getOWLObjectExactCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
+            } else {
                 throw new OntApiException("Should never happen");
+            }
             return ONTObject.create(owl, _ce).append(p).append(c);
         }
-        if (OntCE.DataMinCardinality.class.equals(view) ||
-                OntCE.DataMaxCardinality.class.equals(view) ||
-                OntCE.DataCardinality.class.equals(view)) {
+        if (OntCE.DataMinCardinality.class.equals(type)
+                || OntCE.DataMaxCardinality.class.equals(type)
+                || OntCE.DataCardinality.class.equals(type)) {
             OntCE.CardinalityRestrictionCE<OntDR, OntNDP> _ce = (OntCE.CardinalityRestrictionCE<OntDR, OntNDP>) ce;
-            ONTObject<OWLDataProperty> p = df.get(_ce.getOnProperty());
-            ONTObject<? extends OWLDataRange> d = df.get(_ce.getValue() == null ? _ce.getModel().getOntEntity(OntDT.class, RDFS.Literal) : _ce.getValue());
+            ONTObject<OWLDataProperty> p = internalDataFactory.get(_ce.getOnProperty());
+            ONTObject<? extends OWLDataRange> d = internalDataFactory.get(_ce.getValue() == null ?
+                    _ce.getModel().getOntEntity(OntDT.class, RDFS.Literal) : _ce.getValue());
             OWLDataCardinalityRestriction owl;
-            if (OntCE.DataMinCardinality.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLDataMinCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
-            else if (OntCE.DataMaxCardinality.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLDataMaxCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
-            else if (OntCE.DataCardinality.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLDataExactCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
-            else
+            if (OntCE.DataMinCardinality.class.equals(type)) {
+                owl = df.getOWLDataMinCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
+            } else if (OntCE.DataMaxCardinality.class.equals(type)) {
+                owl = df.getOWLDataMaxCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
+            } else if (OntCE.DataCardinality.class.equals(type)) {
+                owl = df.getOWLDataExactCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
+            } else {
                 throw new OntApiException("Should never happen");
+            }
             return ONTObject.create(owl, _ce).append(p).append(d);
         }
-        if (OntCE.HasSelf.class.equals(view)) {
+        if (OntCE.HasSelf.class.equals(type)) {
             OntCE.HasSelf _ce = (OntCE.HasSelf) ce;
-            ONTObject<? extends OWLObjectPropertyExpression> p = df.get(_ce.getOnProperty());
-            return ONTObject.create(df.getOWLDataFactory().getOWLObjectHasSelf(p.getObject()), _ce).append(p);
+            ONTObject<? extends OWLObjectPropertyExpression> p = internalDataFactory.get(_ce.getOnProperty());
+            return ONTObject.create(df.getOWLObjectHasSelf(p.getObject()), _ce).append(p);
         }
-        if (OntCE.UnionOf.class.equals(view) ||
-                OntCE.IntersectionOf.class.equals(view)) {
+        if (OntCE.UnionOf.class.equals(type) || OntCE.IntersectionOf.class.equals(type)) {
             OntCE.ComponentsCE<OntCE> _ce = (OntCE.ComponentsCE<OntCE>) ce;
-            Set<ONTObject<? extends OWLClassExpression>> components = _ce.components()
-                    .map(c -> found.get(c, v -> calcClassExpression(v, df, seen))).collect(Collectors.toSet());
+            Set<ONTObject<OWLClassExpression>> components = listMembers(_ce.getList())
+                    .mapWith(c -> (ONTObject<OWLClassExpression>) calcClassExpression(c, internalDataFactory, seen))
+                    .toSet();
             OWLClassExpression owl;
-            if (OntCE.UnionOf.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLObjectUnionOf(components.stream().map(ONTObject::getObject));
-            else if (OntCE.IntersectionOf.class.equals(view))
-                owl = df.getOWLDataFactory().getOWLObjectIntersectionOf(components.stream().map(ONTObject::getObject));
-            else
+            if (OntCE.UnionOf.class.equals(type)) {
+                owl = df.getOWLObjectUnionOf(components.stream().map(ONTObject::getObject));
+            } else if (OntCE.IntersectionOf.class.equals(type)) {
+                owl = df.getOWLObjectIntersectionOf(components.stream().map(ONTObject::getObject));
+            } else {
                 throw new OntApiException("Should never happen");
-            return ONTObject.create(owl, _ce).appendWildcards(components);
+            }
+            return ONTObject.create(owl, _ce).append(components);
         }
-        if (OntCE.OneOf.class.equals(view)) {
+        if (OntCE.OneOf.class.equals(type)) {
             OntCE.OneOf _ce = (OntCE.OneOf) ce;
-            Set<ONTObject<? extends OWLIndividual>> components = _ce.components()
-                    .map(df::get).collect(Collectors.toSet());
-            OWLClassExpression owl = df.getOWLDataFactory().getOWLObjectOneOf(components.stream().map(ONTObject::getObject));
-            return ONTObject.create(owl, _ce).appendWildcards(components);
+            Set<ONTObject<OWLIndividual>> components = listMembers(_ce.getList())
+                    .mapWith(i -> (ONTObject<OWLIndividual>) internalDataFactory.get(i)).toSet();
+            OWLClassExpression owl = df.getOWLObjectOneOf(components.stream().map(ONTObject::getObject));
+            return ONTObject.create(owl, _ce).append(components);
         }
         if (ce instanceof OntCE.ComplementOf) {
             OntCE.ComplementOf _ce = (OntCE.ComplementOf) ce;
-            ONTObject<? extends OWLClassExpression> c = found.get(_ce.getValue(), v -> calcClassExpression(v, df, seen));
-            return ONTObject.create(df.getOWLDataFactory().getOWLObjectComplementOf(c.getObject()), _ce).append(c);
+            ONTObject<? extends OWLClassExpression> c = calcClassExpression(_ce.getValue(), internalDataFactory, seen);
+            return ONTObject.create(df.getOWLObjectComplementOf(c.getObject()), _ce).append(c);
         }
         throw new OntApiException("Unsupported class expression " + ce);
     }
@@ -427,7 +417,8 @@ public class ReadHelper {
      */
     public static ONTObject<? extends SWRLDArgument> getSWRLLiteralArg(OntSWRL.DArg arg, InternalDataFactory df) {
         if (OntApiException.notNull(arg, "Null SWRL-D arg").isLiteral()) {
-            return ONTObject.create(df.getOWLDataFactory().getSWRLLiteralArgument(df.get(arg.asLiteral()).getObject()), arg);
+            return ONTObject.create(df.getOWLDataFactory()
+                    .getSWRLLiteralArgument(df.get(arg.asLiteral()).getObject()), arg);
         }
         if (arg.canAs(OntSWRL.Variable.class)) {
             return getSWRLVariable(arg.as(OntSWRL.Variable.class), df);
@@ -442,7 +433,8 @@ public class ReadHelper {
      */
     public static ONTObject<? extends SWRLIArgument> getSWRLIndividualArg(OntSWRL.IArg arg, InternalDataFactory df) {
         if (OntApiException.notNull(arg, "Null SWRL-I arg").canAs(OntIndividual.class)) {
-            return ONTObject.create(df.getOWLDataFactory().getSWRLIndividualArgument(df.get(arg.as(OntIndividual.class)).getObject()), arg);
+            return ONTObject.create(df.getOWLDataFactory()
+                    .getSWRLIndividualArgument(df.get(arg.as(OntIndividual.class)).getObject()), arg);
         }
         if (arg.canAs(OntSWRL.Variable.class)) {
             return getSWRLVariable(arg.as(OntSWRL.Variable.class), df);
@@ -457,54 +449,97 @@ public class ReadHelper {
      */
     @SuppressWarnings("unchecked")
     public static ONTObject<? extends SWRLAtom> calcSWRLAtom(OntSWRL.Atom atom, InternalDataFactory df) {
-        Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) OntApiException.notNull(atom, "Null SWRL atom.")).getActualClass(),
-                "Can't determine view of SWRL atom " + atom);
-        if (OntSWRL.Atom.BuiltIn.class.equals(view)) {
+        if (atom instanceof OntSWRL.Atom.BuiltIn) {
             OntSWRL.Atom.BuiltIn _atom = (OntSWRL.Atom.BuiltIn) atom;
             IRI iri = df.toIRI(_atom.getPredicate().getURI());
-            List<ONTObject<? extends SWRLDArgument>> arguments = _atom.arguments().map(a -> getSWRLLiteralArg(a, df)).collect(Collectors.toList());
-            SWRLAtom res = df.getOWLDataFactory().getSWRLBuiltInAtom(iri, arguments.stream().map(ONTObject::getObject).collect(Collectors.toList()));
+            List<ONTObject<? extends SWRLDArgument>> arguments = _atom.arguments().map(a -> getSWRLLiteralArg(a, df))
+                    .collect(Collectors.toList());
+            SWRLAtom res = df.getOWLDataFactory().getSWRLBuiltInAtom(iri, arguments.stream().map(ONTObject::getObject)
+                    .collect(Collectors.toList()));
             return ONTObject.create(res, _atom).appendWildcards(arguments);
         }
-        if (OntSWRL.Atom.OntClass.class.equals(view)) {
+        if (atom instanceof OntSWRL.Atom.OntClass) {
             OntSWRL.Atom.OntClass _atom = (OntSWRL.Atom.OntClass) atom;
             ONTObject<? extends OWLClassExpression> c = df.get(_atom.getPredicate());
             ONTObject<? extends SWRLIArgument> a = getSWRLIndividualArg(_atom.getArg(), df);
-            return ONTObject.create(df.getOWLDataFactory().getSWRLClassAtom(c.getObject(), a.getObject()), _atom).append(c).append(a);
+            return ONTObject.create(df.getOWLDataFactory().getSWRLClassAtom(c.getObject(), a.getObject()), _atom)
+                    .append(c).append(a);
         }
-        if (OntSWRL.Atom.DataProperty.class.equals(view)) {
+        if (atom instanceof OntSWRL.Atom.DataProperty) {
             OntSWRL.Atom.DataProperty _atom = (OntSWRL.Atom.DataProperty) atom;
             ONTObject<OWLDataProperty> p = df.get(_atom.getPredicate());
             ONTObject<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), df);
             ONTObject<? extends SWRLDArgument> s = getSWRLLiteralArg(_atom.getSecondArg(), df);
-            return ONTObject.create(df.getOWLDataFactory().getSWRLDataPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom).append(p).append(f).append(s);
+            return ONTObject.create(df.getOWLDataFactory()
+                    .getSWRLDataPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom)
+                    .append(p).append(f).append(s);
         }
-        if (OntSWRL.Atom.ObjectProperty.class.equals(view)) {
+        if (atom instanceof OntSWRL.Atom.ObjectProperty) {
             OntSWRL.Atom.ObjectProperty _atom = (OntSWRL.Atom.ObjectProperty) atom;
             ONTObject<? extends OWLObjectPropertyExpression> p = df.get(_atom.getPredicate());
             ONTObject<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), df);
             ONTObject<? extends SWRLIArgument> s = getSWRLIndividualArg(_atom.getSecondArg(), df);
-            return ONTObject.create(df.getOWLDataFactory().getSWRLObjectPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom).append(p).append(f).append(s);
+            return ONTObject.create(df.getOWLDataFactory()
+                    .getSWRLObjectPropertyAtom(p.getObject(), f.getObject(), s.getObject()), _atom)
+                    .append(p).append(f).append(s);
         }
-        if (OntSWRL.Atom.DataRange.class.equals(view)) {
+        if (atom instanceof OntSWRL.Atom.DataRange) {
             OntSWRL.Atom.DataRange _atom = (OntSWRL.Atom.DataRange) atom;
             ONTObject<? extends OWLDataRange> d = df.get(_atom.getPredicate());
             ONTObject<? extends SWRLDArgument> a = getSWRLLiteralArg(_atom.getArg(), df);
-            return ONTObject.create(df.getOWLDataFactory().getSWRLDataRangeAtom(d.getObject(), a.getObject()), _atom).append(d).append(a);
+            return ONTObject.create(df.getOWLDataFactory()
+                    .getSWRLDataRangeAtom(d.getObject(), a.getObject()), _atom).append(d).append(a);
         }
-        if (OntSWRL.Atom.DifferentIndividuals.class.equals(view)) {
+        if (atom instanceof OntSWRL.Atom.DifferentIndividuals) {
             OntSWRL.Atom.DifferentIndividuals _atom = (OntSWRL.Atom.DifferentIndividuals) atom;
             ONTObject<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), df);
             ONTObject<? extends SWRLIArgument> s = getSWRLIndividualArg(_atom.getSecondArg(), df);
-            return ONTObject.create(df.getOWLDataFactory().getSWRLDifferentIndividualsAtom(f.getObject(), s.getObject()), _atom).append(f).append(s);
+            return ONTObject.create(df.getOWLDataFactory()
+                    .getSWRLDifferentIndividualsAtom(f.getObject(), s.getObject()), _atom).append(f).append(s);
         }
-        if (OntSWRL.Atom.SameIndividuals.class.equals(view)) {
+        if (atom instanceof OntSWRL.Atom.SameIndividuals) {
             OntSWRL.Atom.SameIndividuals _atom = (OntSWRL.Atom.SameIndividuals) atom;
             ONTObject<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), df);
             ONTObject<? extends SWRLIArgument> s = getSWRLIndividualArg(_atom.getSecondArg(), df);
-            return ONTObject.create(df.getOWLDataFactory().getSWRLSameIndividualAtom(f.getObject(), s.getObject()), _atom).append(f).append(s);
+            return ONTObject.create(df.getOWLDataFactory()
+                    .getSWRLSameIndividualAtom(f.getObject(), s.getObject()), _atom).append(f).append(s);
         }
         throw new OntApiException("Unsupported SWRL atom " + atom);
+    }
+
+    public static Class<? extends OntObject> getType(OntCE ce) {
+        if (ce instanceof OntObjectImpl) {
+            return OntApiException.notNull(((OntObjectImpl) ce).getActualClass(),
+                    "Can't determine type of class expression " + ce);
+        }
+        return OntObjectImpl.findActualClass(ce);
+    }
+
+    /**
+     * Returns an iterator over all annotations of the given statement.
+     *
+     * @param s {@link OntStatement}
+     * @return {@link ExtendedIterator}
+     */
+    public static ExtendedIterator<OntStatement> listAnnotations(OntStatement s) {
+        if (s instanceof OntStatementImpl) {
+            return ((OntStatementImpl) s).listAnnotations();
+        }
+        return WrappedIterator.create(s.annotations().iterator());
+    }
+
+    /**
+     * Lists all members from {@link OntList Ontology List}.
+     *
+     * @param list {@link OntList}
+     * @param <R>  {@link RDFNode}, a type of list members
+     * @return {@link ExtendedIterator} of {@link R}
+     */
+    public static <R extends RDFNode> ExtendedIterator<R> listMembers(OntList<R> list) {
+        if (list instanceof OntListImpl) {
+            return ((OntListImpl<R>) list).listMembers();
+        }
+        return WrappedIterator.create(list.members().iterator());
     }
 
 }

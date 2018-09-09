@@ -92,19 +92,19 @@ public class ListPerformanceTester {
 
     @Test
     public void compareGalenLoadAxioms() {
-        compareListAxioms("/ontapi/galen.rdf", OntFormat.RDF_XML, 10, 96463); // 0.27
+        compareListAxioms("/ontapi/galen.rdf", OntFormat.RDF_XML, 10, 96463); // 0.34
     }
 
     @Test
     public void compareHPLoadAxioms() {
-        compareListAxioms("/ontapi/hp-no-imports.fss", OntFormat.FUNCTIONAL_SYNTAX, 20, 143855); // 0.11
+        compareListAxioms("/ontapi/hp-no-imports.fss", OntFormat.FUNCTIONAL_SYNTAX, 20, 143855); // 0.14
     }
 
     @Test
     public void compareTTOLoadAxioms() {
         // the difference in axiom lists is due to split-annotation-axioms functionality,
         // turn it on and the number will be the same:
-        compareListAxioms("/ontapi/tto.rdf", OntFormat.RDF_XML, 10, 336294, 336291); // 0.32
+        compareListAxioms("/ontapi/tto.rdf", OntFormat.RDF_XML, 10, 336294, 336291); // 0.38
     }
 
     @Test

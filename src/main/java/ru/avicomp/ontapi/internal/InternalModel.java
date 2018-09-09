@@ -14,14 +14,12 @@
 
 package ru.avicomp.ontapi.internal;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -33,7 +31,6 @@ import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -96,29 +93,26 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     protected LoadingCache<Class<? extends OWLObject>, ObjectTriplesMap<? extends OWLObject>> components =
             Caffeine.newBuilder().softValues().build(this::readObjectTriples);
 
-    // Temporary cache for collecting axioms, should be reset after axioms getting.
+    // Temporary cache for the collecting axioms, should be reset after axioms getting.
     protected final InternalDataFactory cacheDataFactory;
     // OWL objects store to improve performance (working with OWL-API 'signature' methods)
     // Any change in the graph must reset these caches.
-    // TODO: better to remove this cache at all (replace with cacheDataFactory)
     protected LoadingCache<Class<? extends OWLObject>, Set<? extends OWLObject>> objects =
             Caffeine.newBuilder().softValues().build(this::readOWLObjects);
 
     /**
-     * Creates an RDF Graph Buffer Model instance.
+     * Creates a Buffer RDF Graph Model instance.
      * For internal usage only.
      *
      * @param base        {@link Graph}
      * @param personality {@link OntPersonality}
-     * @param factory     {@link DataFactory}
+     * @param factory     {@link InternalDataFactory}
      * @param config      {@link InternalConfig}
      */
-    public InternalModel(Graph base, OntPersonality personality, DataFactory factory, InternalConfig config) {
+    public InternalModel(Graph base, OntPersonality personality, InternalDataFactory factory, InternalConfig config) {
         super(base, personality);
-        this.config = config;
-        this.cacheDataFactory = new CacheDataFactory(factory);
-        //new NoCacheDataFactory(config);
-        //new MapDataFactory(config);
+        this.config = Objects.requireNonNull(config);
+        this.cacheDataFactory = Objects.requireNonNull(factory);
         getGraph().getEventManager().register(new DirectListener());
     }
 
@@ -1018,226 +1012,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         @Override
         public void notifyDeleteGraph(Graph g, Graph other) {
             invalidate();
-        }
-    }
-
-    /**
-     * The internal cache holder which is using while reading owl-objects.
-     * Currently it is based on caffeine cache since it is used widely by OWL-API.
-     */
-    public static class CacheDataFactory extends NoCacheDataFactory {
-        protected final LoadingCache<OntCE, ONTObject<? extends OWLClassExpression>> classExpressions;
-        protected final LoadingCache<OntDR, ONTObject<? extends OWLDataRange>> dataRanges;
-        protected final LoadingCache<OntNAP, ONTObject<OWLAnnotationProperty>> annotationProperties;
-        protected final LoadingCache<OntNDP, ONTObject<OWLDataProperty>> datatypeProperties;
-        protected final LoadingCache<OntOPE, ONTObject<? extends OWLObjectPropertyExpression>> objectProperties;
-        protected final LoadingCache<OntIndividual, ONTObject<? extends OWLIndividual>> individuals;
-        protected final LoadingCache<Literal, ONTObject<OWLLiteral>> literals;
-        protected final LoadingCache<String, IRI> iris;
-
-        /**
-         * @param factory {@link DataFactory}
-         * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternalsImpl.java#L63'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl#builder(CacheLoader)</a>
-         */
-        public CacheDataFactory(DataFactory factory) {
-            super(factory);
-            // '2048' is from OWL-API DataFactory impl:
-            int size = 2048;
-            this.classExpressions = buildSync(size, super::get);
-            this.dataRanges = buildSync(size, super::get);
-            this.annotationProperties = build(size, super::get);
-            this.datatypeProperties = build(size, super::get);
-            this.objectProperties = build(size, super::get);
-            this.individuals = build(size, super::get);
-            this.literals = build(size, super::get);
-            this.iris = build(size, IRI::create);
-        }
-
-        @Override
-        public void clear() {
-            classExpressions.invalidateAll();
-            dataRanges.invalidateAll();
-            annotationProperties.invalidateAll();
-            datatypeProperties.invalidateAll();
-            objectProperties.invalidateAll();
-            individuals.invalidateAll();
-            literals.invalidateAll();
-        }
-
-        @Override
-        public ONTObject<? extends OWLClassExpression> get(OntCE ce) {
-            return classExpressions.get(ce);
-        }
-
-        @Override
-        public ONTObject<? extends OWLDataRange> get(OntDR dr) {
-            return dataRanges.get(dr);
-        }
-
-        @Override
-        public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
-            return annotationProperties.get(nap);
-        }
-
-        @Override
-        public ONTObject<OWLDataProperty> get(OntNDP ndp) {
-            return datatypeProperties.get(ndp);
-        }
-
-        @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
-            return objectProperties.get(ope);
-        }
-
-        @Override
-        public ONTObject<OWLLiteral> get(Literal literal) {
-            return literals.get(literal);
-        }
-
-        @Override
-        public ONTObject<? extends OWLIndividual> get(OntIndividual i) {
-            return individuals.get(i);
-        }
-
-        @Override
-        public IRI toIRI(String str) { // use global cache
-            return iris.get(str);
-        }
-
-        /**
-         * Builds a synchronized caffeine LoadingCache since
-         * <a href='https://github.com/ben-manes/caffeine/issues/209'>a recursive computation is not supported in Java’s maps</a>.
-         *
-         * @param maxSize, int, the maximum size of the cache
-         * @param loader   {@link CacheLoader}
-         * @param <K>      key type
-         * @param <V>      value type
-         * @return {@link LoadingCache}
-         */
-        private static <K, V> LoadingCache<K, V> buildSync(long maxSize, CacheLoader<K, V> loader) {
-            Caffeine<Object, Object> res = Caffeine.newBuilder();
-            if (maxSize > 0) {
-                res = res.maximumSize(maxSize);
-            }
-            return res.buildAsync(loader).synchronous();
-        }
-
-        /**
-         * Builds a standard caffeine LoadingCache.
-         *
-         * @param maxSize, int, the maximum size of the cache
-         * @param loader   {@link CacheLoader}
-         * @param <K>      key type
-         * @param <V>      value type
-         * @return {@link LoadingCache}
-         */
-        private static <K, V> LoadingCache<K, V> build(long maxSize, CacheLoader<K, V> loader) {
-            Caffeine<Object, Object> res = Caffeine.newBuilder();
-            if (maxSize > 0) {
-                res = res.maximumSize(maxSize);
-            }
-            return res.build(loader);
-        }
-
-        @Override
-        public SimpleMap<OntCE, ONTObject<? extends OWLClassExpression>> classExpressionStore() {
-            return new CacheMap<>(classExpressions);
-        }
-
-        @Override
-        public SimpleMap<OntDR, ONTObject<? extends OWLDataRange>> dataRangeStore() {
-            return new CacheMap<>(dataRanges);
-        }
-
-        public class CacheMap<K, V> implements SimpleMap<K, V> {
-            public CacheMap(LoadingCache<K, V> cache) {
-                this.cache = cache;
-            }
-
-            private final LoadingCache<K, V> cache;
-
-            @Override
-            public V get(K key) {
-                return cache.getIfPresent(key);
-            }
-
-            @Override
-            public void put(K key, V value) {
-                cache.put(key, value);
-            }
-        }
-    }
-
-    /**
-     * Impl for debug.
-     */
-    public static class MapDataFactory extends NoCacheDataFactory {
-        private Map<OntCE, ONTObject<? extends OWLClassExpression>> classExpressions = new HashMap<>();
-        private Map<OntDR, ONTObject<? extends OWLDataRange>> dataRanges = new HashMap<>();
-        private Map<OntNAP, ONTObject<OWLAnnotationProperty>> annotationProperties = new HashMap<>();
-        private Map<OntNDP, ONTObject<OWLDataProperty>> datatypeProperties = new HashMap<>();
-        private Map<OntOPE, ONTObject<? extends OWLObjectPropertyExpression>> objectProperties = new HashMap<>();
-        private Map<OntIndividual, ONTObject<? extends OWLIndividual>> individuals = new HashMap<>();
-        private Map<Literal, ONTObject<OWLLiteral>> literals = new HashMap<>();
-
-        public MapDataFactory(DataFactory factory) {
-            super(factory);
-        }
-
-        @Override
-        public void clear() {
-            classExpressions.clear();
-            dataRanges.clear();
-            annotationProperties.clear();
-            objectProperties.clear();
-            datatypeProperties.clear();
-            individuals.clear();
-            literals.clear();
-        }
-
-        @Override
-        public ONTObject<? extends OWLClassExpression> get(OntCE ce) {
-            return classExpressions.computeIfAbsent(ce, super::get);
-        }
-
-        @Override
-        public ONTObject<? extends OWLDataRange> get(OntDR dr) {
-            return dataRanges.computeIfAbsent(dr, super::get);
-        }
-
-        @Override
-        public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
-            return annotationProperties.computeIfAbsent(nap, super::get);
-        }
-
-        @Override
-        public ONTObject<OWLDataProperty> get(OntNDP ndp) {
-            return datatypeProperties.computeIfAbsent(ndp, super::get);
-        }
-
-        @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
-            return objectProperties.computeIfAbsent(ope, super::get);
-        }
-
-        @Override
-        public ONTObject<OWLLiteral> get(Literal l) {
-            return literals.computeIfAbsent(l, super::get);
-        }
-
-        @Override
-        public ONTObject<? extends OWLIndividual> get(OntIndividual i) {
-            return individuals.computeIfAbsent(i, super::get);
-        }
-
-        @Override
-        public SimpleMap<OntCE, ONTObject<? extends OWLClassExpression>> classExpressionStore() {
-            return SimpleMap.fromMap(classExpressions);
-        }
-
-        @Override
-        public SimpleMap<OntDR, ONTObject<? extends OWLDataRange>> dataRangeStore() {
-            return SimpleMap.fromMap(dataRanges);
         }
     }
 
