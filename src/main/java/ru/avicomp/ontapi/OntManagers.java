@@ -21,7 +21,6 @@ import ru.avicomp.ontapi.jena.OntModelFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -256,47 +255,12 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * The OWL-API impl of {@link Profile}.
-     * The {@code owlapi-apibinding}
-     * (class <a href='https://github.com/owlcs/owlapi/blob/version5/apibinding/src/main/java/org/semanticweb/owlapi/apibinding/OWLManager.java'>org.semanticweb.owlapi.apibinding.OWLManager</a>)
-     * must be in class-path otherwise {@link OntApiException} is expected while initialization.
-     */
-    public static class OWLAPIBindingProfile implements Profile {
-        private final Class<?> provider;
-
-        public OWLAPIBindingProfile() throws OntApiException {
-            this.provider = ReflectionUtils.getClass("org.semanticweb.owlapi.apibinding.OWLManager");
-        }
-
-        @Override
-        public OWLOntologyManager create(boolean concurrent) throws OntApiException {
-            Method manager = ReflectionUtils.findStaticMethod(provider, concurrent ? "createConcurrentOWLOntologyManager" : "createOWLOntologyManager");
-            try {
-                return (OWLOntologyManager) manager.invoke(null);
-            } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
-                throw new OntApiException("Can't create manager using " + manager, e);
-            }
-        }
-
-        @Override
-        public OWLDataFactory dataFactory() {
-            Method factory = ReflectionUtils.findStaticMethod(provider, "getOWLDataFactory");
-            try {
-                return (OWLDataFactory) factory.invoke(null);
-            } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
-                throw new OntApiException("Can't create data factory using " + factory, e);
-            }
-        }
-    }
-
-    /**
      * The OWL-API impl of {@link Profile} based on straightforward reflection.
      * The dependency owlapi-impl must be in class-paths,
      * otherwise {@link OntApiException} is expected while initialization.
      *
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl</a>
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyImplementationFactory.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyImplementationFactory</a>
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/concurrent/NonConcurrentOWLOntologyBuilder.java'>uk.ac.manchester.cs.owl.owlapi.concurrent.NonConcurrentOWLOntologyBuilder</a>
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/concurrent/ConcurrentOWLOntologyBuilder.java'>uk.ac.manchester.cs.owl.owlapi.concurrent.ConcurrentOWLOntologyBuilder</a>
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>
@@ -311,26 +275,9 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         public OWLOntologyBuilder createOWLOntologyBuilder(ReadWriteLock lock) throws OntApiException {
-            Class<?> ontologyImplementationFactoryType = ReflectionUtils.getClass("uk.ac.manchester.cs.owl.owlapi." +
-                    "OWLOntologyImplementationFactory");
-            Object ontologyImplementationFactoryInstance = ReflectionUtils.newProxy(ontologyImplementationFactoryType,
-                    (proxy, method, args) -> {
-                        if ("createOWLOntology".equals(method.getName()) && args != null && args.length == 2) {
-                            OWLOntologyManager m = (OWLOntologyManager) args[0];
-                            OWLOntologyID id = (OWLOntologyID) args[1];
-                            return createOWLOntologyImpl(m, id);
-                        }
-                        String name = "Instance of " + ontologyImplementationFactoryType.getName();
-                        if ("toString".equals(method.getName()) && args == null) {
-                            return name;
-                        }
-                        throw new OntApiException("[" + name + "] unsupported method call: " + method);
-                    });
-            LinkedListMultimap<Class<?>, Object> nonConcurrentParams = LinkedListMultimap.create();
-            nonConcurrentParams.put(ontologyImplementationFactoryType, ontologyImplementationFactoryInstance);
             OWLOntologyBuilder res = ReflectionUtils.newInstance(OWLOntologyBuilder.class,
                     "uk.ac.manchester.cs.owl.owlapi.concurrent.NonConcurrentOWLOntologyBuilder",
-                    nonConcurrentParams);
+                    LinkedListMultimap.create());
             if (lock == null || NoOpReadWriteLock.NO_OP_RW_LOCK.equals(lock)) return res;
             LinkedListMultimap<Class<?>, Object> concurrentParams = LinkedListMultimap.create();
             concurrentParams.put(OWLOntologyBuilder.class, res);
@@ -350,7 +297,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
         @Override
         public OWLOntologyManager create(boolean concurrent) {
             ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.NO_OP_RW_LOCK;
-            OWLDataFactory dataFactory = createDataFactory(false);
+            OWLDataFactory dataFactory = createDataFactory();
             OWLOntologyFactory loadFactory = createOntologyFactory(createOWLOntologyBuilder(lock));
             OWLOntologyManager res = createManager(dataFactory, lock);
             Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
@@ -384,14 +331,12 @@ public class OntManagers implements OWLOntologyManagerFactory {
 
         @Override
         public OWLDataFactory dataFactory() {
-            return createDataFactory(false);
+            return createDataFactory();
         }
 
-        public OWLDataFactory createDataFactory(boolean withCompression) {
-            LinkedListMultimap<Class<?>, Object> params = LinkedListMultimap.create();
-            params.put(Boolean.TYPE, withCompression);
+        public OWLDataFactory createDataFactory() {
             return ReflectionUtils.newInstance(OWLDataFactory.class,
-                    "uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl", params);
+                    "uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl", LinkedListMultimap.create());
         }
 
         public OWLOntologyFactory createOntologyFactory(OWLOntologyBuilder builder) {

@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.api.baseclasses.TestBase;
-import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -34,27 +33,22 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
+import java.util.stream.Collectors;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
+ * Informatics Group
  * @since 3.1.0
  */
-
 @SuppressWarnings("javadoc")
 public class ImportsTestCase extends TestBase {
 
     @Test
     public void testImportsClosureUpdate() throws OWLOntologyCreationException {
-        IRI aIRI = OWLFunctionalSyntaxFactory.IRI("http://a.com", "");
+        IRI aIRI = IRI.create("http://a.com", "");
         OWLOntology ontA = getOWLOntology(aIRI);
-        IRI bIRI = OWLFunctionalSyntaxFactory.IRI("http://b.com", "");
+        IRI bIRI = IRI.create("http://b.com", "");
         OWLOntology ontB = getOWLOntology(bIRI);
         ontA.applyChange(new AddImport(ontA, df.getOWLImportsDeclaration(bIRI)));
         Assert.assertEquals(2, m.importsClosure(ontA).count());
@@ -71,8 +65,7 @@ public class ImportsTestCase extends TestBase {
         File ontologyByName = folder.newFile("tempmain.owl");
         File ontologyByVersion = folder.newFile("tempversion.owl");
         File ontologyByOtherPath = folder.newFile("tempother.owl");
-        OWLOntology ontology = getOWLOntology(new OWLOntologyID(Optional.of(IRI.create(ontologyByName)), Optional.of(IRI
-                .create(ontologyByVersion))));
+        OWLOntology ontology = getOWLOntology(new OWLOntologyID(IRI.create(ontologyByName), IRI.create(ontologyByVersion)));
         ontology.saveOntology(IRI.create(ontologyByName));
         ontology.saveOntology(IRI.create(ontologyByVersion));
         ontology.saveOntology(IRI.create(ontologyByOtherPath));
@@ -99,7 +92,9 @@ public class ImportsTestCase extends TestBase {
     public void shouldNotLoadWrong() throws OWLOntologyCreationException {
         m.createOntology(IRI.create("urn:test#", "test"));
         StringDocumentSource documentSource = new StringDocumentSource("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" xmlns:owl =\"http://www.w3.org/2002/07/owl#\">\n"
+                + "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" " +
+                "xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" " +
+                "xmlns:owl =\"http://www.w3.org/2002/07/owl#\">\n"
                 + "    <owl:Ontology><owl:imports rdf:resource=\"urn:test#test\"/></owl:Ontology></rdf:RDF>");
         OWLOntology o = m.loadOntologyFromOntologyDocument(documentSource);
         Assert.assertTrue(o.getOntologyID().toString(), o.isAnonymous());
@@ -108,8 +103,8 @@ public class ImportsTestCase extends TestBase {
 
     @Test
     public void testManualImports() throws OWLOntologyCreationException {
-        OWLOntology baseOnt = getOWLOntology(OWLFunctionalSyntaxFactory.IRI("http://semanticweb.org/ontologies/", "base"));
-        IRI importedIRI = OWLFunctionalSyntaxFactory.IRI("http://semanticweb.org/ontologies/", "imported");
+        OWLOntology baseOnt = getOWLOntology(IRI.create("http://semanticweb.org/ontologies/", "base"));
+        IRI importedIRI = IRI.create("http://semanticweb.org/ontologies/", "imported");
         OWLOntology importedOnt = getOWLOntology(importedIRI);
         Set<OWLOntology> preImportsClosureCache = OWLAPIStreamUtils.asUnorderedSet(baseOnt.importsClosure());
         Assert.assertTrue(preImportsClosureCache.contains(baseOnt));
@@ -149,27 +144,6 @@ public class ImportsTestCase extends TestBase {
         m.loadOntologyFromOntologyDocument(IRI.create(new File(RESOURCES, "importscyclic/D.owl")));
     }
 
-    /**
-     * ONT-API: This is a borderline case.
-     * The original ontologies (subject-amy.ttl, subject-bob.ttl and subject-sue.ttl) did NOT contain prefix 'owl'
-     * until I added it.
-     * But they had (and have) resources in short form which use this prefix (e.g. 'owl:Ontology', 'owl:imports' etc).
-     * So they were NOT correct ontologies until now.
-     * And jena parser collapsed on them with the fully correct error ('[line: 9, col: 77] Undefined prefix: owl').
-     * In case of failure with jena the current implementation of ONT-API {@link ru.avicomp.ontapi.OntologyFactory}
-     * tries the original ('pure') OWL-API parser (the mixed loading).
-     * But in this case there is no trimming with transformation mechanism
-     * ({@link ru.avicomp.ontapi.transforms.Transform}).
-     * Only the anonymous base ontology (core.ttl) and the top-level ontology (subject.ttl) were transformed.
-     * But it seems it was not enough for correct working of the logic embedded in the testcase
-     * (the declarations for NamedIndividuals occurred to be missed and
-     * instead object and data property assertions there were annotation assertions).
-     * So the conclusion is this: if you have corrupted ontology then you may encounter some problems.
-     * No one knows what exactly since we use OWL-API native implementations as last attempt to load
-     * which is not strict to the syntax in most owl-api-parsers.
-     *
-     * @throws OWLOntologyCreationException
-     */
     @Test
     public void testTurtleGraphImport() throws OWLOntologyCreationException {
         File ontologyDirectory = new File(RESOURCES, "importNoOntology");
@@ -190,15 +164,15 @@ public class ImportsTestCase extends TestBase {
     }
 
     /**
-     * Tests to see if the method which obtains the imports closure behaves
-     * correctly.
+     * Tests to see if the method which obtains the imports closure behaves correctly.
      */
     @Test
     public void testImportsClosure() {
         OWLOntology ontA = getOWLOntology();
         OWLOntology ontB = getOWLOntology();
         Assert.assertTrue(OWLAPIStreamUtils.contains(ontA.importsClosure(), ontA));
-        OWLImportsDeclaration importsDeclaration = OWLFunctionalSyntaxFactory.ImportsDeclaration(get(ontB.getOntologyID().getOntologyIRI()));
+        IRI iriB = ontB.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
+        OWLImportsDeclaration importsDeclaration = df.getOWLImportsDeclaration(iriB);
         ontA.applyChange(new AddImport(ontA, importsDeclaration));
         Assert.assertTrue(OWLAPIStreamUtils.contains(ontA.importsClosure(), ontB));
         ontA.applyChange(new RemoveImport(ontA, importsDeclaration));
@@ -232,11 +206,14 @@ public class ImportsTestCase extends TestBase {
 
     @Test
     public void shouldRemapImportRdfXML() throws OWLOntologyCreationException {
-        String input = "<?xml version=\"1.0\"?>\n" + "<rdf:RDF xmlns=\"urn:test#\"\n" + "     xml:base=\"urn:test\"\n"
+        String input = "<?xml version=\"1.0\"?>\n"
+                + "<rdf:RDF xmlns=\"urn:test#\"\n"
+                + "     xml:base=\"urn:test\"\n"
                 + "     xmlns:owl=\"http://www.w3.org/2002/07/owl#\"\n"
                 + "     xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n"
                 + "    <owl:Ontology rdf:about=\"urn:test\">\n"
-                + "        <owl:imports rdf:resource=\"http://test.org/TestPizzaImport.owl\"/>\n" + "    </owl:Ontology>\n"
+                + "        <owl:imports rdf:resource=\"http://test.org/TestPizzaImport.owl\"/>\n"
+                + "    </owl:Ontology>\n"
                 + "</rdf:RDF>";
         IRI testImport = IRI.create("http://test.org/", "TestPizzaImport.owl");
         IRI remap = IRI.create("urn:test:", "mockImport");
@@ -253,11 +230,12 @@ public class ImportsTestCase extends TestBase {
     @Test
     public void testImportOntologyByLocation() throws Exception {
         File f = folder.newFile("a.owl");
-        createOntologyFile(OWLFunctionalSyntaxFactory.IRI("http://a.com", ""), f);
+        OWLOntology o = createOntologyFile(IRI.create("http://a.com", ""), f);
         // have to load an ontology for it to get a document IRI
         OWLOntology a = m.loadOntologyFromOntologyDocument(f);
+        Assert.assertEquals(o, a);
         IRI locA = m.getOntologyDocumentIRI(a);
-        IRI bIRI = OWLFunctionalSyntaxFactory.IRI("http://b.com", "");
+        IRI bIRI = IRI.create("http://b.com", "");
         OWLOntology b = getOWLOntology(bIRI);
         // import from the document location of a.owl (rather than the
         // ontology IRI)
@@ -269,8 +247,7 @@ public class ImportsTestCase extends TestBase {
     @Test
     public void shouldNotCreateIllegalPunning() throws OWLOntologyCreationException {
         m.getIRIMappers().add(new AutoIRIMapper(new File(RESOURCES, "importscyclic"), true));
-        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(new File(RESOURCES,
-                "importscyclic/relaMath.owl")));
+        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(new File(RESOURCES, "importscyclic/relaMath.owl")));
         OWLProfileReport checkOntology = Profiles.OWL2_DL.checkOntology(o);
         Assert.assertTrue(checkOntology.toString(), checkOntology.isInProfile());
         o.directImports().forEach(ont -> Assert.assertEquals(0, ont.annotationPropertiesInSignature().count()));
@@ -291,29 +268,25 @@ public class ImportsTestCase extends TestBase {
         man.getIRIMappers().add(mapper);
         String name = "/owlapi/imports/thesubont.omn";
         OWLOntology root = man.loadOntologyFromOntologyDocument(getClass().getResourceAsStream(name));
-        assertEquals(1, root.imports().count());
-        for (OWLOntology ontology : asList(man.ontologies())) {
+        Assert.assertEquals(1, root.imports().count());
+        for (OWLOntology ontology : man.ontologies().collect(Collectors.toList())) {
             man.removeOntology(ontology);
         }
-        assertEquals(0, man.ontologies().count());
+        Assert.assertEquals(0, man.ontologies().count());
         root = man.loadOntologyFromOntologyDocument(getClass().getResourceAsStream(name));
-        assertEquals(1, root.imports().count());
+        Assert.assertEquals(1, root.imports().count());
     }
 
-    /* // TODO: disabled till update to jena 3.8.0 + (where xerces is excluded)
     @Test // from OWL-API-5.1.5
     public void testAutoIRIMapperShouldNotBeConfusedByPrefixes() {
         AutoIRIMapper mapper = new AutoIRIMapper(new File(RESOURCES, "imports"), true);
-        assertTrue(mapper.getOntologyIRIs()
-                .contains(IRI.create("http://owlapitestontologies.com/thesubont")));
+        Assert.assertTrue(mapper.getOntologyIRIs().contains(IRI.create("http://owlapitestontologies.com/thesubont")));
     }
-    */
 
     @Test // from OWL-API-5.1.5
     public void testAutoIRIMapperShouldRecogniseRdfAboutInOwlOntology() {
         AutoIRIMapper mapper = new AutoIRIMapper(new File(RESOURCES, "imports"), true);
-        assertTrue(mapper.getOntologyIRIs().contains(IRI.create("http://test.org/compleximports/A.owl")));
+        Assert.assertTrue(mapper.getOntologyIRIs().contains(IRI.create("http://test.org/compleximports/A.owl")));
     }
-
 
 }

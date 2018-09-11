@@ -14,8 +14,6 @@
 
 package org.semanticweb.owlapi.api.baseclasses;
 
-import gnu.trove.set.hash.TCustomHashSet;
-import gnu.trove.strategy.HashingStrategy;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import javax.annotation.Nullable;
@@ -35,46 +33,11 @@ public class PlainLiteralTypeFoldingAxiomSet implements Set<OWLAxiom> {
      * @param axioms axioms to be used
      */
     public PlainLiteralTypeFoldingAxiomSet(Collection<OWLAxiom> axioms) {
-        // todo: hotfix, wrap as HashSet to avoid strange irregular java.util.NoSuchElementException exception while iterating inside addAll
-        delegate.addAll(new HashSet<>(axioms));
+        delegate.addAll(axioms);
     }
 
     static Set<OWLAxiom> createPlainLiteralTypeFoldingSet() {
-        HashingStrategy<OWLAxiom> strategy = new OWLAxiomHashingStrategy();
-        return new TCustomHashSet<>(strategy);
-    }
-
-    private static class OWLAxiomHashingStrategy implements HashingStrategy<OWLAxiom> {
-
-        OWLAxiomHashingStrategy() {
-        }
-
-        /**
-         * Computes a hash code for the specified object. Implementers can use
-         * the object's own <tt>hashCode</tt> method, the Java runtime's
-         * <tt>identityHashCode</tt>, or a custom scheme.
-         *
-         * @param object for which the hashcode is to be computed
-         * @return the hashCode
-         */
-        @Override
-        public int computeHashCode(@Nullable OWLAxiom object) {
-            return LiteralFoldingHashCoder.hashCode(object);
-        }
-
-        /**
-         * Compares o1 and o2 for equality. Strategy implementers may use the
-         * objects' own equals() methods, compare object references, or
-         * implement some custom scheme.
-         *
-         * @param o1 an <code>Object</code> value
-         * @param o2 an <code>Object</code> value
-         * @return true if the objects are equal according to this strategy.
-         */
-        @Override
-        public boolean equals(@Nullable OWLAxiom o1, @Nullable OWLAxiom o2) {
-            return LiteralFoldingEqualityTester.equalAxiom(o1, o2);
-        }
+        return new HashSet<>();
     }
 
     @Override
