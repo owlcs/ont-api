@@ -19,7 +19,7 @@ import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.shared.PrefixMapping;
-import org.apache.jena.system.JenaSystem;
+import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
