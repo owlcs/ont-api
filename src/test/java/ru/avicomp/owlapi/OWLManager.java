@@ -90,13 +90,6 @@ public class OWLManager {
         return String.format("[%s]%s", DEBUG_USE_OWL ? "OWL" : "ONT", base);
     }
 
-    public static OWLDataFactory newOWLDataFactory(boolean withCompression) {
-        LOGGER.debug("New {}", typeName("DataFactory"));
-        return DEBUG_USE_OWL ?
-                new OntManagers.OWLAPIImplProfile().createDataFactory(withCompression) :
-                OntManagers.getDataFactory();
-    }
-
     public static OntologyConfigurator newConfig() {
         LOGGER.debug("New {}", typeName("OntologyConfigurator"));
         return DEBUG_USE_OWL ?

@@ -239,7 +239,6 @@ public class OntManagersTest {
         public Lock getWriteLock(OWLOntology o) {
             return NoOpReadWriteLock.NO_OP_LOCK;
         }
-
     }
 
     private static class ONTConcurrent extends ONTProfile {
@@ -265,6 +264,21 @@ public class OntManagersTest {
     }
 
     private static class OWLStandard extends OWLProfile {
+
+        @Override
+        public Class<? extends OWLOntology> getOntologyImplType() {
+            return findClass("uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl");
+        }
+
+        @Override
+        public Lock getReadLock(OWLOntology o) {
+            return NoOpReadWriteLock.NO_OP_LOCK;
+        }
+
+        @Override
+        public Lock getWriteLock(OWLOntology o) {
+            return NoOpReadWriteLock.NO_OP_LOCK;
+        }
 
         @Override
         public OWLOntologyManager createManager() {

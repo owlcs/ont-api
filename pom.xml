@@ -163,25 +163,6 @@
             <version>${version.owlapi}</version>
             <scope>test</scope>
         </dependency>
-        <!-- net.sourceforge.owlapi:owlapi-apibinding is required by hermit -->
-        <dependency>
-            <groupId>net.sourceforge.owlapi</groupId>
-            <artifactId>owlapi-apibinding</artifactId>
-            <version>${version.owlapi}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.owlapi</groupId>
-            <artifactId>org.semanticweb.hermit</artifactId>
-            <version>1.4.1.513</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>net.sourceforge.owlapi</groupId>
-                    <artifactId>owlapi-distribution</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <!--spin tests. NOTE: dependent on jena 3.4.0! -->
         <dependency>
             <groupId>org.topbraid</groupId>

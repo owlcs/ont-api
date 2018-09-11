@@ -252,16 +252,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @throws OntApiException in case no owlapi-* in class-path
      */
     public static Profile createOWLProfile() throws OntApiException {
-        try {
-            return new OWLAPIBindingProfile();
-        } catch (OntApiException i) {
-            try {
-                return new OWLAPIImplProfile();
-            } catch (OntApiException j) {
-                i.addSuppressed(j);
-            }
-            throw i;
-        }
+        return new OWLAPIImplProfile();
     }
 
     /**
