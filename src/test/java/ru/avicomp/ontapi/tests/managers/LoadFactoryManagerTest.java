@@ -388,7 +388,7 @@ public class LoadFactoryManagerTest {
                 return OntModelFactory.createModel().setID(null).addComment(comment).getModel().getBaseGraph();
             }
         };
-        OntologyFactory ontFactory = new OntManagers.ONTManagerProfile().createOntologyFactory(builder);
+        OntologyFactory ontFactory = new OntManagers.ONTAPIProfile().createOntologyFactory(builder);
         Assert.assertNotNull(ontFactory);
         manager.getOntologyFactories().add(ontFactory);
         Assert.assertEquals(1, manager.getOntologyFactories().size());

@@ -82,8 +82,8 @@ public class OWLManager {
     public static OWLOntologyManager newManager(OWLDataFactory df, ReadWriteLock lock) {
         LOGGER.debug("New {}", typeName("OntologyManager"));
         return DEBUG_USE_OWL ?
-                new OntManagers.OWLAPIImplProfile().create(df, lock) :
-                new OntManagers.ONTManagerProfile().create(OWLAdapter.get().asONT(df), lock);
+                new OntManagers.OWLAPIImplProfile().createManager(df, lock) :
+                new OntManagers.ONTAPIProfile().createManager(OWLAdapter.get().asONT(df), lock);
     }
 
     private static String typeName(String base) {
