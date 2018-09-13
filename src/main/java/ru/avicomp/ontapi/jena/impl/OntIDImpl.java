@@ -50,7 +50,11 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
     }
 
     @Override
-    public OntIDImpl setVersionIRI(String uri) {
+    public OntIDImpl setVersionIRI(String uri) throws OntApiException {
+        if (uri != null && isAnon()) {
+            throw new OntJenaException("Attempt to add version IRI (" + uri +
+                    ") to anonymous ontology (" + asNode().toString() + ").");
+        }
         removeAll(OWL.versionIRI);
         if (uri != null) {
             addProperty(OWL.versionIRI, getModel().createResource(uri));
@@ -69,7 +73,8 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
 
     @Override
     public OntIDImpl removeImport(String uri) {
-        removeImportResource(getModel().createResource(uri));
+        Resource r = getModel().createResource(OntJenaException.notNull(uri, "Null uri specified."));
+        removeImportResource(r);
         return this;
     }
 

@@ -99,22 +99,37 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      *
      * @param model {@link Model} graph holder
      * @param uri   String an ontology iri, null for anonymous ontology
-     * @return {@link Resource}
+     * @return {@link Resource} in model
      * @throws OntJenaException if creation is not possible by some reason.
      */
     public static Resource createOntologyID(Model model, String uri) throws OntJenaException {
+        return createOntologyID(model, uri == null ? NodeFactory.createBlankNode() : NodeFactory.createURI(uri));
+    }
+
+    /**
+     * Creates a fresh ontology resource from the given {@link Node}
+     * and moves to it all content from existing ontology resources (if they present).
+     *
+     * @param model {@link Model} graph holder, not {@code null}
+     * @param node  {@link Node}, must be either uri or blank, not {@code null}
+     * @return {@link Resource} in model
+     * @throws OntJenaException         in case the given node is uri and it takes part in {@code owl:imports}
+     * @throws IllegalArgumentException in case the given node is not uri or blank (i.e. literal)
+     */
+    public static Resource createOntologyID(Model model, Node node) throws OntJenaException, IllegalArgumentException {
+        if (!Objects.requireNonNull(node, "Null node").isURI() && !node.isBlank())
+            throw new IllegalArgumentException("Expected uri or blank node: " + node);
         List<Statement> prev = Iter.flatMap(model.listStatements(null, RDF.type, OWL.Ontology),
                 s -> s.getSubject().listProperties()).toList();
         if (prev.stream()
                 .filter(s -> OWL.imports.equals(s.getPredicate()))
                 .map(Statement::getObject)
                 .filter(RDFNode::isURIResource)
-                .map(RDFNode::asResource)
-                .map(Resource::getURI).anyMatch(u -> u.equals(uri))) {
-            throw new OntJenaException("Can't create ontology: specified uri (<" + uri + ">) is present in the imports.");
+                .map(RDFNode::asNode).anyMatch(node::equals)) {
+            throw new OntJenaException("Can't create ontology: specified uri (<" + node + ">) is present in the imports.");
         }
         model.remove(prev);
-        Resource res = model.createResource(uri).addProperty(RDF.type, OWL.Ontology);
+        Resource res = model.wrapAsResource(node).addProperty(RDF.type, OWL.Ontology);
         prev.forEach(s -> res.addProperty(s.getPredicate(), s.getObject()));
         return res;
     }

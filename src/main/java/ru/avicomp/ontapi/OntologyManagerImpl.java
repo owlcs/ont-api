@@ -488,13 +488,14 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * @param id {@link OWLOntologyID}
+     * @param ontologyID {@link OWLOntologyID}
      * @return {@link OntInfo} the container with ontology
      * @throws OWLOntologyCreationException        if creation is not possible either because the
      *                                             ontology already exists or because of fail while compute document-iri
      * @throws OWLOntologyFactoryNotFoundException if no suitable factory found,
      */
-    protected OntInfo create(OWLOntologyID id) throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
+    protected OntInfo create(OWLOntologyID ontologyID) throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
+        OntologyID id = OntologyID.asONT(ontologyID);
         Optional<OntInfo> ont = content.get(id);
         if (ont.isPresent()) {
             throw new OWLOntologyAlreadyExistsException(id);
@@ -1064,7 +1065,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public Stream<OWLOntologyID> ontologyIDsByVersion(@Nonnull IRI iri) {
         getLock().readLock().lock();
         try {
-            return content.keys().filter(o -> o.matchVersion(iri));
+            return content.keys().filter(o -> o.matchVersion(iri)).map(OWLOntologyID.class::cast);
         } finally {
             getLock().readLock().unlock();
         }
@@ -1444,7 +1445,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected OntologyModel load(@Nullable IRI iri, OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         listeners.fireStartedLoadingEvent(new OWLOntologyID(Optional.ofNullable(iri), Optional.empty()), source.getDocumentIRI());
         Exception ex = null;
-        OWLOntologyID id = new OWLOntologyID();
+        OWLOntologyID id = new OntologyID();
         try {
             OntologyModel res = load(source, conf);
             id = res.getOntologyID();
@@ -2052,17 +2053,20 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * Class-Collection of {@link OntInfo}s which wrap {@link OntologyModel}s.
      * It was introduced to be sure that all members are in the consistent state.
-     * It is not possible to use different {@code Map}s with {@link OWLOntologyID Ontology ID} as keys
+     * It is not possible to use directly different {@code Map}s with {@link OWLOntologyID Ontology ID} as keys
      * like in the original OWL-API implementation,
-     * since anything, including that ID, can be changed externally (e.g. directly in the jena graph
-     * using shadow {@link ru.avicomp.ontapi.jena.model.OntGraphModel} interface).
+     * since anything, including that ID, can be changed externally (e.g. from the jena graph
+     * using shadow {@link ru.avicomp.ontapi.jena.model.OntGraphModel} interface or anything else).
+     * On the other hand, it is not expected that the manager will store a large number of ontologies,
+     * so using {@code Set} as internal storage collection is OK.
      */
     public class OntologyCollection implements Serializable {
         private static final long serialVersionUID = 3693502109998760296L;
+        // todo: to real map
         protected final Collection<OntInfo> map;
 
         public OntologyCollection(Collection<OntInfo> c) {
-            this.map = c;
+            this.map = Objects.requireNonNull(c);
         }
 
         public int size() {
@@ -2081,7 +2085,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return map.stream();
         }
 
-        public Stream<OWLOntologyID> keys() {
+        public Stream<OntologyID> keys() {
             return values().map(OntInfo::id);
         }
 
@@ -2130,8 +2134,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         @Nonnull
-        public OWLOntologyID id() {
-            return ont.getOntologyID();
+        public OntologyID id() {
+            return OntologyID.asONT(ont.getOntologyID());
         }
 
         public OntologyModel get() {

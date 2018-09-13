@@ -32,6 +32,7 @@ import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.OntologyID;
 import ru.avicomp.ontapi.OwlObjects;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.RWLockedGraph;
@@ -99,6 +100,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
     // Any change in the graph must reset these caches.
     protected LoadingCache<Class<? extends OWLObject>, Set<? extends OWLObject>> objects =
             Caffeine.newBuilder().softValues().build(this::readOWLObjects);
+    protected OntologyID cachedID;
 
     /**
      * Creates a Buffer RDF Graph Model instance.
@@ -114,6 +116,42 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
         this.config = Objects.requireNonNull(config);
         this.cacheDataFactory = Objects.requireNonNull(factory);
         getGraph().getEventManager().register(new DirectListener());
+    }
+
+    /**
+     * Gets the {@link OWLOntologyID OWL Ontology ID} from the model.
+     *
+     * @return {@link OntologyID}
+     * @see #getID()
+     */
+    public OntologyID getOWLOntID() {
+        return cachedID == null ? cachedID = new OntologyID(getID()) : cachedID;
+    }
+
+    /**
+     * Sets the {@link OWLOntologyID OWL Ontology ID} to the model.
+     *
+     * @param id {@link OWLOntologyID}
+     * @throws IllegalArgumentException in case the given id is broken
+     * @see #setID(String)
+     */
+    public void setOWLOntID(OWLOntologyID id) throws IllegalArgumentException {
+        this.cachedID = null;
+        if (Objects.requireNonNull(id, "Null id").isAnonymous()) {
+            OntID res;
+            if (id instanceof OntologyID) {
+                res = getNodeAs(createOntologyID(this, ((OntologyID) id).asNode()).asNode(), OntID.class);
+            } else {
+                res = setID(null);
+            }
+            res.setVersionIRI(null);
+        } else {
+            setID(id.getOntologyIRI().map(IRI::getIRIString).orElseThrow(IllegalArgumentException::new))
+                    .setVersionIRI(id.getVersionIRI().map(IRI::getIRIString).orElse(null));
+        }
+        if (id instanceof OntologyID) {
+            this.cachedID = (OntologyID) id;
+        }
     }
 
     /**
@@ -768,6 +806,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * Invalidates all caches.
      */
     public void clearCache() {
+        cachedID = null;
         components.invalidateAll();
         clearObjectsCaches();
     }

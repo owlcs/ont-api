@@ -148,7 +148,7 @@ public class OWLLoaderImpl implements OntologyFactory.Loader {
             if (manager.contains(iri)) {
                 existingOntology = manager.getOntology(iri);
             }
-            OWLOntologyID id = new OWLOntologyID();
+            OWLOntologyID id = new OntologyID();
             OWLOntology ont = createOWLOntology(manager, id, source.getDocumentIRI(), handler);
             // Now parse the input into the empty ontology that we created select a parser
             // if the input source has format information and MIME information

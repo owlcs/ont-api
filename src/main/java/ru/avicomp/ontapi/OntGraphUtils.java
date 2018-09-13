@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.OntIDImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 
@@ -77,15 +76,8 @@ public class OntGraphUtils {
     public static OWLOntologyID getOntologyID(@Nonnull Graph graph) throws OntApiException {
         Graph base = Graphs.getBase(graph);
         Optional<Node> node = Graphs.ontologyNode(base);
-        if (!node.isPresent()) { // treat graphs without owl:Ontology as anonymous
-            return new OWLOntologyID();
-        }
-        OntID id = new OntIDImpl(node.get(), new ModelCom(base));
-        Optional<IRI> iri = Optional.ofNullable(id.getURI()).map(IRI::create);
-        Optional<IRI> ver = Optional.ofNullable(id.getVersionIRI()).map(IRI::create);
-        if (!iri.isPresent() && ver.isPresent())
-            throw new OntApiException("Anonymous graph with version iri");
-        return new OWLOntologyID(iri, ver);
+        // treat graphs without owl:Ontology as anonymous
+        return node.map(n -> new OntologyID(new OntIDImpl(n, new ModelCom(base)))).orElseGet(OntologyID::new);
     }
 
     /**

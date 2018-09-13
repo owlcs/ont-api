@@ -545,7 +545,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     default OntologyModel createOntology() {
-        return createOntology(new OWLOntologyID());
+        return createOntology(new OntologyID());
     }
 
     /**

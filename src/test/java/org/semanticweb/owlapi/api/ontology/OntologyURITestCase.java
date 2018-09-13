@@ -16,7 +16,6 @@ package org.semanticweb.owlapi.api.ontology;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.api.baseclasses.TestBase;
-import org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.owlapi.OWLManager;
 
@@ -40,7 +39,7 @@ public class OntologyURITestCase extends TestBase {
      */
     @Test
     public void testNamedOntologyToString() throws OWLOntologyCreationException {
-        IRI ontIRI = OWLFunctionalSyntaxFactory.IRI("http://owlapi.sourceforge.net/", "ont");
+        IRI ontIRI = IRI.create("http://owlapi.sourceforge.net/", "ont");
         OWLOntology ont = m.createOntology(ontIRI);
         String s = ont.toString();
         String suffix = String.format("[Axioms: %d Logical Axioms: %d] First 20 axioms: {}", ont.getAxiomCount(), ont.getLogicalAxiomCount());
@@ -50,21 +49,21 @@ public class OntologyURITestCase extends TestBase {
 
     @Test
     public void testOntologyID() {
-        IRI iriA = OWLFunctionalSyntaxFactory.IRI("http://www.another.com/", "ont");
-        IRI iriB = OWLFunctionalSyntaxFactory.IRI("http://www.another.com/ont/", "version");
+        IRI iriA = IRI.create("http://www.another.com/", "ont");
+        IRI iriB = IRI.create("http://www.another.com/ont/", "version");
         OWLOntologyID ontIDBoth = new OWLOntologyID(Optional.of(iriA), Optional.of(iriB));
         OWLOntologyID ontIDBoth2 = new OWLOntologyID(Optional.of(iriA), Optional.of(iriB));
         Assert.assertEquals(ontIDBoth, ontIDBoth2);
         OWLOntologyID ontIDURIOnly = new OWLOntologyID(Optional.of(iriA), Optional.empty());
-        Assert.assertFalse(ontIDBoth.equals(ontIDURIOnly));
+        Assert.assertNotEquals(ontIDBoth, ontIDURIOnly);
         OWLOntologyID ontIDNoneA = new OWLOntologyID();
         OWLOntologyID ontIDNoneB = new OWLOntologyID();
-        Assert.assertFalse(ontIDNoneA.equals(ontIDNoneB));
+        Assert.assertNotEquals(ontIDNoneA, ontIDNoneB);
     }
 
     @Test
     public void testOntologyURI() throws OWLOntologyCreationException {
-        IRI iri = OWLFunctionalSyntaxFactory.IRI("http://www.another.com/", "ont");
+        IRI iri = IRI.create("http://www.another.com/", "ont");
         OWLOntology ont = getOWLOntology(iri);
         Assert.assertEquals(iri, ont.getOntologyID().getOntologyIRI().orElseThrow(() -> new AssertionError("No IRI")));
         Assert.assertTrue(m.contains(iri));

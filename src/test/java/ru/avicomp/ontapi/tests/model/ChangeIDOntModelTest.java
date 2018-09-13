@@ -20,6 +20,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
@@ -152,7 +153,15 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         // anon:
         OWLOntologyID test3 = new OWLOntologyID(); //iri.addPath("test3").toOwlOntologyID();
         LOGGER.debug("3)Change ontology iri to {} through jena.", test3);
-        ResourceUtils.renameResource(ontology, OntIRI.toStringIRI(test3));
+        ResourceUtils.renameResource(ontology, null);
+        try {
+            OWLOntologyID actual = owl.getOntologyID();
+            Assert.fail("Possible to get id: " + actual);
+        } catch (OntApiException a) {
+            LOGGER.debug("Expected '{}'", a.getMessage());
+            // fix broken id:
+            jena.removeAll(null, OWL.versionIRI, null);
+        }
         testIRIChanged(manager, owl, jena, test3, imports, annotations);
         testHasClass(owl, jena, clazz);
 
@@ -172,7 +181,13 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
     }
 
-    private static void testIRIChanged(OntologyManager manager, OntologyModel owl, OntGraphModel jena, OWLOntologyID id, List<Resource> imports, Map<Property, List<RDFNode>> annotations) {
+    private static void testIRIChanged(OntologyManager manager,
+                                       OntologyModel owl,
+                                       OntGraphModel jena,
+                                       OWLOntologyID id,
+                                       List<Resource> imports,
+                                       Map<Property,
+                                               List<RDFNode>> annotations) {
         debug(owl);
 
         if (!id.isAnonymous())

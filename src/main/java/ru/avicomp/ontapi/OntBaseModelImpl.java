@@ -28,7 +28,6 @@ import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
@@ -38,7 +37,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -61,7 +59,6 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     protected transient InternalModel base;
     protected transient OntologyManagerImpl managerBackCopy;
 
-    protected OWLOntologyID ontologyID;
     protected int hashCode;
 
     protected OntBaseModelImpl(Graph graph, OntologyManagerImpl.ModelConfig conf) {
@@ -117,20 +114,12 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
 
     /**
      * Gets Ontology ID.
-     * Does not just return cached {@link #ontologyID} to provide synchronization with encapsulated jena model ({@link #base}).
-     * In the other hand we need this cached {@link #ontologyID} to be existed and relevant for owl serialization.
      *
      * @return the {@link OWLOntologyID}
      */
     @Override
     public OWLOntologyID getOntologyID() {
-        OntID id = this.base.getID();
-        if (id.isAnon()) {
-            return this.ontologyID == null || !this.ontologyID.isAnonymous() ? assignID(new OWLOntologyID()) : this.ontologyID;
-        }
-        Optional<IRI> iri = Optional.of(id.getURI()).map(IRI::create);
-        Optional<IRI> version = Optional.ofNullable(id.getVersionIRI()).map(IRI::create);
-        return assignID(new OWLOntologyID(iri, version));
+        return this.base.getOWLOntID();
     }
 
     /**
@@ -140,30 +129,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
      * @param id {@link OWLOntologyID Ontology ID}
      */
     protected void setOntologyID(OWLOntologyID id) {
-        try {
-            if (id.isAnonymous()) {
-                this.base.setID(null).setVersionIRI(null);
-                return;
-            }
-            this.base.setID(id.getOntologyIRI().map(IRI::getIRIString).orElse(null))
-                    .setVersionIRI(id.getVersionIRI().map(IRI::getIRIString).orElse(null));
-        } finally {
-            assignID(id);
-        }
-    }
-
-    /**
-     * Physically sets Ontology ID to this instance.
-     * For internal usage only: the outer interface must be "immutable".
-     *
-     * @param id {@link OWLOntologyID Ontology ID}
-     * @return the same id
-     */
-    protected OWLOntologyID assignID(OWLOntologyID id) {
-        this.ontologyID = id;
-        // reset hashcode (due to changes in OWL-API-api 5.1.1 -> 5.1.4)
+        this.base.setOWLOntID(id);
         this.hashCode = 0;
-        return id;
     }
 
     @Override
@@ -907,7 +874,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     private void writeObject(ObjectOutputStream out) throws IOException, OntApiException {
         Graph g = Graphs.getBase(base.getBaseGraph());
         if (!(g instanceof GraphMem))
-            throw new OntApiException(ontologyID + ":: Serialization is not supported for non-memory graphs.");
+            throw new OntApiException(getOntologyID() + ":: Serialization is not supported for non-memory graphs.");
         out.defaultWriteObject();
         // serialize only base graph (it will be wrapped as UnionGraph):
         RDFDataMgr.write(out, g, DEFAULT_SERIALIZATION_FORMAT.getLang());
@@ -921,7 +888,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
      */
     @Override
     public String toString() {
-        return String.format("Ontology(%s)", ontologyID);
+        return String.format("Ontology(%s)", getOntologyID());
     }
 
     @Override
