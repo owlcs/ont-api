@@ -157,13 +157,6 @@
             <version>${version.owlapi}</version>
             <scope>test</scope>
         </dependency>
-        <!-- net.sf.trove4j:trove4j is required by hermit -->
-        <dependency>
-            <groupId>net.sf.trove4j</groupId>
-            <artifactId>trove4j</artifactId>
-            <version>3.0.3</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
             <artifactId>owlapi-oboformat</artifactId>

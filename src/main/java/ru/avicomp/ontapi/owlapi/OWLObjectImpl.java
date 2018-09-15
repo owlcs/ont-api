@@ -13,11 +13,11 @@
  */
 package ru.avicomp.ontapi.owlapi;
 
-import org.semanticweb.owlapi.io.ToStringRenderer;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.AbstractCollectorEx;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import org.semanticweb.owlapi.util.OWLEntityCollector;
+import org.semanticweb.owlapi.util.SimpleRenderer;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 /**
  * A base for any OWLObject in ONT-API.
+ *
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
@@ -153,9 +154,17 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return DEFAULT_COMPARATOR.compare(this, Objects.requireNonNull(o));
     }
 
+    /**
+     * Returns string representation of this object.
+     * This method does not use {@link org.semanticweb.owlapi.io.ToStringRenderer} for two reasons:
+     * - to remove explicit usage of {@code javax.inject},
+     * - {@code toString} is not the kind of method that should change its behavior in runtime.
+     *
+     * @return String, not {@code null}
+     */
     @Override
     public String toString() {
-        return ToStringRenderer.getRendering(this);
+        return new SimpleRenderer().render(this);
     }
 
     /**
