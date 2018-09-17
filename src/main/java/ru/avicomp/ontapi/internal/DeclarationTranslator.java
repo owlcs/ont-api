@@ -29,10 +29,13 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
- * Declaration of OWLEntity.
- * Simple triplet with rdf:type predicate.
+ * It is a translator for axioms of the {@link org.semanticweb.owlapi.model.AxiomType#DECLARATION} type.
+ * Each non-builtin {@link OWLEntity entity} must have a declaration.
+ * The entity declaration is a simple triplet with {@code rdf:type} predicate,
+ * in OWL2 the subject and object of that triple are IRIs.
  * <p>
  * Created by @szuev on 28.09.2016.
  */
@@ -45,7 +48,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         if (!config.isAllowReadDeclarations()) return NullIterator.instance();
-        return Models.listEntities(model).mapWith(OntObject::getRoot);
+        return Models.listEntities(model).mapWith(OntObject::getRoot).filterDrop(Objects::isNull);
     }
 
     @Override
