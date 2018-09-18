@@ -31,7 +31,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 
 
 /**
@@ -39,11 +38,14 @@ import java.util.function.Function;
  * <p>
  * There are default implementations of {@link #getInputStream()} and {@link #getReader()} methods,
  * so you can use this document-source with the original OWL-API impl as well.
- * But these methods are not used by ONT-API; instead, the method {@link #getGraph()} (which provides a direct link to the graph) is used.
+ * But these methods are not used by ONT-API;
+ * instead, the method {@link #getGraph()} (which provides a direct link to the graph) is used.
  * <p>
- * Note: you may want to disable transformations (see {@link ru.avicomp.ontapi.config.OntConfig#setPerformTransformation(boolean)},
- * {@link ru.avicomp.ontapi.config.OntLoaderConfiguration#setPerformTransformation(boolean)})
- * while loading, otherwise the encapsulated graph may still have some changes due to tuning by {@link OntologyFactory loading factory}.
+ * Note: you may want to disable transformations
+ * (see {@link ru.avicomp.ontapi.config.OntConfig#setPerformTransformation(boolean)},
+ * {@link ru.avicomp.ontapi.config.OntLoaderConfiguration#setPerformTransformation(boolean)}) while loading,
+ * otherwise the encapsulated graph may still have some changes
+ * due to tuning by the {@link OntologyFactory loading factory}.
  * <p>
  * Created by szuev on 22.02.2017.
  */
@@ -67,16 +69,22 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
      */
     @Override
     public IRI getDocumentIRI() {
-        return identifier().apply(getGraph());
+        return IRI.create("graph:" + toString(getGraph()));
     }
 
     /**
-     * Gets a function-mapper to retrieve an IRI-identifier from any graph.
+     * Returns the string representation of the object.
+     * Each call of this method for the same object produces the same string.
+     * Equivalent to {@link Object#toString()}.
+     * Placed here as a temporary solution
+     * (currently there is no more suitable place in the project for such misc things).
      *
-     * @return {@link Function} to calculate an {@link IRI} from a {@link Graph}
+     * @param o anything
+     * @return String
      */
-    public static Function<Graph, IRI> identifier() {
-        return g -> IRI.create("graph:" + g.getClass().getName() + "@" + Integer.toHexString(g.hashCode()));
+    public static String toString(Object o) {
+        if (o == null) return "null";
+        return o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
     }
 
     /**
@@ -122,7 +130,8 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
                 try {
                     IOException e = holder.get();
                     if (e != null) {
-                        throw new IOException(String.format("Convert output->input. Graph: %s, %s.", Graphs.getName(graph), lang), e);
+                        throw new IOException(String.format("Convert output->input. Graph: %s, %s.",
+                                Graphs.getName(graph), lang), e);
                     }
                 } finally {
                     super.close();

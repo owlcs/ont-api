@@ -34,7 +34,10 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -42,11 +45,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static ru.avicomp.ontapi.OntologyFactoryImpl.ConfigMismatchException;
+import static ru.avicomp.ontapi.OntologyFactoryImpl.UnsupportedFormatException;
+
 /**
  * Helper to work with {@link Graph Apache Jena Graph}s in OWL-API terms.
  * Used in different ONT-API components related to the OWL-API-api implementation.
  * Some of the methods were moved from another classes (e.g. from {@link OntologyFactoryImpl})
- * and can refer to another class namespace (e.g. can throw exceptions defined as nested static in some external classes).
+ * and can refer to another class namespace
+ * (e.g. can throw exceptions defined as nested static in some external classes).
  * <p>
  * Created by @szuev on 19.08.2017.
  *
@@ -138,7 +145,8 @@ public class OntGraphUtils {
     }
 
     /**
-     * Converts a {@link Node Jena Node} to {@link RDFResourceBlankNode OWL-API node object}, which pretends to be a blank node.
+     * Converts a {@link Node Jena Node} to {@link RDFResourceBlankNode OWL-API node object},
+     * which pretends to be a blank node.
      *
      * @param node not null, must be {@link Node_Blank}
      * @return {@link RDFResourceBlankNode} with all flags set to {@code false}
@@ -173,7 +181,8 @@ public class OntGraphUtils {
     public static RDFLiteral literal(Node node) throws IllegalArgumentException {
         if (!Objects.requireNonNull(node, "Null node").isLiteral())
             throw new IllegalArgumentException("Not a literal node: " + node);
-        return new RDFLiteral(node.getLiteralLexicalForm(), node.getLiteralLanguage(), IRI.create(node.getLiteralDatatypeURI()));
+        return new RDFLiteral(node.getLiteralLexicalForm(), node.getLiteralLanguage(),
+                IRI.create(node.getLiteralDatatypeURI()));
     }
 
     /**
@@ -188,58 +197,88 @@ public class OntGraphUtils {
         if (stats == null)
             return OntologyMetaData.createParserMetaData(graph);
         if (Graphs.getBase(graph) != stats.getGraph())
-            throw new IllegalArgumentException("Incompatible graphs: " + Graphs.getName(graph) + " != " + Graphs.getName(stats.getGraph()));
+            throw new IllegalArgumentException("Incompatible graphs: " +
+                    Graphs.getName(graph) + " != " + Graphs.getName(stats.getGraph()));
         return OntologyMetaData.createParserMetaData(stats);
     }
 
     /**
-     * The main method to read the source document to the graph.
-     * For generality it is public.
+     * The main method to read the source document into the graph.
+     * The method is public for more generality.
      *
      * @param graph  {@link Graph} the graph(empty) to put in.
      * @param source {@link OWLOntologyDocumentSource} the source (encapsulates IO-stream, IO-Reader or IRI of document)
      * @param conf   {@link OntLoaderConfiguration} config
      * @return {@link OntFormat} corresponding to the specified source.
-     * @throws OntologyFactoryImpl.UnsupportedFormatException if source can't be read into graph using jena.
-     * @throws OntologyFactoryImpl.ConfigMismatchException    if there is some conflict with config settings, anyway we can't continue.
-     * @throws OWLOntologyCreationException                   if there is some serious IO problem
-     * @throws OntApiException                                if some other problem.
+     * @throws UnsupportedFormatException   if source can't be read into graph using jena.
+     * @throws ConfigMismatchException      if there is some conflict with config settings,
+     *                                      anyway we can't continue.
+     * @throws OWLOntologyCreationException if there is some serious IO problem
+     * @throws OntApiException              if some other problem.
      */
-    public static OntFormat readGraph(Graph graph, OWLOntologyDocumentSource source, OntLoaderConfiguration conf) throws OWLOntologyCreationException {
+    public static OntFormat readGraph(Graph graph,
+                                      OWLOntologyDocumentSource source,
+                                      OntLoaderConfiguration conf) throws OWLOntologyCreationException {
         IRI iri = OntApiException.notNull(source, "Null document source.").getDocumentIRI();
         if (LOGGER.isDebugEnabled())
             LOGGER.debug("Read graph from <{}>.", iri);
-        Supplier<OWLOntologyInputSourceException> orElse = () -> new OWLOntologyInputSourceException("Can't get input-stream/reader from " + iri);
+        Supplier<OWLOntologyInputSourceException> orElse = () -> new OWLOntologyInputSourceException("Can't get " +
+                "input-stream/reader from " + iri);
         if (source.getInputStream().isPresent()) {
             return read(graph, source, s -> s.getInputStream().orElseThrow(orElse));
         }
         if (source.getReader().isPresent()) {
-            return read(graph, source, s -> buffer(asInputStream(s.getReader().orElseThrow(orElse))));
+            return read(graph, source, s -> asInputStream(s.getReader().orElseThrow(orElse)));
         }
         if (conf.getSupportedSchemes().stream().noneMatch(s -> s.same(iri))) {
-            throw new OntologyFactoryImpl.ConfigMismatchException("Not allowed scheme: " + iri);
+            throw new ConfigMismatchException("Not allowed scheme: " + iri);
         }
         String header = source.getAcceptHeaders().orElse(DEFAULT_REQUEST);
         return read(graph, source, s -> DocumentSources.getInputStream(iri, conf, header).orElseThrow(orElse));
     }
 
     /**
-     * Tries to compute the {@link OntFormat} from {@link OWLOntologyDocumentSource} by using content type or uri or whatever else,
-     * but not encapsulated OWL-format (which may absent).
-     * public, for more generality.
+     * Performs reading to the graph from the source using {@link OntInputSupplier ont-supplier},
+     * which produces a new input stream each call.
      *
-     * @param source {@link OWLOntologyDocumentSource}
-     * @return {@link OntFormat} or null if it could not guess format from source.
+     * @param graph    {@link Graph}
+     * @param source   {@link OWLOntologyDocumentSource}
+     * @param supplier {@link OntInputSupplier}
+     * @return {@link OntFormat}
+     * @throws OWLOntologyCreationException if something is wrong.
      */
-    public static OntFormat guessFormat(OWLOntologyDocumentSource source) {
-        Lang lang;
-        Optional<String> mime;
-        if ((mime = OntApiException.notNull(source, "Null document source.").getMIMEType()).isPresent()) {
-            lang = RDFLanguages.contentTypeToLang(mime.get());
-        } else {
-            lang = RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
+    protected static OntFormat read(Graph graph,
+                                    OWLOntologyDocumentSource source,
+                                    OntInputSupplier supplier) throws OWLOntologyCreationException {
+        IRI iri = source.getDocumentIRI();
+        final OWLOntologyCreationException cause = new UnsupportedFormatException(String.format("Can't read %s %s.",
+                source.getClass().getSimpleName(), iri));
+        for (OntFormat format : getSupportedFormats(source)) {
+            if (format.isOWLOnly()) {
+                cause.addSuppressed(new UnsupportedFormatException("Not supported by jena.")
+                        .putFormat(format).putSource(iri));
+                continue;
+            }
+            Lang lang = format.getLang();
+            try (InputStream is = supplier.open(source)) {
+                if (LOGGER.isDebugEnabled())
+                    LOGGER.debug("try <{}>", lang);
+                // with @base:
+                RDFDataMgr.read(graph, is, iri.toString(), lang);
+                return format;
+            } catch (OWLOntologyInputSourceException | IOException e) {
+                throw new OWLOntologyCreationException(source.getClass().getSimpleName() +
+                        ": can't open or close input stream from " + iri, e);
+            } catch (RuntimeException e) {
+                // could be org.apache.jena.shared.JenaException ||
+                // org.apache.jena.atlas.AtlasException ||
+                // org.apache.jena.atlas.json.JsonParseException || ...
+                if (LOGGER.isDebugEnabled())
+                    LOGGER.debug("<{}> failed: '{}'", lang, e.getMessage());
+                cause.addSuppressed(new UnsupportedFormatException(e).putSource(iri).putFormat(format));
+            }
         }
-        return lang == null ? null : OntFormat.get(lang);
+        throw cause;
     }
 
     /**
@@ -249,14 +288,16 @@ public class OntGraphUtils {
      *
      * @param source {@link OWLOntologyDocumentSource}
      * @return Set of {@link OntFormat}s
-     * @throws OntologyFactoryImpl.UnsupportedFormatException if the format is present in the source but not valid
+     * @throws UnsupportedFormatException if the format is present in the source but not valid
      */
-    public static Set<OntFormat> getSupportedFormats(OWLOntologyDocumentSource source) throws OntologyFactoryImpl.UnsupportedFormatException {
+    public static Set<OntFormat> getSupportedFormats(OWLOntologyDocumentSource source)
+            throws UnsupportedFormatException {
         Set<OntFormat> res = new LinkedHashSet<>();
         if (source.getFormat().isPresent()) {
             OntFormat f = OntFormat.get(source.getFormat().get());
             if (f == null || !f.isReadSupported()) {
-                throw new OntologyFactoryImpl.UnsupportedFormatException("Format " + source.getFormat().get() + " is not supported.");
+                throw new UnsupportedFormatException("Format " +
+                        source.getFormat().get() + " is not supported.");
             }
             res.add(f);
             return res;
@@ -270,42 +311,36 @@ public class OntGraphUtils {
     }
 
     /**
-     * Performs reading to the graph from the source using ont-supplier which produces input stream each time
+     * Tries to compute the {@link OntFormat ONT-Format} from the specified
+     * {@link OWLOntologyDocumentSource OWL Document Source} by using the content type or uri
+     * or whatever else, but not encapsulated OWL-format (which may absent).
+     * The method is public for more generality.
      *
-     * @param graph    {@link Graph}
-     * @param source   {@link OWLOntologyDocumentSource}
-     * @param supplier {@link OntInputSupplier}
-     * @return {@link OntFormat}
-     * @throws OWLOntologyCreationException if something is wrong.
+     * @param source {@link OWLOntologyDocumentSource}
+     * @return {@link OntFormat} or null if it could not guess format from source
      */
-    protected static OntFormat read(Graph graph, OWLOntologyDocumentSource source, OntInputSupplier supplier) throws OWLOntologyCreationException {
-        IRI iri = source.getDocumentIRI();
-        final OWLOntologyCreationException cause = new OntologyFactoryImpl.UnsupportedFormatException(String.format("Can't read %s %s.",
-                source.getClass().getSimpleName(), iri));
-        for (OntFormat format : getSupportedFormats(source)) {
-            if (format.isOWLOnly()) {
-                cause.addSuppressed(new OntologyFactoryImpl.UnsupportedFormatException("Not supported by jena.").putFormat(format).putSource(iri));
-                continue;
-            }
-            Lang lang = format.getLang();
-            try (InputStream is = supplier.open(source)) {
-                if (LOGGER.isDebugEnabled())
-                    LOGGER.debug("try <{}>", lang);
-                // with @base:
-                RDFDataMgr.read(graph, is, iri.toString(), lang);
-                return format;
-            } catch (OWLOntologyInputSourceException | IOException e) {
-                throw new OWLOntologyCreationException(source.getClass().getSimpleName() + ": can't open or close input stream from " + iri, e);
-            } catch (RuntimeException e) {
-                // could be org.apache.jena.shared.JenaException || org.apache.jena.atlas.AtlasException || org.apache.jena.atlas.json.JsonParseException || ...
-                if (LOGGER.isDebugEnabled())
-                    LOGGER.debug("<{}> failed: '{}'", lang, e.getMessage());
-                cause.addSuppressed(new OntologyFactoryImpl.UnsupportedFormatException(e).putSource(iri).putFormat(format));
-            }
+    public static OntFormat guessFormat(OWLOntologyDocumentSource source) {
+        Lang lang;
+        Optional<String> mime;
+        if ((mime = OntApiException.notNull(source, "Null document source.").getMIMEType()).isPresent()) {
+            lang = RDFLanguages.contentTypeToLang(mime.get());
+        } else {
+            lang = RDFLanguages.filenameToLang(source.getDocumentIRI().getIRIString());
         }
-        throw cause;
+        return lang == null ? null : OntFormat.get(lang);
     }
 
+    /**
+     * Converts the {@link Reader} to the {@link InputStream}.
+     * That's in order to follow the Jena recommendations.
+     * It says: use of {@link Reader}s is not encouraged - use with a StringReader is the primary use case.
+     * The returned stream is buffered with capacity {@code 8192} bytes which is default Java buffer size
+     * (see {@link java.io.BufferedReader#defaultCharBufferSize} and
+     * {@link java.io.BufferedInputStream#DEFAULT_BUFFER_SIZE}).
+     *
+     * @param reader {@link Reader}, not {@code null}
+     * @return {@link InputStream} that is ready to use by jena
+     */
     protected static InputStream asInputStream(Reader reader) {
         Charset charset;
         if (reader instanceof InputStreamReader) {
@@ -313,16 +348,12 @@ public class OntGraphUtils {
         } else {
             charset = StandardCharsets.UTF_8;
         }
-        return new ReaderInputStream(reader, charset);
-    }
-
-    protected static InputStream buffer(InputStream is) {
-        return new BufferedInputStream(is);
+        return new ReaderInputStream(reader, charset, 8192);
     }
 
     /**
-     * A Functional interface with checked {@link OWLOntologyInputSourceException OWL Exception}
-     * to produce {@code InputStream} from {@link OWLOntologyDocumentSource}.
+     * A Functional interface to produce an {@link InputStream} from {@link OWLOntologyDocumentSource}.
+     * In case of error, a checked {@link OWLOntologyInputSourceException OWL Exception} is thrown.
      */
     @FunctionalInterface
     protected interface OntInputSupplier {

@@ -399,15 +399,18 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
     }
 
     /**
-     * Loads a jena graph from document source as a graph-info container.
+     * Loads the {@link Graph Jena Graph} from the given document source as a graph-info container.
      * It is expected that this method will not affect the state of the specified manager if any error occurs.
-     * The loading performs first through Apache Jena API, and in case of fail the OWL-API recursive mechanisms will be invoked.
+     * The loading performs first through Apache Jena API,
+     * and in case of fail the OWL-API recursive mechanisms are invoked.
+     * In special case of {@link OntGraphDocumentSource} the loading is not performed and graph is passed as is.
      *
      * @param source  {@link OWLOntologyDocumentSource the document source}
      * @param manager {@link OntologyManager the manager} to load
-     * @param config  {@link OntLoaderConfiguration the load configuration} to manage process.
+     * @param config  {@link OntLoaderConfiguration the load configuration} to manage process
      * @return {@link GraphInfo graph-info} a wrapper around jena {@link Graph}
-     * @throws OWLOntologyCreationException if loading is not possible.
+     * @throws OWLOntologyCreationException if loading is not possible
+     * @see OntGraphDocumentSource
      */
     public GraphInfo loadGraph(OWLOntologyDocumentSource source,
                                OntologyManager manager,
