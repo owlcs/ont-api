@@ -28,7 +28,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -197,35 +196,45 @@ public interface OntologyManager extends OWLOntologyManager {
     RWLockedCollection<OWLStorerFactory> getOntologyStorers();
 
     /**
-     * Gets an ontology by IRI.
-     * Contrary to the original description this method works with version IRI also if it fails with ontology IRI.
+     * Gets the ontology by the given {@code iri}.
+     * Contrary to the OWL-API interface description,
+     * the method also works with version IRI if it fails with ontology IRI.
+     * In other words, the resulting ontology may have an ontology IRI that does not match
+     * the {@code iri} specified as the method parameter.
+     * This behaviour is caused by the {@link OWLOntologyID#match(IRI)} method,
+     * and present in all versions of the OWL-API v5 (checked for 5.0.4-5.1.7).
+     * If it is a bug it is too late to change method behaviour
+     * and it will be fixed only synchronously with OWL-API-impl.
      *
-     * @param iri {@link IRI} ontology IRI or version IRI as can be seen from the OWL-API implementation
-     *            (see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(IRI)</a>)
+     * @param iri {@link IRI} ontology IRI or version IRI as described above, cannot be {@code null}
      * @return {@link OntologyModel} or {@code null}
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L392'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(IRI)</a>
+     * @see OWLOntologyID#match(IRI)
      */
     @Override
     OntologyModel getOntology(@Nonnull IRI iri);
 
     /**
-     * Finds ontology by the specified {@code id} (could be anonymous).
-     * If there is no such ontology it tries to find the first with the same ontology IRI as in the specified {@code id}.
+     * Finds the ontology by the specified {@code id}, which is allowed to be anonymous.
+     * If there is no such ontology it tries to find the first with the same ontology IRI as in the given {@code id}.
      *
-     * @param id {@link OWLOntologyID} ID
+     * @param id {@link OWLOntologyID} ID, cannot be {@code null}
      * @return {@link OntologyModel} or {@code null}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(OWLOntologyID)</a>
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L410'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(OWLOntologyID)</a>
      * @see #contains(OWLOntologyID)
+     * @see OWLOntologyID#matchOntology(IRI)
      */
     @Override
     OntologyModel getOntology(@Nonnull OWLOntologyID id);
 
     /**
      * Answers {@code true} if the manager contains an ontology with the given ontology {@code iri}.
-     * See description for {@link #getOntology(IRI)} and be warned!
+     * See the description for {@link #getOntology(IRI)} method and be warned!
      *
      * @param iri {@link IRI} the ontology iri or version iri
      * @return true if ontology exists
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(IRI)</a>
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L328'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(IRI)</a>
+     * @see OWLOntologyID#match(IRI)
      */
     @Override
     boolean contains(@Nonnull IRI iri);
@@ -237,9 +246,9 @@ public interface OntologyManager extends OWLOntologyManager {
      * This is in order to make the behaviour the same as OWL-API method.
      * To find an anonymous ontology use {@link #ontologies()} stream with filters.
      *
-     * @param id {@link OWLOntologyID ontology ID}
+     * @param id {@link OWLOntologyID ontology ID}, not {@code null}
      * @return true if {@code id} is not anonymous and there is an ontology with the same iri as in the specified {@code id}
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(OWLOntologyID)</a>
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L355'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(OWLOntologyID)</a>
      */
     @Override
     boolean contains(@Nonnull OWLOntologyID id);
@@ -564,7 +573,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     default OntologyModel createOntology(@Nullable IRI iri) {
-        return createOntology(new OWLOntologyID(Optional.ofNullable(iri), Optional.empty()));
+        return createOntology(OntologyID.create(iri));
     }
 
     /**
@@ -652,7 +661,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @return {@link OntGraphModel} or {@code null} if no ontology found
      */
     default OntGraphModel getGraphModel(@Nullable String iri, @Nullable String version) {
-        OWLOntologyID id = new OWLOntologyID(Optional.ofNullable(iri).map(IRI::create), Optional.ofNullable(version).map(IRI::create));
+        OntologyID id = OntologyID.create(iri, version);
         OntologyModel res = getOntology(id);
         return res == null ? null : res.asGraphModel();
     }
@@ -670,13 +679,12 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Creates an {@link OntGraphModel Ontology Graph Model} with specified ontology and version IRIs.
      *
-     * @param iri     String, nullable
-     * @param version String, nullable
+     * @param iri     String, can be {@code null}
+     * @param version String, can be {@code null}
      * @return {@link OntGraphModel}
      */
     default OntGraphModel createGraphModel(@Nullable String iri, @Nullable String version) {
-        OWLOntologyID id = new OWLOntologyID(Optional.ofNullable(iri).map(IRI::create), Optional.ofNullable(version).map(IRI::create));
-        return createOntology(id).asGraphModel();
+        return createOntology(OntologyID.create(iri, version)).asGraphModel();
     }
 
     /**

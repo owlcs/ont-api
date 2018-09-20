@@ -51,35 +51,39 @@ public class SimpleCreationTest {
     @Test
     public void testAssemblyOntology() {
         OntIRI owlURI = OntIRI.create("http://test.test/example");
-        int statementsNumber = 15;
-        OntologyManager manager = OntManagers.createONT();
-        OWLDataFactory factory = manager.getOWLDataFactory();
+        int statements = 15;
+        OntologyManager m = OntManagers.createONT();
+        OWLDataFactory df = m.getOWLDataFactory();
 
-        OntologyModel ontology = manager.createOntology(owlURI.toOwlOntologyID());
-        manager.applyChange(new AddImport(ontology, factory.getOWLImportsDeclaration(IRI.create(ReadWriteUtils.getResourceURI("etc/sp.ttl")))));
+        OntologyModel ontology = m.createOntology(owlURI.toOwlOntologyID());
+        m.applyChange(new AddImport(ontology,
+                df.getOWLImportsDeclaration(IRI.create(ReadWriteUtils.getResourceURI("etc/sp.ttl")))));
         //manager.applyChange(new AddImport(ontology, factory.getOWLImportsDeclaration(IRI.create(SPINMAP_SPIN.BASE_URI))));
-        manager.applyChange(new AddOntologyAnnotation(ontology, factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("test-comment"))));
-        manager.applyChange(new AddOntologyAnnotation(ontology, factory.getOWLAnnotation(factory.getOWLVersionInfo(), factory.getOWLLiteral("test-version-info"))));
+        m.applyChange(new AddOntologyAnnotation(ontology,
+                df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("test-comment"))));
+        m.applyChange(new AddOntologyAnnotation(ontology,
+                df.getOWLAnnotation(df.getOWLVersionInfo(), df.getOWLLiteral("test-version-info"))));
 
-        OWLClass owlClass = factory.getOWLClass(owlURI.addFragment("SomeClass"));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLDeclarationAxiom(owlClass)));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLSubClassOfAxiom(owlClass, factory.getOWLThing())));
+        OWLClass owlClass = df.getOWLClass(owlURI.addFragment("SomeClass"));
+        m.applyChange(new AddAxiom(ontology, df.getOWLDeclarationAxiom(owlClass)));
+        m.applyChange(new AddAxiom(ontology, df.getOWLSubClassOfAxiom(owlClass, df.getOWLThing())));
 
-        OWLAnnotation classAnnotationLabel = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("some-class-label"));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), classAnnotationLabel)));
+        OWLAnnotation classLabel = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("some-class-label"));
+        m.applyChange(new AddAxiom(ontology, df.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), classLabel)));
 
-        OWLDataProperty owlProperty = factory.getOWLDataProperty(owlURI.addFragment("someDataProperty"));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLDeclarationAxiom(owlProperty)));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLDataPropertyDomainAxiom(owlProperty, owlClass)));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLDataPropertyRangeAxiom(owlProperty, factory.getStringOWLDatatype())));
-        OWLAnnotation propertyAnnotationLabel = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("some-property-label"));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLAnnotationAssertionAxiom(owlProperty.getIRI(), propertyAnnotationLabel)));
-        OWLAnnotation propertyAnnotationComment = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("some property comment"));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLAnnotationAssertionAxiom(owlProperty.getIRI(), propertyAnnotationComment)));
+        OWLDataProperty dp = df.getOWLDataProperty(owlURI.addFragment("someDataProperty"));
+        m.applyChange(new AddAxiom(ontology, df.getOWLDeclarationAxiom(dp)));
+        m.applyChange(new AddAxiom(ontology, df.getOWLDataPropertyDomainAxiom(dp, owlClass)));
+        m.applyChange(new AddAxiom(ontology, df.getOWLDataPropertyRangeAxiom(dp, df.getStringOWLDatatype())));
+        OWLAnnotation propertyLabel = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("some-property-label"));
+        m.applyChange(new AddAxiom(ontology, df.getOWLAnnotationAssertionAxiom(dp.getIRI(), propertyLabel)));
+        OWLAnnotation propertyComment = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("some property comment"));
+        m.applyChange(new AddAxiom(ontology, df.getOWLAnnotationAssertionAxiom(dp.getIRI(), propertyComment)));
 
-        OWLIndividual individual = factory.getOWLNamedIndividual(owlURI.addFragment("the-individual"));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLClassAssertionAxiom(owlClass, individual)));
-        manager.applyChange(new AddAxiom(ontology, factory.getOWLDataPropertyAssertionAxiom(owlProperty, individual, factory.getOWLLiteral("TheName"))));
+        OWLIndividual individual = df.getOWLNamedIndividual(owlURI.addFragment("the-individual"));
+        m.applyChange(new AddAxiom(ontology, df.getOWLClassAssertionAxiom(owlClass, individual)));
+        m.applyChange(new AddAxiom(ontology,
+                df.getOWLDataPropertyAssertionAxiom(dp, individual, df.getOWLLiteral("TheName"))));
 
         ReadWriteUtils.print(ontology, OntFormat.TURTLE);
 
@@ -87,6 +91,7 @@ public class SimpleCreationTest {
 
         ReadWriteUtils.print(ontology.asGraphModel(), OntFormat.TURTLE);
         LOGGER.debug("All statements: " + ontology.asGraphModel().listStatements().toList().size());
-        Assert.assertEquals("incorrect statements size", statementsNumber, ontology.asGraphModel().getBaseModel().listStatements().toList().size());
+        Assert.assertEquals("incorrect statements size", statements,
+                ontology.asGraphModel().getBaseModel().listStatements().toList().size());
     }
 }

@@ -24,55 +24,57 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
  * It is access point to the structural (OWL Axioms and Annotations) representation of underlying {@link org.apache.jena.graph.Graph graph}.
  * The following methods are new (i.e. added in ONT-API) and extend the original functionality provided by the OWL-API:
  * <ul>
- *     <li>{@link #asGraphModel()}</li>
- *     <li>{@link #clearCache()}</li>
+ * <li>{@link #asGraphModel()}</li>
+ * <li>{@link #clearCache()}</li>
  * </ul>
  * Created by szuev on 24.10.2016.
- * @see OWLOntology
  */
 public interface OntologyModel extends OWLOntology, OWLMutableOntology {
 
     /**
-     * Returns the jena model shadow, i.e. the interface to work with the {@link org.apache.jena.graph.Graph graph} directly.
+     * Returns the jena model shadow,
+     * i.e. the interface to work with the {@link org.apache.jena.graph.Graph graph} directly.
      * The {@code OntGraphModel} is backed by the {@code OntologyModel},
      * so changes to the graph model are reflected in the structural model, and vice-versa.
+     * But note: synchronisation is performed via different caches on the internal model level,
+     * not the base graph level.
+     * Therefore changes in any other model with this same base graph
+     * (e.g. obtained using the expression {@code OntModelFactory.createModel(this.asGraphModel().getGraph()})
+     * do not affect the axiomatic view of this model.
+     * In such a situation only the {@link #clearCache()} method call will help.
      *
      * @return {@link OntGraphModel Jena Based Graph Model}
+     * @see org.apache.jena.graph.Graph
      */
     OntGraphModel asGraphModel();
 
     /**
      * Clears the axioms and entities cache.
      * <p>
-     * The cache are restored by recalling method {@link #axioms()}, which is called by any other axioms getter.
-     * This method is necessary to obtain the list of axioms which uniquely correspond to the graph,
-     * since OWL-API allows some ambiguity in the axioms definition.
-     * In the structural view there could be composite and bulky axioms specified,
-     * which can be replaced by different set of axioms without any loss of information.
-     * This method allows to bring structural representation to the one strictly defined (by inner implementation) form.
-     * An example.
-     * Consider the ontology which contains only the following two axioms:
-     * <pre>
-     *  SubClassOf(Annotation(&lt;p&gt; "comment1"^^xsd:string) &lt;a&gt; &lt;b&gt;)
-     *  Declaration(Annotation(rdfs:label "label"^^xsd:string) Datatype(&lt;d&gt;))
-     * </pre>
-     * After re-caching the full list of axioms would be the following:
-     * <pre>
-     *  Declaration(Class(&lt;a&gt;))
-     *  Declaration(Class(&lt;b&gt;))
-     *  Declaration(AnnotationProperty(&lt;p&gt;))
-     *  Declaration(Datatype(&lt;d&gt;))
-     *  SubClassOf(Annotation(&lt;p&gt; "comment"^^xsd:string) &lt;a&gt; &lt;b&gt;)
-     *  AnnotationAssertion(rdfs:label &lt;d&gt; "label"^^xsd:string)
-     * </pre>
-     * Note: the loading behaviour and the axioms list above may vary according to the various config settings,
-     * for more details see {@link ru.avicomp.ontapi.config.OntLoaderConfiguration}.
+     * The cache lazily restores itself
+     * when invoking almost any method described in the super interface {@link OWLOntology}, e.g. {@link #axioms()}.
+     * Clearing the cache is necessary to obtain a fixed list of axioms that uniquely corresponds to the graph,
+     * since OWL-API allows a wide ambiguity in the axioms definition.
+     * In the structural (axiomatic) view there can be composite and bulky axioms specified,
+     * which can be replaced by various other sets of axioms without loss any information.
+     * This method brings the structural representation to the deterministic form,
+     * that is strictly defined by the configuration and internal implementation.
+     * For example, the ontology, initially containing only the one axiom
+     * {@code SubClassOf(Annotation(<P> <I>) <A> <B>)},
+     * after calling the {@code clearCache()} method will respond with a list that also includes each entity declaration:
+     * {@code Declaration(AnnotationProperty(<P>))}, {@code Declaration(Class(<A>))} and {@code Declaration(Class(<B>))}.
+     * In general, a complete list of axioms is configurable and depends on various settings,
+     * for more details see {@link ru.avicomp.ontapi.config.OntLoaderConfiguration} and {@link ru.avicomp.ontapi.config.OntConfig}.
+     *
+     * @see ru.avicomp.ontapi.config.OntLoaderConfiguration
+     * @see ru.avicomp.ontapi.config.OntConfig
      */
     void clearCache();
 
     /**
      * Returns the manager, that is responsible for referencing between different ontologies.
-     * Each ontology must have a link to the manager, if the method returns {@code null}, this means the ontology is broken.
+     * Each ontology must have a link to the manager,
+     * if the method returns {@code null}, this most likely means that the ontology is broken.
      *
      * @return {@link OntologyManager} the manager for this ontology
      */

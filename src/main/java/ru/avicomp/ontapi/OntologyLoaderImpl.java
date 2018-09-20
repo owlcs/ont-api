@@ -308,7 +308,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         if (res != null) {
             return toGraphInfo(res, null);
         }
-        OWLOntologyID id = new OWLOntologyID(ontologyIRI);
+        OntologyID id = OntologyID.create(ontologyIRI);
         OWLOntologyDocumentSource source = manager.getDocumentSourceMappers().stream()
                 .map(f -> f.map(id))
                 .filter(Objects::nonNull)
@@ -337,11 +337,11 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @see org.apache.jena.riot.system.IRIResolver
      */
     protected OntologyModel findModel(OntologyManager m, IRI iri) {
-        OntologyModel res = m.getOntology(new OWLOntologyID(Optional.of(iri), Optional.empty()));
+        OntologyModel res = m.getOntology(OntologyID.create(iri));
         if (res != null) return res;
         if (iri.toString().startsWith("file://")) { // hack:
             iri = IRI.create(iri.toString().replaceAll("/+", "/"));
-            return m.getOntology(new OWLOntologyID(Optional.of(iri), Optional.empty()));
+            return m.getOntology(OntologyID.create(iri));
         }
         return null;
     }

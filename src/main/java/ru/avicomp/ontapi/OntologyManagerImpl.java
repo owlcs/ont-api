@@ -319,7 +319,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param strategy {@link OWLOntologyChangeBroadcastStrategy}
      */
     @Override
-    public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener, @Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
+    public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener,
+                                          @Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
         getLock().writeLock().lock();
         try {
             listeners.addOntologyChangeListener(listener, strategy);
@@ -524,10 +525,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @return {@link OntologyModel}
      */
     @Override
-    public OntologyModel createOntology(@Nonnull IRI iri, @Nonnull Stream<OWLOntology> ontologies, boolean copyLogicalAxiomsOnly) {
+    public OntologyModel createOntology(@Nonnull IRI iri,
+                                        @Nonnull Stream<OWLOntology> ontologies,
+                                        boolean copyLogicalAxiomsOnly) {
         getLock().writeLock().lock();
         try {
-            OWLOntologyID id = new OWLOntologyID(Optional.of(iri), Optional.empty());
+            OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
             if (contains(iri)) {
                 throw new OWLOntologyAlreadyExistsException(id);
             }
@@ -550,7 +553,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel createOntology(@Nonnull Stream<OWLAxiom> axioms, @Nonnull IRI iri) {
         getLock().writeLock().lock();
         try {
-            OWLOntologyID id = new OWLOntologyID(Optional.of(iri), Optional.empty());
+            OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
             if (contains(iri)) {
                 throw new OWLOntologyAlreadyExistsException(id);
             }
@@ -574,8 +577,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel addOntology(@Nonnull Graph graph, @Nonnull OntLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
-            OWLOntologyID id = OntGraphUtils.getOntologyID(graph);
-            Map<OWLOntologyID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
+            OntologyID id = OntGraphUtils.getOntologyID(graph);
+            Map<OntologyID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
             DocumentSourceMapping mapping = _id -> graphs.entrySet()
                     .stream()
                     .filter(e -> e.getKey().match(_id))
@@ -653,7 +656,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel getOntology(@Nonnull IRI iri) {
         getLock().readLock().lock();
         try {
-            OWLOntologyID id = new OWLOntologyID(Optional.of(iri), Optional.empty());
+            OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
             Optional<OntInfo> res = content.get(id);
             if (!res.isPresent()) {
                 res = content.values().filter(e -> e.id().match(iri)).findFirst();
@@ -665,7 +668,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * the difference: in case there are many ontologies with the same ID it chooses first on the iri ignoring version,
+     * the difference: in case there are many ontologies with the same ID it chooses the first on the iri ignoring version,
      * while original method chooses any.
      *
      * @param id {@link OWLOntologyID}
@@ -842,7 +845,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @return Optional around {@link OntologyModel}
      */
     protected Optional<OntologyModel> importedOntology(OWLImportsDeclaration declaration) {
-        Optional<OntInfo> res = content.values().filter(e -> Objects.equals(e.getImportDeclaration(), declaration)).findFirst();
+        Optional<OntInfo> res = content.values()
+                .filter(e -> Objects.equals(e.getImportDeclaration(), declaration)).findFirst();
         if (!res.isPresent()) {
             res = content.values().filter(e -> Objects.equals(e.getDocumentIRI(), declaration.getIRI())).findFirst();
         }
@@ -874,7 +878,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().readLock().lock();
         try {
             if (!has(ontology)) throw new UnknownOWLOntologyException(ontology.getOntologyID());
-            return documentIRIByOntology(ontology).orElseThrow(() -> new OntApiException("Null document iri, ontology id=" + ontology.getOntologyID()));
+            return documentIRIByOntology(ontology)
+                    .orElseThrow(() -> new OntApiException("Null document iri, ontology id=" + ontology.getOntologyID()));
         } finally {
             getLock().readLock().unlock();
         }
@@ -973,7 +978,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             if (!contains(ontology)) {
                 throw new UnknownOWLOntologyException(ontology.getOntologyID());
             }
-            return ontology.importsDeclarations().map(this::getImportedOntology).map(OWLOntology.class::cast).filter(Objects::nonNull);
+            return ontology.importsDeclarations()
+                    .map(this::getImportedOntology)
+                    .map(OWLOntology.class::cast).filter(Objects::nonNull);
         } finally {
             getLock().readLock().unlock();
         }
@@ -1013,7 +1020,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public Stream<OWLOntology> importsClosure(@Nonnull OWLOntology ontology) {
         getLock().readLock().lock();
         try {
-            Set<OWLOntology> res = isConcurrent() ? CollectionFactory.createSyncSet() : CollectionFactory.createSet();
+            Set<OWLOntology> res = new HashSet<>();
             collectImportsClosure(ontology, res);
             return res.stream();
         } finally {
@@ -1168,8 +1175,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param allNoOps          boolean
      * @param appliedChanges    List of {@link OWLOntologyChange}
      */
-    protected void actuallyApply(List<? extends OWLOntologyChange> changes, AtomicBoolean rollbackRequested,
-                                 AtomicBoolean allNoOps, List<OWLOntologyChange> appliedChanges) {
+    protected void actuallyApply(List<? extends OWLOntologyChange> changes,
+                                 AtomicBoolean rollbackRequested,
+                                 AtomicBoolean allNoOps,
+                                 List<OWLOntologyChange> appliedChanges) {
         for (OWLOntologyChange change : changes) {
             // once rollback is requested by a failed change, do not carry
             // out any more changes
@@ -1240,10 +1249,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return;
         }
         SetOntologyID setID = (SetOntologyID) change;
-        Optional<OntologyModel> existingOntology = content.get(setID.getNewOntologyID()).map(OntInfo::get);
+        Optional<OntologyModel> existing = content.get(setID.getNewOntologyID()).map(OntInfo::get);
         OWLOntology o = setID.getOntology();
-        if (existingOntology.isPresent() && !o.equals(existingOntology.get()) && !o.equalAxioms(existingOntology.get())) {
-            LOGGER.warn("uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#checkForOntologyIDChange:: existing:{}, new:{}", existingOntology, o);
+        if (existing.isPresent() && !o.equals(existing.get()) && !o.equalAxioms(existing.get())) {
+            LOGGER.warn("uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#checkForOntologyIDChange:: existing:{}, new:{}",
+                    existing, o);
             throw new OWLOntologyRenameException(setID.getChangeData(), setID.getNewOntologyID());
         }
     }
@@ -1294,7 +1304,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @throws OWLOntologyCreationException ex
      */
     @Override
-    public OntologyModel copyOntology(@Nonnull OWLOntology source, @Nonnull OntologyCopy settings) throws OWLOntologyCreationException {
+    public OntologyModel copyOntology(@Nonnull OWLOntology source,
+                                      @Nonnull OntologyCopy settings) throws OWLOntologyCreationException {
         getLock().writeLock().lock();
         try {
             OntApiException.notNull(source, "Null ontology.");
@@ -1376,7 +1387,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException {
         getLock().writeLock().lock();
         try {
-            return load(source, false, getOntologyLoaderConfiguration());
+            return load(source, getOntologyLoaderConfiguration(), false);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -1389,7 +1400,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @throws OWLOntologyCreationException ex
      */
     @Override
-    public OntologyModel loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source, @Nonnull OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
+    public OntologyModel loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source,
+                                                          @Nonnull OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         getLock().writeLock().lock();
         try {
             return load(null, source, conf);
@@ -1402,14 +1414,16 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * Inner method. no lock.
      *
      * @param iri         {@link IRI}
-     * @param allowExists boolean
      * @param conf        {@link OWLOntologyLoaderConfiguration}
+     * @param allowExists boolean
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException ex
      */
-    protected OntologyModel load(IRI iri, boolean allowExists, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
+    protected OntologyModel load(IRI iri,
+                                 OWLOntologyLoaderConfiguration conf,
+                                 boolean allowExists) throws OWLOntologyCreationException {
         // Check for matches on the ontology IRI first
-        OWLOntologyID id = new OWLOntologyID(Optional.of(iri), Optional.empty());
+        OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
         OntologyModel ontByID = getOntology(id);
         if (ontByID != null) {
             return ontByID;
@@ -1442,8 +1456,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException if smth wrong
      */
-    protected OntologyModel load(@Nullable IRI iri, OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
-        listeners.fireStartedLoadingEvent(new OWLOntologyID(Optional.ofNullable(iri), Optional.empty()), source.getDocumentIRI());
+    protected OntologyModel load(@Nullable IRI iri,
+                                 OWLOntologyDocumentSource source,
+                                 OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
+        listeners.fireStartedLoadingEvent(OntologyID.create(iri), source.getDocumentIRI());
         Exception ex = null;
         OWLOntologyID id = new OntologyID();
         try {
@@ -1484,7 +1500,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
                         .addDocumentIRI(source.getDocumentIRI()).get();
             } catch (OWLOntologyRenameException e) {
-                // original comment: we loaded an ontology from a document and the ontology turned out to have an IRI the same as a previously loaded ontology
+                // original comment: we loaded an ontology from a document and
+                // the ontology turned out to have an IRI the same as a previously loaded ontology
                 throw new OWLOntologyAlreadyExistsException(e.getOntologyID(), e);
             }
         }
@@ -1530,10 +1547,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @return {@link OntologyModel}, can be null
      * @throws OWLOntologyCreationException ex
      */
-    protected OntologyModel loadImports(OWLImportsDeclaration declaration, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
+    protected OntologyModel loadImports(OWLImportsDeclaration declaration,
+                                        OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         listeners.incrementImportsLoadCount();
         try {
-            return load(declaration.getIRI(), true, conf);
+            return load(declaration.getIRI(), conf, true);
         } catch (OWLOntologyCreationException e) {
             if (MissingImportHandlingStrategy.THROW_EXCEPTION.equals(conf.getMissingImportHandlingStrategy())) {
                 throw e;
@@ -1553,7 +1571,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param conf        {@link OWLOntologyLoaderConfiguration}
      */
     @Override
-    public void makeLoadImportRequest(@Nonnull OWLImportsDeclaration declaration, @Nonnull OWLOntologyLoaderConfiguration conf) {
+    public void makeLoadImportRequest(@Nonnull OWLImportsDeclaration declaration,
+                                      @Nonnull OWLOntologyLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
             if (conf.isIgnoredImport(declaration.getIRI())) return;
@@ -1579,7 +1598,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @see org.semanticweb.owlapi.util.AbstractOWLStorer#storeOntology(OWLOntology, IRI, OWLDocumentFormat)
      */
     @Override
-    public void saveOntology(@Nonnull OWLOntology ontology, @Nonnull OWLDocumentFormat ontologyFormat, @Nonnull IRI documentIRI) throws OWLOntologyStorageException {
+    public void saveOntology(@Nonnull OWLOntology ontology,
+                             @Nonnull OWLDocumentFormat ontologyFormat,
+                             @Nonnull IRI documentIRI) throws OWLOntologyStorageException {
         if (!documentIRI.isAbsolute()) {
             throw new OWLOntologyStorageException("Document IRI must be absolute: " + documentIRI);
         }

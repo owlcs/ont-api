@@ -23,7 +23,8 @@ import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
- * To test {@link OntologyID}.
+ * To test {@link OntologyID} and related functionality.
+ *
  * Created by @ssz on 13.09.2018.
  */
 public class OntologyIDTest {
@@ -97,6 +98,4 @@ public class OntologyIDTest {
         Assert.assertFalse(ont3.getOntologyIRI().isPresent());
         Assert.assertFalse(ont3.getVersionIRI().isPresent());
     }
-
-
 }

@@ -41,6 +41,7 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
@@ -125,7 +126,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * @see #getID()
      */
     public OntologyID getOWLOntID() {
-        return cachedID == null ? cachedID = new OntologyID(getID()) : cachedID;
+        // sure the last condition justifies having a cache
+        if (cachedID != null && getBaseGraph().contains(cachedID.asNode(), RDF.Nodes.type, OWL.Ontology.asNode())) {
+            return cachedID;
+        }
+        return cachedID = new OntologyID(getID());
     }
 
     /**

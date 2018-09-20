@@ -46,7 +46,7 @@ import java.util.stream.Stream;
  * @see GraphUtil
  * @see GraphUtils
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Graphs {
 
     /**
@@ -97,7 +97,8 @@ public class Graphs {
     }
 
     /**
-     * Lists all graphs from the composite or wrapper graph including the base as flat stream of non-composite (primitive) graphs.
+     * Lists all graphs from the composite or wrapper graph
+     * including the base as flat stream of non-composite (primitive) graphs.
      * Note: this is a recursive method.
      *
      * @param graph {@link Graph}
@@ -168,17 +169,18 @@ public class Graphs {
     }
 
     /**
-     * Gets the first ontology root node (i.e. the subject from "_:x rdf:type owl:Ontology" statement) from the specified graph.
-     * If there are uri and blank nodes together in the graph then it prefers uri.
-     * If there are several other ontological nodes it chooses the most bulky.
-     * Note: works with any graph, not only the base.
-     * If valid ontological graph is composite then a lot of ontology nodes expected, otherwise only single one.
+     * Finds and returns the primary node within the given graph,
+     * which is the subject in the {@code _:x rdf:type owl:Ontology} statement.
+     * If there are both uri and blank ontological nodes together in the graph then it prefers uri.
+     * Of several ontological nodes the same kind, it chooses the most bulky.
+     * Note: it works with any graph, not necessarily with the base;
+     * for a valid composite ontology graph a lot of ontological nodes are expected.
      *
      * @param g {@link Graph}
      * @return {@link Optional} around the {@link Node} which could be uri or blank.
      */
     public static Optional<Node> ontologyNode(Graph g) {
-        try (Stream<Node> nodes = Iter.asStream(g.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()))
+        try (Stream<Node> nodes = Iter.asStream(g.find(Node.ANY, RDF.Nodes.type, OWL.Ontology.asNode()))
                 .map(Triple::getSubject)
                 .filter(node -> node.isBlank() || node.isURI())
                 .sorted(rootNodeComparator(g))) {

@@ -24,7 +24,6 @@ import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
@@ -77,10 +76,10 @@ public class OntGraphUtils {
      * Treats graphs without {@code owl:Ontology} section inside as anonymous.
      *
      * @param graph {@link Graph}
-     * @return {@link OWLOntologyID}, not null
+     * @return {@link OntologyID}, not {@code null}
      * @throws OntApiException in case it is an anonymous graph but with version iri
      */
-    public static OWLOntologyID getOntologyID(@Nonnull Graph graph) throws OntApiException {
+    public static OntologyID getOntologyID(@Nonnull Graph graph) throws OntApiException {
         Graph base = Graphs.getBase(graph);
         Optional<Node> node = Graphs.ontologyNode(base);
         // treat graphs without owl:Ontology as anonymous
@@ -94,15 +93,15 @@ public class OntGraphUtils {
      * Also the graph-tree should not contain different children but with the same name (owl:Ontology uri).
      *
      * @param graph {@link Graph graph}
-     * @return Map with {@link OWLOntologyID OWL Ontology ID} as a key and {@link Graph graph} as a value
+     * @return Map with {@link OntologyID OWL Ontology ID} as a key and {@link Graph graph} as a value
      * @throws OntApiException the input graph has restrictions, see above.
      */
-    public static Map<OWLOntologyID, Graph> toGraphMap(@Nonnull Graph graph) throws OntApiException {
+    public static Map<OntologyID, Graph> toGraphMap(@Nonnull Graph graph) throws OntApiException {
         Graph base = Graphs.getBase(graph);
         return Graphs.flat(graph)
                 .collect(Collectors.toMap(
                         g -> {
-                            OWLOntologyID id = getOntologyID(g);
+                            OntologyID id = getOntologyID(g);
                             if (id.isAnonymous() && base != g) {
                                 throw new OntApiException("Anonymous sub graph found: " + id +
                                         ". Only top-level graph is allowed to be anonymous");
