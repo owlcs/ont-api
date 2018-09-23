@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.utils;
 import org.apache.jena.graph.*;
 import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
+import org.apache.jena.mem.GraphMem;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.PrefixMapping;
@@ -90,6 +91,9 @@ public class Graphs {
      * @see Dyadic
      */
     public static Graph getBase(Graph graph) {
+        if (graph instanceof GraphMem) {
+            return graph;
+        }
         if (graph instanceof GraphWrapper) {
             return getBase(((GraphWrapper) graph).get());
         }
@@ -136,7 +140,9 @@ public class Graphs {
      * Converts the given graph to the hierarchical {@link UnionGraph Union Graph}
      * in accordance with their {@code owl:imports} declarations.
      * Irrelevant graphs are skipped from consideration.
-     * Note: this is a recursive method.
+     * If the input graph is already {@link UnionGraph} it will be returned unchanged.
+     * The method can be used, for example, to get an ONT graph from the {@link org.apache.jena.ontology.OntModel}.
+     * Note: it is a recursive method.
      *
      * @param g {@link Graph}
      * @return {@link UnionGraph}
@@ -145,6 +151,7 @@ public class Graphs {
      */
     public static UnionGraph toUnion(Graph g) {
         if (g instanceof UnionGraph) return (UnionGraph) g;
+        if (g instanceof GraphMem) return new UnionGraph(g);
         return toUnion(getBase(g), flat(g).collect(Collectors.toSet()));
     }
 
@@ -153,7 +160,7 @@ public class Graphs {
      * Note: this is a recursive method.
      *
      * @param graph     {@link Graph} the base graph (root)
-     * @param dependent collection of dependent {@link Graph graphs} to search in
+     * @param dependent collection of dependent {@link Graph graph}x to search in
      * @return {@link UnionGraph}
      * @since 1.0.1
      */
@@ -185,6 +192,7 @@ public class Graphs {
      *
      * @param graph {@link Graph}
      * @return String
+     * @see #getURI(Graph)
      */
     public static String getName(Graph graph) {
         return ontologyNode(getBase(graph)).map(n -> String.format("<%s>", n.toString())).orElse("NullOntology");
@@ -205,7 +213,7 @@ public class Graphs {
         List<Node> res = g.find(Node.ANY, RDF.Nodes.type, OWL.Ontology.asNode())
                 .mapWith(t -> {
                     Node n = t.getSubject();
-                    return n.isBlank() || n.isURI() ? n : null;
+                    return n.isURI() || n.isBlank() ? n : null;
                 }).filterDrop(Objects::isNull).toList();
         if (res.isEmpty()) return Optional.empty();
         res.sort(rootNodeComparator(g));

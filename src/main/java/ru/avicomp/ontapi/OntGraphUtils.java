@@ -117,14 +117,14 @@ public class OntGraphUtils {
         Iterator<Graph> graphs = Graphs.subGraphs(graph).iterator();
         while (graphs.hasNext()) {
             Graph g = graphs.next();
-            OntologyID iri = getOntologyID(g);
-            String uri = iri.getOntologyIRI()
+            OntologyID i = getOntologyID(g);
+            String uri = i.getOntologyIRI()
                     .map(IRI::getIRIString)
-                    .orElseThrow(() -> new OntApiException("Anonymous sub graph found: " + id + ". " +
+                    .orElseThrow(() -> new OntApiException("Anonymous sub graph found: " + i + ". " +
                             "Only the top-level graph is allowed to be anonymous"));
             if (!imports.contains(uri))
-                throw new OntApiException("Can't find " + iri + " in the imports: " + imports);
-            assembleMap(iri, g, res);
+                throw new OntApiException("Can't find " + i + " in the imports: " + imports);
+            assembleMap(i, g, res);
         }
     }
 

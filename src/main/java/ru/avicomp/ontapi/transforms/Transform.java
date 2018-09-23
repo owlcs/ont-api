@@ -31,15 +31,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The base class for any graph-converter.
- * todo: add configurable logger to record all changes.
+ * The base class for any graph-converter (transform).
+ * It is a general mechanism to perform any transformations on a graph before it gets into the main system
+ * (i.e. into the {@code ru.avicomp.ontapi.OntologyManager}).
+ * Usually this mechanism is for restoring missed OWL declarations,
+ * creating OWL ontology id and some other actions to be sure that graph contains an OWL ontology,
+ * which is required by ONT-API.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class Transform {
-    // todo: logger will be removed later (when listener-mechanism would be implemented)
     protected static final Logger LOGGER = LoggerFactory.getLogger(Transform.class);
 
     protected final Graph graph;
+    // todo: move vocabulary to the up level where it is used
     protected final BuiltIn.Vocabulary builtIn;
     private Model model;
     private Model base;
@@ -67,6 +71,7 @@ public abstract class Transform {
         }
         return uncertainTriples();
     }
+
     /**
      * Performs the graph transformation.
      *

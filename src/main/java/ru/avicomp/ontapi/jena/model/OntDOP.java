@@ -20,7 +20,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import java.util.stream.Stream;
 
 /**
- * A common (abstract) interface for any Ontology <b>D</b>ata and <b>O</b>bject and <b>P</b>roperty expressions.
+ * A common (abstract) interface for any Ontology <b>D</b>ata and <b>O</b>bject <b>P</b>roperty expressions.
  * In OWL2 terms it is any {@link OntPE Property Expression} minus {@link OntNAP Annotation Property}.
  * <p>
  * Created by @szuev on 21.07.2018.
@@ -28,7 +28,8 @@ import java.util.stream.Stream;
 public interface OntDOP extends OntPE {
 
     /**
-     * Lists all property ranges.
+     * Lists all property ranges,
+     * i.e. all objects from statements with this property as subject and {@code rdfs:range} as predicate.
      *
      * @return Stream of {@link OntObject ontology object}s
      */

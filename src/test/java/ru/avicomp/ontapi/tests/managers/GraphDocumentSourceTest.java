@@ -38,6 +38,7 @@ import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -200,5 +201,38 @@ public class GraphDocumentSourceTest {
         } catch (IOException e) {
             throw new AssertionError("Unexpected io-error", e);
         }
+    }
+
+    @Test
+    public void testDisableTransforms() throws OWLOntologyCreationException {
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().setGraphTransformers(new GraphTransformers.Store()
+                .add(GraphTransformers.Maker.create("x", null, g -> {
+                    throw new IllegalStateException("TEST");
+                })));
+
+        OntGraphModel g = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
+        OntGraphDocumentSource s1 = OntGraphDocumentSource.wrap(g.getBaseGraph());
+        try {
+            m.loadOntologyFromOntologyDocument(s1);
+            Assert.fail("No transforms are running");
+        } catch (IllegalStateException e) {
+            LOGGER.debug("Expected: {}", e.getMessage());
+            Assert.assertEquals(0, m.ontologies().count());
+        }
+        OntGraphDocumentSource s2 = new OntGraphDocumentSource() {
+            @Override
+            public Graph getGraph() {
+                return g.getBaseGraph();
+            }
+
+            @Override
+            public boolean withTransforms() {
+                return false;
+            }
+        };
+        OntologyModel o = m.loadOntologyFromOntologyDocument(s2);
+        Assert.assertNotNull(o);
+        Assert.assertEquals(1, m.ontologies().count());
     }
 }

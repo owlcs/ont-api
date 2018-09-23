@@ -388,19 +388,20 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             PrefixManager pm = (PrefixManager) owlFormat;
             Models.setNsPrefixes(graph.getPrefixMapping(), pm.getPrefixName2PrefixMap());
         }
-        return new GraphInfo(graph, format, src, false);
+        return createGraphInfo(graph, format, src, false);
     }
 
     /**
-     * Wraps a true graph as graph-info container.
+     * Creates a {@link Graph graph info} container.
      *
      * @param graph  {@link Graph}
      * @param format {@link OntFormat}
      * @param src    {@link IRI}
+     * @param withTransform boolean
      * @return {@link GraphInfo}
      */
-    protected GraphInfo toGraphInfo(Graph graph, OntFormat format, IRI src) {
-        return new GraphInfo(graph, format, src, true);
+    protected GraphInfo createGraphInfo(Graph graph, OntFormat format, IRI src, boolean withTransform) {
+        return new GraphInfo(graph, format, src, withTransform);
     }
 
     /**
@@ -424,7 +425,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             OntGraphDocumentSource src = (OntGraphDocumentSource) source;
             Graph graph = src.getGraph();
             OntFormat format = src.getOntFormat();
-            return toGraphInfo(graph, format, source.getDocumentIRI());
+            return createGraphInfo(graph, format, source.getDocumentIRI(), src.withTransforms());
         }
         if (loaded.containsKey(source.getDocumentIRI())) {
             return loaded.get(source.getDocumentIRI());
@@ -438,7 +439,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             // jena:
             Graph graph = builder.createGraph();
             OntFormat format = OntGraphUtils.readGraph(graph, src, config);
-            GraphInfo res = toGraphInfo(graph, format, doc);
+            GraphInfo res = createGraphInfo(graph, format, doc, true);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Graph <{}> is loaded by jena. Source: {}[{}]. Format: {}",
                         res.name(), source.getClass().getSimpleName(), res.getSource(), res.getFormat());

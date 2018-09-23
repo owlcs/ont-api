@@ -42,11 +42,13 @@ import java.util.function.Supplier;
  * But these methods are not used by ONT-API;
  * instead, the method {@link #getGraph()} (which provides a direct link to the graph) is used.
  * <p>
- * Note: you may want to disable transformations
- * (see {@link ru.avicomp.ontapi.config.OntConfig#setPerformTransformation(boolean)},
- * {@link ru.avicomp.ontapi.config.OntLoaderConfiguration#setPerformTransformation(boolean)}) while loading,
- * otherwise the encapsulated graph may still have some changes
+ * Note: you may want to disable transformations, otherwise the encapsulated graph may still have some changes
  * due to tuning by the {@link OntologyFactory loading factory}.
+ * To do this, you can use method {@link ru.avicomp.ontapi.config.OntConfig#setPerformTransformation(boolean)},
+ * which turns off transformations throughout the manager,
+ * or method {@link ru.avicomp.ontapi.config.OntLoaderConfiguration#setPerformTransformation(boolean)}
+ * for a particular ontology, or just override method {@link #withTransforms()}.
+ * or
  * <p>
  * Created by szuev on 22.02.2017.
  */
@@ -61,6 +63,17 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
      * @return {@link Graph}
      */
     public abstract Graph getGraph();
+
+    /**
+     * Answers if the graph must be put in order by the transformations mechanism.
+     *
+     * @return {@code true} if graph transformations is allowed
+     * @see ru.avicomp.ontapi.transforms.Transform
+     * @since 1.4.0
+     */
+    public boolean withTransforms() {
+        return true;
+    }
 
     /**
      * Gets the IRI of this ontology document source.
@@ -218,7 +231,8 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
     }
 
     /**
-     * A factory method to produce simple {@link OWLOntologyDocumentSource} wrapper around the given graph.
+     * Just a sugar factory method to produce simple {@link OWLOntologyDocumentSource} wrapper around the given graph.
+     * Note: the method {@link #withTransforms()} returns {@code true} for the produced instance.
      *
      * @param graph {@link Graph}
      * @return {@link OntGraphDocumentSource}
