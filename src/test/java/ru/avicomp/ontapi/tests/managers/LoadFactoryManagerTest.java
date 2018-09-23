@@ -100,9 +100,11 @@ public class LoadFactoryManagerTest {
                 .setSupportedSchemes(Collections.singletonList(OntConfig.DefaultScheme.FILE))
                 .setPerformTransformation(false);
 
-        manager.loadOntologyFromOntologyDocument(new FileDocumentSource(map.get(a).toFile(), OntFormat.MANCHESTER_SYNTAX.createOwlFormat()));
+        manager.loadOntologyFromOntologyDocument(new FileDocumentSource(map.get(a).toFile(),
+                OntFormat.MANCHESTER_SYNTAX.createOwlFormat()));
         Assert.assertEquals("Should be one ontology inside manager", 1, manager.ontologies().count());
-        manager.loadOntologyFromOntologyDocument(new FileDocumentSource(map.get(b).toFile(), OntFormat.MANCHESTER_SYNTAX.createOwlFormat()));
+        manager.loadOntologyFromOntologyDocument(new FileDocumentSource(map.get(b).toFile(),
+                OntFormat.MANCHESTER_SYNTAX.createOwlFormat()));
         Assert.assertEquals("Wrong num of onts", 4, manager.ontologies().count());
     }
 
@@ -182,12 +184,15 @@ public class LoadFactoryManagerTest {
     public void testLoadDifferentStrategies() throws Exception {
         IRI sp = IRI.create("http://spinrdf.org/sp");
         IRI spin = IRI.create("http://spinrdf.org/spin");
-        OWLOntologyIRIMapper mapSp = new SimpleIRIMapper(sp, IRI.create(ReadWriteUtils.getResourcePath("etc", "sp.ttl").toFile()));
-        OWLOntologyIRIMapper mapSpin = new SimpleIRIMapper(spin, IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toFile()));
+        OWLOntologyIRIMapper mapSp = new SimpleIRIMapper(sp,
+                IRI.create(ReadWriteUtils.getResourcePath("etc", "sp.ttl").toFile()));
+        OWLOntologyIRIMapper mapSpin = new SimpleIRIMapper(spin,
+                IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toFile()));
 
         LOGGER.debug("1) Test load some web ontology for a case when only file scheme is allowed.");
         OntologyManager m1 = OntManagers.createONT();
-        OntLoaderConfiguration conf = m1.getOntologyLoaderConfiguration().setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList()));
+        OntLoaderConfiguration conf = m1.getOntologyLoaderConfiguration()
+                .setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList()));
         m1.setOntologyLoaderConfiguration(conf);
         try {
             Assert.fail("No exception while loading " + m1.loadOntology(sp));
@@ -240,7 +245,8 @@ public class LoadFactoryManagerTest {
         OntologyManager m3 = OntManagers.createONT();
         m3.getIRIMappers().add(mapSp);
         m3.getIRIMappers().add(mapSpin);
-        m3.setOntologyLoaderConfiguration(conf.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.THROW_EXCEPTION).addIgnoredImport(sp));
+        m3.setOntologyLoaderConfiguration(conf
+                .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.THROW_EXCEPTION).addIgnoredImport(sp));
         m3.loadOntology(spin);
         Assert.assertEquals("Should be only single ontology inside.", 1, m3.ontologies().count());
 
@@ -253,11 +259,13 @@ public class LoadFactoryManagerTest {
 
         LOGGER.debug("8) Test loading with MissingOntologyHeaderStrategy = true/false");
         OWLOntologyManager m5 = OntManagers.createONT();
-        Assert.assertEquals("Incorrect default settings", MissingOntologyHeaderStrategy.INCLUDE_GRAPH, m5.getOntologyLoaderConfiguration().getMissingOntologyHeaderStrategy());
+        Assert.assertEquals("Incorrect default settings", MissingOntologyHeaderStrategy.INCLUDE_GRAPH,
+                m5.getOntologyLoaderConfiguration().getMissingOntologyHeaderStrategy());
         loadLoopedOntologyFamily(m5);
         Assert.assertEquals("Wrong ontologies count.", 3, m5.ontologies().count());
         OWLOntologyManager m6 = OntManagers.createONT();
-        m6.setOntologyLoaderConfiguration(m6.getOntologyLoaderConfiguration().setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy.IMPORT_GRAPH));
+        m6.setOntologyLoaderConfiguration(m6.getOntologyLoaderConfiguration()
+                .setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy.IMPORT_GRAPH));
         loadLoopedOntologyFamily(m6);
         Assert.assertEquals("Wrong ontologies.", 4, m6.ontologies().count());
         // todo: it would be nice to validate the result ontologie
@@ -285,14 +293,16 @@ public class LoadFactoryManagerTest {
         // reverse through stream:
         OntologyManager m3 = OntManagers.createONT();
         OntologyModel b3 = m3.loadOntologyFromOntologyDocument(new StringDocumentSource(sB),
-                m3.getOntologyLoaderConfiguration().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
+                m3.getOntologyLoaderConfiguration()
+                        .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
         m3.loadOntologyFromOntologyDocument(new StringDocumentSource(sA));
         checkForMissedImportsTest(b3);
 
         // reverse through graph
         OntologyManager m4 = OntManagers.createONT();
         OntologyModel b4 = m4.addOntology(b.asGraphModel().getBaseGraph(),
-                m4.getOntologyLoaderConfiguration().setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
+                m4.getOntologyLoaderConfiguration()
+                        .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
         m4.addOntology(a.asGraphModel().getBaseGraph());
         checkForMissedImportsTest(b4);
     }
@@ -348,7 +358,8 @@ public class LoadFactoryManagerTest {
     public void testDisableWebAccess() throws OWLOntologyCreationException {
         IRI iri = IRI.create("http://spinrdf.org/sp");
         OntologyManager m = OntManagers.createONT();
-        m.loadOntologyFromOntologyDocument(new IRIDocumentSource(iri), m.getOntologyLoaderConfiguration().disableWebAccess());
+        m.loadOntologyFromOntologyDocument(new IRIDocumentSource(iri),
+                m.getOntologyLoaderConfiguration().disableWebAccess());
     }
 
     @Test
@@ -397,7 +408,8 @@ public class LoadFactoryManagerTest {
         OntologyModel o1 = manager.createOntology(IRI.create(uri1));
         Assert.assertNotNull(o1);
         ReadWriteUtils.print(o1);
-        Assert.assertEquals(uri1, o1.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
+        Assert.assertEquals(uri1, o1.getOntologyID().getOntologyIRI()
+                .map(IRI::getIRIString).orElseThrow(AssertionError::new));
         Assert.assertEquals(comment, getOWLComment(o1));
 
         OntologyModel o2 = manager.loadOntology(IRI.create(LoadFactoryManagerTest.class.getResource("/ontapi/test1.ttl")));
@@ -435,7 +447,8 @@ public class LoadFactoryManagerTest {
 
         // Load using OWL-API Turtle Parser
         OntologyManager m2 = OntManagers.createONT();
-        OntologyModel o2 = m2.loadOntologyFromOntologyDocument(source, conf.buildLoaderConfiguration().setUseOWLParsersToLoad(true));
+        OntologyModel o2 = m2.loadOntologyFromOntologyDocument(source,
+                conf.buildLoaderConfiguration().setUseOWLParsersToLoad(true));
         Assert.assertEquals(1, m2.ontologies().count());
         Assert.assertEquals(0, o2.asGraphModel().imports().count());
         ReadWriteUtils.print(o2);
@@ -451,8 +464,10 @@ public class LoadFactoryManagerTest {
 
     private static void checkForMissedImportsTest(OWLOntology b) {
         Assert.assertEquals(1, b.imports().count());
-        Assert.assertEquals(1, b.axioms(Imports.EXCLUDED).filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
-        Assert.assertEquals(2, b.axioms(Imports.INCLUDED).filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
+        Assert.assertEquals(1, b.axioms(Imports.EXCLUDED)
+                .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
+        Assert.assertEquals(2, b.axioms(Imports.INCLUDED)
+                .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
     }
 
     private static void loadLoopedOntologyFamily(OWLOntologyManager m) throws Exception {

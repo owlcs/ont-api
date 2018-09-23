@@ -32,7 +32,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,27 +49,40 @@ import java.util.stream.Stream;
 public class Graphs {
 
     /**
-     * Lists all top-level sub-graphs attached to the given graph-container.
-     * If the graph is not composite an empty stream is expected.
+     * Lists all top-level sub-graphs attached to the given composite graph-container,
+     * which is allowed to be either {@link UnionGraph} or {@link Polyadic} or {@link Dyadic}.
+     * If the graph is not of the list above, an empty stream is expected.
+     * The base graph is not included in the resulting stream.
+     * In case of {@link Dyadic}, the left graph is considered as base.
      *
      * @param graph {@link Graph}
      * @return Stream of {@link Graph}s
+     * @see #getBase(Graph)
      * @see UnionGraph
      * @see Polyadic
      * @see Dyadic
      */
     public static Stream<Graph> subGraphs(Graph graph) {
-        return graph instanceof UnionGraph ? ((UnionGraph) graph).getUnderlying().graphs() :
-                graph instanceof Polyadic ? ((Polyadic) graph).getSubGraphs().stream() :
-                        graph instanceof Dyadic ? Stream.of((Graph) ((Dyadic) graph).getR()) : Stream.empty();
+        if (graph instanceof UnionGraph) {
+            return ((UnionGraph) graph).getUnderlying().graphs();
+        }
+        if (graph instanceof Polyadic) {
+            return ((Polyadic) graph).getSubGraphs().stream();
+        }
+        if (graph instanceof Dyadic) {
+            return Stream.of((Graph) ((Dyadic) graph).getR());
+        }
+        return Stream.empty();
     }
 
     /**
-     * Gets a base (primary) graph from the specified graph if it is composite or wrapper, otherwise returns the same graph.
+     * Extracts the base (primary) primitive graph from a composite or wrapper graph if it is possible
+     * otherwise returns the same graph untouched.
      * Note: this is a recursive method.
      *
      * @param graph {@link Graph}
      * @return {@link Graph}
+     * @see #subGraphs(Graph)
      * @see GraphWrapper
      * @see RWLockedGraph
      * @see UnionGraph
@@ -106,7 +118,7 @@ public class Graphs {
      */
     public static Stream<Graph> flat(Graph graph) {
         return graph == null ? Stream.empty() :
-                Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).map(Graphs::flat).flatMap(Function.identity()));
+                Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).flatMap(Graphs::flat));
     }
 
     /**
@@ -121,14 +133,18 @@ public class Graphs {
     }
 
     /**
-     * Wraps the given graph as hierarchical Union Graph.
+     * Converts the given graph to the hierarchical {@link UnionGraph Union Graph}
+     * in accordance with their {@code owl:imports} declarations.
+     * Irrelevant graphs are skipped from consideration.
      * Note: this is a recursive method.
      *
      * @param g {@link Graph}
      * @return {@link UnionGraph}
+     * @throws StackOverflowError in case there is a loop in imports
      * @since 1.0.1
      */
     public static UnionGraph toUnion(Graph g) {
+        if (g instanceof UnionGraph) return (UnionGraph) g;
         return toUnion(getBase(g), flat(g).collect(Collectors.toSet()));
     }
 
@@ -136,30 +152,36 @@ public class Graphs {
      * Builds an union-graph using specified components.
      * Note: this is a recursive method.
      *
-     * @param base  {@link Graph} the base graph (root)
-     * @param other collection of depended {@link Graph graphs}
+     * @param graph     {@link Graph} the base graph (root)
+     * @param dependent collection of dependent {@link Graph graphs} to search in
      * @return {@link UnionGraph}
      * @since 1.0.1
      */
-    public static UnionGraph toUnion(Graph base, Collection<Graph> other) {
-        UnionGraph res = base instanceof UnionGraph ? (UnionGraph) base : new UnionGraph(base);
+    public static UnionGraph toUnion(Graph graph, Collection<Graph> dependent) {
+        Graph base = getBase(graph);
         Set<String> imports = getImports(base);
-        other.stream().filter(g -> imports.contains(getURI(g))).forEach(g -> res.addGraph(toUnion(g, other)));
+        UnionGraph res = new UnionGraph(base);
+        dependent.stream()
+                .filter(x -> !isSameBase(base, x))
+                .filter(g -> imports.contains(getURI(g)))
+                .forEach(g -> res.addGraph(toUnion(g, dependent)));
         return res;
     }
 
     /**
-     * Gets Ontology URI from the base graph or null (if no owl:Ontology or it is anonymous ontology).
+     * Gets Ontology URI from the base graph or {@code null}
+     * (if there is no {@code owl:Ontology} or it is anonymous ontology).
      *
      * @param graph {@link Graph}
      * @return String uri or {@code null}
+     * @see #getImports(Graph)
      */
     public static String getURI(Graph graph) {
         return ontologyNode(getBase(graph)).filter(Node::isURI).map(Node::getURI).orElse(null);
     }
 
     /**
-     * Gets "name" of the base graph: uri, blank-node-id as string or dummy string if there is no ontology at all.
+     * Gets the "name" of the base graph: uri, blank-node-id as string or dummy string if there is no ontology at all.
      *
      * @param graph {@link Graph}
      * @return String
@@ -180,12 +202,14 @@ public class Graphs {
      * @return {@link Optional} around the {@link Node} which could be uri or blank.
      */
     public static Optional<Node> ontologyNode(Graph g) {
-        try (Stream<Node> nodes = Iter.asStream(g.find(Node.ANY, RDF.Nodes.type, OWL.Ontology.asNode()))
-                .map(Triple::getSubject)
-                .filter(node -> node.isBlank() || node.isURI())
-                .sorted(rootNodeComparator(g))) {
-            return nodes.findFirst();
-        }
+        List<Node> res = g.find(Node.ANY, RDF.Nodes.type, OWL.Ontology.asNode())
+                .mapWith(t -> {
+                    Node n = t.getSubject();
+                    return n.isBlank() || n.isURI() ? n : null;
+                }).filterDrop(Objects::isNull).toList();
+        if (res.isEmpty()) return Optional.empty();
+        res.sort(rootNodeComparator(g));
+        return Optional.of(res.get(0));
     }
 
     /**
@@ -204,21 +228,23 @@ public class Graphs {
     }
 
     /**
-     * Returns all uri-subject from {@code owl:imports} statements.
+     * Returns all uri-objects from the {@code _:x owl:imports _:uri} statements.
+     * In case of composite graph imports are listed transitively.
      *
      * @param graph {@link Graph}
      * @return unordered Set of uris from whole graph (it may be composite).
+     * @see #getURI(Graph)
      */
     public static Set<String> getImports(Graph graph) {
-        return Iter.asStream(graph.find(Node.ANY, OWL.imports.asNode(), Node.ANY))
-                .map(Triple::getObject)
-                .filter(Node::isURI)
-                .map(Node::getURI).collect(Collectors.toSet());
+        return graph.find(Node.ANY, OWL.imports.asNode(), Node.ANY).mapWith(t -> {
+            Node n = t.getObject();
+            return n.isURI() ? n.getURI() : null;
+        }).filterDrop(Objects::isNull).toSet();
     }
 
     /**
-     * Prints a hierarchy tree.
-     * For a valid ontology it should be an imports ({@code owl:imports}) tree also.
+     * Prints a graph hierarchy tree.
+     * For a valid ontology it should match an imports ({@code owl:imports}) tree also.
      * For debugging.
      * <p>
      * An examples of possible output:
@@ -316,6 +342,7 @@ public class Graphs {
      * Removes concurrency from the given graph.
      * This operation is opposite to the {@link #asConcurrent(Graph, ReadWriteLock)} method:
      * if the input is an UnionGraph it makes an UnionGraph with the same structure as specified but without R/W lock.
+     *
      * @param graph {@link Graph}
      * @return {@link Graph}
      */

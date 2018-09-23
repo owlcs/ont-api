@@ -417,7 +417,7 @@ public abstract class GraphTransformers {
          * @see Transform
          */
         public Stats transform(Graph graph, Set<Graph> skip) throws TransformException {
-            List<Graph> children = Graphs.subGraphs(graph).collect(Collectors.toList());
+            List<Graph> children = Graphs.toUnion(graph).getUnderlying().getSubGraphs();
             Graph base = Graphs.getBase(graph);
             Stats res = new Stats(base);
             for (Graph g : children) {

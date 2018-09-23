@@ -21,9 +21,12 @@ import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.graph.compose.Union;
 import org.apache.jena.graph.impl.SimpleEventManager;
 import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.graph.GraphSink;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -114,6 +117,7 @@ public class UnionGraph extends Union {
 
     /**
      * An extended {@link MultiUnion Standard Jena MultiUnion Graph} with several useful methods.
+     * It has a {@link GraphSink sink-graph} as primary.
      */
     public static class OntMultiUnion extends MultiUnion {
 
@@ -133,13 +137,24 @@ public class UnionGraph extends Union {
             return m_subGraphs.stream();
         }
 
+        @Override
+        public Graph getBaseGraph() {
+            return GraphSink.instance();
+        }
+
+        @Override
+        public List<Graph> getSubGraphs() {
+            return Collections.unmodifiableList(m_subGraphs);
+        }
+
         public boolean hasSubGraphs() {
             return !m_subGraphs.isEmpty();
         }
     }
 
     /**
-     * An extended {@link org.apache.jena.graph.GraphEventManager Jena Graph Event Manager}, a holder for {@link GraphListener}s.
+     * An extended {@link org.apache.jena.graph.GraphEventManager Jena Graph Event Manager},
+     * a holder for {@link GraphListener}s.
      */
     public static class OntEventManager extends SimpleEventManager {
 

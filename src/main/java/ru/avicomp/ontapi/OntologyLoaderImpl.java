@@ -228,7 +228,10 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @return {@link UnionGraph}
      * @throws OntApiException if something wrong
      */
-    protected UnionGraph makeUnionGraph(GraphInfo node, Collection<String> seen, OntologyManager manager, OntLoaderConfiguration config) {
+    protected UnionGraph makeUnionGraph(GraphInfo node,
+                                        Collection<String> seen,
+                                        OntologyManager manager,
+                                        OntLoaderConfiguration config) {
         // it is important to have the same order on each call
         Set<GraphInfo> children = new LinkedHashSet<>();
         Graph main = node.getGraph();
@@ -296,7 +299,9 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @throws OWLOntologyCreationException                some serious I/O problem while loading
      * @throws OntApiException                             some other unexpected problem occurred.
      */
-    protected GraphInfo fetchGraph(String uri, OntologyManager manager, OntLoaderConfiguration config) throws OWLOntologyCreationException {
+    protected GraphInfo fetchGraph(String uri,
+                                   OntologyManager manager,
+                                   OntLoaderConfiguration config) throws OWLOntologyCreationException {
         IRI ontologyIRI = IRI.create(uri);
         OntologyModel res = findModel(manager, ontologyIRI);
         if (res != null) {

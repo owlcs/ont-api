@@ -32,7 +32,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,9 +39,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static ru.avicomp.ontapi.OntologyFactoryImpl.ConfigMismatchException;
 import static ru.avicomp.ontapi.OntologyFactoryImpl.UnsupportedFormatException;
@@ -75,11 +72,11 @@ public class OntGraphUtils {
      * Gets an OWL Ontology ID parsed from the given graph.
      * Treats graphs without {@code owl:Ontology} section inside as anonymous.
      *
-     * @param graph {@link Graph}
+     * @param graph {@link Graph}, not {@code null}
      * @return {@link OntologyID}, not {@code null}
      * @throws OntApiException in case it is an anonymous graph but with version iri
      */
-    public static OntologyID getOntologyID(@Nonnull Graph graph) throws OntApiException {
+    public static OntologyID getOntologyID(Graph graph) throws OntApiException {
         Graph base = Graphs.getBase(graph);
         Optional<Node> node = Graphs.ontologyNode(base);
         // treat graphs without owl:Ontology as anonymous
@@ -87,35 +84,59 @@ public class OntGraphUtils {
     }
 
     /**
-     * Builds map form the ontology graph.
-     * If the specified graph is not composite then only one key in the map is expected.
-     * The specified graph should consist of named graphs, only the root is allowed to be anonymous.
-     * Also the graph-tree should not contain different children but with the same name (owl:Ontology uri).
+     * Builds a map form the ontology graph with {@link OntologyID}s as keys and component {@link Graph Graph}s as values.
+     * <p>
+     * If any graph (the root or any its component) has no import declarations
+     * (i.e. no statements {@code _:x owl:imports uri}) then this graph is put into the map as is.
+     * If it is a composite graph with imports, the base graph will be unwrapped using method {@link Graphs#getBase(Graph)},
+     * i.e. not a graph itself will go as a value, but its base sub-graph.
+     * If the input graph is composite, it should consist of named graphs, only the root (top-level primary graph)
+     * is allowed to be anonymous.
+     * Also the graph-tree should not contain different children but with the same iri (i.e. {@code owl:Ontology} uri).
+     * To check the equivalence of two graphs, the method {@link Graph#isIsomorphicWith(Graph)} is used.
      *
-     * @param graph {@link Graph graph}
+     * @param graph {@link Graph graph}, not {@code null}
      * @return Map with {@link OntologyID OWL Ontology ID} as a key and {@link Graph graph} as a value
-     * @throws OntApiException the input graph has restrictions, see above.
+     * @throws OntApiException in case of violation of the restrictions described above
      */
-    public static Map<OntologyID, Graph> toGraphMap(@Nonnull Graph graph) throws OntApiException {
-        Graph base = Graphs.getBase(graph);
-        return Graphs.flat(graph)
-                .collect(Collectors.toMap(
-                        g -> {
-                            OntologyID id = getOntologyID(g);
-                            if (id.isAnonymous() && base != g) {
-                                throw new OntApiException("Anonymous sub graph found: " + id +
-                                        ". Only top-level graph is allowed to be anonymous");
-                            }
-                            return id;
-                        }
-                        , Function.identity()
-                        , (a, b) -> {
-                            if (a.isIsomorphicWith(b)) {
-                                return a;
-                            }
-                            throw new OntApiException("Duplicate sub graphs " + Graphs.getName(a));
-                        }
-                        , LinkedHashMap::new));
+    public static Map<OntologyID, Graph> toGraphMap(Graph graph) throws OntApiException {
+        Map<OntologyID, Graph> res = new LinkedHashMap<>();
+        OntologyID id = getOntologyID(graph);
+        assembleMap(id, graph, res);
+        return res;
+    }
+
+    private static void assembleMap(OntologyID id, Graph graph, Map<OntologyID, Graph> res) {
+        Set<String> imports = Graphs.getImports(graph);
+        if (imports.isEmpty()) {
+            // do not analyse graph structure -> put it as is
+            put(id, graph, res);
+            return;
+        }
+        put(id, Graphs.getBase(graph), res);
+        Iterator<Graph> graphs = Graphs.subGraphs(graph).iterator();
+        while (graphs.hasNext()) {
+            Graph g = graphs.next();
+            OntologyID iri = getOntologyID(g);
+            String uri = iri.getOntologyIRI()
+                    .map(IRI::getIRIString)
+                    .orElseThrow(() -> new OntApiException("Anonymous sub graph found: " + id + ". " +
+                            "Only the top-level graph is allowed to be anonymous"));
+            if (!imports.contains(uri))
+                throw new OntApiException("Can't find " + iri + " in the imports: " + imports);
+            assembleMap(iri, g, res);
+        }
+    }
+
+    private static void put(OntologyID id, Graph graph, Map<OntologyID, Graph> map) {
+        Graph prev = map.get(id);
+        if (prev != null) {
+            if (prev.isIsomorphicWith(graph)) {
+                return;
+            }
+            throw new OntApiException("Duplicate sub graph: " + id);
+        }
+        map.put(id, graph);
     }
 
     /**

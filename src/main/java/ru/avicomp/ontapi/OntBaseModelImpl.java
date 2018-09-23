@@ -28,7 +28,6 @@ import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nonnull;
@@ -869,12 +868,12 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
      *
      * @param out {@link ObjectOutputStream}
      * @throws IOException     if I/O errors occur while writing to the underlying <code>OutputStream</code>
-     * @throws OntApiException in case this instance encapsulates graph which is not stored in memory
+     * @throws OntApiException in case this instance encapsulates graph which is not plain in-memory graph
      */
     private void writeObject(ObjectOutputStream out) throws IOException, OntApiException {
-        Graph g = Graphs.getBase(base.getBaseGraph());
+        Graph g = base.getBaseGraph();
         if (!(g instanceof GraphMem))
-            throw new OntApiException(getOntologyID() + ":: Serialization is not supported for non-memory graphs.");
+            throw new OntApiException(getOntologyID() + ":: Serialization is not supported for " + g.getClass());
         out.defaultWriteObject();
         // serialize only base graph (it will be wrapped as UnionGraph):
         RDFDataMgr.write(out, g, DEFAULT_SERIALIZATION_FORMAT.getLang());

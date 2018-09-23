@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 
 /**
@@ -52,7 +53,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @SuppressWarnings("WeakerAccess")
 public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSource {
 
-    protected AtomicReference<IOException> exception = new AtomicReference<>();
+    protected AtomicReference<Exception> exception = new AtomicReference<>();
 
     /**
      * Returns the encapsulated {@link Graph Jena RDF Graph} instance.
@@ -112,31 +113,40 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
     }
 
     /**
-     * Creates a new InputStream from a Graph.
+     * Creates a new InputStream for the given Graph and lang.
      *
      * @param graph  {@link Graph} a graph to read from
      * @param lang   {@link Lang} format syntax
      * @param holder {@link AtomicReference}, a container that will contain an IOException if it occurs
      * @return InputStream
      */
-    public static InputStream toInputStream(Graph graph, Lang lang, AtomicReference<IOException> holder) {
+    public static InputStream toInputStream(Graph graph, Lang lang, AtomicReference<Exception> holder) {
         PipedInputStream in = new PipedInputStream();
+        Supplier<String> safeName = () -> {
+            try {
+                return Graphs.getName(graph);
+            } catch (Exception e) {
+                return "Unknown error: " + e.getMessage();
+            }
+        };
         FilterInputStream res = new FilterInputStream(in) {
             private volatile boolean closed;
 
             @Override
             public void close() throws IOException {
-                if (closed) return;
-                try {
-                    IOException e = holder.get();
-                    if (e != null) {
-                        throw new IOException(String.format("Convert output->input. Graph: %s, %s.",
-                                Graphs.getName(graph), lang), e);
-                    }
-                } finally {
-                    super.close();
+                synchronized (this) {
+                    if (closed) return;
                     closed = true;
                 }
+                Optional<IOException> res = Optional.ofNullable(holder.get())
+                        .map(e -> new IOException(String.format("Convert output->input. Graph: %s, %s.",
+                                safeName.get(), lang), e));
+                try {
+                    super.close();
+                } catch (IOException e) {
+                    res.ifPresent(x -> x.addSuppressed(e));
+                }
+                if (res.isPresent()) throw res.get();
             }
         };
         CountDownLatch complete = new CountDownLatch(1);
@@ -144,7 +154,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
             try (PipedOutputStream out = new PipedOutputStream(in)) {
                 complete.countDown();
                 RDFDataMgr.write(out, graph, lang);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 holder.set(e);
             }
         }).start();
