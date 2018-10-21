@@ -17,11 +17,12 @@ package ru.avicomp.ontapi.tests;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.topbraid.spin.inference.SPINInferences;
 import org.topbraid.spin.system.SPINModuleRegistry;
 import org.topbraid.spin.vocabulary.SPIN;
@@ -50,7 +51,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class SpinMappingTest {
 
-    protected static final Logger LOGGER = Logger.getLogger(SpinMappingTest.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(SpinMappingTest.class);
 
     private static final String DATA_SEPARATOR = ", ";
 
@@ -102,7 +103,7 @@ public class SpinMappingTest {
         OntNDP targetProperty = target.listDataProperties().findFirst().orElse(null);
         List<OntIndividual> sourceIndividuals = source.listNamedIndividuals().collect(Collectors.toList());
         List<Resource> targetIndividuals = target.listSubjectsWithProperty(RDF.type, targetClass).toList();
-        LOGGER.debug("Individuals count: " + targetIndividuals.size());
+        LOGGER.debug("Individuals count: {}", targetIndividuals.size());
         Assert.assertEquals("Incorrect count of individuals", sourceIndividuals.size(), targetIndividuals.size());
         sourceIndividuals.forEach(named -> {
             Resource i = target.getResource(named.getURI());
@@ -191,7 +192,7 @@ public class SpinMappingTest {
         i2.addLiteral(prop2, Integer.valueOf(99090));
         OntologyModel o = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, o);
-        o.axioms().forEach(LOGGER::debug);
+        o.axioms().forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect number of data-property assertions", 4, o.axioms(AxiomType.DATA_PROPERTY_ASSERTION).count());
         ReadWriteUtils.print(res);
         return res;
@@ -213,7 +214,7 @@ public class SpinMappingTest {
         prop.addDomain(clazz);
         OntologyModel o = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, o);
-        o.axioms().forEach(LOGGER::debug);
+        o.axioms().forEach(x -> LOGGER.debug("{}", x));
         ReadWriteUtils.print(res);
         return res;
     }

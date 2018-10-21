@@ -17,76 +17,124 @@ package ru.avicomp.ontapi.jena;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.compose.CompositionBase;
 import org.apache.jena.graph.compose.MultiUnion;
-import org.apache.jena.graph.compose.Union;
 import org.apache.jena.graph.impl.SimpleEventManager;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphSink;
+import org.apache.jena.util.CollectionFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
  * An Union Graph.
- * The difference between {@link MultiUnion} and this implementation is that
- * it explicitly requires primary (base) graph which is the only one that can be modified directly.
- * Underling sub graphs are used only for searching, the adding and removing are performed only over the base (left) graph.
+ * It consists of two parts: a {@link #base base} graph and an {@link #sub underlying} graph.
+ * The difference between {@link MultiUnion MultiUnion} and this implementation is that
+ * this graph explicitly requires primary base graph which is the only one that can be modified directly.
+ * Underlying sub graphs are used only for searching; add and delete are done on the base graph.
  * Such structure allows to build graph hierarchy which is used to reference between different models.
+ * The {@link PrefixMapping} of this graph is taken from the base graph,
+ * and, therefore, any changes in it reflects both the base and this graph.
  * <p>
  * Created by szuev on 28.10.2016.
  *
  * @see ru.avicomp.ontapi.jena.impl.UnionModel
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
-public class UnionGraph extends Union {
+@SuppressWarnings({"WeakerAccess", "unused", "UnusedReturnValue"})
+public class UnionGraph extends CompositionBase {
+
+    protected final Graph base;
+    protected final Underlying sub;
+    protected final boolean distinct;
 
     /**
-     * @param base {@link Graph}, not null
+     * @param base {@link Graph}, not {@code null}
      */
     public UnionGraph(Graph base) {
         this(base, new OntEventManager());
     }
 
     /**
-     * @param base {@link Graph}, not null
-     * @param gem  {@link OntEventManager}, not null
+     * @param base {@link Graph}, not {@code null}
+     * @param gem  {@link OntEventManager}, not {@code null}
      */
     public UnionGraph(Graph base, OntEventManager gem) {
-        this(base, new OntMultiUnion(), gem);
+        this(base, new Underlying(), gem);
     }
 
     /**
-     * @param base {@link Graph}, not null
-     * @param sub  {@link OntMultiUnion}, not null
-     * @param gem  {@link OntEventManager}, not null
-     * @throws NullPointerException if null args
+     * Constructs an instance from the given arguments.
+     * Please note: it is distinct graph (parameter {@link #distinct} is {@code true}).
+     * So method {@link #find(Triple)} will not return duplicates.
+     * The additional duplicate checking may lead to storing the whole graph in the memory in the form of Set,
+     * and for huge ontologies it is unacceptable.
+     * But it is not important in case of working with OWL-API interfaces, since it uses a different approach.
+     * Also notice, that checking is not performed if the graph is single (underlying part is empty).
+     *
+     * @param base {@link Graph}, not {@code null}
+     * @param sub  {@link Underlying}, not {@code null}
+     * @param gem  {@link OntEventManager}, not {@code null}
+     * @throws NullPointerException if any argument is {@code null}
      */
-    public UnionGraph(Graph base, OntMultiUnion sub, OntEventManager gem) {
-        super(Objects.requireNonNull(base), Objects.requireNonNull(sub));
+    public UnionGraph(Graph base, Underlying sub, OntEventManager gem) {
+        this(base, sub, gem, true);
+    }
+
+    /**
+     * The base constructor.
+     *
+     * @param base     {@link Graph}, not {@code null}
+     * @param sub      {@link Underlying}, not {@code null}
+     * @param gem      {@link OntEventManager}, not {@code null}
+     * @param distinct if {@code true}, the method {@link #find(Triple)} will return distinct iterator.
+     * @throws NullPointerException if any argument is {@code null}
+     */
+    public UnionGraph(Graph base, Underlying sub, OntEventManager gem, boolean distinct) {
+        this.base = Objects.requireNonNull(base, "Null base graph.");
+        this.sub = Objects.requireNonNull(sub, "Null sub graphs.");
         this.gem = Objects.requireNonNull(gem, "Null event manager.");
+        this.distinct = distinct;
     }
 
+    @Override
+    public PrefixMapping getPrefixMapping() {
+        return getBaseGraph().getPrefixMapping();
+    }
+
+    /**
+     * Returns the base (primary) graph.
+     *
+     * @return {@link Graph}, not {@code null}
+     */
     public Graph getBaseGraph() {
-        return L;
+        return base;
     }
 
-    public OntMultiUnion getUnderlying() {
-        return (OntMultiUnion) R;
+    /**
+     * Returns the underlying graph, possible emtpy.
+     *
+     * @return {@link Underlying}, not {@code null}
+     */
+    public Underlying getUnderlying() {
+        return sub;
     }
 
     @Override
     public void performDelete(Triple t) {
-        L.delete(t);
+        base.delete(t);
     }
 
     @Override
     public void performAdd(Triple t) {
-        if (!R.contains(t))
-            L.add(t);
+        if (!sub.contains(t))
+            base.add(t);
     }
 
     @Override
@@ -94,47 +142,101 @@ public class UnionGraph extends Union {
         return (OntEventManager) gem;
     }
 
+    /**
+     * Adds the specified graph to the underlying graph collection.
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @return this instance
+     */
+    public UnionGraph addGraph(Graph graph) {
+        getUnderlying().addGraph(Objects.requireNonNull(graph));
+        return this;
+    }
+
+    /**
+     * Removes the specified graph from the underlying graph collection.
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @return this instance
+     */
+    public UnionGraph removeGraph(Graph graph) {
+        getUnderlying().removeGraph(Objects.requireNonNull(graph));
+        return this;
+    }
+
+    /**
+     * Performs find operation.
+     * Override {@code graphBaseFind} to return an iterator that will report when a deletion occurs.
+     */
     @Override
-    public PrefixMapping getPrefixMapping() {
-        return L.getPrefixMapping();
+    protected final ExtendedIterator<Triple> graphBaseFind(Triple m) {
+        return SimpleEventManager.notifyingRemove(this, createFindIterator(m));
     }
 
-    public void addGraph(Graph graph) {
-        getUnderlying().addGraph(graph);
-    }
-
-    public void removeGraph(Graph graph) {
-        getUnderlying().removeGraph(graph);
-    }
-
-    @Override
-    protected ExtendedIterator<Triple> _graphBaseFind(Triple t) {
-        if (((OntMultiUnion) R).hasSubGraphs()) {
-            return super._graphBaseFind(t);
+    /**
+     * Creates an extended iterator to be used in {@link #find(Triple)}.
+     *
+     * @param m {@link Triple} pattern, not {@code null}
+     * @return {@link ExtendedIterator} of {@link Triple}s
+     * @see org.apache.jena.graph.compose.Union#_graphBaseFind(Triple)
+     * @see MultiUnion#multiGraphFind(Triple)
+     */
+    protected ExtendedIterator<Triple> createFindIterator(Triple m) {
+        if (sub.hasSubGraphs()) {
+            if (!distinct) {
+                return base.find(m).andThen(Iter.flatMap(sub.listGraphs(), x -> x.find(m)));
+            }
+            // The logic and comment below have been copy-pasted from the org.apache.jena.graph.compose.Union:
+            // To find in the union, find in the components, concatenate the results, and omit duplicates.
+            // That last is a performance penalty,
+            // but I see no way to remove it unless we know the graphs do not overlap.
+            Set<Triple> seen = createSet();
+            return recording(base.find(m), seen)
+                    .andThen(Iter.flatMap(sub.listGraphs(), x -> recording(rejecting(x.find(m), seen), seen)));
         }
-        return L.find(t);
+        return base.find(m);
+    }
+
+    protected Set<Triple> createSet() {
+        return CollectionFactory.createHashedSet();
+    }
+
+    @Override
+    public boolean graphBaseContains(Triple t) {
+        return base.contains(t) || sub.contains(t);
+    }
+
+    @Override
+    public void close() {
+        base.close();
+        sub.close();
+        this.closed = true;
+    }
+
+    /**
+     * Generic dependsOn, true iff it depends on either of the subgraphs.
+     */
+    @Override
+    public boolean dependsOn(Graph other) {
+        return other == this || base.dependsOn(other) || sub.dependsOn(other);
     }
 
     /**
      * An extended {@link MultiUnion Standard Jena MultiUnion Graph} with several useful methods.
      * It has a {@link GraphSink sink-graph} as primary.
      */
-    public static class OntMultiUnion extends MultiUnion {
+    public static class Underlying extends MultiUnion {
 
-        public OntMultiUnion() {
+        public Underlying() {
             super();
-        }
-
-        public OntMultiUnion(Graph[] graphs) {
-            super(graphs);
-        }
-
-        public OntMultiUnion(Iterator<Graph> graphs) {
-            super(graphs);
         }
 
         public Stream<Graph> graphs() {
             return m_subGraphs.stream();
+        }
+
+        public ExtendedIterator<Graph> listGraphs() {
+            return WrappedIterator.create(m_subGraphs.iterator());
         }
 
         @Override

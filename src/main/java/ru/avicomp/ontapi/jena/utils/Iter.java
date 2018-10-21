@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 /**
  * Misc utils to work with Iterators, Streams, Collections, etc,
  * which are related somehow to Jena or/and used inside {@link ru.avicomp.ontapi.jena} package.
+ * todo: add hasFirst, toNodeSet
  * Created by szuev on 11.04.2017.
  *
  * @see org.apache.jena.util.iterator.ExtendedIterator

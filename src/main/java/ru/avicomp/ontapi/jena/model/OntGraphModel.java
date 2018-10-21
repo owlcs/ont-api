@@ -480,6 +480,7 @@ public interface OntGraphModel extends Model {
      */
 
     default OntNAP getRDFSComment() {
+        // todo: use another approach
         return getAnnotationProperty(RDFS.comment);
     }
 

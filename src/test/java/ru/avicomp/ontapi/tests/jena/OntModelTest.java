@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
@@ -581,6 +582,32 @@ public class OntModelTest {
 
         Assert.assertEquals(XSD.xstring, d3.as(OntDR.Restriction.class).getDatatype());
         Assert.assertEquals(12, d3.spec().peek(s -> LOGGER.debug("{}", Models.toString(s))).count());
+    }
+
+    @Test
+    public void testModelPrefixes() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        m.setID("http://x");
+        Assert.assertEquals(4, m.numPrefixes());
+        Assert.assertEquals(4, m.getBaseGraph().getPrefixMapping().numPrefixes());
+        String txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
+        LOGGER.debug(txt);
+        Assert.assertEquals(6, txt.split("\n").length);
+
+        m.setNsPrefix("x", "http://x#");
+        Assert.assertEquals(5, m.numPrefixes());
+        Assert.assertEquals(5, m.getBaseGraph().getPrefixMapping().numPrefixes());
+        txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
+        LOGGER.debug(txt);
+        Assert.assertEquals(7, txt.split("\n").length);
+
+        m.removeNsPrefix("x");
+        Assert.assertEquals(4, m.numPrefixes());
+        Assert.assertEquals(4, m.getBaseGraph().getPrefixMapping().numPrefixes());
+        txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
+        LOGGER.debug(txt);
+        Assert.assertEquals(6, txt.split("\n").length);
+
     }
 
 }
