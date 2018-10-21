@@ -82,7 +82,7 @@ public interface OntGraphModel extends Model {
      * @param reasoner {@link Reasoner}, not null.
      * @return {@link InfModel}
      * @throws org.apache.jena.reasoner.ReasonerException if the data is ill-formed according to the
-     * constraints imposed by this reasoner.
+     *                                                    constraints imposed by this reasoner.
      */
     InfModel getInferenceModel(Reasoner reasoner);
 
@@ -90,11 +90,12 @@ public interface OntGraphModel extends Model {
      * Gets an Ontology ID object.
      * Since OWL2 graph can only contain the one {@code @uri rdf:type owl:Ontology} triple inside,
      * this method creates such statement if it absent;
-     * in case there are more than one Resource with type equaled to {@code owl:Ontology},
+     * in case there are more than one {@code Resource} with the type equaled to {@code owl:Ontology},
      * it chooses the most bulky one (i.e. those that contains the most number of associated statements)
      * and all the others leave intact.
      *
-     * @return {@link OntID} an existing or new one {@link Resource} with root statement '_:x rdf:type owl:Ontology'
+     * @return {@link OntID} an existing or fresh {@link Resource}
+     * that is subject in the {@code _:x rdf:type owl:Ontology} statement
      * @see ru.avicomp.ontapi.jena.utils.Graphs#ontologyNode
      */
     OntID getID();
@@ -279,7 +280,7 @@ public interface OntGraphModel extends Model {
      * Creates an owl-entity by the {@code type} and {@code iri}.
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not null
-     * @param iri String, not null
+     * @param iri  String, not null
      * @param <E>  type of ont-entity
      * @return {@link OntEntity}
      * @throws OntJenaException.Creation in case something is wrong
@@ -480,7 +481,6 @@ public interface OntGraphModel extends Model {
      */
 
     default OntNAP getRDFSComment() {
-        // todo: use another approach
         return getAnnotationProperty(RDFS.comment);
     }
 

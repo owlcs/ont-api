@@ -24,6 +24,7 @@ import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
+import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -672,8 +673,48 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     @Override
+    public OntNAP getRDFSComment() {
+        return getNodeAs(RDFS.Nodes.comment, OntNAP.class);
+    }
+
+    @Override
+    public OntNAP getRDFSLabel() {
+        return getNodeAs(RDFS.Nodes.label, OntNAP.class);
+    }
+
+    @Override
+    public OntClass getOWLThing() {
+        return getNodeAs(OWL.Thing.asNode(), OntClass.class);
+    }
+
+    @Override
+    public OntClass getOWLNothing() {
+        return getNodeAs(OWL.Nothing.asNode(), OntClass.class);
+    }
+
+    @Override
+    public OntNOP getOWLTopObjectProperty() {
+        return getNodeAs(OWL.topObjectProperty.asNode(), OntNOP.class);
+    }
+
+    @Override
+    public OntNOP getOWLBottomObjectProperty() {
+        return getNodeAs(OWL.bottomObjectProperty.asNode(), OntNOP.class);
+    }
+
+    @Override
+    public OntNDP getOWLTopDataProperty() {
+        return getNodeAs(OWL.topDataProperty.asNode(), OntNDP.class);
+    }
+
+    @Override
+    public OntNDP getOWLBottomDataProperty() {
+        return getNodeAs(OWL.bottomDataProperty.asNode(), OntNDP.class);
+    }
+
+    @Override
     public String toString() {
-        return String.format("OntGraphModel{%s}", getID());
+        return String.format("OntGraphModel{%s}", Graphs.getName(getBaseGraph()));
     }
 
 }
