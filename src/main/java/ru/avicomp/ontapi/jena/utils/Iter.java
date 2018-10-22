@@ -15,7 +15,10 @@
 package ru.avicomp.ontapi.jena.utils;
 
 import org.apache.jena.atlas.iterator.FilterUnique;
+import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.StmtIteratorImpl;
@@ -34,7 +37,6 @@ import java.util.stream.Stream;
 /**
  * Misc utils to work with Iterators, Streams, Collections, etc,
  * which are related somehow to Jena or/and used inside {@link ru.avicomp.ontapi.jena} package.
- * todo: add hasFirst, toNodeSet
  * Created by szuev on 11.04.2017.
  *
  * @see org.apache.jena.util.iterator.ExtendedIterator
@@ -67,6 +69,17 @@ public class Iter {
      */
     public static StmtIterator createStmtIterator(ExtendedIterator<Triple> triples, Function<Triple, Statement> map) {
         return new StmtIteratorImpl(triples.mapWith(map));
+    }
+
+    /**
+     * Creates an unmodifiable Set of {@link Node}s from the collection of {@link RDFNode RDF Node}s.
+     * Placed here as it is widely used.
+     *
+     * @param nodes Collection of {@link RDFNode}s
+     * @return Set of {@link Node}
+     */
+    public static Set<Node> asUnmodifiableNodeSet(Collection<? extends RDFNode> nodes) {
+        return nodes.stream().map(FrontsNode::asNode).collect(toUnmodifiableSet());
     }
 
     /**
@@ -155,6 +168,23 @@ public class Iter {
      */
     public static <X> ExtendedIterator<X> distinct(ExtendedIterator<X> base) {
         return base.filterKeep(new FilterUnique<>());
+    }
+
+    /**
+     * Returns an {@link Optional} describing the first element of the iterator,
+     * or an empty {@code Optional} if the iterator is empty.
+     *
+     * @param iterator {@link ClosableIterator}, not {@code null}
+     * @param <X>      the element type of the iterator
+     * @return {@link Optional} of {@link X}
+     * @throws NullPointerException if the element selected is {@code null}
+     */
+    public static <X> Optional<X> findFirst(ClosableIterator<X> iterator) {
+        try {
+            return iterator.hasNext() ? Optional.of(iterator.next()) : Optional.empty();
+        } finally {
+            iterator.close();
+        }
     }
 
     /**

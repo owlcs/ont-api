@@ -172,15 +172,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Optional around {@link OntStatement} that supports plain annotation assertions
      */
     public Optional<OntStatement> findRootStatement() {
-        OntGraphModelImpl m = getModel();
-        ExtendedIterator<RDFNode> res = listObjects(RDF.type);
-        try {
-            return res.hasNext() ?
-                    Optional.of(res.next()).map(o -> m.createStatement(this, RDF.type, o).asRootStatement()) :
-                    Optional.empty();
-        } finally {
-            res.close();
-        }
+        return Iter.findFirst(listObjects(RDF.type))
+                .map(o -> getModel().createStatement(this, RDF.type, o).asRootStatement());
     }
 
     /**

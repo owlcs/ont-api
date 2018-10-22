@@ -229,12 +229,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public boolean hasAnnotations() {
-        ExtendedIterator<OntStatement> res = listAnnotations();
-        try {
-            return res.hasNext();
-        } finally {
-            res.close();
-        }
+        return Iter.findFirst(listAnnotations()).isPresent();
     }
 
     /**

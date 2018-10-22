@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -51,8 +50,7 @@ import java.util.stream.Stream;
 public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static final Set<Property> REQUIRED_PROPERTIES = Stream.of(OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
             .collect(Iter.toUnmodifiableSet());
-    private static final Set<Node> REQUIRED_PROPERTY_NODES = REQUIRED_PROPERTIES.stream().map(FrontsNode::asNode)
-            .collect(Iter.toUnmodifiableSet());
+    private static final Set<Node> REQUIRED_PROPERTY_NODES = Iter.asUnmodifiableNodeSet(REQUIRED_PROPERTIES);
     private static final Node AXIOM = OWL.Axiom.asNode();
     private static final Node ANNOTATION = OWL.Annotation.asNode();
     public static final Set<Property> SPEC = Stream.concat(Stream.of(RDF.type), REQUIRED_PROPERTIES.stream())
@@ -62,9 +60,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
                     .collect(Iter.toUnmodifiableSet());
     public static final List<Resource> ROOT_TYPES = Stream.concat(Stream.of(OWL.Axiom, OWL.Annotation), EXTRA_ROOT_TYPES.stream())
             .collect(Iter.toUnmodifiableList());
-    public static final Set<Node> EXTRA_ROOT_TYPES_AS_NODES = EXTRA_ROOT_TYPES.stream()
-            .map(FrontsNode::asNode)
-            .collect(Iter.toUnmodifiableSet());
+    public static final Set<Node> EXTRA_ROOT_TYPES_AS_NODES = Iter.asUnmodifiableNodeSet(EXTRA_ROOT_TYPES);
     public static OntObjectFactory annotationFactory = new CommonOntObjectFactory(new OntMaker.Default(OntAnnotationImpl.class),
             OntAnnotationImpl::listRootAnnotations,
             OntAnnotationImpl::testAnnotation);
