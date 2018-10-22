@@ -440,6 +440,22 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
         return OntStatementImpl.createOntStatementImpl(triple, this);
     }
 
+    /**
+     * Deletes the specified {@code OntList} including its annotations.
+     *
+     * @param subject   {@link OntObject} the subject of the OntList root statement
+     * @param predicate {@link Property} the predicate of the OntList root statement
+     * @param object    {@link OntList} to be deleted
+     */
+    public void deleteOntList(OntObject subject, Property predicate, OntList object) {
+        Objects.requireNonNull(subject);
+        Objects.requireNonNull(predicate);
+        OntJenaException.notNull(object, "Null list for subject " + subject + " and predicate " + predicate);
+        object.getRoot().clearAnnotations();
+        object.clear();
+        subject.remove(predicate, object);
+    }
+
     @Override
     public OntDisjoint.Classes createDisjointClasses(Collection<OntCE> classes) {
         return OntDisjointImpl.createDisjointClasses(this, classes.stream());

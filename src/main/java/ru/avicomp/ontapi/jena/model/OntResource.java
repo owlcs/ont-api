@@ -14,10 +14,8 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
-import ru.avicomp.ontapi.jena.OntJenaException;
 
 import java.util.stream.Stream;
 
@@ -76,85 +74,4 @@ interface OntResource extends Resource {
      */
     Stream<? extends Statement> spec();
 
-    /**
-     * Adds an annotation assertion with the given {@link OntNAP annotation property} and any {@link RDFNode rdf-node} as value.
-     *
-     * @param property {@link OntNAP} - named annotation property
-     * @param value    {@link RDFNode} - the value: uri-resource, literal or anonymous individual
-     * @return {@link OntStatement} for newly added annotation
-     * @throws OntJenaException in case input is wrong
-     */
-    OntStatement addAnnotation(OntNAP property, RDFNode value);
-
-    /**
-     * Removes all associated annotations including nested.
-     *
-     * @return this object to allow cascading calls
-     */
-    OntResource clearAnnotations();
-
-    /**
-     * Adds no-lang annotation assertion.
-     *
-     * @param predicate   {@link OntNAP} predicate
-     * @param lexicalForm String, text message
-     * @return {@link OntStatement}
-     */
-    default OntStatement addAnnotation(OntNAP predicate, String lexicalForm) {
-        return addAnnotation(predicate, lexicalForm, null);
-    }
-
-    /**
-     * Adds lang annotation assertion.
-     *
-     * @param predicate {@link OntNAP} predicate
-     * @param lexicalForm   String, text message
-     * @param lang      String, language, nullable
-     * @return {@link OntStatement} - new statement: {@code @subject @predicate 'lexicalForm'@lang}
-     */
-    default OntStatement addAnnotation(OntNAP predicate, String lexicalForm, String lang) {
-        return addAnnotation(predicate, getModel().createLiteral(lexicalForm, lang));
-    }
-
-    /**
-     * Creates {@code _:this rdfs:comment "txt"^^xsd:string} statement.
-     *
-     * @param txt String
-     * @return {@link OntStatement}
-     */
-    default OntStatement addComment(String txt) {
-        return addComment(txt, null);
-    }
-
-    /**
-     * Adds text lang annotation with built-in {@code rdfs:comment} predicate.
-     *
-     * @param txt  String, the message
-     * @param lang String, the language, nullable.
-     * @return {@link OntStatement}
-     */
-    default OntStatement addComment(String txt, String lang) {
-        return addAnnotation(getModel().getRDFSComment(), txt, lang);
-    }
-
-    /**
-     * Creates {@code _:this rdfs:label "txt"^^xsd:string} statement.
-     *
-     * @param txt String
-     * @return {@link OntStatement}
-     */
-    default OntStatement addLabel(String txt) {
-        return addLabel(txt, null);
-    }
-
-    /**
-     * Adds text lang annotation with builtin {@code rdfs:label} predicate.
-     *
-     * @param txt  String, the message
-     * @param lang String, the language, nullable
-     * @return {@link OntStatement}
-     */
-    default OntStatement addLabel(String txt, String lang) {
-        return addAnnotation(getModel().getRDFSLabel(), txt, lang);
-    }
 }

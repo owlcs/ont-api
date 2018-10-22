@@ -90,7 +90,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
 
     @Override
     public void removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
-        OntCEImpl.removeHasKey(this, list);
+        OntCEImpl.removeHasKey(getModel(), this, list);
     }
 
     @Override
@@ -106,8 +106,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
 
     @Override
     public void removeDisjointUnion(RDFNode rdfList) throws OntJenaException.IllegalArgument {
-        remove(OWL.disjointUnionOf, findDisjointUnion(rdfList)
-                .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find list " + rdfList)).clearAnnotations().clear());
+        getModel().deleteOntList(this, OWL.disjointUnionOf, findDisjointUnion(rdfList).orElse(null));
     }
 
     @Override

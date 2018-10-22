@@ -241,7 +241,7 @@ public class OntListTest {
         Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
         Assert.assertEquals(2, list.size());
         try {
-            list.get(1).addAnnotation(m.getRDFSLabel(), literal_z);
+            list.get(1).getRoot().addAnnotation(m.getRDFSLabel(), literal_z);
             Assert.fail("Possible to annotate sub-lists");
         } catch (OntJenaException.Unsupported j) {
             LOGGER.debug("Expected: {}", j.getMessage());
@@ -253,7 +253,7 @@ public class OntListTest {
         Assert.assertEquals(1, list.size());
         Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
         Assert.assertEquals(literal_y, getSingleAnnotation(getSingleAnnotation(list)).getLiteral());
-        list.addAnnotation(p5, literal_z);
+        list.getRoot().addAnnotation(p5, literal_z);
         debug(m);
         Assert.assertEquals(2, list.getRoot().annotations().count());
         list.remove();
@@ -265,7 +265,9 @@ public class OntListTest {
         list.getRoot().annotations()
                 .filter(s -> RDFS.label.equals(s.getPredicate()) && literal_x.equals(s.getLiteral()))
                 .findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(list.clearAnnotations().isEmpty());
+        Assert.assertTrue(list.isEmpty());
+        list.getRoot().clearAnnotations();
+        Assert.assertEquals(0, list.getRoot().annotations().count());
         Assert.assertEquals(6, m.statements().count());
     }
 
@@ -286,7 +288,7 @@ public class OntListTest {
                 .mapWith(Statement::getObject).mapWith(RDFNode::asResource).toList().get(0));
         Assert.assertEquals(set, list.spec().collect(Collectors.toSet()));
 
-        list.addComment("The list", "xx").addAnnotation(m.getRDFSLabel(), "test");
+        list.getRoot().addAnnotation(m.getRDFSComment(), "The list", "xx").addAnnotation(m.getRDFSLabel(), "test");
         debug(m);
         Assert.assertEquals(6, list.spec().count());
 
@@ -391,8 +393,8 @@ public class OntListTest {
                 .findFirst()
                 .orElseThrow(AssertionError::new);
         Assert.assertEquals(Arrays.asList(p2, p3), p23.members().collect(Collectors.toList()));
-        p334.addAnnotation(m.getRDFSComment(), m.createLiteral("p3, p3, p4"));
-        p23.addAnnotation(m.getRDFSComment(), m.createLiteral("p2, p3"));
+        p334.getRoot().addAnnotation(m.getRDFSComment(), m.createLiteral("p3, p3, p4"));
+        p23.getRoot().addAnnotation(m.getRDFSComment(), m.createLiteral("p2, p3"));
         debug(m);
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
         p1.removePropertyChain(p334);
@@ -434,8 +436,8 @@ public class OntListTest {
         Assert.assertEquals(Arrays.asList(ce3, ce4), d34.members().collect(Collectors.toList()));
         Assert.assertEquals(Arrays.asList(ce4, ce5, ce1), d451.members().collect(Collectors.toList()));
 
-        d451.addLabel("ce4, ce5, ce1");
-        d23.addLabel("ce2, ce3");
+        d451.getRoot().addAnnotation(m.getRDFSLabel(), "ce4, ce5, ce1");
+        d23.getRoot().addAnnotation(m.getRDFSLabel(), "ce2, ce3");
         debug(m);
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
         clazz.removeDisjointUnion(d451);
@@ -481,8 +483,8 @@ public class OntListTest {
         Assert.assertEquals(Arrays.asList(p3, p4), h34.members().collect(Collectors.toList()));
         Assert.assertEquals(Arrays.asList(p4, p5, p1), h451.members().collect(Collectors.toList()));
 
-        h451.addComment("p4, p5, p1");
-        h23.addComment("p2, p3");
+        h451.getRoot().addAnnotation(m.getRDFSComment(), "p4, p5, p1");
+        h23.getRoot().addAnnotation(m.getRDFSComment(), "p2, p3");
         debug(m);
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
         clazz.removeHasKey(h451);

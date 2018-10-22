@@ -29,16 +29,16 @@ import java.util.stream.Stream;
  * The latter means that attempt to cast any {@link RDFNode RDF Node} to this view
  * will cause {@link org.apache.jena.enhanced.UnsupportedPolymorphismException UnsupportedPolymorphismException},
  * but it is possible do the opposite: cast an instance of this interface to the {@link RDFList Jena []-List} view
- * using the expression {@code ont-list.as(RDFList.class)}.
+ * using the expression {@code OntList.as(RDFList.class)}.
  * Also note: switching to nil-list (by any of the add/remove/clean operations) from a not-empty list and vice verse
  * violates a Jena invariant, this means that this {@link OntResource} behaves not always like pure {@link Resource Jena Resource}
  * and all of the methods may throw {@link OntJenaException.IllegalState}
  * in case of usage different instances encapsulating the same resource-list.
  * <p>
- * Unlike the standard {@link RDFList []-List}, ONT-List can be typed.
- * This means that each resource-member of []-List can have an {@link ru.avicomp.ontapi.jena.vocabulary.RDF#type rdf:type} declaration,
- * while the standard RDF []-List implementation does not support typing.
- * See below for an example of a typed []-list in Turle format:
+ * Unlike the standard {@link RDFList []-List} implementation, ONT-List can be typed.
+ * This means that each resource-member of []-List may have an {@link ru.avicomp.ontapi.jena.vocabulary.RDF#type rdf:type} declaration,
+ * while the standard RDF []-List impl does not support typing.
+ * See below for an example of a typed []-list in Turtle format:
  * <pre>{@code
  * [ rdf:type   <type> ;
  *   rdf:first  <A> ;
@@ -49,7 +49,9 @@ import java.util.stream.Stream;
  * ] .
  * Note, that an empty []-list (i.e. {@link ru.avicomp.ontapi.jena.vocabulary.RDF#nil nil}-list) cannot be typed.
  * }</pre>
- *
+ * <p>
+ * Using the method {@link #getRoot()} it is possible to add annotations with any nesting depth.
+ * <p>
  * Created by @szuev on 10.07.2018.
  *
  * @param <E> the type of {@link RDFNode rdf-node}s in this list
@@ -226,14 +228,4 @@ public interface OntList<E extends RDFNode> extends OntResource {
         return getRoot().isLocal();
     }
 
-    @Override
-    default OntStatement addAnnotation(OntNAP property, RDFNode value) {
-        return getRoot().addAnnotation(property, value);
-    }
-
-    @Override
-    default OntList<E> clearAnnotations() {
-        getRoot().clearAnnotations();
-        return this;
-    }
 }

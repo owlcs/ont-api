@@ -273,9 +273,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return OntListImpl.stream(m, clazz, OWL.hasKey, OntDOP.class);
     }
 
-    public static void removeHasKey(OntCE clazz, RDFNode rdfList) throws OntJenaException.IllegalArgument {
-        clazz.remove(OWL.hasKey, clazz.findHasKey(rdfList)
-                .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find list " + rdfList)).clearAnnotations().clear());
+    public static void removeHasKey(OntGraphModelImpl model, OntCE clazz, RDFNode rdfList) throws OntJenaException.IllegalArgument {
+        model.deleteOntList(clazz, OWL.hasKey, clazz.findHasKey(rdfList).orElse(null));
     }
 
     @Override
@@ -318,7 +317,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
     @Override
     public void removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
-        removeHasKey(this, list);
+        removeHasKey(getModel(), this, list);
     }
 
     @Override

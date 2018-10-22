@@ -18,6 +18,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Optional;
@@ -56,6 +57,7 @@ public interface OntObject extends OntResource {
      * Lists all objects characteristic statements according to its OWL2 specification.
      * For OWL Entities the returned stream will contain only single root statement (see {@link #getRoot()}),
      * or even will be empty for built-in entities.
+     *
      * @return Stream of {@link OntStatement Ontology Statement}s
      */
     @Override
@@ -99,7 +101,7 @@ public interface OntObject extends OntResource {
      * therefore, there can usually be no more than one statement for the given {@code property} and {@code value}.
      *
      * @param property {@link Property}, the predicate
-     * @param value   {@link RDFNode}, the object
+     * @param value    {@link RDFNode}, the object
      * @return {@link Optional} around {@link OntStatement}
      */
     Optional<OntStatement> statement(Property property, RDFNode value);
@@ -115,7 +117,7 @@ public interface OntObject extends OntResource {
     Optional<OntStatement> statement(Property property);
 
     /**
-     * Lists ont-statements by predicate.
+     * Lists ont-statements by the predicate.
      *
      * @param property {@link Property}, predicate
      * @return Stream of {@link OntStatement}s
@@ -129,6 +131,17 @@ public interface OntObject extends OntResource {
      * @see #listProperties()
      */
     Stream<OntStatement> statements();
+
+    /**
+     * Adds an annotation assertion with the given {@link OntNAP annotation property}
+     * and any {@link RDFNode RDF Node} as value.
+     *
+     * @param property {@link OntNAP} - named annotation property
+     * @param value    {@link RDFNode} - the value: uri-resource, literal or anonymous individual
+     * @return {@link OntStatement} for a newly added annotation with possibility to add subsequently sub annotations
+     * @throws OntJenaException in case input is wrong
+     */
+    OntStatement addAnnotation(OntNAP property, RDFNode value);
 
     /**
      * Lists all top-level annotations attached to the root statement of this object.
@@ -157,7 +170,7 @@ public interface OntObject extends OntResource {
     OntObject clearAnnotations();
 
     /**
-     * Lists all objects attached on the property to this object with the given type
+     * Lists all objects attached on the property to this object with the given type.
      *
      * @param predicate {@link Property} predicate
      * @param type      Interface to find and cast
@@ -197,5 +210,70 @@ public interface OntObject extends OntResource {
      */
     default Stream<Resource> types() {
         return objects(RDF.type, Resource.class);
+    }
+
+    /**
+     * Adds no-lang annotation assertion.
+     *
+     * @param predicate   {@link OntNAP} predicate
+     * @param lexicalForm String, the literal lexical form, not {@code null}
+     * @return {@link OntStatement}
+     */
+    default OntStatement addAnnotation(OntNAP predicate, String lexicalForm) {
+        return addAnnotation(predicate, lexicalForm, null);
+    }
+
+    /**
+     * Adds lang annotation assertion.
+     *
+     * @param predicate {@link OntNAP} predicate
+     * @param txt       String, the literal lexical form, not {@code null}
+     * @param lang      String, the language tag, nullable
+     * @return {@link OntStatement} - new statement: {@code @subject @predicate 'lexicalForm'@lang}
+     */
+    default OntStatement addAnnotation(OntNAP predicate, String txt, String lang) {
+        return addAnnotation(predicate, getModel().createLiteral(txt, lang));
+    }
+
+    /**
+     * Creates {@code _:this rdfs:comment "txt"^^xsd:string} statement.
+     *
+     * @param txt String, not {@code null}
+     * @return {@link OntStatement} to allow the subsequent annotate
+     */
+    default OntStatement addComment(String txt) {
+        return addComment(txt, null);
+    }
+
+    /**
+     * Adds the given localized text annotation with builtin {@code rdfs:comment} predicate.
+     *
+     * @param txt  String, the literal lexical form, not {@code null}
+     * @param lang String, the language tag, nullable
+     * @return {@link OntStatement} to allow the subsequent annotate
+     */
+    default OntStatement addComment(String txt, String lang) {
+        return addAnnotation(getModel().getRDFSComment(), txt, lang);
+    }
+
+    /**
+     * Creates {@code _:this rdfs:label "txt"^^xsd:string} statement.
+     *
+     * @param txt String, the literal lexical form, not {@code null}
+     * @return {@link OntStatement} to allow the subsequent annotate
+     */
+    default OntStatement addLabel(String txt) {
+        return addLabel(txt, null);
+    }
+
+    /**
+     * Adds the given localized text annotation with builtin {@code rdfs:label} predicate.
+     *
+     * @param txt  String, the literal lexical form, not {@code null}
+     * @param lang String, the language tag, nullable
+     * @return {@link OntStatement} to allow the subsequent annotate
+     */
+    default OntStatement addLabel(String txt, String lang) {
+        return addAnnotation(getModel().getRDFSLabel(), txt, lang);
     }
 }
