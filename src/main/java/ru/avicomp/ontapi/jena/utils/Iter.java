@@ -173,6 +173,7 @@ public class Iter {
     /**
      * Returns an {@link Optional} describing the first element of the iterator,
      * or an empty {@code Optional} if the iterator is empty.
+     * Note: the method closes the specified iterator, so it is no possible to reuse it after calling this method.
      *
      * @param iterator {@link ClosableIterator}, not {@code null}
      * @param <X>      the element type of the iterator

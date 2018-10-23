@@ -128,8 +128,8 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     }
 
     @Override
-    public Stream<OntStatement> annotations() {
-        return assertions();
+    public ExtendedIterator<OntStatement> listAnnotations() {
+        return listAssertions();
     }
 
     @Override

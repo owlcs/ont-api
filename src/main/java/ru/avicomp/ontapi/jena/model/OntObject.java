@@ -18,9 +18,11 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -157,6 +159,21 @@ public interface OntObject extends OntResource {
     Stream<OntStatement> annotations();
 
     /**
+     * Lists all annotation literals for the given predicate and the language tag.
+     * Literal tag comparison is case insensitive.
+     * Partial search is also allowed, for example,
+     * a literal with the tag {@code en-GB} will listed also if the input language tag is {@code en}.
+     * An empty string as language tag means searching for plain no-language literals.
+     *
+     * @param predicate {@link OntNAP}, not {@code null}
+     * @param lang      String, the language tag to restrict the listed literals to, or {@code null} to select all literals
+     * @return Stream of String's, i.e. literal lexical forms
+     * @see #annotationValues(OntNAP)
+     * @since 1.4.0
+     */
+    Stream<String> annotationValues(OntNAP predicate, String lang);
+
+    /**
      * Removes all root annotations including their sub-annotations hierarchy.
      * Any non-root annotations are untouched.
      * For example, in case of deleting an OWL class, if it is present on the left side of the {@code rdfs:subClassOf} statement,
@@ -210,6 +227,20 @@ public interface OntObject extends OntResource {
      */
     default Stream<Resource> types() {
         return objects(RDF.type, Resource.class);
+    }
+
+    /**
+     * Lists all annotation values for the given predicate.
+     *
+     * @param predicate {@link OntNAP}, not {@code null}
+     * @return Stream of {@link RDFNode}s
+     * @see #annotations()
+     * @since 1.4.0
+     */
+    default Stream<RDFNode> annotationValues(OntNAP predicate) {
+        return annotations()
+                .filter(s -> Objects.equals(predicate, s.getPredicate()))
+                .map(Statement::getObject);
     }
 
     /**
@@ -275,5 +306,53 @@ public interface OntObject extends OntResource {
      */
     default OntStatement addLabel(String txt, String lang) {
         return addAnnotation(getModel().getRDFSLabel(), txt, lang);
+    }
+
+    /**
+     * Answers the comment string for this object.
+     * If there is more than one such resource, an arbitrary selection is made.
+     *
+     * @return a {@code rdfs:comment} string or {@code null} if there is no comments
+     */
+    default String getComment() {
+        return getComment(null);
+    }
+
+    /**
+     * Answers the comment string for this object.
+     * If there is more than one such resource, an arbitrary selection is made.
+     *
+     * @param lang String, the language attribute for the desired comment (EN, FR, etc) or {@code null} for don't care.
+     *             Will attempt to retrieve the most specific comment matching the given language
+     * @return a {@code rdfs:comment} string matching the given language, or {@code null} if there is no matching comment
+     */
+    default String getComment(String lang) {
+        try (Stream<String> res = annotationValues(getModel().getRDFSComment(), lang)) {
+            return res.findFirst().orElse(null);
+        }
+    }
+
+    /**
+     * Answers the label string for this object.
+     * If there is more than one such resource, an arbitrary selection is made.
+     *
+     * @return a {@code rdfs:label} string or {@code null} if there is no comments
+     */
+    default String getLabel() {
+        return getLabel(null);
+    }
+
+    /**
+     * Answers the label string for this object.
+     * If there is more than one such resource, an arbitrary selection is made.
+     *
+     * @param lang String, the language attribute for the desired comment (EN, FR, etc) or {@code null} for don't care.
+     *             Will attempt to retrieve the most specific comment matching the given language
+     * @return a {@code rdfs:label} string matching the given language, or {@code null}  if there is no matching label
+     */
+    default String getLabel(String lang) {
+        try (Stream<String> res = annotationValues(getModel().getRDFSLabel(), lang)) {
+            return res.findFirst().orElse(null);
+        }
     }
 }

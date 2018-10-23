@@ -93,6 +93,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         ontComplex2.addSubClassOf(restriction);
         ontComplex2.addSubClassOf(ontComplex1);
         ontComplex2.addComment("comment1", "es");
+        Assert.assertEquals("comment1", ontComplex2.getComment("es"));
         ontComplex1.addDisjointWith(ontSimple1);
 
         // bulk disjoint instead adding one by one (to have the same list of axioms):

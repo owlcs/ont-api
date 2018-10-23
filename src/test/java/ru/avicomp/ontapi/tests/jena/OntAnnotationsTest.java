@@ -52,7 +52,10 @@ public class OntAnnotationsTest {
 
         LOGGER.debug("1) Assign version-iri and ontology comment.");
         m.setID(uri).setVersionIRI(ns + "1.0.1");
-        m.getID().addComment("Some comment", "fr");
+        String comment = "Some comment";
+        m.getID().addComment(comment, "fr");
+        Assert.assertEquals(comment, m.getID().getComment());
+        Assert.assertEquals(comment, m.getID().getComment("fr"));
         Assert.assertEquals("Should be one header annotation", 1, m.getID().annotations()
                 .peek(a -> LOGGER.debug("Annotation: '{}'", a)).count());
 
@@ -61,6 +64,8 @@ public class OntAnnotationsTest {
         cl.addLabel("some label");
         OntStatement label2 = cl.addLabel("another label", "de");
         ReadWriteUtils.print(m);
+        Assert.assertEquals("some label", cl.getLabel(""));
+        Assert.assertEquals("another label", cl.getLabel("de"));
         cl.annotations().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect count of labels.", 2, m.listObjectsOfProperty(cl, RDFS.label).toList().size());
 
@@ -175,6 +180,7 @@ public class OntAnnotationsTest {
         OntIndividual.Named ind1 = cl1.createIndividual(ns + "Individual1");
         OntIndividual.Anonymous ind2 = cl2.createIndividual();
         ind2.addComment("anonymous individual", "ru");
+        Assert.assertEquals("anonymous individual", ind2.getComment("ru"));
         OntNPA.ObjectAssertion nopa = nop1.addNegativeAssertion(ind1, ind2);
         Assert.assertEquals("Incorrect owl:NegativePropertyAssertion number", 1, nop1.negativeAssertions().count());
         nopa.addLabel("label1")
@@ -182,6 +188,7 @@ public class OntAnnotationsTest {
                 .addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("label3"));
         Assert.assertEquals("Should be 3 owl:Annotation", 3,
                 m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
+        Assert.assertEquals("label1", nopa.getLabel(""));
 
         ReadWriteUtils.print(m);
 
@@ -227,7 +234,9 @@ public class OntAnnotationsTest {
     @Test
     public void testBuiltInsAnnotations() {
         OntGraphModel m = OntModelFactory.createModel();
-        m.getOWLThing().addComment("This is the Thing");
+        String comment = "This is the Thing";
+        m.getOWLThing().addComment(comment);
+        Assert.assertEquals(comment, m.getOWLThing().getComment());
         ReadWriteUtils.print(m);
         Assert.assertEquals(1, m.size());
         Assert.assertEquals(1, m.statements().count());
@@ -243,6 +252,7 @@ public class OntAnnotationsTest {
                 .addSubPropertyOf(m.getOWLTopDataProperty()).addAnnotation(m.getRDFSComment(), "Some sub-property-of");
 
         m.getOWLBottomDataProperty().addComment("x");
+        Assert.assertEquals("x", m.getOWLBottomDataProperty().getComment());
         ReadWriteUtils.print(m);
         Assert.assertEquals(1, m.getOWLBottomDataProperty().annotations().count());
         Assert.assertEquals(2, m.getOWLBottomDataProperty().statements().count());
@@ -268,6 +278,7 @@ public class OntAnnotationsTest {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = m.createOntEntity(OntClass.class, "C");
         clazz.addComment("xxx");
+        Assert.assertEquals("xxx", clazz.getComment());
         ReadWriteUtils.print(m);
 
         Assert.assertEquals(2, m.size());
@@ -275,7 +286,9 @@ public class OntAnnotationsTest {
         Assert.assertEquals(2, clazz.statements().count());
         Assert.assertEquals(1, clazz.annotations().count());
         clazz.addComment("yyy").addAnnotation(m.getRDFSLabel(), "zzz");
+
         ReadWriteUtils.print(m);
+        Assert.assertEquals("yyy", clazz.getComment());
         Assert.assertEquals(2, clazz.annotations().peek(a -> LOGGER.debug("{}", Models.toString(a))).count());
         m.statements(clazz, RDF.type, OWL.Class)
                 .findFirst()
@@ -634,4 +647,32 @@ public class OntAnnotationsTest {
                 .peek(x -> LOGGER.debug("Split second des: {}, {}", x, x.getBase())).count());
     }
 
+
+    @Test
+    public void testListAnnotationValues() {
+        OntGraphModel m = OntModelFactory.createModel();
+        OntClass c = m.createOntEntity(OntClass.class, "http://clazz");
+        c.addComment("c1", "en");
+        c.addComment("c2", "EN-GB");
+        c.addComment("c3", "pt");
+        c.addComment("c4");
+        c.addAnnotation(m.getRDFSComment(), m.createResource("http://sss"));
+        c.addLabel("l1", "en");
+        c.addLabel("l2", "ru");
+        Assert.assertEquals(5, c.annotationValues(m.getRDFSComment()).count());
+        Assert.assertEquals(2, c.annotationValues(m.getRDFSLabel()).count());
+
+        Assert.assertEquals(4, c.annotationValues(m.getRDFSComment(), null).count());
+        Assert.assertEquals(2, c.annotationValues(m.getRDFSLabel(), null).count());
+
+        Assert.assertEquals(0, c.annotationValues(m.getRDFSComment(), "ru").count());
+        Assert.assertEquals(1, c.annotationValues(m.getRDFSComment(), "pt").count());
+        Assert.assertEquals(1, c.annotationValues(m.getRDFSComment(), "en-gb").count());
+        Assert.assertEquals(1, c.annotationValues(m.getRDFSComment(), "").count());
+        Assert.assertEquals(2, c.annotationValues(m.getRDFSComment(), "en").count());
+
+        Assert.assertEquals(0, c.annotationValues(m.getRDFSLabel(), "en-gb").count());
+        Assert.assertEquals(1, c.annotationValues(m.getRDFSLabel(), "en").count());
+        Assert.assertEquals(1, c.annotationValues(m.getRDFSLabel(), "ru").count());
+    }
 }

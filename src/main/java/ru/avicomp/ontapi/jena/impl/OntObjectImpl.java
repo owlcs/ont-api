@@ -32,6 +32,7 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -260,7 +261,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public OntStatement getRequiredProperty(Property property) throws PropertyNotFoundException {
-        return statement(property).orElseThrow(() -> new PropertyNotFoundException(property));
+        return Iter.findFirst(listStatements(property)).orElseThrow(() -> new PropertyNotFoundException(property));
     }
 
     /**
@@ -411,11 +412,42 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * The annotation assertion is a statements with an {@link OntNAP annotation property} as predicate.
      *
      * @return {@link ExtendedIterator} of {@link OntStatement}s
-     * @since 1.3.0
      * @see #assertions()
+     * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listAssertions() {
         return listStatements().filterKeep(OntStatement::isAnnotation);
+    }
+
+    /**
+     * Returns an iterator over all literal's annotations.
+     *
+     * @param predicate {@link OntNAP}, not {@code null}
+     * @return {@link ExtendedIterator} of {@link Literal}s
+     * @see #listAnnotations()
+     * @since 1.4.0
+     */
+    public ExtendedIterator<Literal> listAnnotationLiterals(OntNAP predicate) {
+        return listAnnotations()
+                .filterKeep(s -> Objects.equals(predicate, s.getPredicate()))
+                .mapWith(Statement::getObject)
+                .filterKeep(RDFNode::isLiteral)
+                .mapWith(RDFNode::asLiteral);
+    }
+
+    @Override
+    public Stream<String> annotationValues(OntNAP p, String lang) {
+        if (lang == null) return Iter.asStream(listAnnotationLiterals(p).mapWith(Literal::getString));
+        return Iter.asStream(listAnnotationLiterals(p))
+                .sorted(Comparator.comparing(Literal::getLanguage))
+                .filter(l -> {
+                    String target = l.getLanguage();
+                    if (lang.isEmpty())
+                        return target.isEmpty();
+                    String x = target.length() > lang.length() ? target.substring(0, lang.length()) : target;
+                    return lang.equalsIgnoreCase(x);
+                })
+                .map(Literal::getString);
     }
 
     /**
@@ -502,9 +534,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Optional around {@link T}
      */
     public <T extends RDFNode> Optional<T> object(Property predicate, Class<T> type) {
-        try (Stream<T> objects = objects(predicate, type)) {
-            return objects.findFirst();
-        }
+        return Iter.findFirst(listObjects(predicate, type));
     }
 
     /**
@@ -527,8 +557,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param type      Interface to find and cast, not null
      * @param <O>       subtype of {@link RDFNode rdf-node}
      * @return {@link ExtendedIterator} of {@link RDFNode node}s of the {@link O} type
-     * @since 1.3.0
      * @see #object(Property, Class)
+     * @since 1.3.0
      */
     public <O extends RDFNode> ExtendedIterator<O> listObjects(Property predicate, Class<O> type) {
         OntGraphModelImpl m = getModel();
