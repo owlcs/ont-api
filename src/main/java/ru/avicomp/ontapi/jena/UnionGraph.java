@@ -58,15 +58,15 @@ public class UnionGraph extends CompositionBase {
      * @param base {@link Graph}, not {@code null}
      */
     public UnionGraph(Graph base) {
-        this(base, new OntEventManager());
+        this(base, null);
     }
 
     /**
      * @param base {@link Graph}, not {@code null}
-     * @param gem  {@link OntEventManager}, not {@code null}
+     * @param gem  {@link OntEventManager}
      */
     public UnionGraph(Graph base, OntEventManager gem) {
-        this(base, new Underlying(), gem);
+        this(base, null, gem);
     }
 
     /**
@@ -79,9 +79,9 @@ public class UnionGraph extends CompositionBase {
      * Also notice, that checking is not performed if the graph is single (underlying part is empty).
      *
      * @param base {@link Graph}, not {@code null}
-     * @param sub  {@link Underlying}, not {@code null}
-     * @param gem  {@link OntEventManager}, not {@code null}
-     * @throws NullPointerException if any argument is {@code null}
+     * @param sub  {@link Underlying} or {@code null} to use default empty sub graphs
+     * @param gem  {@link OntEventManager} or {@code null} to use default
+     * @throws NullPointerException if base graph is {@code null}
      */
     public UnionGraph(Graph base, Underlying sub, OntEventManager gem) {
         this(base, sub, gem, true);
@@ -91,15 +91,15 @@ public class UnionGraph extends CompositionBase {
      * The base constructor.
      *
      * @param base     {@link Graph}, not {@code null}
-     * @param sub      {@link Underlying}, not {@code null}
-     * @param gem      {@link OntEventManager}, not {@code null}
+     * @param sub      {@link Underlying} or {@code null} to use default empty sub graphs
+     * @param gem      {@link OntEventManager} or {@code null} to use default
      * @param distinct if {@code true}, the method {@link #find(Triple)} will return distinct iterator.
-     * @throws NullPointerException if any argument is {@code null}
+     * @throws NullPointerException if base graph is {@code null}
      */
     public UnionGraph(Graph base, Underlying sub, OntEventManager gem, boolean distinct) {
         this.base = Objects.requireNonNull(base, "Null base graph.");
-        this.sub = Objects.requireNonNull(sub, "Null sub graphs.");
-        this.gem = Objects.requireNonNull(gem, "Null event manager.");
+        this.sub = sub == null ? new Underlying() : sub;
+        this.gem = gem == null ? new OntEventManager() : gem;
         this.distinct = distinct;
     }
 
