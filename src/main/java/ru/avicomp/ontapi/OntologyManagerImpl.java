@@ -17,7 +17,6 @@ package ru.avicomp.ontapi;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.output.WriterOutputStream;
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
@@ -579,11 +578,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         try {
             OntologyID id = OntGraphUtils.getOntologyID(graph);
             Map<OntologyID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
-            DocumentSourceMapping mapping = _id -> graphs.entrySet()
+            DocumentSourceMapping mapping = i -> graphs.entrySet()
                     .stream()
-                    .filter(e -> e.getKey().match(_id))
+                    .filter(e -> matchIDs(e.getKey(), i))
                     .map(e -> OntGraphDocumentSource.wrap(e.getValue()))
-                    .findFirst().orElse(null);
+                    .findFirst()
+                    .orElse(null);
             RWLockedCollection<DocumentSourceMapping> store = getDocumentSourceMappers();
             try {
                 store.add(mapping);
@@ -596,6 +596,24 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         } finally {
             getLock().writeLock().unlock();
         }
+    }
+
+    /**
+     * Answers if the given Graph ids are matching.
+     *
+     * @param left  {@link OWLOntologyID}, not {@code null}
+     * @param right {@link OWLOntologyID}, not {@code null}
+     * @return {@code true} if ids are matching
+     */
+    public static boolean matchIDs(OWLOntologyID left, OWLOntologyID right) {
+        // anonymous ?
+        if (left.equals(right)) return true;
+        // version iri is a primary according to specification
+        IRI iri = right.getVersionIRI().orElse(right.getOntologyIRI().orElse(null));
+        // anonymous .
+        if (iri == null) return false;
+        // check either ontology or version iri equal the given iri
+        return left.match(iri);
     }
 
     /**
@@ -639,7 +657,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @see OWLOntologyIRIMapper
      */
     protected Optional<IRI> mapIRI(IRI iri) {
-        return Iter.asStream(getIRIMappers().iterator())
+        return getIRIMappers().stream()
                 .map(m -> m.getDocumentIRI(iri))
                 .filter(Objects::nonNull)
                 .findFirst();
@@ -832,25 +850,23 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration declaration) {
         getLock().readLock().lock();
         try {
-            return importedOntology(declaration).orElse(null);
+            return importedOntology(declaration.getIRI()).orElse(null);
         } finally {
             getLock().readLock().unlock();
         }
     }
 
     /**
-     * Finds an ontology by import declaration.
+     * Finds an ontology by import declaration IRI.
      *
-     * @param declaration {@link OWLImportsDeclaration}
-     * @return Optional around {@link OntologyModel}
+     * @param declaration {@link IRI}
+     * @return Optional around the {@link OntologyModel}
      */
-    protected Optional<OntologyModel> importedOntology(OWLImportsDeclaration declaration) {
-        Optional<OntInfo> res = content.values()
-                .filter(e -> Objects.equals(e.getImportDeclaration(), declaration)).findFirst();
-        if (!res.isPresent()) {
-            res = content.values().filter(e -> Objects.equals(e.getDocumentIRI(), declaration.getIRI())).findFirst();
-        }
-        return res.map(OntInfo::get);
+    protected Optional<OntologyModel> importedOntology(IRI declaration) {
+        return content.values()
+                .filter(e -> e.hasImportDeclaration(declaration))
+                .map(OntInfo::get)
+                .findFirst();
     }
 
     /**
@@ -1542,22 +1558,22 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * Loads an ontology by import declaration.
      * No lock.
      *
-     * @param declaration {@link OWLImportsDeclaration}, not null
+     * @param declaration {@link IRI}, not null
      * @param conf        {@link OWLOntologyLoaderConfiguration}, not null
      * @return {@link OntologyModel}, can be null
      * @throws OWLOntologyCreationException ex
      */
-    protected OntologyModel loadImports(OWLImportsDeclaration declaration,
+    protected OntologyModel loadImports(IRI declaration,
                                         OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         listeners.incrementImportsLoadCount();
         try {
-            return load(declaration.getIRI(), conf, true);
+            return load(declaration, conf, true);
         } catch (OWLOntologyCreationException e) {
             if (MissingImportHandlingStrategy.THROW_EXCEPTION.equals(conf.getMissingImportHandlingStrategy())) {
                 throw e;
             } else {
                 // Silent
-                MissingImportEvent evt = new MissingImportEvent(declaration.getIRI(), e);
+                MissingImportEvent evt = new MissingImportEvent(declaration, e);
                 listeners.fireMissingImportEvent(evt);
             }
         } finally {
@@ -1575,12 +1591,13 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                                       @Nonnull OWLOntologyLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
-            if (conf.isIgnoredImport(declaration.getIRI())) return;
-            if (getImportedOntology(declaration) != null) return;
+            IRI dec = declaration.getIRI();
+            if (conf.isIgnoredImport(dec)) return;
+            if (importedOntology(dec).isPresent()) return;
             try {
-                OntologyModel m = loadImports(declaration, conf);
+                OntologyModel m = loadImports(dec, conf);
                 if (m != null) {
-                    content.get(m.getOntologyID()).ifPresent(ontInfo -> ontInfo.addImportDeclaration(declaration));
+                    content.get(m.getOntologyID()).ifPresent(i -> i.addImportDeclaration(dec));
                 }
             } catch (OWLOntologyCreationException e) {
                 throw new UnloadableImportException(e, declaration);
@@ -2146,7 +2163,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         protected final OntologyModel ont;
         protected final ModelConfig conf;
         protected IRI documentIRI;
-        protected OWLImportsDeclaration declaration;
+        protected IRI declarationIRI;
         protected OWLDocumentFormat format;
 
         public OntInfo(@Nonnull OntologyModel ont) throws ClassCastException {
@@ -2173,8 +2190,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return this;
         }
 
-        public OntInfo addImportDeclaration(OWLImportsDeclaration declaration) {
-            this.declaration = Objects.requireNonNull(declaration);
+        public OntInfo addImportDeclaration(IRI declaration) {
+            this.declarationIRI = Objects.requireNonNull(declaration);
             return this;
         }
 
@@ -2193,9 +2210,20 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return conf;
         }
 
-        @Nullable
-        public OWLImportsDeclaration getImportDeclaration() {
-            return declaration != null ? declaration : id().getOntologyIRI().map(dataFactory::getOWLImportsDeclaration).orElse(null);
+
+        @SuppressWarnings("ConstantConditions")
+        public boolean hasImportDeclaration(IRI declaration) {
+            if (Objects.equals(declaration, this.declarationIRI)) return true;
+            OntologyID id = id();
+            if (Objects.equals(declaration, id.getVersionIRI().orElse(null))) return true;
+            IRI iri = id.getOntologyIRI().orElse(null);
+            if (Objects.equals(declaration, iri)) {
+                // from specification:
+                // furthermore, if O is the current version of the ontology series with the IRI OI,
+                // then the ontology document of O should also be accessible via the IRI OI.
+                return OntologyManagerImpl.this.content.keys().filter(i -> i.matchOntology(iri)).count() == 1;
+            }
+            return Objects.equals(declaration, this.documentIRI);
         }
     }
 

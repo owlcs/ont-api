@@ -71,6 +71,7 @@ public class OntGraphUtils {
     /**
      * Gets an OWL Ontology ID parsed from the given graph.
      * Treats graphs without {@code owl:Ontology} section inside as anonymous.
+     * Each method's call should return the same value for the same graph.
      *
      * @param graph {@link Graph}, not {@code null}
      * @return {@link OntologyID}, not {@code null}
@@ -78,9 +79,9 @@ public class OntGraphUtils {
      */
     public static OntologyID getOntologyID(Graph graph) throws OntApiException {
         Graph base = Graphs.getBase(graph);
-        Optional<Node> node = Graphs.ontologyNode(base);
-        // treat graphs without owl:Ontology as anonymous
-        return node.map(n -> new OntologyID(new OntIDImpl(n, new ModelCom(base)))).orElseGet(OntologyID::new);
+        Node res = Graphs.ontologyNode(base)
+                .orElseGet(() -> NodeFactory.createBlankNode(toString(graph)));
+        return new OntologyID(new OntIDImpl(res, new ModelCom(base)));
     }
 
     /**
@@ -118,10 +119,10 @@ public class OntGraphUtils {
         while (graphs.hasNext()) {
             Graph g = graphs.next();
             OntologyID i = getOntologyID(g);
-            String uri = i.getOntologyIRI()
-                    .map(IRI::getIRIString)
+            // get first version IRI, then ontology IRI:
+            String uri = i.getVersionIRI().orElse(i.getOntologyIRI()
                     .orElseThrow(() -> new OntApiException("Anonymous sub graph found: " + i + ". " +
-                            "Only the top-level graph is allowed to be anonymous"));
+                            "Only the top-level graph is allowed to be anonymous"))).getIRIString();
             if (!imports.contains(uri))
                 throw new OntApiException("Can't find " + i + " in the imports: " + imports);
             assembleMap(i, g, res);
@@ -369,6 +370,21 @@ public class OntGraphUtils {
             charset = StandardCharsets.UTF_8;
         }
         return new ReaderInputStream(reader, charset, 8192);
+    }
+
+    /**
+     * Returns the string representation of the object.
+     * Each call of this method for the same object produces the same string.
+     * Equivalent to {@link Object#toString()}.
+     * Placed here as a temporary solution
+     * (currently there is no more suitable place in the project for such misc things).
+     *
+     * @param o anything
+     * @return String
+     */
+    public static String toString(Object o) {
+        if (o == null) return "null";
+        return o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
     }
 
     /**

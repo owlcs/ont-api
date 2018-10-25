@@ -79,7 +79,7 @@ public interface OntGraphModel extends Model {
      * within the returned model.
      * Note(2): any changes in the returned {@link InfModel Inference Model} do not affect on this model.
      *
-     * @param reasoner {@link Reasoner}, not null.
+     * @param reasoner {@link Reasoner}, not {@code null}
      * @return {@link InfModel}
      * @throws org.apache.jena.reasoner.ReasonerException if the data is ill-formed according to the
      *                                                    constraints imposed by this reasoner.
@@ -115,7 +115,7 @@ public interface OntGraphModel extends Model {
     /**
      * Adds a sub model to {@code owl:import} and to the graph hierarchy.
      *
-     * @param m {@link OntGraphModel ont jena model} to add, not null
+     * @param m {@link OntGraphModel ont jena model} to add, not {@code null}
      * @return this model to allow cascading calls
      * @throws OntJenaException if specified ontology is anonymous
      *                          or already present in the imports (both as graph and in owl-declaration)
@@ -127,17 +127,17 @@ public interface OntGraphModel extends Model {
      * Removes a sub-model from {@code owl:import} and from the graph hierarchy.
      * Does nothing, if the specified model does not belong to this ontology.
      *
-     * @param m {@link OntGraphModel ont jena model} to remove, not null
+     * @param m {@link OntGraphModel ont jena model} to remove, not {@code null}
      * @return this model to allow cascading calls
      * @see OntID#removeImport(String)
      */
     OntGraphModel removeImport(OntGraphModel m);
 
     /**
-     * Removes import (both {@code owl:import} declaration and the corresponding graph)
+     * Removes the import (both {@code owl:import} declaration and the corresponding graph)
      * by the given uri if it is found.
      *
-     * @param uri String, an iri of ontology to find, not null
+     * @param uri String, an iri of ontology to find, not {@code null}
      * @return this model to allow cascading calls
      */
     OntGraphModelImpl removeImport(String uri);
@@ -149,6 +149,15 @@ public interface OntGraphModel extends Model {
      * @see OntID#imports()
      */
     Stream<OntGraphModel> imports();
+
+    /**
+     * Answers if the given model is present in the {@link OWL#imports owl:imports} of this model.
+     *
+     * @param other {@link OntGraphModel} to test
+     * @return {@code true} if the model is in imports
+     * @since 1.4.0
+     */
+    boolean hasInImports(OntGraphModel other);
 
     /**
      * Lists all ont-objects of the specified type.
@@ -190,8 +199,8 @@ public interface OntGraphModel extends Model {
      * This method can be used to wrap builtin entities, which, in fact, are not belonging to the graph,
      * but can be considered as belonged to the model.
      *
-     * @param type {@link Class}, the type of {@link OntEntity}, not null.
-     * @param uri, String, not null.
+     * @param type {@link Class}, the type of {@link OntEntity}, not {@code null}.
+     * @param uri, String, not {@code null}.
      * @param <E>  type of ont-entity
      * @return {@link OntEntity} or {@code null}
      * @see #fetchOntEntity(Class, String)
@@ -235,7 +244,7 @@ public interface OntGraphModel extends Model {
     /**
      * Answers an {@link OntStatement Ontology Statement} in this model who's SPO is that of the {@code triple}.
      *
-     * @param triple {@link Triple}, not null
+     * @param triple {@link Triple}, not {@code null}
      * @return {@link OntStatement}
      */
     @Override
@@ -279,8 +288,8 @@ public interface OntGraphModel extends Model {
     /**
      * Creates an owl-entity by the {@code type} and {@code iri}.
      *
-     * @param type {@link Class}, the type of {@link OntEntity}, not null
-     * @param iri  String, not null
+     * @param type {@link Class}, the type of {@link OntEntity}, not {@code null}
+     * @param iri  String, not {@code null}
      * @param <E>  type of ont-entity
      * @return {@link OntEntity}
      * @throws OntJenaException.Creation in case something is wrong
@@ -292,8 +301,8 @@ public interface OntGraphModel extends Model {
      * Creates a facet restriction by the given type and literal value.
      * Each call to this method creates a fresh b-node within the graph.
      *
-     * @param type    {@link Class}, the type of {@link OntFR}, not null
-     * @param literal {@link Literal}, not null
+     * @param type    {@link Class}, the type of {@link OntFR}, not {@code null}
+     * @param literal {@link Literal}, not {@code null}
      * @param <F>     type of ont-facet-restriction
      * @return {@link OntFR}
      * @see OntDR.Restriction

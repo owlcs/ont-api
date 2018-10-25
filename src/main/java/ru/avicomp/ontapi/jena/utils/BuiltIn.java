@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 /**
  * Helper to work with constants from {@link ru.avicomp.ontapi.jena.vocabulary} and {@link org.apache.jena.vocabulary} packages.
  * The access provided through {@link Vocabulary} interface.
+ * TODO: going to move to another place!
  * <p>
  * Created by @szuev on 21.12.2016.
  */

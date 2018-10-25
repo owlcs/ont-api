@@ -58,26 +58,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
         super(graph, OntJenaException.notNull(personality, "Null personality"));
     }
 
-    /**
-     * Synchronizes imports with graph hierarchy.
-     * Underling graph tree may content named graphs which are not included to {@code owl:imports}.
-     * This method tries to fix such situation by modifying base graph.
-     */
-    public void syncImports() {
-        syncImports(getPersonality());
-    }
-
-    /**
-     * Synchronizes import declarations with the graph hierarchy.
-     *
-     * @param personality {@link OntPersonality}
-     */
-    protected void syncImports(OntPersonality personality) {
-        OntID id = getID();
-        id.removeAll(OWL.imports);
-        imports(personality).map(OntGraphModel::getID).filter(Resource::isURIResource).map(Resource::getURI).forEach(id::addImport);
-    }
-
     @Override
     public OntPersonality getPersonality() {
         return (OntPersonality) super.getPersonality();
@@ -140,11 +120,12 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
         if (OntJenaException.notNull(m, "Null model specified.").getID().isAnon()) {
             throw new OntJenaException("Anonymous sub models are not allowed.");
         }
-        if (hasOntologyImport(m)) {
-            throw new OntJenaException("Ontology <" + m.getID().getURI() + "> is already in imports.");
+        String importsURI = m.getID().getImportsIRI();
+        if (hasOntologyImport(importsURI)) {
+            throw new OntJenaException("Ontology <" + importsURI + "> is already in imports.");
         }
         getGraph().addGraph(m.getGraph());
-        getID().addImport(m.getID().getURI());
+        getID().addImport(importsURI);
         return this;
     }
 
@@ -154,8 +135,9 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @param other {@link OntGraphModel}
      * @return boolean
      */
-    public boolean hasOntologyImport(OntGraphModel other) {
-        return hasOntologyImport(other.getID().getURI());
+    @Override
+    public boolean hasInImports(OntGraphModel other) {
+        return hasOntologyImport(other.getID().getImportsIRI());
     }
 
     /**
@@ -165,7 +147,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @return boolean
      */
     public boolean hasOntologyImport(String uri) {
-        return uri != null && imports().map(OntGraphModel::getID).map(Resource::getURI).anyMatch(uri::equals);
+        return uri != null && imports().map(OntGraphModel::getID).map(OntID::getImportsIRI).anyMatch(uri::equals);
     }
 
     @Override
@@ -175,7 +157,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public OntGraphModelImpl removeImport(String uri) {
-        return removeFirst(x -> Objects.equals(uri, x.getID().getURI()));
+        return removeFirst(x -> Objects.equals(uri, x.getID().getImportsIRI()));
     }
 
     protected OntGraphModelImpl removeFirst(Predicate<OntGraphModel> filter) {
@@ -187,7 +169,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     protected void removeModel(OntGraphModel m) {
         getGraph().removeGraph(m.getGraph());
-        getID().removeImport(m.getID().getURI());
+        getID().removeImport(m.getID().getImportsIRI());
     }
 
     @Override

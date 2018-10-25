@@ -89,4 +89,19 @@ public interface OntID extends OntObject {
         return equals(other) && Objects.equals(getVersionIRI(), other.getVersionIRI());
     }
 
+    /**
+     * Returns an IRI that can be used to create {@link ru.avicomp.ontapi.jena.vocabulary.OWL#imports owl:imports}
+     * statement in another model to make a reference between a model to which this id belongs and another model.
+     * According to the specification, a version IRI is primary.
+     *
+     * @return String or {@code null}
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Ontology_Documents'>3.2 Ontology Documents</a>
+     * @since 1.4.0
+     */
+    default String getImportsIRI() {
+        String res = getVersionIRI();
+        if (res != null) return res;
+        return getURI();
+    }
+
 }

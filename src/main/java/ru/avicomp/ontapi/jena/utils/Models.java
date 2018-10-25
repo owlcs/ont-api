@@ -32,6 +32,7 @@ import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
 import ru.avicomp.ontapi.jena.impl.OntListImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
@@ -414,6 +415,26 @@ public class Models {
      */
     public static Stream<OntGraphModel> flat(OntGraphModel m) {
         return Stream.concat(Stream.of(m), m.imports().flatMap(Models::flat));
+    }
+
+    /**
+     * Synchronizes the imports with the graph hierarchy.
+     * Underling graph tree may content named graphs which are not included to the {@code owl:imports} declaration.
+     * This method tries to fix such situation by modifying base graph.
+     *
+     * @param m {@link OntGraphModel}, not {@code null}
+     * @see Graphs#importsTreeAsString(Graph)
+     * @since 1.4.0
+     */
+    public static void syncImports(OntGraphModel m) {
+        OntID id = m.getID();
+        id.removeAll(OWL.imports);
+        m.imports()
+                .peek(Models::syncImports)
+                .map(OntGraphModel::getID)
+                .filter(Resource::isURIResource)
+                .map(OntID::getImportsIRI)
+                .forEach(id::addImport);
     }
 
     /**

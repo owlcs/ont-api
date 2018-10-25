@@ -189,13 +189,21 @@ public class Graphs {
 
     /**
      * Gets the "name" of the base graph: uri, blank-node-id as string or dummy string if there is no ontology at all.
+     * The version IRI info is also included if it is present in the graph for the found ontology node.
      *
      * @param graph {@link Graph}
      * @return String
      * @see #getURI(Graph)
      */
     public static String getName(Graph graph) {
-        return ontologyNode(getBase(graph)).map(n -> String.format("<%s>", n.toString())).orElse("NullOntology");
+        Optional<Node> res = ontologyNode(getBase(graph));
+        if (!res.isPresent()) return "NullOntology";
+        List<String> versions = graph.find(res.get(), OWL.versionIRI.asNode(), Node.ANY)
+                .mapWith(Triple::getObject).mapWith(Node::toString).toList();
+        if (versions.isEmpty()) {
+            return String.format("<%s>", res.get().toString());
+        }
+        return String.format("<%s%s>", res.get().toString(), versions.toString());
     }
 
     /**

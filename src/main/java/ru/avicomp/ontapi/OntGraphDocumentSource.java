@@ -83,22 +83,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
      */
     @Override
     public IRI getDocumentIRI() {
-        return IRI.create("graph:" + toString(getGraph()));
-    }
-
-    /**
-     * Returns the string representation of the object.
-     * Each call of this method for the same object produces the same string.
-     * Equivalent to {@link Object#toString()}.
-     * Placed here as a temporary solution
-     * (currently there is no more suitable place in the project for such misc things).
-     *
-     * @param o anything
-     * @return String
-     */
-    public static String toString(Object o) {
-        if (o == null) return "null";
-        return o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
+        return IRI.create("graph:" + OntGraphUtils.toString(getGraph()));
     }
 
     /**

@@ -307,15 +307,16 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         if (res != null) {
             return toGraphInfo(res, null);
         }
+        // IRI Mappers:
         IRI documentIRI = documentIRI(manager, ontologyIRI).orElse(ontologyIRI);
         // handle also the strange situation when there is no resource-mapping but a mapping on some existing ontology
         res = findModel(manager, documentIRI);
         if (res != null) {
             return toGraphInfo(res, null);
         }
-        OntologyID id = OntologyID.create(ontologyIRI);
+        // Document Source Mappers:
         OWLOntologyDocumentSource source = manager.getDocumentSourceMappers().stream()
-                .map(f -> f.map(id))
+                .map(f -> f.map(ontologyIRI))
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(new IRIDocumentSource(documentIRI));
@@ -505,13 +506,13 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             }
 
             @Override
-            protected Optional<OntologyModel> importedOntology(OWLImportsDeclaration declaration) {
+            protected Optional<OntologyModel> importedOntology(IRI declaration) {
                 Optional<OntologyModel> res = delegate.importedOntology(declaration);
                 return res.isPresent() ? res : super.importedOntology(declaration);
             }
 
             @Override
-            protected OntologyModel loadImports(OWLImportsDeclaration declaration, OWLOntologyLoaderConfiguration conf)
+            protected OntologyModel loadImports(IRI declaration, OWLOntologyLoaderConfiguration conf)
                     throws OWLOntologyCreationException {
                 return super.loadImports(declaration, makeImportConfig(conf));
             }

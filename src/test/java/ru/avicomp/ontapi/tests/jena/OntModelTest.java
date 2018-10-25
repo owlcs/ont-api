@@ -22,10 +22,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntFormat;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -607,6 +610,71 @@ public class OntModelTest {
         txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
         LOGGER.debug(txt);
         Assert.assertEquals(6, txt.split("\n").length);
+    }
+
+
+    @Test
+    public void testModelImports() {
+        OntGraphModel av1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+                .setID("a").setVersionIRI("v1").getModel();
+        OntGraphModel av2 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+                .setID("a").setVersionIRI("v2").getModel();
+        OntGraphModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+                .setID("b").getModel();
+        OntGraphModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+                .setID("c").getModel();
+
+        try {
+            c.addImport(av1).addImport(av1);
+            Assert.fail("Can add the same model");
+        } catch (OntJenaException j) {
+            LOGGER.debug("Expected: '{}'", j);
+        }
+        Assert.assertTrue(c.hasInImports(av1));
+        Assert.assertFalse(c.hasInImports(av2));
+        Assert.assertEquals(1, c.imports().count());
+
+        c.removeImport(av1).addImport(av2);
+        Assert.assertTrue(c.hasInImports(av2));
+        Assert.assertFalse(c.hasInImports(av1));
+        Assert.assertEquals(1, c.imports().count());
+
+        b.addImport(c);
+        Assert.assertEquals(1, b.imports().count());
+        Assert.assertTrue(b.hasInImports(c));
+        Assert.assertFalse(b.hasInImports(av1));
+        Assert.assertFalse(b.hasInImports(av2));
+
+        String tree = Graphs.importsTreeAsString(b.getGraph());
+        LOGGER.debug("Tree: \n{}", tree);
+        Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v2]>"),
+                Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
+
+        c.removeImport(av1);
+        tree = Graphs.importsTreeAsString(b.getGraph());
+        Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v2]>"),
+                Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
+
+        c.removeImport(av2).addImport(av1);
+        tree = Graphs.importsTreeAsString(b.getGraph());
+        LOGGER.debug("Tree: \n{}", tree);
+        Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v1]>"),
+                Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
+
+        // sync imports:
+        ((UnionGraph) c.getGraph()).addGraph(av2.getGraph());
+        Models.syncImports(b);
+        tree = Graphs.importsTreeAsString(b.getGraph());
+        LOGGER.debug("Tree: \n{}", tree);
+        Assert.assertEquals(4, Models.flat(b).count());
+        Assert.assertEquals(3, Models.flat(c).count());
+        Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v1]>", "<a[v2]>"),
+                Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
+        Assert.assertEquals(Arrays.asList("v1", "v2"), c.statements(null, OWL.imports, null)
+                .map(Statement::getResource)
+                .map(Resource::getURI)
+                .sorted()
+                .collect(Collectors.toList()));
 
     }
 

@@ -47,6 +47,44 @@ import java.util.stream.Collectors;
 public class ImportsOntModelTest extends OntModelTestBase {
 
     @Test
+    public void testImportByVersionIRI() {
+        IRI bIRI = IRI.create("http://b");
+        IRI aIRI = IRI.create("http://a");
+        IRI ver1 = IRI.create("http://ver/1.0");
+        IRI ver2 = IRI.create("http://ver/2.0");
+
+        OntologyManager m = OntManagers.createONT();
+        OWLDataFactory df = m.getOWLDataFactory();
+        OntologyModel a = m.createOntology(new OWLOntologyID(aIRI, ver1));
+        OntologyModel b = m.createOntology(bIRI);
+
+        // add owl:imports for 'a' inside 'b':
+        m.applyChange(new AddImport(b, df.getOWLImportsDeclaration(ver1)));
+
+        // check OWL-API declaration:
+        List<OWLImportsDeclaration> dec = b.importsDeclarations().collect(Collectors.toList());
+        Assert.assertEquals(1, dec.size());
+        Assert.assertEquals(ver1, dec.get(0).getIRI());
+        // check graph references and graph imports:
+        OntGraphModel g = b.asGraphModel();
+        Assert.assertEquals(1, g.imports().count());
+        Assert.assertEquals(ver1, g.getID().imports().findFirst().map(IRI::create).orElseThrow(AssertionError::new));
+
+        Assert.assertSame(a, m.getImportedOntology(ver1));
+        // should found ontology by its iri:
+        Assert.assertSame(a, m.getImportedOntology(aIRI));
+        Assert.assertSame(b, m.getImportedOntology(bIRI));
+
+        // what if in manager there is one more ontology with the same iri but different version iri ?
+        OntologyModel c = m.createOntology(new OWLOntologyID(aIRI, ver2));
+        Assert.assertSame(a, m.getImportedOntology(ver1));
+        Assert.assertSame(c, m.getImportedOntology(ver2));
+        Assert.assertSame(b, m.getImportedOntology(bIRI));
+        // should not be found by its iri, since it is not primary for series:
+        Assert.assertNull(m.getImportedOntology(aIRI));
+    }
+
+    @Test
     public void testMixedAddImports() {
         OntIRI iri = OntIRI.create("http://test.test/add-import/1");
         OntologyModel owl = TestUtils.createModel(iri);
@@ -70,15 +108,18 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         Assert.assertEquals("OWL: incorrect imported ontology count.", 0, owl.imports().count());
         Assert.assertEquals("OWL: incorrect imports count.", importsCount, owl.importsDeclarations().count());
-        Assert.assertEquals("Jena: incorrect imports count.", importsCount, jena.listStatements(iri.toResource(), OWL.imports, (RDFNode) null).toList().size());
+        Assert.assertEquals("Jena: incorrect imports count.", importsCount,
+                jena.listStatements(iri.toResource(), OWL.imports, (RDFNode) null).toList().size());
 
         LOGGER.debug("Remove imports.");
         jena.getID().removeImport(import4.getIRIString());
         manager.applyChange(new RemoveImport(owl, factory.getOWLImportsDeclaration(import1)));
         debug(owl);
         importsCount = 2;
-        Assert.assertEquals("OWL: incorrect imports count after removing.", importsCount, owl.importsDeclarations().count());
-        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount, jena.getID().imports().count());
+        Assert.assertEquals("OWL: incorrect imports count after removing.", importsCount,
+                owl.importsDeclarations().count());
+        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount,
+                jena.getID().imports().count());
 
         debug(owl);
     }
@@ -95,17 +136,17 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         OntIRI classIRI1 = baseIRI.addFragment("Class-1");
         OntIRI classIRI2 = baseIRI.addFragment("Class-2");
-        OntIRI objPropIRI = baseIRI.addFragment("obj-prop-1");
-        OntIRI dataPropIRI = baseIRI.addFragment("data-prop-1");
-        OntIRI annPropIRI = baseIRI.addFragment("ann-prop-1");
-        OntIRI dataTypeIRI = baseIRI.addFragment("data-type-1");
+        OntIRI opIRI = baseIRI.addFragment("obj-prop-1");
+        OntIRI dpIRI = baseIRI.addFragment("data-prop-1");
+        OntIRI apIRI = baseIRI.addFragment("ann-prop-1");
+        OntIRI dtIRI = baseIRI.addFragment("data-type-1");
 
         OWLClass class1 = factory.getOWLClass(classIRI1);
         OWLClass class2 = factory.getOWLClass(classIRI2);
-        OWLObjectProperty objProperty = factory.getOWLObjectProperty(objPropIRI);
-        OWLDataProperty dataProperty = factory.getOWLDataProperty(dataPropIRI);
-        OWLAnnotationProperty annProperty = factory.getOWLAnnotationProperty(annPropIRI);
-        OWLDatatype dataType = factory.getOWLDatatype(dataTypeIRI);
+        OWLObjectProperty objProperty = factory.getOWLObjectProperty(opIRI);
+        OWLDataProperty dataProperty = factory.getOWLDataProperty(dpIRI);
+        OWLAnnotationProperty annProperty = factory.getOWLAnnotationProperty(apIRI);
+        OWLDatatype dataType = factory.getOWLDatatype(dtIRI);
 
         List<OWLAxiom> baseAxioms = new ArrayList<>();
         baseAxioms.add(factory.getOWLDeclarationAxiom(objProperty));
@@ -149,10 +190,10 @@ public class ImportsOntModelTest extends OntModelTestBase {
         LOGGER.debug("Check triplets presence.");
         assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), classIRI1.toResource(), OWL.Class);
         assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), classIRI2.toResource(), OWL.Class);
-        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), objPropIRI.toResource(), OWL.ObjectProperty);
-        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), dataPropIRI.toResource(), OWL.DatatypeProperty);
-        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), annPropIRI.toResource(), OWL.AnnotationProperty);
-        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), dataTypeIRI.toResource(), RDFS.Datatype);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), opIRI.toResource(), OWL.ObjectProperty);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), dpIRI.toResource(), OWL.DatatypeProperty);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), apIRI.toResource(), OWL.AnnotationProperty);
+        assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), dtIRI.toResource(), RDFS.Datatype);
 
         LOGGER.debug("Reload models.");
         OntologyManager newManager = OntManagers.createONT();
@@ -177,10 +218,10 @@ public class ImportsOntModelTest extends OntModelTestBase {
         debug(child);
         assertHasDeclaration(child.asGraphModel(), classIRI1.toResource(), OWL.Class);
         assertHasDeclaration(child.asGraphModel(), classIRI2.toResource(), OWL.Class);
-        assertHasDeclaration(child.asGraphModel(), objPropIRI.toResource(), OWL.ObjectProperty);
-        assertHasDeclaration(child.asGraphModel(), dataPropIRI.toResource(), OWL.DatatypeProperty);
-        assertHasDeclaration(child.asGraphModel(), annPropIRI.toResource(), OWL.AnnotationProperty);
-        assertHasNoDeclaration(child.asGraphModel(), dataTypeIRI.toResource(), RDFS.Datatype);
+        assertHasDeclaration(child.asGraphModel(), opIRI.toResource(), OWL.ObjectProperty);
+        assertHasDeclaration(child.asGraphModel(), dpIRI.toResource(), OWL.DatatypeProperty);
+        assertHasDeclaration(child.asGraphModel(), apIRI.toResource(), OWL.AnnotationProperty);
+        assertHasNoDeclaration(child.asGraphModel(), dtIRI.toResource(), RDFS.Datatype);
     }
 
     @Test
@@ -274,8 +315,10 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(4, a.axioms(Imports.INCLUDED).count());
         Assert.assertEquals(4, a.asGraphModel().listClasses().count());
 
-        a.asGraphModel().imports().findFirst().orElseThrow(AssertionError::new).createOntEntity(OntClass.class, b_uri + "#b-3");
-        a.imports().findFirst().orElseThrow(AssertionError::new).add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-4"))));
+        a.asGraphModel().imports().findFirst().orElseThrow(AssertionError::new)
+                .createOntEntity(OntClass.class, b_uri + "#b-3");
+        a.imports().findFirst().orElseThrow(AssertionError::new)
+                .add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-4"))));
         Assert.assertEquals(6, a.axioms(Imports.INCLUDED).count());
         Assert.assertEquals(6, a.asGraphModel().listClasses().count());
 
@@ -288,7 +331,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Optional.ofNullable(m.getOntology(IRI.create("http://b")))
                 .orElseThrow(AssertionError::new).asGraphModel().createOntEntity(OntClass.class, b_uri + "#b-6");
         Optional.ofNullable(m.getOntology(IRI.create("http://b")))
-                .orElseThrow(AssertionError::new).add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-7"))));
+                .orElseThrow(AssertionError::new)
+                .add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-7"))));
         Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
         Assert.assertEquals(10, a.asGraphModel().listClasses().count());
 
@@ -307,9 +351,12 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(10, a.asGraphModel().listClasses().count());
     }
 
-    private static void assertDeclarationInModels(OntGraphModel base, OntGraphModel child, Resource subject, Resource type) {
-        assertHasDeclaration(base, subject, type);
-        assertHasNoDeclaration(child, subject, type);
+    private static void assertDeclarationInModels(OntGraphModel mustHave,
+                                                  OntGraphModel mustNotHave,
+                                                  Resource subject,
+                                                  Resource type) {
+        assertHasDeclaration(mustHave, subject, type);
+        assertHasNoDeclaration(mustNotHave, subject, type);
     }
 
     private static void assertHasDeclaration(OntGraphModel model, Resource subject, Resource object) {

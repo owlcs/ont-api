@@ -261,6 +261,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * or {@code null} if the imports declaration could not be resolved to an ontology,
      * because the ontology was not loaded or has been removed from this manager
      * @see OWLOntologyManager#getImportedOntology(OWLImportsDeclaration)
+     * @see #getImportedOntology(IRI)
      */
     @Nullable
     OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration iri);
@@ -355,6 +356,27 @@ public interface OntologyManager extends OWLOntologyManager {
     OntologyModel loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source,
                                                    @Nonnull OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
 
+
+    /**
+     * Resolves the given IRI to the ontology if possible.
+     * According to the specification,
+     * a return ontology must have either an version IRI, a ontology IRI or a document IRI (in this order),
+     * that matches the specified IRI.
+     * In case of ontology IRI, there should be only a single ontology in the manager that has this ontology IRI,
+     * otherwise this IRI cannot be considered as current version of the ontology series.
+     *
+     * @param iri the declaration {@link IRI} to find the imported ontology
+     * @return {@link OntologyModel} or {@code null}
+     * @see #getImportedOntology(OWLImportsDeclaration)
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Ontology_Documents'>3.2 Ontology Documents</a>
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Imports'>3.4 Imports</a>
+     * @since 1.4.0
+     */
+    @Nullable
+    default OntologyModel getImportedOntology(@Nonnull IRI iri) {
+        return getImportedOntology(getOWLDataFactory().getOWLImportsDeclaration(iri));
+    }
+
     /**
      * Sets the collection of ontology factories.
      * Warning: if the given collection ({@code factories}) contains an instance that does not implement {@link OntologyFactory}
@@ -393,7 +415,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Adds an IRI mapper to the manager.
      *
-     * @param mapper {@link OWLOntologyIRIMapper}, not null
+     * @param mapper {@link OWLOntologyIRIMapper}, not {@code null}
      * @see #getIRIMappers()
      * @deprecated use {@code getIRIMappers().add(mapper)} instead
      */
@@ -623,7 +645,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * {@link DocumentSourceMapping Document Source Mapping} in the manager,
      * then API may dive into the Internet to retrieve them.
      *
-     * @param file {@link File}, not null
+     * @param file {@link File}, not {@code null}
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException if something is wrong in loading process
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(File)
@@ -716,6 +738,25 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @FunctionalInterface
     interface DocumentSourceMapping extends Serializable {
+        /**
+         * Finds a {@link OWLOntologyDocumentSource OWL Document Source} object
+         * by the {@link OWLOntologyID Ontology ID}.
+         *
+         * @param id {@link OWLOntologyID}, not {@code null}
+         * @return {@link OWLOntologyDocumentSource} or {@code null}
+         */
         OWLOntologyDocumentSource map(OWLOntologyID id);
+
+        /**
+         * Finds a {@link OWLOntologyDocumentSource OWL Document Source}
+         * object by the {@link IRI} that may be either version IRI or ontology IRI.
+         *
+         * @param iri {@link IRI}, not {@code null}
+         * @return {@link OWLOntologyDocumentSource} or {@code null}
+         * @since 1.4.0
+         */
+        default OWLOntologyDocumentSource map(IRI iri) {
+            return map(OntologyID.create(iri));
+        }
     }
 }
