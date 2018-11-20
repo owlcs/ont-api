@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLAsymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -35,8 +36,9 @@ public class OWLAsymmetricObjectPropertyAxiomImpl extends OWLObjectPropertyChara
         super(property, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLAsymmetricObjectPropertyAxiom getAxiomWithoutAnnotations() {
+    public OWLAsymmetricObjectPropertyAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -45,7 +47,7 @@ public class OWLAsymmetricObjectPropertyAxiomImpl extends OWLObjectPropertyChara
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLAsymmetricObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));
     }
 }

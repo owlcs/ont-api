@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -48,12 +49,13 @@ public class OWLSubPropertyChainAxiomImpl extends OWLPropertyAxiomImpl implement
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLSubPropertyChainAxiomImpl(getPropertyChain(), getSuperProperty(), mergeAnnos(anns));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLSubPropertyChainOfAxiom getAxiomWithoutAnnotations() {
+    public OWLSubPropertyChainAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }

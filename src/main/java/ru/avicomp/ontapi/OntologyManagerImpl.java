@@ -452,7 +452,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void addOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
         getLock().writeLock().lock();
         try {
-            listeners.addOntologyChangeProgessListener(listener);
+            listeners.addOntologyChangeProgressListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -465,7 +465,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void removeOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
         getLock().writeLock().lock();
         try {
-            listeners.removeOntologyChangeProgessListener(listener);
+            listeners.removeOntologyChangeProgressListener(listener);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -1334,7 +1334,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                         throw new OWLOntologyCreationException(String.format("Can't move %s: not an %s. Use %s or %s parameter.",
                                 source.getOntologyID(), OntologyModel.class.getSimpleName(), OntologyCopy.DEEP, OntologyCopy.SHALLOW));
                     }
-                    // todo: what about ontologies with impors? what about moving between managers with different lock ?
+                    // todo: what about ontologies with imports? what about moving between managers with different lock ?
                     res = (OntologyModel) source;
                     ontologyCreated(res);
                     break;
@@ -1653,7 +1653,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * <p>
      * Please note: currently it does not throw an {@link UnsupportedOperationException} exception
      * in case of the given ontology does not belong to the manager.
-     * The reasone: contrary to the javadoc in the interface,
+     * The reason: contrary to the javadoc in the interface,
      * the original OWL-API (e.g. 5.1.5) implementation of that method {@code saveOntology(...)}
      * does not require ontology to be present inside the manager.
      * TODO(1): it seems to be a mistake - this method must work only with ontologies belonging to the manager.
@@ -1861,11 +1861,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             loaderListeners.remove(listener);
         }
 
-        public void addOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
+        public void addOntologyChangeProgressListener(@Nonnull OWLOntologyChangeProgressListener listener) {
             progressListeners.add(listener);
         }
 
-        public void removeOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
+        public void removeOntologyChangeProgressListener(@Nonnull OWLOntologyChangeProgressListener listener) {
             progressListeners.remove(listener);
         }
 

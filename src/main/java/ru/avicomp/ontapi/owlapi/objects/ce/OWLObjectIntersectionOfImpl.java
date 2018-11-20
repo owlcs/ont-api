@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.owlapi.objects.ce;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class OWLObjectIntersectionOfImpl extends OWLNaryBooleanClassExpressionIm
     }
 
     @Override
-    public boolean containsConjunct(OWLClassExpression ce) {
+    public boolean containsConjunct(@Nonnull OWLClassExpression ce) {
         return ce.equals(this) || operands().anyMatch(op -> op.containsConjunct(ce));
     }
 }

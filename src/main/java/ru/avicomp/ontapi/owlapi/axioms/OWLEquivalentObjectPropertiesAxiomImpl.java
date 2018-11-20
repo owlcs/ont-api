@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -34,8 +35,9 @@ public class OWLEquivalentObjectPropertiesAxiomImpl extends OWLNaryPropertyAxiom
         super(properties, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLEquivalentObjectPropertiesAxiom getAxiomWithoutAnnotations() {
+    public OWLEquivalentObjectPropertiesAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -44,7 +46,7 @@ public class OWLEquivalentObjectPropertiesAxiomImpl extends OWLNaryPropertyAxiom
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLEquivalentObjectPropertiesAxiomImpl(properties, mergeAnnos(anns));
     }
 

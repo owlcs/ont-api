@@ -41,7 +41,7 @@ public class SWRLBuiltInAtomImpl extends SWRLAtomImpl implements SWRLBuiltInAtom
         super(predicate);
         this.args = Collections
                 .unmodifiableList(new ArrayList<>(Objects.requireNonNull(args, "args cannot be null")));
-        // Do not sort these. They are arguments for builtins and they are order sensitive.
+        // Do not sort these. They are arguments for built-ins and they are order sensitive.
     }
 
     @Override

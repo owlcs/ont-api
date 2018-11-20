@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -39,8 +40,9 @@ public class OWLDeclarationAxiomImpl extends OWLAxiomImpl implements OWLDeclarat
         this.entity = Objects.requireNonNull(entity, "entity cannot be null");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLDeclarationAxiom getAxiomWithoutAnnotations() {
+    public OWLDeclarationAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -49,7 +51,7 @@ public class OWLDeclarationAxiomImpl extends OWLAxiomImpl implements OWLDeclarat
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLDeclarationAxiomImpl(getEntity(), mergeAnnos(anns));
     }
 

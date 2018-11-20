@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.owlapi.OWL2DatatypeImpl;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLDataSomeValuesFromImpl;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -39,8 +40,9 @@ public class OWLDataPropertyDomainAxiomImpl extends OWLPropertyDomainAxiomImpl<O
         super(property, domain, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLDataPropertyDomainAxiom getAxiomWithoutAnnotations() {
+    public OWLDataPropertyDomainAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -49,7 +51,7 @@ public class OWLDataPropertyDomainAxiomImpl extends OWLPropertyDomainAxiomImpl<O
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLDataPropertyDomainAxiomImpl(getProperty(), getDomain(), mergeAnnos(anns));
     }
 

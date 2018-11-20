@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -47,7 +48,7 @@ public class OWLAnnotationImpl extends OWLAnnotationImplNotAnnotated {
     }
 
     @Override
-    public OWLAnnotation getAnnotatedAnnotation(Collection<OWLAnnotation> annotations) {
+    public OWLAnnotation getAnnotatedAnnotation(@Nonnull Collection<OWLAnnotation> annotations) {
         if (annotations.isEmpty()) {
             return this;
         }
@@ -55,7 +56,7 @@ public class OWLAnnotationImpl extends OWLAnnotationImplNotAnnotated {
     }
 
     @Override
-    public OWLAnnotation getAnnotatedAnnotation(Stream<OWLAnnotation> annotations) {
+    public OWLAnnotation getAnnotatedAnnotation(@Nonnull Stream<OWLAnnotation> annotations) {
         return new OWLAnnotationImpl(getProperty(), getValue(), Stream.concat(annotations(), annotations));
     }
 

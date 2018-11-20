@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -36,8 +37,9 @@ public class OWLTransitiveObjectPropertyAxiomImpl extends OWLObjectPropertyChara
         super(property, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLTransitiveObjectPropertyAxiom getAxiomWithoutAnnotations() {
+    public OWLTransitiveObjectPropertyAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -46,7 +48,7 @@ public class OWLTransitiveObjectPropertyAxiomImpl extends OWLObjectPropertyChara
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLTransitiveObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));
     }
 }

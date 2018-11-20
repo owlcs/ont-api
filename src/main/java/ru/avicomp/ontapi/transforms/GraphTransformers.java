@@ -388,7 +388,7 @@ public abstract class GraphTransformers {
         }
 
         /**
-         * Retursn encapsulated filter.
+         * Returns encapsulated filter.
          *
          * @return {@link Filter}
          */

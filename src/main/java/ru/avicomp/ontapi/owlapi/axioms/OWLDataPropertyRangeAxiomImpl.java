@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLDataAllValuesFromImpl;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -34,8 +35,9 @@ public class OWLDataPropertyRangeAxiomImpl extends OWLPropertyRangeAxiomImpl<OWL
         super(property, range, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLDataPropertyRangeAxiom getAxiomWithoutAnnotations() {
+    public OWLDataPropertyRangeAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -44,7 +46,7 @@ public class OWLDataPropertyRangeAxiomImpl extends OWLPropertyRangeAxiomImpl<OWL
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLDataPropertyRangeAxiomImpl(getProperty(), getRange(), mergeAnnos(anns));
     }
 

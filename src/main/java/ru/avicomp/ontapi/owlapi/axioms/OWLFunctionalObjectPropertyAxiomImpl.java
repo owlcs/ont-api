@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectMaxCardinalityImpl;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -35,8 +36,9 @@ public class OWLFunctionalObjectPropertyAxiomImpl extends OWLObjectPropertyChara
         super(property, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLFunctionalObjectPropertyAxiom getAxiomWithoutAnnotations() {
+    public OWLFunctionalObjectPropertyAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -45,7 +47,7 @@ public class OWLFunctionalObjectPropertyAxiomImpl extends OWLObjectPropertyChara
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLFunctionalObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));
     }
 

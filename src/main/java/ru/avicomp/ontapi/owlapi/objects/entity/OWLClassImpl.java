@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.util.CollectionFactory;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectComplementOfImpl;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
@@ -90,7 +91,7 @@ public class OWLClassImpl extends OWLObjectImpl implements OWLClass, Serializabl
     }
 
     @Override
-    public boolean containsConjunct(OWLClassExpression ce) {
+    public boolean containsConjunct(@Nonnull OWLClassExpression ce) {
         return ce.equals(this);
     }
 

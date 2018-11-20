@@ -35,8 +35,8 @@ import java.util.stream.Stream;
  */
 public class MultiOntObjectFactory extends OntObjectFactory {
     private final List<OntObjectFactory> factories;
-    private OntFinder finder;
-    private OntFilter fittingFilter;
+    private final OntFinder finder;
+    private final OntFilter fittingFilter;
 
     /**
      *

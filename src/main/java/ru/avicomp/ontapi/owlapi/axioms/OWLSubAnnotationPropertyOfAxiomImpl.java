@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -46,17 +47,17 @@ public class OWLSubAnnotationPropertyOfAxiomImpl extends OWLAxiomImpl implements
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLSubAnnotationPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(), mergeAnnos(anns));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLSubAnnotationPropertyOfAxiom getAxiomWithoutAnnotations() {
+    public OWLSubAnnotationPropertyOfAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
-        return new OWLSubAnnotationPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(),
-                NO_ANNOTATIONS);
+        return new OWLSubAnnotationPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(), NO_ANNOTATIONS);
     }
 
     @Override

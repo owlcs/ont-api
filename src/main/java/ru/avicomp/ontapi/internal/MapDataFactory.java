@@ -27,13 +27,13 @@ import java.util.Map;
  * Created by @ssz on 09.09.2018.
  */
 public class MapDataFactory extends NoCacheDataFactory {
-    private Map<OntClass, ONTObject<OWLClass>> classes = new HashMap<>();
-    private Map<OntDT, ONTObject<OWLDatatype>> datatypes = new HashMap<>();
-    private Map<OntNAP, ONTObject<OWLAnnotationProperty>> annotationProperties = new HashMap<>();
-    private Map<OntNDP, ONTObject<OWLDataProperty>> datatypeProperties = new HashMap<>();
-    private Map<OntNOP, ONTObject<OWLObjectProperty>> objectProperties = new HashMap<>();
-    private Map<OntIndividual.Named, ONTObject<OWLNamedIndividual>> individuals = new HashMap<>();
-    private Map<Literal, ONTObject<OWLLiteral>> literals = new HashMap<>();
+    private final Map<OntClass, ONTObject<OWLClass>> classes = new HashMap<>();
+    private final Map<OntDT, ONTObject<OWLDatatype>> datatypes = new HashMap<>();
+    private final Map<OntNAP, ONTObject<OWLAnnotationProperty>> annotationProperties = new HashMap<>();
+    private final Map<OntNDP, ONTObject<OWLDataProperty>> datatypeProperties = new HashMap<>();
+    private final Map<OntNOP, ONTObject<OWLObjectProperty>> objectProperties = new HashMap<>();
+    private final Map<OntIndividual.Named, ONTObject<OWLNamedIndividual>> individuals = new HashMap<>();
+    private final Map<Literal, ONTObject<OWLLiteral>> literals = new HashMap<>();
 
     public MapDataFactory(DataFactory factory) {
         super(factory);

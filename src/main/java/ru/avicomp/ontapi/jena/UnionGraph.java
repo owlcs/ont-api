@@ -25,6 +25,7 @@ import org.apache.jena.sparql.graph.GraphSink;
 import org.apache.jena.util.CollectionFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collections;
@@ -118,7 +119,7 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * Returns the underlying graph, possible emtpy.
+     * Returns the underlying graph, possible empty.
      *
      * @return {@link Underlying}, not {@code null}
      */
@@ -214,11 +215,16 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * Generic dependsOn, true iff it depends on either of the subgraphs.
+     * Generic dependsOn, true iff it depends on either of the sub-graphs.
      */
     @Override
     public boolean dependsOn(Graph other) {
         return other == this || base.dependsOn(other) || sub.dependsOn(other);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s(%s)@%s", getClass().getName(), Graphs.getName(this), Integer.toHexString(hashCode()));
     }
 
     /**

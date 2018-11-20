@@ -15,6 +15,7 @@ package ru.avicomp.ontapi.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -39,18 +40,19 @@ public class OWLAnnotationPropertyRangeAxiomImpl extends OWLAxiomImpl implements
         this.range = Objects.requireNonNull(range, "range cannot be null");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLAnnotationPropertyRangeAxiom getAxiomWithoutAnnotations() {
+    public OWLAnnotationPropertyRangeAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
         return new OWLAnnotationPropertyRangeAxiomImpl(getProperty(), getRange(), NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
-        return (T) new OWLAnnotationPropertyRangeAxiomImpl(getProperty(), getRange(),
-                mergeAnnos(anns));
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
+        return (T) new OWLAnnotationPropertyRangeAxiomImpl(getProperty(), getRange(), mergeAnnos(anns));
     }
 
     @Override

@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SWRLVariableExtractor;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,7 +28,7 @@ import java.util.stream.Stream;
  */
 public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
 
-    protected static final AtomSimplifier ATOM_SIMPLIFIER = new AtomSimplifier();
+    private static final AtomSimplifier ATOM_SIMPLIFIER = new AtomSimplifier();
     private final LinkedHashSet<SWRLAtom> head;
     private final LinkedHashSet<SWRLAtom> body;
     private final boolean containsAnonymousClassExpressions;
@@ -53,8 +54,9 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
         this(body, head, NO_ANNOTATIONS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public SWRLRule getAxiomWithoutAnnotations() {
+    public SWRLRuleImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -63,7 +65,7 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new SWRLRuleImpl(body, head, mergeAnnos(anns));
     }
 
@@ -149,14 +151,14 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
         }
 
         @Override
-        public SWRLRule visit(SWRLRule node) {
+        public SWRLRule visit(@Nonnull SWRLRule node) {
             List<SWRLAtom> nodebody = node.body().map(a -> (SWRLAtom) a.accept(this)).collect(Collectors.toList());
             List<SWRLAtom> nodehead = node.head().map(a -> (SWRLAtom) a.accept(this)).collect(Collectors.toList());
             return new SWRLRuleImpl(nodebody, nodehead, NO_ANNOTATIONS);
         }
 
         @Override
-        public SWRLObjectPropertyAtom visit(SWRLObjectPropertyAtom node) {
+        public SWRLObjectPropertyAtom visit(@Nonnull SWRLObjectPropertyAtom node) {
             return node.getSimplified();
         }
     }

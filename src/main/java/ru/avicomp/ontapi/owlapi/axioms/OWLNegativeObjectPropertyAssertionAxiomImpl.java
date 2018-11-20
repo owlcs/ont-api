@@ -18,6 +18,7 @@ import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectComplementOfImpl;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectHasValueImpl;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectOneOfImpl;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -39,8 +40,9 @@ public class OWLNegativeObjectPropertyAssertionAxiomImpl extends OWLIndividualRe
         super(subject, property, object, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLNegativeObjectPropertyAssertionAxiom getAxiomWithoutAnnotations() {
+    public OWLNegativeObjectPropertyAssertionAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -49,7 +51,7 @@ public class OWLNegativeObjectPropertyAssertionAxiomImpl extends OWLIndividualRe
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLNegativeObjectPropertyAssertionAxiomImpl(getSubject(), getProperty(), getObject(), mergeAnnos(anns));
     }
 

@@ -175,7 +175,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
      * {@link OWL#AllDisjointProperties owl:AllDisjointProperties}, {@link OWL#AllDifferent owl:AllDifferent} or
      * {@link OWL#NegativePropertyAssertion owl:NegativePropertyAssertion}
      *
-     * @param eg {@link EnhGraph} model to serach in
+     * @param eg {@link EnhGraph} model to search in
      * @return {@link ExtendedIterator} of {@link Node}s
      */
     public static ExtendedIterator<Node> listRootAnnotations(EnhGraph eg) {

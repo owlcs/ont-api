@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectHasValueImpl;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectOneOfImpl;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -38,8 +39,9 @@ public class OWLObjectPropertyAssertionAxiomImpl extends OWLIndividualRelationsh
         super(subject, property, object, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLObjectPropertyAssertionAxiom getAxiomWithoutAnnotations() {
+    public OWLObjectPropertyAssertionAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -55,7 +57,7 @@ public class OWLObjectPropertyAssertionAxiomImpl extends OWLIndividualRelationsh
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLObjectPropertyAssertionAxiomImpl(getSubject(), getProperty(), getObject(), mergeAnnos(anns));
     }
 

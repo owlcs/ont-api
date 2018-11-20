@@ -41,7 +41,7 @@ public interface DataFactory extends OWLDataFactory {
      * Creates an {@link OWLLiteral OWL-API Literal} for the given {@link LiteralLabel Jena Literal Label}.
      *
      * @param label {@link LiteralLabel}, not {@code null}
-     * @return {@link OWLLiteral} istance
+     * @return {@link OWLLiteral} instance
      */
     OWLLiteral getOWLLiteral(LiteralLabel label);
 }

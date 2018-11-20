@@ -66,7 +66,7 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
      * @param graph    {@link Graph Jena Graph}
      * @param header   {@link RDFOntologyHeaderStatus}
      * @param unparsed Set of {@link RDFTriple}s
-     * @param guessed  {@link ArrayListMultimap}, IRI as key (even for blan nodes), Class type as value.
+     * @param guessed  {@link ArrayListMultimap}, IRI as key (even for blank nodes), Class type as value.
      */
     protected OntologyMetaData(Graph graph,
                                RDFOntologyHeaderStatus header,

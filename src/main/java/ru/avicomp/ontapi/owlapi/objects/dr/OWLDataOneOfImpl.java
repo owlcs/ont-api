@@ -33,21 +33,21 @@ public class OWLDataOneOfImpl extends OWLObjectImpl implements OWLDataOneOf {
     private final List<OWLLiteral> values;
 
     /**
-     * @param values lierals
+     * @param values literals
      */
     public OWLDataOneOfImpl(Stream<? extends OWLLiteral> values) {
         this.values = Objects.requireNonNull(values, "values cannot be null").filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     /**
-     * @param values lierals
+     * @param values literals
      */
     public OWLDataOneOfImpl(Collection<? extends OWLLiteral> values) {
         this(Objects.requireNonNull(values, "values cannot be null").stream());
     }
 
     /**
-     * @param value lieral
+     * @param value literal
      */
     public OWLDataOneOfImpl(OWLLiteral value) {
         Objects.requireNonNull(value, "value cannot be null");

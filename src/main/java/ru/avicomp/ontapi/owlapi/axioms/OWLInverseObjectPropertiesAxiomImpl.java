@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -30,7 +31,7 @@ public class OWLInverseObjectPropertiesAxiomImpl extends OWLNaryPropertyAxiomImp
 
     /**
      * @param first       first property
-     * @param second      second peoperty
+     * @param second      second property
      * @param annotations annotations
      */
     public OWLInverseObjectPropertiesAxiomImpl(OWLObjectPropertyExpression first,
@@ -51,8 +52,9 @@ public class OWLInverseObjectPropertiesAxiomImpl extends OWLNaryPropertyAxiomImp
         return asPairwiseAxioms();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLInverseObjectPropertiesAxiom getAxiomWithoutAnnotations() {
+    public OWLInverseObjectPropertiesAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -61,7 +63,7 @@ public class OWLInverseObjectPropertiesAxiomImpl extends OWLNaryPropertyAxiomImp
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLInverseObjectPropertiesAxiomImpl(getFirstProperty(), getSecondProperty(), mergeAnnos(anns));
     }
 

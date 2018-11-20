@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectOneOfImpl;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -40,8 +41,9 @@ public class OWLClassAssertionAxiomImpl extends OWLIndividualAxiomImpl implement
         this.classExpression = Objects.requireNonNull(classExpression, "classExpression cannot be null");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLClassAssertionAxiom getAxiomWithoutAnnotations() {
+    public OWLClassAssertionAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -50,7 +52,7 @@ public class OWLClassAssertionAxiomImpl extends OWLIndividualAxiomImpl implement
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLClassAssertionAxiomImpl(getIndividual(), getClassExpression(), mergeAnnos(anns));
     }
 

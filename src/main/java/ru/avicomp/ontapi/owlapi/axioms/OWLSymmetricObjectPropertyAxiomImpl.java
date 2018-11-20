@@ -15,6 +15,7 @@ package ru.avicomp.ontapi.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,12 +45,13 @@ public class OWLSymmetricObjectPropertyAxiomImpl extends OWLObjectPropertyCharac
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLSymmetricObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLSymmetricObjectPropertyAxiom getAxiomWithoutAnnotations() {
+    public OWLSymmetricObjectPropertyAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }

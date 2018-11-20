@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectOneOfImpl;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -34,8 +35,9 @@ public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl imple
         super(individuals, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLSameIndividualAxiom getAxiomWithoutAnnotations() {
+    public OWLSameIndividualAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -44,7 +46,7 @@ public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl imple
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLSameIndividualAxiomImpl(individuals, mergeAnnos(anns));
     }
 

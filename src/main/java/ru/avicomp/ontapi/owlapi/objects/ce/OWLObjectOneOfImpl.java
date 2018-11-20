@@ -31,21 +31,21 @@ public class OWLObjectOneOfImpl extends OWLAnonymousClassExpressionImpl implemen
     private final List<OWLIndividual> values;
 
     /**
-     * @param values values for oneof
+     * @param values values for one of axiom
      */
     public OWLObjectOneOfImpl(Stream<OWLIndividual> values) {
         this.values = Objects.requireNonNull(values, "values cannot be null").filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     /**
-     * @param values values for oneof
+     * @param values values for one of axiom
      */
     public OWLObjectOneOfImpl(OWLIndividual... values) {
         this(Stream.of(values));
     }
 
     /**
-     * @param value value for oneof
+     * @param value value for one of axiom
      */
     public OWLObjectOneOfImpl(OWLIndividual value) {
         this(Stream.of(value));

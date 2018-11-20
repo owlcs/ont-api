@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLNaryPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -59,7 +60,7 @@ public abstract class OWLNaryPropertyAxiomImpl<P extends OWLPropertyExpression> 
     }
 
     @Override
-    public Set<P> getPropertiesMinus(P property) {
+    public Set<P> getPropertiesMinus(@Nonnull P property) {
         Set<P> props = new LinkedHashSet<>(properties);
         props.remove(property);
         return props;

@@ -42,28 +42,39 @@ import java.util.stream.Stream;
 public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     private static final OntFilter VAR_SWRL_FILTER = OntFilter.URI.and(new OntFilter.HasType(SWRL.Variable));
 
-    public static OntObjectFactory variableSWRLFactory = new CommonOntObjectFactory(new OntMaker.WithType(VariableImpl.class, SWRL.Variable),
+    public static OntObjectFactory variableSWRLFactory =
+            new CommonOntObjectFactory(new OntMaker.WithType(VariableImpl.class, SWRL.Variable),
             new OntFinder.ByType(SWRL.Variable), VAR_SWRL_FILTER);
 
     public static OntObjectFactory dArgSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(DArgImpl.class),
             OntFinder.ANY_SUBJECT_AND_OBJECT, VAR_SWRL_FILTER.or(LiteralImpl.factory::canWrap));
     public static OntObjectFactory iArgSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(IArgImpl.class),
             OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or((n, g) -> OntObjectImpl.canAs(OntIndividual.class, n, g)));
-    public static OntObjectFactory abstractArgSWRLFactory = new MultiOntObjectFactory(OntFinder.ANY_SUBJECT_AND_OBJECT, null, dArgSWRLFactory, iArgSWRLFactory);
+    public static OntObjectFactory abstractArgSWRLFactory = new MultiOntObjectFactory(OntFinder.ANY_SUBJECT_AND_OBJECT,
+            null, dArgSWRLFactory, iArgSWRLFactory);
 
-    public static OntObjectFactory builtInAtomSWRLFactory = makeAtomFactory(BuiltInAtomImpl.class, SWRL.BuiltinAtom);
-    public static OntObjectFactory classAtomSWRLFactory = makeAtomFactory(OntClassAtomImpl.class, SWRL.ClassAtom);
-    public static OntObjectFactory dataRangeAtomSWRLFactory = makeAtomFactory(DataRangeAtomImpl.class, SWRL.DataRangeAtom);
-    public static OntObjectFactory dataValuedAtomSWRLFactory = makeAtomFactory(DataPropertyAtomImpl.class, SWRL.DatavaluedPropertyAtom);
-    public static OntObjectFactory individualAtomSWRLFactory = makeAtomFactory(ObjectPropertyAtomImpl.class, SWRL.IndividualPropertyAtom);
-    public static OntObjectFactory differentIndividualsAtomSWRLFactory = makeAtomFactory(DifferentIndividualsAtomImpl.class, SWRL.DifferentIndividualsAtom);
-    public static OntObjectFactory sameIndividualsAtomSWRLFactory = makeAtomFactory(SameIndividualsAtomImpl.class, SWRL.SameIndividualAtom);
+    public static OntObjectFactory builtInAtomSWRLFactory =
+            makeAtomFactory(BuiltInAtomImpl.class, SWRL.BuiltinAtom);
+    public static OntObjectFactory classAtomSWRLFactory =
+            makeAtomFactory(OntClassAtomImpl.class, SWRL.ClassAtom);
+    public static OntObjectFactory dataRangeAtomSWRLFactory =
+            makeAtomFactory(DataRangeAtomImpl.class, SWRL.DataRangeAtom);
+    public static OntObjectFactory dataValuedAtomSWRLFactory =
+            makeAtomFactory(DataPropertyAtomImpl.class, SWRL.DatavaluedPropertyAtom);
+    public static OntObjectFactory individualAtomSWRLFactory =
+            makeAtomFactory(ObjectPropertyAtomImpl.class, SWRL.IndividualPropertyAtom);
+    public static OntObjectFactory differentIndividualsAtomSWRLFactory =
+            makeAtomFactory(DifferentIndividualsAtomImpl.class, SWRL.DifferentIndividualsAtom);
+    public static OntObjectFactory sameIndividualsAtomSWRLFactory =
+            makeAtomFactory(SameIndividualsAtomImpl.class, SWRL.SameIndividualAtom);
     public static OntObjectFactory abstractAtomSWRLFactory = new MultiOntObjectFactory(OntFinder.TYPED, null,
             builtInAtomSWRLFactory, classAtomSWRLFactory, dataRangeAtomSWRLFactory, dataValuedAtomSWRLFactory,
             individualAtomSWRLFactory, differentIndividualsAtomSWRLFactory, sameIndividualsAtomSWRLFactory);
 
-    public static OntObjectFactory impSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(ImpImpl.class), new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
-    public static OntObjectFactory abstractSWRLFactory = new MultiOntObjectFactory(OntFinder.TYPED, null, abstractAtomSWRLFactory, variableSWRLFactory, impSWRLFactory);
+    public static OntObjectFactory impSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(ImpImpl.class),
+            new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
+    public static OntObjectFactory abstractSWRLFactory = new MultiOntObjectFactory(OntFinder.TYPED, null,
+            abstractAtomSWRLFactory, variableSWRLFactory, impSWRLFactory);
 
     private static OntObjectFactory makeAtomFactory(Class<? extends AtomImpl> view, Resource type) {
         return new CommonOntObjectFactory(new OntMaker.Default(view),
@@ -78,7 +89,9 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.createOntObject(Variable.class, uri);
     }
 
-    public static Atom.BuiltIn createBuiltInAtom(OntGraphModelImpl model, Resource predicate, Collection<DArg> arguments) {
+    public static Atom.BuiltIn createBuiltInAtom(OntGraphModelImpl model,
+                                                 Resource predicate,
+                                                 Collection<DArg> arguments) {
         Property property = createBuiltinProperty(model, predicate);
         OntObject res = model.createResource(SWRL.BuiltinAtom).addProperty(SWRL.builtin, property).as(OntObject.class);
         OntListImpl.create(model, res, SWRL.arguments, null, DArg.class, arguments.iterator());
@@ -107,7 +120,10 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.getNodeAs(res.asNode(), Atom.DataRange.class);
     }
 
-    public static Atom.DataProperty createDataPropertyAtom(OntGraphModelImpl model, OntNDP dataProperty, IArg firstArg, DArg secondArg) {
+    public static Atom.DataProperty createDataPropertyAtom(OntGraphModelImpl model,
+                                                           OntNDP dataProperty,
+                                                           IArg firstArg,
+                                                           DArg secondArg) {
         OntJenaException.notNull(dataProperty, "Null data property");
         OntJenaException.notNull(firstArg, "Null first i-arg");
         OntJenaException.notNull(secondArg, "Null second d-arg");
@@ -118,7 +134,10 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.getNodeAs(res.asNode(), Atom.DataProperty.class);
     }
 
-    public static Atom.ObjectProperty createObjectPropertyAtom(OntGraphModelImpl model, OntOPE objectProperty, IArg firstArg, IArg secondArg) {
+    public static Atom.ObjectProperty createObjectPropertyAtom(OntGraphModelImpl model,
+                                                               OntOPE objectProperty,
+                                                               IArg firstArg,
+                                                               IArg secondArg) {
         OntJenaException.notNull(objectProperty, "Null object property");
         OntJenaException.notNull(firstArg, "Null first i-arg");
         OntJenaException.notNull(secondArg, "Null second i-arg");
@@ -129,7 +148,9 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.getNodeAs(res.asNode(), Atom.ObjectProperty.class);
     }
 
-    public static Atom.DifferentIndividuals createDifferentIndividualsAtom(OntGraphModelImpl model, IArg firstArg, IArg secondArg) {
+    public static Atom.DifferentIndividuals createDifferentIndividualsAtom(OntGraphModelImpl model,
+                                                                           IArg firstArg,
+                                                                           IArg secondArg) {
         OntJenaException.notNull(firstArg, "Null first i-arg");
         OntJenaException.notNull(secondArg, "Null second i-arg");
         Resource res = model.createResource(SWRL.DifferentIndividualsAtom)
@@ -219,7 +240,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public OntList<DArg> getArgList() {
-            return OntListImpl.asOntList(getRequiredObject(SWRL.arguments, RDFList.class), getModel(), this, SWRL.arguments, null, DArg.class);
+            return OntListImpl.asOntList(getRequiredObject(SWRL.arguments, RDFList.class),
+                    getModel(), this, SWRL.arguments, null, DArg.class);
         }
 
         public Stream<OntStatement> predicateStatements() {
@@ -306,7 +328,12 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         private final Class<F> firstArgType;
         private final Class<S> secondArgType;
 
-        BinaryImpl(Node n, EnhGraph m, Property predicate, Class<O> objectType, Class<F> firstArgType, Class<S> secondArgType) {
+        BinaryImpl(Node n,
+                   EnhGraph m,
+                   Property predicate,
+                   Class<O> objectType,
+                   Class<F> firstArgType,
+                   Class<S> secondArgType) {
             super(n, m);
             this.predicate = predicate;
             this.objectType = objectType;
@@ -427,12 +454,14 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         protected OntList<Atom> getList(Property predicate) {
-            return OntListImpl.asOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, SWRL.AtomList, Atom.class);
+            return OntListImpl.asOntList(getRequiredObject(predicate, RDFList.class),
+                    getModel(), this, predicate, SWRL.AtomList, Atom.class);
         }
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(), getHeadList().content(), getBodyList().content()).flatMap(Function.identity());
+            return Stream.of(super.spec(), getHeadList().content(), getBodyList().content())
+                    .flatMap(Function.identity());
         }
 
         @Override

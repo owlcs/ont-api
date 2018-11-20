@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.owlapi.axioms;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -34,8 +35,9 @@ public class OWLDisjointClassesAxiomImpl extends OWLNaryClassAxiomImpl implement
         super(classExpressions, annotations);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public OWLDisjointClassesAxiom getAxiomWithoutAnnotations() {
+    public OWLDisjointClassesAxiomImpl getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
@@ -44,7 +46,7 @@ public class OWLDisjointClassesAxiomImpl extends OWLNaryClassAxiomImpl implement
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(Stream<OWLAnnotation> anns) {
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
         return (T) new OWLDisjointClassesAxiomImpl(classExpressions, mergeAnnos(anns));
     }
 

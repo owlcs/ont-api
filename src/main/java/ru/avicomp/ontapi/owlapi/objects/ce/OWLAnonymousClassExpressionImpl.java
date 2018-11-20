@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.util.NNF;
 import ru.avicomp.ontapi.DataFactoryImpl;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
+import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -67,7 +68,7 @@ public abstract class OWLAnonymousClassExpressionImpl extends OWLObjectImpl impl
     }
 
     @Override
-    public boolean containsConjunct(OWLClassExpression ce) {
+    public boolean containsConjunct(@Nonnull OWLClassExpression ce) {
         return ce.equals(this);
     }
 

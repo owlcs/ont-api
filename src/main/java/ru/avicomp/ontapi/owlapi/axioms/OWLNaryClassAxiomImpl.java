@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNaryClassAxiom;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -51,12 +52,12 @@ public abstract class OWLNaryClassAxiomImpl extends OWLClassAxiomImpl implements
     }
 
     @Override
-    public boolean contains(OWLClassExpression ce) {
+    public boolean contains(@Nonnull OWLClassExpression ce) {
         return classExpressions.contains(ce);
     }
 
     @Override
-    public Set<OWLClassExpression> getClassExpressionsMinus(OWLClassExpression... desc) {
+    public Set<OWLClassExpression> getClassExpressionsMinus(@Nonnull OWLClassExpression... desc) {
         // classExpressions is sorted, use a linked set so there is no need to sort again
         Set<OWLClassExpression> result = new LinkedHashSet<>(classExpressions);
         for (OWLClassExpression d : desc) {
