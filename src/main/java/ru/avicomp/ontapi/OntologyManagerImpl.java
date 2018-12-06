@@ -18,10 +18,10 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
+import org.apache.jena.graph.impl.WrappedGraph;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
-import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
+import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
@@ -41,7 +41,6 @@ import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
-import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 import javax.annotation.Nonnull;
@@ -1717,42 +1716,22 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         if (os == null) {
             throw new OWLOntologyStorageException("Null output stream, format = " + doc);
         }
-        Model model = ont.asGraphModel().getBaseModel();
-        PrefixManager pm = doc.isPrefixOWLDocumentFormat() ? doc.asPrefixOWLDocumentFormat() : null;
-        setDefaultPrefix(pm, ont);
-        Map<String, String> newPrefixes = pm != null ? pm.getPrefixName2PrefixMap() : Collections.emptyMap();
-        Map<String, String> initPrefixes = model.getNsPrefixMap();
+        Graph graph = ont.asGraphModel().getBaseGraph();
+        if (doc.isPrefixOWLDocumentFormat()) {
+            PrefixMapping pm = OntGraphUtils.prefixMapping(doc.asPrefixOWLDocumentFormat());
+            graph = new WrappedGraph(graph) {
+
+                @Override
+                public PrefixMapping getPrefixMapping() {
+                    return pm;
+                }
+            };
+        }
         try {
-            Models.setNsPrefixes(model, newPrefixes);
-            RDFDataMgr.write(os, model, format.getLang());
+            RDFDataMgr.write(os, graph, format.getLang());
         } catch (JenaException e) {
             throw new OWLOntologyStorageException("Can't save " + ont.getOntologyID() + ". Format=" + format, e);
-        } finally {
-            Models.setNsPrefixes(model, initPrefixes);
         }
-    }
-
-    /**
-     * Sets a default prefix to the PrefixManager associated with ontology.
-     * Default prefix is an empty prefix, it is only for turtle document format.
-     * See similar fragment inside constructor of
-     * <a href='https://github.com/owlcs/owlapi/blob/version5/parsers/src/main/java/org/semanticweb/owlapi/rdf/turtle/renderer/TurtleRenderer.java'>
-     * org.semanticweb.owlapi.rdf.turtle.renderer.TurtleRenderer</a>.
-     * todo: does we need this default prefix at all?
-     *
-     * @param pm  {@link PrefixManager}
-     * @param owl {@link OWLOntology}
-     */
-    public static void setDefaultPrefix(PrefixManager pm, OWLOntology owl) {
-        if (pm == null || owl == null) return;
-        if (!(pm instanceof TurtleDocumentFormat)) return;
-        if (pm.getDefaultPrefix() != null) return;
-        if (!owl.getOntologyID().getOntologyIRI().isPresent()) return;
-        String uri = owl.getOntologyID().getOntologyIRI().get().getIRIString();
-        if (!uri.endsWith("/")) {
-            uri += "#";
-        }
-        pm.setDefaultPrefix(uri);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

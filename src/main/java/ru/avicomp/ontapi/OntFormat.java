@@ -192,6 +192,9 @@ public enum OntFormat {
         return res.getFormatFactory().get();
     }
 
+    protected OWLDocumentFormat newS() {
+        return null;
+    }
     /**
      * Returns {@code true} if format is good for using by ONT-API without any restrictions both to read and write.
      * <b>Note: this method has an advisory character and reflects the current state of ONT-API.</b>

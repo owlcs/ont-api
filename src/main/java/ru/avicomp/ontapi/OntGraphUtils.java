@@ -20,16 +20,19 @@ import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.PrefixManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.impl.OntIDImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 import java.io.IOException;
@@ -138,6 +141,18 @@ public class OntGraphUtils {
             throw new OntApiException("Duplicate sub graph: " + id);
         }
         map.put(id, graph);
+    }
+
+    /**
+     * Converts OWL-API prefixes to Jena.
+     *
+     * @param pm {@link PrefixManager OWL-API PrefixManager}
+     * @return {@link PrefixMapping Jena PrefixMapping}
+     */
+    public static PrefixMapping prefixMapping(PrefixManager pm) {
+        PrefixMapping res = PrefixMapping.Factory.create();
+        Models.setNsPrefixes(res, pm.getPrefixName2PrefixMap());
+        return res;
     }
 
     /**

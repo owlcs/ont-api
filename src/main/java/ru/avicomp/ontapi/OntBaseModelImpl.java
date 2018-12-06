@@ -52,7 +52,7 @@ import java.util.stream.StreamSupport;
 @SuppressWarnings("WeakerAccess")
 public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHolder {
     // binary format to provide serialization:
-    protected static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
+    public static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
     private static final long serialVersionUID = 7605836729147058594L;
 
     protected transient InternalModel base;

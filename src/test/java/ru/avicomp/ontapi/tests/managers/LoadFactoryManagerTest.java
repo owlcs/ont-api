@@ -33,9 +33,7 @@ import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.OWLRecursiveTransform;
-import ru.avicomp.ontapi.utils.FileMap;
-import ru.avicomp.ontapi.utils.ReadWriteUtils;
-import ru.avicomp.ontapi.utils.SP;
+import ru.avicomp.ontapi.utils.*;
 
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -52,8 +50,33 @@ import java.util.stream.Stream;
 public class LoadFactoryManagerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadFactoryManagerTest.class);
 
+
     /**
-     * for <a href='https://github.com/avicomp/ont-api/issues/4'>issue#4</a>
+     * For <a href='https://github.com/avicomp/ont-api/issues/47'>issue#47</a>
+     * @throws OWLOntologyCreationException
+     */
+    @Test
+    public void testPrefixesOnLoadWithUnmodifiableGraph() throws OWLOntologyCreationException {
+        OntologyManager m = OntManagers.createONT();
+        OntGraphModel b = OntModelFactory.createModel().setID("http://b").getModel();
+        OntGraphModel a = OntModelFactory.createModel().setID("http://a").getModel().addImport(b);
+
+        String str = ReadWriteUtils.toString(a, OntFormat.TURTLE);
+        LOGGER.debug("{}", str);
+
+        UnmodifiableGraph g = new UnmodifiableGraph(b.getGraph());
+        m.addOntology(g);
+
+        Assert.assertTrue(m.models().findFirst()
+                .orElseThrow(AssertionError::new).getBaseGraph() instanceof UnmodifiableGraph);
+        m.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(str, OntFormat.TURTLE));
+        Assert.assertEquals(2, m.ontologies().count());
+        Assert.assertNotNull(m.getGraphModel("http://b"));
+        Assert.assertNotNull(m.getGraphModel("http://a"));
+    }
+
+    /**
+     * For <a href='https://github.com/avicomp/ont-api/issues/4'>issue#4</a>
      *
      * @throws OWLOntologyCreationException
      */

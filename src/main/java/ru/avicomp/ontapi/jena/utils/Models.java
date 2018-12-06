@@ -144,9 +144,9 @@ public class Models {
     /**
      * Replaces namespaces map with new one.
      *
-     * @param mapping  {@link PrefixMapping} to modify
-     * @param prefixes Map of new prefixes to set
-     * @return Map of previously associated prefixes
+     * @param mapping  {@link PrefixMapping Prefix Mapping} to modify
+     * @param prefixes java Map of new prefixes to set
+     * @return java Map of previously associated prefixes
      */
     public static Map<String, String> setNsPrefixes(PrefixMapping mapping, Map<String, String> prefixes) {
         Map<String, String> init = mapping.getNsPrefixMap();

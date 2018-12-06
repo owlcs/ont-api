@@ -147,14 +147,13 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             }
             // put ontology inside manager:
             OWLAdapter.get().asIMPL(manager).ontologyCreated(res);
-            OWLDocumentFormat format = info.getFormat().createOwlFormat();
-            if (format.isPrefixOWLDocumentFormat()) {
-                PrefixManager pm = format.asPrefixOWLDocumentFormat();
-                graph.getPrefixMapping().getNsPrefixMap().forEach(pm::setPrefix);
-                OntologyManagerImpl.setDefaultPrefix(pm, res);
+            OntFormat format = OntApiException.notNull(info.getFormat(), "Null format while loading " + info.name());
+            OWLDocumentFormat owl = format.createOwlFormat();
+            if (owl.isPrefixOWLDocumentFormat()) {
+                graph.getPrefixMapping().getNsPrefixMap().forEach(owl.asPrefixOWLDocumentFormat()::setPrefix);
             }
-            format.setOntologyLoaderMetaData(OntGraphUtils.makeParserMetaData(graph, info.getStats()));
-            manager.setOntologyFormat(res, format);
+            owl.setOntologyLoaderMetaData(OntGraphUtils.makeParserMetaData(graph, info.getStats()));
+            manager.setOntologyFormat(res, owl);
             if (info.getSource() != null) {
                 manager.setOntologyDocumentIRI(res, info.getSource());
             }
@@ -378,16 +377,20 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * Wraps an already existed model as inner container.
      *
      * @param model {@link OntologyModel ontology}
-     * @param src   the document source {@link IRI}, null to indicate the ontology is existing
+     * @param src   the document source {@link IRI}, {@code null} to indicate the ontology is existing
      * @return {@link GraphInfo graph-wrapper}
      */
-    protected GraphInfo toGraphInfo(OntologyModel model, IRI src) { // npe in case no format?
-        OWLDocumentFormat owlFormat = model.getOWLOntologyManager().getOntologyFormat(model);
-        OntFormat format = OntFormat.get(owlFormat);
+    protected GraphInfo toGraphInfo(OntologyModel model, IRI src) {
+        OWLDocumentFormat owl = model.getOWLOntologyManager().getOntologyFormat(model);
         Graph graph = model.asGraphModel().getBaseGraph();
-        if (owlFormat instanceof PrefixManager) { // pass prefixes from model to graph
-            PrefixManager pm = (PrefixManager) owlFormat;
-            Models.setNsPrefixes(graph.getPrefixMapping(), pm.getPrefixName2PrefixMap());
+        OntFormat format = null;
+        if (owl != null) {
+            format = OntFormat.get(owl);
+            if (src != null && owl.isPrefixOWLDocumentFormat()) {
+                // pass prefixes from the manager (that is supposed to be external) to the graph
+                graph.getPrefixMapping()
+                        .setNsPrefixes(OntGraphUtils.prefixMapping(owl.asPrefixOWLDocumentFormat()));
+            }
         }
         return createGraphInfo(graph, format, src, false);
     }
@@ -395,9 +398,9 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
     /**
      * Creates a {@link Graph graph info} container.
      *
-     * @param graph  {@link Graph}
-     * @param format {@link OntFormat}
-     * @param src    {@link IRI}
+     * @param graph         {@link Graph}
+     * @param format        {@link OntFormat}
+     * @param src           {@link IRI}
      * @param withTransform boolean
      * @return {@link GraphInfo}
      */
@@ -587,8 +590,11 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * Used for simplification as temporary storage by this factory only.
      */
     public class GraphInfo {
+        // constant language format
         private final OntFormat format;
+        // graph is also a prefixes holder
         private final Graph graph;
+        // source may be null
         private final IRI source;
 
         private boolean fresh, transforms;
