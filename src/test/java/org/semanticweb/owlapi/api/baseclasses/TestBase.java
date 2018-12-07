@@ -35,6 +35,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.NoOpReadWriteLock;
+import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.owlapi.OWLManager;
 
 import javax.annotation.Nonnull;
@@ -143,7 +144,7 @@ public abstract class TestBase {
         return OWLFunctionalSyntaxFactory.IRI(uriBase + '#', name);
     }
 
-    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalGetWithoutIsPresent", "ConstantConditions"})
+    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalGetWithoutIsPresent"})
     protected <T> T get(Optional<T> t) {
         return t.get();
     }
@@ -363,7 +364,10 @@ public abstract class TestBase {
     }
 
     protected void roundTripOntology(OWLOntology ont) throws OWLOntologyStorageException, OWLOntologyCreationException {
-        roundTripOntology(ont, new RDFXMLDocumentFormat());
+        OWLDocumentFormat f = OWLManager.DEBUG_USE_OWL ?
+                new RDFXMLDocumentFormat() :
+                OntFormat.RDF_XML.createOwlFormat(); // 'xml' namespace is ignored by Jena as illegal (reserved)
+        roundTripOntology(ont, f);
     }
 
     /**

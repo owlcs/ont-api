@@ -421,7 +421,10 @@ public class OWLLangRegistry {
          * @param parser  {@link OWLParserFactory} the parser factory, nullable
          * @param factory the {@link OWLDocumentFormat} provider, nullable
          */
-        protected OWLLang(Class<? extends OWLDocumentFormat> type, OWLStorerFactory storer, OWLParserFactory parser, Supplier<OWLDocumentFormat> factory) {
+        protected OWLLang(Class<? extends OWLDocumentFormat> type,
+                          OWLStorerFactory storer,
+                          OWLParserFactory parser,
+                          Supplier<OWLDocumentFormat> factory) {
             this.format = Objects.requireNonNull(type, "Format type can not be null.");
             this.storer = storer;
             this.parser = parser;

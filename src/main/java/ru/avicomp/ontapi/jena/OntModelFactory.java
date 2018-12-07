@@ -42,7 +42,7 @@ public class OntModelFactory {
     }
 
     /**
-     * A standard prefixes map for any OWL2 ontology. Just for convenience.
+     * A {@code PrefixMapping} that contains the "standard" for OWL2 prefixes we know about, viz rdf, rdfs, xsd, and owl.
      */
     public static final PrefixMapping STANDARD = PrefixMapping.Factory.create()
             .setNsPrefix("owl", OWL.NS)

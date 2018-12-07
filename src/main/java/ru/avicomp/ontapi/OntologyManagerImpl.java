@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.google.common.collect.Multimap;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.impl.WrappedGraph;
@@ -822,7 +821,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-
+     * Clears all ontologies, listeners and maps from the manager. Leave injected factories, storers and parsers.
      */
     @Override
     public void clearOntologies() {
@@ -929,11 +928,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Note: the difference is the exception is not thrown in original implementation in case no ontology found.
+     * Note: the difference with the original impl is this method throws an exception if no ontology found,
+     * while the original does not.
      *
      * @param ontology {@link OWLOntology}
      * @param format   {@link OWLDocumentFormat}
-     * @throws UnknownOWLOntologyException e
+     * @throws UnknownOWLOntologyException in case no ontology is found
      * @see org.semanticweb.owlapi.model.OWLOntologyFactory.OWLOntologyCreationHandler#setOntologyFormat(OWLOntology, OWLDocumentFormat)
      */
     @Override
@@ -1217,10 +1217,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      */
     protected void rollBack(List<OWLOntologyChange> appliedChanges) {
         for (OWLOntologyChange c : appliedChanges) {
-            if (enactChangeApplication(c.reverseChange()) == ChangeApplied.UNSUCCESSFULLY) {
-                // rollback could not complete, throw an exception
-                throw new OWLRuntimeException("Rollback of changes unsuccessful: Change " + c + " could not be rolled back");
+            if (enactChangeApplication(c.reverseChange()) != ChangeApplied.UNSUCCESSFULLY) {
+                continue;
             }
+            // rollback could not complete, throw an exception
+            throw new OWLRuntimeException("Rollback of changes unsuccessful: " +
+                    "Change " + c + " could not be rolled back");
         }
     }
 
@@ -1267,8 +1269,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         Optional<OntologyModel> existing = content.get(setID.getNewOntologyID()).map(OntInfo::get);
         OWLOntology o = setID.getOntology();
         if (existing.isPresent() && !o.equals(existing.get()) && !o.equalAxioms(existing.get())) {
-            LOGGER.warn("uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#checkForOntologyIDChange:: existing:{}, new:{}",
-                    existing, o);
+            LOGGER.warn("uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#checkForOntologyIDChange:: " +
+                    "existing:{}, new:{}", existing, o);
             throw new OWLOntologyRenameException(setID.getChangeData(), setID.getNewOntologyID());
         }
     }
@@ -1330,8 +1332,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             switch (settings) {
                 case MOVE:
                     if (!(source instanceof OntologyModel)) {
-                        throw new OWLOntologyCreationException(String.format("Can't move %s: not an %s. Use %s or %s parameter.",
-                                source.getOntologyID(), OntologyModel.class.getSimpleName(), OntologyCopy.DEEP, OntologyCopy.SHALLOW));
+                        throw new OWLOntologyCreationException(
+                                String.format("Can't move %s: not an %s. Use %s or %s parameter.",
+                                        source.getOntologyID(), OntologyModel.class.getSimpleName(),
+                                        OntologyCopy.DEEP, OntologyCopy.SHALLOW));
                     }
                     // todo: what about ontologies with imports? what about moving between managers with different lock ?
                     res = (OntologyModel) source;
@@ -1511,7 +1515,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             try {
                 OntologyModel res = (OntologyModel) factory.loadOWLOntology(this, source, this, conf);
                 OWLOntologyID id = res.getOntologyID();
-                fixIllegalPunnings(res);
                 return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
                         .addDocumentIRI(source.getDocumentIRI()).get();
             } catch (OWLOntologyRenameException e) {
@@ -1521,36 +1524,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             }
         }
         throw new OWLOntologyFactoryNotFoundException(source.getDocumentIRI());
-    }
-
-    /**
-     * The punning is a situation when the same subject (uri-resource) has several declarations,
-     * i.e. can be treated as entity of different types (e.g. OWLClass and OWLIndividual).
-     * In OWL 2 DL a property cannot have owl:ObjectProperty, owl:DatatypeProperty or olw:AnnotationProperty declaration
-     * at the same time, it is so called illegal punning. Same for owl:Class and rdfs:Datatype.     *
-     * It seems that all other kind of type intersections are allowed, e.g ObjectProperty can be Datatype or Class,
-     * and NamedIndividual can be anything else.
-     * More about punnings see <a href='https://www.w3.org/2007/OWL/wiki/Punning'>wiki</a>.
-     * See also OWL-API example of implementation this logic {@link OWLDocumentFormat#computeIllegals(Multimap)}
-     * <p>
-     * In general cases the original method does not do anything but printing errors (OWL-5.0.4),
-     * i.e. when we have all entities explicitly declared in graph.
-     * But when we use to load ontology some OWL-API parser, we could have some declarations missed
-     * (i.e. the corresponding entity is proclaimed implicitly under some other axiom).
-     * For this case the original method tries to fix such illegal punning by removing annotation property declaration
-     * if the entity is object or date property.
-     * It seems it is not correct.
-     * There is unpredictable changes in 'signature' when we use different formats or/and reload ontology several times.
-     * In addition ONT-API works in different way: in case it is specified in personality ({@link OntPersonality})
-     * the axioms with illegal punnings can not be read from graph (even corresponding triples are present)
-     * and can not be added to graph as well.
-     * So we just skip this method.
-     *
-     * @param o {@link OWLOntology}
-     */
-    @SuppressWarnings("unused")
-    protected void fixIllegalPunnings(OWLOntology o) {
-        // nothing here.
     }
 
     /**
@@ -1648,23 +1621,30 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * Writes the specified ontology to the specified output target in the specified ontology format.
-     * It is a functional equivalent of the method {@link OWLOntologyManager#saveOntology(OWLOntology, OWLDocumentFormat, OWLOntologyDocumentTarget)}.
+     * It is a functional equivalent of the method
+     * {@link OWLOntologyManager#saveOntology(OWLOntology, OWLDocumentFormat, OWLOntologyDocumentTarget)}.
      * <p>
      * Please note: currently it does not throw an {@link UnsupportedOperationException} exception
      * in case of the given ontology does not belong to the manager.
      * The reason: contrary to the javadoc in the interface,
-     * the original OWL-API (e.g. 5.1.5) implementation of that method {@code saveOntology(...)}
+     * the original OWL-API (e.g. 5.1.5) implementation of the method {@code saveOntology(...)}
      * does not require ontology to be present inside the manager.
-     * TODO(1): it seems to be a mistake - this method must work only with ontologies belonging to the manager.
+     * Although I am not sure that the described behavior is correct, it is left as it is,
+     * since the original method implementation seems to suit the OWL-API users.
      * <p>
-     * Also, working with prefixes, which are hidden in the second method parameter, in OWL-API implementation
+     * Also, working with prefixes, which are hidden in the second method parameter (see {@code OWLDocumentFormat}),
+     * in the part of handling OWL-API format, as well as in the original OWL-API implementation,
      * is delegated to the particular {@link OWLStorer}.
      * But the behaviour of these srorers is unpredictable and has very poor documentation.
-     * Studying the code of specific {@link OWLStorer OWL-Storer}s shows, that some of them (Turtle)
-     * take into account the specified prefixes, but the others (Functional Syntax) do not.
-     * Instead, the latter handle prefixes for a given ontology from its manager,
-     * that may not even coincide with this (see notice above).
-     * TODO(2): this cannot be correct, there must be a unified behavior.
+     * Analysing the code shows, that some of the {@link OWLStorer}s
+     * (e.g. {@code TurtleStorer}) take into account the specified prefixes,
+     * but the others (such as {@code FunctionalSyntaxStorer}, {@code LatexStorer}, etc) do not.
+     * Instead, the latter handle prefixes for a given ontology from its manager
+     * (using the {@link #getOntologyFormat(OWLOntology)} method),
+     * that may not even coincide with this manager (see the first notice).
+     * Although, this cannot be correct, the behavior is left as it is (again):
+     * a proper solution (i.e. without any hacks like temporary format substitution in try-finally block)
+     * is not possible, since these {@link OWLStorer}s are not part of ONT-API and OWL-API-api.
      *
      * @param ontology {@link OWLOntology}, expected to be {@link OntologyModel} belonging to the manager
      * @param doc      {@link OWLDocumentFormat} format
@@ -1756,7 +1736,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @throws IOException            exception
      * @throws ClassNotFoundException exception
      * @see OntBaseModelImpl#readObject(ObjectInputStream)
-     * @see OntologyModelImpl.Concurrent#readObject(ObjectInputStream)
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
@@ -1960,7 +1939,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         /**
-
+         *
          */
         protected void fireEndChanges() {
             if (!broadcastChanges.get()) {
@@ -2189,8 +2168,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return conf;
         }
 
-
-        @SuppressWarnings("ConstantConditions")
         public boolean hasImportDeclaration(IRI declaration) {
             if (Objects.equals(declaration, this.declarationIRI)) return true;
             OntologyID id = id();

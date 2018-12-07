@@ -17,11 +17,9 @@ package ru.avicomp.ontapi;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFactory;
-import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.transforms.TransformException;
 
 import java.util.Objects;
@@ -65,7 +63,9 @@ public class OntologyFactoryImpl implements OntologyFactory {
     public OntologyModel createOntology(OntologyManager manager, OWLOntologyID id) {
         OntologyModel res = this.builder.createOWLOntology(manager, id);
         OWLAdapter.get().asIMPL(manager).ontologyCreated(res);
-        manager.setOntologyFormat(res, OntFormat.TURTLE.createOwlFormat());
+        OWLDocumentFormat format = OntFormat.TURTLE.createOwlFormat();
+        Models.setNsPrefixes(res.asGraphModel(), format.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap());
+        manager.setOntologyFormat(res, format);
         return res;
     }
 

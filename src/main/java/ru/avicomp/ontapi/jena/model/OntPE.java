@@ -71,7 +71,7 @@ public interface OntPE extends OntObject {
     Property asProperty();
 
     /**
-     * Removes the specified domain (predicate {@link RDFS#domain rdfs:domain}.
+     * Removes the specified domain (predicate {@link RDFS#domain rdfs:domain}).
      *
      * @param domain {@link Resource}
      */

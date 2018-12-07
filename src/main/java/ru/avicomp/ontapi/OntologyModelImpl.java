@@ -159,7 +159,8 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         }
 
         protected void addImport(OWLImportsDeclaration declaration) {
-            // to match behaviour of OWL-API add to graph only single IRI - either ontology IRI or specified declaration IRI.
+            // to match behaviour of OWL-API add to graph only single IRI -
+            // either ontology IRI or specified declaration IRI.
             OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
             if (ont == null) {
                 getBase().getID().addImport(declaration.getIRI().getIRIString());
@@ -169,7 +170,8 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         }
 
         protected void removeImport(OWLImportsDeclaration declaration) {
-            // to match behaviour of OWL-API removes both declaration IRI and ontology IRI (could be different in case of renaming)
+            // to match behaviour of OWL-API removes both declaration IRI and ontology IRI
+            // (could be different in case of renaming)
             OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
             getBase().getID().removeImport(declaration.getIRI().getIRIString());
             if (ont == null) {
@@ -224,7 +226,8 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             InternalModel base = getBase();
             OntPersonality p = base.getPersonality();
             UnionGraph orig = base.getGraph();
-            UnionGraph copy = new UnionGraph(new RWLockedGraph(orig.getBaseGraph(), lock), orig.getUnderlying(), orig.getEventManager());
+            UnionGraph copy = new UnionGraph(new RWLockedGraph(orig.getBaseGraph(), lock),
+                    orig.getUnderlying(), orig.getEventManager());
             return new OntGraphModelImpl(copy, p) {
 
                 @Override

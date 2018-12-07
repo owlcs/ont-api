@@ -53,7 +53,7 @@ public class PrefixOntologyFormatTestCase
             prefixFormat.getPrefixName2PrefixMap();
             PrefixDocumentFormat prefixFormat2 = (PrefixDocumentFormat) ont2Format;
             prefixFormat.prefixNames().forEach(prefixName -> {
-                assertTrue(prefixFormat2.containsPrefixMapping(prefixName));
+                assertTrue("Can't find prefix '" + prefixName + "'", prefixFormat2.containsPrefixMapping(prefixName));
                 assertEquals(prefixFormat.getPrefix(prefixName),
                         prefixFormat2.getPrefix(prefixName));
             });

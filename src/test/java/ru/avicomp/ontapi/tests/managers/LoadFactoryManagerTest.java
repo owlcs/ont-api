@@ -14,9 +14,11 @@
 
 package ru.avicomp.ontapi.tests.managers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.*;
@@ -31,12 +33,17 @@ import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.OWLRecursiveTransform;
 import ru.avicomp.ontapi.utils.*;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,13 +57,82 @@ import java.util.stream.Stream;
 public class LoadFactoryManagerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadFactoryManagerTest.class);
 
+    @Test
+    public void testEmptyOntologyDefaultPrefixes() {
+        OWLDocumentFormat f = OntManagers.createONT().createOntology().getFormat();
+        Assert.assertNotNull(f);
+        Map<String, String> map = f.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap();
+        Assert.assertEquals(4, map.size());
+        Assert.assertEquals(XSD.NS, map.get("xsd:"));
+        Assert.assertEquals(RDFS.getURI(), map.get("rdfs:"));
+        Assert.assertEquals(RDF.getURI(), map.get("rdf:"));
+        Assert.assertEquals(OWL.NS, map.get("owl:"));
+    }
+
+    @Test
+    public void testPrefixesRoundTrips() throws Exception {
+        URI uri = LoadFactoryManagerTest.class.getResource("/ontapi/foaf.rdf").toURI();
+        Path p = Paths.get(uri);
+        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyDocumentSource src = new FileDocumentSource(p.toFile(), OntFormat.RDF_XML.createOwlFormat());
+        OWLOntology o = m.loadOntologyFromOntologyDocument(src);
+        OWLDocumentFormat f = m.getOntologyFormat(o);
+        Assert.assertNotNull(f);
+        Assert.assertEquals(5, f.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().size());
+        OWLDocumentFormat f1 = OntFormat.TURTLE.createOwlFormat();
+        // 4 default:
+        Assert.assertEquals(4, f1.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().size());
+
+        // modify:
+        f1.asPrefixOWLDocumentFormat().clear();
+        f1.asPrefixOWLDocumentFormat().setPrefix("owl", "http://www.w3.org/2002/07/owl#");
+        f1.asPrefixOWLDocumentFormat().setPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+        f1.asPrefixOWLDocumentFormat().setPrefix("a", "http://xmlns.com/foaf/0.1/");
+        f1.asPrefixOWLDocumentFormat().setPrefix("b", "http://www.w3.org/2003/06/sw-vocab-status/ns#");
+        f1.asPrefixOWLDocumentFormat().setPrefix("c", "http://schema.org/");
+        f1.asPrefixOWLDocumentFormat().setPrefix("d", "http://purl.org/dc/elements/1.1/");
+        f1.asPrefixOWLDocumentFormat().setPrefix("e", "http://www.w3.org/2003/01/geo/wgs84_pos#");
+        f1.asPrefixOWLDocumentFormat().setPrefix("f", "http://www.w3.org/2000/10/swap/pim/contact#");
+        f1.asPrefixOWLDocumentFormat().setPrefix("g", "http://purl.org/dc/terms/");
+        f1.asPrefixOWLDocumentFormat().setPrefix("h", "http://xmlns.com/wot/0.1/");
+        f1.asPrefixOWLDocumentFormat().setPrefix("i", "http://www.w3.org/2004/02/skos/core#");
+
+        // round-trip turtle
+        String txt1 = ReadWriteUtils.toString(o, f1);
+        LOGGER.debug(txt1);
+        int c = StringUtils.countMatches(txt1, "@prefix");
+        Assert.assertEquals(11, c);
+        OWLOntologyDocumentSource src1 = new StringInputStreamDocumentSource(txt1, f1);
+        OWLDocumentFormat f2 = OntManagers.createConcurrentONT().loadOntologyFromOntologyDocument(src1).getFormat();
+        Assert.assertNotNull(f2);
+        Assert.assertEquals(c, f2.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().size());
+
+        // check original not changed
+        OWLDocumentFormat f3 = m.getOntologyFormat(o);
+        Assert.assertNotNull(f3);
+        Assert.assertEquals(5, f3.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().size());
+
+        // round-trip manchester:
+        OWLDocumentFormat f4 = OntFormat.MANCHESTER_SYNTAX.createOwlFormat();
+        // 4 default:
+        Assert.assertEquals(4, f4.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().size());
+        f4.asPrefixOWLDocumentFormat().setPrefixManager(f1.asPrefixOWLDocumentFormat());
+        Assert.assertEquals(11, f4.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().size());
+        String txt4 = ReadWriteUtils.toString(o, f4);
+        LOGGER.debug(txt4);
+        OWLOntologyDocumentSource src4 = new StringInputStreamDocumentSource(txt1, f1);
+        OWLDocumentFormat f5 = OntManagers.createConcurrentONT().loadOntologyFromOntologyDocument(src4).getFormat();
+        Assert.assertNotNull(f5);
+        Assert.assertTrue(f2.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().entrySet()
+                .containsAll(f1.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().entrySet()));
+    }
 
     /**
      * For <a href='https://github.com/avicomp/ont-api/issues/47'>issue#47</a>
      * @throws OWLOntologyCreationException
      */
     @Test
-    public void testPrefixesOnLoadWithUnmodifiableGraph() throws OWLOntologyCreationException {
+    public void testLoadUnmodifiableGraph() throws OWLOntologyCreationException {
         OntologyManager m = OntManagers.createONT();
         OntGraphModel b = OntModelFactory.createModel().setID("http://b").getModel();
         OntGraphModel a = OntModelFactory.createModel().setID("http://a").getModel().addImport(b);

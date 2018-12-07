@@ -298,6 +298,9 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Creates an ontology model from the {@link Graph Jena Graph}, taking into account the given loading settings.
+     * If the graph is hierarchical with {@code owl:imports} as references between sub-graphs
+     * it will be re-assembled to a new hierarchy form using {@link ru.avicomp.ontapi.jena.UnionGraph}.
+     * Otherwise it is passed into the manager as is.
      * This is a new (ONT-API) method.
      *
      * @param graph {@link Graph}

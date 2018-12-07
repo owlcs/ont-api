@@ -148,9 +148,10 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             // put ontology inside manager:
             OWLAdapter.get().asIMPL(manager).ontologyCreated(res);
             OntFormat format = OntApiException.notNull(info.getFormat(), "Null format while loading " + info.name());
-            OWLDocumentFormat owl = format.createOwlFormat();
+            OWLDocumentFormat owl = format.newOWLFormat();
             if (owl.isPrefixOWLDocumentFormat()) {
-                graph.getPrefixMapping().getNsPrefixMap().forEach(owl.asPrefixOWLDocumentFormat()::setPrefix);
+                PrefixManager pm = owl.asPrefixOWLDocumentFormat();
+                graph.getPrefixMapping().getNsPrefixMap().forEach(pm::setPrefix);
             }
             owl.setOntologyLoaderMetaData(OntGraphUtils.makeParserMetaData(graph, info.getStats()));
             manager.setOntologyFormat(res, owl);

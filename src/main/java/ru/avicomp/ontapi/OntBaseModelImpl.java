@@ -597,7 +597,6 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
                 .collect(Collectors.toSet())).filter(a -> filter.pass(a, key));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> Stream<T> axioms(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key, @Nonnull Imports imports) {
         return imports.stream(this).flatMap(o -> o.axioms(filter, key));
@@ -849,7 +848,6 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
      * @throws IOException            if an I/O error occurs
      * @throws ClassNotFoundException if the class of a serialized object could not be found
      * @see OntologyManagerImpl#readObject(ObjectInputStream)
-     * @see OntologyModelImpl.Concurrent#readObject(ObjectInputStream)
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
