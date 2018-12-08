@@ -24,6 +24,7 @@ import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.shared.JenaException;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 
 import java.io.OutputStream;
 import java.io.Writer;
@@ -60,37 +61,43 @@ public class UnionModel extends ModelCom {
     }
 
     @Override
-    public Model write(Writer writer) {
-        return getBaseModel().write(writer);
+    public UnionModel write(Writer writer) {
+        getBaseModel().write(writer);
+        return this;
     }
 
     @Override
-    public Model write(Writer writer, String lang) {
-        return getBaseModel().write(writer, lang);
+    public UnionModel write(Writer writer, String lang) {
+        getBaseModel().write(writer, lang);
+        return this;
     }
 
     @Override
-    public Model write(Writer writer, String lang, String base) {
-        return getBaseModel().write(writer, lang, base);
+    public UnionModel write(Writer writer, String lang, String base) {
+        getBaseModel().write(writer, lang, base);
+        return this;
     }
 
     @Override
-    public Model write(OutputStream out) {
-        return getBaseModel().write(out);
+    public UnionModel write(OutputStream out) {
+        getBaseModel().write(out);
+        return this;
     }
 
     @Override
-    public Model write(OutputStream out, String lang) {
-        return getBaseModel().write(out, lang);
+    public UnionModel write(OutputStream out, String lang) {
+        getBaseModel().write(out, lang);
+        return this;
     }
 
     @Override
-    public Model write(OutputStream out, String lang, String base) {
-        return getBaseModel().write(out, lang, base);
+    public UnionModel write(OutputStream out, String lang, String base) {
+        getBaseModel().write(out, lang, base);
+        return this;
     }
 
-    public boolean isLocal(Statement stm) {
-        return isLocal(OntJenaException.notNull(stm, "Null statement.").getSubject(), stm.getPredicate(), stm.getObject());
+    public boolean isLocal(Statement s) {
+        return isLocal(OntJenaException.notNull(s, "Null statement.").getSubject(), s.getPredicate(), s.getObject());
     }
 
     public boolean isLocal(Resource s, Property p, RDFNode o) {
@@ -153,7 +160,8 @@ public class UnionModel extends ModelCom {
         Set<Node> nodes = visited.get();
         try {
             if (nodes.contains(node)) {
-                throw new OntJenaException.Recursion("Can't cast to " + view.getSimpleName() + ": graph contains a recursion for node <" + node + ">");
+                throw new OntJenaException.Recursion("Can't cast to " + view.getSimpleName() + ": " +
+                        "graph contains a recursion for node <" + node + ">");
             }
             nodes.add(node);
             return getNodeAsInternal(node, view);
@@ -167,6 +175,12 @@ public class UnionModel extends ModelCom {
     }
 
     protected <N extends RDFNode> N getNodeAsInternal(Node node, Class<N> view) {
-        return super.getNodeAs(OntJenaException.notNull(node, "Null node"), OntJenaException.notNull(view, "Null class view."));
+        return super.getNodeAs(OntJenaException.notNull(node, "Null node"),
+                OntJenaException.notNull(view, "Null class view."));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("UnionModel{%s}", Graphs.getName(getBaseGraph()));
     }
 }

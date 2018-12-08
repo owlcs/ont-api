@@ -97,9 +97,8 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         ontComplex1.addDisjointWith(ontSimple1);
 
         // bulk disjoint instead adding one by one (to have the same list of axioms):
-        Resource anon = jena.createResource();
-        jena.add(anon, RDF.type, OWL.AllDisjointClasses);
-        jena.add(anon, OWL.members, jena.createList(Stream.of(ontComplex2, ontSimple1, ontSimple2).iterator()));
+        jena.createResource(OWL.AllDisjointClasses).addProperty(
+                OWL.members, jena.createList(Stream.of(ontComplex2, ontSimple1, ontSimple2).iterator()));
 
         debug(result);
 
@@ -118,7 +117,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
 
         LOGGER.debug("Remove owl:AllDisjointClasses using RDFList#removeList");
-        anon = jena.listResourcesWithProperty(RDF.type, OWL.AllDisjointClasses).toList().get(0);
+        Resource anon = jena.listResourcesWithProperty(RDF.type, OWL.AllDisjointClasses).toList().get(0);
         RDFList list = jena.listObjectsOfProperty(anon, OWL.members).mapWith(n -> n.as(RDFList.class)).toList().get(0);
         list.removeList();
         jena.removeAll(anon, null, null);

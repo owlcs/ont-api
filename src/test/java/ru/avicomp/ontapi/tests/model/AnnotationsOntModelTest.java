@@ -16,7 +16,6 @@ package ru.avicomp.ontapi.tests.model;
 
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
@@ -77,20 +76,20 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         Resource commentURI;
         Literal label4, label2;
         Resource root = jena.createResource();
-        jena.add(root, RDF.type, OWL.Annotation);
-        jena.add(root, OWL.annotatedProperty, RDFS.label);
-        jena.add(root, OWL.annotatedTarget, label4 = ResourceFactory.createLangLiteral(comment, commentLang));
-        jena.add(root, RDFS.comment, commentURI = ResourceFactory.createResource(annotationProperty.getIRIString()));
-        jena.add(root, RDFS.label, label2 = ResourceFactory.createPlainLiteral(label));
+        jena.add(root, RDF.type, OWL.Annotation)
+                .add(root, OWL.annotatedProperty, RDFS.label)
+                .add(root, OWL.annotatedTarget, label4 = jena.createLiteral(comment, commentLang))
+                .add(root, RDFS.comment, commentURI = jena.createResource(annotationProperty.getIRIString()))
+                .add(root, RDFS.label, label2 = jena.createLiteral(label));
         Resource anon = jena.createResource();
-        jena.add(root, OWL.annotatedSource, anon);
-        jena.add(anon, RDF.type, OWL.Axiom);
-        jena.add(anon, OWL.annotatedSource, ontClass);
-        jena.add(anon, OWL.annotatedProperty, RDF.type);
-        jena.add(anon, OWL.annotatedTarget, OWL.Class);
-        jena.add(anon, RDFS.comment, commentURI);
-        jena.add(anon, RDFS.label, label2);
-        jena.add(anon, RDFS.label, label4);
+        jena.add(root, OWL.annotatedSource, anon)
+                .add(anon, RDF.type, OWL.Axiom)
+                .add(anon, OWL.annotatedSource, ontClass)
+                .add(anon, OWL.annotatedProperty, RDF.type)
+                .add(anon, OWL.annotatedTarget, OWL.Class)
+                .add(anon, RDFS.comment, commentURI)
+                .add(anon, RDFS.label, label2)
+                .add(anon, RDFS.label, label4);
 
         debug(owl);
         LOGGER.debug("Check");

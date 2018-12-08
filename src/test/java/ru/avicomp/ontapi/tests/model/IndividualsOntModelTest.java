@@ -62,9 +62,9 @@ public class IndividualsOntModelTest extends OntModelTestBase {
         LOGGER.debug("Add individuals using OWL");
         manager.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(factory.getOWLClass(class1), factory.getOWLNamedIndividual(individual1))));
         LOGGER.debug("Add individuals using ONT");
-        jena.add(individual2.toResource(), RDF.type, class1.toResource());
-        jena.add(individual2.toResource(), RDF.type, OWL.NamedIndividual);
-        jena.getOntEntity(OntClass.class, class2.getIRIString()).createIndividual(individual3.getIRIString());
+        jena.add(individual2.toResource(), RDF.type, class1.toResource())
+                .add(individual2.toResource(), RDF.type, OWL.NamedIndividual)
+                .getOntEntity(OntClass.class, class2.getIRIString()).createIndividual(individual3.getIRIString());
 
         debug(owl);
 

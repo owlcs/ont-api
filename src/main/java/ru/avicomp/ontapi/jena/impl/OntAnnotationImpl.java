@@ -158,9 +158,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
 
     @Override
     public OntStatement addAnnotation(OntNAP property, RDFNode value) {
-        OntGraphModelImpl model = getModel();
-        model.add(this, property, value);
-        return model.createStatement(this, property, value);
+        return getModel().add(this, property, value).createStatement(this, property, value);
     }
 
     @Override

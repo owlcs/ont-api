@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2018, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,16 +14,15 @@
 
 package ru.avicomp.ontapi.utils;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
-
 import ru.avicomp.ontapi.transforms.Transform;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Example of broken rdf:List from OWL-API-contract (e.g. see all.rdf),
@@ -67,9 +66,6 @@ public class WrongRDFListTransform extends Transform {
                 .filter(s -> Objects.equals(RDF.uri, s.getObject().asResource().getURI()))
                 .collect(Collectors.toList());
         Model m = getBaseModel();
-        wrong.forEach(s -> {
-            m.remove(s);
-            m.add(s.getSubject(), RDF.rest, RDF.nil);
-        });
+        wrong.forEach(s -> m.remove(s).add(s.getSubject(), RDF.rest, RDF.nil));
     }
 }

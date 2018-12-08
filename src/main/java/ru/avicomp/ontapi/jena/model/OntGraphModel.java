@@ -183,7 +183,7 @@ public interface OntGraphModel extends Model {
     Stream<OntEntity> ontEntities();
 
     /**
-     * Lists all typed individuals from a model.
+     * Lists all typed individuals from the model.
      * Notice that the method {@link OntGraphModel#ontObjects(Class)} called with parameter {@code OntIndividual.class}
      * (i.e. {@code model.ontObject(OntIndividual.class)}) will return all individuals from a model,
      * even those which have no explicit declarations (e.g. any part of {@code owl:sameAs} is an individual),
@@ -385,9 +385,9 @@ public interface OntGraphModel extends Model {
     OntCE.ComplementOf createComplementOf(OntCE other);
 
     /*
-     * ===================================
-     * SWRL Objects (Variable, Atoms, Imp)
-     * ===================================
+     * ====================================
+     * SWRL Objects (Variable, Atoms, Imp):
+     * ====================================
      */
 
     OntSWRL.Variable createSWRLVariable(String uri);
@@ -398,13 +398,13 @@ public interface OntGraphModel extends Model {
 
     OntSWRL.Atom.DataRange createDataRangeSWRLAtom(OntDR range, OntSWRL.DArg arg);
 
-    OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP dataProperty, OntSWRL.IArg firstArg, OntSWRL.DArg secondArg);
+    OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP property, OntSWRL.IArg first, OntSWRL.DArg second);
 
-    OntSWRL.Atom.ObjectProperty createObjectPropertySWRLAtom(OntOPE dataProperty, OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
+    OntSWRL.Atom.ObjectProperty createObjectPropertySWRLAtom(OntOPE property, OntSWRL.IArg first, OntSWRL.IArg second);
 
-    OntSWRL.Atom.DifferentIndividuals createDifferentIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
+    OntSWRL.Atom.DifferentIndividuals createDifferentIndividualsSWRLAtom(OntSWRL.IArg first, OntSWRL.IArg second);
 
-    OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg);
+    OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg first, OntSWRL.IArg second);
 
     OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body);
 
@@ -431,6 +431,42 @@ public interface OntGraphModel extends Model {
 
     @Override
     OntGraphModel withDefaultMappings(PrefixMapping map);
+
+    /*
+     * =====================================================
+     * Overridden methods inherited from Model and ModelCon:
+     * =====================================================
+     */
+
+    @Override
+    OntGraphModel add(Statement s);
+
+    @Override
+    OntGraphModel remove(Statement s);
+
+    @Override
+    OntGraphModel add(Resource s, Property p, RDFNode o);
+
+    @Override
+    OntGraphModel remove(Resource s, Property p, RDFNode o);
+
+    @Override
+    OntGraphModel add(Model m);
+
+    @Override
+    OntGraphModel remove(Model m);
+
+    @Override
+    OntGraphModel add(StmtIterator i);
+
+    @Override
+    OntGraphModel remove(StmtIterator i);
+
+    @Override
+    OntGraphModel removeAll(Resource s, Property p, RDFNode o);
+
+    @Override
+    OntGraphModel removeAll();
 
     /*
      * ===================================
@@ -484,9 +520,9 @@ public interface OntGraphModel extends Model {
     }
 
     /*
-     * =======================
-     * Some built-in entities:
-     * =======================
+     * ===================================
+     * Some common built-in OWL2 entities:
+     * ===================================
      */
 
     default OntNAP getRDFSComment() {

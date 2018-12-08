@@ -34,6 +34,8 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -191,10 +193,20 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @since 1.3.0
      */
     public OntGraphModelImpl getTopModel() {
-        if (getGraph().getUnderlying().hasSubGraphs()) {
-            return new OntGraphModelImpl(getBaseGraph(), getPersonality());
+        if (independent()) {
+            return this;
         }
-        return this;
+        return new OntGraphModelImpl(getBaseGraph(), getPersonality());
+    }
+
+    /**
+     * Determines whether this model is independent.
+     *
+     * @return {@code true} if this model is independent of others
+     */
+    @Override
+    public boolean independent() {
+        return !getGraph().getUnderlying().hasSubGraphs();
     }
 
     @Override
@@ -266,7 +278,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @see #listLocalOntEntities()
      * @see OntEntity#listEntityTypes()
      */
-    @SuppressWarnings("unchecked")
     public ExtendedIterator<OntEntity> listOntEntities() {
         return Iter.flatMap(OntEntity.listEntityTypes(), this::listOntObjects);
     }
@@ -277,7 +288,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @return {@link ExtendedIterator Extended Iterator} of {@link OntEntity}s
      * @see #listOntEntities()
      */
-    @SuppressWarnings("unchecked")
     public ExtendedIterator<OntEntity> listLocalOntEntities() {
         return Iter.flatMap(OntEntity.listEntityTypes(), this::listLocalOntObjects);
     }
@@ -344,8 +354,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     @Override
     public OntGraphModelImpl removeOntStatement(OntStatement statement) {
         statement.clearAnnotations();
-        remove(statement);
-        return this;
+        return remove(statement);
     }
 
     @Override
@@ -606,22 +615,28 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     @Override
-    public OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP dataProperty, OntSWRL.IArg firstArg, OntSWRL.DArg secondArg) {
+    public OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP dataProperty,
+                                                                OntSWRL.IArg firstArg,
+                                                                OntSWRL.DArg secondArg) {
         return OntSWRLImpl.createDataPropertyAtom(this, dataProperty, firstArg, secondArg);
     }
 
     @Override
-    public OntSWRL.Atom.ObjectProperty createObjectPropertySWRLAtom(OntOPE dataProperty, OntSWRL.IArg firstArg, OntSWRL.IArg secondArg) {
+    public OntSWRL.Atom.ObjectProperty createObjectPropertySWRLAtom(OntOPE dataProperty,
+                                                                    OntSWRL.IArg firstArg,
+                                                                    OntSWRL.IArg secondArg) {
         return OntSWRLImpl.createObjectPropertyAtom(this, dataProperty, firstArg, secondArg);
     }
 
     @Override
-    public OntSWRL.Atom.DifferentIndividuals createDifferentIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg) {
+    public OntSWRL.Atom.DifferentIndividuals createDifferentIndividualsSWRLAtom(OntSWRL.IArg firstArg,
+                                                                                OntSWRL.IArg secondArg) {
         return OntSWRLImpl.createDifferentIndividualsAtom(this, firstArg, secondArg);
     }
 
     @Override
-    public OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg firstArg, OntSWRL.IArg secondArg) {
+    public OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg firstArg,
+                                                                      OntSWRL.IArg secondArg) {
         return OntSWRLImpl.createSameIndividualsAtom(this, firstArg, secondArg);
     }
 
@@ -667,6 +682,108 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     @Override
     public OntGraphModelImpl withDefaultMappings(PrefixMapping other) {
         getPrefixMapping().withDefaultMappings(other);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl lock() {
+        getPrefixMapping().lock();
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl add(Statement s) {
+        super.add(s);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl remove(Statement s) {
+        super.remove(s);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl add(Resource s, Property p, RDFNode o) {
+        super.add(s, p, o);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl remove(Resource s, Property p, RDFNode o) {
+        super.remove(s, p, o);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl add(Model m) {
+        super.add(m);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl remove(Model m) {
+        super.remove(m);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl add(StmtIterator iter) {
+        super.add(iter);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl remove(StmtIterator iter) {
+        super.remove(iter);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl removeAll(Resource s, Property p, RDFNode o) {
+        super.removeAll(s, p, o);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl removeAll() {
+        super.removeAll();
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl write(Writer writer) {
+        super.write(writer);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl write(Writer writer, String lang) {
+        super.write(writer, lang);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl write(Writer writer, String lang, String base) {
+        super.write(writer, lang, base);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl write(OutputStream out) {
+        super.write(out);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl write(OutputStream out, String lang) {
+        super.write(out, lang);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl write(OutputStream out, String lang, String base) {
+        super.write(out, lang, base);
         return this;
     }
 

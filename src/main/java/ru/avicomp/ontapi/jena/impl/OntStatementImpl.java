@@ -174,7 +174,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public boolean isLocal() {
-        return !getModel().getGraph().getUnderlying().hasSubGraphs() || getModel().isLocal(this);
+        return getModel().independent() || getModel().isLocal(this);
     }
 
     public boolean isAnnotationRootStatement() {

@@ -132,9 +132,9 @@ public class OWLCommonTransform extends Transform {
         anons.forEach(a -> {
             Resource subj = a.getRequiredProperty(RDFS.subPropertyOf).getObject().asResource();
             Resource obj = a.getRequiredProperty(OWL.propertyChainAxiom).getObject().asResource();
-            getBaseModel().add(subj, OWL.propertyChainAxiom, obj);
-            getBaseModel().removeAll(a, RDFS.subPropertyOf, null);
-            getBaseModel().removeAll(a, OWL.propertyChainAxiom, null);
+            getBaseModel().add(subj, OWL.propertyChainAxiom, obj)
+                    .removeAll(a, RDFS.subPropertyOf, null)
+                    .removeAll(a, OWL.propertyChainAxiom, null);
         });
     }
 

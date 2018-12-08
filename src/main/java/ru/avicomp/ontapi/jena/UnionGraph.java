@@ -214,6 +214,12 @@ public class UnionGraph extends CompositionBase {
         this.closed = true;
     }
 
+    @Override
+    public boolean isEmpty() {
+        // the default implementation use size(), which is extremely ineffective for this case
+        return !Iter.findFirst(base.find()).isPresent();
+    }
+
     /**
      * Generic dependsOn, true iff it depends on either of the sub-graphs.
      */
@@ -229,7 +235,7 @@ public class UnionGraph extends CompositionBase {
 
     /**
      * An extended {@link MultiUnion Standard Jena MultiUnion Graph} with several useful methods.
-     * It has a {@link GraphSink sink-graph} as primary.
+     * It has a {@link GraphSink sink-graph} as primary (base) graph.
      */
     public static class Underlying extends MultiUnion {
 

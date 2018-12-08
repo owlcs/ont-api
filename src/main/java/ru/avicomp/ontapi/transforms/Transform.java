@@ -124,7 +124,8 @@ public abstract class Transform {
     }
 
     protected void changeType(Resource realType, Resource newType) {
-        Set<Resource> toFix = statements(null, RDF.type, realType).map(Statement::getSubject).collect(Collectors.toSet());
+        Set<Resource> toFix = statements(null, RDF.type, realType)
+                .map(Statement::getSubject).collect(Collectors.toSet());
         toFix.forEach(subject -> {
             undeclare(subject, realType);
             declare(subject, newType);
@@ -132,13 +133,15 @@ public abstract class Transform {
     }
 
     protected void declare(Resource subject, Resource type) {
-        if (subject.hasProperty(RDF.type, Objects.requireNonNull(type, "Declare: null type for resource '" + subject + "'")))
+        if (subject.hasProperty(RDF.type,
+                Objects.requireNonNull(type, "Declare: null type for resource '" + subject + "'")))
             return;
         subject.addProperty(RDF.type, type);
     }
 
     protected void undeclare(Resource subject, Resource type) {
-        getBaseModel().removeAll(subject, RDF.type, Objects.requireNonNull(type, "Undeclare: null type for resource '" + subject + "'"));
+        getBaseModel().removeAll(subject, RDF.type,
+                Objects.requireNonNull(type, "Undeclare: null type for resource '" + subject + "'"));
     }
 
     protected boolean containsType(Resource type) {
