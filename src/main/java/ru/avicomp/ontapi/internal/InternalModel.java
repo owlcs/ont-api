@@ -60,7 +60,7 @@ import java.util.stream.Stream;
  * This model is used by the facade model (i.e. by {@link ru.avicomp.ontapi.OntologyModel}) while reading and writing
  * the structural (axiomatic) representation of ontology.
  * <p>
- * Notice that this model is a non-serializable (while everything in OWL-API is serializable),
+ * Notice that this model is a non-serializable (while everything in OWL-API is {@link java.io.Serializable}),
  * since it is part of ONT-API internal implementation.
  * <p>
  * Unlike native OWL-API (see {@code owl-api-impl}) implementation,
@@ -81,7 +81,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 26.10.2016.
  */
 @SuppressWarnings({"WeakerAccess"})
-public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
+public class InternalModel extends OntGraphModelImpl implements OntGraphModel, HasOntologyID {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
     // working with sorted axiom types list should be a little bit faster:
@@ -125,7 +125,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * @return {@link OntologyID}
      * @see #getID()
      */
-    public OntologyID getOWLOntID() {
+    @Override
+    public OntologyID getOntologyID() {
         // sure the last condition justifies having a cache
         if (cachedID != null && getBaseGraph().contains(cachedID.asNode(), RDF.Nodes.type, OWL.Ontology.asNode())) {
             return cachedID;
@@ -140,7 +141,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * @throws IllegalArgumentException in case the given id is broken
      * @see #setID(String)
      */
-    public void setOWLOntID(OWLOntologyID id) throws IllegalArgumentException {
+    public void setOntologyID(OWLOntologyID id) throws IllegalArgumentException {
         this.cachedID = null;
         if (Objects.requireNonNull(id, "Null id").isAnonymous()) {
             OntID res;
@@ -378,7 +379,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel {
      * @return Stream of {@link OWLAnnotation}
      * @see #listOWLAxioms(Collection)
      */
-    @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> listOWLAnnotations() {
         return getAnnotationTripleStore().objects();
     }

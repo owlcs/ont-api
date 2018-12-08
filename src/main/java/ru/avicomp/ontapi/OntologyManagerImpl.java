@@ -26,7 +26,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
-import org.semanticweb.owlapi.util.CollectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntConfig;
@@ -92,7 +91,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected final ReadWriteLock lock;
     protected final DataFactory dataFactory;
     // the collection of ontologies:
-    protected final OntologyCollection content;
+    protected final OntologyCollection<OntInfo> content;
 
     /**
      * Constructs a manager instance which is ready to use.
@@ -133,8 +132,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         this.parserFactories = new RWLockedCollection<>(this.lock, _sorting);
         this.ontologyStorers = new RWLockedCollection<>(this.lock, _sorting);
         this.configProvider = new ConcurrentConfig(this.lock);
-        this.content = new OntologyCollection(isConcurrent() ?
-                CollectionFactory.createSyncSet() : CollectionFactory.createSet());
+        this.content = new OntologyCollection<>(lock);
     }
 
     /**
@@ -675,7 +673,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
             Optional<OntInfo> res = content.get(id);
             if (!res.isPresent()) {
-                res = content.values().filter(e -> e.id().match(iri)).findFirst();
+                res = content.values().filter(e -> e.getOntologyID().match(iri)).findFirst();
             }
             return res.map(OntInfo::get).orElse(null);
         } finally {
@@ -710,7 +708,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         Optional<OntInfo> res = content.get(id);
         if (!res.isPresent() && !id.isAnonymous()) {
             IRI iri = id.getOntologyIRI().orElseThrow(() -> new IllegalStateException("Should never happen."));
-            res = content.values().filter(e -> e.id().matchOntology(iri)).findFirst();
+            res = content.values().filter(e -> e.getOntologyID().matchOntology(iri)).findFirst();
         }
         return res.map(OntInfo::get);
     }
@@ -976,7 +974,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         // set of loaded ontologies.
         getLock().writeLock().lock();
         try {
-            content.add((OntologyModel) ont);
+            content.add(new OntInfo((OntologyModel) ont));
         } finally {
             getLock().writeLock().unlock();
         }
@@ -1197,18 +1195,19 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         for (OWLOntologyChange change : changes) {
             // once rollback is requested by a failed change, do not carry
             // out any more changes
-            if (!rollbackRequested.get()) {
-                assert change != null;
-                ChangeApplied enactChangeApplication = enactChangeApplication(change);
-                if (enactChangeApplication == ChangeApplied.UNSUCCESSFULLY) {
-                    rollbackRequested.set(true);
-                }
-                if (enactChangeApplication == ChangeApplied.SUCCESSFULLY) {
-                    allNoOps.set(false);
-                    appliedChanges.add(change);
-                }
-                listeners.fireChangeApplied(change);
+            if (rollbackRequested.get()) {
+                continue;
             }
+            assert change != null;
+            ChangeApplied enactChangeApplication = enactChangeApplication(change);
+            if (enactChangeApplication == ChangeApplied.UNSUCCESSFULLY) {
+                rollbackRequested.set(true);
+            }
+            if (enactChangeApplication == ChangeApplied.SUCCESSFULLY) {
+                allNoOps.set(false);
+                appliedChanges.add(change);
+            }
+            listeners.fireChangeApplied(change);
         }
     }
 
@@ -1737,6 +1736,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @throws ClassNotFoundException exception
      * @see OntBaseModelImpl#readObject(ObjectInputStream)
      */
+    @SuppressWarnings("JavadocReference")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loaderConfig = (OntLoaderConfiguration) in.readObject();
@@ -1843,7 +1843,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             addOntologyChangeListener(listener, defaultChangeBroadcastStrategy);
         }
 
-        public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener, @Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
+        public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener,
+                                              @Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
             listenerMap.put(listener, strategy);
         }
 
@@ -2045,69 +2046,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
     }
 
-
-    /**
-     * Class-Collection of {@link OntInfo}s which wrap {@link OntologyModel}s.
-     * It was introduced to be sure that all members are in the consistent state.
-     * It is not possible to use directly different {@code Map}s with {@link OWLOntologyID Ontology ID} as keys
-     * like in the original OWL-API implementation,
-     * since anything, including that ID, can be changed externally (e.g. from the jena graph
-     * using shadow {@link ru.avicomp.ontapi.jena.model.OntGraphModel} interface or anything else).
-     * On the other hand, it is not expected that the manager will store a large number of ontologies,
-     * so using {@code Set} as internal storage collection is OK.
-     */
-    public class OntologyCollection implements Serializable {
-        private static final long serialVersionUID = 3693502109998760296L;
-        // todo: to real map
-        protected final Collection<OntInfo> map;
-
-        public OntologyCollection(Collection<OntInfo> c) {
-            this.map = Objects.requireNonNull(c);
-        }
-
-        public int size() {
-            return map.size(); // no need
-        }
-
-        public boolean isEmpty() {
-            return map.isEmpty(); // no need
-        }
-
-        public void clear() {
-            map.clear();
-        }
-
-        public Stream<OntInfo> values() {
-            return map.stream();
-        }
-
-        public Stream<OntologyID> keys() {
-            return values().map(OntInfo::id);
-        }
-
-        public Optional<OntInfo> get(@Nonnull OWLOntologyID key) {
-            return values()
-                    .filter(o -> o.id().hashCode() == key.hashCode())
-                    .filter(o -> key.equals(o.id())).findFirst();
-        }
-
-        public boolean contains(@Nonnull OWLOntologyID key) {
-            return values().filter(o -> o.id().hashCode() == key.hashCode()).anyMatch(o -> key.equals(o.id()));
-        }
-
-        public OntInfo add(OntologyModel o) {
-            OntInfo res = new OntInfo(o);
-            map.add(res);
-            return res;
-        }
-
-        public Optional<OntInfo> remove(@Nonnull OWLOntologyID id) {
-            Optional<OntInfo> res = get(id);
-            res.ifPresent(map::remove);
-            return res;
-        }
-    }
-
     /**
      * An internal container-wrapper for {@link OntologyModel}.
      * This class is designed to provide better synchronization of various parts of
@@ -2116,7 +2054,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @see ModelConfig
      */
     @SuppressWarnings("UnusedReturnValue")
-    public class OntInfo implements Serializable {
+    public class OntInfo implements HasOntologyID, Serializable {
         private static final long serialVersionUID = 5894845199098931128L;
         protected final OntologyModel ont;
         protected final ModelConfig conf;
@@ -2129,8 +2067,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             this.conf = (ModelConfig) ((InternalModelHolder) ont).getBase().getConfig();
         }
 
-        @Nonnull
-        public OntologyID id() {
+        @Override
+        public OntologyID getOntologyID() {
             return OntologyID.asONT(ont.getOntologyID());
         }
 
@@ -2170,7 +2108,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         public boolean hasImportDeclaration(IRI declaration) {
             if (Objects.equals(declaration, this.declarationIRI)) return true;
-            OntologyID id = id();
+            OntologyID id = getOntologyID();
             if (Objects.equals(declaration, id.getVersionIRI().orElse(null))) return true;
             IRI iri = id.getOntologyIRI().orElse(null);
             if (Objects.equals(declaration, iri)) {
@@ -2187,8 +2125,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * The implementation of {@link InternalConfig} that has a reference to the manager inside.
      * This is need in order to provide access to the manager's settings.
      *
-     * @see OntologyManager#setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)
-     * @see OntologyManager#setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)
+     * @see OWLOntologyLoaderConfiguration
+     * @see OWLOntologyWriterConfiguration
      */
     public static class ModelConfig implements InternalConfig, Serializable {
         private static final long serialVersionUID = 3681978037818003272L;

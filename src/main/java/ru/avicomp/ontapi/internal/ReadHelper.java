@@ -292,10 +292,8 @@ public class ReadHelper {
             OWLClassExpression owl;
             if (OntCE.ObjectSomeValuesFrom.class.equals(type)) {
                 owl = df.getOWLObjectSomeValuesFrom(p.getObject(), c.getObject());
-            } else if (OntCE.ObjectAllValuesFrom.class.equals(type)) {
-                owl = df.getOWLObjectAllValuesFrom(p.getObject(), c.getObject());
             } else {
-                throw new OntApiException("Should never happen");
+                owl = df.getOWLObjectAllValuesFrom(p.getObject(), c.getObject());
             }
             return ONTObject.create(owl, _ce).append(p).append(c);
         }
@@ -306,10 +304,8 @@ public class ReadHelper {
             OWLClassExpression owl;
             if (OntCE.DataSomeValuesFrom.class.equals(type)) {
                 owl = df.getOWLDataSomeValuesFrom(p.getObject(), d.getObject());
-            } else if (OntCE.DataAllValuesFrom.class.equals(type)) {
-                owl = df.getOWLDataAllValuesFrom(p.getObject(), d.getObject());
             } else {
-                throw new OntApiException("Should never happen");
+                owl = df.getOWLDataAllValuesFrom(p.getObject(), d.getObject());
             }
             return ONTObject.create(owl, _ce).append(p).append(d);
         }
@@ -337,10 +333,8 @@ public class ReadHelper {
                 owl = df.getOWLObjectMinCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
             } else if (OntCE.ObjectMaxCardinality.class.equals(type)) {
                 owl = df.getOWLObjectMaxCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
-            } else if (OntCE.ObjectCardinality.class.equals(type)) {
-                owl = df.getOWLObjectExactCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
             } else {
-                throw new OntApiException("Should never happen");
+                owl = df.getOWLObjectExactCardinality(_ce.getCardinality(), p.getObject(), c.getObject());
             }
             return ONTObject.create(owl, _ce).append(p).append(c);
         }
@@ -356,10 +350,8 @@ public class ReadHelper {
                 owl = df.getOWLDataMinCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
             } else if (OntCE.DataMaxCardinality.class.equals(type)) {
                 owl = df.getOWLDataMaxCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
-            } else if (OntCE.DataCardinality.class.equals(type)) {
-                owl = df.getOWLDataExactCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
             } else {
-                throw new OntApiException("Should never happen");
+                owl = df.getOWLDataExactCardinality(_ce.getCardinality(), p.getObject(), d.getObject());
             }
             return ONTObject.create(owl, _ce).append(p).append(d);
         }
@@ -376,10 +368,8 @@ public class ReadHelper {
             OWLClassExpression owl;
             if (OntCE.UnionOf.class.equals(type)) {
                 owl = df.getOWLObjectUnionOf(components.stream().map(ONTObject::getObject));
-            } else if (OntCE.IntersectionOf.class.equals(type)) {
-                owl = df.getOWLObjectIntersectionOf(components.stream().map(ONTObject::getObject));
             } else {
-                throw new OntApiException("Should never happen");
+                owl = df.getOWLObjectIntersectionOf(components.stream().map(ONTObject::getObject));
             }
             return ONTObject.create(owl, _ce).append(components);
         }
@@ -447,7 +437,6 @@ public class ReadHelper {
      * @param df   {@link InternalDataFactory}
      * @return {@link ONTObject} around {@link SWRLAtom}
      */
-    @SuppressWarnings("unchecked")
     public static ONTObject<? extends SWRLAtom> calcSWRLAtom(OntSWRL.Atom atom, InternalDataFactory df) {
         if (atom instanceof OntSWRL.Atom.BuiltIn) {
             OntSWRL.Atom.BuiltIn _atom = (OntSWRL.Atom.BuiltIn) atom;

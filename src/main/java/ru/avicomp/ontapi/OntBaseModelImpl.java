@@ -117,8 +117,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
      * @return the {@link OWLOntologyID}
      */
     @Override
-    public OWLOntologyID getOntologyID() {
-        return this.base.getOWLOntID();
+    public OntologyID getOntologyID() {
+        return this.base.getOntologyID();
     }
 
     /**
@@ -128,7 +128,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
      * @param id {@link OWLOntologyID Ontology ID}
      */
     protected void setOntologyID(OWLOntologyID id) {
-        this.base.setOWLOntID(id);
+        this.base.setOntologyID(id);
         this.hashCode = 0;
     }
 
@@ -849,6 +849,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
      * @throws ClassNotFoundException if the class of a serialized object could not be found
      * @see OntologyManagerImpl#readObject(ObjectInputStream)
      */
+    @SuppressWarnings("JavadocReference")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         Graph base = new GraphMem();

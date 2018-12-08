@@ -34,7 +34,6 @@ import java.util.Optional;
  * @see OntID
  * @see <a href='https://www.w3.org/TR/owl-syntax/#Ontology_IRI_and_Version_IRI'>3.1 Ontology IRI and Version IRI</a>
  */
-@SuppressWarnings("WeakerAccess")
 public class OntologyID extends OWLOntologyID {
 
     private final Node node;
@@ -133,6 +132,11 @@ public class OntologyID extends OWLOntologyID {
      */
     public Node asNode() {
         return node;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof OntologyID ? node.equals(((OntologyID) o).node) : super.equals(o);
     }
 
     /**

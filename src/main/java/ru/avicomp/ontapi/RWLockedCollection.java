@@ -252,6 +252,7 @@ public class RWLockedCollection<E extends Serializable> extends PriorityCollecti
     }
 
     protected void onAdd(Iterable<E> iterable) {
+        // note: this causes a double iteration
         iterable.forEach(this::onAdd);
     }
 
