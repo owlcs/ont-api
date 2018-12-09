@@ -429,7 +429,6 @@ public class CommonManagerTest {
         });
     }
 
-    @SuppressWarnings("ConstantConditions")
     public static void compareEntitiesTest(OWLOntology expectedOnt, OWLOntology actualOnt) {
         for (Imports i : Imports.values()) {
             Set<OWLEntity> actualEntities = actualOnt.signature(i).collect(Collectors.toSet());

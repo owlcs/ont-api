@@ -132,7 +132,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         this.parserFactories = new RWLockedCollection<>(this.lock, _sorting);
         this.ontologyStorers = new RWLockedCollection<>(this.lock, _sorting);
         this.configProvider = new ConcurrentConfig(this.lock);
-        this.content = new OntologyCollection<>(lock);
+        this.content = new OntologyCollectionImpl<>(this.lock);
     }
 
     /**
@@ -1198,7 +1198,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             if (rollbackRequested.get()) {
                 continue;
             }
-            assert change != null;
             ChangeApplied enactChangeApplication = enactChangeApplication(change);
             if (enactChangeApplication == ChangeApplied.UNSUCCESSFULLY) {
                 rollbackRequested.set(true);

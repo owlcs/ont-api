@@ -16,78 +16,111 @@ package ru.avicomp.ontapi;
 
 import org.semanticweb.owlapi.model.HasOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.util.CollectionFactory;
 
-import java.io.Serializable;
-import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Stream;
 
 /**
  * A collection to store anything that has {@link OWLOntologyID Ontology ID}.
- * Implementation notes:
- * It was introduced to be sure that all members are in the consistent state.
- * Currently it is not possible to use directly different {@code Map}s with {@link OWLOntologyID Ontology ID} as keys
- * like in the original OWL-API implementation,
- * since anything, including that ID, can be changed externally (e.g. directly from the jena graph
- * using shadow {@link ru.avicomp.ontapi.jena.model.OntGraphModel} interface or something else).
- * On the other hand, it is not expected that this collection will hold a large number of elements,
- * so using {@code Set} as internal storage collection is OK.
+ * Unlike the standard {@link java.util.Map},
+ * this collection should not lose a value in case of an unpredictable key-id change.
+ * This means that if such a change, that is external to this collection, has occurred,
+ * the value can be found using a new key-id with the method {@link #get(OWLOntologyID)},
+ * whereas a search using the old key-id should return an empty result.
+ * In this sense, this collection should behave like a java {@link java.util.Collection}.
+ * On the other hand, in case there were no external changes in the key-id relation,
+ * access by key-id must be as fast as in the {@link java.util.Map}.
  * <p>
- * Created by @ssz on 08.12.2018.
+ * Created by @ssz on 09.12.2018.
+ *
+ * @param <O> any subclass of {@link HasOntologyID}
  */
-@SuppressWarnings("WeakerAccess")
-public class OntologyCollection<O extends HasOntologyID> implements Serializable {
-    private static final long serialVersionUID = 3693502109998760296L;
-    // TODO: switch to real map
-    protected final Collection<O> map;
+public interface OntologyCollection<O extends HasOntologyID> {
 
-    public OntologyCollection(ReadWriteLock lock) {
-        // TODO: must use only RW-Lock for synchronization instead of concurrent collection
-        this.map = lock != NoOpReadWriteLock.NO_OP_RW_LOCK ?
-                CollectionFactory.createSyncSet() : CollectionFactory.createSet();
+    /**
+     * Lists all values as a java {@code Stream} with no duplicates and no {@code null}-elements.
+     *
+     * @return Stream of {@link O}s
+     */
+    Stream<O> values();
+
+    /**
+     * Returns the value which owns the specified key-id.
+     * The result is empty in case the collection does not contain a container with the given key-id inside.
+     * In case some key-id for some element-container is changed to a value,
+     * that equals to the value of some other element-container from this collection,
+     * this method returns the last container.
+     *
+     * @param key {@link OWLOntologyID key-id}, not {@code null}
+     * @return {@code Optional} around the {@link O}, possible empty
+     */
+    Optional<O> get(OWLOntologyID key);
+
+    /**
+     * Adds the specified element-container into the collection.
+     *
+     * @param value {@link O}, not {@code null}
+     * @return this collection, to allow cascading calls
+     */
+    OntologyCollection<O> add(O value);
+
+    /**
+     * Removes and returns the element-container with the specified key-id inside from the collection.
+     * An empty result is expected if there are no such element-container inside the collection.
+     *
+     * @param key {@link OWLOntologyID key-id}, not {@code null}
+     * @return {@code Optional} around the {@link O}, possible empty
+     */
+    Optional<O> remove(OWLOntologyID key);
+
+    /**
+     * Deletes the given element-container from the collection.
+     *
+     * @param value {@link O}, not {@code null}
+     * @return this collection, to allow cascading calls
+     */
+    OntologyCollection<O> delete(O value);
+
+    /**
+     * Removes all elements from this collection
+     *
+     * @return this collection, to allow cascading calls
+     */
+    OntologyCollection<O> clear();
+
+    /**
+     * Returns the number of elements in this collection.
+     *
+     * @return long
+     */
+    long size();
+
+    /**
+     * Answers {@code true} if the collection is empty.
+     *
+     * @return boolean
+     */
+    default boolean isEmpty() {
+        return size() == 0;
     }
 
-    public int size() {
-        return map.size();
-    }
-
-    public boolean isEmpty() {
-        return map.isEmpty();
-    }
-
-    public void clear() {
-        map.clear();
-    }
-
-    public Stream<O> values() {
-        return map.stream();
-    }
-
-    public Stream<OWLOntologyID> keys() {
+    /**
+     * Lists all {@link OWLOntologyID key-id}s for all element-containers from this collection.
+     *
+     * @return Stream of {@link OWLOntologyID key-id}, with no {@code null}-elements
+     */
+    default Stream<OWLOntologyID> keys() {
         return values().map(HasOntologyID::getOntologyID);
     }
 
-    public Optional<O> get(OWLOntologyID key) {
-        return values()
-                .filter(o -> o.getOntologyID().hashCode() == key.hashCode() && key.equals(o.getOntologyID()))
-                .findFirst();
+    /**
+     * Answers {@code true} iff this collection contains the element-container with the given key-id.
+     *
+     * @param key {@link OWLOntologyID key-id}, not {@code null}
+     * @return boolean
+     */
+    default boolean contains(OWLOntologyID key) {
+        return get(key).isPresent();
     }
 
-    public boolean contains(OWLOntologyID key) {
-        return values()
-                .filter(o -> o.getOntologyID().hashCode() == key.hashCode())
-                .anyMatch(o -> key.equals(o.getOntologyID()));
-    }
-
-    public void add(O o) {
-        map.add(o);
-    }
-
-    public Optional<O> remove(OWLOntologyID id) {
-        Optional<O> res = get(id);
-        res.ifPresent(map::remove);
-        return res;
-    }
 }

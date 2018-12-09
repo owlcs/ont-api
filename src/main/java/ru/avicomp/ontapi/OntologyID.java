@@ -134,11 +134,6 @@ public class OntologyID extends OWLOntologyID {
         return node;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return o instanceof OntologyID ? node.equals(((OntologyID) o).node) : super.equals(o);
-    }
-
     /**
      * Converts any instance of {@link OWLOntologyID} to the {@link OntologyID ONT-API Ontology Identifier implementation}.
      *

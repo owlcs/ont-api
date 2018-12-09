@@ -151,19 +151,20 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         owl.applyChanges(new SetOntologyID(owl, test1));
         testIRIChanged(manager, owl, jena, test1, imports, annotations);
         testHasClass(owl, jena, clazz);
-        Resource ontology = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
+        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
 
+        Resource ont = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
         OWLOntologyID test2 = iri.addPath("test2").toOwlOntologyID(test1.getVersionIRI().orElse(null));
         LOGGER.debug("2)Change ontology iri to {} through jena.", test2);
-        ResourceUtils.renameResource(ontology, OntIRI.toStringIRI(test2));
+        ResourceUtils.renameResource(ont, OntIRI.toStringIRI(test2));
         testIRIChanged(manager, owl, jena, test2, imports, annotations);
         testHasClass(owl, jena, clazz);
-        ontology = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
+        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
 
-        // anon:
+        ont = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
         OWLOntologyID test3 = new OWLOntologyID(); //iri.addPath("test3").toOwlOntologyID();
         LOGGER.debug("3)Change ontology iri to {} through jena.", test3);
-        ResourceUtils.renameResource(ontology, null);
+        ResourceUtils.renameResource(ont, null);
         try {
             OWLOntologyID actual = owl.getOntologyID();
             Assert.fail("Possible to get id: " + actual);
@@ -174,12 +175,14 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         }
         testIRIChanged(manager, owl, jena, test3, imports, annotations);
         testHasClass(owl, jena, clazz);
+        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
 
         OWLOntologyID test4 = iri.addPath("test4").toOwlOntologyID();
         LOGGER.debug("4)Change ontology iri to {} through owl-api.", test4);
         manager.applyChange(new SetOntologyID(owl, test4));
         testIRIChanged(manager, owl, jena, test4, imports, annotations);
         testHasClass(owl, jena, clazz);
+        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
 
         //anon:
         OWLOntologyID test5 = new OWLOntologyID();
@@ -187,7 +190,6 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         manager.applyChange(new SetOntologyID(owl, test5));
         testIRIChanged(manager, owl, jena, test5, imports, annotations);
         testHasClass(owl, jena, clazz);
-
         Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
     }
 
