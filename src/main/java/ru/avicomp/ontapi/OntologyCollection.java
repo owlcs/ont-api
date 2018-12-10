@@ -26,10 +26,10 @@ import java.util.stream.Stream;
  * this collection should not lose a value in case of an unpredictable key-id change.
  * This means that if such a change, that is external to this collection, has occurred,
  * the value can be found using a new key-id with the method {@link #get(OWLOntologyID)},
- * whereas a search using the old key-id should return an empty result.
- * In this sense, this collection should behave like a java {@link java.util.Collection}.
- * On the other hand, in case there were no external changes in the key-id relation,
- * access by key-id must be as fast as in the {@link java.util.Map}.
+ * whereas a search, that uses the old key-id, should return an empty result.
+ * In this sense, this collection behaves like a java {@link java.util.Collection}.
+ * On the other hand, in case there are no external changed in relation of key-id,
+ * access by a key-id must be as fast as for a java {@link java.util.Map}.
  * <p>
  * Created by @ssz on 09.12.2018.
  *

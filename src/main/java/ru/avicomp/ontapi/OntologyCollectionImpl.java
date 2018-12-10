@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,12 +45,20 @@ public class OntologyCollectionImpl<O extends HasOntologyID> implements Ontology
     protected final Map<OWLOntologyID, O> map;
     protected final ReadWriteLock lock;
 
+    /**
+     * Creates an empty non-synchronized collection.
+     */
     public OntologyCollectionImpl() {
         this(NoOpReadWriteLock.NO_OP_RW_LOCK);
     }
 
+    /**
+     * Creates an empty collection with the given R/W lock.
+     *
+     * @param lock {@link ReadWriteLock}, not {@code null}
+     */
     public OntologyCollectionImpl(ReadWriteLock lock) {
-        this(lock, new HashMap<>());
+        this(lock, createMap(lock));
     }
 
     /**
@@ -57,11 +66,17 @@ public class OntologyCollectionImpl<O extends HasOntologyID> implements Ontology
      *
      * @param lock {@link ReadWriteLock}, not {@code null}
      * @param list {@link Collection} of element-containers with {@link OWLOntologyID key-id}s inside
-     * @throws IllegalStateException in case the given collection contains duplicates
-     * @throws NullPointerException  some {@code null} input parameters
+     * @throws IllegalArgumentException in case the given collection contains duplicates
+     * @throws NullPointerException     some {@code null} input parameters
      */
-    public OntologyCollectionImpl(ReadWriteLock lock, Collection<O> list) throws IllegalStateException, NullPointerException {
-        this(lock, list.stream().collect(Collectors.toMap(HasOntologyID::getOntologyID, Function.identity())));
+    public OntologyCollectionImpl(ReadWriteLock lock, Collection<O> list) throws IllegalArgumentException, NullPointerException {
+        this(lock, list.stream().collect(Collectors.toMap(
+                HasOntologyID::getOntologyID
+                , Function.identity()
+                , (s, v) -> {
+                    throw new IllegalArgumentException("Duplicate key-id " + s);
+                }
+                , () -> createMap(lock))));
     }
 
     /**
@@ -76,13 +91,17 @@ public class OntologyCollectionImpl<O extends HasOntologyID> implements Ontology
     }
 
     /**
-     * Answers {@code true} if this collection is concurrent.
+     * Creates a {@code Map} for internal usage.
+     * R/W Lock sometimes is not enough for full thread safety:
+     * some changing over the collection may occur within the read locking.
      *
-     * @return boolean
-     * @see OntologyManagerImpl#isConcurrent()
+     * @param lock {@link ReadWriteLock}
+     * @param <K> key
+     * @param <V> value
+     * @return {@link Map}
      */
-    protected boolean isConcurrent() {
-        return NoOpReadWriteLock.NO_OP_RW_LOCK != lock;
+    public static <K, V> Map<K, V> createMap(ReadWriteLock lock) {
+        return NoOpReadWriteLock.isConcurrent(lock) ? new ConcurrentHashMap<>() : new HashMap<>();
     }
 
     @Override
@@ -120,9 +139,6 @@ public class OntologyCollectionImpl<O extends HasOntologyID> implements Ontology
     public Stream<O> values() {
         lock.readLock().lock();
         try {
-            if (isConcurrent()) {
-                return new ArrayList<>(map.values()).stream();
-            }
             return map.values().stream();
         } finally {
             lock.readLock().unlock();
@@ -208,7 +224,12 @@ public class OntologyCollectionImpl<O extends HasOntologyID> implements Ontology
 
     @Override
     public String toString() {
-        return values().map(String::valueOf).collect(Collectors.joining(", ", "[", "]"));
+        lock.readLock().lock();
+        try {
+            return values().map(String::valueOf).collect(Collectors.joining(", ", "[", "]"));
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
 }

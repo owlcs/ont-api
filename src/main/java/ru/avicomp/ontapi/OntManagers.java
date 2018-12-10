@@ -286,7 +286,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
             OWLOntologyBuilder res = ReflectionUtils.newInstance(OWLOntologyBuilder.class,
                     "uk.ac.manchester.cs.owl.owlapi.concurrent.NonConcurrentOWLOntologyBuilder",
                     LinkedListMultimap.create());
-            if (lock == null || NoOpReadWriteLock.NO_OP_RW_LOCK.equals(lock)) return res;
+            if (!NoOpReadWriteLock.isConcurrent(lock)) return res;
             LinkedListMultimap<Class<?>, Object> concurrentParams = LinkedListMultimap.create();
             concurrentParams.put(OWLOntologyBuilder.class, res);
             concurrentParams.put(ReadWriteLock.class, lock);

@@ -50,7 +50,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     }
 
     public OntologyModel withLock(OntologyModelImpl ont, ReadWriteLock lock) {
-        if (NoOpReadWriteLock.NO_OP_RW_LOCK.equals(lock)) return ont;
+        if (!NoOpReadWriteLock.isConcurrent(lock)) return ont;
         return new OntologyModelImpl.Concurrent(ont, lock);
     }
 

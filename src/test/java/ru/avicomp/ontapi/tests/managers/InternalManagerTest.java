@@ -26,7 +26,9 @@ import ru.avicomp.ontapi.NoOpReadWriteLock;
 import ru.avicomp.ontapi.OntologyCollection;
 import ru.avicomp.ontapi.OntologyCollectionImpl;
 import ru.avicomp.ontapi.OntologyID;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
+import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -121,8 +123,8 @@ public class InternalManagerTest {
     }
 
     private void testConcurrentModification(OntologyCollection<IDHolder> list) throws ExecutionException, InterruptedException {
-        int num = 20;
-        ExecutorService service = Executors.newFixedThreadPool(num);
+        int num = 15;
+        ExecutorService service = Executors.newFixedThreadPool(8);
         List<Future<?>> res = new ArrayList<>();
         LOGGER.debug("Start. The collection: {}", list);
         for (int i = 0; i < num; i++)
@@ -130,27 +132,36 @@ public class InternalManagerTest {
         service.shutdown();
         for (Future<?> f : res) {
             f.get();
-            LOGGER.debug("In run. The collection: {}", list);
+            LOGGER.debug("Run. The collection ({}): {}", list.size(), list);
         }
         LOGGER.debug("Fin. The collection: {}", list);
         Assert.assertTrue(list.isEmpty());
     }
 
-    private void performSomeModifying(OntologyCollection<IDHolder> list) {
+    private static final PrintStream OUT = ReadWriteUtils.NULL_OUT;
+
+    private static void performSomeModifying(OntologyCollection<IDHolder> list) {
         Random r = ThreadLocalRandom.current();
-        addRandom(list, r, 200);
-        if (r.nextBoolean()) {
-            list.clear();
-            addRandom(list, r, 150);
-            changeVersionIRIs(list);
-        }
+        addRandom(list, r, 5000);
+        OUT.println(list);
+
+        list.clear();
+        addRandom(list, r, 1500);
+        changeVersionIRIs(list);
+        OUT.println(list);
+
         changeOntologyIRIs(list);
-        list.keys().collect(Collectors.toList()).forEach(list::remove);
-        if (r.nextBoolean()) {
-            addRandom(list, r, 150);
-            changeOntologyIRIs(list);
-        }
-        list.values().collect(Collectors.toSet()).forEach(list::delete);
+        list.keys().skip(r.nextInt((int) list.size() + 1)).collect(Collectors.toList()).forEach(list::remove);
+        OUT.println(list);
+
+        addRandom(list, r, 3000);
+        changeVersionIRIs(list);
+        changeOntologyIRIs(list);
+        OUT.println(list);
+
+        list.values().limit(r.nextInt((int) list.size() + 1)).collect(Collectors.toSet()).forEach(list::delete);
+        OUT.println(list);
+        list.clear();
     }
 
     private static void addRandom(OntologyCollection<IDHolder> list, Random r, int count) {
@@ -209,7 +220,7 @@ public class InternalManagerTest {
         }
 
         public void setOntologyIRI(String x) {
-            setOntologyID(OntologyID.create(x, id.getVersionIRI().map(IRI::getIRIString).orElse(null)));
+            setOntologyID(OntologyID.create(x, getVersionIRI()));
         }
 
         public String getOntologyIRI() {

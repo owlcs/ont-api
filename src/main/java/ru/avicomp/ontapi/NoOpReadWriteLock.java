@@ -38,11 +38,22 @@ public final class NoOpReadWriteLock implements ReadWriteLock, Serializable {
     public static final ReadWriteLock NO_OP_RW_LOCK = new NoOpReadWriteLock();
 
     /**
-     * Singleton: it is hard to image someone would like to override this class.
-     * Also, currently ONT-API is not popular enough to take care that
-     * somebody has already done it or are already using this constructor in their own code.
+     * Singleton: it is hard to image someone would want to override this class.
      */
     private NoOpReadWriteLock() {
+    }
+
+    /**
+     * Answers {@code true} if the given {@link ReadWriteLock R/W Lock} can be used in a concurrent environment.
+     * Note that the native {@code OWL-API-impl} is not in the project dependencies and, therefore,
+     * is not taken into account, so this method will return {@code true}
+     * even if the lock is {@code uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock}.
+     *
+     * @param lock {@link ReadWriteLock} to test
+     * @return boolean
+     */
+    public static boolean isConcurrent(ReadWriteLock lock) {
+        return null != lock && NO_OP_RW_LOCK != lock;
     }
 
     @Override

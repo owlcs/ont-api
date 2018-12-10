@@ -136,15 +136,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Answers if this manager is concurrent (i.e. has any non-fictitious {@link ReadWriteLock} inside).
-     * Notice: an original OWL-API-impl is not in the project dependencies and is not taken into account,
-     * so this method will return {@code true} if {@code uk.ac.manchester.cs.owl.owlapi.concurrent.NoOpReadWriteLock}
-     * (which is an another kind of no-op R/W Lock) is specified in constructor.
+     * Answers {@code true} if this manager must be thread-safe.
      *
      * @return boolean
      */
     public boolean isConcurrent() {
-        return NoOpReadWriteLock.NO_OP_RW_LOCK != lock;
+        return NoOpReadWriteLock.isConcurrent(lock);
     }
 
     /**
