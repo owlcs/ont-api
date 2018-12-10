@@ -292,6 +292,16 @@ public class OntManagersTest {
         public OWLOntologyManager createManager() {
             return OntManagers.createConcurrentOWL();
         }
+
+        @Override
+        public Lock getReadLock(OWLOntology o) {
+            return getField(ReadWriteLock.class, "lock", getOntologyImplType(), o).readLock();
+        }
+
+        @Override
+        public Lock getWriteLock(OWLOntology o) {
+            return getField(ReadWriteLock.class, "lock", getOntologyImplType(), o).writeLock();
+        }
     }
 
 }
