@@ -60,7 +60,7 @@ public class ParsersStorersTestCase extends TestBase {
 
     @Parameterized.Parameters
     public static Collection<OWLAxiom> getData() {
-        return new Builder().all();
+        return new DataBuilder().all();
     }
 
     public OWLOntology ont() {

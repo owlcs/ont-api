@@ -46,7 +46,7 @@ public class NNFTestCase {
 
     @Parameterized.Parameters
     public static Collection<Object[]> getData() {
-        Builder b = new Builder();
+        DataBuilder b = new DataBuilder();
         Map<OWLAxiom, String> map = new LinkedHashMap<>();
         map.put(b.dRange(), "DataPropertyRange(<urn:test#dp> <urn:test#datatype>)");
         map.put(b.dDef(),

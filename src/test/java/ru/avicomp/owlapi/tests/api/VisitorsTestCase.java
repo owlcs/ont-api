@@ -44,7 +44,7 @@ public class VisitorsTestCase {
 
     @Parameterized.Parameters
     public static Collection<Object[]> getData() {
-        Builder b = new Builder();
+        DataBuilder b = new DataBuilder();
         Map<OWLObject, String> map = new LinkedHashMap<>();
         map.put(b.rule(),
                 "DLSafeRule( Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) )) Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )) )");

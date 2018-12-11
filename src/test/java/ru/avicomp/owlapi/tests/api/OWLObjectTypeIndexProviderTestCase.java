@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 @SuppressWarnings({"javadoc"})
 public class OWLObjectTypeIndexProviderTestCase {
 
-    Builder b = new Builder();
+    DataBuilder b = new DataBuilder();
 
     @Test
     public void testAssertions() {

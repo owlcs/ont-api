@@ -43,7 +43,7 @@ public class StructuralTransformationTestCase {
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> getData() {
-        Builder b = new Builder();
+        DataBuilder b = new DataBuilder();
         Map<OWLAxiom, String> map = new LinkedHashMap<>();
         map.put(b.dRange(),
                 "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> <urn:test#datatype>))]");

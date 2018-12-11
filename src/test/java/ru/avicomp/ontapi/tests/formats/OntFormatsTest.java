@@ -27,7 +27,6 @@ import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
-import ru.avicomp.owlapi.OWLManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -130,7 +129,7 @@ public class OntFormatsTest {
 
             OWLOntology res;
             try {
-                res = OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(source);
+                res = OntManagers.createOWL().loadOntologyFromOntologyDocument(source);
                 Assert.assertTrue(type + ": read should be supported", type.isReadSupported());
             } catch (UnparsableOntologyException e) {
                 Assert.assertFalse(type + ": should not be supported", type.isSupported());

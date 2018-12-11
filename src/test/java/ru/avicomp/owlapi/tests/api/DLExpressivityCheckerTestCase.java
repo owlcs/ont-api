@@ -14,127 +14,133 @@
 package ru.avicomp.owlapi.tests.api;
 
 import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.util.DLExpressivityChecker;
-import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.owlapi.OWLManager;
 import ru.avicomp.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * From now on, this test is no longer suitable for OWL-API comparison mode (see {@link OWLManager#DEBUG_USE_OWL})
- * due to changes in OWL-API-api:5.1.8.
- * And now it is just to test that the OWL-API and ONT-API behaviours with {@link DLExpressivityChecker} match.
- * TODO: move to ru.avicomp.ontapi.tests
- */
-@SuppressWarnings({"javadoc"})
 @RunWith(Parameterized.class)
 public class DLExpressivityCheckerTestCase extends TestBase {
-    private final OWLAxiom axiom;
+    private final Data data;
 
-    public DLExpressivityCheckerTestCase(OWLAxiom object) {
-        this.axiom = object;
+    public DLExpressivityCheckerTestCase(Data data) {
+        this.data = data;
     }
 
-    @Parameterized.Parameters
-    public static List<OWLAxiom> getData() {
-        Builder b = new Builder();
+    @Parameterized.Parameters(name = "{0}")
+    public static List<Data> getData() {
+        DataBuilder b = new DataBuilder();
         return Arrays.asList(
-                b.dRange()
-                , b.dDef()
-                , b.decC()
-                , b.decOp()
-                , b.decDp()
-                , b.decDt()
-                , b.decAp()
-                , b.decI()
-                , b.assDi()
-                , b.dc()
-                , b.dDp()
-                , b.dOp()
-                , b.du()
-                , b.ec()
-                , b.eDp()
-                , b.eOp()
-                , b.fdp()
-                , b.fop()
-                , b.ifp()
-                , b.iop()
-                , b.irr()
-                , b.ndp()
-                , b.nop()
-                , b.opa()
-                , b.opaInv()
-                , b.opaInvj()
-                , b.oDom()
-                , b.oRange()
-                , b.chain()
-                , b.ref()
-                , b.same()
-                , b.subAnn()
-                , b.subClass()
-                , b.subData()
-                , b.subObject()
-                , b.rule()
-                , b.symm()
-                , b.trans()
-                , b.hasKey()
-                , b.bigRule()
-                , b.ann()
-                , b.asymm()
-                , b.annDom()
-                , b.annRange()
-                , b.ass()
-                , b.assAnd()
-                , b.assOr()
-                , b.dRangeAnd()
-                , b.dRangeOr()
-                , b.assNot()
-                , b.assNotAnon()
-                , b.assSome()
-                , b.assAll()
-                , b.assHas()
-                , b.assMin()
-                , b.assMax()
-                , b.assEq()
-                , b.assHasSelf()
-                , b.assOneOf()
-                , b.assDSome()
-                , b.assDAll()
-                , b.assDHas()
-                , b.assDMin()
-                , b.assDMax()
-                , b.assDEq()
-                , b.dOneOf()
-                , b.dNot()
-                , b.dRangeRestrict()
-                , b.assD()
-                , b.assDPlain()
-                , b.dDom());
-    }
-
-    @BeforeClass
-    public static void before() { // only for ONT-API
-        Assume.assumeTrue(!OWLManager.DEBUG_USE_OWL);
+                new Data("UNIVRESTR", b.assAll())
+                , new Data("", b.dDef())
+                , new Data("", b.decC())
+                , new Data("", b.decOp())
+                , new Data("", b.decDp())
+                , new Data("", b.decDt())
+                , new Data("", b.decAp())
+                , new Data("", b.decI())
+                , new Data("", b.ec())
+                , new Data("", b.nop())
+                , new Data("", b.opa())
+                , new Data("", b.subAnn())
+                , new Data("", b.subClass())
+                , new Data("", b.rule())
+                , new Data("", b.hasKey())
+                , new Data("", b.bigRule())
+                , new Data("", b.ann())
+                , new Data("", b.annDom())
+                , new Data("", b.annRange())
+                , new Data("", b.ass())
+                , new Data("CUO", b.assDi())
+                , new Data("C", b.dc())
+                , new Data("C", b.assNot())
+                , new Data("C", b.assNotAnon())
+                , new Data("R", b.dOp())
+                , new Data("R", b.irr())
+                , new Data("R", b.asymm())
+                , new Data("R", b.assHasSelf())
+                , new Data("RRESTR(D)", b.dRange())
+                , new Data("RRESTR(D)", b.dRangeAnd())
+                , new Data("RRESTR(D)", b.dRangeOr())
+                , new Data("RRESTR(D)", b.dOneOf())
+                , new Data("RRESTR(D)", b.dNot())
+                , new Data("RRESTR(D)", b.dRangeRestrict())
+                , new Data("RRESTR(D)", b.dDom())
+                , new Data("CU", b.du())
+                , new Data("H(D)", b.eDp())
+                , new Data("H(D)", b.subData())
+                , new Data("H", b.eOp())
+                , new Data("H", b.subObject())
+                , new Data("F(D)", b.fdp())
+                , new Data("F", b.fop())
+                , new Data("IF", b.ifp())
+                , new Data("I", b.iop())
+                , new Data("I", b.opaInv())
+                , new Data("I", b.opaInvj())
+                , new Data("I", b.symm())
+                , new Data("(D)", b.dDp())
+                , new Data("(D)", b.ndp())
+                , new Data("(D)", b.assDAll())
+                , new Data("(D)", b.assDHas())
+                , new Data("(D)", b.assD())
+                , new Data("(D)", b.assDPlain())
+                , new Data("O", b.same())
+                , new Data("+", b.trans())
+                , new Data("CINT", b.assAnd())
+                , new Data("U", b.assOr())
+                , new Data("RRESTR", b.oDom())
+                , new Data("RRESTR", b.oRange())
+                , new Data("E", b.assSome())
+                , new Data("EO", b.assHas())
+                , new Data("Q", b.assMin())
+                , new Data("Q", b.assMax())
+                , new Data("Q", b.assEq())
+                , new Data("UO", b.assOneOf())
+                , new Data("E(D)", b.assDSome())
+                , new Data("Q(D)", b.assDMin())
+                , new Data("Q(D)", b.assDMax())
+                , new Data("Q(D)", b.assDEq())
+                , new Data("Rr", b.chain())
+                , new Data("Rr", b.ref())
+                , new Data("RIQ", b.ref(), b.trans(), b.symm(), b.subObject(), b.fop(), b.assMinTop(), b.assMin())
+                , new Data("N", b.assMinTop())
+        );
     }
 
     @Test
-    public void testCompare() throws Exception {
-        OWLOntology ont = OntManagers.createONT().createOntology();
-        OWLOntology owl = OntManagers.createOWL().createOntology();
-        owl.add(axiom);
-        ont.add(axiom);
-        String expected = new DLExpressivityChecker(Collections.singleton(owl)).getDescriptionLogicName();
-        String actual = new DLExpressivityChecker(Collections.singleton(ont)).getDescriptionLogicName();
-        Assert.assertEquals(expected, actual);
+    public void testAssertion() throws Exception {
+        OWLOntology o = OWLManager.createOWLOntologyManager().createOntology();
+        data.axioms.forEach(o::add);
+
+        String actual = new DLExpressivityChecker(Collections.singleton(o)).getDescriptionLogicName();
+        Assert.assertEquals(data.expected, actual);
+    }
+
+    public static class Data {
+        private final String expected;
+        private final List<OWLAxiom> axioms;
+
+        public Data(String expected, OWLAxiom... axioms) {
+            this(expected, Arrays.stream(axioms).collect(Collectors.toList()));
+        }
+
+        private Data(String expected, List<OWLAxiom> axioms) {
+            this.expected = expected;
+            this.axioms = axioms;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(axioms);
+        }
     }
 }

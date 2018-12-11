@@ -41,7 +41,7 @@ public class AxiomSubjectProviderExTestCase {
 
     @Parameters
     public static Collection<Object[]> getData() {
-        Builder b = new Builder();
+        DataBuilder b = new DataBuilder();
         Map<OWLAxiom, String> map = new LinkedHashMap<>();
         map.put(b.dDp(), "<urn:test#dp>");
         map.put(b.dOp(), "<urn:test#iri>");

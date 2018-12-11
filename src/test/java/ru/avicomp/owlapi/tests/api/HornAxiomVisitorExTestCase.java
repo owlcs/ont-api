@@ -41,7 +41,7 @@ public class HornAxiomVisitorExTestCase {
 
     @Parameterized.Parameters
     public static Collection<Object[]> getData() {
-        Builder b = new Builder();
+        DataBuilder b = new DataBuilder();
         Map<OWLObject, Boolean> map = new LinkedHashMap<>();
         map.put(b.ann(), Boolean.TRUE);
         map.put(b.asymm(), Boolean.FALSE);

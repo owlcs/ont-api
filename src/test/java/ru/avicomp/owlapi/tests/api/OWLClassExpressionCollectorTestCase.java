@@ -60,7 +60,7 @@ public class OWLClassExpressionCollectorTestCase {
 
     @Parameterized.Parameters
     public static Collection<Object[]> getData() {
-        Builder b = new Builder();
+        DataBuilder b = new DataBuilder();
         Map<OWLAxiom, String[]> map = new LinkedHashMap<>();
         String[] empty = new String[]{};
         map.put(b.dRange(), empty);

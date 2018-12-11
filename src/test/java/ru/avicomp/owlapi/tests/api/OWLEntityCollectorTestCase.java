@@ -38,7 +38,7 @@ public class OWLEntityCollectorTestCase {
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> getData() {
-        Builder b = new Builder();
+        DataBuilder b = new DataBuilder();
         Map<OWLAxiom, String> map = new LinkedHashMap<>();
         map.put(b.dRange(),
                 "[<urn:test#ann>, http://www.w3.org/2001/XMLSchema#string, <urn:test#datatype>, <urn:test#dp>]");

@@ -40,10 +40,10 @@ public class MaximumModalDepthFinderTestCase {
 
     @Parameterized.Parameters
     public static Collection<Object[]> getData() {
-        Builder b = new Builder();
+        DataBuilder b = new DataBuilder();
         Map<OWLObject, Integer> map = new LinkedHashMap<>();
-        Integer zero = Integer.valueOf(0);
-        Integer one = Integer.valueOf(1);
+        Integer zero = 0;
+        Integer one = 1;
         map.put(b.ann(), zero);
         map.put(b.asymm(), zero);
         map.put(b.annDom(), zero);

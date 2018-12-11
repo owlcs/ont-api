@@ -261,7 +261,7 @@ public class OWLObjectComponentCollectorTestCase {
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> getData() {
-        Builder b = new Builder();
+        DataBuilder b = new DataBuilder();
         Map<OWLAxiom, String[]> map = new LinkedHashMap<>();
         map.put(b.assDPlain(), new String[]{plain, DP, I, DPI, II, adp, plain, "\"string\"@en"});
         map.put(b.dRange(), new String[]{DT, DP, DPI, DPR, DTI});
