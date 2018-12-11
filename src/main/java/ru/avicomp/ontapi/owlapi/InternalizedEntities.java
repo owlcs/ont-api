@@ -25,12 +25,11 @@ import ru.avicomp.ontapi.owlapi.objects.entity.OWLObjectPropertyImpl;
 
 /**
  * Entities that are commonly used in implementations.
- * A copy-paste from uk.ac.manchester.cs.owl.owlapi.InternalizedEntities
+ * A modified copy-paste from {@code uk.ac.manchester.cs.owl.owlapi.InternalizedEntities}
  *
  * @author ignazio
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/InternalizedEntities.java'>uk.ac.manchester.cs.owl.owlapi.InternalizedEntities</a>
  */
-@SuppressWarnings("WeakerAccess")
 public class InternalizedEntities {
 
     public static final OWLClass OWL_THING = new OWLClassImpl(OWLRDFVocabulary.OWL_THING.getIRI());

@@ -26,6 +26,7 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OWLNaryClassAxiomImpl extends OWLClassAxiomImpl implements OWLNaryClassAxiom {
 
     protected final List<OWLClassExpression> classExpressions;
@@ -34,7 +35,8 @@ public abstract class OWLNaryClassAxiomImpl extends OWLClassAxiomImpl implements
      * @param classExpressions classes
      * @param annotations      annotations
      */
-    public OWLNaryClassAxiomImpl(Collection<? extends OWLClassExpression> classExpressions, Collection<OWLAnnotation> annotations) {
+    public OWLNaryClassAxiomImpl(Collection<? extends OWLClassExpression> classExpressions,
+                                 Collection<OWLAnnotation> annotations) {
         super(annotations);
         this.classExpressions = Objects.requireNonNull(classExpressions, "classExpressions cannot be null")
                 .stream()

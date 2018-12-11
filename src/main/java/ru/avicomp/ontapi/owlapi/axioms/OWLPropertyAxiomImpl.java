@@ -22,6 +22,7 @@ import java.util.Collection;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OWLPropertyAxiomImpl extends OWLLogicalAxiomImpl implements OWLPropertyAxiom {
 
     /**

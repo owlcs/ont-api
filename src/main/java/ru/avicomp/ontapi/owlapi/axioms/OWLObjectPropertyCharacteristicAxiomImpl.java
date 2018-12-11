@@ -24,6 +24,7 @@ import java.util.Objects;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OWLObjectPropertyCharacteristicAxiomImpl extends OWLPropertyAxiomImpl implements OWLObjectPropertyCharacteristicAxiom {
 
     private final OWLObjectPropertyExpression property;
@@ -32,7 +33,8 @@ public abstract class OWLObjectPropertyCharacteristicAxiomImpl extends OWLProper
      * @param property    property
      * @param annotations annotations
      */
-    public OWLObjectPropertyCharacteristicAxiomImpl(OWLObjectPropertyExpression property, Collection<OWLAnnotation> annotations) {
+    public OWLObjectPropertyCharacteristicAxiomImpl(OWLObjectPropertyExpression property,
+                                                    Collection<OWLAnnotation> annotations) {
         super(annotations);
         this.property = Objects.requireNonNull(property, "property cannot be null");
     }

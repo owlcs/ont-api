@@ -21,7 +21,7 @@ import org.apache.jena.shared.JenaException;
  * <p>
  * Created by @szuev on 24.11.2016.
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"unused"})
 public class OntJenaException extends JenaException {
 
     public OntJenaException() {
@@ -101,7 +101,7 @@ public class OntJenaException extends JenaException {
     }
 
     /**
-     * An Jena exception that indicates wrong input.
+     * A Jena exception that indicates wrong input.
      */
     public static class IllegalArgument extends OntJenaException {
         public IllegalArgument() {
@@ -118,7 +118,7 @@ public class OntJenaException extends JenaException {
     }
 
     /**
-     * An Jena exception that indicates that Jena-object state is broken,
+     * A Jena exception that indicates that Jena-object state is broken,
      * which may happen in multithreading or in other uncommon situations.
      */
     public static class IllegalState extends OntJenaException {

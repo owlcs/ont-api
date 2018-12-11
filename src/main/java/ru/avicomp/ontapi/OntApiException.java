@@ -17,7 +17,9 @@ package ru.avicomp.ontapi;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 
 /**
- * Base runtime exception.
+ * A base {@code RuntimeException}, that must be used only in OWL-API part of implementation.
+ * For a {@link ru.avicomp.ontapi.jena Jena sybsustem}
+ * there is its own exception: {@link ru.avicomp.ontapi.jena.OntJenaException}.
  * <p>
  * Created by @szuev on 27.09.2016.
  */
@@ -40,7 +42,7 @@ public class OntApiException extends OWLRuntimeException {
 
     public static <T> T notNull(T obj, String message) {
         if (obj == null)
-            throw message == null ? new OntApiException() : new OntApiException(message);
+            throw message == null ? new IllegalArgument() : new IllegalArgument(message);
         return obj;
     }
 
@@ -49,7 +51,7 @@ public class OntApiException extends OWLRuntimeException {
     }
 
     /**
-     * A RuntimeException for unsupported things.
+     * A {@code RuntimeException} for unsupported things.
      * Created by @szuev on 29.09.2016.
      */
     public static class Unsupported extends OntApiException {
@@ -58,6 +60,19 @@ public class OntApiException extends OWLRuntimeException {
         }
 
         public Unsupported(String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * A {@code RuntimeException} to indicate wrong input.
+     */
+    public static class IllegalArgument extends OntApiException {
+        public IllegalArgument() {
+            super();
+        }
+
+        public IllegalArgument(String message) {
             super(message);
         }
     }

@@ -24,11 +24,12 @@ import java.util.Objects;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OWLIndividualRelationshipAxiomImpl<P extends OWLPropertyExpression, O extends OWLPropertyAssertionObject>
         extends OWLLogicalAxiomImpl implements OWLPropertyAssertionAxiom<P, O> {
 
-    private final OWLIndividual subject;
-    private final P property;
+    private final OWLIndividual s;
+    private final P p;
     private final O o;
 
     /**
@@ -39,19 +40,19 @@ public abstract class OWLIndividualRelationshipAxiomImpl<P extends OWLPropertyEx
      */
     public OWLIndividualRelationshipAxiomImpl(OWLIndividual subject, P property, O object, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.subject = Objects.requireNonNull(subject, "subject cannot be null");
-        this.property = Objects.requireNonNull(property, "property cannot be null");
+        this.s = Objects.requireNonNull(subject, "subject cannot be null");
+        this.p = Objects.requireNonNull(property, "property cannot be null");
         this.o = Objects.requireNonNull(object, "object cannot be null");
     }
 
     @Override
     public OWLIndividual getSubject() {
-        return subject;
+        return s;
     }
 
     @Override
     public P getProperty() {
-        return property;
+        return p;
     }
 
     @Override

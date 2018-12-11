@@ -32,7 +32,8 @@ public class OWLFunctionalObjectPropertyAxiomImpl extends OWLObjectPropertyChara
      * @param property    property
      * @param annotations annotations
      */
-    public OWLFunctionalObjectPropertyAxiomImpl(OWLObjectPropertyExpression property, Collection<OWLAnnotation> annotations) {
+    public OWLFunctionalObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
+                                                Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 

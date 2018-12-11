@@ -40,7 +40,8 @@ public class OWLSubPropertyChainAxiomImpl extends OWLPropertyAxiomImpl implement
      * @param annotations   annotations
      */
     public OWLSubPropertyChainAxiomImpl(List<? extends OWLObjectPropertyExpression> propertyChain,
-                                        OWLObjectPropertyExpression superProperty, Collection<OWLAnnotation> annotations) {
+                                        OWLObjectPropertyExpression superProperty,
+                                        Collection<OWLAnnotation> annotations) {
         super(annotations);
         this.propertyChain = new ArrayList<>(
                 Objects.requireNonNull(propertyChain, "propertyChain cannot be null"));
@@ -74,6 +75,8 @@ public class OWLSubPropertyChainAxiomImpl extends OWLPropertyAxiomImpl implement
 
     @Override
     public boolean isEncodingOfTransitiveProperty() {
-        return propertyChain.size() == 2 && superProperty.equals(propertyChain.get(0)) && superProperty.equals(propertyChain.get(1));
+        return propertyChain.size() == 2
+                && superProperty.equals(propertyChain.get(0))
+                && superProperty.equals(propertyChain.get(1));
     }
 }

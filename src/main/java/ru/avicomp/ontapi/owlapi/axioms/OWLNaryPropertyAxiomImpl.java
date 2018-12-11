@@ -27,6 +27,7 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OWLNaryPropertyAxiomImpl<P extends OWLPropertyExpression> extends OWLPropertyAxiomImpl implements OWLNaryPropertyAxiom<P> {
 
     protected final List<P> properties;
@@ -46,7 +47,8 @@ public abstract class OWLNaryPropertyAxiomImpl<P extends OWLPropertyExpression> 
     @SuppressWarnings("unchecked")
     private OWLNaryPropertyAxiomImpl(Stream<? extends P> properties, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.properties = Objects.requireNonNull(properties, "properties cannot be null").filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
+        this.properties = Objects.requireNonNull(properties, "properties cannot be null")
+                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     @Override

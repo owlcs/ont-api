@@ -33,7 +33,9 @@ public class OWLSubObjectPropertyOfAxiomImpl extends OWLSubPropertyAxiomImpl<OWL
      * @param superProperty superproperty
      * @param annotations   annotations
      */
-    public OWLSubObjectPropertyOfAxiomImpl(OWLObjectPropertyExpression subProperty, OWLObjectPropertyExpression superProperty, Collection<OWLAnnotation> annotations) {
+    public OWLSubObjectPropertyOfAxiomImpl(OWLObjectPropertyExpression subProperty,
+                                           OWLObjectPropertyExpression superProperty,
+                                           Collection<OWLAnnotation> annotations) {
         super(subProperty, superProperty, annotations);
     }
 

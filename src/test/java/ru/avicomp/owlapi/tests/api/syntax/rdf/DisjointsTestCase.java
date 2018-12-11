@@ -19,6 +19,8 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.owlapi.OWLFunctionalSyntaxFactory;
 import ru.avicomp.owlapi.tests.api.baseclasses.TestBase;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,5 +52,27 @@ public class DisjointsTestCase extends TestBase {
         ontA.add(ax);
         OWLOntology ontB = roundTrip(ontA);
         Assert.assertTrue(ontB.axioms().anyMatch(ax::equals));
+    }
+
+    @Test // copy-pasted form 5.1.8 owlapi-contract
+    public void shouldAcceptSingleDisjointAxiom() {
+        // The famous idiomatic use of DisjointClasses with one operand
+        OWLClass t = df.getOWLClass("urn:test:class");
+        OWLDisjointClassesAxiom ax = df.getOWLDisjointClassesAxiom(Collections.singletonList(t));
+        Assert.assertEquals(df.getOWLDisjointClassesAxiom(Arrays.asList(t, df.getOWLThing())), ax.getAxiomWithoutAnnotations());
+        OWLLiteral value = df.getOWLLiteral("DisjointClasses(<urn:test:class>) replaced by DisjointClasses(<urn:test:class> owl:Thing)");
+        OWLAnnotation a = ax.annotationsAsList().get(0);
+        Assert.assertEquals(value, a.getValue());
+        Assert.assertEquals(df.getRDFSComment(), a.getProperty());
+    }
+
+    @Test(expected = OWLRuntimeException.class) // copy-pasted form 5.1.8 owlapi-contract
+    public void shouldRejectDisjointClassesWithSingletonThing() {
+        df.getOWLDisjointClassesAxiom(Collections.singletonList(df.getOWLThing()));
+    }
+
+    @Test(expected = OWLRuntimeException.class) // copy-pasted form 5.1.8 owlapi-contract
+    public void shouldRejectDisjointClassesWithSingletonNothing() {
+        df.getOWLDisjointClassesAxiom(Collections.singletonList(df.getOWLNothing()));
     }
 }

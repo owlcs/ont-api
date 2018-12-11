@@ -31,7 +31,8 @@ public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl imple
      * @param individuals individuals
      * @param annotations annotations on the axiom
      */
-    public OWLSameIndividualAxiomImpl(Collection<? extends OWLIndividual> individuals, Collection<OWLAnnotation> annotations) {
+    public OWLSameIndividualAxiomImpl(Collection<? extends OWLIndividual> individuals,
+                                      Collection<OWLAnnotation> annotations) {
         super(individuals, annotations);
     }
 

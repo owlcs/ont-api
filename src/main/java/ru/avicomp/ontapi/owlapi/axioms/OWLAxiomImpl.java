@@ -29,6 +29,7 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OWLAxiomImpl extends OWLObjectImpl implements OWLAxiom {
 
     protected final List<OWLAnnotation> annotations;
