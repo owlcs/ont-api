@@ -45,10 +45,9 @@ import java.util.stream.Collectors;
  * As a test.
  * Currently it is mostly to compare OWL-API and ONT-API read/write support.
  * See {@link OntFormat}.
- *
+ * <p>
  * Created by @szuev on 10.01.2018.
  */
-@SuppressWarnings("WeakerAccess")
 public class OntFormatsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntFormatsTest.class);
 
@@ -67,7 +66,7 @@ public class OntFormatsTest {
         // from owlapi-impl to compare.
         // use the simplest ontology to avoid any deep parsing exceptions
         OWLOntology ontology = OntManagers.createOWL().createOntology(IRI.create("http://test.org/empty"));
-        LOGGER.info("{}", ontology);
+        LOGGER.debug("{}", ontology);
         Set<OntFormat> writeNotSupported = new HashSet<>();
         Set<OntFormat> readNotSupported = new HashSet<>();
         for (OntFormat f : OntFormat.values()) {
@@ -96,7 +95,7 @@ public class OntFormatsTest {
 
     @Test
     public void testFormatSupporting() throws OWLOntologyCreationException, OWLOntologyStorageException {
-        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager m = OntManagers.createOWL();
         OWLDataFactory df = m.getOWLDataFactory();
         // make a simple ontology with class-assertion and sub-class-of axioms:
         OWLClass c1 = df.getOWLClass(IRI.create("http://test.org/class1"));
@@ -122,7 +121,7 @@ public class OntFormatsTest {
                 LOGGER.debug(txt);
             } catch (OWLStorerNotFoundException e) {
                 Assert.assertFalse(type + ": write should not be supported", type.isWriteSupported());
-                LOGGER.info("{} is not supported to write ", type);
+                LOGGER.debug("{} is not supported to write ", type);
                 continue;
             }
 
@@ -135,14 +134,14 @@ public class OntFormatsTest {
                 Assert.assertTrue(type + ": read should be supported", type.isReadSupported());
             } catch (UnparsableOntologyException e) {
                 Assert.assertFalse(type + ": should not be supported", type.isSupported());
-                LOGGER.info("{} is not supported to read ", type);
+                LOGGER.debug("{} is not supported to read ", type);
                 continue;
             }
             List<OWLAxiom> axioms = res.axioms().collect(Collectors.toList());
             LOGGER.debug("Format: {}. Axioms: {}", type, axioms);
             //noinspection unchecked
             if (!checkAxiomsCount(ont, res, AxiomType.CLASS_ASSERTION, AxiomType.SUBCLASS_OF)) {
-                LOGGER.warn("Can't find class assertion. Format: {}", format);
+                LOGGER.debug("Can't find class assertion. Format: {}", format);
                 if (!type.isSupported()) continue;
                 Assert.fail("Wrong axioms. Format: " + type);
             }
@@ -155,15 +154,15 @@ public class OntFormatsTest {
     }
 
     private static Path save(OWLOntology ontology, OntFormat type) {
-        Path dst = ReadWriteUtils.getFileToSave("formats-test", type);
-        LOGGER.debug("Save owl-ontology to " + dst.toUri() + " (" + (type == null ? "TURTLE" : type.getID()) + ")");
+        Path file = ReadWriteUtils.getFileToSave("formats-test", type);
+        LOGGER.debug("Save owl-ontology to {} ({})", file, type == null ? "TURTLE" : type.getID());
         OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
-        try (OutputStream out = Files.newOutputStream(dst)) {
+        try (OutputStream out = Files.newOutputStream(file)) {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
         } catch (OWLOntologyStorageException | IOException | UnsupportedOperationException e) {
-            LOGGER.warn("Unable to print owl-ontology " + ontology, e);
+            LOGGER.warn("Unable to print owl-ontology {}: '{}'", ontology, e.getMessage());
             return null;
         }
-        return dst;
+        return file;
     }
 }

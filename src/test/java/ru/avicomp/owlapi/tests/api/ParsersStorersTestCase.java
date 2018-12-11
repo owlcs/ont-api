@@ -100,7 +100,7 @@ public class ParsersStorersTestCase extends TestBase {
         LOGGER.debug("Axioms after parsing:");
         res.axioms().forEach(a -> LOGGER.debug("RESULT AXIOM {}", a));
         if (!expectRoundtrip) {
-            LOGGER.warn("Don't check the axiom contents.");
+            LOGGER.debug("Don't check the axiom contents.");
             return;
         }
         // original method doesn't care about annotations attached to axiom. so we save the same behaviour.

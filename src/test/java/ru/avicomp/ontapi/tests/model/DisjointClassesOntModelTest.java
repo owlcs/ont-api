@@ -51,7 +51,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
     @Test
     public void testDisjointAddRemoveInCycle() {
         IntStream.rangeClosed(1, 10).forEach(i -> {
-            LOGGER.info("ITER #{}", i);
+            LOGGER.debug("ITER #{}", i);
             testDisjointAddRemove();
         });
     }

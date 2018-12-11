@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.tests.managers;
 
 import org.apache.jena.rdf.model.Resource;
-import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
@@ -54,7 +53,8 @@ public class SimpleLoadTest {
     public void testFoaf() throws Exception {
         String fileName = "ontapi/foaf.rdf";
         OntologyManager manager = OntManagers.createONT();
-        OntLoaderConfiguration conf = manager.getOntologyLoaderConfiguration().setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
+        OntLoaderConfiguration conf = manager.getOntologyLoaderConfiguration()
+                .setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
         manager.setOntologyLoaderConfiguration(conf);
 
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
@@ -64,8 +64,9 @@ public class SimpleLoadTest {
         ReadWriteUtils.print(model);
 
         Set<Resource> illegalPunningURIs = TestUtils.getIllegalPunnings(model, OntModelConfig.StdMode.STRICT);
-        LOGGER.debug("There are following illegal punnins inside original graph: " + illegalPunningURIs);
-        List<OntEntity> illegalPunnings = model.ontEntities().filter(illegalPunningURIs::contains).collect(Collectors.toList());
+        LOGGER.debug("There are following illegal punnins inside original graph: {}", illegalPunningURIs);
+        List<OntEntity> illegalPunnings = model.ontEntities()
+                .filter(illegalPunningURIs::contains).collect(Collectors.toList());
         Assert.assertTrue("Has illegal punnings: " + illegalPunnings, illegalPunnings.isEmpty());
 
         List<OWLAxiom> ontList = ont.axioms().sorted().collect(Collectors.toList());
@@ -76,10 +77,11 @@ public class SimpleLoadTest {
                 .map(owl::referencingAxioms).flatMap(Function.identity()).collect(Collectors.toSet());
         LOGGER.debug("OWL Axioms to exclude from consideration (" + punningAxioms.size() + "): ");
         punningAxioms.stream().map(String::valueOf).forEach(LOGGER::debug);
-        List<OWLAxiom> owlList = owl.axioms().filter(axiom -> !punningAxioms.contains(axiom)).sorted().collect(Collectors.toList());
+        List<OWLAxiom> owlList = owl.axioms()
+                .filter(axiom -> !punningAxioms.contains(axiom)).sorted().collect(Collectors.toList());
         // by some mysterious reason OWL-API skips owl:equivalentProperty although it seems a good axiom.
-        test(owlList, ontList, Stream.of(AxiomType.DECLARATION, AxiomType.ANNOTATION_ASSERTION, AxiomType.EQUIVALENT_OBJECT_PROPERTIES).collect(Collectors.toSet()));
-
+        test(owlList, ontList, Stream.of(AxiomType.DECLARATION,
+                AxiomType.ANNOTATION_ASSERTION, AxiomType.EQUIVALENT_OBJECT_PROPERTIES).collect(Collectors.toSet()));
     }
 
     @Test
@@ -98,8 +100,8 @@ public class SimpleLoadTest {
 
         ReadWriteUtils.print(ont.asGraphModel());
 
-        Set<AxiomType> excluded = Stream.of(AxiomType.DECLARATION, AxiomType.CLASS_ASSERTION, AxiomType.DATA_PROPERTY_ASSERTION)
-                .collect(Collectors.toSet());
+        Set<AxiomType> excluded = Stream.of(AxiomType.DECLARATION,
+                AxiomType.CLASS_ASSERTION, AxiomType.DATA_PROPERTY_ASSERTION).collect(Collectors.toSet());
 
         test(owlList, ontList, excluded);
 
@@ -118,9 +120,9 @@ public class SimpleLoadTest {
                 .sorted().distinct().collect(Collectors.toList());
         List<OWLAxiom> actualDeclarations = ontList.stream()
                 .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).collect(Collectors.toList());
-        Assert.assertThat("Incorrect declaration axioms (actual=" + actualDeclarations.size() + ", expected=" +
+        Assert.assertEquals("Incorrect declaration axioms (actual=" + actualDeclarations.size() + ", expected=" +
                         expectedDeclarations.size() + ")",
-                actualDeclarations, IsEqual.equalTo(expectedDeclarations));
+                expectedDeclarations, actualDeclarations);
 
         LOGGER.debug("Test type <{}>", AxiomType.CLASS_ASSERTION);
         List<OWLAxiom> expectedClassAssertions = Stream.of(
@@ -133,9 +135,9 @@ public class SimpleLoadTest {
                 .sorted().distinct().collect(Collectors.toList());
         List<OWLAxiom> actualClassAssertions = ontList.stream()
                 .filter(a -> AxiomType.CLASS_ASSERTION.equals(a.getAxiomType())).collect(Collectors.toList());
-        Assert.assertThat("Incorrect class-assertions axioms (actual=" + actualClassAssertions.size() + ", expected=" +
+        Assert.assertEquals("Incorrect class-assertions axioms (actual=" + actualClassAssertions.size() + ", expected=" +
                         expectedClassAssertions.size() + ")",
-                actualClassAssertions, IsEqual.equalTo(expectedClassAssertions));
+                expectedClassAssertions, actualClassAssertions);
 
         LOGGER.debug("Test type <{}>", AxiomType.DATA_PROPERTY_ASSERTION);
         List<OWLAxiom> expectedDataPropertyAssertions = Stream.of(
@@ -148,10 +150,9 @@ public class SimpleLoadTest {
                 .sorted().distinct().collect(Collectors.toList());
         List<OWLAxiom> actualDataPropertyAssertions = ontList.stream()
                 .filter(a -> AxiomType.DATA_PROPERTY_ASSERTION.equals(a.getAxiomType())).collect(Collectors.toList());
-        Assert.assertThat("Incorrect data-property-assertions axioms (actual=" + actualDataPropertyAssertions.size() +
+        Assert.assertEquals("Incorrect data-property-assertions axioms (actual=" + actualDataPropertyAssertions.size() +
                         ", expected=" + expectedDataPropertyAssertions.size() + ")",
-                actualDataPropertyAssertions, IsEqual.equalTo(expectedDataPropertyAssertions));
-
+                expectedDataPropertyAssertions, actualDataPropertyAssertions);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -175,15 +176,17 @@ public class SimpleLoadTest {
     private void test(List<OWLAxiom> owlList, List<OWLAxiom> ontList, Set<AxiomType> excluded) {
         AxiomType.AXIOM_TYPES.forEach(type -> {
             if (excluded.contains(type)) {
-                LOGGER.warn("Skip <" + type + ">");
+                LOGGER.debug("Skip <{}>", type);
                 return;
             }
             List<OWLAxiom> actual = ontList.stream()
                     .filter(axiom -> type.equals(axiom.getAxiomType()))
                     .collect(Collectors.toList());
-            List<OWLAxiom> expected = owlList.stream().filter(axiom -> type.equals(axiom.getAxiomType())).collect(Collectors.toList());
+            List<OWLAxiom> expected = owlList.stream()
+                    .filter(axiom -> type.equals(axiom.getAxiomType())).collect(Collectors.toList());
             LOGGER.debug("Test type <{}> ::: {}", type, expected.size());
-            Assert.assertThat("Incorrect axioms for type <" + type + "> (actual(ont)=" + actual.size() + ", expected(owl)=" + expected.size() + ")", actual, IsEqual.equalTo(expected));
+            Assert.assertEquals("Incorrect axioms for type <" + type + "> (actual(ont)="
+                    + actual.size() + ", expected(owl)=" + expected.size() + ")", expected, actual);
         });
     }
 

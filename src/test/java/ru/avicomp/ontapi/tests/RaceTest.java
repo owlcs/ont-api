@@ -22,9 +22,7 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +41,6 @@ public class RaceTest {
     // constants for test tuning:
     private static final long TIMEOUT = 15_000; // 15s
     private static final Logger LOGGER = LoggerFactory.getLogger(RaceTest.class);
-    private static final PrintStream OUT = LOGGER.isDebugEnabled() ? System.out : ReadWriteUtils.NULL_OUT;
     private static final boolean ADD_WITH_ANNOTATIONS = true;
     private static final int ADD_THREADS_NUM = 6;
     private static final int REMOVE_THREADS_NUM = 4;
@@ -86,7 +83,8 @@ public class RaceTest {
         while (ready.get()) {
             OWLClass c = df.getOWLClass(IRI.create("test", "clazz" + random.nextInt()));
             OWLAxiom a = df.getOWLSubClassOfAxiom(c, df.getOWLThing(), annotations);
-            OUT.println("+ " + a);
+            if (LOGGER.isDebugEnabled())
+                LOGGER.debug("+ {}", a);
             o.add(a);
             long l = o.subClassAxiomsForSubClass(c).count();
             Assert.assertTrue(l == 0 || l == 1);
@@ -104,7 +102,8 @@ public class RaceTest {
         while (ready.get()) {
             Stream<? extends OWLAxiom> axioms = random.nextBoolean() ? o.axioms() : o.generalClassAxioms();
             axioms.findFirst().ifPresent(a -> {
-                OUT.println("- " + a);
+                if (LOGGER.isDebugEnabled())
+                    LOGGER.debug("- {}", a);
                 o.remove(a);
             });
         }
