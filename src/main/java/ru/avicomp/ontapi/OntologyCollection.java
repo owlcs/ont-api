@@ -21,19 +21,22 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * A collection to store anything that has {@link OWLOntologyID Ontology ID}.
- * Unlike the standard {@link java.util.Map},
- * this collection should not lose a value in case of an unpredictable key-id change.
+ * A collection to store anything that has {@link OWLOntologyID Ontology ID},
+ * it maps these key-ids to element-containers and behaves like a {@link java.util.Map}.
+ * But unlike the standard {@link java.util.Map},
+ * this collection should not lose a value in case of an unpredictable ontology id change of element-container.
  * This means that if such a change, that is external to this collection, has occurred,
  * the value can be found using a new key-id with the method {@link #get(OWLOntologyID)},
  * whereas a search, that uses the old key-id, should return an empty result.
- * In this sense, this collection behaves like a java {@link java.util.Collection}.
- * On the other hand, in case there are no external changed in relation of key-id,
+ * In this sense, this collection behaves like a java {@link java.util.Collection}
+ * and implementations, actually, might be based on it.
+ * But, on the other hand, in case there are no external changes in relation of key-id,
  * access by a key-id must be as fast as for a java {@link java.util.Map}.
  * <p>
  * Created by @ssz on 09.12.2018.
  *
  * @param <O> any subclass of {@link HasOntologyID}
+ * @since 1.3.2
  */
 public interface OntologyCollection<O extends HasOntologyID> {
 

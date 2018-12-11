@@ -261,7 +261,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 // In this case we may load it as separated model or include to the parent graph:
                 if (info.isAnonymous() && MissingOntologyHeaderStrategy.INCLUDE_GRAPH.equals(config.getMissingOntologyHeaderStrategy())) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("{}: remove import declaration <{}>.", name, uri);
+                        LOGGER.debug("<{}>: remove import declaration <{}>.", name, uri);
                     }
                     main.remove(Node.ANY, OWL.imports.asNode(), NodeFactory.createURI(uri));
                     GraphUtil.addInto(main, info.getGraph());
@@ -276,7 +276,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 if (MissingImportHandlingStrategy.THROW_EXCEPTION.equals(config.getMissingImportHandlingStrategy())) {
                     throw new UnloadableImportException(e, declaration);
                 }
-                LOGGER.warn("Ontology {}: can't read sub graph with {}. Exception: {}", name, declaration, e.getMessage());
+                LOGGER.warn("Ontology <{}>: can't read sub graph with {}. Exception: '{}'",
+                        name, declaration, e.getMessage());
             }
         }
         UnionGraph res = new UnionGraph(main);
