@@ -22,15 +22,12 @@ import org.semanticweb.owlapi.profiles.OWL2RLProfile;
 import org.semanticweb.owlapi.profiles.OWLProfileReport;
 import org.semanticweb.owlapi.profiles.OWLProfileViolation;
 import org.semanticweb.owlapi.profiles.violations.UseOfReservedVocabularyForAnnotationPropertyIRI;
-import org.semanticweb.owlapi.profiles.violations.UseOfUndeclaredAnnotationProperty;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.util.OWLObjectPropertyManager;
-import ru.avicomp.owlapi.OWLManager;
 import ru.avicomp.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Arrays;
 import java.util.List;
-
 
 @SuppressWarnings("javadoc")
 public class ForbiddenVocabularyTestCase extends TestBase {
@@ -364,31 +361,13 @@ public class ForbiddenVocabularyTestCase extends TestBase {
                 "</owl:Class>" +
                 "</rdf:RDF>";
         OWLOntologyManager m = setupManager();
-        if (!OWLManager.DEBUG_USE_OWL) {
-            // Disable the listing of declarations for ONT-API to match OWL-API behaviour.
-            // In OWL-API(not ONT-API) the second violation is UseOfUndeclaredAnnotationProperty
-            // But does it really make sense?
-            // Yes, there is no such axiom in OWL-API structural view,
-            // but after serializing in any (I hope) format
-            // there are no problems and all entities have correct (I believe) declarations.
-            // In fact there is no problem with declarations and
-            // I don't understand why they invited this category of violation.
-            // But anyway we can achieve the same behavior for ONT-API too.
-            ru.avicomp.ontapi.config.OntLoaderConfiguration conf = (ru.avicomp.ontapi.config.OntLoaderConfiguration) m.getOntologyLoaderConfiguration();
-            m.setOntologyLoaderConfiguration(conf.setAllowReadDeclarations(false));
-        }
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(input));
         ru.avicomp.ontapi.utils.ReadWriteUtils.print(o);
         OWL2DLProfile p = new OWL2DLProfile();
         OWLProfileReport checkOntology = p.checkOntology(o);
-        checkOntology.getViolations().forEach(v -> LOGGER.debug("VIOLATION: {}", v));
-        Assert.assertEquals(2, checkOntology.getViolations().size());
+        Assert.assertEquals(1, checkOntology.getViolations().size());
         OWLProfileViolation v = checkOntology.getViolations().get(0);
-        Assert.assertTrue(v instanceof UseOfUndeclaredAnnotationProperty
-                || v instanceof UseOfReservedVocabularyForAnnotationPropertyIRI);
-        v = checkOntology.getViolations().get(1);
-        Assert.assertTrue(v instanceof UseOfUndeclaredAnnotationProperty
-                || v instanceof UseOfReservedVocabularyForAnnotationPropertyIRI);
+        Assert.assertTrue(v instanceof UseOfReservedVocabularyForAnnotationPropertyIRI);
     }
 
     @Test
@@ -492,9 +471,6 @@ public class ForbiddenVocabularyTestCase extends TestBase {
         OWL2DLProfile profile = new OWL2DLProfile();
         List<OWLProfileViolation> violations = profile.checkOntology(o).getViolations();
         Assert.assertTrue(violations.isEmpty());
-        for (OWLProfileViolation v : violations) {
-            Assert.assertEquals(brokenAxiom1, v.getAxiom());
-        }
     }
 
     @Test

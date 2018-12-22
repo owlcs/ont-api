@@ -36,7 +36,6 @@ import static ru.avicomp.owlapi.OWLFunctionalSyntaxFactory.Double;
 import static ru.avicomp.owlapi.OWLFunctionalSyntaxFactory.Integer;
 import static ru.avicomp.owlapi.OWLFunctionalSyntaxFactory.*;
 
-
 @SuppressWarnings({"javadoc", "rawtypes"})
 public class OWLProfileTestCase extends TestBase {
 
@@ -566,7 +565,9 @@ public class OWLProfileTestCase extends TestBase {
     @Tests(method = "public Object visit(OWLDatatypeRestriction node)")
     public void shouldCreateViolationForOWLDatatypeRestrictionInOWL2Profile() {
         declare(o, DATAP);
-        o.add(DatatypeDefinition(Integer(), Boolean()), DATA_PROPERTY_RANGE2);
+        o.add(DatatypeDefinition(Integer(), Boolean()),
+                DatatypeDefinition(df.getOWLDatatype("urn:test:undeclaredDatatype"), Boolean()),
+                DATA_PROPERTY_RANGE2);
         int expected = 3;
         Class[] expectedViolations = {UseOfDefinedDatatypeInDatatypeRestriction.class,
                 UseOfIllegalFacetRestriction.class, UseOfUndeclaredDatatype.class};
