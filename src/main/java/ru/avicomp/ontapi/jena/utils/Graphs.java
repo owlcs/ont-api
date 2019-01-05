@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -33,7 +33,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,8 +49,8 @@ import java.util.stream.Stream;
 public class Graphs {
 
     /**
-     * Lists all top-level sub-graphs attached to the given composite graph-container,
-     * which is allowed to be either {@link UnionGraph} or {@link Polyadic} or {@link Dyadic}.
+     * Lists all top-level sub-graphs from the given composite graph-container,
+     * that is allowed to be either {@link UnionGraph} or {@link Polyadic} or {@link Dyadic}.
      * If the graph is not of the list above, an empty stream is expected.
      * The base graph is not included in the resulting stream.
      * In case of {@link Dyadic}, the left graph is considered as base.
@@ -239,7 +238,7 @@ public class Graphs {
      */
     public static Comparator<Node> rootNodeComparator(Graph graph) {
         return ((Comparator<Node>) (a, b) -> Boolean.compare(b.isURI(), a.isURI()))
-                .thenComparing(Comparator.comparingInt((ToIntFunction<Node>) subj ->
+                .thenComparing(Comparator.comparingInt((Node subj) ->
                         graph.find(subj, Node.ANY, Node.ANY).toList().size()).reversed());
     }
 
