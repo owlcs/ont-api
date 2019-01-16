@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.impl.*;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,7 +32,11 @@ import java.util.Map;
  */
 public class OntModelConfig {
 
-    // standard resources:
+    /**
+     * Standard resources.
+     *
+     * @see org.apache.jena.enhanced.BuiltinPersonalities#model
+     */
     public static final Personality<RDFNode> STANDARD_PERSONALITY = new Personality<RDFNode>()
             .add(Resource.class, ResourceImpl.factory)
             .add(Property.class, PropertyImpl.factory)
@@ -229,13 +234,28 @@ public class OntModelConfig {
             return add(key, m -> value);
         }
 
+        public OntPersonality build(OntPersonality from, Configurable.Mode mode) {
+            return putAll((OntPersonalityImpl) from.copy(), mode);
+        }
+
         public OntPersonality build(Personality<RDFNode> init, Configurable.Mode mode) {
             OntJenaException.notNull(mode, "Null mode.");
-            OntPersonality res = new OntPersonality(init == null ? new Personality<>() : init);
-            map.forEach((k, v) -> res.register(k, v.get(mode)));
-            return res;
+            BuiltIn.Vocabulary voc = BuiltIn.get();
+            // temporary:
+            OntPersonality.Builtins builtins = OntPersonalityImpl.createBuiltinsVocabulary(voc);
+            OntPersonality.Reserved reserved = OntPersonalityImpl.createReservedVocabulary(voc);
+            StdMode m = mode instanceof StdMode ? (StdMode) mode : StdMode.LAX;
+            OntPersonality.Punnings punnings = OntPersonalityImpl.createPunningsVocabulary(m);
+            Personality<RDFNode> from = init == null ? new Personality<>() : init;
+            OntPersonalityImpl res = new OntPersonalityImpl(from, punnings, builtins, reserved);
+            return putAll(res, mode);
         }
-    }
 
+        private OntPersonality putAll(OntPersonalityImpl personality, Configurable.Mode mode) {
+            map.forEach((k, v) -> personality.register(k, v.get(mode)));
+            return personality;
+        }
+
+    }
 
 }

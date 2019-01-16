@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 /**
  * Helper to work with constants from {@link ru.avicomp.ontapi.jena.vocabulary} and {@link org.apache.jena.vocabulary} packages.
  * The access provided through {@link Vocabulary} interface.
- * TODO: going to move to another place!
+ * TODO: move to another place ?
  * <p>
  * Created by @szuev on 21.12.2016.
  */
@@ -50,7 +50,8 @@ public class BuiltIn {
     public static final Vocabulary OWL_VOCABULARY = new OWLVocabulary();
     public static final Vocabulary DC_VOCABULARY = new DCVocabulary();
     public static final Vocabulary SKOS_VOCABULARY = new SKOSVocabulary();
-    public static final Vocabulary OWL_SKOS_DC_VOCABULARY = MultiVocabulary.create(OWL_VOCABULARY, DC_VOCABULARY, SKOS_VOCABULARY);
+    public static final Vocabulary OWL_SKOS_DC_VOCABULARY = MultiVocabulary.create(OWL_VOCABULARY,
+            DC_VOCABULARY, SKOS_VOCABULARY);
 
     protected static Vocabulary defaultVocabulary = OWL_SKOS_DC_VOCABULARY;
 
@@ -89,7 +90,8 @@ public class BuiltIn {
     }
 
     protected static <T> Set<T> getConstants(Class<T> type, Class... vocabularies) {
-        return Arrays.stream(vocabularies).map(voc -> constants(voc, type)).flatMap(Function.identity()).collect(Collectors.toSet());
+        return Arrays.stream(vocabularies)
+                .map(voc -> constants(voc, type)).flatMap(Function.identity()).collect(Iter.toUnmodifiableSet());
     }
 
     /**
@@ -115,17 +117,17 @@ public class BuiltIn {
 
         default Set<Resource> reserved() {
             return Stream.of(reservedProperties(), reservedResources())
-                    .flatMap(Collection::stream).collect(Collectors.toSet());
+                    .flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
         }
 
         default Set<Property> properties() {
             return Stream.of(annotationProperties(), datatypeProperties(), objectProperties())
-                    .flatMap(Collection::stream).collect(Collectors.toSet());
+                    .flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
         }
 
         default Set<Resource> entities() {
             return Stream.of(classes(), datatypes(), properties())
-                    .flatMap(Collection::stream).collect(Collectors.toSet());
+                    .flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
         }
     }
 
@@ -134,8 +136,9 @@ public class BuiltIn {
      */
     @SuppressWarnings("WeakerAccess")
     public static class OWLVocabulary implements Vocabulary {
-        public static final Set<Property> ALL_PROPERTIES = getConstants(Property.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);
-        public static final Set<Resource> ALL_RESOURCES = getConstants(Resource.class, XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class);
+        private static final Class[] VOCABULARIES = new Class[]{XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class};
+        public static final Set<Property> ALL_PROPERTIES = getConstants(Property.class, VOCABULARIES);
+        public static final Set<Resource> ALL_RESOURCES = getConstants(Resource.class, VOCABULARIES);
         /**
          * The list of datatypes from owl-2 specification (35 types)
          * (see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick References, 3.1 Built-in Datatypes</a>).
@@ -160,7 +163,8 @@ public class BuiltIn {
 
         public static final Set<Property> ANNOTATION_PROPERTIES =
                 Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy, OWL.versionInfo,
-                        OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated).collect(Iter.toUnmodifiableSet());
+                        OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated)
+                        .collect(Iter.toUnmodifiableSet());
         public static final Set<Property> DATA_PROPERTIES =
                 Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Iter.toUnmodifiableSet());
         public static final Set<Property> OBJECT_PROPERTIES =
@@ -272,19 +276,22 @@ public class BuiltIn {
         public static final Set<Property> ANNOTATION_PROPERTIES =
                 Stream.of(SKOS.altLabel, SKOS.changeNote, SKOS.definition,
                         SKOS.editorialNote, SKOS.example, SKOS.hiddenLabel, SKOS.historyNote,
-                        SKOS.note, SKOS.prefLabel, SKOS.scopeNote).collect(Iter.toUnmodifiableSet());
+                        SKOS.note, SKOS.prefLabel, SKOS.scopeNote)
+                        .collect(Iter.toUnmodifiableSet());
         public static final Set<Property> OBJECT_PROPERTIES =
                 Stream.of(SKOS.broadMatch, SKOS.broader, SKOS.broaderTransitive,
                         SKOS.closeMatch, SKOS.exactMatch, SKOS.hasTopConcept, SKOS.inScheme,
                         SKOS.mappingRelation, SKOS.member, SKOS.memberList, SKOS.narrowMatch,
                         SKOS.narrower, SKOS.narrowerTransitive, SKOS.related,
-                        SKOS.relatedMatch, SKOS.semanticRelation, SKOS.topConceptOf).collect(Iter.toUnmodifiableSet());
+                        SKOS.relatedMatch, SKOS.semanticRelation, SKOS.topConceptOf)
+                        .collect(Iter.toUnmodifiableSet());
         /**
          * NOTE: In the {@link org.semanticweb.owlapi.vocab.SKOSVocabulary} there is also skos:TopConcept
          * But in fact there is no such resource in the <a href='https://www.w3.org/2009/08/skos-reference/skos.htm'>specification</a>.
          */
         public static final Set<Resource> CLASSES =
-                Stream.of(SKOS.Collection, SKOS.Concept, SKOS.ConceptScheme, SKOS.OrderedCollection).collect(Iter.toUnmodifiableSet());
+                Stream.of(SKOS.Collection, SKOS.Concept, SKOS.ConceptScheme, SKOS.OrderedCollection)
+                        .collect(Iter.toUnmodifiableSet());
 
         @Override
         public Set<Property> annotationProperties() {
@@ -348,22 +355,25 @@ public class BuiltIn {
         }
 
         protected <R extends Resource> Set<R> merge(Function<Vocabulary, Set<R>> map) {
-            return vocabularies.stream().map(map).flatMap(Collection::stream).collect(Collectors.toSet());
+            return vocabularies.stream().map(map).flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
         }
 
         @Override
         public Set<Property> annotationProperties() {
-            return annotationProperties == null ? annotationProperties = merge(Vocabulary::annotationProperties) : annotationProperties;
+            return annotationProperties == null ?
+                    annotationProperties = merge(Vocabulary::annotationProperties) : annotationProperties;
         }
 
         @Override
         public Set<Property> datatypeProperties() {
-            return datatypeProperties == null ? datatypeProperties = merge(Vocabulary::datatypeProperties) : datatypeProperties;
+            return datatypeProperties == null ?
+                    datatypeProperties = merge(Vocabulary::datatypeProperties) : datatypeProperties;
         }
 
         @Override
         public Set<Property> objectProperties() {
-            return objectProperties == null ? objectProperties = merge(Vocabulary::objectProperties) : objectProperties;
+            return objectProperties == null ?
+                    objectProperties = merge(Vocabulary::objectProperties) : objectProperties;
         }
 
         @Override
@@ -378,12 +388,14 @@ public class BuiltIn {
 
         @Override
         public Set<Resource> reservedResources() {
-            return reservedResources == null ? reservedResources = merge(Vocabulary::reservedResources) : reservedResources;
+            return reservedResources == null ?
+                    reservedResources = merge(Vocabulary::reservedResources) : reservedResources;
         }
 
         @Override
         public Set<Property> reservedProperties() {
-            return reservedProperties == null ? reservedProperties = merge(Vocabulary::reservedProperties) : reservedProperties;
+            return reservedProperties == null ?
+                    reservedProperties = merge(Vocabulary::reservedProperties) : reservedProperties;
         }
     }
 }

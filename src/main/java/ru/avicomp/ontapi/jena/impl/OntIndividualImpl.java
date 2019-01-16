@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -18,6 +18,7 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -43,19 +44,21 @@ import java.util.stream.Stream;
 public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
     public static final OntFilter ANONYMOUS_FILTER = OntIndividualImpl::testAnonymousIndividual;
+
     public static final Set<Node> ALLOWED_IN_SUBJECT_PREDICATES =
             Stream.concat(Entities.BUILTIN.properties().stream(), Stream.of(OWL.sameAs, OWL.differentFrom))
                     .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
-
-    public static final Set<Node> BUILT_IN_SUBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
-            .map(FrontsNode::asNode)
-            .filter(n -> !ALLOWED_IN_SUBJECT_PREDICATES.contains(n))
-            .collect(Iter.toUnmodifiableSet());
     public static final Set<Node> ALLOWED_IN_OBJECT_PREDICATES =
             Stream.concat(Entities.BUILTIN.properties().stream(),
                     Stream.of(OWL.sameAs, OWL.differentFrom, OWL.sourceIndividual, OWL.hasValue, RDF.first))
                     .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
-    public static final Set<Node> BUILT_IN_OBJECT_PREDICATE_SET = Entities.BUILTIN.reservedProperties().stream()
+
+    public static final Set<Property> RESERVED = Entities.BUILTIN.reservedProperties();
+    public static final Set<Node> BUILT_IN_SUBJECT_PREDICATE_SET = RESERVED.stream()
+            .map(FrontsNode::asNode)
+            .filter(n -> !ALLOWED_IN_SUBJECT_PREDICATES.contains(n))
+            .collect(Iter.toUnmodifiableSet());
+    public static final Set<Node> BUILT_IN_OBJECT_PREDICATE_SET = RESERVED.stream()
             .map(FrontsNode::asNode)
             .filter(n -> !ALLOWED_IN_OBJECT_PREDICATES.contains(n))
             .collect(Iter.toUnmodifiableSet());
@@ -100,7 +103,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         } finally {
             bySubject.close();
         }
-        // _:x @built-in-predicate @any:
+        // @any @built-in-predicate _:x
         ExtendedIterator<Node> byObject = eg.asGraph().find(Node.ANY, Node.ANY, node).mapWith(Triple::getPredicate);
         try {
             while (byObject.hasNext()) {
@@ -110,7 +113,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         } finally {
             byObject.close();
         }
-        // any other blank node could be treated as anonymous individual:
+        // tolerantly allow any other blank node to be treated as anonymous individual:
         return true;
     }
 

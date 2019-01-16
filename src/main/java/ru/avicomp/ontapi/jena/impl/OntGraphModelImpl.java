@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -57,11 +58,19 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @param personality {@link OntPersonality}
      */
     public OntGraphModelImpl(Graph graph, OntPersonality personality) {
-        super(graph, OntJenaException.notNull(personality, "Null personality"));
+        super(graph, toJenaPersonality(personality));
     }
 
-    @Override
-    public OntPersonality getPersonality() {
+    @SuppressWarnings("unchecked")
+    public static Personality<RDFNode> toJenaPersonality(OntPersonality p) {
+        OntJenaException.notNull(p, "Null OntPersonality");
+        if (p instanceof Personality) {
+            return (Personality<RDFNode>) p;
+        }
+        throw new OntJenaException.IllegalArgument("The given OntPersonality is not an instance of Jena Personality.");
+    }
+
+    public OntPersonality getOntPersonality() {
         return (OntPersonality) super.getPersonality();
     }
 
@@ -176,7 +185,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
 
     @Override
     public Stream<OntGraphModel> imports() {
-        return imports(getPersonality());
+        return imports(getOntPersonality());
     }
 
     public Stream<OntGraphModel> imports(OntPersonality personality) {
@@ -196,7 +205,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
         if (independent()) {
             return this;
         }
-        return new OntGraphModelImpl(getBaseGraph(), getPersonality());
+        return new OntGraphModelImpl(getBaseGraph(), getOntPersonality());
     }
 
     /**
@@ -258,7 +267,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
      */
     public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModelImpl m, Class<? extends O> type) {
-        return m.getPersonality().getOntImplementation(type).iterator(m).mapWith(e -> m.getNodeAs(e.asNode(), type));
+        return m.getOntPersonality().getOntImplementation(type).iterator(m).mapWith(e -> m.getNodeAs(e.asNode(), type));
     }
 
     @Override
@@ -337,7 +346,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      */
     public <T extends OntObject> T createOntObject(Class<T> type, String uri) {
         Node key = Graphs.createNode(uri);
-        T res = getPersonality().getOntImplementation(type).create(key, this).as(type);
+        T res = getOntPersonality().getOntImplementation(type).create(key, this).as(type);
         getNodeCache().put(key, res);
         return res;
     }

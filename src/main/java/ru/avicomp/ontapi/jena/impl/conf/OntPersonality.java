@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,61 +14,86 @@
 
 package ru.avicomp.ontapi.jena.impl.conf;
 
-import org.apache.jena.enhanced.Implementation;
-import org.apache.jena.enhanced.Personality;
-import org.apache.jena.rdf.model.RDFNode;
-import ru.avicomp.ontapi.jena.OntJenaException;
+import org.apache.jena.rdf.model.Resource;
+import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
 /**
- * Personality (mappings from [interface] Class objects of RDFNode to {@link Implementation} factories)
- * <p>
- * Created by @szuev on 10.11.2016.
+ * A {@link ru.avicomp.ontapi.jena.model.OntGraphModel Ontology RDF Model} configuration object,
+ * that serves for the following purposes:
+ * <ul>
+ * <li>Defines a set of permitted mappings from [interface] Class objects to {@link OntObjectFactory} factories that can generate instances of the facet represented by the Class.</li>
+ * <li>Defines a set of builtin {@link OntEntity entities}, that do not require explicit declarations</li>
+ * <li>Defines a set of OWL punnings</li>
+ * <li>Defines a set of reserved {@link Resource}s and {@link org.apache.jena.rdf.model.Property}s, that cannot be used as OWL Entities</li>
+ * </ul>
+ * Created by @szz on 15.01.2019.
  */
-public class OntPersonality extends Personality<RDFNode> {
+public interface OntPersonality {
 
-    public OntPersonality(Personality<RDFNode> other) {
-        super(other);
+    /**
+     * Gets the implementation-factory for the specified type,
+     * returning {@code null} if there isn't one available.
+     * TODO: change return type form a concrete class to an interface.
+     *
+     * @param type a class-type of {@link OntObject}
+     * @return {@link OntObjectFactory} a factory to create an instance of the given type
+     */
+    OntObjectFactory getOntImplementation(Class<? extends OntObject> type);
+
+    /**
+     * Makes a full copy of this configuration.
+     *
+     * @return {@link OntPersonality} a new instance identical to this
+     */
+    OntPersonality copy();
+
+    /**
+     * Returns a punnings vocabulary.
+     *
+     * @return {@link Punnings}
+     */
+    Punnings getPunnings();
+
+    /**
+     * Returns a builtins vocabulary.
+     *
+     * @return {@link Builtins}
+     */
+    Builtins getBuiltins();
+
+    /**
+     * Returns a reserved vocabulary.
+     *
+     * @return {@link Reserved}
+     */
+    Reserved getReserved();
+
+    /**
+     * A vocabulary of built-in {@link OntEntity OWL Entities}.
+     * A {@link ru.avicomp.ontapi.jena.model.OntGraphModel model}, that holds this configuration,
+     * can contain entities without explicit declarations, it they IRIs are determined by this vocabulary.
+     */
+    interface Builtins extends Vocabulary<OntEntity> {
     }
 
     /**
-     * Registers new OntObject if needed
+     * A punnings vocabulary.
+     * For a given {@link OntEntity} type it returns a {@code Set} of forbidden types.
+     * A {@link ru.avicomp.ontapi.jena.model.OntGraphModel model}, that holds this configuration,
+     * cannot contain entities which have intersection in {@link ru.avicomp.ontapi.jena.vocabulary.RDF#type rdf:type}
+     * that are determined by this vocabulary.
      *
-     * @param view    Interface (OntObject)
-     * @param factory Factory to crete object
-     * @return this instance
+     * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>Punnings</a>
      */
-    public OntPersonality register(Class<? extends OntObject> view, OntObjectFactory factory) {
-        return (OntPersonality) super.add(OntJenaException.notNull(view, "Null view."), OntJenaException.notNull(factory, "Null factory."));
+    interface Punnings extends Vocabulary<OntEntity> {
     }
 
     /**
-     * Removes factory.
-     *
-     * @param view Interface (OntObject)
+     * A vocabulary of reserved IRIs.
+     * A {@link ru.avicomp.ontapi.jena.model.OntGraphModel model}, that holds this configuration,
+     * cannot contain entities with IRIs from this vocabulary.
      */
-    public void unregister(Class<? extends OntObject> view) {
-        getMap().remove(view);
-    }
-
-    /**
-     * Gets factory for OntObject
-     *
-     * @param view Interface (OntObject)
-     * @return {@link OntObjectFactory} factory.
-     */
-    public OntObjectFactory getOntImplementation(Class<? extends OntObject> view) {
-        return (OntObjectFactory) OntJenaException.notNull(getImplementation(view), "Can't find factory for object " + view);
-    }
-
-    @Override
-    public OntPersonality add(Personality<RDFNode> other) {
-        super.add(other);
-        return this;
-    }
-
-    @Override
-    public OntPersonality copy() {
-        return new OntPersonality(this);
+    interface Reserved extends Vocabulary<Resource> {
     }
 }
