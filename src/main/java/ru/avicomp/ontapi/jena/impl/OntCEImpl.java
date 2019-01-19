@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -32,6 +32,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -45,139 +46,161 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     public static final OntFinder CLASS_FINDER = new OntFinder.ByType(OWL.Class);
     public static final OntFinder RESTRICTION_FINDER = new OntFinder.ByType(OWL.Restriction);
     public static final OntFilter RESTRICTION_FILTER = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Restriction));
-    public static final OntFilter CE_FITTING_FILTER = new OntFilter.OneOf(Entities.CLASS.builtInURIs())
-            .or(new OntFilter.HasType(OWL.Class).or(new OntFilter.HasType(OWL.Restriction)));
 
-    public static OntObjectFactory unionOfCEFactory = createCEFactory(UnionOfImpl.class, OWL.unionOf, RDFList.class);
-    public static OntObjectFactory intersectionOfCEFactory = createCEFactory(IntersectionOfImpl.class, OWL.intersectionOf, RDFList.class);
-    public static OntObjectFactory oneOfCEFactory = createCEFactory(OneOfImpl.class, OWL.oneOf, RDFList.class);
-    public static OntObjectFactory complementOfCEFactory = createCEFactory(ComplementOfImpl.class, OWL.complementOf, OntCE.class);
+    public static ObjectFactory unionOfCEFactory = createCEFactory(UnionOfImpl.class, OWL.unionOf, RDFList.class);
+    public static ObjectFactory intersectionOfCEFactory = createCEFactory(IntersectionOfImpl.class,
+            OWL.intersectionOf, RDFList.class);
+    public static ObjectFactory oneOfCEFactory = createCEFactory(OneOfImpl.class, OWL.oneOf, RDFList.class);
+    public static ObjectFactory complementOfCEFactory = createCEFactory(ComplementOfImpl.class,
+            OWL.complementOf, OntCE.class);
 
-    public static OntObjectFactory objectSomeValuesOfCEFactory = createRestrictionFactory(ObjectSomeValuesFromImpl.class,
+    public static ObjectFactory objectSomeValuesOfCEFactory = createRestrictionFactory(ObjectSomeValuesFromImpl.class,
             RestrictionType.OBJECT, ObjectRestrictionType.CLASS, OWL.someValuesFrom);
-    public static OntObjectFactory dataSomeValuesOfCEFactory = createRestrictionFactory(DataSomeValuesFromImpl.class,
+    public static ObjectFactory dataSomeValuesOfCEFactory = createRestrictionFactory(DataSomeValuesFromImpl.class,
             RestrictionType.DATA, ObjectRestrictionType.DATA_RANGE, OWL.someValuesFrom);
 
-    public static OntObjectFactory objectAllValuesOfCEFactory = createRestrictionFactory(ObjectAllValuesFromImpl.class,
+    public static ObjectFactory objectAllValuesOfCEFactory = createRestrictionFactory(ObjectAllValuesFromImpl.class,
             RestrictionType.OBJECT, ObjectRestrictionType.CLASS, OWL.allValuesFrom);
-    public static OntObjectFactory dataAllValuesOfCEFactory = createRestrictionFactory(DataAllValuesFromImpl.class,
+    public static ObjectFactory dataAllValuesOfCEFactory = createRestrictionFactory(DataAllValuesFromImpl.class,
             RestrictionType.DATA, ObjectRestrictionType.DATA_RANGE, OWL.allValuesFrom);
 
-    public static OntObjectFactory objectHasValueCEFactory = createRestrictionFactory(ObjectHasValueImpl.class,
+    public static ObjectFactory objectHasValueCEFactory = createRestrictionFactory(ObjectHasValueImpl.class,
             RestrictionType.OBJECT, ObjectRestrictionType.INDIVIDUAL, OWL.hasValue);
-    public static OntObjectFactory dataHasValueCEFactory = createRestrictionFactory(DataHasValueImpl.class,
+    public static ObjectFactory dataHasValueCEFactory = createRestrictionFactory(DataHasValueImpl.class,
             RestrictionType.DATA, ObjectRestrictionType.LITERAL, OWL.hasValue);
 
-    public static OntObjectFactory dataMinCardinalityCEFactory = createRestrictionFactory(DataMinCardinalityImpl.class,
+    public static ObjectFactory dataMinCardinalityCEFactory = createRestrictionFactory(DataMinCardinalityImpl.class,
             RestrictionType.DATA, CardinalityType.MIN);
-    public static OntObjectFactory objectMinCardinalityCEFactory = createRestrictionFactory(ObjectMinCardinalityImpl.class,
+    public static ObjectFactory objectMinCardinalityCEFactory = createRestrictionFactory(ObjectMinCardinalityImpl.class,
             RestrictionType.OBJECT, CardinalityType.MIN);
 
-    public static OntObjectFactory dataMaxCardinalityCEFactory = createRestrictionFactory(DataMaxCardinalityImpl.class,
+    public static ObjectFactory dataMaxCardinalityCEFactory = createRestrictionFactory(DataMaxCardinalityImpl.class,
             RestrictionType.DATA, CardinalityType.MAX);
-    public static OntObjectFactory objectMaxCardinalityCEFactory = createRestrictionFactory(ObjectMaxCardinalityImpl.class,
+    public static ObjectFactory objectMaxCardinalityCEFactory = createRestrictionFactory(ObjectMaxCardinalityImpl.class,
             RestrictionType.OBJECT, CardinalityType.MAX);
 
-    public static OntObjectFactory dataCardinalityCEFactory = createRestrictionFactory(DataCardinalityImpl.class,
+    public static ObjectFactory dataCardinalityCEFactory = createRestrictionFactory(DataCardinalityImpl.class,
             RestrictionType.DATA, CardinalityType.EXACTLY);
-    public static OntObjectFactory objectCardinalityCEFactory = createRestrictionFactory(ObjectCardinalityImpl.class,
+    public static ObjectFactory objectCardinalityCEFactory = createRestrictionFactory(ObjectCardinalityImpl.class,
             RestrictionType.OBJECT, CardinalityType.EXACTLY);
 
-    public static OntObjectFactory hasSelfCEFactory = new CommonOntObjectFactory(new HasSelfMaker(),
+    public static ObjectFactory hasSelfCEFactory = Factories.createCommon(new HasSelfMaker(),
             RESTRICTION_FINDER, OntFilter.BLANK.and(new HasSelfFilter()));
 
     //see <a href='https://www.w3.org/TR/owl2-quick-reference/#Class_Expressions'>Restrictions Using n-ary Data Range</a>
-    public static OntObjectFactory naryDataAllValuesFromCEFactory = createNaryFactory(NaryDataAllValuesFromImpl.class, OWL.allValuesFrom);
-    public static OntObjectFactory naryDataSomeValuesFromCEFactory = createNaryFactory(NaryDataSomeValuesFromImpl.class, OWL.someValuesFrom);
+    public static ObjectFactory naryDataAllValuesFromCEFactory = createNaryFactory(NaryDataAllValuesFromImpl.class,
+            OWL.allValuesFrom);
+    public static ObjectFactory naryDataSomeValuesFromCEFactory = createNaryFactory(NaryDataSomeValuesFromImpl.class,
+            OWL.someValuesFrom);
 
-    public static OntObjectFactory abstractNaryRestrictionCEFactory = new MultiOntObjectFactory(RESTRICTION_FINDER, null,
-            naryDataAllValuesFromCEFactory, naryDataSomeValuesFromCEFactory);
+    //B oolean Connectives and Enumeration of Individuals:
+    public static ObjectFactory abstractComponentsCEFactory = Factories.createFrom(CLASS_FINDER
+            , UnionOf.class
+            , IntersectionOf.class
+            , OneOf.class);
+    // Cardinality:
+    public static ObjectFactory abstractCardinalityRestrictionCEFactory = Factories.createFrom(RESTRICTION_FINDER
+            , ObjectMaxCardinality.class
+            , DataMaxCardinality.class
+            , ObjectMinCardinality.class
+            , DataMinCardinality.class
+            , ObjectCardinality.class
+            , DataCardinality.class);
 
-    //Boolean Connectives and Enumeration of Individuals
-    public static OntObjectFactory abstractComponentsCEFactory = new MultiOntObjectFactory(CLASS_FINDER, null,
-            unionOfCEFactory, intersectionOfCEFactory, oneOfCEFactory);
-    public static OntObjectFactory abstractNoneRestrictionCEFactory = new MultiOntObjectFactory(CLASS_FINDER, null,
-            abstractComponentsCEFactory, complementOfCEFactory);
+    // Cardinality + existential/universal Restrictions:
+    public static ObjectFactory abstractComponentRestrictionCEFactory = Factories.createFrom(RESTRICTION_FINDER
+            , ObjectMaxCardinality.class
+            , DataMaxCardinality.class
+            , ObjectMinCardinality.class
+            , DataMinCardinality.class
+            , ObjectCardinality.class
+            , DataCardinality.class
+            , ObjectSomeValuesFrom.class
+            , DataSomeValuesFrom.class
+            , ObjectAllValuesFrom.class
+            , DataAllValuesFrom.class
+            , ObjectHasValue.class
+            , DataHasValue.class);
 
-    public static OntObjectFactory abstractCardinalityRestrictionCEFactory = new MultiOntObjectFactory(RESTRICTION_FINDER, null,
-            objectMinCardinalityCEFactory, dataMinCardinalityCEFactory,
-            objectMaxCardinalityCEFactory, dataMaxCardinalityCEFactory,
-            objectCardinalityCEFactory, dataCardinalityCEFactory);
-    public static OntObjectFactory abstractNoneCardinalityRestrictionCEFactory = new MultiOntObjectFactory(RESTRICTION_FINDER, null,
-            objectSomeValuesOfCEFactory, dataSomeValuesOfCEFactory,
-            objectAllValuesOfCEFactory, dataAllValuesOfCEFactory,
-            objectHasValueCEFactory, dataHasValueCEFactory,
-            abstractNaryRestrictionCEFactory);
+    // Cardinality + existential/universal Restrictions + n-ary existential/universal + local reflexivity (hasSelf):
+    public static ObjectFactory abstractRestrictionCEFactory = Factories.createFrom(RESTRICTION_FINDER
+            , ObjectMaxCardinality.class
+            , DataMaxCardinality.class
+            , ObjectMinCardinality.class
+            , DataMinCardinality.class
+            , ObjectCardinality.class
+            , DataCardinality.class
+            , ObjectSomeValuesFrom.class
+            , DataSomeValuesFrom.class
+            , ObjectAllValuesFrom.class
+            , DataAllValuesFrom.class
+            , ObjectHasValue.class
+            , DataHasValue.class
+            , NaryDataSomeValuesFrom.class
+            , NaryDataAllValuesFrom.class
+            , HasSelf.class);
 
-    public static OntObjectFactory abstractComponentRestrictionCEFactory = new MultiOntObjectFactory(RESTRICTION_FINDER, null,
-            abstractCardinalityRestrictionCEFactory, abstractNoneCardinalityRestrictionCEFactory);
-
-    public static OntObjectFactory abstractRestrictionCEFactory = new MultiOntObjectFactory(RESTRICTION_FINDER, null,
-            abstractComponentRestrictionCEFactory, hasSelfCEFactory);
-
-    public static OntObjectFactory abstractAnonymousCEFactory = new MultiOntObjectFactory(OntFinder.TYPED, null,
-            abstractNoneRestrictionCEFactory, abstractRestrictionCEFactory);
-
-    /*public static Configurable<OntObjectFactory> abstractCEFactory = buildMultiFactory(OntFinder.TYPED, CE_FITTING_FILTER,
-            Entities.CLASS, abstractAnonymousCEFactory);*/
-    public static Configurable<OntObjectFactory> abstractCEFactory = ClassExpressionFactory::build;
+    // All:
+    public static ObjectFactory abstractCEFactory = ClassExpressionFactory.createFactory();
 
     public OntCEImpl(Node n, EnhGraph m) {
         super(n, m);
     }
 
     @Deprecated
-    protected static OntObjectFactory createCEFactory(Class<? extends OntCEImpl> impl, Property predicate) {
+    protected static ObjectFactory createCEFactory(Class<? extends OntCEImpl> impl, Property predicate) {
         OntMaker maker = new OntMaker.WithType(impl, OWL.Class);
         OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Class)).and(new OntFilter.HasPredicate(predicate));
-        return new CommonOntObjectFactory(maker, CLASS_FINDER, filter);
+        return Factories.createCommon(maker, CLASS_FINDER, filter);
     }
 
-    protected static OntObjectFactory createCEFactory(Class<? extends OntCEImpl> impl, Property predicate, Class<? extends RDFNode> view) {
+    protected static ObjectFactory createCEFactory(Class<? extends OntCEImpl> impl,
+                                                   Property predicate,
+                                                   Class<? extends RDFNode> view) {
         OntMaker maker = new OntMaker.WithType(impl, OWL.Class);
         OntFilter filter = OntFilter.BLANK.and(new OntFilter.HasType(OWL.Class))
                 .and((n, g) -> {
                     ExtendedIterator<Triple> res = g.asGraph().find(n, predicate.asNode(), Node.ANY);
                     try {
                         while (res.hasNext()) {
-                            if (OntObjectImpl.canAs(view, res.next().getObject(), g)) return true;
+                            if (PersonalityModel.canAs(view, res.next().getObject(), g)) return true;
                         }
                     } finally {
                         res.close();
                     }
                     return false;
                 });
-        return new CommonOntObjectFactory(maker, CLASS_FINDER, filter);
+        return Factories.createCommon(maker, CLASS_FINDER, filter);
     }
 
-    protected static OntObjectFactory createRestrictionFactory(Class<? extends CardinalityRestrictionCEImpl> impl,
-                                                               RestrictionType restrictionType,
-                                                               CardinalityType cardinalityType) {
+    protected static ObjectFactory createRestrictionFactory(Class<? extends CardinalityRestrictionCEImpl> impl,
+                                                            RestrictionType restrictionType,
+                                                            CardinalityType cardinalityType) {
         OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
         OntFilter filter = RESTRICTION_FILTER
                 .and(cardinalityType.getFilter())
                 .and(restrictionType.getFilter());
-        return new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
+        return Factories.createCommon(maker, RESTRICTION_FINDER, filter);
     }
 
-    protected static OntObjectFactory createRestrictionFactory(Class<? extends ComponentRestrictionCEImpl> impl,
-                                                               RestrictionType propertyType,
-                                                               ObjectRestrictionType objectType,
-                                                               Property predicate) {
+    protected static ObjectFactory createRestrictionFactory(Class<? extends ComponentRestrictionCEImpl> impl,
+                                                            RestrictionType propertyType,
+                                                            ObjectRestrictionType objectType,
+                                                            Property predicate) {
         OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
         OntFilter filter = RESTRICTION_FILTER
                 .and(propertyType.getFilter())
                 .and(objectType.getFilter(predicate));
-        return new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
+        return Factories.createCommon(maker, RESTRICTION_FINDER, filter);
     }
 
-    protected static OntObjectFactory createNaryFactory(Class<? extends NaryRestrictionCEImpl> impl,
-                                                        Property predicate) {
+    protected static ObjectFactory createNaryFactory(Class<? extends NaryRestrictionCEImpl> impl,
+                                                     Property predicate) {
         OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
         OntFilter filter = RESTRICTION_FILTER
                 .and(new OntFilter.HasPredicate(predicate))
                 .and(new OntFilter.HasPredicate(OWL.onProperties));
-        return new CommonOntObjectFactory(maker, RESTRICTION_FINDER, filter);
+        return Factories.createCommon(maker, RESTRICTION_FINDER, filter);
     }
 
     public static boolean isQualified(OntObject c) {
@@ -260,7 +283,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static OntList<OntDOP> createHasKey(OntGraphModelImpl m, OntCE clazz, Stream<? extends OntDOP> collection) {
-        return OntListImpl.create(m, clazz, OWL.hasKey, OntDOP.class, collection.distinct().map(OntDOP.class::cast).iterator());
+        return OntListImpl.create(m, clazz, OWL.hasKey, OntDOP.class,
+                collection.distinct().map(OntDOP.class::cast).iterator());
     }
 
     public static Optional<OntList<OntDOP>> findHasKey(OntCE clazz, RDFNode list) {
@@ -411,7 +435,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             ExtendedIterator<Triple> res = graph.asGraph().find(node, predicate.asNode(), Node.ANY);
             try {
                 while (res.hasNext()) {
-                    if (OntObjectImpl.canAs(v, res.next().getObject(), graph)) return true;
+                    if (PersonalityModel.canAs(v, res.next().getObject(), graph)) return true;
                 }
             } finally {
                 res.close();
@@ -912,52 +936,62 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
      * Created by @ssz on 01.09.2018.
      */
     @SuppressWarnings("WeakerAccess")
-    public static class ClassExpressionFactory extends OntObjectFactory {
+    public static class ClassExpressionFactory extends BaseFactoryImpl {
         private static final Node CLASS = OWL.Class.asNode();
         private static final Node RESTRICTION = OWL.Restriction.asNode();
-        private final OntObjectFactory namedClass;
-        private final Collection<OntObjectFactory> anonymousClasses, restrictions;
+        private final ObjectFactory namedClass;
+        private final Collection<ObjectFactory> anonymousClasses, restrictions;
 
-        protected ClassExpressionFactory(OntObjectFactory namedClass,
-                                         Collection<OntObjectFactory> anonymousClasses,
-                                         Collection<OntObjectFactory> restrictions) {
+        protected ClassExpressionFactory(ObjectFactory namedClass,
+                                         Collection<ObjectFactory> anonymousClasses,
+                                         Collection<ObjectFactory> restrictions) {
             this.namedClass = namedClass;
             this.anonymousClasses = anonymousClasses;
             this.restrictions = restrictions;
         }
 
-        public static OntObjectFactory build(Configurable.Mode m) {
-            return new ClassExpressionFactory(Entities.CLASS.select(m),
-                    Arrays.asList(unionOfCEFactory
-                            , intersectionOfCEFactory
-                            , oneOfCEFactory
-                            , complementOfCEFactory),
-                    Arrays.asList(objectSomeValuesOfCEFactory
-                            , dataSomeValuesOfCEFactory
-                            , objectAllValuesOfCEFactory
-                            , dataAllValuesOfCEFactory
-                            , objectHasValueCEFactory
-                            , dataHasValueCEFactory
-                            , dataMinCardinalityCEFactory
-                            , objectMinCardinalityCEFactory
-                            , dataMaxCardinalityCEFactory
-                            , objectMaxCardinalityCEFactory
-                            , dataCardinalityCEFactory
-                            , objectCardinalityCEFactory
-                            , hasSelfCEFactory
-                            , naryDataAllValuesFromCEFactory
-                            , naryDataSomeValuesFromCEFactory));
+        public static ObjectFactory createFactory() {
+            return new ClassExpressionFactory(of(OntClass.class),
+                    of(UnionOf.class
+                            , IntersectionOf.class
+                            , OneOf.class
+                            , ComplementOf.class),
+                    of(ObjectSomeValuesFrom.class
+                            , DataSomeValuesFrom.class
+                            , ObjectAllValuesFrom.class
+                            , DataAllValuesFrom.class
+                            , ObjectHasValue.class
+                            , DataHasValue.class
+                            , ObjectMinCardinality.class
+                            , DataMinCardinality.class
+                            , ObjectMaxCardinality.class
+                            , DataMaxCardinality.class
+                            , ObjectCardinality.class
+                            , DataCardinality.class
+                            , HasSelf.class
+                            , NaryDataAllValuesFrom.class
+                            , NaryDataSomeValuesFrom.class)
+            );
         }
 
-        private static EnhNode map(Collection<OntObjectFactory> factories, Node n, EnhGraph g) {
-            for (OntObjectFactory f : factories) {
+        private static WrappedFactoryImpl of(Class<? extends OntObject> type) {
+            return new WrappedFactoryImpl(type);
+        }
+
+        @SafeVarargs
+        private static List<ObjectFactory> of(Class<? extends OntObject>... types) {
+            return Arrays.stream(types).map(ClassExpressionFactory::of).collect(Collectors.toList());
+        }
+
+        private static EnhNode map(Collection<ObjectFactory> factories, Node n, EnhGraph g) {
+            for (ObjectFactory f : factories) {
                 EnhNode r = map(f, n, g);
                 if (r != null) return r;
             }
             return null;
         }
 
-        private static EnhNode map(OntObjectFactory f, Node n, EnhGraph g) {
+        private static EnhNode map(ObjectFactory f, Node n, EnhGraph g) {
             try {
                 return f.wrap(n, g);
             } catch (ConversionException c) {
@@ -983,19 +1017,19 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 return namedClass.canWrap(node, eg);
             }
             if (eg.asGraph().contains(node, RDF.Nodes.type, RESTRICTION)) {
-                for (OntObjectFactory f : restrictions) {
+                for (ObjectFactory f : restrictions) {
                     if (f.canWrap(node, eg)) return true;
                 }
                 return false;
             }
-            for (OntObjectFactory f : anonymousClasses) {
+            for (ObjectFactory f : anonymousClasses) {
                 if (f.canWrap(node, eg)) return true;
             }
             return false;
         }
 
         @Override
-        protected EnhNode doWrap(Node node, EnhGraph eg) {
+        public EnhNode createInstance(Node node, EnhGraph eg) {
             if (node.isURI()) {
                 return map(namedClass, node, eg);
             }
@@ -1012,7 +1046,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             }
             ConversionException ex = new ConversionException("Can't convert node " + node + " to Class Expression.");
             if (eg.asGraph().contains(node, RDF.Nodes.type, RESTRICTION)) {
-                for (OntObjectFactory f : restrictions) {
+                for (ObjectFactory f : restrictions) {
                     try {
                         return f.wrap(node, eg);
                     } catch (ConversionException c) {
@@ -1021,7 +1055,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 }
                 throw ex;
             }
-            for (OntObjectFactory f : anonymousClasses) {
+            for (ObjectFactory f : anonymousClasses) {
                 try {
                     return f.wrap(node, eg);
                 } catch (ConversionException c) {

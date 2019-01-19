@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,7 +28,7 @@ import java.util.Set;
 
 /**
  * To filter resources.
- * Used by {@link CommonOntObjectFactory default factory} implementation.
+ * Used by {@link CommonFactoryImpl default factory} and {@link MultiFactoryImpl} implementations as a component.
  * <p>
  * Created by szuev on 07.11.2016.
  */
@@ -39,6 +39,13 @@ public interface OntFilter {
     OntFilter URI = (n, g) -> n.isURI();
     OntFilter BLANK = (n, g) -> n.isBlank();
 
+    /**
+     * Tests if the given {@link Node node} suits the encapsulated conditions in bounds of the specified {@link EnhGraph graph}.
+     *
+     * @param n {@link Node}, not {@code null}
+     * @param g {@link EnhGraph}, not {@code null}
+     * @return boolean
+     */
     boolean test(Node n, EnhGraph g);
 
     default OntFilter and(OntFilter other) {

@@ -15,29 +15,48 @@
 package ru.avicomp.ontapi.jena.impl.conf;
 
 import org.apache.jena.enhanced.Personality;
+import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.*;
+import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.*;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Settings and personalities for {@link OntGraphModel}.
+ * An access point to several predefined {@link OntPersonality Ont Personalities}.
  * <p>
  * Created by @szuev on 04.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntModelConfig {
 
     /**
-     * Standard resources.
+     * A system-wide vocabulary.
+     */
+    private static final BuiltIn.Vocabulary VOCABULARY = BuiltIn.get();
+    /**
+     * Default builtins vocabulary.
+     */
+    private static final OntPersonality.Builtins BUILTINS = createBuiltinsVocabulary(VOCABULARY);
+    /**
+     * Default reserved vocabulary.
+     */
+    private static final OntPersonality.Reserved RESERVED = createReservedVocabulary(VOCABULARY);
+
+    /**
+     * Standard resources. Private access since this constant is mutable.
      *
      * @see org.apache.jena.enhanced.BuiltinPersonalities#model
      */
-    public static final Personality<RDFNode> STANDARD_PERSONALITY = new Personality<RDFNode>()
+    private static final Personality<RDFNode> STANDARD_PERSONALITY = new Personality<RDFNode>()
             .add(Resource.class, ResourceImpl.factory)
             .add(Property.class, PropertyImpl.factory)
             .add(Literal.class, LiteralImpl.factory)
@@ -49,7 +68,11 @@ public class OntModelConfig {
             .add(RDFList.class, RDFListImpl.factory)
             .add(RDFNode.class, ResourceImpl.rdfNodeFactory);
 
-    public static final PersonalityBuilder ONT_PERSONALITY_BUILDER = new PersonalityBuilder()
+    /**
+     * Default personality builder. Private access since this constant is mutable.
+     */
+    private static final PersonalityBuilder ONT_PERSONALITY_BUILDER = new PersonalityBuilder()
+            .addPersonality(STANDARD_PERSONALITY)
             // ont-id:
             .add(OntID.class, OntIDImpl.idFactory)
 
@@ -58,12 +81,12 @@ public class OntModelConfig {
 
             // entities:
             .add(OntObject.class, OntObjectImpl.objectFactory)
-            .add(OntClass.class, Entities.CLASS)
-            .add(OntNAP.class, Entities.ANNOTATION_PROPERTY)
-            .add(OntNDP.class, Entities.DATA_PROPERTY)
-            .add(OntNOP.class, Entities.OBJECT_PROPERTY)
-            .add(OntDT.class, Entities.DATATYPE)
-            .add(OntIndividual.Named.class, Entities.INDIVIDUAL)
+            .add(OntClass.class, Entities.CLASS.createFactory())
+            .add(OntNAP.class, Entities.ANNOTATION_PROPERTY.createFactory())
+            .add(OntNDP.class, Entities.DATA_PROPERTY.createFactory())
+            .add(OntNOP.class, Entities.OBJECT_PROPERTY.createFactory())
+            .add(OntDT.class, Entities.DATATYPE.createFactory())
+            .add(OntIndividual.Named.class, Entities.INDIVIDUAL.createFactory())
             .add(OntEntity.class, Entities.ALL)
 
             // class expressions:
@@ -155,49 +178,174 @@ public class OntModelConfig {
             .add(OntSWRL.class, OntSWRLImpl.abstractSWRLFactory);
 
     /**
-     * Personalities which don't care about the owl-entities "punnings" (no restriction on the type declarations)
+     * Returns the standard jena {@link Personality} as modifiable copy.
+     * It contains 10 standard resource factories which are used by RDFS model
+     * ({@link Model}, the default model implementation).
+     *
+     * @return {@link Personality} of {@link RDFNode}s
      */
-    public static final OntPersonality ONT_PERSONALITY_LAX = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, StdMode.LAX);
+    public static Personality<RDFNode> getStandardPersonality() {
+        return STANDARD_PERSONALITY.copy();
+    }
+
     /**
-     * Personality with four kinds of restriction on type intersection (i.e. "illegal punnings"):
+     * Returns a fresh copy of {@link PersonalityBuilder} with 92 resource factories inside
+     * (10 standard + 82 ontological).
+     * The returned instance contains everything needed, but can be modified to build a new {@link OntPersonality}.
+     *
+     * @return {@link PersonalityBuilder}
+     */
+    public static PersonalityBuilder getPersonalityBuilder() {
+        return ONT_PERSONALITY_BUILDER.copy();
+    }
+
+    /**
+     * Personalities which don't care about the owl-entities "punnings" (no restriction on the type declarations).
+     *
+     * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
+     * @see StdMode#LAX
+     */
+    public static final OntPersonality ONT_PERSONALITY_LAX = getPersonalityBuilder()
+            .setBuiltins(BUILTINS)
+            .setReserved(RESERVED)
+            .setPunnings(StdMode.LAX.getVocabulary())
+            .build();
+    /**
+     * Personality with four kinds of restriction on a {@code rdf:type} intersection (i.e. "illegal punnings"):
      * <ul>
      * <li>{@link OntDT}  &lt;-&gt; {@link OntClass}</li>
      * <li>{@link OntNAP} &lt;-&gt; {@link OntNOP}</li>
      * <li>{@link OntNOP} &lt;-&gt; {@link OntNDP}</li>
      * <li>{@link OntNDP} &lt;-&gt; {@link OntNAP}</li>
      * </ul>
-     * each of the pairs above can't exist in form of OWL-Entity in the same model at the same time.
+     * each of the pairs above can't exist in the form of OWL-Entity in the same model at the same time.
      * From specification: "OWL 2 DL imposes certain restrictions:
      * it requires that a name cannot be used for both a class and a datatype and
      * that a name can only be used for one kind of property."
+     *
      * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
+     * @see StdMode#STRICT
      */
-    public static final OntPersonality ONT_PERSONALITY_STRICT = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, StdMode.STRICT);
+    public static final OntPersonality ONT_PERSONALITY_STRICT = getPersonalityBuilder()
+            .setBuiltins(BUILTINS)
+            .setReserved(RESERVED)
+            .setPunnings(StdMode.STRICT.getVocabulary())
+            .build();
+
     /**
-     * The week variant of previous one - two forbidden intersections:
+     * The week variant of previous constant: there are two forbidden intersections:
      * <ul>
      * <li>{@link OntDT}  &lt;-&gt; {@link OntClass}</li>
      * <li>{@link OntNOP} &lt;-&gt; {@link OntNDP}</li>
      * </ul>
+     *
+     * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
+     * @see StdMode#MEDIUM
      */
-    public static final OntPersonality ONT_PERSONALITY_MEDIUM = ONT_PERSONALITY_BUILDER.build(STANDARD_PERSONALITY, StdMode.MEDIUM);
+    public static final OntPersonality ONT_PERSONALITY_MEDIUM = getPersonalityBuilder()
+            .setBuiltins(BUILTINS)
+            .setReserved(RESERVED)
+            .setPunnings(StdMode.MEDIUM.getVocabulary())
+            .build();
 
-    // Use MEDIUM by default as a trade-off between the specification and the number of checks,
-    // which are usually not necessary and only load the system.
+
+    /**
+     * Use {@link StdMode#MEDIUM} by default as a trade-off between the specification and the number of checks,
+     * which are usually not necessary and only load the system.
+     */
     private static OntPersonality personality = ONT_PERSONALITY_MEDIUM;
 
+    /**
+     * Gets a system-wide personalities.
+     *
+     * @return {@link OntPersonality}
+     * @see ru.avicomp.ontapi.jena.OntModelFactory
+     */
     public static OntPersonality getPersonality() {
         return personality;
     }
 
-    public static void setPersonality(OntPersonality p) {
-        personality = OntJenaException.notNull(p, "Null personality specified.");
+    /**
+     * Sets a system-wide personalities.
+     *
+     * @param other {@link OntPersonality}, not {@code null}
+     * @return {@link OntPersonality}, a previous associated system-wide personalities
+     */
+    public static OntPersonality setPersonality(OntPersonality other) {
+        OntPersonality res = personality;
+        personality = OntJenaException.notNull(other, "Null personality specified.");
+        return res;
     }
 
     /**
-     * A standard personality mode.
+     * Creates a {@link OntPersonality.Builtins builtins personality vocabulary}
+     * from the given {@link BuiltIn.Vocabulary system vocabulary}.
+     *
+     * @param voc {@link BuiltIn.Vocabulary}, not {@code null}
+     * @return {@link OntPersonality.Builtins}
      */
-    public enum StdMode implements Configurable.Mode {
+    public static OntPersonality.Builtins createBuiltinsVocabulary(BuiltIn.Vocabulary voc) {
+        Objects.requireNonNull(voc);
+        Map<Class<? extends OntEntity>, Set<Node>> res = new HashMap<>();
+        res.put(OntNAP.class, Iter.asUnmodifiableNodeSet(voc.annotationProperties()));
+        res.put(OntNDP.class, Iter.asUnmodifiableNodeSet(voc.datatypeProperties()));
+        res.put(OntNOP.class, Iter.asUnmodifiableNodeSet(voc.objectProperties()));
+        res.put(OntDT.class, Iter.asUnmodifiableNodeSet(voc.datatypes()));
+        res.put(OntClass.class, Iter.asUnmodifiableNodeSet(voc.classes()));
+        res.put(OntIndividual.Named.class, Collections.emptySet());
+        return new VocabularyImpl.EntitiesImpl(res);
+    }
+
+    /**
+     * Creates a {@link OntPersonality.Reserved reserved personality vocabulary}
+     * from the given {@link BuiltIn.Vocabulary system vocabulary}.
+     *
+     * @param voc {@link BuiltIn.Vocabulary}, not {@code null}
+     * @return {@link OntPersonality.Reserved}
+     */
+    public static OntPersonality.Reserved createReservedVocabulary(BuiltIn.Vocabulary voc) {
+        Objects.requireNonNull(voc);
+        Map<Class<? extends Resource>, Set<Node>> res = new HashMap<>();
+        res.put(Resource.class, Iter.asUnmodifiableNodeSet(voc.reservedResources()));
+        res.put(Property.class, Iter.asUnmodifiableNodeSet(voc.reservedProperties()));
+        return new VocabularyImpl.ReservedIml(res);
+    }
+
+    /**
+     * Creates a {@link OntPersonality.Punnings punnings personality vocabulary} according to {@link StdMode}.
+     *
+     * @param mode {@link StdMode}, not {@code null}
+     * @return {@link OntPersonality.Punnings}
+     */
+    private static OntPersonality.Punnings createPunningsVocabulary(OntModelConfig.StdMode mode) {
+        Map<Class<? extends OntEntity>, Set<Node>> res = new HashMap<>();
+        if (!StdMode.LAX.equals(mode)) {
+            toMap(res, OntClass.class, RDFS.Datatype);
+            toMap(res, OntDT.class, OWL.Class);
+        }
+        if (StdMode.STRICT.equals(mode)) {
+            toMap(res, OntNAP.class, OWL.ObjectProperty, OWL.DatatypeProperty);
+            toMap(res, OntNDP.class, OWL.ObjectProperty, OWL.AnnotationProperty);
+            toMap(res, OntNOP.class, OWL.DatatypeProperty, OWL.AnnotationProperty);
+        }
+        if (StdMode.MEDIUM.equals(mode)) {
+            toMap(res, OntNDP.class, OWL.ObjectProperty);
+            toMap(res, OntNOP.class, OWL.DatatypeProperty);
+        }
+        OntEntity.entityTypes().forEach(t -> res.computeIfAbsent(t, k -> Collections.emptySet()));
+        //return type -> fromMap(res, type);
+        return new VocabularyImpl.EntitiesImpl(res);
+    }
+
+    @SafeVarargs
+    private static <K, V extends RDFNode> void toMap(Map<K, Set<Node>> map, K key, V... values) {
+        map.put(key, Arrays.stream(values).map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet()));
+    }
+
+    /**
+     * A standard personality mode to manage punnings.
+     */
+    public enum StdMode {
         /**
          * The following punnings are considered as illegal and are excluded:
          * <ul>
@@ -220,42 +368,13 @@ public class OntModelConfig {
          * Allow everything.
          */
         LAX,
-    }
+        ;
 
-    public static class PersonalityBuilder {
-        private final Map<Class<? extends OntObject>, Configurable<? extends OntObjectFactory>> map = new LinkedHashMap<>();
+        private OntPersonality.Punnings punnings;
 
-        public PersonalityBuilder add(Class<? extends OntObject> key, Configurable<? extends OntObjectFactory> value) {
-            map.put(key, value);
-            return this;
+        public OntPersonality.Punnings getVocabulary() {
+            return punnings == null ? punnings = createPunningsVocabulary(this) : punnings;
         }
-
-        public PersonalityBuilder add(Class<? extends OntObject> key, OntObjectFactory value) {
-            return add(key, m -> value);
-        }
-
-        public OntPersonality build(OntPersonality from, Configurable.Mode mode) {
-            return putAll((OntPersonalityImpl) from.copy(), mode);
-        }
-
-        public OntPersonality build(Personality<RDFNode> init, Configurable.Mode mode) {
-            OntJenaException.notNull(mode, "Null mode.");
-            BuiltIn.Vocabulary voc = BuiltIn.get();
-            // temporary:
-            OntPersonality.Builtins builtins = OntPersonalityImpl.createBuiltinsVocabulary(voc);
-            OntPersonality.Reserved reserved = OntPersonalityImpl.createReservedVocabulary(voc);
-            StdMode m = mode instanceof StdMode ? (StdMode) mode : StdMode.LAX;
-            OntPersonality.Punnings punnings = OntPersonalityImpl.createPunningsVocabulary(m);
-            Personality<RDFNode> from = init == null ? new Personality<>() : init;
-            OntPersonalityImpl res = new OntPersonalityImpl(from, punnings, builtins, reserved);
-            return putAll(res, mode);
-        }
-
-        private OntPersonality putAll(OntPersonalityImpl personality, Configurable.Mode mode) {
-            map.forEach((k, v) -> personality.register(k, v.get(mode)));
-            return personality;
-        }
-
     }
 
 }

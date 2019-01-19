@@ -16,24 +16,20 @@ package ru.avicomp.ontapi.jena.impl.conf;
 
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.enhanced.Personality;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.utils.Iter;
-import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.model.OntObject;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
- * Personality (mappings from [interface] Class objects of RDFNode to {@link Implementation} factories)
+ * A default implementation of {@link OntPersonality}.
+ * Mappings from [interface] Class objects of RDFNode to {@link Implementation} factories.
  * <p>
  * Created by @szuev on 10.11.2016.
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess"})
 public class OntPersonalityImpl extends Personality<RDFNode> implements OntPersonality {
     private final Punnings punnings;
     private final Builtins builtins;
@@ -71,28 +67,34 @@ public class OntPersonalityImpl extends Personality<RDFNode> implements OntPerso
      * @param type    Interface (OntObject)
      * @param factory Factory to crete object
      */
-    public void register(Class<? extends OntObject> type, OntObjectFactory factory) {
-        super.add(Objects.requireNonNull(type, "Null type."), Objects.requireNonNull(factory, "Null factory."));
+    public void register(Class<? extends OntObject> type, ObjectFactory factory) {
+        super.add(Objects.requireNonNull(type, "Null type."), ObjectFactory.asJenaImplementation(factory));
     }
 
     /**
-     * Removes factory.
+     * Removes the factory.
      *
      * @param view Interface (OntObject)
      */
+    @SuppressWarnings("unused")
     public void unregister(Class<? extends OntObject> view) {
         getMap().remove(view);
+    }
+
+    @Override
+    public Stream<Class<? extends RDFNode>> types() {
+        return getMap().keySet().stream();
     }
 
     /**
      * Gets factory for {@link OntObject}.
      *
      * @param type Interface (OntObject type)
-     * @return {@link OntObjectFactory} factory
+     * @return {@link ObjectFactory} factory
      */
     @Override
-    public OntObjectFactory getOntImplementation(Class<? extends OntObject> type) {
-        return (OntObjectFactory) OntJenaException.notNull(getImplementation(type),
+    public ObjectFactory getObjectFactory(Class<? extends OntObject> type) {
+        return (ObjectFactory) OntJenaException.notNull(getImplementation(type),
                 "Can't find factory for the object type " + type);
     }
 
@@ -105,60 +107,6 @@ public class OntPersonalityImpl extends Personality<RDFNode> implements OntPerso
     @Override
     public OntPersonalityImpl copy() {
         return new OntPersonalityImpl(this);
-    }
-
-    public static Builtins createBuiltinsVocabulary(BuiltIn.Vocabulary voc) {
-        Objects.requireNonNull(voc);
-        Map<Class<? extends OntEntity>, Set<? extends Resource>> res = new HashMap<>();
-        res.put(OntNAP.class, voc.annotationProperties());
-        res.put(OntNDP.class, voc.datatypeProperties());
-        res.put(OntNOP.class, voc.objectProperties());
-        res.put(OntDT.class, voc.datatypeProperties());
-        res.put(OntClass.class, voc.objectProperties());
-        res.put(OntIndividual.Named.class, Collections.emptySet());
-        res.put(OntEntity.class, res.values().stream().flatMap(Collection::stream).collect(Iter.toUnmodifiableSet()));
-        return type -> get(res, type);
-    }
-
-    public static Reserved createReservedVocabulary(BuiltIn.Vocabulary voc) {
-        Objects.requireNonNull(voc);
-        Map<Class<? extends Resource>, Set<? extends Resource>> res = new HashMap<>();
-        res.put(Resource.class, voc.reservedResources());
-        res.put(Property.class, voc.reservedProperties());
-        return type -> get(res, type);
-    }
-
-    public static Punnings createPunningsVocabulary(OntModelConfig.StdMode mode) {
-        Objects.requireNonNull(mode);
-        Map<Class<? extends OntEntity>, Set<? extends Resource>> res = new HashMap<>();
-        if (!OntModelConfig.StdMode.LAX.equals(mode)) {
-            put(res, OntClass.class, RDFS.Datatype);
-            put(res, OntDT.class, OWL.Class);
-        }
-        if (OntModelConfig.StdMode.STRICT.equals(mode)) {
-            put(res, OntNAP.class, OWL.ObjectProperty, OWL.DatatypeProperty);
-            put(res, OntNDP.class, OWL.ObjectProperty, OWL.AnnotationProperty);
-            put(res, OntNOP.class, OWL.DatatypeProperty, OWL.AnnotationProperty);
-        }
-        if (OntModelConfig.StdMode.MEDIUM.equals(mode)) {
-            put(res, OntNDP.class, OWL.ObjectProperty);
-            put(res, OntNOP.class, OWL.DatatypeProperty);
-        }
-        OntEntity.entityTypes().forEach(t -> res.computeIfAbsent(t, k -> Collections.emptySet()));
-        return type -> get(res, type);
-    }
-
-    @SafeVarargs
-    private static <K, V> void put(Map<K, Set<? extends V>> map, K key, V... values) {
-        map.put(key, Arrays.stream(values).collect(Iter.toUnmodifiableSet()));
-    }
-
-    private static <K, V> Set<? extends V> get(Map<K, Set<? extends V>> map, K key) {
-        Set<? extends V> res = map.get(OntJenaException.notNull(key, "Null key"));
-        if (res == null) {
-            throw new OntJenaException.Unsupported("Unsupported class-type " + key);
-        }
-        return res;
     }
 
 }

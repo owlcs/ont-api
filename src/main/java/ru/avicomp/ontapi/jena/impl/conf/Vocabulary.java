@@ -14,8 +14,10 @@
 
 package ru.avicomp.ontapi.jena.impl.conf;
 
+import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Set;
 
@@ -25,17 +27,52 @@ import java.util.Set;
  * Created by @ssz on 16.01.2019.
  *
  * @param <T> any subtype of {@link Resource}
+ * @since 1.4.0
  */
 @FunctionalInterface
 interface Vocabulary<T extends Resource> {
 
     /**
-     * Returns a {@code Set} of {@link Resource Jena Resource}s for the given {@code Class}-type.
+     * Returns a {@code Set} of {@link Node Jena Graph Node}s for the given {@code Class}-type.
      *
      * @param type {@link Class}, any subtype of {@link T}
-     * @return Set of {@link Resource}s with the type {@link T}
+     * @return Set of {@link Node node}s
      * @throws OntJenaException in case the mapping is not possible
      */
-    Set<? extends Resource> get(Class<? extends T> type) throws OntJenaException;
+    Set<Node> get(Class<? extends T> type) throws OntJenaException;
 
+    /**
+     * A vocabulary for {@link OntEntity OWL Entity} types.
+     * All methods must return a IRIs, not literals or blank-nodes.
+     * <p>
+     * Created by @ssz on 18.01.2019.
+     *
+     * @see OntEntity#types()
+     */
+    interface Entities extends Vocabulary<OntEntity> {
+
+        default Set<Node> getClasses() {
+            return get(OntClass.class);
+        }
+
+        default Set<Node> getDatatypes() {
+            return get(OntDT.class);
+        }
+
+        default Set<Node> getObjectProperties() {
+            return get(OntNOP.class);
+        }
+
+        default Set<Node> getDatatypeProperties() {
+            return get(OntNDP.class);
+        }
+
+        default Set<Node> getAnnotationProperties() {
+            return get(OntNAP.class);
+        }
+
+        default Set<Node> getIndividuals() {
+            return get(OntIndividual.Named.class);
+        }
+    }
 }

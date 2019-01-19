@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,7 +24,9 @@ import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.conf.*;
+import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
+import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
+import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -46,7 +48,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OntObjectImpl extends ResourceImpl implements OntObject {
 
-    public static OntObjectFactory objectFactory = new CommonOntObjectFactory(new OntMaker.Default(OntObjectImpl.class),
+    public static ObjectFactory objectFactory = Factories.createCommon(OntObjectImpl.class,
             OntFinder.ANY_SUBJECT, OntFilter.URI.or(OntFilter.BLANK));
 
     public OntObjectImpl(Node n, EnhGraph m) {
@@ -103,36 +105,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
             return res;
         }
         throw new OntJenaException("Not uri resource " + res);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    protected static Configurable<OntObjectFactory> buildMultiFactory(OntFinder finder,
-                                                                      OntFilter filter,
-                                                                      Configurable<? extends OntObjectFactory> configurable,
-                                                                      OntObjectFactory... other) {
-        return mode -> new MultiOntObjectFactory(finder, filter,
-                Stream.concat(Stream.of(configurable.get(mode)), Arrays.stream(other)).toArray(OntObjectFactory[]::new));
-    }
-
-    @SuppressWarnings({"unchecked", "SameParameterValue"})
-    protected static Configurable<OntObjectFactory> concatFactories(OntFinder finder,
-                                                                    Configurable<? extends OntObjectFactory>... factories) {
-        return mode -> new MultiOntObjectFactory(finder, null, Stream.of(factories).map(c -> c.get(mode)).toArray(OntObjectFactory[]::new));
-    }
-
-    /**
-     * Checks if the given {@link Node Node} can be viewed as the given type.
-     * This method caches the enhanced node, if possible, in the model,
-     * and, opposite to the method {@link UnionModel#findNodeAs(Node, Class)},
-     * takes care about possible graph recursions.
-     *
-     * @param view  Class-type
-     * @param node  {@link Node}
-     * @param graph {@link EnhGraph}, assumed to be {@link OntGraphModelImpl}
-     * @return {@code true} if the node can be safely casted to the specified type
-     */
-    public static boolean canAs(Class<? extends RDFNode> view, Node node, EnhGraph graph) {
-        return ((OntGraphModelImpl) graph).fetchNodeAs(node, view) != null;
     }
 
     /**
@@ -592,7 +564,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public OntGraphModelImpl getModel() {
-        return (OntGraphModelImpl) super.getModel();
+        return (OntGraphModelImpl) enhGraph;
     }
 
     /**

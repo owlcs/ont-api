@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,7 +22,10 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.conf.*;
+import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
+import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
+import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
+import ru.avicomp.ontapi.jena.impl.conf.OntMaker;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -42,42 +45,66 @@ import java.util.stream.Stream;
 public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     private static final OntFilter VAR_SWRL_FILTER = OntFilter.URI.and(new OntFilter.HasType(SWRL.Variable));
 
-    public static OntObjectFactory variableSWRLFactory =
-            new CommonOntObjectFactory(new OntMaker.WithType(VariableImpl.class, SWRL.Variable),
+    public static ObjectFactory variableSWRLFactory = Factories.createCommon(
+            new OntMaker.WithType(VariableImpl.class, SWRL.Variable),
             new OntFinder.ByType(SWRL.Variable), VAR_SWRL_FILTER);
 
-    public static OntObjectFactory dArgSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(DArgImpl.class),
+    public static ObjectFactory dArgSWRLFactory = Factories.createCommon(DArgImpl.class,
             OntFinder.ANY_SUBJECT_AND_OBJECT, VAR_SWRL_FILTER.or(LiteralImpl.factory::canWrap));
-    public static OntObjectFactory iArgSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(IArgImpl.class),
-            OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or((n, g) -> OntObjectImpl.canAs(OntIndividual.class, n, g)));
-    public static OntObjectFactory abstractArgSWRLFactory = new MultiOntObjectFactory(OntFinder.ANY_SUBJECT_AND_OBJECT,
-            null, dArgSWRLFactory, iArgSWRLFactory);
 
-    public static OntObjectFactory builtInAtomSWRLFactory =
+    public static ObjectFactory iArgSWRLFactory = Factories.createCommon(IArgImpl.class,
+            OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or((n, g) -> PersonalityModel.canAs(OntIndividual.class, n, g)));
+
+    public static ObjectFactory abstractArgSWRLFactory = Factories.createFrom(OntFinder.ANY_SUBJECT_AND_OBJECT
+            , DArg.class
+            , IArg.class);
+
+    public static ObjectFactory builtInAtomSWRLFactory =
             makeAtomFactory(BuiltInAtomImpl.class, SWRL.BuiltinAtom);
-    public static OntObjectFactory classAtomSWRLFactory =
+
+    public static ObjectFactory classAtomSWRLFactory =
             makeAtomFactory(OntClassAtomImpl.class, SWRL.ClassAtom);
-    public static OntObjectFactory dataRangeAtomSWRLFactory =
+
+    public static ObjectFactory dataRangeAtomSWRLFactory =
             makeAtomFactory(DataRangeAtomImpl.class, SWRL.DataRangeAtom);
-    public static OntObjectFactory dataValuedAtomSWRLFactory =
+
+    public static ObjectFactory dataValuedAtomSWRLFactory =
             makeAtomFactory(DataPropertyAtomImpl.class, SWRL.DatavaluedPropertyAtom);
-    public static OntObjectFactory individualAtomSWRLFactory =
+
+    public static ObjectFactory individualAtomSWRLFactory =
             makeAtomFactory(ObjectPropertyAtomImpl.class, SWRL.IndividualPropertyAtom);
-    public static OntObjectFactory differentIndividualsAtomSWRLFactory =
+
+    public static ObjectFactory differentIndividualsAtomSWRLFactory =
             makeAtomFactory(DifferentIndividualsAtomImpl.class, SWRL.DifferentIndividualsAtom);
-    public static OntObjectFactory sameIndividualsAtomSWRLFactory =
+
+    public static ObjectFactory sameIndividualsAtomSWRLFactory =
             makeAtomFactory(SameIndividualsAtomImpl.class, SWRL.SameIndividualAtom);
-    public static OntObjectFactory abstractAtomSWRLFactory = new MultiOntObjectFactory(OntFinder.TYPED, null,
-            builtInAtomSWRLFactory, classAtomSWRLFactory, dataRangeAtomSWRLFactory, dataValuedAtomSWRLFactory,
-            individualAtomSWRLFactory, differentIndividualsAtomSWRLFactory, sameIndividualsAtomSWRLFactory);
 
-    public static OntObjectFactory impSWRLFactory = new CommonOntObjectFactory(new OntMaker.Default(ImpImpl.class),
+    public static ObjectFactory abstractAtomSWRLFactory = Factories.createFrom(OntFinder.TYPED
+            , Atom.BuiltIn.class
+            , Atom.OntClass.class
+            , Atom.DataRange.class
+            , Atom.DataProperty.class
+            , Atom.ObjectProperty.class
+            , Atom.DifferentIndividuals.class
+            , Atom.SameIndividuals.class);
+
+    public static ObjectFactory impSWRLFactory = Factories.createCommon(ImpImpl.class,
             new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
-    public static OntObjectFactory abstractSWRLFactory = new MultiOntObjectFactory(OntFinder.TYPED, null,
-            abstractAtomSWRLFactory, variableSWRLFactory, impSWRLFactory);
 
-    private static OntObjectFactory makeAtomFactory(Class<? extends AtomImpl> view, Resource type) {
-        return new CommonOntObjectFactory(new OntMaker.Default(view),
+    public static ObjectFactory abstractSWRLFactory = Factories.createFrom(OntFinder.TYPED
+            , Atom.BuiltIn.class
+            , Atom.OntClass.class
+            , Atom.DataRange.class
+            , Atom.DataProperty.class
+            , Atom.ObjectProperty.class
+            , Atom.DifferentIndividuals.class
+            , Atom.SameIndividuals.class
+            , Variable.class
+            , Imp.class);
+
+    private static ObjectFactory makeAtomFactory(Class<? extends AtomImpl> view, Resource type) {
+        return Factories.createCommon(new OntMaker.Default(view),
                 new OntFinder.ByType(type), OntFilter.BLANK.and(new OntFilter.HasType(type)));
     }
 
@@ -159,7 +186,9 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.getNodeAs(res.asNode(), Atom.DifferentIndividuals.class);
     }
 
-    public static Atom.SameIndividuals createSameIndividualsAtom(OntGraphModelImpl model, IArg firstArg, IArg secondArg) {
+    public static Atom.SameIndividuals createSameIndividualsAtom(OntGraphModelImpl model,
+                                                                 IArg firstArg,
+                                                                 IArg secondArg) {
         OntJenaException.notNull(firstArg, "Null first i-arg");
         OntJenaException.notNull(secondArg, "Null second i-arg");
         Resource res = model.createResource(SWRL.SameIndividualAtom)
@@ -168,7 +197,9 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.getNodeAs(res.asNode(), Atom.SameIndividuals.class);
     }
 
-    public static Imp createImp(OntGraphModelImpl model, Collection<Atom> head, Collection<Atom> body) {
+    public static Imp createImp(OntGraphModelImpl model,
+                                Collection<Atom> head,
+                                Collection<Atom> body) {
         OntJenaException.notNull(head, "Null head");
         OntJenaException.notNull(body, "Null body");
         OntObject res = model.createResource(SWRL.Imp).as(OntObject.class);

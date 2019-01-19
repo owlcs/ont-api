@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,15 +19,14 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.impl.Entities;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
+import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -185,31 +184,18 @@ public class PersonalityTest {
         Assert.assertEquals(3, disjoint3.members().count());
     }
 
-    @AfterClass
-    public static void afterClass() {
-        LOGGER.debug("Unregister '{}'", NAMED_INDIVIDUAL);
-        Assert.assertNotNull(Entities.INDIVIDUAL.unregister(NAMED_INDIVIDUAL));
-    }
-
-    public static final Configurable.Mode NAMED_INDIVIDUAL = new Configurable.Mode() {
-        @Override
-        public String toString() {
-            return "NamedIndividualFactory";
-        }
-    };
-
     public static OntPersonality buildCustomPersonality() {
+        LOGGER.debug("Create new Named Individual Factory");
         OntPersonality from = OntModelConfig.ONT_PERSONALITY_LAX;
-        LOGGER.debug("Register '{}'", NAMED_INDIVIDUAL);
-        Entities.INDIVIDUAL.register(NAMED_INDIVIDUAL, createNamedIndividualFactory(from.getOntImplementation(OntCE.class)));
-        Assert.assertEquals(1, Entities.INDIVIDUAL.keys().size());
-        Arrays.stream(Entities.values())
-                .filter(v -> !v.equals(Entities.INDIVIDUAL))
-                .forEach(e -> Assert.assertTrue("Wrong custom factories list:" + e, e.keys().isEmpty()));
-        return OntModelConfig.ONT_PERSONALITY_BUILDER.build(from, NAMED_INDIVIDUAL);
+        ObjectFactory factory = createNamedIndividualFactory();
+        OntPersonality res = PersonalityBuilder.from(from)
+                .add(OntIndividual.Named.class, factory)
+                .build();
+        Assert.assertEquals(92, res.types().count());
+        return res;
     }
 
-    private static OntObjectFactory createNamedIndividualFactory(OntObjectFactory ce) {
+    private static ObjectFactory createNamedIndividualFactory() {
         OntMaker maker = new OntMaker.Default(IndividualImpl.class) {
 
             @Override
@@ -221,8 +207,13 @@ public class PersonalityTest {
         OntFilter filter = OntFilter.URI
                 .and(new OntFilter.HasPredicate(RDF.type))
                 .and((s, g) -> Iter.asStream(g.asGraph().find(s, RDF.type.asNode(), Node.ANY)).map(Triple::getObject)
-                        .anyMatch(o -> ce.canWrap(o, g)));
-        return new CommonOntObjectFactory(maker, finder, filter);
+                        .anyMatch(o -> PersonalityModel.canAs(OntCE.class, o, g)));
+        return new CommonFactoryImpl(maker, finder, filter) {
+            @Override
+            public String toString() {
+                return "NamedIndividualFactory";
+            }
+        };
     }
 
     /**

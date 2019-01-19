@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -57,7 +57,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         if (!statement.getObject().isURIResource()) return false;
         if (!statement.isDeclaration()) return false;
         return Entities.find(statement.getResource())
-                .map(Entities::getClassType)
+                .map(Entities::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .isPresent();
     }
@@ -65,7 +65,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     @Override
     public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         OntEntity e = Entities.find(statement.getResource())
-                .map(Entities::getClassType)
+                .map(Entities::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement " + statement));
         ONTObject<? extends OWLEntity> entity = reader.get(e);

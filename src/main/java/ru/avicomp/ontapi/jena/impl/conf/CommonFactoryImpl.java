@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,9 +21,11 @@ import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 
+import java.util.Objects;
+
 /**
- * Default implementation of {@link OntObjectFactory}.
- * This is a designer that consists of three modules:
+ * Default implementation of {@link ObjectFactory}.
+ * This is a kind of constructor that consists of three modules:
  * <ul>
  * <li>{@link OntMaker} for initialization and physical creation a node {@link EnhNode} in the graph {@link EnhGraph}.</li>
  * <li>{@link OntFilter} to test the presence of a node in the graph.</li>
@@ -32,21 +34,22 @@ import ru.avicomp.ontapi.jena.OntJenaException;
  * <p>
  * Created by szuev on 07.11.2016.
  */
-public class CommonOntObjectFactory extends OntObjectFactory {
+public class CommonFactoryImpl extends BaseFactoryImpl {
     private final OntMaker maker;
     private final OntFinder finder;
     private final OntFilter filter;
 
-    public CommonOntObjectFactory(OntMaker maker, OntFinder finder, OntFilter primary, OntFilter... additional) {
-        this.maker = OntJenaException.notNull(maker, "Null maker.");
-        this.finder = OntJenaException.notNull(finder, "Null finder.");
-        this.filter = OntJenaException.notNull(primary, "Null primary filter.").accumulate(additional);
+    public CommonFactoryImpl(OntMaker maker, OntFinder finder, OntFilter filter) {
+        this.maker = Objects.requireNonNull(maker, "Null maker.");
+        this.finder = Objects.requireNonNull(finder, "Null finder.");
+        this.filter = Objects.requireNonNull(filter, "Null filter.");
     }
 
     public OntMaker getMaker() {
         return maker;
     }
 
+    @SuppressWarnings("unused")
     public OntFinder getFinder() {
         return finder;
     }
@@ -59,7 +62,7 @@ public class CommonOntObjectFactory extends OntObjectFactory {
     public EnhNode wrap(Node node, EnhGraph eg) {
         if (!canWrap(node, eg))
             throw new ConversionException(String.format("Can't wrap node %s to %s", node, maker.getImpl()));
-        return doWrap(node, eg);
+        return createInstance(node, eg);
     }
 
     @Override
@@ -68,15 +71,15 @@ public class CommonOntObjectFactory extends OntObjectFactory {
     }
 
     @Override
-    public EnhNode create(Node node, EnhGraph eg) {
-        if (!canCreate(node, eg))
+    public EnhNode createInGraph(Node node, EnhGraph eg) {
+        if (!canCreateInGraph(node, eg))
             throw new OntJenaException.Creation(String.format("Can't modify graph for %s (%s)", node, maker.getImpl()));
         maker.make(node, eg);
-        return doWrap(node, eg);
+        return createInstance(node, eg);
     }
 
     @Override
-    public boolean canCreate(Node node, EnhGraph eg) {
+    public boolean canCreateInGraph(Node node, EnhGraph eg) {
         return maker.getTester().test(node, eg);
     }
 
@@ -86,7 +89,7 @@ public class CommonOntObjectFactory extends OntObjectFactory {
     }
 
     @Override
-    protected EnhNode doWrap(Node node, EnhGraph eg) {
+    public EnhNode createInstance(Node node, EnhGraph eg) {
         return maker.instance(node, eg);
     }
 }

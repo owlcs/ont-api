@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -29,22 +29,25 @@ import java.util.stream.Collectors;
 
 /**
  * To perform preliminary fixing: transform the RDFS ontological graph to the OWL ontological graph.
- * After this conversion is completed there would be an owl-ontology but maybe with some declarations missed and
- * with the RDFS-garbage (rdfs:Class, rdf:Property).
- * It seems it can be considered as an OWL1,
- * while rdfs:Class and rdf:Property would not be removed by the owl-transformer (see {@link OWLCommonTransform}).
- * After working no standalone rdfs:Class or rdf:Property are expected.
- * And Note: this transformer prefers owl:AnnotationProperty and owl:Class in controversial cases.
+ * After this conversion is completed, there will be an OWL-ontology, but maybe with some declarations missed and
+ * with some RDFS-garbage ({@code rdfs:Class}, {@code rdf:Property} somewhere).
+ * It seems that it can be considered as an ontology of OWL1-terms, until {@code rdfs:Class} and {@code rdf:Property}
+ * are completely removed by the OWL-transformer (see {@link OWLCommonTransform}).
+ * After finish transformation no standalone {@code rdfs:Class} or {@code rdf:Property} are expected.
+ * Also note: this transformer prefers {@code owl:AnnotationProperty} and {@code owl:Class} in controversial cases.
  * <p>
  * This transformer is optional:
- * if ontology graph already contains one of the five main owl-declarations (owl:Class,
- * owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:NamedIndividual) and does not contain
- * rdf:Property and rdfs:Class, then it can not be a pure RDFS-ontology and we believe that there is nothing to do.
+ * if an ontology graph already contains one of the five main OWL-declarations (i.e. {@code owl:Class},
+ * {@code owl:ObjectProperty}, {@code owl:DatatypeProperty}, {@code owl:AnnotationProperty},
+ * {@code owl:NamedIndividual}) and does not contain {@code rdf:Property} and {@code rdfs:Class},
+ * then it cannot be a pure RDFS-ontology and we believe that there is nothing to do.
  * <p>
- * For some additional info see <a href='https://www.w3.org/TR/rdf-schema'>RDFS specification</a> and, maybe,
+ * For some additional information see <a href='https://www.w3.org/TR/rdf-schema'>RDFS specification</a> and, maybe,
  * <a href='https://www.w3.org/TR/2012/REC-owl2-overview-20121211/#Relationship_to_OWL_1'>some words about OWL 1</a>.
  * And of course see our main cheat sheet:
  * <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL 2 Web Ontology Language Quick Reference Guide (Second Edition)</a>
+ *
+ * TODO: need to handle rdf:PlainLiteral
  */
 @SuppressWarnings("WeakerAccess")
 public class RDFSTransform extends Transform {
@@ -111,15 +114,18 @@ public class RDFSTransform extends Transform {
     }
 
     public boolean isObjectProperty(Resource candidate) {
-        return builtIn.objectProperties().contains(candidate.as(Property.class)) || hasType(candidate, OWL.ObjectProperty);
+        return builtIn.objectProperties().contains(candidate.as(Property.class))
+                || hasType(candidate, OWL.ObjectProperty);
     }
 
     public boolean isDataProperty(Resource candidate) {
-        return builtIn.datatypeProperties().contains(candidate.as(Property.class)) || hasType(candidate, OWL.DatatypeProperty);
+        return builtIn.datatypeProperties().contains(candidate.as(Property.class))
+                || hasType(candidate, OWL.DatatypeProperty);
     }
 
     public boolean isAnnotationProperty(Resource candidate) {
-        return builtIn.annotationProperties().contains(candidate.as(Property.class)) || hasType(candidate, OWL.AnnotationProperty);
+        return builtIn.annotationProperties().contains(candidate.as(Property.class))
+                || hasType(candidate, OWL.AnnotationProperty);
     }
 
     protected boolean isDataRange(Resource candidate) {

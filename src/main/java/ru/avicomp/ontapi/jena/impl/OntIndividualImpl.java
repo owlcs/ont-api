@@ -18,11 +18,12 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.conf.*;
+import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
+import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
+import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -33,6 +34,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -43,32 +45,15 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
-    public static final OntFilter ANONYMOUS_FILTER = OntIndividualImpl::testAnonymousIndividual;
-
-    public static final Set<Node> ALLOWED_IN_SUBJECT_PREDICATES =
-            Stream.concat(Entities.BUILTIN.properties().stream(), Stream.of(OWL.sameAs, OWL.differentFrom))
-                    .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
-    public static final Set<Node> ALLOWED_IN_OBJECT_PREDICATES =
-            Stream.concat(Entities.BUILTIN.properties().stream(),
-                    Stream.of(OWL.sameAs, OWL.differentFrom, OWL.sourceIndividual, OWL.hasValue, RDF.first))
-                    .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
-
-    public static final Set<Property> RESERVED = Entities.BUILTIN.reservedProperties();
-    public static final Set<Node> BUILT_IN_SUBJECT_PREDICATE_SET = RESERVED.stream()
-            .map(FrontsNode::asNode)
-            .filter(n -> !ALLOWED_IN_SUBJECT_PREDICATES.contains(n))
-            .collect(Iter.toUnmodifiableSet());
-    public static final Set<Node> BUILT_IN_OBJECT_PREDICATE_SET = RESERVED.stream()
-            .map(FrontsNode::asNode)
-            .filter(n -> !ALLOWED_IN_OBJECT_PREDICATES.contains(n))
-            .collect(Iter.toUnmodifiableSet());
+    private static final String FORBIDDEN_SUBJECTS = OntIndividual.Anonymous.class.getName() + ".InSubject";
+    private static final String FORBIDDEN_OBJECTS = OntIndividual.Anonymous.class.getName() + ".InObject";
 
     public static OntFinder FINDER = OntFinder.ANY_SUBJECT_AND_OBJECT;
-    public static OntObjectFactory anonymousIndividualFactory =
-            new CommonOntObjectFactory(new OntMaker.Default(AnonymousImpl.class), FINDER, ANONYMOUS_FILTER);
+    public static ObjectFactory anonymousIndividualFactory = Factories.createCommon(AnonymousImpl.class, FINDER,
+            OntIndividualImpl::testAnonymousIndividual);
 
-    public static Configurable<OntObjectFactory> abstractIndividualFactory = buildMultiFactory(FINDER, null,
-            Entities.INDIVIDUAL, anonymousIndividualFactory);
+    public static ObjectFactory abstractIndividualFactory = Factories.createFrom(FINDER,
+            OntIndividual.Named.class, OntIndividual.Anonymous.class);
 
     public OntIndividualImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -83,7 +68,7 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         ExtendedIterator<Node> types = eg.asGraph().find(node, RDF.Nodes.type, Node.ANY).mapWith(Triple::getObject);
         try {
             while (types.hasNext()) {
-                if (OntObjectImpl.canAs(OntCE.class, types.next(), eg)) return true;
+                if (PersonalityModel.canAs(OntCE.class, types.next(), eg)) return true;
                 hasType = true;
             }
         } finally {
@@ -93,21 +78,37 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         if (hasType) {
             return false;
         }
+        OntPersonality personality = PersonalityModel.asPersonalityModel(eg).getOntPersonality();
+        OntPersonality.Builtins builtins = personality.getBuiltins();
+        OntPersonality.Reserved reserved = personality.getReserved();
+
+        Set<Node> forbiddenSubjects = reserved.get(FORBIDDEN_SUBJECTS, () -> {
+            Set<Node> allowed = Stream.concat(builtins.getProperties().stream(),
+                    Stream.of(OWL.sameAs.asNode(), OWL.differentFrom.asNode()))
+                    .collect(Collectors.toSet());
+            return reserved.getProperties().stream().filter(n -> !allowed.contains(n)).collect(Iter.toUnmodifiableSet());
+        });
         // _:x @built-in-predicate @any:
         ExtendedIterator<Node> bySubject = eg.asGraph().find(node, Node.ANY, Node.ANY).mapWith(Triple::getPredicate);
         try {
             while (bySubject.hasNext()) {
-                if (BUILT_IN_SUBJECT_PREDICATE_SET.contains(bySubject.next()))
+                if (forbiddenSubjects.contains(bySubject.next()))
                     return false;
             }
         } finally {
             bySubject.close();
         }
+        Set<Node> forbiddenObjects = reserved.get(FORBIDDEN_OBJECTS, () -> {
+            Set<Node> allowed = Stream.concat(builtins.getProperties().stream(),
+                    Stream.of(OWL.sameAs, OWL.differentFrom, OWL.sourceIndividual, OWL.hasValue, RDF.first)
+                            .map(FrontsNode::asNode)).collect(Collectors.toSet());
+            return reserved.getProperties().stream().filter(n -> !allowed.contains(n)).collect(Iter.toUnmodifiableSet());
+        });
         // @any @built-in-predicate _:x
         ExtendedIterator<Node> byObject = eg.asGraph().find(Node.ANY, Node.ANY, node).mapWith(Triple::getPredicate);
         try {
             while (byObject.hasNext()) {
-                if (BUILT_IN_OBJECT_PREDICATE_SET.contains(byObject.next()))
+                if (forbiddenObjects.contains(byObject.next()))
                     return false;
             }
         } finally {

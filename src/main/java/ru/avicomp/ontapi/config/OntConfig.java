@@ -18,7 +18,6 @@ import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.impl.conf.Configurable;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
@@ -869,10 +868,8 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     public static OntPersonality getDefaultPersonality() {
-        Configurable.Mode mode = (Configurable.Mode) OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE.getDefaultValue();
-        if (!(mode instanceof OntModelConfig.StdMode))
-            throw new OntApiException.Unsupported("Not supported: " + mode);
-        switch ((OntModelConfig.StdMode) mode) {
+        OntModelConfig.StdMode mode = (OntModelConfig.StdMode) OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE.getDefaultValue();
+        switch (mode) {
             case LAX:
                 return OntModelConfig.ONT_PERSONALITY_LAX;
             case MEDIUM:

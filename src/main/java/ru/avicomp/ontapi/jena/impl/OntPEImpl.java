@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,9 +20,10 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.conf.*;
-import ru.avicomp.ontapi.jena.model.OntNOP;
-import ru.avicomp.ontapi.jena.model.OntPE;
+import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
+import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
+import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
@@ -39,7 +40,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         ExtendedIterator<Triple> res = g.asGraph().find(n, OWL.inverseOf.asNode(), Node.ANY);
         try {
             while (res.hasNext()) {
-                if (OntObjectImpl.canAs(OntNOP.class, res.next().getObject(), g)) return true;
+                if (PersonalityModel.canAs(OntNOP.class, res.next().getObject(), g)) return true;
             }
         } finally {
             res.close();
@@ -47,21 +48,21 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         return false;
     };
 
-    public static OntObjectFactory inversePropertyFactory = new CommonOntObjectFactory(new OntMaker.Default(OntOPEImpl.InversePropertyImpl.class),
+    public static ObjectFactory inversePropertyFactory = Factories.createCommon(OntOPEImpl.InversePropertyImpl.class,
             new OntFinder.ByPredicate(OWL.inverseOf), INVERSE_OF_FILTER);
 
-    public static Configurable<OntObjectFactory> abstractNamedPropertyFactory = concatFactories(OntFinder.TYPED,
-            Entities.OBJECT_PROPERTY, Entities.DATA_PROPERTY, Entities.ANNOTATION_PROPERTY);
+    // todo: make one more view for named properties
+    public static ObjectFactory abstractNamedPropertyFactory = Factories.createFrom(OntFinder.TYPED,
+            OntNOP.class, OntNDP.class, OntNAP.class);
 
-    public static Configurable<OntObjectFactory> abstractOPEFactory = buildMultiFactory(OntFinder.TYPED, null,
-            Entities.OBJECT_PROPERTY, inversePropertyFactory);
+    public static ObjectFactory abstractOPEFactory = Factories.createFrom(OntFinder.TYPED
+            , OntNOP.class, OntOPE.Inverse.class);
 
-    @SuppressWarnings("unchecked")
-    public static Configurable<OntObjectFactory> abstractDOPFactory =
-            concatFactories(OntFinder.ANY_SUBJECT, Entities.DATA_PROPERTY, abstractOPEFactory);
+    public static ObjectFactory abstractDOPFactory = Factories.createFrom(OntFinder.ANY_SUBJECT
+            , OntNDP.class, OntOPE.class);
 
-    public static Configurable<OntObjectFactory> abstractPEFactory =
-            buildMultiFactory(OntFinder.ANY_SUBJECT, null, abstractNamedPropertyFactory, inversePropertyFactory);
+    public static ObjectFactory abstractPEFactory = Factories.createFrom(OntFinder.ANY_SUBJECT,
+            OntNOP.class, OntNDP.class, OntNAP.class, OntOPE.Inverse.class);
 
     public OntPEImpl(Node n, EnhGraph m) {
         super(n, m);

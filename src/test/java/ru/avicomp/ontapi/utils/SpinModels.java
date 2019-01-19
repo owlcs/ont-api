@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.IRI;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
+import ru.avicomp.ontapi.jena.impl.conf.PersonalityBuilder;
 
 
 /**
@@ -39,8 +40,9 @@ public enum SpinModels {
     SMF_BASE("/etc/sparqlmotionfunctions.ttl", "http://topbraid.org/sparqlmotionfunctions"),
     SPINMAPL("/etc/spinmapl.spin.ttl", "http://topbraid.org/spin/spinmapl");
 
-    public static final OntPersonality ONT_SPIN_PERSONALITY = OntModelConfig.ONT_PERSONALITY_BUILDER
-            .build(ru.avicomp.ontapi.utils.SP.SPIN_PERSONALITY, OntModelConfig.StdMode.LAX);
+    public static final OntPersonality ONT_SPIN_PERSONALITY = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_LAX)
+            .addPersonality(ru.avicomp.ontapi.utils.SP.SPIN_PERSONALITY)
+            .build();
 
     private final String file, uri;
 

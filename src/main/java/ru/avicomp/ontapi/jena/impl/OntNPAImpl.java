@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,7 +20,9 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import ru.avicomp.ontapi.jena.impl.conf.*;
+import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
+import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
+import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -40,23 +42,34 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
             .and(new OntFilter.HasPredicate(OWL.sourceIndividual))
             .and(new OntFilter.HasPredicate(OWL.assertionProperty));
 
-    public static OntObjectFactory objectNPAFactory = new CommonOntObjectFactory(new OntMaker.Default(ObjectAssertionImpl.class),
+    public static ObjectFactory objectNPAFactory = Factories.createCommon(ObjectAssertionImpl.class,
             NPA_FINDER, NPA_FILTER, new OntFilter.HasPredicate(OWL.targetIndividual));
-    public static OntObjectFactory dataNPAFactory =
-            new CommonOntObjectFactory(new OntMaker.Default(DataAssertionImpl.class), NPA_FINDER, NPA_FILTER, new OntFilter.HasPredicate(OWL.targetValue));
-    public static OntObjectFactory abstractNPAFactory = new MultiOntObjectFactory(NPA_FINDER, null, objectNPAFactory, dataNPAFactory);
+    public static ObjectFactory dataNPAFactory = Factories.createCommon(DataAssertionImpl.class,
+            NPA_FINDER, NPA_FILTER, new OntFilter.HasPredicate(OWL.targetValue));
+    public static ObjectFactory abstractNPAFactory = Factories.createFrom(NPA_FINDER
+            , ObjectAssertion.class
+            , DataAssertion.class);
 
     public OntNPAImpl(Node n, EnhGraph m) {
         super(n, m);
     }
 
-    public static DataAssertion create(OntGraphModelImpl model, OntIndividual source, OntNDP property, Literal target) {
-        Resource res = create(model, source).addProperty(OWL.assertionProperty, property).addProperty(OWL.targetValue, target);
+    public static DataAssertion create(OntGraphModelImpl model,
+                                       OntIndividual source,
+                                       OntNDP property,
+                                       Literal target) {
+        Resource res = create(model, source).addProperty(OWL.assertionProperty, property)
+                .addProperty(OWL.targetValue, target);
         return model.getNodeAs(res.asNode(), DataAssertion.class);
     }
 
-    public static ObjectAssertion create(OntGraphModelImpl model, OntIndividual source, OntOPE property, OntIndividual target) {
-        Resource res = create(model, source).addProperty(OWL.assertionProperty, property).addProperty(OWL.targetIndividual, target);
+    public static ObjectAssertion create(OntGraphModelImpl model,
+                                         OntIndividual source,
+                                         OntOPE property,
+                                         OntIndividual target) {
+        Resource res = create(model, source)
+                .addProperty(OWL.assertionProperty, property)
+                .addProperty(OWL.targetIndividual, target);
         return model.getNodeAs(res.asNode(), ObjectAssertion.class);
     }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -29,9 +29,9 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * Class-helper to perform the preliminary resource search in a model,
+ * A class-helper to perform the preliminary resource search in a model.
  * Subsequently, the search result Stream will be filtered by the {@link OntFilter} instance.
- * Used as a component in the factory {@link CommonOntObjectFactory} implementation.
+ * Used as a component in {@link CommonFactoryImpl default factory} and {@link MultiFactoryImpl} implementations
  * <p>
  * Created by szuev on 07.11.2016.
  */

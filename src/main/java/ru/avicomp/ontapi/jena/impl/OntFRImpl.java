@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,7 +21,9 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.conf.*;
+import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
+import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
+import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
 import ru.avicomp.ontapi.jena.model.OntFR;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -34,34 +36,43 @@ import java.util.Optional;
  * <p>
  * Created by @szuev on 16.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
-    public static OntObjectFactory lengthFRFactory =
-            new CommonOntObjectFactory(makeMaker(LengthImpl.class), makeFinder(XSD.length), makeFilter(XSD.length));
-    public static OntObjectFactory minLengthFRFactory =
-            new CommonOntObjectFactory(makeMaker(MinLengthImpl.class), makeFinder(XSD.minLength), makeFilter(XSD.minLength));
-    public static OntObjectFactory maxLengthFRFactory =
-            new CommonOntObjectFactory(makeMaker(MaxLengthImpl.class), makeFinder(XSD.maxLength), makeFilter(XSD.maxLength));
-    public static OntObjectFactory minInclusiveFRFactory =
-            new CommonOntObjectFactory(makeMaker(MinInclusiveImpl.class), makeFinder(XSD.minInclusive), makeFilter(XSD.minInclusive));
-    public static OntObjectFactory maxInclusiveFRFactory =
-            new CommonOntObjectFactory(makeMaker(MaxInclusiveImpl.class), makeFinder(XSD.maxInclusive), makeFilter(XSD.maxInclusive));
-    public static OntObjectFactory minExclusiveFRFactory =
-            new CommonOntObjectFactory(makeMaker(MinExclusiveImpl.class), makeFinder(XSD.minExclusive), makeFilter(XSD.minExclusive));
-    public static OntObjectFactory maxExclusiveFRFactory =
-            new CommonOntObjectFactory(makeMaker(MaxExclusiveImpl.class), makeFinder(XSD.maxExclusive), makeFilter(XSD.maxExclusive));
-    public static OntObjectFactory totalDigitsFRFactory =
-            new CommonOntObjectFactory(makeMaker(TotalDigitsImpl.class), makeFinder(XSD.totalDigits), makeFilter(XSD.totalDigits));
-    public static OntObjectFactory fractionDigitsFRFactory =
-            new CommonOntObjectFactory(makeMaker(FractionDigitsImpl.class), makeFinder(XSD.fractionDigits), makeFilter(XSD.fractionDigits));
-    public static OntObjectFactory patternFRFactory =
-            new CommonOntObjectFactory(makeMaker(PatternImpl.class), makeFinder(XSD.pattern), makeFilter(XSD.pattern));
-    public static OntObjectFactory langRangeFRFactory =
-            new CommonOntObjectFactory(makeMaker(LangRangeImpl.class), makeFinder(RDF.langRange), makeFilter(RDF.langRange));
+    public static ObjectFactory lengthFRFactory = Factories.createCommon(LengthImpl.class,
+            makeFinder(XSD.length), makeFilter(XSD.length));
+    public static ObjectFactory minLengthFRFactory = Factories.createCommon(MinLengthImpl.class,
+            makeFinder(XSD.minLength), makeFilter(XSD.minLength));
+    public static ObjectFactory maxLengthFRFactory = Factories.createCommon(MaxLengthImpl.class,
+            makeFinder(XSD.maxLength), makeFilter(XSD.maxLength));
+    public static ObjectFactory minInclusiveFRFactory = Factories.createCommon(MinInclusiveImpl.class,
+            makeFinder(XSD.minInclusive), makeFilter(XSD.minInclusive));
+    public static ObjectFactory maxInclusiveFRFactory = Factories.createCommon(MaxInclusiveImpl.class,
+            makeFinder(XSD.maxInclusive), makeFilter(XSD.maxInclusive));
+    public static ObjectFactory minExclusiveFRFactory = Factories.createCommon(MinExclusiveImpl.class,
+            makeFinder(XSD.minExclusive), makeFilter(XSD.minExclusive));
+    public static ObjectFactory maxExclusiveFRFactory = Factories.createCommon(MaxExclusiveImpl.class,
+            makeFinder(XSD.maxExclusive), makeFilter(XSD.maxExclusive));
+    public static ObjectFactory totalDigitsFRFactory = Factories.createCommon(TotalDigitsImpl.class,
+            makeFinder(XSD.totalDigits), makeFilter(XSD.totalDigits));
+    public static ObjectFactory fractionDigitsFRFactory = Factories.createCommon(FractionDigitsImpl.class,
+            makeFinder(XSD.fractionDigits), makeFilter(XSD.fractionDigits));
+    public static ObjectFactory patternFRFactory = Factories.createCommon(PatternImpl.class,
+            makeFinder(XSD.pattern), makeFilter(XSD.pattern));
+    public static ObjectFactory langRangeFRFactory = Factories.createCommon(LangRangeImpl.class,
+            makeFinder(RDF.langRange), makeFilter(RDF.langRange));
 
-    public static OntObjectFactory abstractFRFactory = new MultiOntObjectFactory(OntFinder.ANY_SUBJECT, null,
-            lengthFRFactory, minLengthFRFactory, maxLengthFRFactory,
-            minInclusiveFRFactory, maxInclusiveFRFactory, minExclusiveFRFactory, maxExclusiveFRFactory,
-            totalDigitsFRFactory, fractionDigitsFRFactory, patternFRFactory, langRangeFRFactory);
+    public static ObjectFactory abstractFRFactory = Factories.createFrom(OntFinder.ANY_SUBJECT
+            , Length.class
+            , MinLength.class
+            , MaxLength.class
+            , MinInclusive.class
+            , MaxInclusive.class
+            , MinExclusive.class
+            , MaxExclusive.class
+            , TotalDigits.class
+            , FractionDigits.class
+            , Pattern.class
+            , LangRange.class);
 
     public OntFRImpl(Node n, EnhGraph m) {
         super(n, m);
@@ -75,10 +86,6 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
     @Override
     public Literal getValue() {
         return getRequiredObject(predicate(getActualClass()), Literal.class);
-    }
-
-    private static OntMaker makeMaker(Class<? extends OntFRImpl> impl) {
-        return new OntMaker.Default(impl);
     }
 
     private static OntFinder makeFinder(Property predicate) {

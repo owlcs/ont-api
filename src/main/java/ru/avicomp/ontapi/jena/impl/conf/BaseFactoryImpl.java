@@ -12,48 +12,38 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.jena.impl;
+package ru.avicomp.ontapi.jena.impl.conf;
 
-import org.apache.jena.datatypes.BaseDatatype;
-import org.apache.jena.datatypes.RDFDatatype;
-import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.EnhNode;
+import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
-import org.apache.jena.vocabulary.RDFS;
-import ru.avicomp.ontapi.jena.model.OntDT;
-import ru.avicomp.ontapi.jena.model.OntStatement;
-
-import java.util.Optional;
+import org.apache.jena.ontology.ConversionException;
 
 /**
- * Named entity with rdf:type = rdfs:Datatype
- *
- * Created by szuev on 03.11.2016.
+ * Extended {@link Implementation} factory,
+ * the base class for any {@link ObjectFactory factories} to produce
+ * {@link ru.avicomp.ontapi.jena.model.OntObject Ontology Object}s.
+ * Used to bind implementation (node) and interface.
+ * Also, in addition to the standard jena methods,
+ * this implementation includes nodes search and graph transformation functionality.
+ * <p>
+ * Created by @szuev on 03.11.2016.
  */
-public class OntDatatypeImpl extends OntObjectImpl implements OntDT {
+public abstract class BaseFactoryImpl extends Implementation implements ObjectFactory {
 
-    public OntDatatypeImpl(Node n, EnhGraph g) {
-        super(OntObjectImpl.checkNamed(n), g);
-    }
-
+    /**
+     * Creates a new {@link EnhNode} wrapping the given {@link Node} node in the context of the graph {@link EnhGraph}.
+     *
+     * @param node the node to be wrapped
+     * @param eg   the graph containing the node
+     * @return A new enhanced node which wraps node but presents the interface(s) that this factory encapsulates.
+     * @throws ConversionException in case wrapping is impossible
+     */
     @Override
-    public Class<OntDT> getActualClass() {
-        return OntDT.class;
-    }
-
-    @Override
-    public boolean isBuiltIn() {
-        return getModel().isBuiltIn(this);
-    }
-
-    @Override
-    public Optional<OntStatement> findRootStatement() {
-        return getOptionalRootStatement(this, RDFS.Datatype);
-    }
-
-    @Override
-    public RDFDatatype toRDFDatatype() {
-        RDFDatatype res = TypeMapper.getInstance().getTypeByName(getURI());
-        return res == null ? new BaseDatatype(getURI()) : res;
+    public EnhNode wrap(Node node, EnhGraph eg) {
+        if (!canWrap(node, eg))
+            throw new ConversionException("Can't wrap node " + node + ". Use direct factory.");
+        return createInstance(node, eg);
     }
 }

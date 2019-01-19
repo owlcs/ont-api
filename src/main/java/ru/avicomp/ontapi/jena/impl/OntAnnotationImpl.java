@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,9 +21,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.conf.CommonOntObjectFactory;
-import ru.avicomp.ontapi.jena.impl.conf.OntMaker;
-import ru.avicomp.ontapi.jena.impl.conf.OntObjectFactory;
+import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -48,8 +46,9 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
-    public static final Set<Property> REQUIRED_PROPERTIES = Stream.of(OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget)
-            .collect(Iter.toUnmodifiableSet());
+    public static final Set<Property> REQUIRED_PROPERTIES = Stream.of(OWL.annotatedSource
+            , OWL.annotatedProperty
+            , OWL.annotatedTarget).collect(Iter.toUnmodifiableSet());
     private static final Set<Node> REQUIRED_PROPERTY_NODES = Iter.asUnmodifiableNodeSet(REQUIRED_PROPERTIES);
     private static final Node AXIOM = OWL.Axiom.asNode();
     private static final Node ANNOTATION = OWL.Annotation.asNode();
@@ -58,10 +57,10 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static final Set<Resource> EXTRA_ROOT_TYPES =
             Stream.of(OWL.AllDisjointClasses, OWL.AllDisjointProperties, OWL.AllDifferent, OWL.NegativePropertyAssertion)
                     .collect(Iter.toUnmodifiableSet());
-    public static final List<Resource> ROOT_TYPES = Stream.concat(Stream.of(OWL.Axiom, OWL.Annotation), EXTRA_ROOT_TYPES.stream())
-            .collect(Iter.toUnmodifiableList());
+    public static final List<Resource> ROOT_TYPES = Stream.concat(Stream.of(OWL.Axiom, OWL.Annotation)
+            , EXTRA_ROOT_TYPES.stream()).collect(Iter.toUnmodifiableList());
     public static final Set<Node> EXTRA_ROOT_TYPES_AS_NODES = Iter.asUnmodifiableNodeSet(EXTRA_ROOT_TYPES);
-    public static OntObjectFactory annotationFactory = new CommonOntObjectFactory(new OntMaker.Default(OntAnnotationImpl.class),
+    public static ObjectFactory annotationFactory = Factories.createCommon(OntAnnotationImpl.class,
             OntAnnotationImpl::listRootAnnotations,
             OntAnnotationImpl::testAnnotation);
 

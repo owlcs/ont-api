@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -29,18 +29,42 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * To make some preparation while creating (create main triple).
  * Also to create new instance of the resource ({@link EnhNode}).
- * Used in factory ({@link CommonOntObjectFactory}).
+ * Used in factory ({@link CommonFactoryImpl}).
  * <p>
  * Created by szuev on 07.11.2016.
  */
 public interface OntMaker {
 
-    void make(Node node, EnhGraph eg);
-
-    OntFilter getTester();
-
+    /**
+     * Wraps the given {@code node} as a {@link EnhNode Jena RDFNode}.
+     * No changes in the given {@link EnhGraph} are made.
+     *
+     * @param node {@link Node}
+     * @param eg   {@link EnhGraph}
+     * @return {@link EnhNode}
+     */
     EnhNode instance(Node node, EnhGraph eg);
 
+    /**
+     * Changes the {@link EnhGraph} according to the encapsulated rules.
+     *
+     * @param node {@link Node}
+     * @param eg   {@link EnhGraph}
+     */
+    void make(Node node, EnhGraph eg);
+
+    /**
+     * Returns a {@link OntFilter}, that is used as tester to decide does this maker support graph modification or not.
+     *
+     * @return {@link OntFilter}
+     */
+    OntFilter getTester();
+
+    /**
+     * Returns an interface view implementation.
+     *
+     * @return a class-type of a concrete {@link ru.avicomp.ontapi.jena.model.OntObject OWL Object}.
+     */
     Class<? extends EnhNode> getImpl();
 
     default OntMaker restrict(OntFilter filter) {

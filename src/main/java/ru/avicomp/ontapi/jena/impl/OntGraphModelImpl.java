@@ -14,7 +14,6 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
-import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -51,25 +50,17 @@ import java.util.stream.Stream;
  * @see UnionGraph
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue"})
-public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
+public class OntGraphModelImpl extends UnionModel implements OntGraphModel, PersonalityModel {
 
     /**
      * @param graph       {@link Graph}
      * @param personality {@link OntPersonality}
      */
     public OntGraphModelImpl(Graph graph, OntPersonality personality) {
-        super(graph, toJenaPersonality(personality));
+        super(graph, OntPersonality.asJenaPersonality(personality));
     }
 
-    @SuppressWarnings("unchecked")
-    public static Personality<RDFNode> toJenaPersonality(OntPersonality p) {
-        OntJenaException.notNull(p, "Null OntPersonality");
-        if (p instanceof Personality) {
-            return (Personality<RDFNode>) p;
-        }
-        throw new OntJenaException.IllegalArgument("The given OntPersonality is not an instance of Jena Personality.");
-    }
-
+    @Override
     public OntPersonality getOntPersonality() {
         return (OntPersonality) super.getPersonality();
     }
@@ -224,6 +215,20 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     }
 
     /**
+     * Answers {@code true} if the given entity is built-in.
+     *
+     * @param e   {@link OntEntity} object impl
+     * @param <E> subtype of {@link OntObjectImpl} and {@link OntEntity}
+     * @return boolean
+     */
+    @SuppressWarnings("unchecked")
+    public <E extends OntObjectImpl & OntEntity> boolean isBuiltIn(E e) {
+        return getOntPersonality().getBuiltins()
+                .get((Class<? extends OntEntity>) e.getActualClass())
+                .contains(e.asNode());
+    }
+
+    /**
      * Retrieves the stream of {@link OntObject Ontology Object}s.
      * The result object will be cached inside model.
      *
@@ -266,8 +271,9 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      * @param <O>  subtype of {@link OntObject}
      * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
      */
-    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModelImpl m, Class<? extends O> type) {
-        return m.getOntPersonality().getOntImplementation(type).iterator(m).mapWith(e -> m.getNodeAs(e.asNode(), type));
+    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModelImpl m,
+                                                                           Class<? extends O> type) {
+        return m.getOntPersonality().getObjectFactory(type).iterator(m).mapWith(e -> m.getNodeAs(e.asNode(), type));
     }
 
     @Override
@@ -346,7 +352,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
      */
     public <T extends OntObject> T createOntObject(Class<T> type, String uri) {
         Node key = Graphs.createNode(uri);
-        T res = getOntPersonality().getOntImplementation(type).create(key, this).as(type);
+        T res = getOntPersonality().getObjectFactory(type).createInGraph(key, this).as(type);
         getNodeCache().put(key, res);
         return res;
     }
@@ -840,5 +846,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel {
     public String toString() {
         return String.format("OntGraphModel{%s}", Graphs.getName(getBaseGraph()));
     }
+
 
 }

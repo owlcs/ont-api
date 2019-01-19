@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,17 +14,20 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
-import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.BuiltIn;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * This is an enumeration of all entity (configurable-)factories.
@@ -33,138 +36,113 @@ import java.util.stream.Stream;
  *
  * @see OntEntity
  */
-public enum Entities implements Configurable<OntObjectFactory> {
-    CLASS(OWL.Class, OntClassImpl.class) {
+public enum Entities {
+    CLASS(OWL.Class, OntClass.class, OntClassImpl.class) {
         @Override
-        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
-            switch (mode) {
-                case MEDIUM:
-                case STRICT:
-                    return Collections.singleton(RDFS.Datatype);
-                default:
-                    return Collections.emptySet();
-            }
+        Set<Node> bannedTypes(EnhGraph g) {
+            return punnings(g).getClasses();
         }
 
         @Override
-        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
-            return vocabulary.classes();
-        }
-
-        @Override
-        public Class<OntClass> getClassType() {
-            return OntClass.class;
+        Set<Node> builtInURIs(EnhGraph g) {
+            return builtins(g).getClasses();
         }
     },
-    DATATYPE(RDFS.Datatype, OntDatatypeImpl.class) {
+    DATATYPE(RDFS.Datatype, OntDT.class, OntDatatypeImpl.class) {
         @Override
-        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
-            switch (mode) {
-                case MEDIUM:
-                case STRICT:
-                    return Collections.singleton(OWL.Class);
-                default:
-                    return Collections.emptySet();
-            }
+        Set<Node> bannedTypes(EnhGraph g) {
+            return punnings(g).getDatatypes();
         }
 
         @Override
-        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
-            return vocabulary.datatypes();
-        }
-
-        @Override
-        public Class<OntDT> getClassType() {
-            return OntDT.class;
+        Set<Node> builtInURIs(EnhGraph g) {
+            return builtins(g).getDatatypes();
         }
     },
-    ANNOTATION_PROPERTY(OWL.AnnotationProperty, OntAPropertyImpl.class) {
+    ANNOTATION_PROPERTY(OWL.AnnotationProperty, OntNAP.class, OntAPropertyImpl.class) {
         @Override
-        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
-            switch (mode) {
-                case STRICT:
-                    return Stream.of(OWL.ObjectProperty, OWL.DatatypeProperty).collect(Iter.toUnmodifiableSet());
-                default:
-                    return Collections.emptySet();
-            }
+        Set<Node> bannedTypes(EnhGraph g) {
+            return punnings(g).getAnnotationProperties();
         }
 
         @Override
-        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
-            return Collections.unmodifiableSet(vocabulary.annotationProperties());
-        }
-
-        @Override
-        public Class<OntNAP> getClassType() {
-            return OntNAP.class;
+        Set<Node> builtInURIs(EnhGraph g) {
+            return builtins(g).getAnnotationProperties();
         }
     },
-    DATA_PROPERTY(OWL.DatatypeProperty, OntDPropertyImpl.class) {
+    DATA_PROPERTY(OWL.DatatypeProperty, OntNDP.class, OntDPropertyImpl.class) {
         @Override
-        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
-            switch (mode) {
-                case STRICT:
-                    return Stream.of(OWL.ObjectProperty, OWL.AnnotationProperty).collect(Iter.toUnmodifiableSet());
-                case MEDIUM:
-                    return Collections.singleton(OWL.ObjectProperty);
-                default:
-                    return Collections.emptySet();
-            }
+        Set<Node> bannedTypes(EnhGraph g) {
+            return punnings(g).getDatatypeProperties();
         }
 
         @Override
-        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
-            return Collections.unmodifiableSet(vocabulary.datatypeProperties());
-        }
-
-        @Override
-        public Class<OntNDP> getClassType() {
-            return OntNDP.class;
+        Set<Node> builtInURIs(EnhGraph g) {
+            return builtins(g).getDatatypeProperties();
         }
     },
-    OBJECT_PROPERTY(OWL.ObjectProperty, OntOPEImpl.NamedPropertyImpl.class) {
+    OBJECT_PROPERTY(OWL.ObjectProperty, OntNOP.class, OntOPEImpl.NamedPropertyImpl.class) {
         @Override
-        Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
-            switch (mode) {
-                case STRICT:
-                    return Stream.of(OWL.DatatypeProperty, OWL.AnnotationProperty).collect(Iter.toUnmodifiableSet());
-                case MEDIUM:
-                    return Collections.singleton(OWL.DatatypeProperty);
-                default:
-                    return Collections.emptySet();
-            }
+        Set<Node> bannedTypes(EnhGraph g) {
+            return punnings(g).getObjectProperties();
         }
 
         @Override
-        Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
-            return Collections.unmodifiableSet(vocabulary.objectProperties());
-        }
-
-        @Override
-        public Class<OntNOP> getClassType() {
-            return OntNOP.class;
+        Set<Node> builtInURIs(EnhGraph g) {
+            return builtins(g).getObjectProperties();
         }
     },
-    INDIVIDUAL(OWL.NamedIndividual, OntIndividualImpl.NamedImpl.class) {
+    INDIVIDUAL(OWL.NamedIndividual, OntIndividual.Named.class, OntIndividualImpl.NamedImpl.class) {
         @Override
-        public Class<OntIndividual.Named> getClassType() {
-            return OntIndividual.Named.class;
+        Set<Node> bannedTypes(EnhGraph g) {
+            return punnings(g).getIndividuals();
         }
-    };
 
-    // don't use this ref, going to delete:
-    public static final BuiltIn.Vocabulary BUILTIN = BuiltIn.get();
+        @Override
+        Set<Node> builtInURIs(EnhGraph g) {
+            return builtins(g).getIndividuals();
+        }
+    },
+    ;
 
-    public static final Configurable<OntObjectFactory> ALL = OntObjectImpl.concatFactories(OntFinder.TYPED, values());
+    public static final ObjectFactory ALL = Factories.createFrom(OntFinder.TYPED,
+            Arrays.stream(values()).map(Entities::getActualType));
 
     private final Class<? extends OntObjectImpl> impl;
+    private final Class<? extends OntEntity> type;
     private final Resource resourceType;
-    private final Map<Mode, OntObjectFactory> registry = new HashMap<>();
 
-    Entities(Resource resourceType, Class<? extends OntObjectImpl> impl) {
+    /**
+     * @param resourceType {@link Resource}
+     * @param type         class-type of the corresponding {@link OntEntity}
+     * @param impl         class-implementation
+     */
+    Entities(Resource resourceType, Class<? extends OntEntity> type, Class<? extends OntObjectImpl> impl) {
+        this.type = type;
         this.impl = impl;
         this.resourceType = resourceType;
     }
+
+    /**
+     * Returns entity class-type.
+     *
+     * @return {@link Class}
+     */
+    public Class<? extends OntEntity> getActualType() {
+        return type;
+    }
+
+    OntPersonality.Builtins builtins(EnhGraph g) {
+        return PersonalityModel.asPersonalityModel(g).getOntPersonality().getBuiltins();
+    }
+
+    OntPersonality.Punnings punnings(EnhGraph g) {
+        return PersonalityModel.asPersonalityModel(g).getOntPersonality().getPunnings();
+    }
+
+    abstract Set<Node> bannedTypes(EnhGraph g);
+
+    abstract Set<Node> builtInURIs(EnhGraph g);
 
     /**
      * Returns entity resource-type.
@@ -176,35 +154,26 @@ public enum Entities implements Configurable<OntObjectFactory> {
     }
 
     /**
-     * Returns entity class-type.
-     *
-     * @return {@link Class}
+     * Creates a factory for the entity.
+     * @return {@link ObjectFactory}
      */
-    public abstract Class<? extends OntEntity> getClassType();
+    public ObjectFactory createFactory() {
+        OntFinder finder = new OntFinder.ByType(resourceType);
 
-    /**
-     * Returns illegal punnings set.
-     *
-     * @param mode {@link OntModelConfig.StdMode}
-     * @return Set of {@link Resource}s
-     */
-    Set<Resource> bannedTypes(OntModelConfig.StdMode mode) {
-        return Collections.emptySet();
-    }
+        OntFilter illegalPunningsFilter = (n, eg) -> {
+            Graph g = eg.asGraph();
+            for (Node t : bannedTypes(eg)) {
+                if (g.contains(n, RDF.Nodes.type, t)) return false;
+            }
+            return true;
+        };
+        OntFilter builtInEntity = (n, g) -> builtInURIs(g).contains(n);
 
-    Set<Resource> builtInURIs() {
-        return builtInURIs(BUILTIN);
-    }
+        OntFilter modelEntity = new OntFilter.HasType(resourceType).and(illegalPunningsFilter);
 
-    /**
-     * Answers a Set of built-in resources specific to the entity.
-     *
-     * @param vocabulary {@link BuiltIn.Vocabulary}
-     * @return Set of {@link Resource}s
-     */
-    @SuppressWarnings("SameParameterValue")
-    Set<Resource> builtInURIs(BuiltIn.Vocabulary vocabulary) {
-        return Collections.emptySet();
+        OntFilter filter = OntFilter.URI.and(modelEntity.or(builtInEntity));
+        OntMaker maker = new OntMaker.WithType(impl, resourceType).restrict(illegalPunningsFilter);
+        return Factories.createCommon(maker, finder, filter);
     }
 
     /**
@@ -228,66 +197,9 @@ public enum Entities implements Configurable<OntObjectFactory> {
      */
     public static Optional<Entities> find(Class<? extends OntEntity> type) {
         for (Entities e : values()) {
-            if (Objects.equals(e.getClassType(), type)) return Optional.of(e);
+            if (Objects.equals(e.getActualType(), type)) return Optional.of(e);
         }
         return Optional.empty();
     }
-
-    /**
-     * Registers a custom entity factory.
-     *
-     * @param key     {@link Configurable.Mode} key, not null.
-     * @param factory {@link OntObjectFactory}, the factory for selected entity, not null.
-     */
-    public void register(Mode key, OntObjectFactory factory) {
-        registry.put(OntJenaException.notNull(key, "Null mode-key"), OntJenaException.notNull(factory, "Null factory-value"));
-    }
-
-    /**
-     * Unregisters a custom factory.
-     *
-     * @param key {@link Configurable.Mode} key, not null.
-     * @return a {@link OntObjectFactory} previously associated with the {@code key}
-     */
-    public OntObjectFactory unregister(Mode key) {
-        return registry.remove(key);
-    }
-
-    /**
-     * Returns all custom factories keys
-     *
-     * @return Set of {@link Mode}s.
-     */
-    public Set<Mode> keys() {
-        return registry.keySet();
-    }
-
-    @Override
-    public OntObjectFactory select(Mode m) {
-        if (registry.containsKey(m)) {
-            return registry.get(m);
-        }
-        return createDefaultFactory(m);
-    }
-
-    public OntObjectFactory createDefaultFactory(Mode mode) {
-        OntModelConfig.StdMode m = mode instanceof OntModelConfig.StdMode ? (OntModelConfig.StdMode) mode : OntModelConfig.StdMode.LAX;
-        Set<Resource> bannedTypes = bannedTypes(m);
-        Set<Resource> builtinURIs = builtInURIs();
-
-        OntFinder finder = new OntFinder.ByType(resourceType);
-
-        OntFilter illegalPunningsFilter = OntFilter.TRUE.accumulate(bannedTypes.stream()
-                .map(OntFilter.HasType::new).map(OntFilter::negate).toArray(OntFilter[]::new));
-
-        OntFilter standardEntity = new OntFilter.HasType(resourceType).and(illegalPunningsFilter);
-        OntFilter builtInEntity = new OntFilter.OneOf(builtinURIs);
-        OntFilter filter = OntFilter.URI.and(standardEntity.or(builtInEntity));
-
-        OntMaker maker = new OntMaker.WithType(impl, resourceType).restrict(illegalPunningsFilter);
-
-        return new CommonOntObjectFactory(maker, finder, filter);
-    }
-
 
 }

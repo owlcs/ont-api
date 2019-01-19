@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -29,12 +29,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A {@link OntObjectFactory Ontology Object Factory} implementation that combines several other factories.
+ * A {@link ObjectFactory Ontology Object Factory} implementation to combine several other factories.
  * <p>
  * Created by szuev on 07.11.2016.
  */
-public class MultiOntObjectFactory extends OntObjectFactory {
-    private final List<OntObjectFactory> factories;
+public class MultiFactoryImpl extends BaseFactoryImpl {
+    private final List<ObjectFactory> factories;
     private final OntFinder finder;
     private final OntFilter fittingFilter;
 
@@ -42,23 +42,23 @@ public class MultiOntObjectFactory extends OntObjectFactory {
      *
      * @param finder        {@link OntFinder}, optional, if null then uses only array of sub-factories to search
      * @param fittingFilter {@link OntFilter}, optional, to trim searching
-     * @param factories     the array of factories to combine, not null, not empty.
+     * @param factories     the array of factories to combine, not {@code null}, not empty
      */
-    public MultiOntObjectFactory(OntFinder finder, OntFilter fittingFilter, OntObjectFactory... factories) {
+    public MultiFactoryImpl(OntFinder finder, OntFilter fittingFilter, ObjectFactory... factories) {
         this.finder = finder;
         this.fittingFilter = fittingFilter;
         this.factories = unbend(factories);
     }
 
-    private static List<OntObjectFactory> unbend(OntObjectFactory... factories) {
+    private static List<ObjectFactory> unbend(ObjectFactory... factories) {
         return Arrays.stream(factories)
-                .map(f -> f instanceof MultiOntObjectFactory ? ((MultiOntObjectFactory) f).factories() : Stream.of(f))
+                .map(f -> f instanceof MultiFactoryImpl ? ((MultiFactoryImpl) f).factories() : Stream.of(f))
                 .flatMap(Function.identity()).collect(Collectors.toList());
     }
 
     @Override
     public EnhNode wrap(Node node, EnhGraph eg) {
-        EnhNode res = doWrap(node, eg);
+        EnhNode res = createInstance(node, eg);
         if (res != null) return res;
         throw new ConversionException("Can't wrap node " + node + ". Use direct factory.");
     }
@@ -69,20 +69,21 @@ public class MultiOntObjectFactory extends OntObjectFactory {
     }
 
     @Override
-    protected EnhNode doWrap(Node node, EnhGraph eg) {
+    public EnhNode createInstance(Node node, EnhGraph eg) {
         if (fittingFilter != null && !fittingFilter.test(node, eg)) return null;
-        return factories().filter(f -> f.canWrap(node, eg)).map(f -> f.doWrap(node, eg)).findFirst().orElse(null);
+        return factories().filter(f -> f.canWrap(node, eg)).map(f -> f.createInstance(node, eg)).findFirst().orElse(null);
     }
 
     @Override
     public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
         if (finder != null) {
-            return finder.iterator(eg).mapWith(n -> doWrap(n, eg)).filterDrop(Objects::isNull);
+            return finder.iterator(eg).mapWith(n -> createInstance(n, eg)).filterDrop(Objects::isNull);
         }
         // in ONT-API the following code is not used:
         return WrappedIterator.create(factories().flatMap(f -> f.find(eg)).distinct().iterator());
     }
 
+    @SuppressWarnings("unused")
     public OntFinder getFinder() {
         return finder;
     }
@@ -91,7 +92,7 @@ public class MultiOntObjectFactory extends OntObjectFactory {
         return fittingFilter;
     }
 
-    public Stream<? extends OntObjectFactory> factories() {
+    public Stream<? extends ObjectFactory> factories() {
         return factories.stream();
     }
 

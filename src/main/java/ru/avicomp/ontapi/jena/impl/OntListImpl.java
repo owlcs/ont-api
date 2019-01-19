@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -57,7 +57,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     protected final Resource listType;
     private RDFList objectRDFList;
 
-    protected OntListImpl(Resource subject, Property predicate, RDFList object, Resource listType, OntGraphModel model, Class<E> elementType) {
+    protected OntListImpl(Resource subject,
+                          Property predicate,
+                          RDFList object,
+                          Resource listType,
+                          OntGraphModel model,
+                          Class<E> elementType) {
         super(object.asNode(), (EnhGraph) model);
         this.objectRDFList = object;
         this.subject = subject;
@@ -171,7 +176,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return new OntListImpl<N>(subject, predicate, list, listType, model, elementType) {
             @Override
             public boolean isValid(RDFNode n) {
-                return OntObjectImpl.canAs(elementType, n.asNode(), model);
+                return PersonalityModel.canAs(elementType, n.asNode(), model);
             }
         };
     }
@@ -270,7 +275,10 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         if (!listType.isURIResource()) throw new IllegalArgumentException("List type must have URI");
     }
 
-    private static ExtendedIterator<Resource> listAnnotations(Model m, Resource subject, Property predicate, RDFNode obj) {
+    private static ExtendedIterator<Resource> listAnnotations(Model m,
+                                                              Resource subject,
+                                                              Property predicate,
+                                                              RDFNode obj) {
         return OntStatementImpl.listAnnotationResources(m, OWL.Axiom, subject, predicate, obj);
     }
 
@@ -296,7 +304,10 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return createRDFType(m, batch, (n, g) -> g.getNodeAs(n, Resource.class), type);
     }
 
-    private static OntStatement createRDFType(OntGraphModelImpl m, List<Triple> batch, BiFunction<Node, OntGraphModelImpl, Resource> subject, Resource type) {
+    private static OntStatement createRDFType(OntGraphModelImpl m,
+                                              List<Triple> batch,
+                                              BiFunction<Node, OntGraphModelImpl, Resource> subject,
+                                              Resource type) {
         for (Triple t : batch) {
             if (!RDF.type.asNode().equals(t.getPredicate())) continue;
             if (!t.getObject().equals(type.asNode())) continue;
@@ -428,6 +439,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                 .filter(Objects::nonNull);
     }
 
+    @SuppressWarnings("unused")
     protected Stream<List<Triple>> createRDFListStream(Node list) {
         return Iter.asStream(createRDFListIterator(list));
     }
@@ -462,7 +474,8 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         try {
             return getModel().getNodeAs(n.asNode(), elementType);
         } catch (OntJenaException.Conversion j) {
-            throw new OntJenaException.IllegalState("Can't cast to " + elementType.getSimpleName() + ". Problem node: '" + n + "'", j);
+            throw new OntJenaException.IllegalState("Can't cast to " +
+                    elementType.getSimpleName() + ". Problem node: '" + n + "'", j);
         }
     }
 
@@ -668,7 +681,8 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     /**
      * A simplest {@link Iterator iterator} over a {@link RDF#List rdf:List},
-     * whose {@link Iterator#next()} method returns a batch of {@link Triple triple}s in the form of standard {@link List Java List}.
+     * whose {@link Iterator#next()} method returns
+     * a batch of {@link Triple triple}s in the form of standard {@link List Java List}.
      */
     public static class RDFListIterator implements Iterator<List<Triple>> {
         public static final Node REST = RDF.rest.asNode();
