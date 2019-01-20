@@ -19,6 +19,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.impl.PropertyImpl;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntNPA;
@@ -68,4 +69,8 @@ public class OntDPropertyImpl extends OntPEImpl implements OntNDP {
         return getOptionalRootStatement(this, OWL.DatatypeProperty);
     }
 
+    @Override
+    public int getOrdinal() {
+        return new PropertyImpl(node, enhGraph).getOrdinal();
+    }
 }

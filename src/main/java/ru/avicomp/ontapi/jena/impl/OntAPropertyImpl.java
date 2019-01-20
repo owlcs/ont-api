@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -77,5 +78,10 @@ public class OntAPropertyImpl extends OntPEImpl implements OntNAP {
     @Override
     public Optional<OntStatement> findRootStatement() {
         return getOptionalRootStatement(this, OWL.AnnotationProperty);
+    }
+
+    @Override
+    public int getOrdinal() {
+        return new PropertyImpl(node, enhGraph).getOrdinal();
     }
 }

@@ -119,6 +119,7 @@ public class OntModelConfig {
             .add(OntOPE.Inverse.class, OntPEImpl.inversePropertyFactory)
             .add(OntOPE.class, OntPEImpl.abstractOPEFactory)
             .add(OntDOP.class, OntPEImpl.abstractDOPFactory)
+            .add(OntProperty.class, OntPEImpl.abstractNamedPropertyFactory)
             .add(OntPE.class, OntPEImpl.abstractPEFactory)
 
             // individuals:
@@ -190,8 +191,8 @@ public class OntModelConfig {
     }
 
     /**
-     * Returns a fresh copy of {@link PersonalityBuilder} with {@code 92} resource factories inside
-     * ({@code 10} standard + {@code 82} ontological).
+     * Returns a fresh copy of {@link PersonalityBuilder} with {@code 93} resource factories inside
+     * ({@code 10} standard + {@code 83} ontological).
      * The returned instance contains everything needed, and can be modified to build a new {@link OntPersonality}.
      *
      * @return {@link PersonalityBuilder}

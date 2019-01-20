@@ -51,7 +51,6 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
     public static ObjectFactory inversePropertyFactory = Factories.createCommon(OntOPEImpl.InversePropertyImpl.class,
             new OntFinder.ByPredicate(OWL.inverseOf), INVERSE_OF_FILTER);
 
-    // todo: make one more view for named properties
     public static ObjectFactory abstractNamedPropertyFactory = Factories.createFrom(OntFinder.TYPED,
             OntNOP.class, OntNDP.class, OntNAP.class);
 

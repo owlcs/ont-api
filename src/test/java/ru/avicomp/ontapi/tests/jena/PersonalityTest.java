@@ -313,7 +313,7 @@ public class PersonalityTest {
         OntPersonality res = PersonalityBuilder.from(from)
                 .add(OntIndividual.Named.class, factory)
                 .build();
-        Assert.assertEquals(92, res.types().count());
+        Assert.assertEquals(93, res.types().count());
         return res;
     }
 

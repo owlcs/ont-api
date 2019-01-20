@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,6 +24,7 @@ import java.util.stream.Stream;
  * In OWL2 terms it is any {@link OntPE Property Expression} minus {@link OntNAP Annotation Property}.
  * <p>
  * Created by @szuev on 21.07.2018.
+ * @since 1.3.0
  */
 public interface OntDOP extends OntPE {
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
+import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.Lang;
 import org.hamcrest.core.IsEqual;
@@ -29,6 +30,7 @@ import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Graphs;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -51,6 +53,11 @@ import java.util.stream.Stream;
 public class OntModelTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntModelTest.class);
 
+    @SafeVarargs
+    private static <X> Set<X> toUnmodifiableSet(Collection<? extends X>... lists) {
+        return Arrays.stream(lists).flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
+    }
+
     @Test
     public void testPizzaLoadCE() {
         LOGGER.debug("load pizza");
@@ -58,7 +65,8 @@ public class OntModelTest {
         LOGGER.debug("Ontology: {}", m.getID());
 
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
-        int expectedClassesCount = m.listStatements(null, RDF.type, OWL.Class).mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).toSet().size();
+        int expectedClassesCount = m.listStatements(null, RDF.type, OWL.Class)
+                .mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).toSet().size();
         int actualClassesCount = classes.size();
         LOGGER.debug("Classes Count = {}", actualClassesCount);
         Assert.assertEquals("Incorrect Classes count", expectedClassesCount, actualClassesCount);
@@ -66,22 +74,29 @@ public class OntModelTest {
         LOGGER.debug("Class Expressions:");
         List<OntCE> ces = m.ontObjects(OntCE.class).collect(Collectors.toList());
         ces.forEach(x -> LOGGER.debug("{}", x));
-        int expectedCEsCount = m.listStatements(null, RDF.type, OWL.Class).andThen(m.listStatements(null, RDF.type, OWL.Restriction)).toSet().size();
+        int expectedCEsCount = m.listStatements(null, RDF.type, OWL.Class)
+                .andThen(m.listStatements(null, RDF.type, OWL.Restriction)).toSet().size();
         int actualCEsCount = ces.size();
         LOGGER.debug("Class Expressions Count = {}", actualCEsCount);
         Assert.assertEquals("Incorrect CE's count", expectedCEsCount, actualCEsCount);
 
         List<OntCE.RestrictionCE> restrictionCEs = m.ontObjects(OntCE.RestrictionCE.class).collect(Collectors.toList());
-        Assert.assertEquals("Incorrect count of restrictions ", m.listStatements(null, RDF.type, OWL.Restriction).toSet().size(), restrictionCEs.size());
+        Assert.assertEquals("Incorrect count of restrictions ",
+                m.listStatements(null, RDF.type, OWL.Restriction).toSet().size(), restrictionCEs.size());
 
-        List<OntCE.ObjectSomeValuesFrom> objectSomeValuesFromCEs = m.ontObjects(OntCE.ObjectSomeValuesFrom.class).collect(Collectors.toList());
-        List<OntCE.ObjectAllValuesFrom> objectAllValuesFromCEs = m.ontObjects(OntCE.ObjectAllValuesFrom.class).collect(Collectors.toList());
-        List<OntCE.ObjectHasValue> objectHasValueCEs = m.ontObjects(OntCE.ObjectHasValue.class).collect(Collectors.toList());
+        List<OntCE.ObjectSomeValuesFrom> objectSomeValuesFromCEs = m.ontObjects(OntCE.ObjectSomeValuesFrom.class)
+                .collect(Collectors.toList());
+        List<OntCE.ObjectAllValuesFrom> objectAllValuesFromCEs = m.ontObjects(OntCE.ObjectAllValuesFrom.class)
+                .collect(Collectors.toList());
+        List<OntCE.ObjectHasValue> objectHasValueCEs = m.ontObjects(OntCE.ObjectHasValue.class)
+                .collect(Collectors.toList());
         List<OntCE.UnionOf> unionOfCEs = m.ontObjects(OntCE.UnionOf.class).collect(Collectors.toList());
-        List<OntCE.IntersectionOf> intersectionOfCEs = m.ontObjects(OntCE.IntersectionOf.class).collect(Collectors.toList());
+        List<OntCE.IntersectionOf> intersectionOfCEs = m.ontObjects(OntCE.IntersectionOf.class)
+                .collect(Collectors.toList());
         List<OntCE.ComplementOf> complementOfCEs = m.ontObjects(OntCE.ComplementOf.class).collect(Collectors.toList());
         List<OntCE.OneOf> oneOfCEs = m.ontObjects(OntCE.OneOf.class).collect(Collectors.toList());
-        List<OntCE.ObjectMinCardinality> objectMinCardinalityCEs = m.ontObjects(OntCE.ObjectMinCardinality.class).collect(Collectors.toList());
+        List<OntCE.ObjectMinCardinality> objectMinCardinalityCEs = m.ontObjects(OntCE.ObjectMinCardinality.class)
+                .collect(Collectors.toList());
 
         testPizzaCEs(m, OWL.someValuesFrom, objectSomeValuesFromCEs);
         testPizzaCEs(m, OWL.allValuesFrom, objectAllValuesFromCEs);
@@ -93,14 +108,22 @@ public class OntModelTest {
         testPizzaCEs(m, OWL.minCardinality, objectMinCardinalityCEs);
     }
 
+    private void testPizzaCEs(Model m, Property predicate, List<? extends OntCE> ces) {
+        String type = ces.isEmpty() ? null : ((OntCEImpl) ces.get(0)).getActualClass().getSimpleName();
+        Assert.assertEquals("Incorrect count of " + type, m.listSubjectsWithProperty(predicate)
+                .toSet().size(), ces.size());
+    }
+
     @Test
     public void testPizzaLoadProperties() {
-        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph()));
+        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl")
+                .getGraph()));
     }
 
     @Test
     public void testFamilyLoadProperties() {
-        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/family.ttl").getGraph()));
+        simplePropertiesValidation(OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/family.ttl")
+                .getGraph()));
     }
 
     @Test
@@ -111,21 +134,18 @@ public class OntModelTest {
         Map<OntIndividual, Set<OntCE>> classes = individuals.stream()
                 .collect(Collectors.toMap(Function.identity(), i -> i.classes().collect(Collectors.toSet())));
         classes.forEach((i, c) -> LOGGER.debug("Individual: {}, Classes: {}", i, c));
-        classes.forEach((i, c) -> c.forEach(_c -> Assert.assertEquals(1, _c.individuals().filter(_i -> Objects.equals(_i, i)).count())));
+        classes.forEach((i, c) -> c.forEach(_c -> Assert.assertEquals(1, _c.individuals()
+                .filter(_i -> Objects.equals(_i, i)).count())));
 
         Set<Resource> namedIndividuals = m.listSubjectsWithProperty(RDF.type, OWL.NamedIndividual).toSet();
         Set<Resource> anonIndividuals = m.listStatements(null, RDF.type, (RDFNode) null)
                 .filterKeep(s -> s.getSubject().isAnon())
-                .filterKeep(s -> s.getObject().isResource() && m.contains(s.getObject().asResource(), RDF.type, OWL.Class))
+                .filterKeep(s -> s.getObject().isResource() && m.contains(s.getObject()
+                        .asResource(), RDF.type, OWL.Class))
                 .mapWith(Statement::getSubject).toSet();
         Set<Resource> expected = new HashSet<>(namedIndividuals);
         expected.addAll(anonIndividuals);
         Assert.assertEquals("Incorrect number of individuals", expected.size(), individuals.size());
-    }
-
-    private static void testPizzaCEs(Model m, Property predicate, List<? extends OntCE> ces) {
-        String type = ces.isEmpty() ? null : ((OntCEImpl) ces.get(0)).getActualClass().getSimpleName();
-        Assert.assertEquals("Incorrect count of " + type, m.listSubjectsWithProperty(predicate).toSet().size(), ces.size());
     }
 
     @Test
@@ -226,18 +246,22 @@ public class OntModelTest {
         Set<Statement> inverseStatements = jena.listStatements(null, OWL.inverseOf, (RDFNode) null)
                 .filterKeep(s -> s.getSubject().isURIResource()).filterKeep(s -> s.getObject().isURIResource()).toSet();
 
-        List<OntPE> actualPEs = ont.ontObjects(OntPE.class).collect(Collectors.toList());
-        if (LOGGER.isDebugEnabled()) {
-            actualPEs.forEach(x -> LOGGER.debug("PE: {}", x));
-        }
-        Set<Resource> expectedPEs = Stream.of(annotationProperties, datatypeProperties, namedObjectProperties, inverseObjectProperties)
-                .flatMap(Collection::stream).collect(Collectors.toSet());
+        List<OntPE> actualPEs = ont.ontObjects(OntPE.class)
+                .peek(x -> LOGGER.debug("PE: {}", x)).collect(Collectors.toList());
+
+        Set<Resource> expectedNamed = toUnmodifiableSet(annotationProperties, datatypeProperties, namedObjectProperties);
+        Set<Resource> expectedPEs = toUnmodifiableSet(expectedNamed, inverseObjectProperties);
         Assert.assertEquals("Incorrect number of property expressions", expectedPEs.size(), actualPEs.size());
 
+        List<OntProperty> actualNamed = ont.ontObjects(OntProperty.class)
+                .peek(x -> LOGGER.debug("Named property: {}", x))
+                .collect(Collectors.toList());
+        Assert.assertEquals("Incorrect number of named properties", expectedNamed.size(), actualNamed.size());
+
         List<OntPE> actualDOs = ont.ontObjects(OntDOP.class).collect(Collectors.toList());
-        Set<Resource> expectedDOs = Stream.of(datatypeProperties, namedObjectProperties, inverseObjectProperties)
-                .flatMap(Collection::stream).collect(Collectors.toSet());
-        Assert.assertEquals("Incorrect number of data and object property expressions", expectedDOs.size(), actualDOs.size());
+        Set<Resource> expectedDOs = toUnmodifiableSet(datatypeProperties, namedObjectProperties, inverseObjectProperties);
+        Assert.assertEquals("Incorrect number of data and object property expressions",
+                expectedDOs.size(), actualDOs.size());
 
         Assert.assertEquals("Incorrect number of owl:inverseOf for object properties", inverseStatements.size(),
                 ont.listObjectProperties().flatMap(OntOPE::inverseOf).count());
@@ -261,6 +285,9 @@ public class OntModelTest {
 
         ReadWriteUtils.print(m);
         simplePropertiesValidation(m);
+        Assert.assertEquals(9, m.ontObjects(OntProperty.class).count());
+        Assert.assertEquals(11, m.ontObjects(OntPE.class).count());
+        Assert.assertEquals(9, m.ontObjects(OntDOP.class).count());
     }
 
     @Test
@@ -300,7 +327,8 @@ public class OntModelTest {
         Assert.assertEquals("Incorrect count of individuals", 2, m.ontObjects(OntIndividual.class).count());
         Assert.assertEquals("Incorrect count of class expressions", 3, m.ontObjects(OntCE.class).count());
         Assert.assertEquals("Incorrect count of restrictions", 2, m.ontObjects(OntCE.RestrictionCE.class).count());
-        Assert.assertEquals("Incorrect count of cardinality restrictions", 1, m.ontObjects(OntCE.CardinalityRestrictionCE.class).count());
+        Assert.assertEquals("Incorrect count of cardinality restrictions", 1,
+                m.ontObjects(OntCE.CardinalityRestrictionCE.class).count());
         Assert.assertEquals("Incorrect count of datatype entities", 2, m.ontObjects(OntDT.class).count());
         Assert.assertEquals("Incorrect count of data properties", 1, m.ontObjects(OntNDP.class).count());
         Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFR.class).count());
@@ -330,9 +358,11 @@ public class OntModelTest {
         OntSWRL.DArg dArg1 = ResourceFactory.createTypedLiteral(12).inModel(m).as(OntSWRL.DArg.class);
         OntSWRL.DArg dArg2 = var1.as(OntSWRL.DArg.class);
 
-        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(ResourceFactory.createResource(ns + "AtomPredicate1"), Arrays.asList(dArg1, dArg2));
+        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(ResourceFactory.createResource(ns + "AtomPredicate1"),
+                Arrays.asList(dArg1, dArg2));
         OntSWRL.Atom.OntClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
-        OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class), var1.as(OntSWRL.IArg.class));
+        OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class),
+                var1.as(OntSWRL.IArg.class));
         OntSWRL.Imp imp = m.createSWRLImp(Collections.singletonList(atom1), Arrays.asList(atom2, atom3));
         imp.addComment("This is SWRL Imp").addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
 
@@ -361,7 +391,8 @@ public class OntModelTest {
     public void testCreateImports() {
         String baseURI = "http://test.com/graph/5";
         String baseNS = baseURI + "#";
-        OntGraphModel base = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID(baseURI).getModel();
+        OntGraphModel base = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+                .setID(baseURI).getModel();
         OntClass cl1 = base.createOntEntity(OntClass.class, baseNS + "Class1");
         OntClass cl2 = base.createOntEntity(OntClass.class, baseNS + "Class2");
 
@@ -380,9 +411,11 @@ public class OntModelTest {
         LOGGER.debug("Child:");
         ReadWriteUtils.print(child);
         Set<String> imports = child.getID().imports().collect(Collectors.toSet());
-        Assert.assertThat("Incorrect imports", imports, IsEqual.equalTo(Stream.of(baseURI).collect(Collectors.toSet())));
+        Assert.assertThat("Incorrect imports", imports, IsEqual.equalTo(Stream.of(baseURI)
+                .collect(Collectors.toSet())));
         Assert.assertEquals("Incorrect count of entities", 4, child.ontEntities().count());
-        Assert.assertEquals("Incorrect count of local entities", 2, child.ontEntities().filter(OntEntity::isLocal).count());
+        Assert.assertEquals("Incorrect count of local entities", 2, child.ontEntities()
+                .filter(OntEntity::isLocal).count());
     }
 
     @Test
@@ -473,9 +506,11 @@ public class OntModelTest {
         OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
         // classes:
         OntClass class1 = m.createOntEntity(OntClass.class, "c");
-        OntCE.UnionOf class2 = m.createUnionOf(Arrays.asList(m.createOntEntity(OntClass.class, "c1"), m.createOntEntity(OntClass.class, "c2")));
+        OntCE.UnionOf class2 = m.createUnionOf(Arrays.asList(m.createOntEntity(OntClass.class, "c1"),
+                m.createOntEntity(OntClass.class, "c2")));
         OntCE.DataHasValue class3 = m.createDataHasValue(p1, m.createLiteral("2"));
-        OntCE.DataMinCardinality class4 = m.createDataMinCardinality(p1, 2, m.getOntEntity(OntDT.class, XSD.xdouble));
+        OntCE.DataMinCardinality class4 = m.createDataMinCardinality(p1, 2,
+                m.getOntEntity(OntDT.class, XSD.xdouble));
         OntClass class5 = m.getOWLThing();
         OntCE.ObjectCardinality class6 = m.createObjectCardinality(p2, 1234, class5);
         OntCE.HasSelf class7 = m.createHasSelf(p2);
@@ -486,7 +521,8 @@ public class OntModelTest {
         class5.addEquivalentClass(m.getOWLNothing());
         // data-ranges:
         OntDT dr1 = m.getOntEntity(OntDT.class, XSD.xint);
-        OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(Arrays.asList(dr1, m.getOntEntity(OntDT.class, XSD.xdouble)));
+        OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(Arrays.asList(dr1,
+                m.getOntEntity(OntDT.class, XSD.xdouble)));
         OntDR.ComplementOf dr3 = m.createComplementOfDataRange(dr2);
         dr3.addComment("Data range: complement of intersection int and double");
         // individuals:
@@ -497,44 +533,70 @@ public class OntModelTest {
 
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(1, class1.spec().map(Models::toString).peek(x -> LOGGER.debug("1::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(4, class1.content().map(Models::toString).peek(x -> LOGGER.debug("1::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(1, class1.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("1::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(4, class1.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("1::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(6, class2.spec().map(Models::toString).peek(x -> LOGGER.debug("2::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(7, class2.content().map(Models::toString).peek(x -> LOGGER.debug("2::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(6, class2.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("2::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(7, class2.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("2::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(3, class3.spec().map(Models::toString).peek(x -> LOGGER.debug("3::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(3, class3.content().map(Models::toString).peek(x -> LOGGER.debug("3::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(3, class3.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("3::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(3, class3.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("3::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(4, class4.spec().map(Models::toString).peek(x -> LOGGER.debug("4::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(4, class4.content().map(Models::toString).peek(x -> LOGGER.debug("4::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(4, class4.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("4::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(4, class4.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("4::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(0, class5.spec().map(Models::toString).peek(x -> LOGGER.debug("5::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(1, class5.content().map(Models::toString).peek(x -> LOGGER.debug("5::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(0, class5.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("5::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(1, class5.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("5::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(3, class6.spec().map(Models::toString).peek(x -> LOGGER.debug("6::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(3, class6.content().map(Models::toString).peek(x -> LOGGER.debug("6::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(3, class6.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("6::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(3, class6.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("6::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(3, class7.spec().map(Models::toString).peek(x -> LOGGER.debug("7::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(3, class7.content().map(Models::toString).peek(x -> LOGGER.debug("7::CLASS CONTENT: {}", x)).count());
+        Assert.assertEquals(3, class7.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("7::CLASS SPEC: {}", x)).count());
+        Assert.assertEquals(3, class7.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("7::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(0, dr1.spec().map(Models::toString).peek(x -> LOGGER.debug("1::DATA-RANGE SPEC: {}", x)).count());
-        Assert.assertEquals(0, dr1.content().map(Models::toString).peek(x -> LOGGER.debug("1::DATA-RANGE CONTENT: {}", x)).count());
+        Assert.assertEquals(0, dr1.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("1::DATA-RANGE SPEC: {}", x)).count());
+        Assert.assertEquals(0, dr1.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("1::DATA-RANGE CONTENT: {}", x)).count());
 
-        Assert.assertEquals(6, dr2.spec().map(Models::toString).peek(x -> LOGGER.debug("2::DATA-RANGE SPEC: {}", x)).count());
-        Assert.assertEquals(6, dr2.content().map(Models::toString).peek(x -> LOGGER.debug("2::DATA-RANGE CONTENT: {}", x)).count());
+        Assert.assertEquals(6, dr2.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("2::DATA-RANGE SPEC: {}", x)).count());
+        Assert.assertEquals(6, dr2.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("2::DATA-RANGE CONTENT: {}", x)).count());
 
-        Assert.assertEquals(2, dr3.spec().map(Models::toString).peek(x -> LOGGER.debug("3::DATA-RANGE SPEC: {}", x)).count());
-        Assert.assertEquals(2, dr3.content().map(Models::toString).peek(x -> LOGGER.debug("3::DATA-RANGE CONTENT: {}", x)).count());
+        Assert.assertEquals(2, dr3.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("3::DATA-RANGE SPEC: {}", x)).count());
+        Assert.assertEquals(2, dr3.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("3::DATA-RANGE CONTENT: {}", x)).count());
 
-        Assert.assertEquals(1, i1.spec().map(Models::toString).peek(x -> LOGGER.debug("1::INDIVIDUAL SPEC: {}", x)).count());
-        Assert.assertEquals(2, i1.content().map(Models::toString).peek(x -> LOGGER.debug("1::INDIVIDUAL CONTENT: {}", x)).count());
+        Assert.assertEquals(1, i1.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("1::INDIVIDUAL SPEC: {}", x)).count());
+        Assert.assertEquals(2, i1.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("1::INDIVIDUAL CONTENT: {}", x)).count());
 
-        Assert.assertEquals(0, i2.spec().map(Models::toString).peek(x -> LOGGER.debug("2::INDIVIDUAL SPEC: {}", x)).count());
-        Assert.assertEquals(1, i2.content().map(Models::toString).peek(x -> LOGGER.debug("2::INDIVIDUAL CONTENT: {}", x)).count());
+        Assert.assertEquals(0, i2.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("2::INDIVIDUAL SPEC: {}", x)).count());
+        Assert.assertEquals(1, i2.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("2::INDIVIDUAL CONTENT: {}", x)).count());
 
-        Assert.assertEquals(4, npa1.spec().map(Models::toString).peek(x -> LOGGER.debug("1::NAP SPEC: {}", x)).count());
-        Assert.assertEquals(4, npa1.content().map(Models::toString).peek(x -> LOGGER.debug("1::NAP CONTENT: {}", x)).count());
+        Assert.assertEquals(4, npa1.spec().map(Models::toString)
+                .peek(x -> LOGGER.debug("1::NAP SPEC: {}", x)).count());
+        Assert.assertEquals(4, npa1.content().map(Models::toString)
+                .peek(x -> LOGGER.debug("1::NAP CONTENT: {}", x)).count());
     }
 
     @Test
@@ -612,7 +674,6 @@ public class OntModelTest {
         Assert.assertEquals(6, txt.split("\n").length);
     }
 
-
     @Test
     public void testModelImports() {
         OntGraphModel av1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
@@ -676,6 +737,17 @@ public class OntModelTest {
                 .sorted()
                 .collect(Collectors.toList()));
 
+    }
+
+    @Test
+    public void testOntPropertyOrdinal() {
+        Graph g = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph();
+        OntGraphModel m = OntModelFactory.createModel(g);
+        OntProperty p = m.getOntEntity(OntProperty.class, m.expandPrefix(":isIngredientOf"));
+        Assert.assertNotNull(p);
+        Assert.assertEquals(0, p.getOrdinal());
+        Assert.assertEquals(0, m.getRDFSComment().getOrdinal());
+        Assert.assertEquals(0, m.getOWLBottomDataProperty().getOrdinal());
     }
 
 }

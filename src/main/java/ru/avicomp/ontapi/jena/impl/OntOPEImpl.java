@@ -21,6 +21,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.impl.PropertyImpl;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -89,6 +90,11 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         @Override
         public Optional<OntStatement> findRootStatement() {
             return getOptionalRootStatement(this, OWL.ObjectProperty);
+        }
+
+        @Override
+        public int getOrdinal() {
+            return new PropertyImpl(node, enhGraph).getOrdinal();
         }
     }
 
