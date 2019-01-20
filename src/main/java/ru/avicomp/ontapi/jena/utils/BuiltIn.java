@@ -33,7 +33,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -132,7 +131,7 @@ public class BuiltIn {
     }
 
     /**
-     * Access to the {@link OWL} vocabulary.
+     * Access to the {@link OWL OWL2} vocabulary.
      */
     @SuppressWarnings("WeakerAccess")
     public static class OWLVocabulary implements Vocabulary {
@@ -230,6 +229,9 @@ public class BuiltIn {
         }
     }
 
+    /**
+     * Empty Vocabulary.
+     */
     public static class Empty implements Vocabulary {
 
         @Override
@@ -333,23 +335,15 @@ public class BuiltIn {
      * The union vocabulary which consists from several other vocabularies.
      */
     @SuppressWarnings("WeakerAccess")
-    public static class MultiVocabulary implements Vocabulary {
-        protected final List<Vocabulary> vocabularies;
-        private Set<Property> annotationProperties;
-        private Set<Property> datatypeProperties;
-        private Set<Property> objectProperties;
-        private Set<Resource> datatypes;
-        private Set<Resource> classes;
+    public static class MultiVocabulary extends BaseVocabulary implements Vocabulary {
+        protected final Set<Vocabulary> vocabularies;
 
-        private Set<Resource> reservedResources;
-        private Set<Property> reservedProperties;
-
-        protected MultiVocabulary(List<Vocabulary> vocabularies) {
-            this.vocabularies = vocabularies;
+        protected MultiVocabulary(Set<Vocabulary> vocabularies) {
+            this.vocabularies = Objects.requireNonNull(vocabularies);
         }
 
         public static MultiVocabulary create(Vocabulary... vocabularies) {
-            List<Vocabulary> res = Stream.of(vocabularies).distinct().collect(Collectors.toList());
+            Set<Vocabulary> res = Arrays.stream(vocabularies).collect(Iter.toUnmodifiableSet());
             if (res.isEmpty()) throw new OntJenaException("Empty list specified");
             return new MultiVocabulary(res);
         }
@@ -398,4 +392,16 @@ public class BuiltIn {
                     reservedProperties = merge(Vocabulary::reservedProperties) : reservedProperties;
         }
     }
+
+    static abstract class BaseVocabulary {
+        protected Set<Property> annotationProperties;
+        protected Set<Property> datatypeProperties;
+        protected Set<Property> objectProperties;
+        protected Set<Resource> datatypes;
+        protected Set<Resource> classes;
+
+        protected Set<Resource> reservedResources;
+        protected Set<Property> reservedProperties;
+    }
+
 }

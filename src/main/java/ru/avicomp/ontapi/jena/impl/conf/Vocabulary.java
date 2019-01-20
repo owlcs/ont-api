@@ -23,11 +23,14 @@ import java.util.Set;
 
 /**
  * This is a resource type mapper.
- * It is a technical interface that is used by {@link OntPersonality}.
+ * It is a technical interface that is used by the {@link OntPersonality}.
+ * All methods must return a IRIs, not literals or blank-nodes.
+ * <p>
  * Created by @ssz on 16.01.2019.
  *
  * @param <T> any subtype of {@link Resource}
  * @since 1.4.0
+ * @see ru.avicomp.ontapi.jena.utils.BuiltIn.Vocabulary
  */
 @FunctionalInterface
 interface Vocabulary<T extends Resource> {
@@ -43,7 +46,6 @@ interface Vocabulary<T extends Resource> {
 
     /**
      * A vocabulary for {@link OntEntity OWL Entity} types.
-     * All methods must return a IRIs, not literals or blank-nodes.
      * <p>
      * Created by @ssz on 18.01.2019.
      *

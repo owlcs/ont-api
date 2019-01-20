@@ -29,10 +29,10 @@ import java.util.stream.Stream;
  * An {@link ru.avicomp.ontapi.jena.model.OntObject Ontology Object} factory abstraction,
  * that is an ONT-API analogue of the {@link Implementation Jena Implementation Factory}.
  * Used to bind a concrete implementation (i.e. {@link EnhNode enhanced node}) and
- * an interface ({@link ru.avicomp.ontapi.jena.model.OntObject OWL Object} instance) with a {@link Node Graph Node}.
- * It is a part of {@link OntPersonality} to manipulate
+ * an interface ({@link ru.avicomp.ontapi.jena.model.OntObject OWL Object}) with a {@link Node Graph Node}.
+ * It is a part of {@link OntPersonality} mechanism to manipulate
  * {@link ru.avicomp.ontapi.jena.model.OntGraphModel OWL2 RDF-model} objects (which happens
- * through {@link ru.avicomp.ontapi.jena.impl.PersonalityModel} interface).
+ * through {@link ru.avicomp.ontapi.jena.impl.PersonalityModel}).
  * Also note, explicit links between different {@link ObjectFactory} factories are undesirable
  * (for more details see {@link PersonalityBuilder#add(Class, ObjectFactory)} and
  * {@link ru.avicomp.ontapi.jena.impl.PersonalityModel}).
@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 public interface ObjectFactory {
 
     /**
-     * Returns an {@link ExtendedIterator ExtendedIterator} over the {@link Node node}s found in the {@link EnhGraph}
+     * Returns an {@link ExtendedIterator Extended Iterator} over the {@link Node node}s found in the {@link EnhGraph}
      * in the form of {@link EnhNode} with the interface that this factory encapsulates.
      *
      * @param eg {@link EnhGraph}
@@ -60,7 +60,7 @@ public interface ObjectFactory {
      *
      * @param node node the node to test for suitability
      * @param eg   the enhanced graph the node appears in
-     * @return true iff the node can represent our type in that graph
+     * @return {@code true} iff the {@code node} can represent the type in the graph
      */
     boolean canWrap(Node node, EnhGraph eg);
 
@@ -92,7 +92,7 @@ public interface ObjectFactory {
     }
 
     /**
-     * Makes object-interface-defined changes in the given graph
+     * Makes interface-defined changes in the given graph
      * and returns a new enhanced node, wrapping the given {@link Node}.
      *
      * @param node {@link Node}, the node to be wrapped as {@link ru.avicomp.ontapi.jena.model.OntObject}, not {@code null}
@@ -105,8 +105,8 @@ public interface ObjectFactory {
     }
 
     /**
-     * Answers {@code true} iff modifying of the {@link EnhGraph graph} is allowed
-     * by the encapsulated object's interface.
+     * Answers {@code true} iff the modifying of the {@link EnhGraph graph} is allowed
+     * by this implementation for the encapsulated object's interface.
      *
      * @param node {@link Node} the node to test that changes are permitted.
      * @param eg   {@link EnhGraph} the graph to be changed.

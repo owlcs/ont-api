@@ -93,12 +93,13 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     public static ObjectFactory naryDataSomeValuesFromCEFactory = createNaryFactory(NaryDataSomeValuesFromImpl.class,
             OWL.someValuesFrom);
 
-    //B oolean Connectives and Enumeration of Individuals:
+    //Boolean Connectives and Enumeration of Individuals:
     public static ObjectFactory abstractComponentsCEFactory = Factories.createFrom(CLASS_FINDER
             , UnionOf.class
             , IntersectionOf.class
             , OneOf.class);
-    // Cardinality:
+
+    // Cardinality Restrictions:
     public static ObjectFactory abstractCardinalityRestrictionCEFactory = Factories.createFrom(RESTRICTION_FINDER
             , ObjectMaxCardinality.class
             , DataMaxCardinality.class

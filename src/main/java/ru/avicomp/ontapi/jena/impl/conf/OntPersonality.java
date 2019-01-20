@@ -45,13 +45,14 @@ import java.util.stream.Stream;
  * with a generic type {@link org.apache.jena.rdf.model.RDFNode RDFNode}.
  * Unfortunately, the Jena {@code Personality} is a concrete and mutable class,
  * this fact makes it unacceptable to use it directly within the ONT-API.
- * Also, there is another related restriction:
- * the main {@link ru.avicomp.ontapi.jena.model.OntGraphModel OntGraphModel} interface must also implement
- * {@link ru.avicomp.ontapi.jena.impl.PersonalityModel PersonalityModel}.
+ * Also, there is one more related restriction: the RDF model must implement not only
+ * the main interface {@link ru.avicomp.ontapi.jena.model.OntGraphModel OntGraphModel}
+ * (that provides high-level access to ontological objects) but also
+ * the interface {@link ru.avicomp.ontapi.jena.impl.PersonalityModel PersonalityModel} (enhanced view of graph)
+ * in order to have access to this class.
  * <p>
- * Instances of this class must be unmodifiable.
- * <p>
- * To create an instance use {@link PersonalityBuilder}.
+ * Instances of this class must be unmodifiable and
+ * the {@link PersonalityBuilder builder} should be used to create instances with different settings.
  * <p>
  * Created by @szz on 15.01.2019.
  */
@@ -106,12 +107,15 @@ public interface OntPersonality {
     /**
      * A vocabulary of built-in {@link OntEntity OWL Entities}.
      * A {@link ru.avicomp.ontapi.jena.model.OntGraphModel model}, that holds this configuration,
-     * can contain entities without explicit declarations, it they IRIs are determined by this vocabulary.
+     * can contain entities without explicit declarations, if their IRIs are determined by this vocabulary.
      * <p>
      * For example, the OWL standard vocabulary determines
-     * {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Thing owl:Thing} as builtin OWL class.
-     * In this case the expression {@code voc.get(OntClass.class)}, where {@code voc} is an instance of this class,
-     * will returns a {@code Set} containing {@code owl:Thing} in the form of {@link Node}.
+     * {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Thing owl:Thing} as built-in OWL class.
+     * To describe this case the expression {@code voc.get(OntClass.class)},
+     * where {@code voc} is an instance of this class,
+     * should return a {@code Set} containing {@code owl:Thing} in the form of {@link Node}.
+     * <p>
+     * Each node obtained from this class must be IRI (i.e. {@code node.isURI() = true}).
      *
      * @see OntEntity#types()
      */
@@ -132,15 +136,19 @@ public interface OntPersonality {
 
     /**
      * A punnings vocabulary.
-     * For a given {@link OntEntity} type it returns a {@code Set} of forbidden types.
+     * For a given {@link OntEntity} type it returns a {@code Set} of forbidden types
+     * (the right part of SPO with the (@code rdf:type) predicate).
      * A {@link ru.avicomp.ontapi.jena.model.OntGraphModel model}, that holds this configuration,
      * cannot contain entities which have intersection in {@link ru.avicomp.ontapi.jena.vocabulary.RDF#type rdf:type}
      * that are determined by this vocabulary.
      * <p>
-     * For example, for the {@link OntModelConfig.StdMode#MEDIUM} and {@link OntModelConfig.StdMode#STRICT}
+     * For example, for the {@link OntModelConfig.StdMode#MEDIUM} and for the {@link OntModelConfig.StdMode#STRICT}
      * configurations, the expression {@code voc.get(OntClass.class)}, where {@code voc} is an instance of this class,
-     * will returns a {@code Set}
-     * containing {@link org.apache.jena.vocabulary.RDFS#Datatype rdfs:Datatype} in the form of {@link Node}.
+     * should return a {@code Set}
+     * containing {@link org.apache.jena.vocabulary.RDFS#Datatype rdfs:Datatype} in the form of {@link Node},
+     * since {@code OntDT <-> OntClass} is illegal punning.
+     * <p>
+     * Each node obtained from this class must be IRI (i.e. {@code node.isURI() = true}).
      *
      * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>Punnings</a>
      * @see OntEntity#types()
@@ -153,24 +161,28 @@ public interface OntPersonality {
      * A {@link ru.avicomp.ontapi.jena.model.OntGraphModel model}, that holds this configuration,
      * cannot contain entities with the IRIs from this vocabulary.
      * <p>
-     * Example of such a forbidden {@link Property} returned by this is
-     * {@link ru.avicomp.ontapi.jena.vocabulary.OWL#sameAs owl:sameAs}.
+     * Example of such a forbidden {@link Property} returned by this vocabulary is
+     * {@link ru.avicomp.ontapi.jena.vocabulary.OWL#sameAs owl:sameAs},
+     * since it is used by a model to build individual equality and, therefore, it cannot be used in other cases.
      * An {@link ru.avicomp.ontapi.jena.model.OntGraphModel ontology model} cannot contain an OWL entity with this IRI.
      * But, of course, all these things are customizable, and vocabularies may contain more or less restrictions.
+     * <p>
+     * Each node obtained from this class must be IRI (i.e. {@code node.isURI() = true}).
      */
     interface Reserved extends Vocabulary<Resource> {
 
         /**
-         * Gets a Set of reserved nodes by a key, using a {@code loader} to calculate the result
+         * Gets a {@code Set} of reserved nodes by a {@code String} key, using a {@code loader} to calculate the result
          * if it absences in the vocabulary.
          * <p>
-         * Important: the given {@code loader} must not use external (e.g. the model) resources to infer the result.
-         * It can use only {@link OntPersonality} resources
+         * Important note:
+         * the given {@code loader} must not use external (e.g. the model) resources to infer the result.
+         * It is allowed to use only {@link OntPersonality} resources
          * (from this or {@link Punnings} and {@link Builtins} vocabularies).
          * The {@link Reserved} vocabulary, as anything in {@link OntPersonality configuration},
          * must be unmodifiable, and this method is just a back door,
-         * a possibility to lazily assembly a constant, which will be used by various models,
-         * and should <b>never</b> be changed.
+         * i.e. a possibility to lazily assembly a constant, which can be used by various models,
+         * and, therefore, should <b>never</b> be changed.
          *
          * @param key    String, not {@code null}
          * @param loader {@code Supplier} to construct a Set of {@link Node}s for a given {@code key}
@@ -179,7 +191,7 @@ public interface OntPersonality {
         Set<Node> get(String key, Supplier<Set<Node>> loader);
 
         /**
-         * Gets all reserved IRIs, which are most likely used as an object in SPO of some schema graph triple.
+         * Gets all reserved IRIs, which are most likely used as an object in SPO of some schema graph.
          *
          * @return Set of IRI-{@link Node node}s
          */
@@ -188,7 +200,7 @@ public interface OntPersonality {
         }
 
         /**
-         * Gets all reserved IRIs, which are most likely used as a predicate in SPO of some schema graph triple.
+         * Gets all reserved IRIs, which are most likely used as a predicate in SPO of some schema graph.
          *
          * @return Set of IRI-{@link Node node}s
          */

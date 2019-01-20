@@ -23,15 +23,16 @@ import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
 /**
- * An abstraction to conduct work with {@link OntPersonality}.
- * Any {@link ru.avicomp.ontapi.jena.model.OntGraphModel} is assumed to be {@link PersonalityModel}.
- * Also, it is a facility to provide implicit references
- * to some {@link ru.avicomp.ontapi.jena.impl.conf.ObjectFactory}
- * from another {@link ru.avicomp.ontapi.jena.impl.conf.ObjectFactory}s.
- * Explicit references are prohibited,
- * but using this interface you can not worry about factory dependencies:
+ * An abstraction to work with {@link OntPersonality}
+ * and an interface-analog of the {@link EnhGraph Jena Enhanced Graph},
+ * and also a facility to provide implicit links between different
+ * {@link ru.avicomp.ontapi.jena.impl.conf.ObjectFactory} factories within a model.
+ * A {@link ru.avicomp.ontapi.jena.model.OntGraphModel} is assumed to be {@link PersonalityModel}.
+ * <p>
+ * Explicit links between object factories are undesirable, since replacing one of the factories will affect others.
+ * But using this interface it is possible to build safe implicit links and
  * replacing one factory with a custom implementation will not break the whole model.
- * About this see also the description for
+ * More about this see in the description for
  * the method {@link ru.avicomp.ontapi.jena.impl.conf.PersonalityBuilder#add(Class, ObjectFactory)}.
  * <p>
  * Created by @ssz on 18.01.2019.

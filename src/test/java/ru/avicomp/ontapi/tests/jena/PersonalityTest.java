@@ -14,11 +14,17 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
+import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.sparql.vocabulary.FOAF;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -29,14 +35,15 @@ import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by @szuev on 27.03.2018.
@@ -44,6 +51,121 @@ import java.util.stream.Collectors;
 @SuppressWarnings("WeakerAccess")
 public class PersonalityTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(PersonalityTest.class);
+
+    @Test
+    public void testPersonalityBuiltins() {
+        Resource agent = FOAF.Agent;
+        Resource document = FOAF.Document;
+        String ns = "http://x#";
+        Model g = ModelFactory.createDefaultModel()
+                .setNsPrefixes(OntModelFactory.STANDARD)
+                .setNsPrefix("x", ns)
+                .setNsPrefix("foaf", FOAF.NS);
+        String clazz = ns + "Class";
+        g.createResource(clazz, OWL.Class).addProperty(RDFS.subClassOf, agent);
+        ReadWriteUtils.print(g);
+
+        OntPersonality p1 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT)
+                .setBuiltins(OntModelConfig.createBuiltinsVocabulary(BuiltIn.OWL_VOCABULARY)).build();
+        OntGraphModel m1 = OntModelFactory.createModel(g.getGraph(), p1);
+        Assert.assertEquals(1, m1.listClasses().peek(x -> LOGGER.debug("Class::{}", x)).count());
+        Assert.assertNull(m1.getOntEntity(OntClass.class, agent));
+        Assert.assertNull(m1.getOntEntity(OntClass.class, document));
+        Assert.assertEquals(0, m1.getOntEntity(OntClass.class, clazz).subClassOf().count());
+
+        BuiltIn.Vocabulary SIMPLE_FOAF_VOC = new BuiltIn.Empty() {
+            @Override
+            public Set<Resource> classes() {
+                return Stream.of(agent, document).collect(Iter.toUnmodifiableSet());
+            }
+        };
+        BuiltIn.Vocabulary voc = BuiltIn.MultiVocabulary.create(BuiltIn.OWL_VOCABULARY, SIMPLE_FOAF_VOC);
+        OntPersonality p2 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT)
+                .setBuiltins(OntModelConfig.createBuiltinsVocabulary(voc)).build();
+        OntGraphModel m2 = OntModelFactory.createModel(g.getGraph(), p2);
+
+        // listClasses only works with explicit owl-classes, it does not take into account builtins
+        Assert.assertEquals(1, m2.listClasses().peek(x -> LOGGER.debug("Class::{}", x)).count());
+        Assert.assertNotNull(m2.getOntEntity(OntClass.class, agent));
+        Assert.assertNotNull(m2.getOntEntity(OntClass.class, document));
+        Assert.assertEquals(1, m2.getOntEntity(OntClass.class, clazz).subClassOf()
+                .peek(x -> LOGGER.debug("SuperClass::{}", x)).count());
+    }
+
+    @Test
+    public void testPersonalityReserved() {
+        String ns = "http://x#";
+        Model g = ModelFactory.createDefaultModel()
+                .setNsPrefixes(OntModelFactory.STANDARD)
+                .setNsPrefix("x", ns);
+        Property p = g.createProperty(ns + "someProp");
+        Resource individual = g.createResource(ns + "Individual", OWL.NamedIndividual);
+        g.createResource().addProperty(OWL.sameAs, individual).addProperty(p, "Some assertion");
+        ReadWriteUtils.print(g);
+
+        OntGraphModel m1 = OntModelFactory.createModel(g.getGraph());
+        Assert.assertEquals(2, m1.ontObjects(OntIndividual.class)
+                .peek(x -> LOGGER.debug("1)Individual: {}", x)).count());
+
+        BuiltIn.Vocabulary voc = new BuiltIn.Empty() {
+            @Override
+            public Set<Property> reservedProperties() {
+                return Collections.singleton(p);
+            }
+        };
+        OntPersonality p2 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT)
+                .setReserved(OntModelConfig.createReservedVocabulary(voc)).build();
+        OntGraphModel m2 = OntModelFactory.createModel(g.getGraph(), p2);
+        Assert.assertEquals(1, m2.ontObjects(OntIndividual.class)
+                .peek(x -> LOGGER.debug("2)Individual: {}", x)).count());
+    }
+
+    @Test
+    public void testPersonalityPunnings() {
+        String ns = "http://x#";
+        OntGraphModel m1 = OntModelFactory.createModel(Factory.createGraphMem(), OntModelConfig.ONT_PERSONALITY_STRICT)
+                .setNsPrefixes(OntModelFactory.STANDARD)
+                .setNsPrefix("x", ns);
+        OntClass c1 = m1.createOntEntity(OntClass.class, ns + "C1");
+        OntClass c2 = m1.createOntEntity(OntClass.class, ns + "C2");
+        OntIndividual i1 = c1.createIndividual(ns + "I1");
+        OntIndividual i2 = c2.createIndividual(ns + "I2");
+        c1.createIndividual(ns + "I3");
+        m1.createOntEntity(OntDT.class, i2.getURI());
+        m1.createOntEntity(OntClass.class, i1.getURI());
+        ReadWriteUtils.print(m1);
+        Assert.assertEquals(3, m1.listClasses().peek(x -> LOGGER.debug("1)Class: {}", x)).count());
+        Assert.assertEquals(3, m1.classAssertions().peek(x -> LOGGER.debug("1)Individual: {}", x)).count());
+        Assert.assertEquals(1, m1.listDatatypes().peek(x -> LOGGER.debug("1)Datatype: {}", x)).count());
+
+        OntPersonality.Punnings punnings = new OntPersonality.Punnings() {
+            OntPersonality.Punnings base = OntModelConfig.ONT_PERSONALITY_STRICT.getPunnings();
+
+            @Override
+            public Set<Node> get(Class<? extends OntEntity> type) throws OntJenaException {
+                if (OntIndividual.Named.class.equals(type)) {
+                    return expand(type, OWL.Class, RDFS.Datatype);
+                }
+                if (OntClass.class.equals(type) || OntDT.class.equals(type)) {
+                    return expand(type, OWL.NamedIndividual);
+                }
+                return base.get(type);
+            }
+
+            private Set<Node> expand(Class<? extends OntEntity> type, Resource... additional) {
+                Set<Node> res = new HashSet<>(base.get(type));
+                Arrays.stream(additional).forEach(t -> res.add(t.asNode()));
+                return Collections.unmodifiableSet(res);
+            }
+        };
+        OntPersonality p2 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT).setPunnings(punnings).build();
+        OntEntity.entityTypes().forEach(t -> Assert.assertEquals(2, p2.getPunnings().get(t).size()));
+
+        OntGraphModel m2 = OntModelFactory.createModel(m1.getGraph(), p2);
+        Assert.assertEquals(1, m2.classAssertions().peek(x -> LOGGER.debug("2)Individuals: {}", x)).count());
+        Assert.assertEquals(0, m2.listDatatypes().peek(x -> LOGGER.debug("2)Datatype: {}", x)).count());
+        Assert.assertEquals(2, m2.listClasses().peek(x -> LOGGER.debug("2)Classes: {}", x)).count());
+    }
 
     @Test
     public void testClassDatatypePunn() {
@@ -197,7 +319,6 @@ public class PersonalityTest {
 
     private static ObjectFactory createNamedIndividualFactory() {
         OntMaker maker = new OntMaker.Default(IndividualImpl.class) {
-
             @Override
             public EnhNode instance(Node node, EnhGraph eg) {
                 return new IndividualImpl(node, eg);

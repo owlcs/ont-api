@@ -42,7 +42,7 @@ public class OntPersonalityImpl extends Personality<RDFNode> implements OntPerso
         this.reserved = Objects.requireNonNull(reserved, "Null reserved vocabulary");
     }
 
-    private OntPersonalityImpl(OntPersonalityImpl other) {
+    protected OntPersonalityImpl(OntPersonalityImpl other) {
         this(other, other.getPunnings(), other.getBuiltins(), other.getReserved());
     }
 

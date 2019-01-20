@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,10 +28,10 @@ import java.util.stream.Stream;
  * This means that if such a change, that is external to this collection, has occurred,
  * the value can be found using a new key-id with the method {@link #get(OWLOntologyID)},
  * whereas a search, that uses the old key-id, should return an empty result.
- * In this sense, this collection behaves like a java {@link java.util.Collection}
+ * In this sense, this collection behaves like any java {@link java.util.Collection}
  * and implementations, actually, might be based on it.
  * But, on the other hand, in case there are no external changes in relation of key-id,
- * access by a key-id must be as fast as for a java {@link java.util.Map}.
+ * access by a key-id should be as fast as for a java {@link java.util.Map}.
  * <p>
  * Created by @ssz on 09.12.2018.
  *

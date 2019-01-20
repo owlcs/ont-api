@@ -30,8 +30,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import java.util.*;
 
 /**
- * Settings and personalities for {@link OntGraphModel}.
- * An access point to several predefined {@link OntPersonality Ont Personalities}.
+ * Settings and personalities that are used for constructing {@link OntGraphModel}.
+ * An access point to several predefined {@link OntPersonality Ontology Personality} constants.
  * <p>
  * Created by @szuev on 04.11.2016.
  */
@@ -179,19 +179,20 @@ public class OntModelConfig {
 
     /**
      * Returns the standard jena {@link Personality} as modifiable copy.
-     * It contains 10 standard resource factories which are used by RDFS model
+     * It contains {@code 10} standard resource factories which are used by RDFS model
      * ({@link Model}, the default model implementation).
      *
      * @return {@link Personality} of {@link RDFNode}s
+     * @see org.apache.jena.enhanced.BuiltinPersonalities#model
      */
     public static Personality<RDFNode> getStandardPersonality() {
         return STANDARD_PERSONALITY.copy();
     }
 
     /**
-     * Returns a fresh copy of {@link PersonalityBuilder} with 92 resource factories inside
-     * (10 standard + 82 ontological).
-     * The returned instance contains everything needed, but can be modified to build a new {@link OntPersonality}.
+     * Returns a fresh copy of {@link PersonalityBuilder} with {@code 92} resource factories inside
+     * ({@code 10} standard + {@code 82} ontological).
+     * The returned instance contains everything needed, and can be modified to build a new {@link OntPersonality}.
      *
      * @return {@link PersonalityBuilder}
      */
@@ -210,6 +211,7 @@ public class OntModelConfig {
             .setReserved(RESERVED)
             .setPunnings(StdMode.LAX.getVocabulary())
             .build();
+
     /**
      * Personality with four kinds of restriction on a {@code rdf:type} intersection (i.e. "illegal punnings"):
      * <ul>
@@ -357,7 +359,7 @@ public class OntModelConfig {
          */
         STRICT,
         /**
-         * Forbidden intersections of declarations:
+         * Forbidden intersections of rdf-declarations:
          * <ul>
          * <li>Class &lt;-&gt; Datatype</li>
          * <li>ObjectProperty &lt;-&gt; DataProperty</li>
