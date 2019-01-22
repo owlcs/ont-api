@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -56,6 +56,22 @@ import java.util.stream.Stream;
 @SuppressWarnings("JavaDoc")
 public class LoadFactoryManagerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadFactoryManagerTest.class);
+
+    @Test
+    public void testOntologyAlreadyExistsException() throws Exception {
+        Path p = Paths.get(LoadFactoryManagerTest.class.getResource("/ontapi/pizza.ttl").toURI()).toRealPath();
+        OWLOntologyDocumentSource src = new FileDocumentSource(p.toFile(), OntFormat.TURTLE.createOwlFormat());
+        OntologyManager m = OntManagers.createONT();
+        m.loadOntologyFromOntologyDocument(src);
+        Assert.assertEquals(1, m.ontologies().count());
+        try {
+            m.loadOntologyFromOntologyDocument(src); // in OWL-API-impl (5.1.9) there is no exception
+            Assert.fail("Possible to load the same ontology twice");
+        } catch (OWLOntologyAlreadyExistsException oae) {
+            LOGGER.debug("Expected: '{}'", oae);
+        }
+        Assert.assertEquals(1, m.ontologies().count());
+    }
 
     @Test
     public void testEmptyOntologyDefaultPrefixes() {
