@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,6 +24,7 @@ import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.StmtIteratorImpl;
 import org.apache.jena.util.iterator.ClosableIterator;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 
 import java.util.*;
@@ -168,6 +169,42 @@ public class Iter {
      */
     public static <X> ExtendedIterator<X> distinct(ExtendedIterator<X> base) {
         return base.filterKeep(new FilterUnique<>());
+    }
+
+    /**
+     * Returns whether any elements of the given iterator match the provided predicate.
+     * A functional equivalent of {@link Stream#anyMatch(Predicate)}, but for {@link ExtendedIterator}s.
+     *
+     * @param iterator  {@link ExtendedIterator} with elements of type {@link X}
+     * @param predicate {@link Predicate} to apply to elements of the iterator
+     * @param <X>       the element type of the input and output iterators
+     * @return {@code true} if any elements of the stream match the provided predicate, otherwise {@code false}
+     */
+    public static <X> boolean anyMatch(ExtendedIterator<X> iterator, Predicate<? super X> predicate) {
+        if (iterator instanceof NullIterator) return false;
+        try {
+            while (iterator.hasNext()) {
+                if (predicate.test(iterator.next())) return true;
+            }
+        } finally {
+            iterator.close();
+        }
+        return false;
+    }
+
+    /**
+     * Returns an extended iterator consisting of the elements of the specified extended iterator
+     * that match the given predicate.
+     * A functional equivalent of {@link Stream#filter(Predicate)}, but for {@link ExtendedIterator}s.
+     *
+     * @param iterator  {@link ExtendedIterator} with elements of type {@link X}
+     * @param predicate {@link Predicate} to apply to elements of the iterator
+     * @param <X>       the element type of the input and output iterators
+     * @return a new iterator
+     */
+    @SuppressWarnings("unchecked")
+    public static <X> ExtendedIterator<X> filter(ExtendedIterator<X> iterator, Predicate<? super X> predicate) {
+        return iterator.filterKeep((Predicate<X>) predicate);
     }
 
     /**

@@ -20,6 +20,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,26 +34,30 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 07.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class MultiFactoryImpl extends BaseFactoryImpl {
     private final List<ObjectFactory> factories;
     private final OntFinder finder;
     private final OntFilter fittingFilter;
 
     /**
+     * Creates a factory instance.
      *
-     * @param finder        {@link OntFinder}, optional, if null then uses only array of sub-factories to search
+     * @param finder        {@link OntFinder}, optional, if {@code null} then uses only provided sub-factories to search
      * @param fittingFilter {@link OntFilter}, optional, to trim searching
-     * @param factories     the array of factories to combine, not {@code null}, not empty
+     * @param factories     array of factories to combine together, must not be {@code null} or empty
      */
     public MultiFactoryImpl(OntFinder finder, OntFilter fittingFilter, ObjectFactory... factories) {
         this.finder = finder;
         this.fittingFilter = fittingFilter;
+        if (factories.length == 0)
+            throw new IllegalArgumentException("Empty factory array");
         this.factories = unbend(factories);
     }
 
     private static List<ObjectFactory> unbend(ObjectFactory... factories) {
         return Arrays.stream(factories)
-                .map(f -> f instanceof MultiFactoryImpl ? ((MultiFactoryImpl) f).factories() : Stream.of(f))
+                .map(f -> f instanceof MultiFactoryImpl ? ((MultiFactoryImpl) f).factories.stream() : Stream.of(f))
                 .flatMap(Function.identity()).collect(Collectors.toList());
     }
 
@@ -65,13 +70,15 @@ public class MultiFactoryImpl extends BaseFactoryImpl {
 
     @Override
     public boolean canWrap(Node node, EnhGraph eg) {
-        return !(fittingFilter != null && !fittingFilter.test(node, eg)) && factories().anyMatch(f -> f.canWrap(node, eg));
+        return !(fittingFilter != null && !fittingFilter.test(node, eg))
+                && Iter.anyMatch(listFactories(), f -> f.canWrap(node, eg));
     }
 
     @Override
     public EnhNode createInstance(Node node, EnhGraph eg) {
         if (fittingFilter != null && !fittingFilter.test(node, eg)) return null;
-        return factories().filter(f -> f.canWrap(node, eg)).map(f -> f.createInstance(node, eg)).findFirst().orElse(null);
+        return Iter.findFirst(Iter.filter(listFactories(), f -> f.canWrap(node, eg))
+                .mapWith(f -> f.createInstance(node, eg))).orElse(null);
     }
 
     @Override
@@ -79,8 +86,7 @@ public class MultiFactoryImpl extends BaseFactoryImpl {
         if (finder != null) {
             return finder.iterator(eg).mapWith(n -> createInstance(n, eg)).filterDrop(Objects::isNull);
         }
-        // in ONT-API the following code is not used:
-        return WrappedIterator.create(factories().flatMap(f -> f.find(eg)).distinct().iterator());
+        return Iter.distinct(Iter.flatMap(listFactories(), f -> f.iterator(eg)));
     }
 
     @SuppressWarnings("unused")
@@ -92,8 +98,13 @@ public class MultiFactoryImpl extends BaseFactoryImpl {
         return fittingFilter;
     }
 
-    public Stream<? extends ObjectFactory> factories() {
-        return factories.stream();
+    /**
+     * Lists all sub-factories.
+     *
+     * @return {@link ExtendedIterator} of {@link ObjectFactory}
+     */
+    public ExtendedIterator<? extends ObjectFactory> listFactories() {
+        return WrappedIterator.create(factories.iterator());
     }
 
 }
