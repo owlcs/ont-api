@@ -64,7 +64,7 @@ public class Graphs {
      */
     public static Stream<Graph> subGraphs(Graph graph) {
         if (graph instanceof UnionGraph) {
-            return ((UnionGraph) graph).getUnderlying().graphs();
+            return Iter.asStream(((UnionGraph) graph).getUnderlying().listGraphs());
         }
         if (graph instanceof Polyadic) {
             return ((Polyadic) graph).getSubGraphs().stream();
@@ -347,9 +347,9 @@ public class Graphs {
         UnionGraph u = (UnionGraph) graph;
         Graph base = asConcurrent(u.getBaseGraph(), lock);
         UnionGraph res = new UnionGraph(base, u.getEventManager());
-        u.getUnderlying().graphs()
-                .map(Graphs::asNonConcurrent)
-                .forEach(res::addGraph);
+        u.getUnderlying().listGraphs()
+                .mapWith(Graphs::asNonConcurrent)
+                .forEachRemaining(res::addGraph);
         return res;
     }
 
@@ -371,9 +371,9 @@ public class Graphs {
         UnionGraph u = (UnionGraph) graph;
         Graph base = asNonConcurrent(u.getBaseGraph());
         UnionGraph res = new UnionGraph(base, u.getEventManager());
-        u.getUnderlying().graphs()
-                .map(Graphs::asNonConcurrent)
-                .forEach(res::addGraph);
+        u.getUnderlying().listGraphs()
+                .mapWith(Graphs::asNonConcurrent)
+                .forEachRemaining(res::addGraph);
         return res;
     }
 
@@ -419,5 +419,16 @@ public class Graphs {
     public static ExtendedIterator<Node> all(Graph g) {
         Set<Node> res = Iter.flatMap(g.find(Triple.ANY), t -> Iter.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet();
         return WrappedIterator.create(res.iterator());
+    }
+
+    /**
+     * Answers {@code true} if the left graph depends on the right one.
+     *
+     * @param left  {@link Graph}
+     * @param right {@link Graph}
+     * @return {@code true} if the left argument graph is dependent on the right
+     */
+    public static boolean dependsOn(Graph left, Graph right) {
+        return left == right || (left != null && left.dependsOn(right));
     }
 }

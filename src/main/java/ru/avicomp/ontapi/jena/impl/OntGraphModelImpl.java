@@ -109,7 +109,8 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
                 .map(Statement::getObject)
                 .filter(RDFNode::isURIResource)
                 .map(RDFNode::asNode).anyMatch(node::equals)) {
-            throw new OntJenaException("Can't create ontology: specified uri (<" + node + ">) is present in the imports.");
+            throw new OntJenaException.IllegalArgument("Can't create ontology: " +
+                    "the specified uri (<" + node + ">) is present in the imports.");
         }
         model.remove(prev);
         Resource res = model.wrapAsResource(node).addProperty(RDF.type, OWL.Ontology);
@@ -119,12 +120,15 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
 
     @Override
     public OntGraphModelImpl addImport(OntGraphModel m) {
-        if (OntJenaException.notNull(m, "Null model specified.").getID().isAnon()) {
-            throw new OntJenaException("Anonymous sub models are not allowed.");
+        if (Objects.requireNonNull(m, "Null model specified.").getID().isAnon()) {
+            throw new OntJenaException.IllegalArgument("Anonymous sub models are not allowed.");
         }
-        String importsURI = m.getID().getImportsIRI();
+        String importsURI = Objects.requireNonNull(m.getID().getImportsIRI());
+        if (importsURI.equals(getID().getURI())) {
+            throw new OntJenaException.IllegalArgument("Attempt to import ontology with the same name: " + importsURI);
+        }
         if (hasOntologyImport(importsURI)) {
-            throw new OntJenaException("Ontology <" + importsURI + "> is already in imports.");
+            throw new OntJenaException.IllegalArgument("Ontology <" + importsURI + "> is already in imports.");
         }
         getGraph().addGraph(m.getGraph());
         getID().addImport(importsURI);
@@ -132,7 +136,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
-     * Answers iff there is a graph with URI same as in the specified ontology.
+     * Answers {@code true} if in the {@code owl:imports} there is a graph with the same URI as the given ontology has.
      *
      * @param other {@link OntGraphModel}
      * @return boolean
@@ -143,7 +147,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
-     * Answers iff there is a graph with the specified URI.
+     * Answers {@code true} ifin the {@code owl:imports} there is a graph with the given URI.
      *
      * @param uri String
      * @return boolean
@@ -180,7 +184,8 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     public Stream<OntGraphModel> imports(OntPersonality personality) {
-        return getGraph().getUnderlying().graphs().map(g -> new OntGraphModelImpl(g, personality));
+        return Iter.asStream(getGraph().getUnderlying().listGraphs()
+                .mapWith(g -> new OntGraphModelImpl(g, personality)));
     }
 
     /**
@@ -206,7 +211,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      */
     @Override
     public boolean independent() {
-        return !getGraph().getUnderlying().hasSubGraphs();
+        return getGraph().getUnderlying().isEmpty();
     }
 
     @Override
@@ -338,7 +343,8 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         try {
             return createOntObject(type, iri);
         } catch (OntJenaException.Creation e) { // illegal punning:
-            throw new OntJenaException(String.format("Can't add entity [%s: %s]: perhaps it's illegal punning.", type.getSimpleName(), iri), e);
+            throw new OntJenaException(String.format("Can't add entity [%s: %s]: perhaps it's illegal punning.",
+                    type.getSimpleName(), iri), e);
         }
     }
 

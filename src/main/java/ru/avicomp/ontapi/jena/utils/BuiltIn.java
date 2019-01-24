@@ -344,7 +344,7 @@ public class BuiltIn {
 
         public static MultiVocabulary create(Vocabulary... vocabularies) {
             Set<Vocabulary> res = Arrays.stream(vocabularies).collect(Iter.toUnmodifiableSet());
-            if (res.isEmpty()) throw new OntJenaException("Empty list specified");
+            if (res.isEmpty()) throw new OntJenaException.IllegalArgument("Empty list specified");
             return new MultiVocabulary(res);
         }
 

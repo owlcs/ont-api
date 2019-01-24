@@ -689,7 +689,7 @@ public class OntModelTest {
             c.addImport(av1).addImport(av1);
             Assert.fail("Can add the same model");
         } catch (OntJenaException j) {
-            LOGGER.debug("Expected: '{}'", j);
+            LOGGER.debug("Expected: '{}'", j.getMessage());
         }
         Assert.assertTrue(c.hasInImports(av1));
         Assert.assertFalse(c.hasInImports(av2));
@@ -707,7 +707,7 @@ public class OntModelTest {
         Assert.assertFalse(b.hasInImports(av2));
 
         String tree = Graphs.importsTreeAsString(b.getGraph());
-        LOGGER.debug("Tree: \n{}", tree);
+        LOGGER.debug("1) Tree: \n{}", tree);
         Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v2]>"),
                 Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
 
@@ -718,7 +718,7 @@ public class OntModelTest {
 
         c.removeImport(av2).addImport(av1);
         tree = Graphs.importsTreeAsString(b.getGraph());
-        LOGGER.debug("Tree: \n{}", tree);
+        LOGGER.debug("2) Tree: \n{}", tree);
         Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v1]>"),
                 Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
 
@@ -726,7 +726,7 @@ public class OntModelTest {
         ((UnionGraph) c.getGraph()).addGraph(av2.getGraph());
         Models.syncImports(b);
         tree = Graphs.importsTreeAsString(b.getGraph());
-        LOGGER.debug("Tree: \n{}", tree);
+        LOGGER.debug("3) Tree: \n{}", tree);
         Assert.assertEquals(4, Models.flat(b).count());
         Assert.assertEquals(3, Models.flat(c).count());
         Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v1]>", "<a[v2]>"),

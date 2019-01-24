@@ -111,7 +111,8 @@ public interface OntMaker {
 
         @Override
         public void make(Node node, EnhGraph eg) {
-            throw new OntJenaException("Creation is not allowed for node " + node + " and class " + impl.getSimpleName());
+            throw new OntJenaException.Unsupported("Creation is not allowed for node " +
+                    node + " and class " + impl.getSimpleName());
         }
 
         @Override

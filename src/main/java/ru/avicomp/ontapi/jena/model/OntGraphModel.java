@@ -53,9 +53,10 @@ import java.util.stream.Stream;
 public interface OntGraphModel extends Model {
 
     /**
-     * Returns the base Graph, i.e. the primary Graph without any sub graphs.
-     * Only the base graph is allowed to be edited from this interface.
-     * To get the whole union graph use method {@link #getGraph()}.
+     * Returns the base {@code Graph},
+     * i.e. the primary ontological {@code Graph} that does not contain any sub-graphs hierarchy.
+     * Only the base graph can be edited from this interface view.
+     * To get the whole union graph use the method {@link #getGraph()}.
      *
      * @return {@link Graph}
      * @see #getGraph()
@@ -63,7 +64,7 @@ public interface OntGraphModel extends Model {
     Graph getBaseGraph();
 
     /**
-     * Returns the {@link Model standard jena model} that corresponds the base graph (see {@link #getBaseGraph()}).
+     * Returns the {@link Model standard jena model} that corresponds to the {@link #getBaseGraph() base graph}.
      * Note: there is the {@link org.apache.jena.enhanced.BuiltinPersonalities#model Jena Builtin Personality}
      * within the returned model.
      *
@@ -73,7 +74,7 @@ public interface OntGraphModel extends Model {
     Model getBaseModel();
 
     /**
-     * Creates the inference model shadow using this model as data.
+     * Creates an inference model shadow using this model as data.
      * Note(1): there is the {@link org.apache.jena.enhanced.BuiltinPersonalities#model Jena Builtin Personality}
      * within the returned model.
      * Note(2): any changes in the returned {@link InfModel Inference Model} do not affect on this model.
@@ -112,7 +113,7 @@ public interface OntGraphModel extends Model {
     OntID setID(String uri);
 
     /**
-     * Adds a sub model to {@code owl:import} and to the graph hierarchy.
+     * Adds a sub model both to the {@code owl:import} section and to the graph hierarchy.
      *
      * @param m {@link OntGraphModel ont jena model} to add, not {@code null}
      * @return this model to allow cascading calls

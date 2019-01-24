@@ -68,7 +68,7 @@ public class LoadFactoryManagerTest {
             m.loadOntologyFromOntologyDocument(src); // in OWL-API-impl (5.1.9) there is no exception
             Assert.fail("Possible to load the same ontology twice");
         } catch (OWLOntologyAlreadyExistsException oae) {
-            LOGGER.debug("Expected: '{}'", oae);
+            LOGGER.debug("Expected: '{}'", oae.getMessage());
         }
         Assert.assertEquals(1, m.ontologies().count());
     }
@@ -195,7 +195,6 @@ public class LoadFactoryManagerTest {
         Assert.assertSame(o, m.ontologies().findFirst().orElseThrow(AssertionError::new));
         Assert.assertEquals(comment, getOWLComment(o));
     }
-
 
     @Test
     public void testLoadNotJenaHierarchy() throws Exception {
@@ -535,7 +534,6 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals("http://test.test/complex/version-iri/1.0", o2.getOntologyID().getVersionIRI()
                 .map(IRI::getIRIString).orElseThrow(AssertionError::new));
         Assert.assertEquals(comment, getOWLComment(o2));
-
     }
 
     @Test

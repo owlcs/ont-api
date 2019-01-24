@@ -97,14 +97,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         if (OntJenaException.notNull(res, "Null node").isURI()) {
             return res;
         }
-        throw new OntJenaException("Not uri node " + res);
+        throw new OntJenaException.IllegalArgument("Not uri node " + res);
     }
 
     public static Resource checkNamed(Resource res) {
         if (OntJenaException.notNull(res, "Null resource").isURIResource()) {
             return res;
         }
-        throw new OntJenaException("Not uri resource " + res);
+        throw new OntJenaException.IllegalArgument("Not uri resource " + res);
     }
 
     /**

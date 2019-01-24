@@ -54,7 +54,7 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
     @Override
     public OntIDImpl setVersionIRI(String uri) throws OntApiException {
         if (uri != null && isAnon()) {
-            throw new OntJenaException("Attempt to add version IRI (" + uri +
+            throw new OntJenaException.IllegalArgument("Attempt to add version IRI (" + uri +
                     ") to anonymous ontology (" + asNode().toString() + ").");
         }
         removeAll(OWL.versionIRI);
@@ -67,7 +67,7 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
     @Override
     public OntIDImpl addImport(String uri) throws OntApiException {
         if (OntJenaException.notNull(uri, "Null uri specified.").equals(getURI())) {
-            throw new OntJenaException("Can't import itself: " + uri);
+            throw new OntJenaException.IllegalArgument("Can't import itself: " + uri);
         }
         addImportResource(getModel().createResource(uri));
         return this;

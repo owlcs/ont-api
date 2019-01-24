@@ -21,15 +21,15 @@ import org.apache.jena.graph.compose.CompositionBase;
 import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.graph.impl.SimpleEventManager;
 import org.apache.jena.shared.PrefixMapping;
-import org.apache.jena.sparql.graph.GraphSink;
 import org.apache.jena.util.CollectionFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -150,7 +150,7 @@ public class UnionGraph extends CompositionBase {
      * @return this instance
      */
     public UnionGraph addGraph(Graph graph) {
-        getUnderlying().addGraph(Objects.requireNonNull(graph));
+        getUnderlying().add(graph);
         return this;
     }
 
@@ -161,12 +161,12 @@ public class UnionGraph extends CompositionBase {
      * @return this instance
      */
     public UnionGraph removeGraph(Graph graph) {
-        getUnderlying().removeGraph(Objects.requireNonNull(graph));
+        getUnderlying().remove(graph);
         return this;
     }
 
     /**
-     * Performs find operation.
+     * Performs the find operation.
      * Override {@code graphBaseFind} to return an iterator that will report when a deletion occurs.
      */
     @Override
@@ -184,11 +184,11 @@ public class UnionGraph extends CompositionBase {
      */
     @SuppressWarnings("JavadocReference")
     protected ExtendedIterator<Triple> createFindIterator(Triple m) {
-        if (sub.hasSubGraphs()) {
+        if (!sub.isEmpty()) {
             if (!distinct) {
                 return base.find(m).andThen(Iter.flatMap(sub.listGraphs(), x -> x.find(m)));
             }
-            // The logic and comment below have been copy-pasted from the org.apache.jena.graph.compose.Union:
+            // The logic and the comment below have been copy-pasted from the org.apache.jena.graph.compose.Union:
             // To find in the union, find in the components, concatenate the results, and omit duplicates.
             // That last is a performance penalty,
             // but I see no way to remove it unless we know the graphs do not overlap.
@@ -199,13 +199,21 @@ public class UnionGraph extends CompositionBase {
         return base.find(m);
     }
 
-    protected Set<Triple> createSet() {
-        return CollectionFactory.createHashedSet();
-    }
-
     @Override
     public boolean graphBaseContains(Triple t) {
         return base.contains(t) || sub.contains(t);
+    }
+
+    /**
+     * Creates a {@code Set} to be used while {@link #find()}.
+     * The returned set may contain a huge number of items.
+     * And that's why this method has protected access -
+     * implementations are allowed to override it for better performance.
+     *
+     * @return Set of {@link Triple}s
+     */
+    protected Set<Triple> createSet() {
+        return CollectionFactory.createHashedSet();
     }
 
     @Override
@@ -218,15 +226,18 @@ public class UnionGraph extends CompositionBase {
     @Override
     public boolean isEmpty() {
         // the default implementation use size(), which is extremely ineffective for this case
-        return !Iter.findFirst(base.find()).isPresent();
+        return !Iter.findFirst(find()).isPresent();
     }
 
     /**
-     * Generic dependsOn, true iff it depends on either of the sub-graphs.
+     * Generic dependsOn, returns {@code true} iff this graph or any its sub-graphs depend on the specified graph.
+     *
+     * @param other {@link Graph}
+     * @return boolean
      */
     @Override
     public boolean dependsOn(Graph other) {
-        return other == this || base.dependsOn(other) || sub.dependsOn(other);
+        return Graphs.dependsOn(base, other) || sub.dependsOn(other);
     }
 
     @Override
@@ -235,35 +246,92 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * An extended {@link MultiUnion Standard Jena MultiUnion Graph} with several useful methods.
-     * It has a {@link GraphSink sink-graph} as primary (base) graph.
+     * A container to hold sub-graphs.
      */
-    public static class Underlying extends MultiUnion {
+    public static class Underlying {
+        protected final Collection<Graph> graphs;
 
-        public Underlying() {
-            super();
+        protected Underlying() {
+            this.graphs = new ArrayList<>();
         }
 
-        public Stream<Graph> graphs() {
-            return m_subGraphs.stream();
-        }
-
+        /**
+         * Lists all sub-graphs.
+         *
+         * @return {@link ExtendedIterator} of sub-{@link Graph graph}s
+         */
         public ExtendedIterator<Graph> listGraphs() {
-            return WrappedIterator.create(m_subGraphs.iterator());
+            return graphs.isEmpty() ? NullIterator.instance() : WrappedIterator.create(graphs.iterator());
         }
 
-        @Override
-        public Graph getBaseGraph() {
-            return GraphSink.instance();
+        /**
+         * Lists all sub-graphs.
+         *
+         * @return {@code Stream} of sub-{@link Graph graph}s
+         */
+        public Stream<Graph> graphs() {
+            return graphs.stream();
         }
 
-        @Override
-        public List<Graph> getSubGraphs() {
-            return Collections.unmodifiableList(m_subGraphs);
+        /**
+         * Answers {@code true} iff this container is empty.
+         *
+         * @return boolean
+         */
+        public boolean isEmpty() {
+            return graphs.isEmpty();
         }
 
-        public boolean hasSubGraphs() {
-            return !m_subGraphs.isEmpty();
+        /**
+         * Removes the given graph from the underlying collection.
+         *
+         * @param graph {@link Graph}
+         */
+        protected void remove(Graph graph) {
+            graphs.remove(graph);
+        }
+
+        /**
+         * Adds the given graph into the underlying collection.
+         *
+         * @param graph {@link Graph}
+         */
+        protected void add(Graph graph) {
+            graphs.add(Objects.requireNonNull(graph));
+        }
+
+        /**
+         * Closes all encapsulated sub-graphs.
+         */
+        protected void close() {
+            graphs.forEach(Graph::close);
+        }
+
+        /**
+         * Answers {@code true} if this collection depends on the specified graph.
+         *
+         * @param other {@link Graph}
+         * @return boolean
+         */
+        protected boolean dependsOn(Graph other) {
+            for (Graph g : graphs) {
+                if (Graphs.dependsOn(g, other)) return true;
+            }
+            return false;
+        }
+
+        /**
+         * Tests if the given triple belongs to any of the sub-graphs.
+         *
+         * @param t {@link Triple} to test
+         * @return boolean
+         */
+        protected boolean contains(Triple t) {
+            if (graphs.isEmpty()) return false;
+            for (Graph g : graphs) {
+                if (g.contains(t)) return true;
+            }
+            return false;
         }
     }
 
@@ -273,10 +341,22 @@ public class UnionGraph extends CompositionBase {
      */
     public static class OntEventManager extends SimpleEventManager {
 
+        /**
+         * Lists all encapsulated listeners.
+         *
+         * @return Stream of {@link GraphListener}s
+         */
         public Stream<GraphListener> listeners() {
             return listeners.stream();
         }
 
+        /**
+         * Answers {@code true} if there is a {@link GraphListener listener}
+         * which is a subtype of the specified class-type.
+         *
+         * @param view {@code Class}-type of {@link GraphListener}
+         * @return boolean
+         */
         public boolean hasListeners(Class<? extends GraphListener> view) {
             return listeners().anyMatch(l -> view.isAssignableFrom(l.getClass()));
         }
