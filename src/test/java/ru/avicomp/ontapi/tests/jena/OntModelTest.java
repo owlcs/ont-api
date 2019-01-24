@@ -675,7 +675,7 @@ public class OntModelTest {
     }
 
     @Test
-    public void testModelImports() {
+    public void testAdvancedModelImports() {
         OntGraphModel av1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID("a").setVersionIRI("v1").getModel();
         OntGraphModel av2 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
@@ -736,7 +736,53 @@ public class OntModelTest {
                 .map(Resource::getURI)
                 .sorted()
                 .collect(Collectors.toList()));
+    }
 
+    @Test
+    public void testCycleModelImports() {
+        OntGraphModel a = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        a.createOntEntity(OntClass.class, "A");
+        b.createOntEntity(OntClass.class, "B");
+        c.createOntEntity(OntClass.class, "C");
+        a.setID("a");
+        b.setID("b");
+        c.setID("c");
+
+        a.addImport(b);
+        Assert.assertEquals(1, a.imports().count());
+        Assert.assertEquals(0, b.imports().count());
+        Assert.assertEquals(0, c.imports().count());
+        Assert.assertEquals(2, a.ontEntities().count());
+        Assert.assertEquals(1, b.ontEntities().count());
+        Assert.assertEquals(1, c.ontEntities().count());
+
+        b.addImport(c);
+        Assert.assertEquals(1, a.imports().count());
+        Assert.assertEquals(1, b.imports().count());
+        Assert.assertEquals(0, c.imports().count());
+        Assert.assertEquals(3, a.ontEntities().count());
+        Assert.assertEquals(2, b.ontEntities().count());
+        Assert.assertEquals(1, c.ontEntities().count());
+
+        // add cycle import:
+        c.addImport(a);
+        Assert.assertEquals(1, a.imports().count());
+        Assert.assertEquals(1, b.imports().count());
+        Assert.assertEquals(1, c.imports().count());
+        Assert.assertEquals(3, a.ontEntities().count());
+        Assert.assertEquals(3, b.ontEntities().count());
+        Assert.assertEquals(3, c.ontEntities().count());
+
+        // remove some import
+        b.removeImport(c);
+        Assert.assertEquals(1, a.imports().count());
+        Assert.assertEquals(0, b.imports().count());
+        Assert.assertEquals(1, c.imports().count());
+        Assert.assertEquals(2, a.ontEntities().count());
+        Assert.assertEquals(1, b.ontEntities().count());
+        Assert.assertEquals(3, c.ontEntities().count());
     }
 
     @Test

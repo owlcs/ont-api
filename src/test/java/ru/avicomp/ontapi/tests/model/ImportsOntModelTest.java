@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -38,6 +38,7 @@ import ru.avicomp.ontapi.utils.TestUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * to test behaviour with owl:imports
@@ -45,6 +46,29 @@ import java.util.stream.Collectors;
  * Created by @szuev on 08.10.2016.
  */
 public class ImportsOntModelTest extends OntModelTestBase {
+
+    @Test
+    public void testMutualImports() throws Exception {
+        OWLOntologyManager m = OntManagers.createONT();
+        OWLDataFactory df = m.getOWLDataFactory();
+        IRI a = IRI.create("http://a");
+        IRI b = IRI.create("http://b");
+        OWLOntology ont_a = m.createOntology(a);
+        OWLOntology ont_b = m.createOntology(b);
+
+        m.applyChange(new AddImport(ont_b, df.getOWLImportsDeclaration(a)));
+        m.applyChange(new AddImport(ont_a, df.getOWLImportsDeclaration(b)));
+
+        OWLAxiom ax_a = df.getOWLDeclarationAxiom(df.getOWLClass("A"));
+        OWLAxiom ax_b = df.getOWLDeclarationAxiom(df.getOWLClass("B"));
+        ont_a.add(ax_a);
+        ont_b.add(ax_b);
+
+        ont_a.axioms(Imports.INCLUDED).forEach(x -> LOGGER.debug("{}", x));
+        Set<OWLAxiom> expected = Stream.of(ax_a, ax_b).collect(Collectors.toSet());
+        Assert.assertEquals(expected, ont_a.axioms(Imports.INCLUDED).collect(Collectors.toSet()));
+        Assert.assertEquals(expected, ont_b.axioms(Imports.INCLUDED).collect(Collectors.toSet()));
+    }
 
     @Test
     public void testImportByVersionIRI() {

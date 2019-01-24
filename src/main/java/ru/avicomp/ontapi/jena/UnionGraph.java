@@ -18,7 +18,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.CompositionBase;
-import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.graph.impl.SimpleEventManager;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.CollectionFactory;
@@ -28,19 +27,17 @@ import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
  * An Union Graph.
- * It consists of two parts: a {@link #base base} graph and an {@link #sub underlying} graph.
- * The difference between {@link MultiUnion MultiUnion} and this implementation is that
+ * It consists of two parts: a {@link #base base} graph and an {@link #sub Underlying} graphs collection.
+ * The difference between {@link org.apache.jena.graph.compose.MultiUnion MultiUnion} and this implementation is that
  * this graph explicitly requires primary base graph which is the only one that can be modified directly.
- * Underlying sub graphs are used only for searching; add and delete are done on the base graph.
+ * Underlying sub graphs are used only for searching; add and delete operations are performed only on the base graph.
  * Such structure allows to build graph hierarchy which is used to reference between different models.
+ * Also note: this graph supports recursions, that is, it may contain itself somewhere in the hierarchy.
  * The {@link PrefixMapping} of this graph is taken from the base graph,
  * and, therefore, any changes in it reflects both the base and this graph.
  * <p>
@@ -48,7 +45,7 @@ import java.util.stream.Stream;
  *
  * @see ru.avicomp.ontapi.jena.impl.UnionModel
  */
-@SuppressWarnings({"WeakerAccess", "unused", "UnusedReturnValue"})
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public class UnionGraph extends CompositionBase {
 
     protected final Graph base;
@@ -56,6 +53,20 @@ public class UnionGraph extends CompositionBase {
     protected final boolean distinct;
 
     /**
+     * A set of parents, used to control {@link #graphs cache}.
+     * Items of this {@code Set} are removed automatically
+     * if there are no more strong references (a graph/model is removed, i.e. has no usage anymore).
+     */
+    protected Set<UnionGraph> parents = Collections.newSetFromMap(new WeakHashMap<>());
+    /**
+     * Internal cache to hold all base graphs, used while {@link Graph#find(Triple) #find(..)}.
+     * This {@code Set} cannot contain {@link UnionGraph}s.
+     */
+    protected Set<Graph> graphs;
+
+    /**
+     * Creates an instance with default settings.
+     *
      * @param base {@link Graph}, not {@code null}
      */
     public UnionGraph(Graph base) {
@@ -63,6 +74,8 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
+     * Creates ab instance with default settings and specified event manager.
+     *
      * @param base {@link Graph}, not {@code null}
      * @param gem  {@link OntEventManager}
      */
@@ -151,6 +164,10 @@ public class UnionGraph extends CompositionBase {
      */
     public UnionGraph addGraph(Graph graph) {
         getUnderlying().add(graph);
+        if (graph instanceof UnionGraph) {
+            ((UnionGraph) graph).parents.add(this);
+        }
+        resetGraphsCache();
         return this;
     }
 
@@ -162,7 +179,89 @@ public class UnionGraph extends CompositionBase {
      */
     public UnionGraph removeGraph(Graph graph) {
         getUnderlying().remove(graph);
+        if (graph instanceof UnionGraph) {
+            ((UnionGraph) graph).parents.remove(this);
+        }
+        resetGraphsCache();
         return this;
+    }
+
+    /**
+     * Lists all base {@code Graph}s encapsulated in this hierarchy graph.
+     *
+     * @return {@link ExtendedIterator} of {@link Graph}s
+     */
+    public ExtendedIterator<Graph> listBaseGraphs() {
+        return WrappedIterator.create((graphs == null ? graphs = collectBaseGraphs() : graphs).iterator());
+    }
+
+    /**
+     * Clears the {@link #graphs cache}.
+     */
+    protected void resetGraphsCache() {
+        Set<UnionGraph> unions = new HashSet<>();
+        unions.add(this);
+        collectParents(unions);
+        collectChildren(unions);
+        unions.forEach(x -> x.graphs = null);
+    }
+
+    /**
+     * Calculates and returns a {@code Set} of all base {@link Graph graph}s related to this instance.
+     *
+     * @return Set of {@link Graph}
+     */
+    protected Set<Graph> collectBaseGraphs() {
+        // use LinkedHasSet to save the order: the base graph from this UnionGraph must be the first
+        Set<Graph> res = new LinkedHashSet<>();
+        res.add(getBaseGraph());
+        collectBaseGraphs(res);
+        return res;
+    }
+
+    /**
+     * Recursively collects all base {@link Graph graph}s
+     * that are present in this collection or anywhere under hierarchy.
+     *
+     * @param res {@code Set} of {@link Graph}s
+     */
+    private void collectBaseGraphs(Set<Graph> res) {
+        getUnderlying().graphs().forEach(g -> {
+            if (!(g instanceof UnionGraph)) {
+                res.add(g);
+                return;
+            }
+            UnionGraph u = (UnionGraph) g;
+            if (res.add(u.getBaseGraph())) {
+                u.collectBaseGraphs(res);
+            }
+        });
+    }
+
+    /**
+     * Recursively collects all {@link UnionGraph}s
+     * that are present in somewhere higher in the hierarchy.
+     *
+     * @param res {@code Set} of {@link UnionGraph}s
+     */
+    private void collectParents(Set<UnionGraph> res) {
+        parents.stream()
+                .filter(res::add)
+                .forEach(u -> u.collectParents(res));
+    }
+
+    /**
+     * Recursively collects all {@link UnionGraph}s
+     * that are present in this collection or anywhere down the hierarchy.
+     *
+     * @param res {@code Set} of {@link UnionGraph}s
+     */
+    private void collectChildren(Set<UnionGraph> res) {
+        getUnderlying().graphs()
+                .filter(x -> x instanceof UnionGraph)
+                .map(UnionGraph.class::cast)
+                .filter(res::add)
+                .forEach(u -> u.collectChildren(res));
     }
 
     /**
@@ -180,28 +279,22 @@ public class UnionGraph extends CompositionBase {
      * @param m {@link Triple} pattern, not {@code null}
      * @return {@link ExtendedIterator} of {@link Triple}s
      * @see org.apache.jena.graph.compose.Union#_graphBaseFind(Triple)
-     * @see MultiUnion#multiGraphFind(Triple)
+     * @see org.apache.jena.graph.compose.MultiUnion#multiGraphFind(Triple)
      */
     @SuppressWarnings("JavadocReference")
     protected ExtendedIterator<Triple> createFindIterator(Triple m) {
-        if (!sub.isEmpty()) {
-            if (!distinct) {
-                return base.find(m).andThen(Iter.flatMap(sub.listGraphs(), x -> x.find(m)));
-            }
-            // The logic and the comment below have been copy-pasted from the org.apache.jena.graph.compose.Union:
-            // To find in the union, find in the components, concatenate the results, and omit duplicates.
-            // That last is a performance penalty,
-            // but I see no way to remove it unless we know the graphs do not overlap.
-            Set<Triple> seen = createSet();
-            return recording(base.find(m), seen)
-                    .andThen(Iter.flatMap(sub.listGraphs(), x -> recording(rejecting(x.find(m), seen), seen)));
+        if (sub.isEmpty()) {
+            return base.find(m);
         }
-        return base.find(m);
-    }
-
-    @Override
-    public boolean graphBaseContains(Triple t) {
-        return base.contains(t) || sub.contains(t);
+        if (!distinct) {
+            return Iter.flatMap(listBaseGraphs(), x -> x.find(m));
+        }
+        // The logic and the comment below have been copy-pasted from the org.apache.jena.graph.compose.Union:
+        // To find in the union, find in the components, concatenate the results, and omit duplicates.
+        // That last is a performance penalty,
+        // but I see no way to remove it unless we know the graphs do not overlap.
+        Set<Triple> seen = createSet();
+        return Iter.flatMap(listBaseGraphs(), x -> recording(rejecting(x.find(m), seen), seen));
     }
 
     /**
@@ -284,6 +377,7 @@ public class UnionGraph extends CompositionBase {
 
         /**
          * Removes the given graph from the underlying collection.
+         * May be overridden to produce corresponding event.
          *
          * @param graph {@link Graph}
          */
@@ -293,6 +387,7 @@ public class UnionGraph extends CompositionBase {
 
         /**
          * Adds the given graph into the underlying collection.
+         * May be overridden to produce corresponding event.
          *
          * @param graph {@link Graph}
          */
@@ -302,6 +397,7 @@ public class UnionGraph extends CompositionBase {
 
         /**
          * Closes all encapsulated sub-graphs.
+         * @see Graph#close()
          */
         protected void close() {
             graphs.forEach(Graph::close);
@@ -312,6 +408,7 @@ public class UnionGraph extends CompositionBase {
          *
          * @param other {@link Graph}
          * @return boolean
+         * @see Graph#dependsOn(Graph)
          */
         protected boolean dependsOn(Graph other) {
             for (Graph g : graphs) {
@@ -325,6 +422,7 @@ public class UnionGraph extends CompositionBase {
          *
          * @param t {@link Triple} to test
          * @return boolean
+         * @see Graph#contains(Triple)
          */
         protected boolean contains(Triple t) {
             if (graphs.isEmpty()) return false;

@@ -232,12 +232,22 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
                 @Override
                 public OntGraphModelImpl addImport(OntGraphModel m) {
-                    return super.addImport(asNonConcurrent(m));
+                    lock.writeLock().lock();
+                    try {
+                        return super.addImport(asNonConcurrent(m));
+                    } finally {
+                        lock.writeLock().unlock();
+                    }
                 }
 
                 @Override
                 public OntGraphModelImpl removeImport(OntGraphModel m) {
-                    return super.removeImport(asNonConcurrent(m));
+                    lock.writeLock().lock();
+                    try {
+                        return super.removeImport(asNonConcurrent(m));
+                    } finally {
+                        lock.writeLock().unlock();
+                    }
                 }
 
                 private OntGraphModel asNonConcurrent(OntGraphModel m) {
