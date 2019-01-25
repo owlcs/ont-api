@@ -405,7 +405,11 @@ public class UnionGraph extends CompositionBase {
         protected final Collection<Graph> graphs;
 
         protected Underlying() {
-            this.graphs = new ArrayList<>();
+            this(new ArrayList<>());
+        }
+
+        protected Underlying(Collection<Graph> graphs) {
+            this.graphs = Objects.requireNonNull(graphs);
         }
 
         /**
