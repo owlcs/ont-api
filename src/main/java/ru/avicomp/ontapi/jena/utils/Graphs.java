@@ -48,7 +48,8 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class Graphs {
-    private static final String NULL_ONTOLOGY_IDENTIFIER = "NullOntology";
+    public static final String NULL_ONTOLOGY_IDENTIFIER = "NullOntology";
+    public static final String RECURSIVE_GRAPH_IDENTIFIER = "Recursion";
 
     /**
      * Lists all top-level sub-graphs from the given composite graph-container,
@@ -301,12 +302,11 @@ public class Graphs {
                                                  Set<Graph> seen) {
         StringBuilder res = new StringBuilder();
         Graph base = getBase(graph);
+        String name = getName.apply(base);
         try {
-            String name = getName.apply(base);
-            if (seen.contains(base)) {
-                return res.append("Recursion: ").append(name);
+            if (!seen.add(graph)) {
+                return res.append(RECURSIVE_GRAPH_IDENTIFIER).append(": ").append(name);
             }
-            seen.add(base);
             res.append(name).append("\n");
             subGraphs(graph)
                     .sorted(Comparator.comparingLong(o -> subGraphs(o).count()))
@@ -314,9 +314,10 @@ public class Graphs {
                             .append(makeImportsTree(sub, getName, indent + step, step, seen)));
             return res;
         } finally {
-            seen.remove(base);
+            seen.remove(graph);
         }
     }
+
 
     /**
      * Returns a Graph as Turtle String.

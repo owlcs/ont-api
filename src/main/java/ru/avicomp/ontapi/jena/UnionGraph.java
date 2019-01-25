@@ -201,7 +201,7 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * Lists all base {@code Graph}s encapsulated in this hierarchy graph.
+     * Lists all base {@code Graph}s encapsulated in this hierarchy.
      *
      * @return {@link ExtendedIterator} of {@link Graph}s
      */
@@ -302,11 +302,13 @@ public class UnionGraph extends CompositionBase {
      */
     @Override
     public boolean dependsOn(Graph other) {
-        return Graphs.dependsOn(base, other) || sub.dependsOn(other); // todo: recursion ?
+        return Stream.concat(Iter.asStream(listBaseGraphs()), collectUnionGraphs().stream())
+                .anyMatch(x -> Objects.equals(x, other));
     }
 
     /**
      * Calculates and returns a {@code Set} of all base {@link Graph graph}s that are placed lower in the hierarchy.
+     * A {@link #getBaseGraph() base} of this graph is also included into collection.
      *
      * @return Set (ordered) of {@link Graph}s
      */
@@ -314,8 +316,29 @@ public class UnionGraph extends CompositionBase {
         // use LinkedHasSet to save the order: the base graph from this UnionGraph must be the first
         Set<Graph> res = new LinkedHashSet<>();
         res.add(getBaseGraph());
-        collectBaseGraphs(res);
+        collectBaseGraphs(res, new HashSet<>());
         return res;
+    }
+
+    /**
+     * Recursively collects all base {@link Graph graph}s
+     * that are present in this collection or anywhere under the hierarchy.
+     *
+     * @param res  {@code Set} of {@link Graph}s
+     * @param seen {@code Set} of {@link UnionGraph}s to control recursion
+     */
+    private void collectBaseGraphs(Set<Graph> res, Set<UnionGraph> seen) {
+        getUnderlying().graphs().forEach(g -> {
+            if (!(g instanceof UnionGraph)) {
+                res.add(g);
+                return;
+            }
+            UnionGraph u = (UnionGraph) g;
+            res.add(u.getBaseGraph());
+            if (seen.add(u)) {
+                u.collectBaseGraphs(res, seen);
+            }
+        });
     }
 
     /**
@@ -342,25 +365,6 @@ public class UnionGraph extends CompositionBase {
         res.add(this);
         collectChildren(res);
         return res;
-    }
-
-    /**
-     * Recursively collects all base {@link Graph graph}s
-     * that are present in this collection or anywhere under the hierarchy.
-     *
-     * @param res {@code Set} of {@link Graph}s
-     */
-    private void collectBaseGraphs(Set<Graph> res) {
-        getUnderlying().graphs().forEach(g -> {
-            if (!(g instanceof UnionGraph)) {
-                res.add(g);
-                return;
-            }
-            UnionGraph u = (UnionGraph) g;
-            if (res.add(u.getBaseGraph())) {
-                u.collectBaseGraphs(res);
-            }
-        });
     }
 
     /**
@@ -449,20 +453,6 @@ public class UnionGraph extends CompositionBase {
          */
         protected void add(Graph graph) {
             graphs.add(Objects.requireNonNull(graph));
-        }
-
-        /**
-         * Answers {@code true} if this collection depends on the specified graph.
-         *
-         * @param other {@link Graph}
-         * @return boolean
-         * @see Graph#dependsOn(Graph)
-         */
-        protected boolean dependsOn(Graph other) {
-            for (Graph g : graphs) {
-                if (Graphs.dependsOn(g, other)) return true;
-            }
-            return false;
         }
 
         /**

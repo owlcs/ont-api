@@ -14,10 +14,14 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.mem.GraphMem;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.AddDeniedException;
 import org.apache.jena.shared.ClosedException;
 import org.apache.jena.shared.DeleteDeniedException;
@@ -28,19 +32,110 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.utils.SpinModels;
 import ru.avicomp.ontapi.utils.UnmodifiableGraph;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
+ * To test {@link UnionGraph} and also {@link Graphs} utils.
+ *
  * Created by @ssz on 21.10.2018.
  */
 public class UnionGraphTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnionGraphTest.class);
 
+    private static Graph createNamedGraph(String uri) {
+        OntGraphModel m = OntModelFactory.createModel();
+        m.setID(uri);
+        return m.getBaseGraph();
+    }
+
+    private static Map<String, Graph> loadSpinGraphs() throws UncheckedIOException {
+        Map<String, Graph> res = new HashMap<>();
+        for (SpinModels f : SpinModels.values()) {
+            Graph g = new GraphMem();
+            try (InputStream in = UnionGraphTest.class.getResourceAsStream(f.file())) {
+                RDFDataMgr.read(g, in, null, Lang.TURTLE);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Can't load " + f.file(), e);
+            }
+            LOGGER.debug("Graph {} is loaded, size: {}", f.uri(), g.size());
+            res.put(f.uri(), new UnmodifiableGraph(g));
+        }
+        return Collections.unmodifiableMap(res);
+    }
+
+    private static void assertClosed(UnionGraph g, boolean expectedClosed) {
+        if (expectedClosed) {
+            Assert.assertTrue(g.isClosed());
+            Assert.assertTrue(g.getBaseGraph().isClosed());
+            return;
+        }
+        Assert.assertFalse(g.isClosed());
+        Assert.assertFalse(g.getBaseGraph().isClosed());
+    }
+
     @Test
-    public void testWrapUnmodified() {
+    public void testToUnionUtilsMethod() {
+        Map<String, Graph> graphs = loadSpinGraphs();
+        Assert.assertEquals(10, graphs.size());
+        UnionGraph g = Graphs.toUnion(graphs.get(SpinModels.SPINMAPL.uri()), graphs.values());
+        LOGGER.debug("\n{}", Graphs.toTurtleString(g));
+        String tree = Graphs.importsTreeAsString(g);
+        LOGGER.debug("----------\n{}", tree);
+        Assert.assertEquals(27, tree.split("\n").length);
+    }
+
+    @Test
+    public void testAddRemoveSubGraphs() {
+        UnionGraph a = new UnionGraph(createNamedGraph("a"));
+        Graph b = createNamedGraph("b");
+        a.addGraph(b);
+        UnionGraph c = new UnionGraph(createNamedGraph("c"));
+        a.addGraph(c);
+        UnionGraph d = new UnionGraph(createNamedGraph("d"));
+        c.addGraph(d);
+        String tree = Graphs.importsTreeAsString(a);
+        LOGGER.debug("----------\n{}", tree);
+        Assert.assertEquals(4, tree.split("\n").length);
+        d.addGraph(b);
+        tree = Graphs.importsTreeAsString(a);
+        LOGGER.debug("----------\n{}", tree);
+        Assert.assertEquals(5, tree.split("\n").length);
+        // recursion:
+        d.addGraph(c);
+        tree = Graphs.importsTreeAsString(a);
+        LOGGER.debug("----------\n{}", tree);
+        Assert.assertEquals(6, tree.split("\n").length);
+
+        Graph h = createNamedGraph("H");
+        c.addGraph(h);
+        a.removeGraph(b);
+        a.addGraph(b = new UnionGraph(b));
+        ((UnionGraph) b).addGraph(h);
+        tree = Graphs.importsTreeAsString(a);
+        LOGGER.debug("----------\n{}", tree);
+        Assert.assertEquals(8, tree.split("\n").length);
+
+        // remove recursion:
+        d.removeGraph(c);
+        tree = Graphs.importsTreeAsString(a);
+        LOGGER.debug("----------\n{}", tree);
+        Assert.assertEquals(7, tree.split("\n").length);
+    }
+
+    @Test
+    public void testWrapAsUnmodified() {
         Triple a = Triple.create(NodeFactory.createURI("a"), RDF.Nodes.type, OWL.Class.asNode());
         Triple b = Triple.create(NodeFactory.createURI("b"), RDF.Nodes.type, OWL.Class.asNode());
 
@@ -147,13 +242,46 @@ public class UnionGraphTest {
         Assert.assertEquals(2, a.listBaseGraphs().toList().size());
     }
 
-    private void assertClosed(UnionGraph g, boolean expectedClosed) {
-        if (expectedClosed) {
-            Assert.assertTrue(g.isClosed());
-            Assert.assertTrue(g.getBaseGraph().isClosed());
-            return;
-        }
-        Assert.assertFalse(g.isClosed());
-        Assert.assertFalse(g.getBaseGraph().isClosed());
+    @Test
+    public void testDependsOn() {
+        Graph g1 = Factory.createGraphMem();
+        Graph g2 = Factory.createGraphMem();
+        UnionGraph a = new UnionGraph(g1);
+        Assert.assertTrue(a.dependsOn(a));
+        Assert.assertTrue(a.dependsOn(g1));
+        Assert.assertFalse(g1.dependsOn(a));
+        Assert.assertFalse(a.dependsOn(Factory.createGraphMem()));
+
+        UnionGraph b = new UnionGraph(g1);
+        UnionGraph c = new UnionGraph(Factory.createGraphMem());
+        a.addGraph(b.addGraph(c));
+        Assert.assertEquals(2, a.listBaseGraphs().toList().size());
+        String tree = Graphs.importsTreeAsString(a);
+        LOGGER.debug("1) Tree:\n{}", tree);
+        Assert.assertEquals(3, tree.split("\n").length);
+        Assert.assertEquals(0, StringUtils.countMatches(tree, Graphs.RECURSIVE_GRAPH_IDENTIFIER));
+
+        Assert.assertTrue(a.dependsOn(b));
+        Assert.assertTrue(a.dependsOn(c));
+        Assert.assertTrue(a.dependsOn(c.getBaseGraph()));
+        Assert.assertFalse(a.dependsOn(g2));
+
+        UnionGraph d = new UnionGraph(createNamedGraph("d"));
+        c.addGraph(d);
+        // recursion:
+        d.addGraph(a);
+        Assert.assertEquals(3, a.listBaseGraphs().toList().size());
+        LOGGER.debug("2) Tree:\n{}", (tree = Graphs.importsTreeAsString(a)));
+        Assert.assertEquals(5, tree.split("\n").length);
+        Assert.assertEquals(4, StringUtils.countMatches(tree, Graphs.NULL_ONTOLOGY_IDENTIFIER));
+        Assert.assertEquals(1, StringUtils.countMatches(tree, Graphs.RECURSIVE_GRAPH_IDENTIFIER));
+
+        Assert.assertTrue(a.dependsOn(b));
+        Assert.assertTrue(a.dependsOn(c));
+        Assert.assertTrue(a.dependsOn(d));
+        Assert.assertTrue(c.dependsOn(d));
+        Assert.assertTrue(d.dependsOn(c));
+        Assert.assertTrue(d.dependsOn(a));
+        Assert.assertFalse(a.dependsOn(g2));
     }
 }
