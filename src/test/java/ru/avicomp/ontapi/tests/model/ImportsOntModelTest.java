@@ -49,7 +49,15 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testMutualImports() throws Exception {
-        OWLOntologyManager m = OntManagers.createONT();
+        testMutualImports(OntManagers.createONT());
+    }
+
+    @Test
+    public void testMutualImportsConcurrent() throws Exception {
+        testMutualImports(OntManagers.createConcurrentONT());
+    }
+
+    private void testMutualImports(OWLOntologyManager m) throws Exception {
         OWLDataFactory df = m.getOWLDataFactory();
         IRI a = IRI.create("http://a");
         IRI b = IRI.create("http://b");

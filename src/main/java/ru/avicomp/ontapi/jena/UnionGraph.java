@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  *
  * @see ru.avicomp.ontapi.jena.impl.UnionModel
  */
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+@SuppressWarnings({"WeakerAccess"})
 public class UnionGraph extends CompositionBase {
 
     protected final Graph base;
@@ -55,7 +55,7 @@ public class UnionGraph extends CompositionBase {
     /**
      * A set of parents, used to control {@link #graphs cache}.
      * Items of this {@code Set} are removed automatically
-     * if there are no more strong references (a graph/model is removed, i.e. has no usage anymore).
+     * if there are no more strong references (a graph/model is removed, there is no usage anymore).
      */
     protected Set<UnionGraph> parents = Collections.newSetFromMap(new WeakHashMap<>());
     /**
@@ -123,6 +123,16 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
+     * Answers the ont event manager for this graph.
+     *
+     * @return {@link OntEventManager}, not {@code null}
+     */
+    @Override
+    public OntEventManager getEventManager() {
+        return (OntEventManager) gem;
+    }
+
+    /**
      * Returns the base (primary) graph.
      *
      * @return {@link Graph}, not {@code null}
@@ -141,19 +151,14 @@ public class UnionGraph extends CompositionBase {
     }
 
     @Override
-    public void performDelete(Triple t) {
-        base.delete(t);
-    }
-
-    @Override
     public void performAdd(Triple t) {
         if (!sub.contains(t))
             base.add(t);
     }
 
     @Override
-    public OntEventManager getEventManager() {
-        return (OntEventManager) gem;
+    public void performDelete(Triple t) {
+        base.delete(t);
     }
 
     /**
@@ -163,6 +168,7 @@ public class UnionGraph extends CompositionBase {
      * @return this instance
      */
     public UnionGraph addGraph(Graph graph) {
+        checkOpen();
         getUnderlying().add(graph);
         if (graph instanceof UnionGraph) {
             ((UnionGraph) graph).parents.add(this);
@@ -178,12 +184,20 @@ public class UnionGraph extends CompositionBase {
      * @return this instance
      */
     public UnionGraph removeGraph(Graph graph) {
+        checkOpen();
         getUnderlying().remove(graph);
         if (graph instanceof UnionGraph) {
             ((UnionGraph) graph).parents.remove(this);
         }
         resetGraphsCache();
         return this;
+    }
+
+    /**
+     * Clears the {@link #graphs cache}.
+     */
+    protected void resetGraphsCache() {
+        collectAllUnionGraphs().forEach(x -> x.graphs = null);
     }
 
     /**
@@ -196,20 +210,105 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * Clears the {@link #graphs cache}.
+     * Performs the find operation.
+     * Override {@code graphBaseFind} to return an iterator that will report when a deletion occurs.
+     *
+     * @param m {@link Triple} the matcher to match against, not {@code null}
+     * @return an {@link ExtendedIterator iterator} of all triples matching {@code m} in the union of the graphs
+     * @see org.apache.jena.graph.compose.MultiUnion#graphBaseFind(Triple)
      */
-    protected void resetGraphsCache() {
-        Set<UnionGraph> unions = new HashSet<>();
-        unions.add(this);
-        collectParents(unions);
-        collectChildren(unions);
-        unions.forEach(x -> x.graphs = null);
+    @Override
+    protected final ExtendedIterator<Triple> graphBaseFind(Triple m) {
+        return SimpleEventManager.notifyingRemove(this, createFindIterator(m));
     }
 
     /**
-     * Calculates and returns a {@code Set} of all base {@link Graph graph}s related to this instance.
+     * Answers {@code true} if the graph contains any triple matching {@code t}.
      *
-     * @return Set of {@link Graph}
+     * @param t {@link Triple}, not {@code null}
+     * @return boolean
+     */
+    @Override
+    public boolean graphBaseContains(Triple t) {
+        if (base.contains(t)) return true;
+        if (sub.isEmpty()) return false;
+        Iterator<Graph> graphs = listBaseGraphs();
+        while (graphs.hasNext()) {
+            Graph g = graphs.next();
+            if (g == base) continue;
+            if (g.contains(t)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Creates an extended iterator to be used in {@link Graph#find(Triple)}.
+     *
+     * @param m {@link Triple} pattern, not {@code null}
+     * @return {@link ExtendedIterator} of {@link Triple}s
+     * @see org.apache.jena.graph.compose.Union#_graphBaseFind(Triple)
+     * @see org.apache.jena.graph.compose.MultiUnion#multiGraphFind(Triple)
+     */
+    @SuppressWarnings("JavadocReference")
+    protected ExtendedIterator<Triple> createFindIterator(Triple m) {
+        if (sub.isEmpty()) {
+            return base.find(m);
+        }
+        if (!distinct) {
+            return Iter.flatMap(listBaseGraphs(), x -> x.find(m));
+        }
+        // The logic and the comment below have been copy-pasted from the org.apache.jena.graph.compose.Union:
+        // To find in the union, find in the components, concatenate the results, and omit duplicates.
+        // That last is a performance penalty,
+        // but I see no way to remove it unless we know the graphs do not overlap.
+        Set<Triple> seen = createSet();
+        return Iter.flatMap(listBaseGraphs(), x -> recording(rejecting(x.find(m), seen), seen));
+    }
+
+    /**
+     * Creates a {@code Set} to be used while {@link Graph#find()}.
+     * The returned set may contain a huge number of items.
+     * And that's why this method has protected access -
+     * implementations are allowed to override it for better performance.
+     *
+     * @return Set of {@link Triple}s
+     */
+    protected Set<Triple> createSet() {
+        return CollectionFactory.createHashedSet();
+    }
+
+    /**
+     * Closes the graph including all related graph.
+     * Caution: this is an irreversible operation,
+     * once closed graph can not be reopened.
+     */
+    @Override
+    public void close() {
+        listBaseGraphs().forEachRemaining(Graph::close);
+        collectUnionGraphs().forEach(x -> x.closed = true);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        // the default implementation use size(), which is extremely ineffective for this case
+        return !Iter.findFirst(find()).isPresent();
+    }
+
+    /**
+     * Generic dependsOn, returns {@code true} iff this graph or any its sub-graphs depend on the specified graph.
+     *
+     * @param other {@link Graph}
+     * @return boolean
+     */
+    @Override
+    public boolean dependsOn(Graph other) {
+        return Graphs.dependsOn(base, other) || sub.dependsOn(other); // todo: recursion ?
+    }
+
+    /**
+     * Calculates and returns a {@code Set} of all base {@link Graph graph}s that are placed lower in the hierarchy.
+     *
+     * @return Set (ordered) of {@link Graph}s
      */
     protected Set<Graph> collectBaseGraphs() {
         // use LinkedHasSet to save the order: the base graph from this UnionGraph must be the first
@@ -220,8 +319,34 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
+     * Recursively collects a {@code Set} of all {@link UnionGraph UnionGraph}s
+     * that are related to this instance somehow,
+     * i.e. are present in the hierarchy lower or higher.
+     * This graph instance is also included in the returned {@code Set}.
+     *
+     * @return Set of {@link UnionGraph}s
+     */
+    protected Set<UnionGraph> collectAllUnionGraphs() {
+        Set<UnionGraph> res = collectUnionGraphs();
+        collectParents(res);
+        return res;
+    }
+
+    /**
+     * Recursively collects all {@link UnionGraph}s that underlies this instance, inclusive.
+     *
+     * @return Set of {@link UnionGraph}s
+     */
+    protected Set<UnionGraph> collectUnionGraphs() {
+        Set<UnionGraph> res = new HashSet<>();
+        res.add(this);
+        collectChildren(res);
+        return res;
+    }
+
+    /**
      * Recursively collects all base {@link Graph graph}s
-     * that are present in this collection or anywhere under hierarchy.
+     * that are present in this collection or anywhere under the hierarchy.
      *
      * @param res {@code Set} of {@link Graph}s
      */
@@ -262,75 +387,6 @@ public class UnionGraph extends CompositionBase {
                 .map(UnionGraph.class::cast)
                 .filter(res::add)
                 .forEach(u -> u.collectChildren(res));
-    }
-
-    /**
-     * Performs the find operation.
-     * Override {@code graphBaseFind} to return an iterator that will report when a deletion occurs.
-     */
-    @Override
-    protected final ExtendedIterator<Triple> graphBaseFind(Triple m) {
-        return SimpleEventManager.notifyingRemove(this, createFindIterator(m));
-    }
-
-    /**
-     * Creates an extended iterator to be used in {@link #find(Triple)}.
-     *
-     * @param m {@link Triple} pattern, not {@code null}
-     * @return {@link ExtendedIterator} of {@link Triple}s
-     * @see org.apache.jena.graph.compose.Union#_graphBaseFind(Triple)
-     * @see org.apache.jena.graph.compose.MultiUnion#multiGraphFind(Triple)
-     */
-    @SuppressWarnings("JavadocReference")
-    protected ExtendedIterator<Triple> createFindIterator(Triple m) {
-        if (sub.isEmpty()) {
-            return base.find(m);
-        }
-        if (!distinct) {
-            return Iter.flatMap(listBaseGraphs(), x -> x.find(m));
-        }
-        // The logic and the comment below have been copy-pasted from the org.apache.jena.graph.compose.Union:
-        // To find in the union, find in the components, concatenate the results, and omit duplicates.
-        // That last is a performance penalty,
-        // but I see no way to remove it unless we know the graphs do not overlap.
-        Set<Triple> seen = createSet();
-        return Iter.flatMap(listBaseGraphs(), x -> recording(rejecting(x.find(m), seen), seen));
-    }
-
-    /**
-     * Creates a {@code Set} to be used while {@link #find()}.
-     * The returned set may contain a huge number of items.
-     * And that's why this method has protected access -
-     * implementations are allowed to override it for better performance.
-     *
-     * @return Set of {@link Triple}s
-     */
-    protected Set<Triple> createSet() {
-        return CollectionFactory.createHashedSet();
-    }
-
-    @Override
-    public void close() {
-        base.close();
-        sub.close();
-        this.closed = true;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        // the default implementation use size(), which is extremely ineffective for this case
-        return !Iter.findFirst(find()).isPresent();
-    }
-
-    /**
-     * Generic dependsOn, returns {@code true} iff this graph or any its sub-graphs depend on the specified graph.
-     *
-     * @param other {@link Graph}
-     * @return boolean
-     */
-    @Override
-    public boolean dependsOn(Graph other) {
-        return Graphs.dependsOn(base, other) || sub.dependsOn(other);
     }
 
     @Override
@@ -393,14 +449,6 @@ public class UnionGraph extends CompositionBase {
          */
         protected void add(Graph graph) {
             graphs.add(Objects.requireNonNull(graph));
-        }
-
-        /**
-         * Closes all encapsulated sub-graphs.
-         * @see Graph#close()
-         */
-        protected void close() {
-            graphs.forEach(Graph::close);
         }
 
         /**

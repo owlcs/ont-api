@@ -775,14 +775,21 @@ public class OntModelTest {
         Assert.assertEquals(3, b.ontEntities().count());
         Assert.assertEquals(3, c.ontEntities().count());
 
-        // remove some import
+        // add more entities:
+        a.createOntEntity(OntClass.class, "B");
+        b.createOntEntity(OntClass.class, "X");
+        Assert.assertEquals(4, a.ontEntities().count());
+        Assert.assertEquals(4, b.ontEntities().count());
+        Assert.assertEquals(4, c.ontEntities().count());
+
+        // remove cycle import
         b.removeImport(c);
         Assert.assertEquals(1, a.imports().count());
         Assert.assertEquals(0, b.imports().count());
         Assert.assertEquals(1, c.imports().count());
-        Assert.assertEquals(2, a.ontEntities().count());
-        Assert.assertEquals(1, b.ontEntities().count());
-        Assert.assertEquals(3, c.ontEntities().count());
+        Assert.assertEquals(3, a.ontEntities().count());
+        Assert.assertEquals(2, b.ontEntities().count());
+        Assert.assertEquals(4, c.ontEntities().count());
     }
 
     @Test

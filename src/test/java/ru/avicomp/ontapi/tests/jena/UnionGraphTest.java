@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,6 +19,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.AddDeniedException;
+import org.apache.jena.shared.ClosedException;
 import org.apache.jena.shared.DeleteDeniedException;
 import org.apache.jena.shared.PrefixMapping;
 import org.junit.Assert;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.UnmodifiableGraph;
@@ -80,4 +82,78 @@ public class UnionGraphTest {
         Assert.assertEquals(6, u.getPrefixMapping().numPrefixes());
     }
 
+    @Test
+    public void testCloseRecursiveGraph() {
+        UnionGraph a = new UnionGraph(Factory.createGraphMem());
+        UnionGraph b = new UnionGraph(Factory.createGraphMem());
+        UnionGraph c = new UnionGraph(Factory.createGraphMem());
+        UnionGraph d = new UnionGraph(Factory.createGraphMem());
+        UnionGraph e = new UnionGraph(Factory.createGraphMem());
+        assertClosed(a, false);
+        assertClosed(b, false);
+        assertClosed(c, false);
+        assertClosed(d, false);
+        assertClosed(e, false);
+
+        c.addGraph(a);
+        b.addGraph(c);
+        c.addGraph(b).addGraph(d).addGraph(e);
+        a.addGraph(c);
+        LOGGER.debug("Tree:\n{}", Graphs.importsTreeAsString(a));
+
+        c.close();
+        assertClosed(a, true);
+        assertClosed(b, true);
+        assertClosed(c, true);
+        assertClosed(d, true);
+        assertClosed(e, true);
+    }
+
+    @Test
+    public void testCloseHierarchyGraph() {
+        UnionGraph a = new UnionGraph(Factory.createGraphMem());
+        UnionGraph b = new UnionGraph(Factory.createGraphMem());
+        UnionGraph c = new UnionGraph(Factory.createGraphMem());
+        assertClosed(a, false);
+        assertClosed(b, false);
+        assertClosed(c, false);
+
+        a.addGraph(b.addGraph(c));
+
+        b.close();
+        assertClosed(b, true);
+        assertClosed(c, true);
+        assertClosed(a, false);
+
+        UnionGraph d = new UnionGraph(Factory.createGraphMem());
+        try {
+            b.addGraph(d);
+            Assert.fail("Possible to add a sub-graph");
+        } catch (ClosedException ce) {
+            LOGGER.debug("Expected: '{}'", ce.getMessage());
+        }
+        try {
+            b.removeGraph(c);
+            Assert.fail("Possible to remove a sub-graph");
+        } catch (ClosedException ce) {
+            LOGGER.debug("Expected: '{}'", ce.getMessage());
+        }
+        Assert.assertNotNull(a.addGraph(d));
+        LOGGER.debug("1) Tree:\n{}", Graphs.importsTreeAsString(a));
+        Assert.assertEquals(4, a.listBaseGraphs().toList().size());
+
+        Assert.assertNotNull(a.removeGraph(b));
+        LOGGER.debug("2) Tree:\n{}", Graphs.importsTreeAsString(a));
+        Assert.assertEquals(2, a.listBaseGraphs().toList().size());
+    }
+
+    private void assertClosed(UnionGraph g, boolean expectedClosed) {
+        if (expectedClosed) {
+            Assert.assertTrue(g.isClosed());
+            Assert.assertTrue(g.getBaseGraph().isClosed());
+            return;
+        }
+        Assert.assertFalse(g.isClosed());
+        Assert.assertFalse(g.getBaseGraph().isClosed());
+    }
 }

@@ -33,6 +33,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,6 +48,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class Graphs {
+    private static final String NULL_ONTOLOGY_IDENTIFIER = "NullOntology";
 
     /**
      * Lists all top-level sub-graphs from the given composite graph-container,
@@ -196,7 +198,7 @@ public class Graphs {
      */
     public static String getName(Graph graph) {
         Optional<Node> res = ontologyNode(getBase(graph));
-        if (!res.isPresent()) return "NullOntology";
+        if (!res.isPresent()) return NULL_ONTOLOGY_IDENTIFIER;
         List<String> versions = graph.find(res.get(), OWL.versionIRI.asNode(), Node.ANY)
                 .mapWith(Triple::getObject).mapWith(Node::toString).toList();
         if (versions.isEmpty()) {
@@ -281,14 +283,26 @@ public class Graphs {
      * @return hierarchy tree as String
      */
     public static String importsTreeAsString(Graph graph) {
-        return makeImportsTree(graph, "\t", "\t", new HashSet<>()).toString();
+        Function<Graph, String> printDefaultGraphName = g -> g.getClass().getSimpleName() + "@" + Integer.toHexString(g.hashCode());
+        return makeImportsTree(graph, g -> {
+            if (g.isClosed()) return "Closed(" + printDefaultGraphName.apply(g) + ")";
+            String res = getName(g);
+            if (NULL_ONTOLOGY_IDENTIFIER.equals(res)) {
+                res += "(" + printDefaultGraphName.apply(g) + ")";
+            }
+            return res;
+        }, "\t", "\t", new HashSet<>()).toString();
     }
 
-    private static StringBuilder makeImportsTree(Graph graph, String indent, String step, Set<Graph> seen) {
+    private static StringBuilder makeImportsTree(Graph graph,
+                                                 Function<Graph, String> getName,
+                                                 String indent,
+                                                 String step,
+                                                 Set<Graph> seen) {
         StringBuilder res = new StringBuilder();
         Graph base = getBase(graph);
         try {
-            String name = getName(base);
+            String name = getName.apply(base);
             if (seen.contains(base)) {
                 return res.append("Recursion: ").append(name);
             }
@@ -296,7 +310,8 @@ public class Graphs {
             res.append(name).append("\n");
             subGraphs(graph)
                     .sorted(Comparator.comparingLong(o -> subGraphs(o).count()))
-                    .forEach(sub -> res.append(indent).append(makeImportsTree(sub, indent + step, step, seen)));
+                    .forEach(sub -> res.append(indent)
+                            .append(makeImportsTree(sub, getName, indent + step, step, seen)));
             return res;
         } finally {
             seen.remove(base);
