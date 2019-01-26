@@ -42,7 +42,7 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
  * @see OntologyModel
  */
 @SuppressWarnings("WeakerAccess")
-public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel {
+public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel, OWLMutableOntology {
 
     private static final long serialVersionUID = -2882895355499914294L;
     protected transient ChangeProcessor changer;
@@ -84,6 +84,11 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     @Override
     public OntGraphModel asGraphModel() {
         return getBase();
+    }
+
+    @Override
+    public void setLock(ReadWriteLock lock) {
+        throw new OntApiException.Unsupported("Please do not call this method: it is incompatible with ONT-API.");
     }
 
     protected class ChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {

@@ -30,8 +30,8 @@ import java.util.stream.Stream;
  * whereas a search, that uses the old key-id, should return an empty result.
  * In this sense, this collection behaves like any java {@link java.util.Collection}
  * and implementations, actually, might be based on it.
- * But, on the other hand, in case there are no external changes in relation of key-id,
- * access by a key-id should be as fast as for a java {@link java.util.Map}.
+ * On the other hand, in case there are no external changes in relation of key-id,
+ * it is expected that access by a key-id will be as fast as for a standard java {@link java.util.HashMap}.
  * <p>
  * Created by @ssz on 09.12.2018.
  *

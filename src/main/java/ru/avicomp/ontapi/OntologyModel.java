@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,36 +14,36 @@
 
 package ru.avicomp.ontapi;
 
-import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntology;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
- * A Structural Ontology Model, which is an extended {@link OWLOntology OWL Ontology},
- * and represents an OWL 2 <a href="http://www.w3.org/TR/owl2-syntax/#Ontologies">Ontology</a> in the  OWL 2 specification.
- * It is access point to the structural (OWL Axioms and Annotations) representation of underlying {@link org.apache.jena.graph.Graph graph}.
- * The following methods are new (i.e. added in ONT-API) and extend the original functionality provided by the OWL-API:
- * <ul>
- * <li>{@link #asGraphModel()}</li>
- * <li>{@link #clearCache()}</li>
- * </ul>
+ * A Structural Ontological Model, that is an extended {@link OWLOntology OWL-API Ontology}, and
+ * represents an <a href="http://www.w3.org/TR/owl2-syntax/#Ontologies">Ontology</a> in the OWL2 specification.
+ * This interface provides a wide range of methods  inherited from OWL-API
+ * for working with structural (OWL Axioms and Annotations) representation of data
+ * stored in the form of {@link org.apache.jena.graph.Graph RDF Graph}.
+ * In addition to this range, there are also two new methods: {@link #asGraphModel()} and {@link #clearCache()}.
+ * <p>
  * Created by szuev on 24.10.2016.
  */
-public interface OntologyModel extends OWLOntology, OWLMutableOntology {
+public interface OntologyModel extends OWLOntology {
 
     /**
      * Returns the jena model shadow,
-     * i.e. the interface to work with the {@link org.apache.jena.graph.Graph graph} directly.
+     * that is an interface to work with the {@link org.apache.jena.graph.Graph RDF Graph} directly.
      * The {@code OntGraphModel} is backed by the {@code OntologyModel},
      * so changes to the graph model are reflected in the structural model, and vice-versa.
-     * But note: synchronisation is performed via different caches on the internal model level,
-     * not the base graph level.
-     * Therefore changes in any other model with this same base graph
-     * (e.g. obtained using the expression {@code OntModelFactory.createModel(this.asGraphModel().getGraph()})
+     * <p>
+     * Note: synchronisation is performed via different caches and graphs listeners
+     * that are attached on the internal model level, not the base graph level.
+     * Therefore changes in any other models with this same base graph
+     * (for example, obtained using the expression {@code OntModelFactory.createModel(this.asGraphModel().getGraph()})
      * do not affect the axiomatic view of this model.
-     * In such a situation only the {@link #clearCache()} method call will help.
+     * If such an uncommon situation arose and the data is shared between different external views of unknown nature,
+     * then the method {@link #clearCache()} may help.
      *
-     * @return {@link OntGraphModel Jena Based Graph Model}
+     * @return {@link OntGraphModel Ontology RDF Graph Model}, not {@code null}
      * @see org.apache.jena.graph.Graph
      */
     OntGraphModel asGraphModel();
@@ -52,8 +52,8 @@ public interface OntologyModel extends OWLOntology, OWLMutableOntology {
      * Clears the axioms and entities cache.
      * <p>
      * The cache lazily restores itself
-     * when invoking almost any method described in the super interface {@link OWLOntology}, e.g. {@link #axioms()}.
-     * Clearing the cache is necessary to obtain a fixed list of axioms that uniquely corresponds to the graph,
+     * when invoking almost any method described in the {@link OWLOntology} superinterface, e.g. {@link #axioms()}.
+     * Clearing the cache is necessary to obtain a fixed list of axioms that uniquely corresponds to the RDF graph,
      * since OWL-API allows a wide ambiguity in the axioms definition.
      * In the structural (axiomatic) view there can be composite and bulky axioms specified,
      * which can be replaced by various other sets of axioms without loss any information.
@@ -65,9 +65,6 @@ public interface OntologyModel extends OWLOntology, OWLMutableOntology {
      * {@code Declaration(AnnotationProperty(<P>))}, {@code Declaration(Class(<A>))} and {@code Declaration(Class(<B>))}.
      * In general, a complete list of axioms is configurable and depends on various settings,
      * for more details see {@link ru.avicomp.ontapi.config.OntLoaderConfiguration} and {@link ru.avicomp.ontapi.config.OntConfig}.
-     *
-     * @see ru.avicomp.ontapi.config.OntLoaderConfiguration
-     * @see ru.avicomp.ontapi.config.OntConfig
      */
     void clearCache();
 
