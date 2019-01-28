@@ -57,6 +57,51 @@ import java.util.stream.Stream;
 public class LoadFactoryManagerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadFactoryManagerTest.class);
 
+    private static void checkForMissedImportsTest(OntologyModel b) {
+        checkForMissedImportsTest((OWLOntology) b);
+        Assert.assertEquals(1, b.asGraphModel().imports().count());
+    }
+
+    private static void checkForMissedImportsTest(OWLOntology b) {
+        Assert.assertEquals(1, b.imports().count());
+        Assert.assertEquals(1, b.axioms(Imports.EXCLUDED)
+                .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
+        Assert.assertEquals(2, b.axioms(Imports.INCLUDED)
+                .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
+    }
+
+    private static void loadLoopedOntologyFamily(OWLOntologyManager m) throws Exception {
+        IRI amyIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-amy");
+        IRI sueIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-sue");
+        IRI bobIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-bob");
+        IRI coreIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/core");
+
+        IRI amyFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-amy.ttl"));
+        IRI sueFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-sue.ttl"));
+        IRI bobFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-bob.ttl"));
+        IRI coreFile = IRI.create(ReadWriteUtils.getResourceURI("ontapi/core.ttl"));
+
+        m.getIRIMappers().add(FileMap.create(amyIRI, amyFile));
+        m.getIRIMappers().add(FileMap.create(bobIRI, bobFile));
+        m.getIRIMappers().add(FileMap.create(sueIRI, sueFile));
+        m.getIRIMappers().add(FileMap.create(coreIRI, coreFile));
+        m.getIRIMappers().forEach(x -> LOGGER.debug("{}", x));
+
+        LOGGER.debug("-================-");
+        OWLOntology bob = m.loadOntology(bobIRI);
+        ReadWriteUtils.print(bob);
+        LOGGER.debug("[ONT]");
+        m.ontologies().forEach(x -> LOGGER.debug("{}", x));
+    }
+
+    private static String getOWLComment(OWLOntology o) {
+        return o.annotations().map(OWLAnnotation::getValue)
+                .map(OWLAnnotationValue::asLiteral)
+                .map(x -> x.orElseThrow(() -> new AssertionError("Empty comment")))
+                .map(OWLLiteral::getLiteral)
+                .findFirst().orElseThrow(() -> new AssertionError("No comment."));
+    }
+
     @Test
     public void testOntologyAlreadyExistsException() throws Exception {
         Path p = Paths.get(LoadFactoryManagerTest.class.getResource("/ontapi/pizza.ttl").toURI()).toRealPath();
@@ -145,6 +190,7 @@ public class LoadFactoryManagerTest {
 
     /**
      * For <a href='https://github.com/avicomp/ont-api/issues/47'>issue#47</a>
+     *
      * @throws OWLOntologyCreationException
      */
     @Test
@@ -423,12 +469,14 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testDocumentSourceMapping() throws OWLOntologyCreationException {
+        final String a_uri = "urn:a";
+        final String b_uri = "urn:b";
         // create data:
         OntGraphModel a = OntModelFactory.createModel();
-        a.setID("urn:a");
+        a.setID(a_uri);
         a.setNsPrefixes(OntModelFactory.STANDARD);
         OntGraphModel b = OntModelFactory.createModel();
-        b.setID("urn:b");
+        b.setID(b_uri);
         b.setNsPrefixes(OntModelFactory.STANDARD);
         a.createOntEntity(OntClass.class, "urn:a#A");
         b.createOntEntity(OntClass.class, "urn:b#B");
@@ -441,9 +489,9 @@ public class LoadFactoryManagerTest {
 
         OWLOntologyIRIMapper iriMapper = iri -> {
             switch (iri.toString()) {
-                case "urn:a":
+                case a_uri:
                     return IRI.create("store://a");
-                case "urn:b":
+                case b_uri:
                     return IRI.create("store://b");
             }
             return null;
@@ -463,7 +511,7 @@ public class LoadFactoryManagerTest {
         //m.getOntologyConfigurator().setSupportedSchemes(Collections.singletonList(() -> "store"));
         //m.setIRIMappers(Collections.singleton(iriMapper));
         m.getDocumentSourceMappers().add(docMapper);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(docMapper.map(new OWLOntologyID(IRI.create("urn:b"))));
+        OntologyModel o = m.loadOntology(IRI.create(b_uri));
         Assert.assertNotNull(o);
         Assert.assertEquals(2, m.ontologies().count());
     }
@@ -568,51 +616,6 @@ public class LoadFactoryManagerTest {
         // Due to buggy OWL-API Parser behaviour there is no []-lists at all!:
         Assert.assertTrue(o2.asGraphModel().statements(null, null, null)
                 .map(Statement::getObject).noneMatch(l -> l.canAs(RDFList.class)));
-    }
-
-    private static void checkForMissedImportsTest(OntologyModel b) {
-        checkForMissedImportsTest((OWLOntology) b);
-        Assert.assertEquals(1, b.asGraphModel().imports().count());
-    }
-
-    private static void checkForMissedImportsTest(OWLOntology b) {
-        Assert.assertEquals(1, b.imports().count());
-        Assert.assertEquals(1, b.axioms(Imports.EXCLUDED)
-                .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
-        Assert.assertEquals(2, b.axioms(Imports.INCLUDED)
-                .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).count());
-    }
-
-    private static void loadLoopedOntologyFamily(OWLOntologyManager m) throws Exception {
-        IRI amyIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-amy");
-        IRI sueIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-sue");
-        IRI bobIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-bob");
-        IRI coreIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/core");
-
-        IRI amyFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-amy.ttl"));
-        IRI sueFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-sue.ttl"));
-        IRI bobFile = IRI.create(ReadWriteUtils.getResourceURI("owlapi/importNoOntology/subject-bob.ttl"));
-        IRI coreFile = IRI.create(ReadWriteUtils.getResourceURI("ontapi/core.ttl"));
-
-        m.getIRIMappers().add(FileMap.create(amyIRI, amyFile));
-        m.getIRIMappers().add(FileMap.create(bobIRI, bobFile));
-        m.getIRIMappers().add(FileMap.create(sueIRI, sueFile));
-        m.getIRIMappers().add(FileMap.create(coreIRI, coreFile));
-        m.getIRIMappers().forEach(x -> LOGGER.debug("{}", x));
-
-        LOGGER.debug("-================-");
-        OWLOntology bob = m.loadOntology(bobIRI);
-        ReadWriteUtils.print(bob);
-        LOGGER.debug("[ONT]");
-        m.ontologies().forEach(x -> LOGGER.debug("{}", x));
-    }
-
-    private static String getOWLComment(OWLOntology o) {
-        return o.annotations().map(OWLAnnotation::getValue)
-                .map(OWLAnnotationValue::asLiteral)
-                .map(x -> x.orElseThrow(() -> new AssertionError("Empty comment")))
-                .map(OWLLiteral::getLiteral)
-                .findFirst().orElseThrow(() -> new AssertionError("No comment."));
     }
 
 }

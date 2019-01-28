@@ -106,8 +106,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         DataFactory df = m.getOWLDataFactory();
         m.getDocumentSourceMappers().add(source);
 
-        // todo: change to #loadOntology(IRI)
-        OntologyModel a = m.loadOntologyFromOntologyDocument(source.map(a_iri));
+        OntologyModel a = m.loadOntology(a_iri);
         Assert.assertEquals(2, m.ontologies().count());
         OntologyModel b = m.getOntology(b_iri);
         Assert.assertNotNull(b);
@@ -269,6 +268,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         m.getGraphModel("x").addImport(y).addImport(z);
         Assert.assertEquals(2, x.imports().count());
+        Assert.assertEquals(2, m.getGraphModel("x").imports().count());
     }
 
     @Test

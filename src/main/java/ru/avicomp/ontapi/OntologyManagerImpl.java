@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -639,6 +639,16 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return null;
         }
         return mapIRI(defaultIRI).orElse(defaultIRI);
+    }
+
+    /**
+     * Finds a {@link OWLOntologyDocumentSource} from the {@link #getDocumentSourceMappers() mappers collection}.
+     *
+     * @param id {@link OWLOntologyID}, not {@code null}
+     * @return {@code Optional} around {@link OWLOntologyDocumentSource}
+     */
+    protected Optional<OWLOntologyDocumentSource> findDocumentSource(OWLOntologyID id) {
+        return getDocumentSourceMappers().stream().map(x -> x.map(id)).filter(Objects::nonNull).findFirst();
     }
 
     /**
@@ -1432,31 +1442,35 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @param allowExists boolean
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException ex
+     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L901'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl(IRI, boolean, OWLOntologyLoaderConfiguration)</a>
      */
     protected OntologyModel load(IRI iri,
                                  OWLOntologyLoaderConfiguration conf,
                                  boolean allowExists) throws OWLOntologyCreationException {
         // Check for matches on the ontology IRI first
         OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
-        OntologyModel ontByID = getOntology(id);
-        if (ontByID != null) {
-            return ontByID;
+        OntologyModel res = getOntology(id);
+        if (res != null) {
+            return res;
+        }
+        Optional<OWLOntologyDocumentSource> source = findDocumentSource(id);
+        if (source.isPresent()) {
+            return load(iri, source.get(), conf);
         }
         IRI documentIRI = getDocumentIRIFromMappers(id);
-        if (documentIRI != null) {
-            // The ontology might be being loaded, but its IRI might
-            // not have been set (as is probably the case with RDF/XML!)
-            Optional<OntologyModel> op = ontologyByDocumentIRI(documentIRI);
-            if (op.isPresent() && !allowExists) {
-                throw new OWLOntologyDocumentAlreadyExistsException(documentIRI);
-            }
-            if (op.isPresent()) {
-                return op.get();
-            }
-        } else {
-            // Nothing we can do here. We can't get a document IRI to load
-            // the ontology from.
+        if (documentIRI == null) {
+            // Nothing we can do here.
+            // can't get a document IRI to load the ontology from.
             throw new OntologyIRIMappingNotFoundException(iri);
+        }
+        // The ontology might be being loaded, but its IRI might
+        // not have been set (as is probably the case with RDF/XML!)
+        Optional<OntologyModel> op = ontologyByDocumentIRI(documentIRI);
+        if (op.isPresent() && !allowExists) {
+            throw new OWLOntologyDocumentAlreadyExistsException(documentIRI);
+        }
+        if (op.isPresent()) {
+            return op.get();
         }
         return load(iri, new IRIDocumentSource(documentIRI, null, null), conf);
     }

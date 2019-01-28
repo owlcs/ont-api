@@ -161,6 +161,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * Otherwise, the order in which the collection is iterated will determine the order in which the mappers are used.
      *
      * @return {@link RWLockedCollection} of {@link OWLOntologyIRIMapper}s
+     * @see #getDocumentSourceMappers()
      */
     @Override
     RWLockedCollection<OWLOntologyIRIMapper> getIRIMappers();
@@ -314,29 +315,35 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Copies an ontology to the manager.
      * Note: the axioms list may differ in source and result due to different config settings etc.
-     * TODO: this method should not throw checked exception: in ONT-API it doesn't make sense, see {@link #createOntology(OWLOntologyID)} explanation.
+     * TODO: this method should not throw checked exception: in ONT-API it doesn't make sense,
+     * see {@link #createOntology(OWLOntologyID)} explanation.
      *
      * @param source   {@link OWLOntology} the source, could be pure OWL-API ontology
      * @param settings {@link OntologyCopy} the settings
      * @return new {@link OntologyModel}
-     * @throws OWLOntologyCreationException in case of error.
-     * @throws OntApiException              if any
+     * @throws OWLOntologyCreationException in case of error
+     * @throws OntApiException              if any unexpected error occurs
      * @see OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)
      */
     @Override
     OntologyModel copyOntology(@Nonnull OWLOntology source, @Nonnull OntologyCopy settings) throws OWLOntologyCreationException;
 
     /**
-     * Loads an ontology by {@code source} IRI.
-     * Notice: if source contains any {@code owl:imports} they will be processed also,
-     * i.e. this method loads not only single ontology in general case.
+     * Loads an ontology by the specified {@code source} IRI.
+     * Note: if a loaded ontology contains any {@code owl:imports} they will also be processed,
+     * i.e. in general case this method loads not only single ontology but the whole ontology family.
+     * If there is a {@link DocumentSourceMapping Docuemnt Source Mapping} in the manager for the given IRI,
+     * then the method processes the corresponding {@link OWLOntologyDocumentSource Document Source}.
+     * Similar, if there is {@link OWLOntologyIRIMapper IRI Mapping} for the given IRI,
+     * then the method uses a document IRI obtained from that mapper.
+     * In other cases the {@link IRIDocumentSource} is used and system tries to find a file or web-resource for it.
      *
      * @param source {@link IRI} the IRI that identifies the desirable ontology:
-     *               it can be an ontology IRI or document IRI to load directly,
+     *               it can be an ontology IRI, version IRI or document IRI to load directly,
      *               also it can be mapped to some other IRI using {@link OWLOntologyIRIMapper}
-     *               or to some document source using {@link DocumentSourceMapping}.
+     *               or to some prepared document source using {@link DocumentSourceMapping}
      * @return {@link OntologyModel}
-     * @throws OWLOntologyCreationException if there is a problem in creating and loading the ontology
+     * @throws OWLOntologyCreationException if there is a problem when creating or loading an ontology
      * @see OWLOntologyManager#loadOntology(IRI)
      */
     @Override
