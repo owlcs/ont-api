@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.impl.UnionModel;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntID;
@@ -41,11 +42,53 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * to test behaviour with owl:imports
+ * To test behaviour with {@code owl:imports} within {@link OntologyManager}.
  * <p>
  * Created by @szuev on 08.10.2016.
  */
 public class ImportsOntModelTest extends OntModelTestBase {
+
+    private static void testGraphModelCycleImports(OntologyManager m) {
+        OntGraphModel a = m.createGraphModel("a");
+        OntGraphModel b = m.createGraphModel("b");
+        OntGraphModel c = m.createGraphModel("c");
+
+        a.addImport(b);
+        Assert.assertEquals(2, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
+        b.addImport(a);
+        Assert.assertEquals(2, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
+        b.addImport(c);
+        Assert.assertEquals(3, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
+
+        Assert.assertEquals(1, a.imports().count());
+        Assert.assertEquals(2, b.imports().count());
+        Assert.assertEquals(0, c.imports().count());
+
+        a.createOntEntity(OntClass.class, "A");
+        Assert.assertEquals(1, a.ontEntities().count());
+        Assert.assertEquals(1, b.ontEntities().count());
+        Assert.assertEquals(0, c.ontEntities().count());
+
+        b.createOntEntity(OntClass.class, "B");
+        Assert.assertEquals(2, a.ontEntities().count());
+        Assert.assertEquals(2, b.ontEntities().count());
+        Assert.assertEquals(0, c.ontEntities().count());
+
+        c.createOntEntity(OntClass.class, "C");
+        Assert.assertEquals(3, a.ontEntities().peek(x -> LOGGER.debug("Entity: {}", x)).count());
+        Assert.assertEquals(3, b.ontEntities().count());
+        Assert.assertEquals(1, c.ontEntities().count());
+
+        assertOntologyAxioms(m, a.getID().getURI(), 3);
+        assertOntologyAxioms(m, b.getID().getURI(), 3);
+        assertOntologyAxioms(m, c.getID().getURI(), 1);
+    }
+
+    private static void assertOntologyAxioms(OntologyManager m, String ontURI, int expectedAxiomsCount) {
+        OntologyModel o = m.getOntology(IRI.create(ontURI));
+        Assert.assertNotNull(o);
+        Assert.assertEquals(expectedAxiomsCount, o.axioms(Imports.INCLUDED).count());
+    }
 
     private static void testMutualImportsWhileLoading(OntologyManager m) throws Exception {
         IRI a_iri = IRI.create("http://a");
@@ -185,6 +228,67 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
     private static Triple createDeclaration(Resource r, RDFNode o) {
         return Triple.create(r.asNode(), RDF.type.asNode(), o.asNode());
+    }
+
+    private static void testGraphModelImports(OntologyManager m) {
+        OntGraphModel a = m.createGraphModel("a");
+        OntGraphModel b = m.createGraphModel("b");
+        OntGraphModel c = m.createGraphModel("c");
+
+        a.addImport(b);
+        Assert.assertEquals(1, a.imports().count());
+        Assert.assertFalse(a.hasImport(c));
+        Assert.assertTrue(a.hasImport(b.getID().getURI()));
+        Assert.assertTrue(a.hasImport(b));
+        b = a.imports().findFirst().orElseThrow(AssertionError::new);
+        Assert.assertTrue(a.hasImport(b));
+
+        c.addImport(b);
+        Assert.assertEquals(1, c.imports().count());
+        Assert.assertTrue(c.hasImport(b.getID().getURI()));
+        Assert.assertTrue(c.hasImport(b));
+
+        a.removeImport(b);
+        Assert.assertEquals(0, a.imports().count());
+        Assert.assertFalse(a.hasImport(b.getID().getURI()));
+        Assert.assertFalse(a.hasImport(b));
+
+        a.addImport(m.getGraphModel("b"));
+        Assert.assertEquals(1, a.imports().count());
+        Assert.assertTrue(a.hasImport(b.getID().getURI()));
+        Assert.assertTrue(a.hasImport(b));
+
+        c.removeImport("b");
+        Assert.assertEquals(0, c.imports().count());
+        Assert.assertFalse(c.hasImport(b.getID().getURI()));
+        Assert.assertFalse(c.hasImport(b));
+
+        OntGraphModel x = m.createGraphModel("x");
+        OntGraphModel y = m.createGraphModel("y");
+        OntGraphModel z = m.createGraphModel("z");
+
+        m.getGraphModel("x").addImport(y).addImport(z);
+        Assert.assertEquals(2, x.imports().count());
+    }
+
+    @Test
+    public void testGraphModelImports() {
+        testGraphModelImports(OntManagers.createONT());
+    }
+
+    @Test
+    public void testConcurrentGraphModelImports() {
+        testGraphModelImports(OntManagers.createConcurrentONT());
+    }
+
+    @Test
+    public void testGraphModelCycleImports() {
+        testGraphModelCycleImports(OntManagers.createONT());
+    }
+
+    @Test
+    public void testGraphModelCycleImportsWithConcurrent() {
+        testGraphModelCycleImports(OntManagers.createConcurrentONT());
     }
 
     @Test

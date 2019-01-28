@@ -18,7 +18,6 @@ import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.jena.RWLockedGraph;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -26,7 +25,14 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 
 import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION;
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY;
@@ -207,63 +213,25 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         /**
          * Creates a concurrent version of Ontology Graph Model with R/W Lock inside, backed by the given model.
          * The internal Jena model, which is provided by the method {@link #getBase()}, does not contain any lock.
-         * This is due to the danger of the occurrence of deadlock or livelock,
-         * which are possible when work with the (caffeine) cache and the locked graph simultaneously.
+         * This is due to the danger of deadlock or livelock,
+         * which are possible when working with a (caffeine) cache and a locked graph simultaneously.
          *
-         * @return {@link OntGraphModel}
+         * @return {@link OntGraphModel RDF Model} with a R/W lock inside
          */
         @Override
         public OntGraphModel asGraphModel() {
             lock.readLock().lock();
             try {
-                return makeGraphModel();
+                OntGraphModelImpl base = getBase();
+                return asConcurrent(base.getGraph(), base.getOntPersonality(), lock);
             } finally {
                 lock.readLock().unlock();
             }
         }
 
         /**
-         * Makes a concurrent version of the base graph model.
-         *
-         * @return {@link OntGraphModel} with {@link ReadWriteLock R/W Lock} inside
-         */
-        protected OntGraphModel makeGraphModel() {
-            InternalModel base = getBase();
-            OntPersonality p = base.getOntPersonality();
-            UnionGraph orig = base.getGraph();
-            UnionGraph copy = new UnionGraph(new RWLockedGraph(orig.getBaseGraph(), lock),
-                    orig.getUnderlying(), orig.getEventManager());
-            return new OntGraphModelImpl(copy, p) {
-
-                @Override
-                public OntGraphModelImpl addImport(OntGraphModel m) {
-                    lock.writeLock().lock();
-                    try {
-                        return super.addImport(asNonConcurrent(m));
-                    } finally {
-                        lock.writeLock().unlock();
-                    }
-                }
-
-                @Override
-                public OntGraphModelImpl removeImport(OntGraphModel m) {
-                    lock.writeLock().lock();
-                    try {
-                        return super.removeImport(asNonConcurrent(m));
-                    } finally {
-                        lock.writeLock().unlock();
-                    }
-                }
-
-                private OntGraphModel asNonConcurrent(OntGraphModel m) {
-                    return new OntGraphModelImpl(Graphs.asNonConcurrent(m.getGraph()), p);
-                }
-            };
-        }
-
-        /**
-         * Clears cache.
-         * It does not change the object state so uses read lock here.
+         * Clears the cache.
+         * It does not change the object state so the method uses read lock.
          */
         @Override
         public void clearCache() {
@@ -290,5 +258,128 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             delegate().setBase(m);
         }
 
+        /**
+         * Assembles a concurrent version of the {@link OntGraphModel Ontology RDF Model}.
+         * Safety of RDF read/write operations is ensured
+         * by the {@link ru.avicomp.ontapi.jena.RWLockedGraph R/W-Locked Graph}.
+         * Safety of changes in hierarchy is ensured in the model level, by the returned instance itself.
+         * Note: currently, the assembly and modification of complex ontology objects are not safe (todo?).
+         *
+         * @param graph       {@link UnionGraph}, not {@code null}
+         * @param personality {@link OntPersonality}, not {@code null}
+         * @param lock        {@link ReadWriteLock}, not {@code null}
+         * @return {@link OntGraphModelImpl} completed with the give R/W lock
+         */
+        public static OntGraphModelImpl asConcurrent(UnionGraph graph,
+                                                     OntPersonality personality,
+                                                     ReadWriteLock lock) {
+            Graph base = graph.getBaseGraph();
+            UnionGraph copy = withBase(graph, Graphs.asConcurrent(base, lock));
+            return new OntGraphModelImpl(copy, personality) {
+
+                @Override
+                protected void addImportModel(Graph g, String u) {
+                    lock.writeLock().lock();
+                    try {
+                        UnionGraph from = asUnionGraph(g);
+                        Graph base = Graphs.asNonConcurrent(from.getBaseGraph());
+                        UnionGraph res = withBase(from, base);
+                        super.addImportModel(res, u);
+                    } finally {
+                        lock.writeLock().unlock();
+                    }
+                }
+
+                @Override
+                protected void removeImportModel(Graph g, String u) {
+                    lock.writeLock().lock();
+                    try {
+                        super.removeImportModel(g, u);
+                    } finally {
+                        lock.writeLock().unlock();
+                    }
+                }
+
+                @Override
+                public Stream<OntGraphModel> imports() {
+                    lock.readLock().lock();
+                    try {
+                        OntPersonality p = getOntPersonality();
+                        List<OntGraphModel> res = importGraphs()
+                                .map(x -> asConcurrent(x, p, lock))
+                                .collect(Collectors.toList());
+                        return res.stream();
+                    } finally {
+                        lock.readLock().unlock();
+                    }
+                }
+
+                @Override
+                protected Optional<OntGraphModelImpl> findImport(Predicate<OntGraphModelImpl> filter) {
+                    lock.readLock().lock();
+                    try {
+                        return super.findImport(filter);
+                    } finally {
+                        lock.readLock().unlock();
+                    }
+                }
+
+                @Override
+                public String toString() {
+                    return String.format("ConcurrentOntGraphModel{%s}", Graphs.getName(base));
+                }
+            };
+        }
+
+        /**
+         * Makes a new {@link UnionGraph} with a the specified {@code base} graph
+         * and with the inherited hierarchy structure from the given {@code from} graph.
+         * The returned union graph is backed by the specified union graph and vice versa.
+         *
+         * @param from {@link UnionGraph Union Graph} from which the hierarchical structure is taken, not {@code null}
+         * @param base {@link Graph}, a new base graph to suppress the existing from the given {@code from} graph.
+         * @return {@link UnionGraph} that is backed by the given {@code from},
+         * with the same hierarchy structure but with a new {@code base} graph
+         */
+        public static UnionGraph withBase(UnionGraph from, Graph base) {
+            if (Objects.requireNonNull(from).getBaseGraph().equals(Objects.requireNonNull(base))) {
+                return from;
+            }
+            class U extends UnionGraph {
+                private final UnionGraph from;
+
+                private U(Graph base, UnionGraph from) {
+                    super(base, from.getUnderlying(), from.getEventManager(), from.isDistinct());
+                    this.from = from;
+                }
+
+                @Override
+                public UnionGraph addGraph(Graph graph) {
+                    from.addGraph(graph);
+                    addParent(graph);
+                    resetGraphsCache();
+                    return this;
+                }
+
+                @Override
+                public UnionGraph removeGraph(Graph graph) {
+                    from.removeGraph(graph);
+                    removeParent(graph);
+                    resetGraphsCache();
+                    return this;
+                }
+
+                @Override
+                protected Set<Graph> collectBaseGraphs() {
+                    Set<Graph> res = super.collectBaseGraphs();
+                    res.remove(from.getBaseGraph());
+                    return res;
+                }
+            }
+            if (from instanceof U) {
+                return withBase(((U) from).from, base);
+            }
+            return new U(base, from);
+        }
     }
 }

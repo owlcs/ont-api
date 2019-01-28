@@ -37,6 +37,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -127,55 +128,37 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         if (importsURI.equals(getID().getURI())) {
             throw new OntJenaException.IllegalArgument("Attempt to import ontology with the same name: " + importsURI);
         }
-        if (hasOntologyImport(importsURI)) {
+        if (hasImport(importsURI)) {
             throw new OntJenaException.IllegalArgument("Ontology <" + importsURI + "> is already in imports.");
         }
-        getGraph().addGraph(m.getGraph());
-        getID().addImport(importsURI);
+        addImportModel(m.getGraph(), importsURI);
         return this;
     }
 
-    /**
-     * Answers {@code true} if in the {@code owl:imports} there is a graph with the same URI as the given ontology has.
-     *
-     * @param other {@link OntGraphModel}
-     * @return boolean
-     */
     @Override
-    public boolean hasInImports(OntGraphModel other) {
-        return hasOntologyImport(other.getID().getImportsIRI());
+    public boolean hasImport(OntGraphModel m) {
+        Objects.requireNonNull(m);
+        return findImport(x -> Graphs.isSameBase(x.getGraph(), m.getGraph())).isPresent();
     }
 
-    /**
-     * Answers {@code true} ifin the {@code owl:imports} there is a graph with the given URI.
-     *
-     * @param uri String
-     * @return boolean
-     */
-    public boolean hasOntologyImport(String uri) {
-        return uri != null && imports().map(OntGraphModel::getID).map(OntID::getImportsIRI).anyMatch(uri::equals);
+    @Override
+    public boolean hasImport(String uri) {
+        return findImport(x -> Objects.equals(x.getID().getImportsIRI(), uri)).isPresent();
     }
 
     @Override
     public OntGraphModelImpl removeImport(OntGraphModel m) {
-        return removeFirst(x -> Graphs.isSameBase(x.getGraph(), m.getGraph()));
+        Objects.requireNonNull(m);
+        findImport(x -> Graphs.isSameBase(x.getGraph(), m.getGraph()))
+                .ifPresent(x -> removeImportModel(x.getGraph(), x.getID().getImportsIRI()));
+        return this;
     }
 
     @Override
     public OntGraphModelImpl removeImport(String uri) {
-        return removeFirst(x -> Objects.equals(uri, x.getID().getImportsIRI()));
-    }
-
-    protected OntGraphModelImpl removeFirst(Predicate<OntGraphModel> filter) {
-        imports().filter(filter)
-                .findFirst()
-                .ifPresent(this::removeModel);
+        findImport(x -> Objects.equals(uri, x.getID().getImportsIRI()))
+                .ifPresent(x -> removeImportModel(x.getGraph(), x.getID().getImportsIRI()));
         return this;
-    }
-
-    protected void removeModel(OntGraphModel m) {
-        getGraph().removeGraph(m.getGraph());
-        getID().removeImport(m.getID().getImportsIRI());
     }
 
     @Override
@@ -183,15 +166,74 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         return imports(getOntPersonality());
     }
 
+    /**
+     * Lists all top-level sub-models built with the the given {@code personality}.
+     *
+     * @param personality {@link OntPersonality}, not {@code null}
+     * @return Stream of {@link OntGraphModel}s
+     */
     public Stream<OntGraphModel> imports(OntPersonality personality) {
+        return importModels(personality).map(Function.identity());
+    }
+
+    /**
+     * Finds a model impl from the internals using the given {@code filter}.
+     *
+     * @param filter {@code Predicate} to filter {@link OntGraphModelImpl}s
+     * @return {@code Optional} around {@link OntGraphModelImpl}
+     */
+    protected Optional<OntGraphModelImpl> findImport(Predicate<OntGraphModelImpl> filter) {
+        return importModels(getOntPersonality()).filter(filter).findFirst();
+    }
+
+    /**
+     * Adds the graph-uri pair into the internals.
+     *
+     * @param g {@link Graph}, not {@code null}
+     * @param u String, not {@code null}
+     */
+    protected void addImportModel(Graph g, String u) {
+        getGraph().addGraph(g);
+        getID().addImport(u);
+    }
+
+    /**
+     * Removes the graph-uri pair from the internals.
+     *
+     * @param g {@link Graph}, not {@code null}
+     * @param u String, not {@code null}
+     */
+    protected void removeImportModel(Graph g, String u) {
+        getGraph().removeGraph(g);
+        getID().removeImport(u);
+    }
+
+    /**
+     * Lists all {@link OntGraphModelImpl model impl}s with specified {@code personality} from the hierarchy.
+     *
+     * @param personality {@link OntPersonality}, not {@code null}
+     * @return Stream of {@link OntGraphModelImpl}s
+     */
+    protected final Stream<OntGraphModelImpl> importModels(OntPersonality personality) {
+        return importGraphs().map(u -> new OntGraphModelImpl(u, personality));
+    }
+
+    /**
+     * Lists all {@link UnionGraph}s of the model's hierarchy.
+     *
+     * @return Stream of {@link UnionGraph}
+     */
+    protected final Stream<UnionGraph> importGraphs() {
         return Iter.asStream(getGraph().getUnderlying().listGraphs()
-                .mapWith(g -> new OntGraphModelImpl(g, personality)));
+                .filterKeep(x -> x instanceof UnionGraph)
+                .mapWith(x -> (UnionGraph) x));
     }
 
     /**
      * Gets the top-level {@link OntGraphModelImpl Ontology Graph Model impl}.
-     * This model may contain import declarations, but cannot contain sub-models.
+     * The returned model may contain import declarations, but cannot contain sub-models.
      * Be warned: any listeners, attached on the {@link #getGraph()}
+     * todo:
      *
      * @return {@link OntGraphModelImpl}
      * @see #getBaseModel()

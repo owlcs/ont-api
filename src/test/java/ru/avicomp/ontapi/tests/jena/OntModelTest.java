@@ -691,20 +691,20 @@ public class OntModelTest {
         } catch (OntJenaException j) {
             LOGGER.debug("Expected: '{}'", j.getMessage());
         }
-        Assert.assertTrue(c.hasInImports(av1));
-        Assert.assertFalse(c.hasInImports(av2));
+        Assert.assertTrue(c.hasImport(av1));
+        Assert.assertFalse(c.hasImport(av2));
         Assert.assertEquals(1, c.imports().count());
 
         c.removeImport(av1).addImport(av2);
-        Assert.assertTrue(c.hasInImports(av2));
-        Assert.assertFalse(c.hasInImports(av1));
+        Assert.assertTrue(c.hasImport(av2));
+        Assert.assertFalse(c.hasImport(av1));
         Assert.assertEquals(1, c.imports().count());
 
         b.addImport(c);
         Assert.assertEquals(1, b.imports().count());
-        Assert.assertTrue(b.hasInImports(c));
-        Assert.assertFalse(b.hasInImports(av1));
-        Assert.assertFalse(b.hasInImports(av2));
+        Assert.assertTrue(b.hasImport(c));
+        Assert.assertFalse(b.hasImport(av1));
+        Assert.assertFalse(b.hasImport(av2));
 
         String tree = Graphs.importsTreeAsString(b.getGraph());
         LOGGER.debug("1) Tree: \n{}", tree);

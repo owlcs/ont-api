@@ -54,8 +54,8 @@ public class UnionGraph extends CompositionBase {
 
     /**
      * A set of parents, used to control {@link #graphs cache}.
-     * Items of this {@code Set} are removed automatically
-     * if there are no more strong references (a graph/model is removed, there is no usage anymore).
+     * Items of this {@code Set} are removed automatically by GC
+     * if there are no more strong references (a graph/model is removed, i.e. there is no its usage anymore).
      */
     protected Set<UnionGraph> parents = Collections.newSetFromMap(new WeakHashMap<>());
     /**
@@ -66,48 +66,29 @@ public class UnionGraph extends CompositionBase {
 
     /**
      * Creates an instance with default settings.
+     * <p>
+     * Note: it results a distinct graph (i.e. its parameter {@link #distinct} is {@code true}).
+     * This means that the method {@link #find(Triple)} does not produce duplicates.
+     * The additional duplicate checking may lead to temporary writing
+     * the whole graph in memory in the form of {@code Set}, and for huge ontologies it is unacceptable.
+     * This checking is not performed if the graph is single (underlying part is empty).
+     * <p>
+     * Also notice, a top-level ontology view of in-memory graph is not sensitive to the distinct parameter
+     * since it uses only base graphs to collect axiomatic data.
      *
      * @param base {@link Graph}, not {@code null}
      */
     public UnionGraph(Graph base) {
-        this(base, null);
-    }
-
-    /**
-     * Creates ab instance with default settings and specified event manager.
-     *
-     * @param base {@link Graph}, not {@code null}
-     * @param gem  {@link OntEventManager}
-     */
-    public UnionGraph(Graph base, OntEventManager gem) {
-        this(base, null, gem);
-    }
-
-    /**
-     * Constructs an instance from the given arguments.
-     * Please note: it is distinct graph (parameter {@link #distinct} is {@code true}).
-     * So method {@link #find(Triple)} will not return duplicates.
-     * The additional duplicate checking may lead to storing the whole graph in the memory in the form of Set,
-     * and for huge ontologies it is unacceptable.
-     * But it is not important in case of working with OWL-API interfaces, since it uses a different approach.
-     * Also notice, that checking is not performed if the graph is single (underlying part is empty).
-     *
-     * @param base {@link Graph}, not {@code null}
-     * @param sub  {@link Underlying} or {@code null} to use default empty sub graphs
-     * @param gem  {@link OntEventManager} or {@code null} to use default
-     * @throws NullPointerException if base graph is {@code null}
-     */
-    public UnionGraph(Graph base, Underlying sub, OntEventManager gem) {
-        this(base, sub, gem, true);
+        this(base, null, null, true);
     }
 
     /**
      * The base constructor.
      *
      * @param base     {@link Graph}, not {@code null}
-     * @param sub      {@link Underlying} or {@code null} to use default empty sub graphs
-     * @param gem      {@link OntEventManager} or {@code null} to use default
-     * @param distinct if {@code true}, the method {@link #find(Triple)} will return distinct iterator.
+     * @param sub      {@link Underlying} or {@code null} to use default empty sub-graph container
+     * @param gem      {@link OntEventManager} or {@code null} to use default fresh event manager
+     * @param distinct if {@code true}, the method {@link #find(Triple)} returns an iterator avoiding duplicates
      * @throws NullPointerException if base graph is {@code null}
      */
     public UnionGraph(Graph base, Underlying sub, OntEventManager gem, boolean distinct) {
@@ -130,6 +111,16 @@ public class UnionGraph extends CompositionBase {
     @Override
     public OntEventManager getEventManager() {
         return (OntEventManager) gem;
+    }
+
+    /**
+     * Answers {@code true} iff this graph is distinct.
+     * See {@link #UnionGraph(Graph)} description.
+     *
+     * @return boolean
+     */
+    public boolean isDistinct() {
+        return distinct;
     }
 
     /**
@@ -170,11 +161,16 @@ public class UnionGraph extends CompositionBase {
     public UnionGraph addGraph(Graph graph) {
         checkOpen();
         getUnderlying().add(graph);
-        if (graph instanceof UnionGraph) {
-            ((UnionGraph) graph).parents.add(this);
-        }
+        addParent(graph);
         resetGraphsCache();
         return this;
+    }
+
+    protected void addParent(Graph graph) {
+        if (!(graph instanceof UnionGraph)) {
+            return;
+        }
+        ((UnionGraph) graph).parents.add(this);
     }
 
     /**
@@ -186,11 +182,16 @@ public class UnionGraph extends CompositionBase {
     public UnionGraph removeGraph(Graph graph) {
         checkOpen();
         getUnderlying().remove(graph);
-        if (graph instanceof UnionGraph) {
-            ((UnionGraph) graph).parents.remove(this);
-        }
+        removeParent(graph);
         resetGraphsCache();
         return this;
+    }
+
+    protected void removeParent(Graph graph) {
+        if (!(graph instanceof UnionGraph)) {
+            return;
+        }
+        ((UnionGraph) graph).parents.remove(this);
     }
 
     /**
@@ -201,7 +202,7 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * Lists all base {@code Graph}s encapsulated in this hierarchy.
+     * Lists all base {@code Graph}s that are encapsulated in the hierarchy.
      *
      * @return {@link ExtendedIterator} of {@link Graph}s
      */
@@ -227,6 +228,7 @@ public class UnionGraph extends CompositionBase {
      *
      * @param t {@link Triple}, not {@code null}
      * @return boolean
+     * @see org.apache.jena.graph.compose.MultiUnion#graphBaseContains(Triple)
      */
     @Override
     public boolean graphBaseContains(Triple t) {
@@ -278,9 +280,9 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * Closes the graph including all related graph.
+     * Closes the graph including all related graphs.
      * Caution: this is an irreversible operation,
-     * once closed graph can not be reopened.
+     * once closed a graph can not be reopened.
      */
     @Override
     public void close() {
@@ -302,13 +304,13 @@ public class UnionGraph extends CompositionBase {
      */
     @Override
     public boolean dependsOn(Graph other) {
-        return Stream.concat(Iter.asStream(listBaseGraphs()), collectUnionGraphs().stream())
-                .anyMatch(x -> Objects.equals(x, other));
+        return Iter.anyMatch(listBaseGraphs(), x -> Graphs.dependsOn(x, other))
+                || collectUnionGraphs().stream().anyMatch(x -> Objects.equals(x, other));
     }
 
     /**
      * Calculates and returns a {@code Set} of all base {@link Graph graph}s that are placed lower in the hierarchy.
-     * A {@link #getBaseGraph() base} of this graph is also included into collection.
+     * A {@link #getBaseGraph() base} of this union graph is also included into the returned collection.
      *
      * @return Set (ordered) of {@link Graph}s
      */
@@ -345,7 +347,7 @@ public class UnionGraph extends CompositionBase {
      * Recursively collects a {@code Set} of all {@link UnionGraph UnionGraph}s
      * that are related to this instance somehow,
      * i.e. are present in the hierarchy lower or higher.
-     * This graph instance is also included in the returned {@code Set}.
+     * This union graph instance is also included in the returned {@code Set}.
      *
      * @return Set of {@link UnionGraph}s
      */
@@ -369,7 +371,7 @@ public class UnionGraph extends CompositionBase {
 
     /**
      * Recursively collects all {@link UnionGraph}s
-     * that are present in somewhere higher in the hierarchy.
+     * that are present somewhere higher in the hierarchy.
      *
      * @param res {@code Set} of {@link UnionGraph}s
      */
@@ -381,7 +383,7 @@ public class UnionGraph extends CompositionBase {
 
     /**
      * Recursively collects all {@link UnionGraph}s
-     * that are present in this collection or anywhere down the hierarchy.
+     * that are present in the {@link Underlying} collection or anywhere down the hierarchy.
      *
      * @param res {@code Set} of {@link UnionGraph}s
      */

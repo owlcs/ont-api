@@ -48,6 +48,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class Graphs {
+
     public static final String NULL_ONTOLOGY_IDENTIFIER = "NullOntology";
     public static final String RECURSIVE_GRAPH_IDENTIFIER = "Recursion";
 
@@ -60,7 +61,7 @@ public class Graphs {
      *
      * @param graph {@link Graph}
      * @return Stream of {@link Graph}s
-     * @see #getBase(Graph)
+     * @see Graphs#getBase(Graph)
      * @see UnionGraph
      * @see Polyadic
      * @see Dyadic
@@ -117,10 +118,11 @@ public class Graphs {
     /**
      * Lists all graphs from the composite or wrapper graph
      * including the base as flat stream of non-composite (primitive) graphs.
-     * Note: this is a recursive method.
+     * Note: this is a recursive method: if a graph has a recursive hierarchy than StackOverflow error is expected.
      *
      * @param graph {@link Graph}
      * @return Stream of {@link Graph}
+     * @throws StackOverflowError in case the given graph has a recursion in the hierarchy
      */
     public static Stream<Graph> flat(Graph graph) {
         return graph == null ? Stream.empty() :
@@ -148,7 +150,7 @@ public class Graphs {
      *
      * @param g {@link Graph}
      * @return {@link UnionGraph}
-     * @throws StackOverflowError in case there is a loop in imports
+     * @throws StackOverflowError in case there is a loop in imports (i.e. a recursion in the hierarchy)
      * @since 1.0.1
      */
     public static UnionGraph toUnion(Graph g) {
@@ -178,8 +180,8 @@ public class Graphs {
     }
 
     /**
-     * Gets Ontology URI from the base graph or {@code null}
-     * (if there is no {@code owl:Ontology} or it is anonymous ontology).
+     * Gets Ontology URI from the base graph or returns {@code null}
+     * if there is no {@code owl:Ontology} or it is anonymous ontology.
      *
      * @param graph {@link Graph}
      * @return String uri or {@code null}
@@ -231,7 +233,7 @@ public class Graphs {
     }
 
     /**
-     * Returns comparator for root nodes.
+     * Returns a comparator for root nodes.
      * Tricky logic:
      * first compares roots as standalone nodes and the any uri-node is considered less then any blank-node,
      * then compares roots as part of the graph using the rule 'the fewer children -&gt; the greater weight'.
@@ -318,9 +320,8 @@ public class Graphs {
         }
     }
 
-
     /**
-     * Returns a Graph as Turtle String.
+     * Returns a {@code Graph} as a Turtle String.
      * For debugging.
      *
      * @param g {@link Graph}
@@ -336,7 +337,7 @@ public class Graphs {
      * Collects a prefixes library from the collection of the graphs.
      *
      * @param graphs {@link Iterable} a collection of graphs
-     * @return unmodifiable {@link PrefixMapping prefix mapping}
+     * @return unmodifiable (locked) {@link PrefixMapping prefix mapping}
      */
     public static PrefixMapping collectPrefixes(Iterable<Graph> graphs) {
         PrefixMapping res = PrefixMapping.Factory.create();
@@ -345,13 +346,15 @@ public class Graphs {
     }
 
     /**
-     * Makes a concurrent version of the given Graph by wrapping it as {@link RWLockedGraph}.
-     * If the input is an UnionGraph, only the base (primary) graph will contain the specified R/W lock.
+     * Makes a concurrent version of the given {@code Graph} by wrapping it as {@link RWLockedGraph}.
+     * If the input is an {@code UnionGraph},
+     * it makes an {@code UnionGraph} where only the base (primary) contains the specified R/W lock.
      * The result graph has the same structure as specified.
      *
      * @param graph {@link Graph}, not null
      * @param lock  {@link ReadWriteLock}, not null
      * @return {@link Graph} with {@link ReadWriteLock}
+     * @throws StackOverflowError in case the given graph has a recursion in its hierarchy
      */
     public static Graph asConcurrent(Graph graph, ReadWriteLock lock) {
         if (graph instanceof RWLockedGraph) {
@@ -362,7 +365,7 @@ public class Graphs {
         }
         UnionGraph u = (UnionGraph) graph;
         Graph base = asConcurrent(u.getBaseGraph(), lock);
-        UnionGraph res = new UnionGraph(base, u.getEventManager());
+        UnionGraph res = new UnionGraph(base);
         u.getUnderlying().listGraphs()
                 .mapWith(Graphs::asNonConcurrent)
                 .forEachRemaining(res::addGraph);
@@ -372,10 +375,12 @@ public class Graphs {
     /**
      * Removes concurrency from the given graph.
      * This operation is opposite to the {@link #asConcurrent(Graph, ReadWriteLock)} method:
-     * if the input is an UnionGraph it makes an UnionGraph with the same structure as specified but without R/W lock.
+     * if the input is an {@code UnionGraph}
+     * it makes an {@code UnionGraph} with the same structure as specified but without R/W lock.
      *
      * @param graph {@link Graph}
      * @return {@link Graph}
+     * @throws StackOverflowError in case the given graph has a recursion in its hierarchy
      */
     public static Graph asNonConcurrent(Graph graph) {
         if (graph instanceof RWLockedGraph) {
@@ -386,7 +391,7 @@ public class Graphs {
         }
         UnionGraph u = (UnionGraph) graph;
         Graph base = asNonConcurrent(u.getBaseGraph());
-        UnionGraph res = new UnionGraph(base, u.getEventManager());
+        UnionGraph res = new UnionGraph(base);
         u.getUnderlying().listGraphs()
                 .mapWith(Graphs::asNonConcurrent)
                 .forEachRemaining(res::addGraph);
@@ -433,7 +438,8 @@ public class Graphs {
      * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all nodes in the graph
      */
     public static ExtendedIterator<Node> all(Graph g) {
-        Set<Node> res = Iter.flatMap(g.find(Triple.ANY), t -> Iter.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet();
+        Set<Node> res = Iter.flatMap(g.find(Triple.ANY),
+                t -> Iter.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet();
         return WrappedIterator.create(res.iterator());
     }
 
@@ -443,6 +449,7 @@ public class Graphs {
      * @param left  {@link Graph}
      * @param right {@link Graph}
      * @return {@code true} if the left argument graph is dependent on the right
+     * @since 1.4.0
      */
     public static boolean dependsOn(Graph left, Graph right) {
         return left == right || (left != null && left.dependsOn(right));

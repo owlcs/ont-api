@@ -126,10 +126,12 @@ public interface OntGraphModel extends Model {
     /**
      * Removes a sub-model from {@code owl:import} and from the graph hierarchy.
      * Does nothing, if the specified model does not belong to this ontology.
+     * Matching is performed by graph, not uri (see {@link #hasImport(OntGraphModel)} description).
      *
      * @param m {@link OntGraphModel ont jena model} to remove, not {@code null}
      * @return this model to allow cascading calls
      * @see OntID#removeImport(String)
+     * @see #hasImport(OntGraphModel)
      */
     OntGraphModel removeImport(OntGraphModel m);
 
@@ -139,11 +141,14 @@ public interface OntGraphModel extends Model {
      *
      * @param uri String, an iri of ontology to find, not {@code null}
      * @return this model to allow cascading calls
+     * @see OntID#getImportsIRI()
+     * @see #hasImport(String)
      */
     OntGraphModel removeImport(String uri);
 
     /**
-     * Lists all top-level imported models which have {@code owl:import} reference inside the base graph.
+     * Lists all sub-models
+     * that belong to the top-level hierarchy and have {@code owl:import} reference inside the base graph.
      *
      * @return Stream of {@link OntGraphModel}s
      * @see OntID#imports()
@@ -151,13 +156,40 @@ public interface OntGraphModel extends Model {
     Stream<OntGraphModel> imports();
 
     /**
-     * Answers if the given model is present in the {@link OWL#imports owl:imports} of this model.
+     * Equivalent to {@link #hasImport(OntGraphModel)}.
      *
      * @param other {@link OntGraphModel} to test
+     * @return boolean
+     * @since 1.3.2
+     * @deprecated use {@code hasImport(...)}
+     */
+    @Deprecated
+    default boolean hasInImports(OntGraphModel other) {
+        return hasImport(other);
+    }
+
+    /**
+     * Answers {@code true} if the given model is present in the {@link OWL#imports owl:imports} of this model.
+     * This means that at the top-level of the import hierarchy there is a base graph of the given {@code other} model.
+     * Please note: the model may contain the same uri as that of the specified model, but a different (base) graph,
+     * i.e. if the method {@link #hasImport(String)} returns {@code true},
+     * it does not mean this method also returns {@code true}.
+     *
+     * @param other {@link OntGraphModel} to test, not {@code null}
      * @return {@code true} if the model is in imports
      * @since 1.4.0
      */
-    boolean hasInImports(OntGraphModel other);
+    boolean hasImport(OntGraphModel other);
+
+    /**
+     * Answers {@code true} if the model has a graph with the given uri both in {@code owl:imports} and graph-hierarchy.
+     *
+     * @param uri String, not {@code null}
+     * @return boolean
+     * @see OntID#getImportsIRI()
+     * @since 1.4.0
+     */
+    boolean hasImport(String uri);
 
     /**
      * Lists all ont-objects of the specified type.

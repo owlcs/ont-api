@@ -397,7 +397,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param predicate {@link OntNAP}, not {@code null}
      * @return {@link ExtendedIterator} of {@link Literal}s
      * @see #listAnnotations()
-     * @since 1.4.0
+     * @since 1.3.2
      */
     public ExtendedIterator<Literal> listAnnotationLiterals(OntNAP predicate) {
         return listAnnotations()

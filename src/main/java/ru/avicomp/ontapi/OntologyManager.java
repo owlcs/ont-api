@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -363,7 +363,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Resolves the given IRI to the ontology if possible.
      * According to the specification,
-     * a return ontology must have either an version IRI, a ontology IRI or a document IRI (in this order),
+     * a return ontology must have either a version IRI, an ontology IRI or a document IRI (in this order),
      * that matches the specified IRI.
      * In case of ontology IRI, there should be only a single ontology in the manager that has this ontology IRI,
      * otherwise this IRI cannot be considered as current version of the ontology series.
@@ -373,7 +373,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see #getImportedOntology(OWLImportsDeclaration)
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Ontology_Documents'>3.2 Ontology Documents</a>
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Imports'>3.4 Imports</a>
-     * @since 1.4.0
+     * @since 1.3.2
      */
     @Nullable
     default OntologyModel getImportedOntology(@Nonnull IRI iri) {
@@ -756,7 +756,7 @@ public interface OntologyManager extends OWLOntologyManager {
          *
          * @param iri {@link IRI}, not {@code null}
          * @return {@link OWLOntologyDocumentSource} or {@code null}
-         * @since 1.4.0
+         * @since 1.3.2
          */
         default OWLOntologyDocumentSource map(IRI iri) {
             return map(OntologyID.create(iri));

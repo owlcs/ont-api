@@ -20,7 +20,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 /**
  * A Structural Ontological Model, that is an extended {@link OWLOntology OWL-API Ontology}, and
  * represents an <a href="http://www.w3.org/TR/owl2-syntax/#Ontologies">Ontology</a> in the OWL2 specification.
- * This interface provides a wide range of methods  inherited from OWL-API
+ * This interface provides a wide range of methods inherited from OWL-API
  * for working with structural (OWL Axioms and Annotations) representation of data
  * stored in the form of {@link org.apache.jena.graph.Graph RDF Graph}.
  * In addition to this range, there are also two new methods: {@link #asGraphModel()} and {@link #clearCache()}.

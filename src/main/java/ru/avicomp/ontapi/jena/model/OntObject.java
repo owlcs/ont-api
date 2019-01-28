@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -169,7 +169,7 @@ public interface OntObject extends OntResource {
      * @param lang      String, the language tag to restrict the listed literals to, or {@code null} to select all literals
      * @return Stream of String's, i.e. literal lexical forms
      * @see #annotationValues(OntNAP)
-     * @since 1.4.0
+     * @since 1.3.2
      */
     Stream<String> annotationValues(OntNAP predicate, String lang);
 
@@ -235,7 +235,7 @@ public interface OntObject extends OntResource {
      * @param predicate {@link OntNAP}, not {@code null}
      * @return Stream of {@link RDFNode}s
      * @see #annotations()
-     * @since 1.4.0
+     * @since 1.3.2
      */
     default Stream<RDFNode> annotationValues(OntNAP predicate) {
         return annotations()
