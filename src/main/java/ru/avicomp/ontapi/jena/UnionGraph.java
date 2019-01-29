@@ -304,8 +304,8 @@ public class UnionGraph extends CompositionBase {
      */
     @Override
     public boolean dependsOn(Graph other) {
-        return Iter.anyMatch(listBaseGraphs(), x -> Graphs.dependsOn(x, other))
-                || collectUnionGraphs().stream().anyMatch(x -> Objects.equals(x, other));
+        return (other instanceof UnionGraph && collectUnionGraphs().contains(other))
+                || Iter.anyMatch(listBaseGraphs(), x -> Graphs.dependsOn(x, other));
     }
 
     /**
