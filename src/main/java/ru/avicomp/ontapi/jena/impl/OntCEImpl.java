@@ -989,10 +989,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             return g.asGraph().find(Node.ANY, RDF.Nodes.type, CLASS)
                     .mapWith(t -> {
                         Node n = t.getSubject();
-                        return n.isURI() ? wrap(n, g, namedClass) : wrap(n, g, anonymousClasses);
+                        return n.isURI() ? safeWrap(n, g, namedClass) : safeWrap(n, g, anonymousClasses);
                     })
                     .andThen(g.asGraph().find(Node.ANY, RDF.Nodes.type, RESTRICTION)
-                            .mapWith(t -> wrap(t.getSubject(), g, restrictions)))
+                            .mapWith(t -> safeWrap(t.getSubject(), g, restrictions)))
                     .filterDrop(Objects::isNull);
         }
 
@@ -1016,12 +1016,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         @Override
         public EnhNode createInstance(Node node, EnhGraph eg) {
             if (node.isURI()) {
-                return wrap(node, eg, namedClass);
+                return safeWrap(node, eg, namedClass);
             }
             if (eg.asGraph().contains(node, RDF.Nodes.type, CLASS)) {
-                return wrap(node, eg, anonymousClasses);
+                return safeWrap(node, eg, anonymousClasses);
             }
-            return wrap(node, eg, restrictions);
+            return safeWrap(node, eg, restrictions);
         }
 
         @Override

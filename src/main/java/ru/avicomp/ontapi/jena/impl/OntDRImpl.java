@@ -15,10 +15,14 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
+import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.impl.conf.BaseFactoryImpl;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
 import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
@@ -26,8 +30,11 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -58,21 +65,72 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
             , UnionOf.class
             , IntersectionOf.class);
 
-    public static ObjectFactory abstractDRFactory = Factories.createFrom(DR_FINDER
-            , OntDT.class
-            , OneOf.class
-            , Restriction.class
-            , ComplementOf.class
-            , UnionOf.class
-            , IntersectionOf.class);
+    public static ObjectFactory abstractDRFactory = createDataRangeFactory();
 
     public OntDRImpl(Node n, EnhGraph m) {
         super(n, m);
     }
 
-    @Override
-    public Optional<OntStatement> findRootStatement() {
-        return getRequiredRootStatement(this, RDFS.Datatype);
+    private static ObjectFactory createDataRangeFactory() {
+        return new BaseFactoryImpl() {
+            private final ObjectFactory named = new WrappedFactoryImpl(OntDT.class);
+            private final List<ObjectFactory> anonymous = Stream.of(OneOf.class
+                    , Restriction.class
+                    , ComplementOf.class
+                    , UnionOf.class
+                    , IntersectionOf.class)
+                    .map(WrappedFactoryImpl::new)
+                    .collect(Collectors.toList());
+
+            @Override
+            public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
+                return eg.asGraph().find(Node.ANY, RDF.Nodes.type, RDFS.Datatype.asNode())
+                        .mapWith(t -> t.getSubject().isURI() ?
+                                safeWrap(t.getSubject(), eg, named) :
+                                safeWrap(t.getSubject(), eg, anonymous))
+                        .filterDrop(Objects::isNull);
+            }
+
+            @Override
+            public boolean canWrap(Node node, EnhGraph eg) {
+                if (node.isURI()) {
+                    return named.canWrap(node, eg);
+                }
+                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS.Datatype.asNode()))
+                    return false;
+                for (ObjectFactory f : anonymous) {
+                    if (f.canWrap(node, eg)) return true;
+                }
+                return false;
+            }
+
+            @Override
+            public EnhNode createInstance(Node node, EnhGraph eg) {
+                if (node.isURI())
+                    return safeWrap(node, eg, named);
+                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS.Datatype.asNode()))
+                    return null;
+                return safeWrap(node, eg, anonymous);
+            }
+
+            @Override
+            public EnhNode wrap(Node node, EnhGraph eg) {
+                if (node.isURI())
+                    return named.wrap(node, eg);
+                ConversionException ex = new ConversionException("Can't convert node " + node +
+                        " to Data Range Expression.");
+                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS.Datatype.asNode()))
+                    throw ex;
+                for (ObjectFactory f : anonymous) {
+                    try {
+                        return f.wrap(node, eg);
+                    } catch (ConversionException c) {
+                        ex.addSuppressed(c);
+                    }
+                }
+                throw ex;
+            }
+        };
     }
 
     private static Resource create(OntGraphModelImpl model) {
@@ -118,6 +176,10 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         return model.getNodeAs(res.asNode(), IntersectionOf.class);
     }
 
+    @Override
+    public Optional<OntStatement> findRootStatement() {
+        return getRequiredRootStatement(this, RDFS.Datatype);
+    }
 
     public static class ComplementOfImpl extends OntDRImpl implements ComplementOf {
         public ComplementOfImpl(Node n, EnhGraph m) {

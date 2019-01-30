@@ -62,7 +62,9 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
             , ObjectProperties.class
             , DataProperties.class);
 
-    public static ObjectFactory abstractDisjointFactory = Factories.createFrom(OntFinder.TYPED
+    public static OntFinder DISJOINT_FINDER = Factories.createFinder(OWL.AllDisjointClasses,
+            OWL.AllDifferent, OWL.AllDisjointProperties);
+    public static ObjectFactory abstractDisjointFactory = Factories.createFrom(DISJOINT_FINDER
             , ObjectProperties.class
             , DataProperties.class
             , Classes.class

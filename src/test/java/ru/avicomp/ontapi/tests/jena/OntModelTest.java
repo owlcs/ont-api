@@ -824,7 +824,17 @@ public class OntModelTest {
 
         assertOntObjects(m, OntOPE.class, 80);
         assertOntObjects(m, OntDOP.class, 89);
-        // todo: handle all other abstract types
+
+        assertOntObjects(m, OntDR.class, 0);
+
+        assertOntObjects(m, OntDisjoint.class, 1);
+        assertOntObjects(m, OntDisjoint.Classes.class, 0);
+        assertOntObjects(m, OntDisjoint.Individuals.class, 1);
+        assertOntObjects(m, OntDisjoint.DataProperties.class, 0);
+        assertOntObjects(m, OntDisjoint.ObjectProperties.class, 0);
+        assertOntObjects(m, OntDisjoint.Properties.class, 0);
+
+        // todo: handle all other types
     }
 
 }

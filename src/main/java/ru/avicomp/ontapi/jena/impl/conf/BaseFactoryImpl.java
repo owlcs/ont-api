@@ -32,15 +32,15 @@ import org.apache.jena.ontology.ConversionException;
  */
 public abstract class BaseFactoryImpl extends Implementation implements ObjectFactory {
 
-    protected static EnhNode wrap(Node n, EnhGraph g, Iterable<ObjectFactory> factories) {
+    protected static EnhNode safeWrap(Node n, EnhGraph g, Iterable<ObjectFactory> factories) {
         for (ObjectFactory f : factories) {
-            EnhNode r = wrap(n, g, f);
+            EnhNode r = safeWrap(n, g, f);
             if (r != null) return r;
         }
         return null;
     }
 
-    protected static EnhNode wrap(Node n, EnhGraph g, ObjectFactory f) {
+    protected static EnhNode safeWrap(Node n, EnhGraph g, ObjectFactory f) {
         try {
             return f.wrap(n, g);
         } catch (ConversionException c) {
