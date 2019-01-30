@@ -47,6 +47,9 @@ abstract class VocabularyImpl<T extends Resource> implements Vocabulary<T> {
         if (res == null) {
             throw new OntJenaException.Unsupported("Unsupported class-type " + key);
         }
+        if (res.isEmpty()) {
+            return Collections.emptySet();
+        }
         return res;
     }
 

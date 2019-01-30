@@ -15,16 +15,27 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.EnhNode;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
+import org.apache.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.OntJenaException;
+import ru.avicomp.ontapi.jena.impl.conf.BaseFactoryImpl;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
 import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Property Expression base impl-class.
@@ -35,9 +46,10 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 @SuppressWarnings("WeakerAccess")
 public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
 
-    public static final OntFilter INVERSE_OF_FILTER = (n, g) -> {
+    private static final Node OWL_INVERSE_OF = OWL.inverseOf.asNode();
+    private static final OntFilter INVERSE_OF_FILTER = (n, g) -> {
         if (!n.isBlank()) return false;
-        ExtendedIterator<Triple> res = g.asGraph().find(n, OWL.inverseOf.asNode(), Node.ANY);
+        ExtendedIterator<Triple> res = g.asGraph().find(n, OWL_INVERSE_OF, Node.ANY);
         try {
             while (res.hasNext()) {
                 if (PersonalityModel.canAs(OntNOP.class, res.next().getObject(), g)) return true;
@@ -47,24 +59,67 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         }
         return false;
     };
+    private static final OntFinder NAMED_PROPERTY_FINDER = Factories.createFinder(OWL.AnnotationProperty
+            , OWL.ObjectProperty, OWL.DatatypeProperty);
 
     public static ObjectFactory inversePropertyFactory = Factories.createCommon(OntOPEImpl.InversePropertyImpl.class,
             new OntFinder.ByPredicate(OWL.inverseOf), INVERSE_OF_FILTER);
+    public static ObjectFactory abstractNamedPropertyFactory = Factories.createFrom(NAMED_PROPERTY_FINDER
+            , OntNOP.class, OntNDP.class, OntNAP.class);
 
-    public static ObjectFactory abstractNamedPropertyFactory = Factories.createFrom(OntFinder.TYPED,
-            OntNOP.class, OntNDP.class, OntNAP.class);
+    public static ObjectFactory abstractOPEFactory = createObjectPropertyExpressionFactory();
+    //Factories.createFrom(OBJECT_PROPERTY_FINDER, OntNOP.class, OntOPE.Inverse.class);
 
-    public static ObjectFactory abstractOPEFactory = Factories.createFrom(OntFinder.TYPED
-            , OntNOP.class, OntOPE.Inverse.class);
+    public static ObjectFactory abstractDOPFactory = createDataOrObjectPropertyFactory();
+    //Factories.createFrom(OntFinder.ANY_SUBJECT, OntNDP.class, OntOPE.class);
 
-    public static ObjectFactory abstractDOPFactory = Factories.createFrom(OntFinder.ANY_SUBJECT
-            , OntNDP.class, OntOPE.class);
-
-    public static ObjectFactory abstractPEFactory = Factories.createFrom(OntFinder.ANY_SUBJECT,
-            OntNOP.class, OntNDP.class, OntNAP.class, OntOPE.Inverse.class);
+    public static ObjectFactory abstractPEFactory = createPropertyExpressionFactory();
+    //Factories.createFrom(OntFinder.ANY_SUBJECT, OntNOP.class, OntNDP.class, OntNAP.class, OntOPE.Inverse.class);
 
     public OntPEImpl(Node n, EnhGraph m) {
         super(n, m);
+    }
+
+    private static ObjectFactory createObjectPropertyExpressionFactory() {
+        return new WithInverseObjectPropertyFactory() {
+            final ObjectFactory namedObjectProperty = new WrappedFactoryImpl(OntNOP.class);
+
+            @Override
+            public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
+                ExtendedIterator<EnhNode> res = eg.asGraph().find(Node.ANY, RDF.Nodes.type, OWL.ObjectProperty.asNode())
+                        .mapWith(t -> wrap(t.getSubject(), eg, namedObjectProperty));
+                return Iter.concat(res, super.iterator(eg)).filterDrop(Objects::isNull);
+            }
+
+            @Override
+            public boolean canWrap(Node node, EnhGraph eg) {
+                if (node.isURI()) {
+                    return namedObjectProperty.canWrap(node, eg);
+                }
+                return super.canWrap(node, eg);
+            }
+
+            @Override
+            public EnhNode createInstance(Node node, EnhGraph eg) {
+                if (node.isURI()) {
+                    return wrap(node, eg, namedObjectProperty);
+                }
+                return super.createInstance(node, eg);
+            }
+        };
+    }
+
+    private static ObjectFactory createDataOrObjectPropertyFactory() {
+        return new PropertiesFactory()
+                .add(OWL.ObjectProperty, OntNOP.class)
+                .add(OWL.DatatypeProperty, OntNDP.class);
+    }
+
+    private static ObjectFactory createPropertyExpressionFactory() {
+        return new PropertiesFactory()
+                .add(OWL.ObjectProperty, OntNOP.class)
+                .add(OWL.DatatypeProperty, OntNDP.class)
+                .add(OWL.AnnotationProperty, OntNAP.class);
     }
 
     @Override
@@ -73,4 +128,79 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         return as(Property.class);
     }
 
+    private static class PropertiesFactory extends WithInverseObjectPropertyFactory {
+        final List<Factory> factories = new ArrayList<>();
+
+        PropertiesFactory add(Resource declaration, Class<? extends OntPE> type) {
+            factories.add(new Factory(declaration.asNode(), new WrappedFactoryImpl(type)));
+            return this;
+        }
+
+        @Override
+        public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
+            Graph g = eg.asGraph();
+            ExtendedIterator<EnhNode> res = Iter.distinct(Iter.flatMap(WrappedIterator.create(factories.iterator()),
+                    f -> g.find(Node.ANY, RDF.Nodes.type, f.t).mapWith(t -> wrap(t.getSubject(), eg, f.f))));
+            return Iter.concat(res, super.iterator(eg)).filterDrop(Objects::isNull);
+        }
+
+        @Override
+        public boolean canWrap(Node node, EnhGraph eg) {
+            if (!node.isURI()) {
+                return super.canWrap(node, eg);
+            }
+            for (Factory f : factories) {
+                if (f.f.canWrap(node, eg)) return true;
+            }
+            return false;
+        }
+
+        @Override
+        public EnhNode createInstance(Node node, EnhGraph eg) {
+            if (!node.isURI()) {
+                return super.createInstance(node, eg);
+            }
+            for (Factory f : factories) {
+                EnhNode res = wrap(node, eg, f.f);
+                if (res != null) return res;
+            }
+            return null;
+        }
+
+        private class Factory {
+            private final Node t;
+            private final ObjectFactory f;
+
+            private Factory(Node type, ObjectFactory factory) {
+                this.t = Objects.requireNonNull(type);
+                this.f = Objects.requireNonNull(factory);
+            }
+        }
+    }
+
+    private static abstract class WithInverseObjectPropertyFactory extends BaseFactoryImpl {
+        final ObjectFactory anonymous = new WrappedFactoryImpl(OntOPE.Inverse.class);
+
+        @Override
+        public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
+            return Iter.distinct(eg.asGraph().find(Node.ANY, OWL_INVERSE_OF, Node.ANY)
+                    .mapWith(t -> wrap(t.getSubject(), eg, anonymous)));
+        }
+
+        @Override
+        public boolean canWrap(Node node, EnhGraph eg) {
+            if (node.isBlank()) {
+                return anonymous.canWrap(node, eg);
+            }
+            return false;
+        }
+
+        @Override
+        public EnhNode createInstance(Node node, EnhGraph eg) {
+            if (node.isBlank()) {
+                return wrap(node, eg, anonymous);
+            }
+            return null;
+        }
+    }
 }

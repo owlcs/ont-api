@@ -28,6 +28,7 @@ import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntCEImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -56,6 +57,50 @@ public class OntModelTest {
     @SafeVarargs
     private static <X> Set<X> toUnmodifiableSet(Collection<? extends X>... lists) {
         return Arrays.stream(lists).flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
+    }
+
+    private static void assertOntObjects(OntGraphModel m, Class<? extends OntObject> type, long expected) {
+        Assert.assertEquals(expected, m.ontObjects(type).count());
+    }
+
+    private static void testPizzaCEs(Model m, Property predicate, List<? extends OntCE> ces) {
+        String type = ces.isEmpty() ? null : ((OntCEImpl) ces.get(0)).getActualClass().getSimpleName();
+        Assert.assertEquals("Incorrect count of " + type, m.listSubjectsWithProperty(predicate)
+                .toSet().size(), ces.size());
+    }
+
+    private static void simplePropertiesValidation(OntGraphModel ont) {
+        Model jena = ModelFactory.createModelForGraph(ont.getGraph());
+        Set<Resource> annotationProperties = jena.listStatements(null, RDF.type, OWL.AnnotationProperty)
+                .mapWith(Statement::getSubject).toSet();
+        Set<Resource> datatypeProperties = jena.listStatements(null, RDF.type, OWL.DatatypeProperty)
+                .mapWith(Statement::getSubject).toSet();
+        Set<Resource> namedObjectProperties = jena.listStatements(null, RDF.type, OWL.ObjectProperty)
+                .mapWith(Statement::getSubject).toSet();
+        Set<Resource> inverseObjectProperties = jena.listStatements(null, OWL.inverseOf, (RDFNode) null)
+                .mapWith(Statement::getSubject).filterKeep(RDFNode::isAnon).toSet();
+        Set<Statement> inverseStatements = jena.listStatements(null, OWL.inverseOf, (RDFNode) null)
+                .filterKeep(s -> s.getSubject().isURIResource()).filterKeep(s -> s.getObject().isURIResource()).toSet();
+
+        List<OntPE> actualPEs = ont.ontObjects(OntPE.class)
+                .peek(x -> LOGGER.debug("PE: {}", x)).collect(Collectors.toList());
+
+        Set<Resource> expectedNamed = toUnmodifiableSet(annotationProperties, datatypeProperties, namedObjectProperties);
+        Set<Resource> expectedPEs = toUnmodifiableSet(expectedNamed, inverseObjectProperties);
+        Assert.assertEquals("Incorrect number of property expressions", expectedPEs.size(), actualPEs.size());
+
+        List<OntProperty> actualNamed = ont.ontObjects(OntProperty.class)
+                .peek(x -> LOGGER.debug("Named property: {}", x))
+                .collect(Collectors.toList());
+        Assert.assertEquals("Incorrect number of named properties", expectedNamed.size(), actualNamed.size());
+
+        List<OntPE> actualDOs = ont.ontObjects(OntDOP.class).collect(Collectors.toList());
+        Set<Resource> expectedDOs = toUnmodifiableSet(datatypeProperties, namedObjectProperties, inverseObjectProperties);
+        Assert.assertEquals("Incorrect number of data and object property expressions",
+                expectedDOs.size(), actualDOs.size());
+
+        Assert.assertEquals("Incorrect number of owl:inverseOf for object properties", inverseStatements.size(),
+                ont.listObjectProperties().flatMap(OntOPE::inverseOf).count());
     }
 
     @Test
@@ -106,12 +151,6 @@ public class OntModelTest {
         testPizzaCEs(m, OWL.complementOf, complementOfCEs);
         testPizzaCEs(m, OWL.oneOf, oneOfCEs);
         testPizzaCEs(m, OWL.minCardinality, objectMinCardinalityCEs);
-    }
-
-    private void testPizzaCEs(Model m, Property predicate, List<? extends OntCE> ces) {
-        String type = ces.isEmpty() ? null : ((OntCEImpl) ces.get(0)).getActualClass().getSimpleName();
-        Assert.assertEquals("Incorrect count of " + type, m.listSubjectsWithProperty(predicate)
-                .toSet().size(), ces.size());
     }
 
     @Test
@@ -231,40 +270,6 @@ public class OntModelTest {
         Assert.assertEquals(p1.asProperty(), p2.asProperty());
         Assert.assertEquals(p1, p2.getInverseOf());
         Assert.assertEquals(1, m.ontObjects(OntOPE.Inverse.class).count());
-    }
-
-    private void simplePropertiesValidation(OntGraphModel ont) {
-        Model jena = ModelFactory.createModelForGraph(ont.getGraph());
-        Set<Resource> annotationProperties = jena.listStatements(null, RDF.type, OWL.AnnotationProperty)
-                .mapWith(Statement::getSubject).toSet();
-        Set<Resource> datatypeProperties = jena.listStatements(null, RDF.type, OWL.DatatypeProperty)
-                .mapWith(Statement::getSubject).toSet();
-        Set<Resource> namedObjectProperties = jena.listStatements(null, RDF.type, OWL.ObjectProperty)
-                .mapWith(Statement::getSubject).toSet();
-        Set<Resource> inverseObjectProperties = jena.listStatements(null, OWL.inverseOf, (RDFNode) null)
-                .mapWith(Statement::getSubject).filterKeep(RDFNode::isAnon).toSet();
-        Set<Statement> inverseStatements = jena.listStatements(null, OWL.inverseOf, (RDFNode) null)
-                .filterKeep(s -> s.getSubject().isURIResource()).filterKeep(s -> s.getObject().isURIResource()).toSet();
-
-        List<OntPE> actualPEs = ont.ontObjects(OntPE.class)
-                .peek(x -> LOGGER.debug("PE: {}", x)).collect(Collectors.toList());
-
-        Set<Resource> expectedNamed = toUnmodifiableSet(annotationProperties, datatypeProperties, namedObjectProperties);
-        Set<Resource> expectedPEs = toUnmodifiableSet(expectedNamed, inverseObjectProperties);
-        Assert.assertEquals("Incorrect number of property expressions", expectedPEs.size(), actualPEs.size());
-
-        List<OntProperty> actualNamed = ont.ontObjects(OntProperty.class)
-                .peek(x -> LOGGER.debug("Named property: {}", x))
-                .collect(Collectors.toList());
-        Assert.assertEquals("Incorrect number of named properties", expectedNamed.size(), actualNamed.size());
-
-        List<OntPE> actualDOs = ont.ontObjects(OntDOP.class).collect(Collectors.toList());
-        Set<Resource> expectedDOs = toUnmodifiableSet(datatypeProperties, namedObjectProperties, inverseObjectProperties);
-        Assert.assertEquals("Incorrect number of data and object property expressions",
-                expectedDOs.size(), actualDOs.size());
-
-        Assert.assertEquals("Incorrect number of owl:inverseOf for object properties", inverseStatements.size(),
-                ont.listObjectProperties().flatMap(OntOPE::inverseOf).count());
     }
 
     @Test
@@ -801,6 +806,25 @@ public class OntModelTest {
         Assert.assertEquals(0, p.getOrdinal());
         Assert.assertEquals(0, m.getRDFSComment().getOrdinal());
         Assert.assertEquals(0, m.getOWLBottomDataProperty().getOrdinal());
+    }
+
+    @Test
+    public void testFamilyListObjects() {
+        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/family.ttl").getGraph(),
+                OntModelConfig.ONT_PERSONALITY_LAX);
+        assertOntObjects(m, OntEntity.class, 656);
+        assertOntObjects(m, OntProperty.class, 90);
+
+        assertOntObjects(m, OntClass.class, 58);
+        assertOntObjects(m, OntDT.class, 0);
+        assertOntObjects(m, OntIndividual.Named.class, 508);
+        assertOntObjects(m, OntNOP.class, 80);
+        assertOntObjects(m, OntNAP.class, 1);
+        assertOntObjects(m, OntNDP.class, 9);
+
+        assertOntObjects(m, OntOPE.class, 80);
+        assertOntObjects(m, OntDOP.class, 89);
+        // todo: handle all other abstract types
     }
 
 }

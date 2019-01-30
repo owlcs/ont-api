@@ -21,7 +21,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
 
 /**
- * Extended {@link Implementation} factory,
+ * An extended {@link Implementation} factory,
  * the base class for any {@link ObjectFactory factories} to produce
  * {@link ru.avicomp.ontapi.jena.model.OntObject Ontology Object}s.
  * Used to bind implementation (node) and interface.
@@ -31,6 +31,22 @@ import org.apache.jena.ontology.ConversionException;
  * Created by @szuev on 03.11.2016.
  */
 public abstract class BaseFactoryImpl extends Implementation implements ObjectFactory {
+
+    protected static EnhNode wrap(Node n, EnhGraph g, Iterable<ObjectFactory> factories) {
+        for (ObjectFactory f : factories) {
+            EnhNode r = wrap(n, g, f);
+            if (r != null) return r;
+        }
+        return null;
+    }
+
+    protected static EnhNode wrap(Node n, EnhGraph g, ObjectFactory f) {
+        try {
+            return f.wrap(n, g);
+        } catch (ConversionException c) {
+            return null;
+        }
+    }
 
     /**
      * Creates a new {@link EnhNode} wrapping the given {@link Node} node in the context of the graph {@link EnhGraph}.

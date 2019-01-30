@@ -233,7 +233,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * Gets the top-level {@link OntGraphModelImpl Ontology Graph Model impl}.
      * The returned model may contain import declarations, but cannot contain sub-models.
      * Be warned: any listeners, attached on the {@link #getGraph()}
-     * todo:
      *
      * @return {@link OntGraphModelImpl}
      * @see #getBaseModel()

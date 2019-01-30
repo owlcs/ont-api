@@ -14,15 +14,24 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntObject;
+import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * A helper(factory) to produce {@link ObjectFactory object factory} instances.
+ * A helper(factory) to produce {@link ObjectFactory object factory} instances or its components.
  * <p>
  * Created by @ssz on 19.01.2019.
  *
@@ -55,5 +64,19 @@ class Factories {
         return new CommonFactoryImpl(OntJenaException.notNull(maker, "Null maker"),
                 OntJenaException.notNull(finder, "Null finder"),
                 OntJenaException.notNull(primary, "Null filter").accumulate(additional));
+    }
+
+    static OntFinder createFinder(Resource... types) {
+        return createFinder(FrontsNode::asNode, types);
+    }
+
+    @SafeVarargs
+    static <R> OntFinder createFinder(Function<R, Node> asNode, R... types) {
+        return eg -> Iter.distinct(listTriplesForTypes(eg.asGraph(), asNode, types).mapWith(Triple::getSubject));
+    }
+
+    @SafeVarargs
+    private static <R> ExtendedIterator<Triple> listTriplesForTypes(Graph g, Function<R, Node> asNode, R... types) {
+        return Iter.flatMap(Iter.of(types).mapWith(asNode), t -> g.find(Node.ANY, RDF.Nodes.type, t));
     }
 }

@@ -205,7 +205,9 @@ public interface OntGraphModel extends Model {
      * Lists all entities declared in the model.
      * Built-ins are not included.
      * The retrieved entities can belong to the underlying graphs also.
-     * Note: this method returns non-distinct stream - the duplicate elements (by equals and hasCode, not by real type)
+     * Note: this method returns non-distinct stream,
+     * while the expression {@code ontObjects(OntEntity.class)} is supposed to be distinct stream.
+     * The duplicate elements (by {@code equals} and {@code hasCode}, not by real class-type)
      * means that there is so called punning.
      *
      * @return Stream of {@link OntEntity}

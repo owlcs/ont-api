@@ -984,31 +984,15 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             return Arrays.stream(types).map(ClassExpressionFactory::of).collect(Collectors.toList());
         }
 
-        private static EnhNode map(Collection<ObjectFactory> factories, Node n, EnhGraph g) {
-            for (ObjectFactory f : factories) {
-                EnhNode r = map(f, n, g);
-                if (r != null) return r;
-            }
-            return null;
-        }
-
-        private static EnhNode map(ObjectFactory f, Node n, EnhGraph g) {
-            try {
-                return f.wrap(n, g);
-            } catch (ConversionException c) {
-                return null;
-            }
-        }
-
         @Override
         public ExtendedIterator<EnhNode> iterator(EnhGraph g) {
             return g.asGraph().find(Node.ANY, RDF.Nodes.type, CLASS)
                     .mapWith(t -> {
                         Node n = t.getSubject();
-                        return n.isURI() ? map(namedClass, n, g) : map(anonymousClasses, n, g);
+                        return n.isURI() ? wrap(n, g, namedClass) : wrap(n, g, anonymousClasses);
                     })
                     .andThen(g.asGraph().find(Node.ANY, RDF.Nodes.type, RESTRICTION)
-                            .mapWith(t -> map(restrictions, t.getSubject(), g)))
+                            .mapWith(t -> wrap(t.getSubject(), g, restrictions)))
                     .filterDrop(Objects::isNull);
         }
 
@@ -1032,12 +1016,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         @Override
         public EnhNode createInstance(Node node, EnhGraph eg) {
             if (node.isURI()) {
-                return map(namedClass, node, eg);
+                return wrap(node, eg, namedClass);
             }
             if (eg.asGraph().contains(node, RDF.Nodes.type, CLASS)) {
-                return map(anonymousClasses, node, eg);
+                return wrap(node, eg, anonymousClasses);
             }
-            return map(restrictions, node, eg);
+            return wrap(node, eg, restrictions);
         }
 
         @Override

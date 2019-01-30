@@ -51,14 +51,18 @@ public interface OntMaker {
      * @param node {@link Node}
      * @param eg   {@link EnhGraph}
      */
-    void make(Node node, EnhGraph eg);
+    default void make(Node node, EnhGraph eg) {
+        throw new OntJenaException.Unsupported();
+    }
 
     /**
      * Returns a {@link OntFilter}, that is used as tester to decide does this maker support graph modification or not.
      *
      * @return {@link OntFilter}
      */
-    OntFilter getTester();
+    default OntFilter getTester() {
+        return OntFilter.FALSE;
+    }
 
     /**
      * Returns an interface view implementation.
@@ -113,11 +117,6 @@ public interface OntMaker {
         public void make(Node node, EnhGraph eg) {
             throw new OntJenaException.Unsupported("Creation is not allowed for node " +
                     node + " and class " + impl.getSimpleName());
-        }
-
-        @Override
-        public OntFilter getTester() {
-            return OntFilter.FALSE;
         }
 
         @Override

@@ -161,14 +161,17 @@ public class UnionModel extends ModelCom {
      * @see #getNodeAs(Node, Class)
      */
     public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> view) {
+        // If node has already been seen up the stack, then a graph recursion is detected.
+        // Although, in general case, using Map<Class, Set<Node>> seems to be more suitable and careful checking,
+        // but it is also a little more expensive.
+        // It seems, in the case of ONT-API ObjectFactory implementations, a Set is quite enough.
         Set<Node> nodes = visited.get();
         try {
-            if (nodes.contains(node)) {
-                throw new OntJenaException.Recursion("Can't cast to " + view.getSimpleName() + ": " +
-                        "graph contains a recursion for node <" + node + ">");
+            if (nodes.add(node)) {
+                return getNodeAsInternal(node, view);
             }
-            nodes.add(node);
-            return getNodeAsInternal(node, view);
+            throw new OntJenaException.Recursion("Can't cast to " + OntObjectImpl.viewAsString(view) + ": " +
+                    "graph contains a recursion for node <" + node + ">");
         } catch (OntJenaException.Recursion r) {
             throw r;
         } catch (JenaException e) {

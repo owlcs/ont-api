@@ -104,23 +104,23 @@ public enum Entities {
         }
     },
     ;
-
-    public static final ObjectFactory ALL = Factories.createFrom(OntFinder.TYPED,
+    private static final OntFinder ENTITY_FINDER = Factories.createFinder(e -> e.getResourceType().asNode(), values());
+    public static final ObjectFactory ALL = Factories.createFrom(ENTITY_FINDER,
             Arrays.stream(values()).map(Entities::getActualType));
 
     private final Class<? extends OntObjectImpl> impl;
-    private final Class<? extends OntEntity> type;
+    private final Class<? extends OntEntity> classType;
     private final Resource resourceType;
 
     /**
-     * @param resourceType {@link Resource}
-     * @param type         class-type of the corresponding {@link OntEntity}
+     * @param resourceType {@link Resource}-type
+     * @param classType    class-type of the corresponding {@link OntEntity}
      * @param impl         class-implementation
      */
-    Entities(Resource resourceType, Class<? extends OntEntity> type, Class<? extends OntObjectImpl> impl) {
-        this.type = type;
-        this.impl = impl;
+    Entities(Resource resourceType, Class<? extends OntEntity> classType, Class<? extends OntObjectImpl> impl) {
+        this.classType = classType;
         this.resourceType = resourceType;
+        this.impl = impl;
     }
 
     /**
@@ -129,7 +129,7 @@ public enum Entities {
      * @return {@link Class}
      */
     public Class<? extends OntEntity> getActualType() {
-        return type;
+        return classType;
     }
 
     OntPersonality.Builtins builtins(EnhGraph g) {
@@ -140,8 +140,21 @@ public enum Entities {
         return PersonalityModel.asPersonalityModel(g).getOntPersonality().getPunnings();
     }
 
+    /**
+     * Answers a {@code Set} of URI Nodes that this entity cannot have as {@code rdf:type}.
+     *
+     * @param g {@link EnhGraph}
+     * @return Set of {@link Node}s
+     */
     abstract Set<Node> bannedTypes(EnhGraph g);
 
+    /**
+     * Answers a {@code Set} of URI Nodes
+     * that can be treated as this entity even there is no any {@code rdf:type} declarations.
+     *
+     * @param g {@link EnhGraph}
+     * @return Set of {@link Node}s
+     */
     abstract Set<Node> builtInURIs(EnhGraph g);
 
     /**
@@ -155,6 +168,7 @@ public enum Entities {
 
     /**
      * Creates a factory for the entity.
+     *
      * @return {@link ObjectFactory}
      */
     public ObjectFactory createFactory() {
