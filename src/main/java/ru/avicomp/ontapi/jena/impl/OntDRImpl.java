@@ -119,6 +119,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
                     return named.wrap(node, eg);
                 ConversionException ex = new ConversionException("Can't convert node " + node +
                         " to Data Range Expression.");
+                if (!node.isBlank())
+                    throw ex;
                 if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS.Datatype.asNode()))
                     throw ex;
                 for (ObjectFactory f : anonymous) {

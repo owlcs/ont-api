@@ -182,6 +182,8 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
             if (node.isBlank())
                 return anonymous.wrap(node, eg);
             ConversionException ex = new ConversionException("Can't convert node " + node + " to Property Expression");
+            if (!node.isURI())
+                throw ex;
             for (Factory f : factories) {
                 try {
                     return f.f.wrap(node, eg);
