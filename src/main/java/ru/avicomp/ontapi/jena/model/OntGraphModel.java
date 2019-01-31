@@ -149,6 +149,8 @@ public interface OntGraphModel extends Model {
     /**
      * Lists all sub-models
      * that belong to the top-level hierarchy and have {@code owl:import} reference inside the base graph.
+     * Caution: since recursive hierarchies are not prohibited,
+     * the rectilinear usage of this method may cause a StackOverflow Error.
      *
      * @return Stream of {@link OntGraphModel}s
      * @see OntID#imports()
@@ -215,6 +217,26 @@ public interface OntGraphModel extends Model {
      * @see #ontEntities(Class)
      */
     Stream<OntEntity> ontEntities();
+
+    /**
+     * Lists all (local) built-in OWL entities, that participant somewhere in the base graph.
+     * This means that a builtin entity (e.g. a built-in OWL Class {@code owl:Thing}),
+     * must be a part of some OWL statement (SPO), present in the base graph
+     * (e.g. {@code <SomeClass> rdfs:subClassOf owl:Thing}).
+     * If a builtin entity is in some SPO, which is undefined in OWL2 syntax,
+     * than this entity is not included in the returned {@code Stream}.
+     * To list all model builtins (i.e. from sub-model hierarchy also,
+     * not only from the base graph) the expression {@link #ontBuiltins(Class)} can be used.
+     * Note that the result can be configured
+     * through {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary}.
+     *
+     * @param type a concrete class-type of entity
+     * @param <E>  any subtype of {@link OntEntity}
+     * @return Stream of builtin {@link OntEntity}s
+     * @see ru.avicomp.ontapi.jena.impl.conf.OntPersonality#getBuiltins()
+     * @since 1.4.0
+     */
+    <E extends OntEntity> Stream<E> localBuiltins(Class<E> type);
 
     /**
      * Lists all typed individuals from the model.
@@ -298,10 +320,10 @@ public interface OntGraphModel extends Model {
     /**
      * Removes the given {@link OntObject Ontology Object} from the graph-model including its content and annotations.
      * Note: for example, if you delete an OWL class
-     * that is on the right side in a statement with predicate {@code rdf:subClassOf},
+     * that is on the right side in a statement with predicate {@code rdfs:subClassOf},
      * that statement remains unchanged in the graph, but it will be meaningless:
      * its right side will no longer be a class, but just uri.
-     * But if a class is on the left side of the statement with the {@code rdf:subClassOf} predicate,
+     * But if a class is on the left side of the statement with the {@code rdfs:subClassOf} predicate,
      * that statement will be removed from the graph along with its annotations, because it is belongs to class content.
      *
      * @param obj {@link OntObject}
@@ -514,6 +536,11 @@ public interface OntGraphModel extends Model {
 
     default <E extends OntEntity> Stream<E> ontEntities(Class<E> type) {
         return ontObjects(type);
+    }
+
+    default <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type) {
+        // possible stackoverflow error:
+        return Stream.concat(localBuiltins(type), imports().flatMap(x -> x.ontBuiltins(type))).distinct();
     }
 
     default <E extends OntEntity> E fetchOntEntity(Class<E> type, String uri) {

@@ -1001,6 +1001,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             if (node.isURI()) {
                 return namedClass.canWrap(node, eg);
             }
+            if (!node.isBlank()) return false;
             if (eg.asGraph().contains(node, RDF.Nodes.type, RESTRICTION)) {
                 for (ObjectFactory f : restrictions) {
                     if (f.canWrap(node, eg)) return true;
@@ -1018,6 +1019,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             if (node.isURI()) {
                 return safeWrap(node, eg, namedClass);
             }
+            if (!node.isBlank()) return null;
             if (eg.asGraph().contains(node, RDF.Nodes.type, CLASS)) {
                 return safeWrap(node, eg, anonymousClasses);
             }
@@ -1030,6 +1032,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 return namedClass.wrap(node, eg);
             }
             ConversionException ex = new ConversionException("Can't convert node " + node + " to Class Expression.");
+            if (!node.isBlank())
+                throw ex;
             if (eg.asGraph().contains(node, RDF.Nodes.type, RESTRICTION)) {
                 for (ObjectFactory f : restrictions) {
                     try {

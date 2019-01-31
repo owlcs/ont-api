@@ -60,7 +60,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Gets a data factory which can be used to create OWL API objects such as classes, properties, individuals, axioms etc.
      *
-     * @return a reference to a {@link DataFactory data factory} for creating OWL API objects.
+     * @return a {@link DataFactory data factory} for creating OWL API objects
      */
     @Override
     DataFactory getOWLDataFactory();

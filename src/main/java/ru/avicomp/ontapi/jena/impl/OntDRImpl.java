@@ -44,6 +44,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class OntDRImpl extends OntObjectImpl implements OntDR {
+    private static final Node RDFS_DATATYPE = RDFS.Datatype.asNode();
     private static final OntFinder DR_FINDER = new OntFinder.ByType(RDFS.Datatype);
     private static final OntFilter DR_FILTER = OntFilter.BLANK.and(new OntFilter.HasType(RDFS.Datatype));
 
@@ -84,7 +85,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
             @Override
             public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
-                return eg.asGraph().find(Node.ANY, RDF.Nodes.type, RDFS.Datatype.asNode())
+                return eg.asGraph().find(Node.ANY, RDF.Nodes.type, RDFS_DATATYPE)
                         .mapWith(t -> t.getSubject().isURI() ?
                                 safeWrap(t.getSubject(), eg, named) :
                                 safeWrap(t.getSubject(), eg, anonymous))
@@ -96,7 +97,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
                 if (node.isURI()) {
                     return named.canWrap(node, eg);
                 }
-                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS.Datatype.asNode()))
+                if (!node.isBlank()) return false;
+                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS_DATATYPE))
                     return false;
                 for (ObjectFactory f : anonymous) {
                     if (f.canWrap(node, eg)) return true;
@@ -108,7 +110,9 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
             public EnhNode createInstance(Node node, EnhGraph eg) {
                 if (node.isURI())
                     return safeWrap(node, eg, named);
-                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS.Datatype.asNode()))
+                if (!node.isBlank())
+                    return null;
+                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS_DATATYPE))
                     return null;
                 return safeWrap(node, eg, anonymous);
             }
@@ -121,7 +125,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
                         " to Data Range Expression.");
                 if (!node.isBlank())
                     throw ex;
-                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS.Datatype.asNode()))
+                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS_DATATYPE))
                     throw ex;
                 for (ObjectFactory f : anonymous) {
                     try {

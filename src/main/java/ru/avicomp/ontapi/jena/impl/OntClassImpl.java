@@ -16,22 +16,25 @@ package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
  * owl:Class Implementation
- *
+ * <p>
  * Created by szuev on 03.11.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntClassImpl extends OntObjectImpl implements OntClass {
 
     public OntClassImpl(Node n, EnhGraph eg) {
@@ -112,6 +115,68 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     @Override
     public void removeDisjointUnionOf() {
         clearAll(OWL.disjointUnionOf);
+    }
+
+    /**
+     * Gets all built-in OWL Classes from the base graph of the specified model.
+     *
+     * @param m {@link OntGraphModelImpl}
+     * @return Set of built-in {@link OntClass}es
+     */
+    public static Set<OntClass> getBuiltinClasses(OntGraphModelImpl m) {
+        Set<OntClass> res = new HashSet<>();
+
+        // UnionOf and IntersectionOf class expressions (owl:unionOf,  owl:intersectionOf)
+        filterBuiltin(OntClass.class, Iter.flatMap(Iter.of(OWL.unionOf, OWL.intersectionOf),
+                p -> m.fromOntList(OntCE.class, p, OntCE.class, false)))
+                .forEachRemaining(res::add);
+        //  ObjectComplementOf (owl:complementOf)
+        m.listObjects(OntCE.ComplementOf.class, OWL.complementOf, OntClass.class)
+                .filterKeep(OntEntity::isBuiltIn)
+                .forEachRemaining(res::add);
+
+        // ObjectSomeValuesFrom, ObjectAllValuesFrom (owl:someValuesFrom, owl:allValuesFrom)
+        Iter.flatMap(Iter.of(OWL.someValuesFrom, OWL.allValuesFrom), p -> listClassValuesFrom(m, p))
+                .filterKeep(OntEntity::isBuiltIn)
+                .forEachRemaining(res::add);
+
+        // rdfs:range
+        m.listObjects(OntOPE.class, RDFS.range, OntClass.class).filterKeep(OntEntity::isBuiltIn)
+                .forEachRemaining(res::add);
+        // rdfs:domain
+        m.listObjects(OntDOP.class, RDFS.domain, OntClass.class).filterKeep(OntEntity::isBuiltIn)
+                .forEachRemaining(res::add);
+        // class assertions (rdf:type):
+        m.listObjects(OntIndividual.class, RDF.type, OntClass.class).filterKeep(OntEntity::isBuiltIn)
+                .forEachRemaining(res::add);
+
+        // rdfs:subClassOf, owl:equivalentClass, owl:disjointWith
+        filterBuiltin(OntClass.class, Iter.flatMap(Iter.of(RDFS.subClassOf, OWL.equivalentClass, OWL.disjointWith),
+                p -> m.listSubjectAndObjects(p, OntCE.class)))
+                .forEachRemaining(res::add);
+
+        // owl:disjointUnionOf
+        filterBuiltin(OntClass.class, m.fromOntList(OntClass.class, OWL.disjointUnionOf, OntCE.class, true))
+                .forEachRemaining(res::add);
+
+        // owl:AllDisjointClasses:
+        filterBuiltin(OntClass.class, Iter.flatMap(m.listLocalOntObjects(OntDisjoint.Classes.class)
+                .mapWith(OntDisjoint::getList), list -> ((OntListImpl<? extends OntCE>) list).listMembers()))
+                .forEachRemaining(res::add);
+
+        return res;
+    }
+
+    private static ExtendedIterator<OntClass> listClassValuesFrom(OntGraphModelImpl m, Property predicate) {
+        Class<? extends OntCE.ComponentRestrictionCE> type;
+        if (OWL.someValuesFrom.equals(predicate)) {
+            type = OntCE.ObjectSomeValuesFrom.class;
+        } else if (OWL.allValuesFrom.equals(predicate)) {
+            type = OntCE.ObjectAllValuesFrom.class;
+        } else {
+            throw new IllegalArgumentException();
+        }
+        return m.listObjects(type, predicate, OntClass.class);
     }
 
 }

@@ -23,6 +23,7 @@ import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -507,6 +508,94 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         object.getRoot().clearAnnotations();
         object.clear();
         subject.remove(predicate, object);
+    }
+
+    @Override
+    public <E extends OntEntity> Stream<E> localBuiltins(Class<E> type) {
+        return getBuiltinEntities(type).stream();
+    }
+
+    /**
+     * Gets all builtin entities of the given type and returns them as {@code Set}.
+     * It is not expected a huge amount of builtins,
+     * so a {@code Set} is more applicable here as returned object than {@code Stream} or {@code ExtendedIterator}.
+     *
+     * @param type a concrete class-type of entity
+     * @param <E>  any subtype of {@link OntEntity}
+     * @return Stream of builtin {@link OntEntity}s
+     */
+    @SuppressWarnings("unchecked")
+    public <E extends OntEntity> Set<E> getBuiltinEntities(Class<E> type) {
+        if (OntClass.class == type) {
+            return (Set<E>) OntClassImpl.getBuiltinClasses(this);
+        }
+        // TODO:
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    /**
+     * Extracts all members from []-list, that is an object in SPO with the specified predicate.
+     * The returned iterator includes the subject of the []-list root statement, if it is specified.
+     *
+     * @param subject        {@code Class}-type of subject
+     * @param predicate      {@link Property}
+     * @param object         {@code Class}-type of object
+     * @param includeSubject if {@code true} then the subject of []-list root statement is also included
+     * @param <O>            subtype of {@link OntObject}, the []-list members type
+     * @param <S>            subtype of {@link OntObject} in the subject position of the SPO, where O is a []-list
+     * @return {@link ExtendedIterator} of {@link O}s
+     */
+    protected <O extends OntObject, S extends O> ExtendedIterator<O> fromOntList(Class<S> subject,
+                                                                                 Property predicate,
+                                                                                 Class<O> object,
+                                                                                 boolean includeSubject) {
+        return Iter.flatMap(listLocalStatements(null, predicate, null), s -> {
+            S a = findNodeAs(s.getSubject().asNode(), subject);
+            if (a == null) return NullIterator.instance();
+            if (!s.getObject().canAs(RDFList.class)) return NullIterator.instance();
+            OntListImpl<O> list = OntListImpl.asOntList(s.getObject().as(RDFList.class),
+                    this, s.getSubject(), predicate, null, object);
+            if (!includeSubject) return list.listMembers();
+            return Iter.concat(Iter.of(a), list.listMembers());
+        });
+    }
+
+    /**
+     * Lists all objects for the given predicate and types of subject and object.
+     *
+     * @param subject   {@code Class}-type of subject
+     * @param predicate {@link Property}
+     * @param object    {@code Class}-type of object
+     * @param <O>       subtype of {@link OntObject} in the object position of the found SPO
+     * @param <S>       subtype of {@link OntObject} in the subject position of the found SPO
+     * @return {@link ExtendedIterator} of {@link O}s
+     */
+    protected <O extends OntObject, S extends OntObject> ExtendedIterator<O> listObjects(Class<S> subject,
+                                                                                         Property predicate,
+                                                                                         Class<O> object) {
+        return listLocalStatements(null, predicate, null).mapWith(s -> {
+            S left = findNodeAs(s.getSubject().asNode(), subject);
+            return left == null ? null : findNodeAs(s.getObject().asNode(), object);
+        }).filterDrop(Objects::isNull);
+    }
+
+    /**
+     * Lists subjects and objects for the given predicate and the type of subject and object.
+     *
+     * @param predicate {@link Property}
+     * @param type      {@code Class}-type of subject and object
+     * @param <R>       subtype of {@link OntObject}, S and P from SPO must be of this type
+     * @return {@link ExtendedIterator} of {@link R}s
+     */
+    protected <R extends OntObject> ExtendedIterator<R> listSubjectAndObjects(Property predicate,
+                                                                              Class<R> type) {
+        return Iter.flatMap(listLocalStatements(null, predicate, null), s -> {
+            R a = findNodeAs(s.getSubject().asNode(), type);
+            if (a == null) return NullIterator.instance();
+            R b = findNodeAs(s.getObject().asNode(), type);
+            if (b == null) return NullIterator.instance();
+            return Iter.of(a, b);
+        });
     }
 
     @Override

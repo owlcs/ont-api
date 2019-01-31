@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 public interface OntEntity extends OntObject {
 
     /**
-     * Returns entity types as stream.
+     * Returns all entity types as stream.
      *
      * @return Stream of OWL-entity types
      */
@@ -54,13 +54,18 @@ public interface OntEntity extends OntObject {
     }
 
     /**
-     * Determines if this entity is a builtin entity. The entity is a builtin if it is:
+     * Determines if this is a builtin entity.
+     * In a standard (default) OWL vocabulary an entity is builtin if it is:
      * <ul>
-     * <li>a class and the IRI is either {@code owl:Thing} or {@code owl:Nothing}</li>
-     * <li>an object property and the IRI corresponds to {@code owl:topObjectProperty} or {@code owl:bottomObjectProperty}</li>
-     * <li>a data property and the IRI corresponds to {@code owl:topDataProperty} or {@code owl:bottomDataProperty}</li>
-     * <li>a datatype and the IRI is {@code rdfs:Literal} or is in the OWL 2 datatype map or is {@code rdf:PlainLiteral}</li>
-     * <li>an annotation property and the IRI is one of the following:
+     * <li>a {@link OntClass class} and its IRI is either {@code owl:Thing} or {@code owl:Nothing}</li>
+     * <li>an {@link OntNOP object property} and its IRI is either {@code owl:topObjectProperty}
+     * or {@code owl:bottomObjectProperty}</li>
+     * <li>a {@link OntNDP data property} and its IRI is either {@code owl:topDataProperty}
+     * or {@code owl:bottomDataProperty}</li>
+     * <li>a {@link OntDT datatype} and its IRI is either {@code rdfs:Literal},
+     * or {@code rdf:PlainLiteral},
+     * or it is from the OWL 2 datatype map</li>
+     * <li>an {@link OntNAP annotation property} and its IRI is one of the following:
      * <ul>
      * <li>{@code rdfs:label}</li>
      * <li>{@code rdfs:comment}</li>
@@ -74,10 +79,15 @@ public interface OntEntity extends OntObject {
      * </ul>
      * </li>
      * </ul>
+     * Note: all the listed above IRIs refer
+     * to the default {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary}.
+     * A model with different {@code Builtins} vocabulary will naturally have a different {@code Set} of builtin IRIs,
+     * and this method will return a different result.
      *
-     * @return true if it is a built-in entity
+     * @return {@code true} if it is a built-in entity
      * @see ru.avicomp.ontapi.jena.vocabulary.OWL
-     * @see ru.avicomp.ontapi.jena.utils.BuiltIn
+     * @see ru.avicomp.ontapi.jena.impl.conf.OntPersonality#getBuiltins()
+     * @see ru.avicomp.ontapi.jena.utils.BuiltIn#get()
      */
     boolean isBuiltIn();
 

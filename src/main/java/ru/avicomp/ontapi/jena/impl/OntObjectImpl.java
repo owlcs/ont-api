@@ -27,6 +27,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
 import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
+import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -105,6 +106,19 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
             return res;
         }
         throw new OntJenaException.IllegalArgument("Not uri resource " + res);
+    }
+
+    /**
+     * Filters the given extended iterator to contain only builtin entities of the specified type.
+     *
+     * @param type type of entity
+     * @param from {@link ExtendedIterator} of {@link RDFNode}s
+     * @param <E>  subclass of {@link OntEntity}
+     * @return {@link ExtendedIterator} of {@link E}s
+     */
+    static <E extends OntEntity> ExtendedIterator<E> filterBuiltin(Class<E> type,
+                                                                   ExtendedIterator<? extends RDFNode> from) {
+        return from.filterKeep(x -> x.canAs(type) && x.as(type).isBuiltIn()).mapWith(x -> x.as(type));
     }
 
     /**

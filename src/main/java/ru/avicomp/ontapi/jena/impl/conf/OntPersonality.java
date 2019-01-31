@@ -118,6 +118,7 @@ public interface OntPersonality {
      * Each node obtained from this class must be IRI (i.e. {@code node.isURI() = true}).
      *
      * @see OntEntity#types()
+     * @since 1.4.0
      */
     interface Builtins extends Vocabulary.Entities {
 
@@ -152,6 +153,7 @@ public interface OntPersonality {
      *
      * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>Punnings</a>
      * @see OntEntity#types()
+     * @since 1.4.0
      */
     interface Punnings extends Vocabulary.Entities {
     }
@@ -168,6 +170,7 @@ public interface OntPersonality {
      * But, of course, all these things are customizable, and vocabularies may contain more or less restrictions.
      * <p>
      * Each node obtained from this class must be IRI (i.e. {@code node.isURI() = true}).
+     * @since 1.4.0
      */
     interface Reserved extends Vocabulary<Resource> {
 

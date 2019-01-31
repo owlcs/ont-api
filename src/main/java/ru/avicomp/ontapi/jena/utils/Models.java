@@ -412,6 +412,7 @@ public class Models {
      * @return Stream of models, not empty (contains at least the input model)
      * @see Graphs#flat(Graph)
      * @since 1.3.0
+     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
      */
     public static Stream<OntGraphModel> flat(OntGraphModel m) {
         return Stream.concat(Stream.of(m), m.imports().flatMap(Models::flat));
@@ -425,6 +426,7 @@ public class Models {
      * @param m {@link OntGraphModel}, not {@code null}
      * @see Graphs#importsTreeAsString(Graph)
      * @since 1.3.2
+     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
      */
     public static void syncImports(OntGraphModel m) {
         OntID id = m.getID();

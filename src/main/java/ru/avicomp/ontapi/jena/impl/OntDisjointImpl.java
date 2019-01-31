@@ -94,7 +94,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
 
     @Override
     public OntList<O> getList() {
-        return OntListImpl.asOntList(getRequiredObject(getPredicate(), RDFList.class), getModel(), this, getPredicate(), null, getComponentType());
+        return OntListImpl.asOntList(getRequiredObject(getPredicate(), RDFList.class),
+                getModel(), this, getPredicate(), null, getComponentType());
     }
 
     @Override
@@ -123,7 +124,9 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         return res;
     }
 
-    private static OntFilter getHasMembersOfFilter(Class<? extends RDFNode> view, boolean allowEmptyList, Property... predicates) {
+    private static OntFilter getHasMembersOfFilter(Class<? extends RDFNode> view,
+                                                   boolean allowEmptyList,
+                                                   Property... predicates) {
         return (node, eg) -> {
             ExtendedIterator<Node> res = listRoots(node, eg.asGraph(), predicates);
             try {
@@ -138,7 +141,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     private static ExtendedIterator<Node> listRoots(Node node, Graph graph, Property... predicates) {
-        return Iter.flatMap(Iter.of(predicates), p -> graph.find(node, p.asNode(), Node.ANY).mapWith(Triple::getObject));
+        return Iter.flatMap(Iter.of(predicates),
+                p -> graph.find(node, p.asNode(), Node.ANY).mapWith(Triple::getObject));
     }
 
     private static boolean testList(Node node, EnhGraph graph, Class<? extends RDFNode> view, boolean allowEmptyList) {
@@ -160,7 +164,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     /**
      * Creates blank node {@code _:x rdf:type owl:AllDifferent. _:x owl:members (a1 ... an).}
      * <p>
-     * Note: the predicate is {@link OWL#members owl:members}, not {@link OWL#distinctMembers owl:distinctMembers} (but the last one is correct also)
+     * Note: the predicate is {@link OWL#members owl:members},
+     * not {@link OWL#distinctMembers owl:distinctMembers} (but the last one is correct also)
      * It is chosen as the preferred from considerations of uniformity.
      *
      * @param model       {@link OntGraphModelImpl}
