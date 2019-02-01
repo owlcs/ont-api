@@ -215,28 +215,30 @@ public interface OntGraphModel extends Model {
      * @return Stream of {@link OntEntity}
      * @see #ontObjects(Class)
      * @see #ontEntities(Class)
+     * @see #ontBuiltins(Class)
      */
     Stream<OntEntity> ontEntities();
 
     /**
-     * Lists all (local) built-in OWL entities, that participant somewhere in the base graph.
-     * This means that a builtin entity (e.g. a built-in OWL Class {@code owl:Thing}),
-     * must be a part of some OWL statement (SPO), present in the base graph
-     * (e.g. {@code <SomeClass> rdfs:subClassOf owl:Thing}).
-     * If a builtin entity is in some SPO, which is undefined in OWL2 syntax,
-     * than this entity is not included in the returned {@code Stream}.
+     * Lists all built-in OWL entities,
+     * that are present somewhere in the whole or only the base graph (depending on the second parameter).
+     * The presence means that a builtin entity (e.g. a built-in OWL Class {@link #getOWLThing()} owl:Thing}),
+     * is a part of some OWL statement (SPO) (e.g. {@code <SomeClass> rdfs:subClassOf owl:Thing}).
+     * If an entity is only mentioned in some SPO, which is beyond the OWL2 syntax,
+     * than it is not included in the returned {@code Stream}.
      * To list all model builtins (i.e. from sub-model hierarchy also,
-     * not only from the base graph) the expression {@link #ontBuiltins(Class)} can be used.
+     * not only from the base graph) the method {@link #ontBuiltins(Class)} can also be used.
      * Note that the result can be configured
      * through {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary}.
      *
      * @param type a concrete class-type of entity
+     * @param local if {@code true} only the base graph is considered
      * @param <E>  any subtype of {@link OntEntity}
      * @return Stream of builtin {@link OntEntity}s
      * @see ru.avicomp.ontapi.jena.impl.conf.OntPersonality#getBuiltins()
      * @since 1.4.0
      */
-    <E extends OntEntity> Stream<E> localBuiltins(Class<E> type);
+    <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type, boolean local);
 
     /**
      * Lists all typed individuals from the model.
@@ -539,8 +541,7 @@ public interface OntGraphModel extends Model {
     }
 
     default <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type) {
-        // possible stackoverflow error:
-        return Stream.concat(localBuiltins(type), imports().flatMap(x -> x.ontBuiltins(type))).distinct();
+        return ontBuiltins(type, false);
     }
 
     default <E extends OntEntity> E fetchOntEntity(Class<E> type, String uri) {

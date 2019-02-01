@@ -89,7 +89,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                             Property predicate,
                                                             Class<N> elementType,
                                                             Iterator<N> elements) {
-        return create(model, subject, predicate, null, elementType, elements);
+        return create(model, subject, predicate, null, elementType, WrappedIterator.create(elements));
     }
 
     /**
@@ -109,8 +109,9 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                             Property predicate,
                                                             Resource listType,
                                                             Class<N> elementType,
-                                                            Iterator<N> elements) {
+                                                            ExtendedIterator<N> elements) {
         checkRequiredInput(model, subject, predicate, listType, elementType);
+        elements = Iter.peek(elements, n -> OntJenaException.notNull(n, "OntList: null element is specified."));
         RDFList list = listType != null ? createTypedList(model, listType, elements) : model.createList(elements);
         model.add(subject, predicate, list);
         return new OntListImpl<N>(subject, predicate, list, listType, model, elementType) {

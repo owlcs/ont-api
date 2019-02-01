@@ -142,7 +142,8 @@ public class UnionModel extends ModelCom {
         try {
             return getNodeAsInternal(node, view);
         } catch (ConversionException e) {
-            throw new OntJenaException.Conversion(String.format("Failed to convert node <%s> to <%s>", node, view), e);
+            throw new OntJenaException.Conversion(String.format("Failed to convert node <%s> to <%s>",
+                    node, OntObjectImpl.viewAsString(view)), e);
         }
     }
 

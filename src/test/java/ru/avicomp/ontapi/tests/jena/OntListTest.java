@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.tests.jena;
 
 import org.apache.jena.graph.Factory;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.junit.Assert;
@@ -28,6 +29,7 @@ import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.OntListImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -319,7 +321,7 @@ public class OntListTest {
 
         OntObject s = m.createResource("list").as(OntObject.class);
         Property p = m.createProperty("of");
-        OntList list = OntListImpl.create(m, s, p, RDF.List, RDFNode.class, Arrays.asList(a, b, c, d, e).iterator());
+        OntList list = OntListImpl.create(m, s, p, RDF.List, RDFNode.class, Iter.of(a, b, c, d, e));
         ReadWriteUtils.print(m);
         Assert.assertEquals(RDF.List, ((Optional<Resource>) list.type()).orElseThrow(AssertionError::new));
         Assert.assertEquals(16, m.size());
@@ -363,7 +365,7 @@ public class OntListTest {
 
         OntList<Resource> empty = OntListImpl.create(m, m.createResource("empty").as(OntObject.class), p, RDF.List,
                 Resource.class,
-                Collections.emptyIterator());
+                NullIterator.instance());
         Assert.assertTrue(empty.isEmpty());
         Assert.assertEquals(0, empty.size());
         Assert.assertEquals(2, m.size());

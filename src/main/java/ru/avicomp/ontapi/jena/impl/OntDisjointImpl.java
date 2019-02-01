@@ -154,11 +154,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     }
 
     public static Classes createDisjointClasses(OntGraphModelImpl model, Stream<OntCE> classes) {
-        OntJenaException.notNull(classes, "Null classes stream.");
-        Resource res = model.createResource();
-        res.addProperty(RDF.type, OWL.AllDisjointClasses);
-        res.addProperty(OWL.members, model.createList(classes.iterator()));
-        return model.getNodeAs(res.asNode(), Classes.class);
+        return create(model, OWL.AllDisjointClasses, Classes.class, OntCE.class, classes);
     }
 
     /**
@@ -174,27 +170,30 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
      * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Additional_Vocabulary_in_OWL_2_RDF_Syntax'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
      */
     public static Individuals createDifferentIndividuals(OntGraphModelImpl model, Stream<OntIndividual> individuals) {
-        OntJenaException.notNull(individuals, "Null individuals stream.");
-        Resource res = model.createResource();
-        res.addProperty(RDF.type, OWL.AllDifferent);
-        res.addProperty(OWL.members, model.createList(individuals.iterator()));
-        return model.getNodeAs(res.asNode(), Individuals.class);
+        return create(model, OWL.AllDifferent, Individuals.class, OntIndividual.class, individuals);
     }
 
     public static ObjectProperties createDisjointObjectProperties(OntGraphModelImpl model, Stream<OntOPE> properties) {
-        OntJenaException.notNull(properties, "Null properties stream.");
-        Resource res = model.createResource();
-        res.addProperty(RDF.type, OWL.AllDisjointProperties);
-        res.addProperty(OWL.members, model.createList(properties.iterator()));
-        return model.getNodeAs(res.asNode(), ObjectProperties.class);
+        return create(model, OWL.AllDisjointProperties, ObjectProperties.class, OntOPE.class, properties);
     }
 
     public static DataProperties createDisjointDataProperties(OntGraphModelImpl model, Stream<OntNDP> properties) {
-        OntJenaException.notNull(properties, "Null properties stream.");
-        Resource res = model.createResource();
-        res.addProperty(RDF.type, OWL.AllDisjointProperties);
-        res.addProperty(OWL.members, model.createList(properties.iterator()));
-        return model.getNodeAs(res.asNode(), DataProperties.class);
+        return create(model, OWL.AllDisjointProperties, DataProperties.class, OntNDP.class, properties);
+    }
+
+    public static <R extends OntDisjoint, E extends OntObject> R create(OntGraphModelImpl model,
+                                                                        Resource type,
+                                                                        Class<R> resultType,
+                                                                        Class<E> memberType,
+                                                                        Stream<E> members) {
+        OntJenaException.notNull(members, "Null " + OntObjectImpl.viewAsString(memberType) + " members stream.");
+        Resource res = model.createResource()
+                .addProperty(RDF.type, type)
+                .addProperty(OWL.members, model.createList(members
+                        .peek(x -> OntJenaException.notNull(x,
+                                "OntDisjoint: Null " + OntObjectImpl.viewAsString(memberType) + " is specified"))
+                        .iterator()));
+        return model.getNodeAs(res.asNode(), resultType);
     }
 
     public static class ClassesImpl extends OntDisjointImpl<OntCE> implements Classes {

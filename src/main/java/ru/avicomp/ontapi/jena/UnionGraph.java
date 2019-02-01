@@ -211,6 +211,15 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
+     * Lists all {@link UnionGraph}s from the hierarchy including this graph at the first place.
+     *
+     * @return {@link ExtendedIterator} of {@link UnionGraph}s
+     */
+    public ExtendedIterator<UnionGraph> listUnionGraphs() {
+        return WrappedIterator.create(collectUnionGraphs().iterator());
+    }
+
+    /**
      * Performs the find operation.
      * Override {@code graphBaseFind} to return an iterator that will report when a deletion occurs.
      *

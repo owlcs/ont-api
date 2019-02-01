@@ -210,19 +210,34 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
-     * Lists all {@link OntGraphModelImpl model impl}s with specified {@code personality} from the hierarchy.
+     * Lists {@link OntGraphModelImpl model impl}s with the specified {@code personality}
+     * from the top tier of the imports hierarchy.
      *
      * @param personality {@link OntPersonality}, not {@code null}
      * @return Stream of {@link OntGraphModelImpl}s
+     * @since 1.4.0
      */
     protected final Stream<OntGraphModelImpl> importModels(OntPersonality personality) {
         return importGraphs().map(u -> new OntGraphModelImpl(u, personality));
     }
 
     /**
-     * Lists all {@link UnionGraph}s of the model's hierarchy.
+     * Lists all {@link OntGraphModelImpl model impl}s with the specified {@code personality}
+     * from the whole imports hierarchy.
+     *
+     * @param personality {@link OntPersonality}, not {@code null}
+     * @return Stream of {@link OntGraphModelImpl}s
+     * @since 1.4.0
+     */
+    protected final Stream<OntGraphModelImpl> allModels(OntPersonality personality) {
+        return Iter.asStream(getGraph().listUnionGraphs().mapWith(u -> new OntGraphModelImpl(u, personality)));
+    }
+
+    /**
+     * Lists all top-level {@link UnionGraph}s of the model's hierarchy.
      *
      * @return Stream of {@link UnionGraph}
+     * @since 1.4.0
      */
     protected final Stream<UnionGraph> importGraphs() {
         return Iter.asStream(getGraph().getUnderlying().listGraphs()
@@ -511,8 +526,8 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public <E extends OntEntity> Stream<E> localBuiltins(Class<E> type) {
-        return getBuiltinEntities(type).stream();
+    public <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type, boolean local) {
+        return getBuiltinEntities(type, local).stream();
     }
 
     /**
@@ -520,21 +535,33 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * It is not expected a huge amount of builtins,
      * so a {@code Set} is more applicable here as returned object than {@code Stream} or {@code ExtendedIterator}.
      *
-     * @param type a concrete class-type of entity
-     * @param <E>  any subtype of {@link OntEntity}
+     * @param type  a concrete class-type of entity
+     * @param local if {@code true} only the base graph is considered
+     * @param <E>   any subtype of {@link OntEntity}
      * @return Stream of builtin {@link OntEntity}s
      */
-    @SuppressWarnings("unchecked")
-    public <E extends OntEntity> Set<E> getBuiltinEntities(Class<E> type) {
+    public <E extends OntEntity> Set<E> getBuiltinEntities(Class<E> type, boolean local) {
         if (OntClass.class == type) {
-            return (Set<E>) OntClassImpl.getBuiltinClasses(this);
+            return getEntitySet(OntClassImpl::getBuiltinClasses, local);
         }
         // TODO:
         throw new UnsupportedOperationException("TODO");
     }
 
+    @SuppressWarnings("unchecked")
+    private <E extends OntEntity> Set<E> getEntitySet(Function<OntGraphModelImpl, Set<? extends OntEntity>> getLocalSet,
+                                                      boolean local) {
+        if (local) {
+            return (Set<E>) getLocalSet.apply(this);
+        }
+        Set<E> res = new HashSet<>();
+        allModels(getOntPersonality())
+                .map(getLocalSet::apply).forEach(x -> res.addAll((Set<E>) x));
+        return Collections.unmodifiableSet(res);
+    }
+
     /**
-     * Extracts all members from []-list, that is an object in SPO with the specified predicate.
+     * Extracts all members from []-list, that is an object in a <b>local</b> SPO with the specified predicate.
      * The returned iterator includes the subject of the []-list root statement, if it is specified.
      *
      * @param subject        {@code Class}-type of subject
@@ -545,10 +572,10 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @param <S>            subtype of {@link OntObject} in the subject position of the SPO, where O is a []-list
      * @return {@link ExtendedIterator} of {@link O}s
      */
-    protected <O extends OntObject, S extends O> ExtendedIterator<O> fromOntList(Class<S> subject,
-                                                                                 Property predicate,
-                                                                                 Class<O> object,
-                                                                                 boolean includeSubject) {
+    protected <O extends OntObject, S extends O> ExtendedIterator<O> fromLocalList(Class<S> subject,
+                                                                                   Property predicate,
+                                                                                   Class<O> object,
+                                                                                   boolean includeSubject) {
         return Iter.flatMap(listLocalStatements(null, predicate, null), s -> {
             S a = findNodeAs(s.getSubject().asNode(), subject);
             if (a == null) return NullIterator.instance();
@@ -561,7 +588,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
-     * Lists all objects for the given predicate and types of subject and object.
+     * Lists all <b>local</b> objects for the given predicate and types of subject and object.
      *
      * @param subject   {@code Class}-type of subject
      * @param predicate {@link Property}
@@ -570,9 +597,9 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @param <S>       subtype of {@link OntObject} in the subject position of the found SPO
      * @return {@link ExtendedIterator} of {@link O}s
      */
-    protected <O extends OntObject, S extends OntObject> ExtendedIterator<O> listObjects(Class<S> subject,
-                                                                                         Property predicate,
-                                                                                         Class<O> object) {
+    protected <O extends OntObject, S extends OntObject> ExtendedIterator<O> listLocalObjects(Class<S> subject,
+                                                                                              Property predicate,
+                                                                                              Class<O> object) {
         return listLocalStatements(null, predicate, null).mapWith(s -> {
             S left = findNodeAs(s.getSubject().asNode(), subject);
             return left == null ? null : findNodeAs(s.getObject().asNode(), object);
@@ -580,15 +607,15 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
-     * Lists subjects and objects for the given predicate and the type of subject and object.
+     * Lists <b>local</b> subjects and objects for the given predicate and the type of subject and object.
      *
      * @param predicate {@link Property}
      * @param type      {@code Class}-type of subject and object
      * @param <R>       subtype of {@link OntObject}, S and P from SPO must be of this type
      * @return {@link ExtendedIterator} of {@link R}s
      */
-    protected <R extends OntObject> ExtendedIterator<R> listSubjectAndObjects(Property predicate,
-                                                                              Class<R> type) {
+    protected <R extends OntObject> ExtendedIterator<R> listLocalSubjectAndObjects(Property predicate,
+                                                                                   Class<R> type) {
         return Iter.flatMap(listLocalStatements(null, predicate, null), s -> {
             R a = findNodeAs(s.getSubject().asNode(), type);
             if (a == null) return NullIterator.instance();
@@ -940,42 +967,42 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
 
     @Override
     public OntNAP getRDFSComment() {
-        return getNodeAs(RDFS.Nodes.comment, OntNAP.class);
+        return findNodeAs(RDFS.Nodes.comment, OntNAP.class);
     }
 
     @Override
     public OntNAP getRDFSLabel() {
-        return getNodeAs(RDFS.Nodes.label, OntNAP.class);
+        return findNodeAs(RDFS.Nodes.label, OntNAP.class);
     }
 
     @Override
     public OntClass getOWLThing() {
-        return getNodeAs(OWL.Thing.asNode(), OntClass.class);
+        return findNodeAs(OWL.Thing.asNode(), OntClass.class);
     }
 
     @Override
     public OntClass getOWLNothing() {
-        return getNodeAs(OWL.Nothing.asNode(), OntClass.class);
+        return findNodeAs(OWL.Nothing.asNode(), OntClass.class);
     }
 
     @Override
     public OntNOP getOWLTopObjectProperty() {
-        return getNodeAs(OWL.topObjectProperty.asNode(), OntNOP.class);
+        return findNodeAs(OWL.topObjectProperty.asNode(), OntNOP.class);
     }
 
     @Override
     public OntNOP getOWLBottomObjectProperty() {
-        return getNodeAs(OWL.bottomObjectProperty.asNode(), OntNOP.class);
+        return findNodeAs(OWL.bottomObjectProperty.asNode(), OntNOP.class);
     }
 
     @Override
     public OntNDP getOWLTopDataProperty() {
-        return getNodeAs(OWL.topDataProperty.asNode(), OntNDP.class);
+        return findNodeAs(OWL.topDataProperty.asNode(), OntNDP.class);
     }
 
     @Override
     public OntNDP getOWLBottomDataProperty() {
-        return getNodeAs(OWL.bottomDataProperty.asNode(), OntNDP.class);
+        return findNodeAs(OWL.bottomDataProperty.asNode(), OntNDP.class);
     }
 
     @Override

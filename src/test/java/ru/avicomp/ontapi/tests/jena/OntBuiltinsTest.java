@@ -14,15 +14,25 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
+import org.apache.jena.graph.Factory;
+import org.apache.jena.graph.NodeFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
+import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
+import ru.avicomp.ontapi.jena.impl.conf.PersonalityBuilder;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.stream.Stream;
 
 /**
  * Created by @ssz on 31.01.2019.
@@ -31,9 +41,43 @@ public class OntBuiltinsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntBuiltinsTest.class);
 
     @Test
-    public void testPizzaBuiltinClasses() {
+    public void testPizzaBuiltins() {
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         Assert.assertEquals(1, m.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(OWL.Thing, m.localBuiltins(OntClass.class).findFirst().orElseThrow(AssertionError::new));
+        Assert.assertEquals(OWL.Thing, m.ontBuiltins(OntClass.class, true).findFirst().orElseThrow(AssertionError::new));
+    }
+
+    @Test
+    public void testBuiltinClasses() {
+        OntPersonality.Builtins test = type -> {
+            if (type != OntClass.class) return Collections.emptySet();
+            return Stream.of("A", "B", "C", "D", "E").map(NodeFactory::createURI).collect(Iter.toUnmodifiableSet());
+        };
+        OntPersonality personality = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_LAX).setBuiltins(test).build();
+        OntGraphModel m1 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
+                .setNsPrefixes(OntModelFactory.STANDARD).setID("m1").getModel();
+        OntClass c = m1.createOntEntity(OntClass.class, "b");
+        c.addSubClassOf(m1.getOntEntity(OntClass.class, "B"));
+        c.addDisjointUnionOf(m1.getOntEntity(OntClass.class, "D"));
+        ReadWriteUtils.print(m1);
+        OntGraphModel m2 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
+                .setNsPrefixes(OntModelFactory.STANDARD).setID("m2").getModel().addImport(m1);
+        m2.getOntEntity(OntClass.class, "b").addEquivalentClass(m2.getOntEntity(OntClass.class, "C"));
+        ReadWriteUtils.print(m2);
+
+        Assert.assertEquals(3, m2.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("1) Builtin: {}", x)).count());
+        Assert.assertEquals(2, m1.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("2) Builtin: {}", x)).count());
+        Assert.assertEquals(1, m2.ontBuiltins(OntClass.class, true).peek(x -> LOGGER.debug("3) Builtin: {}", x)).count());
+        Assert.assertNotNull(m1.getOntEntity(OntClass.class, "A"));
+        Assert.assertNotNull(m2.getOntEntity(OntClass.class, "A"));
+        Assert.assertNull(m1.getOntEntity(OntClass.class, "X"));
+        Assert.assertNull(m2.getOWLThing());
+
+        OntGraphModel m3 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
+                .setNsPrefixes(OntModelFactory.STANDARD).addImport(m2);
+        Assert.assertEquals(0, m3.ontBuiltins(OntClass.class, true).count());
+        m3.createDisjointClasses(Arrays.asList(m1.getOntEntity(OntClass.class, "B"),
+                m1.getOntEntity(OntClass.class, "E")));
+        Assert.assertEquals(4, m3.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("4) Builtin: {}", x)).count());
     }
 }

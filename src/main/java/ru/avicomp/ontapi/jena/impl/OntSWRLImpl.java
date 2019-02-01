@@ -21,6 +21,7 @@ import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
+import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
@@ -121,7 +122,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
                                                  Collection<DArg> arguments) {
         Property property = createBuiltinProperty(model, predicate);
         OntObject res = model.createResource(SWRL.BuiltinAtom).addProperty(SWRL.builtin, property).as(OntObject.class);
-        OntListImpl.create(model, res, SWRL.arguments, null, DArg.class, arguments.iterator());
+        OntListImpl.create(model, res, SWRL.arguments, null, DArg.class, WrappedIterator.create(arguments.iterator()));
         return model.getNodeAs(res.asNode(), Atom.BuiltIn.class);
     }
 
@@ -203,8 +204,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         OntJenaException.notNull(head, "Null head");
         OntJenaException.notNull(body, "Null body");
         OntObject res = model.createResource(SWRL.Imp).as(OntObject.class);
-        OntListImpl.create(model, res, SWRL.head, SWRL.AtomList, Atom.class, head.iterator());
-        OntListImpl.create(model, res, SWRL.body, SWRL.AtomList, Atom.class, body.iterator());
+        OntListImpl.create(model, res, SWRL.head, SWRL.AtomList, Atom.class, WrappedIterator.create(head.iterator()));
+        OntListImpl.create(model, res, SWRL.body, SWRL.AtomList, Atom.class, WrappedIterator.create(body.iterator()));
         return model.getNodeAs(res.asNode(), Imp.class);
     }
 
