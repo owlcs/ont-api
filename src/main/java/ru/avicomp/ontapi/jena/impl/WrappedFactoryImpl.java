@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.BaseFactoryImpl;
@@ -45,6 +44,10 @@ public class WrappedFactoryImpl extends BaseFactoryImpl {
         this.type = Objects.requireNonNull(type);
     }
 
+    static WrappedFactoryImpl of(Class<? extends OntObject> type) {
+        return new WrappedFactoryImpl(type);
+    }
+
     /**
      * Finds and returns the {@link ObjectFactory} instance for the encapsulated {@link OntObject object} type.
      * This factory and the returned one are synonymous: both have the same behaviour.
@@ -54,6 +57,10 @@ public class WrappedFactoryImpl extends BaseFactoryImpl {
      * @throws OntJenaException in case nothing is found
      */
     public ObjectFactory getDelegate(EnhGraph g) throws OntJenaException {
+        return findFactory(g);
+    }
+
+    private ObjectFactory findFactory(EnhGraph g) throws OntJenaException {
         ObjectFactory res = PersonalityModel.asPersonalityModel(g).getOntPersonality().getObjectFactory(type);
         if (res == null) {
             throw new OntJenaException.IllegalState("Unable to find factory for " + type);
@@ -73,11 +80,12 @@ public class WrappedFactoryImpl extends BaseFactoryImpl {
 
     @Override
     public EnhNode createInstance(Node node, EnhGraph eg) {
-        try {
-            return getDelegate(eg).wrap(node, eg);
-        } catch (ConversionException c) {
-            return null;
-        }
+        return getDelegate(eg).createInstance(node, eg);
+    }
+
+    @Override
+    public EnhNode wrap(Node node, EnhGraph eg) {
+        return getDelegate(eg).wrap(node, eg);
     }
 
     @Override

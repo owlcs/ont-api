@@ -499,7 +499,7 @@ public abstract class GraphTransformers {
         }
 
         public Stream<Triple> triples(Type type) {
-            return map(type).entrySet().stream().map(Map.Entry::getValue).flatMap(Collection::stream);
+            return map(type).values().stream().flatMap(Collection::stream);
         }
 
         public boolean hasTriples(Type type, String name) {

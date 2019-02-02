@@ -39,6 +39,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ru.avicomp.ontapi.jena.impl.WrappedFactoryImpl.of;
+
 /**
  * A base class for any class-expression implementation.
  * <p>
@@ -1041,10 +1043,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         public static ObjectFactory createFactory() {
             return new ClassExpressionFactory();
-        }
-
-        private static WrappedFactoryImpl of(Class<? extends OntObject> type) {
-            return new WrappedFactoryImpl(type);
         }
 
         @Override

@@ -37,6 +37,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ru.avicomp.ontapi.jena.impl.WrappedFactoryImpl.of;
+
 /**
  * Implementation for Data Range Expressions.
  * <p>
@@ -267,10 +269,6 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         public static ObjectFactory createFactory() {
             return new DataRangeFactory();
-        }
-
-        private static WrappedFactoryImpl of(Class<? extends OntObject> type) {
-            return new WrappedFactoryImpl(type);
         }
 
         @Override
