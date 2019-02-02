@@ -677,27 +677,32 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
 
     @Override
     public OntCE.ObjectSomeValuesFrom createObjectSomeValuesFrom(OntOPE onProperty, OntCE other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectSomeValuesFrom.class, onProperty, other, OWL.someValuesFrom);
+        return OntCEImpl.createComponentRestrictionCE(this,
+                OntCE.ObjectSomeValuesFrom.class, onProperty, other, OWL.someValuesFrom);
     }
 
     @Override
     public OntCE.DataSomeValuesFrom createDataSomeValuesFrom(OntNDP onProperty, OntDR other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataSomeValuesFrom.class, onProperty, other, OWL.someValuesFrom);
+        return OntCEImpl.createComponentRestrictionCE(this,
+                OntCE.DataSomeValuesFrom.class, onProperty, other, OWL.someValuesFrom);
     }
 
     @Override
     public OntCE.ObjectAllValuesFrom createObjectAllValuesFrom(OntOPE onProperty, OntCE other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectAllValuesFrom.class, onProperty, other, OWL.allValuesFrom);
+        return OntCEImpl.createComponentRestrictionCE(this,
+                OntCE.ObjectAllValuesFrom.class, onProperty, other, OWL.allValuesFrom);
     }
 
     @Override
     public OntCE.DataAllValuesFrom createDataAllValuesFrom(OntNDP onProperty, OntDR other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataAllValuesFrom.class, onProperty, other, OWL.allValuesFrom);
+        return OntCEImpl.createComponentRestrictionCE(this,
+                OntCE.DataAllValuesFrom.class, onProperty, other, OWL.allValuesFrom);
     }
 
     @Override
     public OntCE.ObjectHasValue createObjectHasValue(OntOPE onProperty, OntIndividual other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.ObjectHasValue.class, onProperty, other, OWL.hasValue);
+        return OntCEImpl.createComponentRestrictionCE(this,
+                OntCE.ObjectHasValue.class, onProperty, other, OWL.hasValue);
     }
 
     @Override
@@ -707,47 +712,55 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
 
     @Override
     public OntCE.ObjectMinCardinality createObjectMinCardinality(OntOPE onProperty, int cardinality, OntCE onObject) {
-        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.ObjectMinCardinality.class, onProperty, cardinality, onObject);
+        return OntCEImpl.createCardinalityRestrictionCE(this,
+                OntCE.ObjectMinCardinality.class, onProperty, cardinality, onObject);
     }
 
     @Override
     public OntCE.DataMinCardinality createDataMinCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
-        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.DataMinCardinality.class, onProperty, cardinality, onObject);
+        return OntCEImpl.createCardinalityRestrictionCE(this,
+                OntCE.DataMinCardinality.class, onProperty, cardinality, onObject);
     }
 
     @Override
     public OntCE.ObjectMaxCardinality createObjectMaxCardinality(OntOPE onProperty, int cardinality, OntCE onObject) {
-        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.ObjectMaxCardinality.class, onProperty, cardinality, onObject);
+        return OntCEImpl.createCardinalityRestrictionCE(this,
+                OntCE.ObjectMaxCardinality.class, onProperty, cardinality, onObject);
     }
 
     @Override
     public OntCE.DataMaxCardinality createDataMaxCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
-        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.DataMaxCardinality.class, onProperty, cardinality, onObject);
+        return OntCEImpl.createCardinalityRestrictionCE(this,
+                OntCE.DataMaxCardinality.class, onProperty, cardinality, onObject);
     }
 
     @Override
     public OntCE.ObjectCardinality createObjectCardinality(OntOPE onProperty, int cardinality, OntCE onObject) {
-        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.ObjectCardinality.class, onProperty, cardinality, onObject);
+        return OntCEImpl.createCardinalityRestrictionCE(this,
+                OntCE.ObjectCardinality.class, onProperty, cardinality, onObject);
     }
 
     @Override
     public OntCE.DataCardinality createDataCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
-        return OntCEImpl.createCardinalityRestrictionCE(this, OntCE.DataCardinality.class, onProperty, cardinality, onObject);
+        return OntCEImpl.createCardinalityRestrictionCE(this,
+                OntCE.DataCardinality.class, onProperty, cardinality, onObject);
     }
 
     @Override
     public OntCE.UnionOf createUnionOf(Collection<OntCE> classes) {
-        return OntCEImpl.createComponentsCE(this, OntCE.UnionOf.class, OWL.unionOf, classes.iterator());
+        return OntCEImpl.createComponentsCE(this, OntCE.UnionOf.class, OntCE.class, OWL.unionOf, classes.stream());
     }
 
     @Override
     public OntCE.IntersectionOf createIntersectionOf(Collection<OntCE> classes) {
-        return OntCEImpl.createComponentsCE(this, OntCE.IntersectionOf.class, OWL.intersectionOf, classes.iterator());
+        return OntCEImpl.createComponentsCE(this,
+                OntCE.IntersectionOf.class, OntCE.class, OWL.intersectionOf, classes.stream());
     }
 
     @Override
     public OntCE.OneOf createOneOf(Collection<OntIndividual> individuals) {
-        return OntCEImpl.createComponentsCE(this, OntCE.OneOf.class, OWL.oneOf, individuals.iterator());
+        return OntCEImpl.createComponentsCE(this,
+                OntCE.OneOf.class, OntIndividual.class, OWL.oneOf, individuals.stream());
     }
 
     @Override
@@ -756,14 +769,14 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> onProperties, OntDR other) {
-        //todo
+    public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> properties, OntDR other) {
+        //TODO: implement
         throw new OntJenaException.Unsupported("TODO: " + OntCE.NaryDataAllValuesFrom.class);
     }
 
     @Override
-    public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> onProperties, OntDR other) {
-        //todo
+    public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> properties, OntDR other) {
+        //TODO: implement
         throw new OntJenaException.Unsupported("TODO: " + OntCE.NaryDataSomeValuesFrom.class);
     }
 
@@ -1009,6 +1022,5 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     public String toString() {
         return String.format("OntGraphModel{%s}", Graphs.getName(getBaseGraph()));
     }
-
 
 }

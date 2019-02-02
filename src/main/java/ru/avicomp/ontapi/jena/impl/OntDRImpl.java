@@ -44,7 +44,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class OntDRImpl extends OntObjectImpl implements OntDR {
-    private static final Node RDFS_DATATYPE = RDFS.Datatype.asNode();
+
     private static final OntFinder DR_FINDER = new OntFinder.ByType(RDFS.Datatype);
     private static final OntFilter DR_FILTER = OntFilter.BLANK.and(new OntFilter.HasType(RDFS.Datatype));
 
@@ -66,119 +66,55 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
             , UnionOf.class
             , IntersectionOf.class);
 
-    public static ObjectFactory abstractDRFactory = createDataRangeFactory();
+    public static ObjectFactory abstractDRFactory = DataRangeFactory.createFactory();
 
     public OntDRImpl(Node n, EnhGraph m) {
         super(n, m);
     }
 
-    private static ObjectFactory createDataRangeFactory() {
-        return new BaseFactoryImpl() {
-            private final ObjectFactory named = new WrappedFactoryImpl(OntDT.class);
-            private final List<ObjectFactory> anonymous = Stream.of(OneOf.class
-                    , Restriction.class
-                    , ComplementOf.class
-                    , UnionOf.class
-                    , IntersectionOf.class)
-                    .map(WrappedFactoryImpl::new)
-                    .collect(Collectors.toList());
-
-            @Override
-            public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
-                return eg.asGraph().find(Node.ANY, RDF.Nodes.type, RDFS_DATATYPE)
-                        .mapWith(t -> t.getSubject().isURI() ?
-                                safeWrap(t.getSubject(), eg, named) :
-                                safeWrap(t.getSubject(), eg, anonymous))
-                        .filterDrop(Objects::isNull);
-            }
-
-            @Override
-            public boolean canWrap(Node node, EnhGraph eg) {
-                if (node.isURI()) {
-                    return named.canWrap(node, eg);
-                }
-                if (!node.isBlank()) return false;
-                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS_DATATYPE))
-                    return false;
-                for (ObjectFactory f : anonymous) {
-                    if (f.canWrap(node, eg)) return true;
-                }
-                return false;
-            }
-
-            @Override
-            public EnhNode createInstance(Node node, EnhGraph eg) {
-                if (node.isURI())
-                    return safeWrap(node, eg, named);
-                if (!node.isBlank())
-                    return null;
-                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS_DATATYPE))
-                    return null;
-                return safeWrap(node, eg, anonymous);
-            }
-
-            @Override
-            public EnhNode wrap(Node node, EnhGraph eg) {
-                if (node.isURI())
-                    return named.wrap(node, eg);
-                ConversionException ex = new ConversionException("Can't convert node " + node +
-                        " to Data Range Expression.");
-                if (!node.isBlank())
-                    throw ex;
-                if (!eg.asGraph().contains(node, RDF.Nodes.type, RDFS_DATATYPE))
-                    throw ex;
-                for (ObjectFactory f : anonymous) {
-                    try {
-                        return f.wrap(node, eg);
-                    } catch (ConversionException c) {
-                        ex.addSuppressed(c);
-                    }
-                }
-                throw ex;
-            }
-        };
-    }
-
     private static Resource create(OntGraphModelImpl model) {
-        Resource res = model.createResource();
-        model.add(res, RDF.type, RDFS.Datatype);
-        return res;
+        return model.createResource().addProperty(RDF.type, RDFS.Datatype);
     }
 
     public static OneOf createOneOf(OntGraphModelImpl model, Stream<Literal> values) {
         OntJenaException.notNull(values, "Null values stream.");
-        Resource res = create(model);
-        model.add(res, OWL.oneOf, model.createList(values.iterator()));
+        Resource res = create(model)
+                .addProperty(OWL.oneOf, model.createList(values
+                        .peek(f -> OntJenaException.notNull(f, "OntDR: null literal.")).iterator()));
         return model.getNodeAs(res.asNode(), OneOf.class);
     }
 
     public static Restriction createRestriction(OntGraphModelImpl model, OntDT dataType, Stream<OntFR> values) {
         OntJenaException.notNull(dataType, "Null data-type.");
         OntJenaException.notNull(values, "Null values stream.");
-        Resource res = create(model);
-        model.add(res, OWL.onDatatype, dataType);
-        model.add(res, OWL.withRestrictions, model.createList(values.iterator()));
+        Resource res = create(model)
+                .addProperty(OWL.onDatatype, dataType)
+                .addProperty(OWL.withRestrictions, model.createList(values
+                        .peek(f -> OntJenaException.notNull(f, "OntDR: null faced restriction."))
+                        .iterator()));
         return model.getNodeAs(res.asNode(), Restriction.class);
     }
 
     public static ComplementOf createComplementOf(OntGraphModelImpl model, OntDR other) {
         OntJenaException.notNull(other, "Null data range.");
-        Resource res = create(model);
-        model.add(res, OWL.datatypeComplementOf, other);
+        Resource res = create(model).addProperty(OWL.datatypeComplementOf, other);
         return model.getNodeAs(res.asNode(), ComplementOf.class);
     }
 
     public static UnionOf createUnionOf(OntGraphModelImpl model, Stream<OntDR> values) {
         OntJenaException.notNull(values, "Null values stream.");
-        Resource res = create(model);
-        model.add(res, OWL.unionOf, model.createList(values.iterator()));
+        Resource res = create(model)
+                .addProperty(OWL.unionOf, model.createList(values
+                        .peek(f -> OntJenaException.notNull(f, "OntDR: null data range."))
+                        .iterator()));
         return model.getNodeAs(res.asNode(), UnionOf.class);
     }
 
     public static IntersectionOf createIntersectionOf(OntGraphModelImpl model, Stream<OntDR> values) {
         OntJenaException.notNull(values, "Null values stream.");
-        Resource res = create(model);
-        model.add(res, OWL.intersectionOf, model.createList(values.iterator()));
+        Resource res = create(model).addProperty(OWL.intersectionOf, model.createList(values
+                .peek(f -> OntJenaException.notNull(f, "OntDR: null data range."))
+                .iterator()));
         return model.getNodeAs(res.asNode(), IntersectionOf.class);
     }
 
@@ -299,6 +235,86 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         @Override
         public OntList<N> getList() {
             return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, null, type);
+        }
+    }
+
+    /**
+     * A factory to produce {@link OntDR}s.
+     * <p>
+     * Although it would be easy to produce this factory using {@link Factories#createFrom(OntFinder, Class[])},
+     * this variant with explicit methods must be a little bit faster,
+     * since there is a reduction of number of some possible repetition calls.
+     * Also everything here is under control.
+     * <p>
+     * Created by @ssz on 02.02.2019.
+     */
+    public static class DataRangeFactory extends BaseFactoryImpl {
+        private static final Node TYPE = RDF.Nodes.type;
+        private static final Node ANY = Node.ANY;
+        private static final Node DATATYPE = RDFS.Datatype.asNode();
+
+        private final ObjectFactory named = of(OntDT.class);
+        private final ObjectFactory oneOf = of(OneOf.class);
+        private final ObjectFactory complementOf = of(ComplementOf.class);
+        private final ObjectFactory unionOf = of(UnionOf.class);
+        private final ObjectFactory intersectionOf = of(IntersectionOf.class);
+        private final ObjectFactory restriction = of(Restriction.class);
+        private final List<ObjectFactory> anonymous = Stream.of(oneOf
+                , restriction
+                , complementOf
+                , unionOf
+                , intersectionOf).collect(Collectors.toList());
+
+        public static ObjectFactory createFactory() {
+            return new DataRangeFactory();
+        }
+
+        private static WrappedFactoryImpl of(Class<? extends OntObject> type) {
+            return new WrappedFactoryImpl(type);
+        }
+
+        @Override
+        public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
+            return eg.asGraph().find(ANY, TYPE, DATATYPE)
+                    .mapWith(t -> t.getSubject().isURI() ?
+                            safeWrap(t.getSubject(), eg, named) :
+                            safeWrap(t.getSubject(), eg, anonymous))
+                    .filterDrop(Objects::isNull);
+        }
+
+        @Override
+        public EnhNode createInstance(Node node, EnhGraph eg) {
+            if (node.isURI())
+                return safeWrap(node, eg, named);
+            if (!node.isBlank())
+                return null;
+            if (!eg.asGraph().contains(node, TYPE, DATATYPE))
+                return null;
+            return safeWrap(node, eg, anonymous);
+        }
+
+        @Override
+        public boolean canWrap(Node node, EnhGraph eg) {
+            if (node.isURI()) {
+                return named.canWrap(node, eg);
+            }
+            if (!node.isBlank()) return false;
+            if (!eg.asGraph().contains(node, TYPE, DATATYPE))
+                return false;
+            return canWrap(node, eg, anonymous);
+        }
+
+        @Override
+        public EnhNode wrap(Node node, EnhGraph eg) {
+            if (node.isURI())
+                return named.wrap(node, eg);
+            ConversionException ex = new ConversionException("Can't convert node " + node +
+                    " to Data Range Expression.");
+            if (!node.isBlank())
+                throw ex;
+            if (!eg.asGraph().contains(node, TYPE, DATATYPE))
+                throw ex;
+            return wrap(node, eg, ex, anonymous);
         }
     }
 }

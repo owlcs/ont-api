@@ -48,6 +48,42 @@ public abstract class BaseFactoryImpl extends Implementation implements ObjectFa
         }
     }
 
+    protected static boolean canWrap(Node node, EnhGraph eg, ObjectFactory... factories) {
+        for (ObjectFactory f : factories) {
+            if (f.canWrap(node, eg)) return true;
+        }
+        return false;
+    }
+
+    protected static boolean canWrap(Node node, EnhGraph eg, Iterable<ObjectFactory> factories) {
+        for (ObjectFactory f : factories) {
+            if (f.canWrap(node, eg)) return true;
+        }
+        return false;
+    }
+
+    protected static EnhNode wrap(Node node, EnhGraph eg, ConversionException ex, ObjectFactory... factories) {
+        for (ObjectFactory f : factories) {
+            try {
+                return f.wrap(node, eg);
+            } catch (ConversionException c) {
+                ex.addSuppressed(c);
+            }
+        }
+        throw ex;
+    }
+
+    protected static EnhNode wrap(Node node, EnhGraph eg, ConversionException ex, Iterable<ObjectFactory> factories) {
+        for (ObjectFactory f : factories) {
+            try {
+                return f.wrap(node, eg);
+            } catch (ConversionException c) {
+                ex.addSuppressed(c);
+            }
+        }
+        throw ex;
+    }
+
     /**
      * Creates a new {@link EnhNode} wrapping the given {@link Node} node in the context of the graph {@link EnhGraph}.
      *
