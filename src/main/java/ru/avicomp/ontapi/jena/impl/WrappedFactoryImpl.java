@@ -57,10 +57,10 @@ public class WrappedFactoryImpl extends BaseFactoryImpl {
      * @throws OntJenaException in case nothing is found
      */
     public ObjectFactory getDelegate(EnhGraph g) throws OntJenaException {
-        return findFactory(g);
+        return getFactory(g);
     }
 
-    private ObjectFactory findFactory(EnhGraph g) throws OntJenaException {
+    protected ObjectFactory getFactory(EnhGraph g) throws OntJenaException {
         ObjectFactory res = PersonalityModel.asPersonalityModel(g).getOntPersonality().getObjectFactory(type);
         if (res == null) {
             throw new OntJenaException.IllegalState("Unable to find factory for " + type);

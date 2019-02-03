@@ -61,7 +61,8 @@ public class PersonalityBuilder {
      * @return {@link PersonalityBuilder}
      */
     public static PersonalityBuilder from(OntPersonality from) {
-        return new PersonalityBuilder().addPersonality(OntPersonality.asJenaPersonality(from))
+        return new PersonalityBuilder()
+                .addPersonality(OntPersonality.asJenaPersonality(from))
                 .setPunnings(from.getPunnings())
                 .setBuiltins(from.getBuiltins())
                 .setReserved(from.getReserved());
@@ -95,7 +96,7 @@ public class PersonalityBuilder {
      */
     public PersonalityBuilder copy() {
         PersonalityBuilder res = new PersonalityBuilder(new LinkedHashMap<>(this.map));
-        if (base != null) res.addPersonality(base.copy());
+        res.addPersonality(base.copy());
         if (punnings != null) res.setPunnings(punnings);
         if (builtins != null) res.setBuiltins(builtins);
         if (reserved != null) res.setReserved(reserved);

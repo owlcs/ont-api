@@ -133,11 +133,15 @@ public enum Entities {
     }
 
     OntPersonality.Builtins builtins(EnhGraph g) {
-        return PersonalityModel.asPersonalityModel(g).getOntPersonality().getBuiltins();
+        return personality(g).getBuiltins();
     }
 
     OntPersonality.Punnings punnings(EnhGraph g) {
-        return PersonalityModel.asPersonalityModel(g).getOntPersonality().getPunnings();
+        return personality(g).getPunnings();
+    }
+
+    private OntPersonality personality(EnhGraph g) {
+        return PersonalityModel.asPersonalityModel(g).getOntPersonality();
     }
 
     /**
@@ -167,6 +171,19 @@ public enum Entities {
     }
 
     /**
+     * Answers {@code true} if a builtin URI must has more priority then RDF declaration.
+     * It's a minor optimization:
+     * It is expected that in ordinary ontologies,
+     * the majority of entities of a certain type are most likely have RDF declarations,
+     * while for entities of a different type the opposite can be true: they are most likely built-in.
+     *
+     * @return boolean
+     */
+    private boolean builtinsInPriority() {
+        return ANNOTATION_PROPERTY == this || DATATYPE == this;
+    }
+
+    /**
      * Creates a factory for the entity.
      *
      * @return {@link ObjectFactory}
@@ -181,13 +198,16 @@ public enum Entities {
             }
             return true;
         };
-        OntFilter builtInEntity = (n, g) -> builtInURIs(g).contains(n);
 
+
+        OntFilter builtInEntity = (n, g) -> builtInURIs(g).contains(n);
         OntFilter modelEntity = new OntFilter.HasType(resourceType).and(illegalPunningsFilter);
 
-        OntFilter filter = OntFilter.URI.and(modelEntity.or(builtInEntity));
+        OntFilter entity = builtinsInPriority() ? builtInEntity.or(modelEntity) : modelEntity.or(builtInEntity);
+
+        OntFilter filter = OntFilter.URI.and(entity);
         OntMaker maker = new OntMaker.WithType(impl, resourceType).restrict(illegalPunningsFilter);
-        return Factories.createCommon(maker, finder, filter);
+        return Factories.createCommon(classType, maker, finder, filter);
     }
 
     /**
@@ -197,8 +217,12 @@ public enum Entities {
      * @return {@link Optional} of {@link Entities}
      */
     public static Optional<Entities> find(Resource type) {
+        return find(type.asNode());
+    }
+
+    static Optional<Entities> find(Node type) {
         for (Entities e : values()) {
-            if (Objects.equals(e.getResourceType(), type)) return Optional.of(e);
+            if (Objects.equals(e.getResourceType().asNode(), type)) return Optional.of(e);
         }
         return Optional.empty();
     }

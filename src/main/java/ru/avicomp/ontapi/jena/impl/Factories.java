@@ -20,13 +20,13 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -49,8 +49,8 @@ class Factories {
     }
 
     private static ObjectFactory createMulti(OntFinder finder, Stream<ObjectFactory> factories) {
-        return new MultiFactoryImpl(OntJenaException.notNull(finder, "Null finder"), null,
-                factories.peek(x -> OntJenaException.notNull(x, "Null factory")).toArray(ObjectFactory[]::new));
+        return new MultiFactoryImpl(Objects.requireNonNull(finder, "Null finder"), null,
+                factories.peek(x -> Objects.requireNonNull(x, "Null component-factory")).toArray(ObjectFactory[]::new));
     }
 
     static ObjectFactory createCommon(Class<? extends OntObjectImpl> impl,
@@ -61,9 +61,25 @@ class Factories {
     }
 
     static ObjectFactory createCommon(OntMaker maker, OntFinder finder, OntFilter primary, OntFilter... additional) {
-        return new CommonFactoryImpl(OntJenaException.notNull(maker, "Null maker"),
-                OntJenaException.notNull(finder, "Null finder"),
-                OntJenaException.notNull(primary, "Null filter").accumulate(additional));
+        return new CommonFactoryImpl(Objects.requireNonNull(maker, "Null maker"),
+                Objects.requireNonNull(finder, "Null finder"),
+                Objects.requireNonNull(primary, "Null filter").accumulate(additional));
+    }
+
+    static ObjectFactory createCommon(Class<? extends OntObject> type,
+                                      OntMaker maker,
+                                      OntFinder finder,
+                                      OntFilter filter) {
+        Objects.requireNonNull(type, "Null type");
+        return new CommonFactoryImpl(Objects.requireNonNull(maker, "Null maker"),
+                Objects.requireNonNull(finder, "Null finder"),
+                Objects.requireNonNull(filter, "Null filter")) {
+
+            @Override
+            public String toString() {
+                return String.format("ObjectFactory[%s]", OntObjectImpl.viewAsString(type));
+            }
+        };
     }
 
     static OntFinder createFinder(Resource... types) {
