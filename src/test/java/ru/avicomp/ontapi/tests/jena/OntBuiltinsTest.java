@@ -26,6 +26,7 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.impl.conf.PersonalityBuilder;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -48,10 +49,10 @@ public class OntBuiltinsTest {
     }
 
     @Test
-    public void testBuiltinClasses() {
+    public void testBuiltinClassesCustomPersonality() {
         OntPersonality.Builtins test = type -> {
             if (type != OntClass.class) return Collections.emptySet();
-            return Stream.of("A", "B", "C", "D", "E").map(NodeFactory::createURI).collect(Iter.toUnmodifiableSet());
+            return Stream.of("A", "B", "C", "D", "E", "F").map(NodeFactory::createURI).collect(Iter.toUnmodifiableSet());
         };
         OntPersonality personality = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_LAX).setBuiltins(test).build();
         OntGraphModel m1 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
@@ -78,6 +79,25 @@ public class OntBuiltinsTest {
         Assert.assertEquals(0, m3.ontBuiltins(OntClass.class, true).count());
         m3.createDisjointClasses(Arrays.asList(m1.getOntEntity(OntClass.class, "B"),
                 m1.getOntEntity(OntClass.class, "E")));
-        Assert.assertEquals(4, m3.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("4) Builtin: {}", x)).count());
+        m3.createObjectMaxCardinality(m3.createOntEntity(OntNOP.class, "p"), 12, m2.getOntEntity(OntClass.class, "F"));
+        ReadWriteUtils.print(m3);
+        Assert.assertEquals(5, m3.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("4) Builtin: {}", x)).count());
+    }
+
+    @Test
+    public void testBuiltinClassesStandardPersonality() {
+        OntGraphModel m1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        Assert.assertNotNull(m1.getOWLThing());
+        OntNOP p = m1.createOntEntity(OntNOP.class, "p");
+        Assert.assertEquals(0, m1.ontBuiltins(OntClass.class).count());
+        // unqualified personality
+        m1.createObjectCardinality(p, 21, null);
+        ReadWriteUtils.print(m1);
+        Assert.assertEquals(1, m1.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("1) Builtin: {}", x)).count());
+        Assert.assertNotNull(m1.getOWLThing());
+
+        OntGraphModel m2 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        m2.getOWLThing().addHasKey();
+        Assert.assertEquals(1, m2.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("2) Builtin: {}", x)).count());
     }
 }

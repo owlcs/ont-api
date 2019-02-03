@@ -253,9 +253,15 @@ public interface OntGraphModel extends Model {
     Stream<OntIndividual> classAssertions();
 
     /**
-     * Returns the ont-entity for the specified type and uri.
-     * This method can be used to wrap builtin entities, which, in fact, are not belonging to the graph,
+     * Returns an ont-entity for the specified type and uri.
+     * This method can also be used to wrap builtin entities, which, in fact, are not belonging to the graph,
      * but can be considered as belonged to the model.
+     * An IRI for such a built-in entity must be in
+     * the {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary},
+     * otherwise the method returns {@code null}.
+     * Also please note, the fact that a builtin entity is found by this method
+     * does not mean that it also contains in the result of the {@link #ontBuiltins(Class)} method,
+     * which works with the graph content.
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not {@code null}.
      * @param uri, String, not {@code null}.

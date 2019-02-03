@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
@@ -119,6 +120,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
 
     /**
      * Gets all <b>local</b> built-in OWL Classes from the base graph of the specified model.
+     * It seems, the faster way is to check all possible places.
      *
      * @param m {@link OntGraphModelImpl}, not {@code null}
      * @return unmodifiable {@code Set} of built-in {@link OntClass}es
@@ -139,6 +141,19 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
         Iter.flatMap(Iter.of(OWL.someValuesFrom, OWL.allValuesFrom), p -> listClassValuesFrom(m, p))
                 .filterKeep(OntEntity::isBuiltIn)
                 .forEachRemaining(res::add);
+
+        // Qualified restrictions
+        m.listLocalObjects(CardinalityRestrictionCE.class, OWL.onClass, OntClass.class)
+                .filterKeep(OntEntity::isBuiltIn)
+                .forEachRemaining(res::add);
+        // Unqualified restrictions (owl:Thing)
+        OntClass thing = m.getOWLThing();
+        if (thing != null  // maybe null if it is absent in OntPersonality.Builtins
+                && !res.contains(thing)) {
+            Iter.findFirst(Iter.flatMap(Iter.of(OWL.maxCardinality, OWL.cardinality, OWL.minCardinality),
+                    p -> m.listLocalStatements(null, p, null)).mapWith(OntStatement::getSubject)
+                    .filterKeep(s -> s.canAs(CardinalityRestrictionCE.class))).ifPresent(x -> res.add(thing));
+        }
 
         // rdfs:range
         m.listLocalObjects(OntOPE.class, RDFS.range, OntClass.class).filterKeep(OntEntity::isBuiltIn)
@@ -162,6 +177,12 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
         // owl:AllDisjointClasses:
         filterBuiltin(OntClass.class, Iter.flatMap(m.listLocalOntObjects(OntDisjoint.Classes.class)
                 .mapWith(OntDisjoint::getList), list -> ((OntListImpl<? extends OntCE>) list).listMembers()))
+                .forEachRemaining(res::add);
+
+        // hasKey
+        filterBuiltin(OntClass.class, m.listLocalStatements(null, OWL.hasKey, null)
+                .filterKeep(x -> x.getObject().canAs(RDFList.class))
+                .mapWith(OntStatement::getSubject))
                 .forEachRemaining(res::add);
 
         return Collections.unmodifiableSet(res);

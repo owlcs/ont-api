@@ -544,8 +544,9 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         if (OntClass.class == type) {
             return getEntitySet(OntClassImpl::getBuiltinClasses, local);
         }
-        // TODO:
-        throw new UnsupportedOperationException("TODO");
+        // TODO: issue #40
+        throw new OntJenaException.Unsupported("Attempt to get builtins for " + OntObjectImpl.viewAsString(type) +
+                ".This functionality is not ready, see https://github.com/avicomp/ont-api/issues/40");
     }
 
     @SuppressWarnings("unchecked")
