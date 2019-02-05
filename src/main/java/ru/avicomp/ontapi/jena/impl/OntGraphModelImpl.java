@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -505,8 +506,22 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public OntStatement asStatement(Triple triple) {
+    public OntStatementImpl asStatement(Triple triple) {
         return OntStatementImpl.createOntStatementImpl(triple, this);
+    }
+
+    /**
+     * Tests if the specified node can be wrapped to the specified RDF Node view.
+     * It is placed here to allow overriding.
+     *
+     * @param node {@link RDFNode}, not {@code null}
+     * @param view {@code Class}-type of {@link RDFNode} to test, not {@code null}
+     * @return boolean
+     * @see PersonalityModel#canAs(Class, Node, EnhGraph)
+     * @since 1.4.0
+     */
+    protected boolean canWrapAs(RDFNode node, Class<? extends RDFNode> view) {
+        return node.canAs(view);
     }
 
     /**

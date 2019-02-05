@@ -41,7 +41,6 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
  */
 public interface PersonalityModel {
 
-
     /**
      * Returns the model personality, that is unmodifiable model's configuration storage.
      *

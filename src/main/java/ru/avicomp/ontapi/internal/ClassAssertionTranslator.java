@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
@@ -31,7 +32,9 @@ import java.util.Collection;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
+
     @Override
     public void write(OWLClassAssertionAxiom axiom, OntGraphModel model) {
         OntCE ce = WriteHelper.addClassExpression(model, axiom.getClassExpression());
@@ -45,21 +48,33 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listStatements(model, null, RDF.type, null)
-                .filterKeep(s -> s.getObject().canAs(OntCE.class) && s.getSubject().canAs(OntIndividual.class));
+        return Models.listStatements(model, null, RDF.type, null).filterKeep(this::filterSO);
     }
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
-        return statement.isDeclaration()
-                && statement.getObject().canAs(OntCE.class)
-                && statement.getSubject().canAs(OntIndividual.class);
+        return statement.isDeclaration() && filterSO(statement);
+    }
+
+    protected boolean filterSO(OntStatement statement) {
+        // first class then individual,
+        // since anonymous individual has more sophisticated and time-consuming checking
+        return isClass(statement.getObject()) && isIndividual(statement.getSubject());
+    }
+
+    protected boolean isClass(RDFNode n) {
+        return n.canAs(OntCE.class);
+    }
+
+    protected boolean isIndividual(RDFNode n) {
+        return n.canAs(OntIndividual.class);
     }
 
     @Override
     public ONTObject<OWLClassAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
         ONTObject<? extends OWLIndividual> i = reader.get(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLClassExpression> ce = reader.get(statement.getObject().as(OntCE.class));
+
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLClassAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLClassAssertionAxiom(ce.getObject(), i.getObject(), ONTObject.extract(annotations));

@@ -214,9 +214,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return boolean
      */
     protected boolean isPredicateOf(Class<? extends OntProperty> type) {
-        //this way may degrade performance:
-        //return getModel().findNodeAs(getPredicate().asNode(), type) != null;
-        return getPredicate().canAs(type);
+        return getModel().canWrapAs(getPredicate(), type);
     }
 
     public Node getSubjectNode() {
