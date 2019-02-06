@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -26,6 +26,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -65,18 +66,19 @@ public class CachedStatementImpl extends OntStatementImpl {
 
     @Override
     protected ExtendedIterator<OntStatement> listSubjectAssertions() {
-        Set<OntStatement> res = assertionStatements == null ? assertionStatements = getAssertionStatementsAsSet() : assertionStatements;
-        return WrappedIterator.create(res.iterator());
+        return WrappedIterator.create(getAssertionStatementsAsSet().iterator());
     }
 
     @Override
     public ExtendedIterator<OntAnnotation> listAnnotationResources() {
-        return WrappedIterator.create(this.getAnnotationList().iterator());
+        return WrappedIterator.create(getAnnotationList().iterator());
     }
 
     @Override
     public List<OntAnnotation> getAnnotationList() {
-        if (annotationResources != null) return annotationResources;
+        if (annotationResources != null) {
+            return annotationResources;
+        }
         return annotationResources = super.getAnnotationList();
     }
 
@@ -86,19 +88,34 @@ public class CachedStatementImpl extends OntStatementImpl {
     }
 
     protected Set<OntStatement> getAssertionStatementsAsSet() {
-        return super.listSubjectAssertions().mapWith(x -> (OntStatement) new CachedStatementImpl(x)).toSet();
+        if (assertionStatements != null) {
+            return assertionStatements;
+        }
+        return assertionStatements = super.listSubjectAssertions()
+                .mapWith(x -> (OntStatement) new CachedStatementImpl(x)).toSet();
     }
 
     @Override
     public boolean hasAnnotations() {
-        if (annotationResources != null && !annotationResources.isEmpty()) return true;
-        if (assertionStatements != null && !assertionStatements.isEmpty()) return true;
+        if (isNotEmpty(annotationResources)) {
+            return true;
+        }
+        if (isNotEmpty(assertionStatements)) {
+            return true;
+        }
         return !listAnnotations().toSet().isEmpty();
+    }
+
+    private static boolean isNotEmpty(Collection<?> list) {
+        return list != null && !list.isEmpty();
     }
 
     @Override
     protected Resource getAnnotationResourceType() {
-        return annotationResourceType == null ? annotationResourceType = detectAnnotationRootType(subject) : annotationResourceType;
+        if (annotationResourceType != null) {
+            return annotationResourceType;
+        }
+        return annotationResourceType = detectAnnotationRootType(subject);
     }
 
     @Override

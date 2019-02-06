@@ -15,11 +15,9 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -228,6 +226,17 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         @Override
         public Class<? extends OntObject> getActualClass() {
             return DArg.class;
+        }
+
+        /**
+         * Answers the encapsulated node as {@link Literal}.
+         *
+         * @return {@link Literal}
+         * @throws UnsupportedPolymorphismException if not a literal
+         */
+        @Override
+        public Literal asLiteral() throws UnsupportedPolymorphismException {
+            return as(Literal.class);
         }
     }
 

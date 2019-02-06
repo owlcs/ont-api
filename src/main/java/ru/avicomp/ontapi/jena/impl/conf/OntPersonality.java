@@ -25,7 +25,9 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -103,6 +105,22 @@ public interface OntPersonality {
      * @return {@link Reserved}
      */
     Reserved getReserved();
+
+    /**
+     * Lists all object-types encapsulated by this config, that extend the specified object-type.
+     *
+     * @param type {@code Class}-type of {@link OntObject}
+     * @param <T>  any subtype of {@link OntObject}
+     * @return Stream of all types where each element extends {@link T} inclusive
+     */
+    @SuppressWarnings("unchecked")
+    default <T extends OntObject> Stream<Class<? extends T>> types(Class<T> type) {
+        Objects.requireNonNull(type);
+        return types()
+                .filter(c -> c == type || Arrays.stream(c.getInterfaces())
+                        .anyMatch(type::isAssignableFrom))
+                .map(x -> (Class<? extends T>) x);
+    }
 
     /**
      * A vocabulary of built-in {@link OntEntity OWL Entities}.

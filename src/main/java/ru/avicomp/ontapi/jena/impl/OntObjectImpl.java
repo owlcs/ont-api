@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
@@ -464,18 +463,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         // for others
         findRootStatement().ifPresent(OntStatement::clearAnnotations);
         return this;
-    }
-
-    /**
-     * Answers the encapsulated node as {@link Literal}.
-     * Some {@link OntObject}s are allowed to present literals.
-     *
-     * @return {@link Literal}
-     * @throws UnsupportedPolymorphismException if not a literal
-     */
-    @Override
-    public Literal asLiteral() throws UnsupportedPolymorphismException {
-        return as(Literal.class);
     }
 
     /**
