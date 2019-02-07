@@ -401,7 +401,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     private static boolean hasSpecProperties(Statement s, Resource t, Property p, RDFNode o) {
-        Resource r = s.getSubject();
+        return hasSpecProperties(s.getSubject(), t, p, o);
+    }
+
+    private static boolean hasSpecProperties(Resource r, Resource t, Property p, RDFNode o) {
         return r.hasProperty(RDF.type, t)
                 && r.hasProperty(OWL.annotatedProperty, p)
                 && r.hasProperty(OWL.annotatedTarget, o);
