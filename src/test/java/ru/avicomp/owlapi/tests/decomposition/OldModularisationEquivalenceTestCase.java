@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -38,7 +38,7 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 
 
-@SuppressWarnings("javadoc")
+@SuppressWarnings({"javadoc", "WeakerAccess"})
 @RunWith(Parameterized.class)
 public class OldModularisationEquivalenceTestCase extends TestBase {
 
@@ -136,8 +136,8 @@ public class OldModularisationEquivalenceTestCase extends TestBase {
     public void testModularizationWithAtomicDecompositionStar() throws OWLException {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(KOALA));
         List<OWLAxiom> module1 = asList(getADModule1(o, signature, ModuleType.STAR).stream().sorted());
-        List<OWLAxiom> module2 = asList(getTraditionalModule(m, o, signature, ModuleType.STAR).stream().filter(ax -> ax
-                .isLogicalAxiom()).sorted());
+        List<OWLAxiom> module2 = asList(getTraditionalModule(m, o, signature, ModuleType.STAR).stream()
+                .filter(OWLAxiom::isLogicalAxiom).sorted());
         makeAssertion(module1, module2);
     }
 
@@ -145,8 +145,8 @@ public class OldModularisationEquivalenceTestCase extends TestBase {
     public void testModularizationWithAtomicDecompositionTop() throws OWLException {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(KOALA));
         List<OWLAxiom> module1 = asList(getADModule1(o, signature, ModuleType.TOP).stream().sorted());
-        List<OWLAxiom> module2 = asList(getTraditionalModule(m, o, signature, ModuleType.TOP).stream().filter(ax -> ax
-                .isLogicalAxiom()).sorted());
+        List<OWLAxiom> module2 = asList(getTraditionalModule(m, o, signature, ModuleType.TOP).stream()
+                .filter(OWLAxiom::isLogicalAxiom).sorted());
         makeAssertion(module1, module2);
     }
 
@@ -154,8 +154,8 @@ public class OldModularisationEquivalenceTestCase extends TestBase {
     public void testModularizationWithAtomicDecompositionBottom() throws OWLException {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(KOALA));
         List<OWLAxiom> module1 = asList(getADModule1(o, signature, ModuleType.BOT).stream().sorted());
-        List<OWLAxiom> module2 = asList(getTraditionalModule(m, o, signature, ModuleType.BOT).stream().filter(ax -> ax
-                .isLogicalAxiom()).sorted());
+        List<OWLAxiom> module2 = asList(getTraditionalModule(m, o, signature, ModuleType.BOT).stream()
+                .filter(OWLAxiom::isLogicalAxiom).sorted());
         makeAssertion(module1, module2);
     }
 
@@ -166,8 +166,8 @@ public class OldModularisationEquivalenceTestCase extends TestBase {
         String s1 = module1.toString().replace(ns, "");
         String s2 = module2.toString().replace(ns, "");
         if (!s1.equals(s2)) {
-            System.out.println("OldModularisationEquivalenceTestCase.testModularizationWithAtomicDecomposition() \n"
-                    + s1 + "\n" + s2);
+            LOGGER.debug("OldModularisationEquivalenceTestCase.testModularizationWithAtomicDecomposition() \n{},\n{}",
+                    s1, s2);
         }
         assertEquals(s1, s2);
     }

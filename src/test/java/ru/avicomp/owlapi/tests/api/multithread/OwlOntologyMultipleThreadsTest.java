@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,6 +15,7 @@ package ru.avicomp.owlapi.tests.api.multithread;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.owlapi.tests.api.baseclasses.TestBase;
 
 import javax.annotation.Nonnull;
@@ -260,7 +261,7 @@ public class OwlOntologyMultipleThreadsTest extends TestBase {
         MultiThreadChecker checker = new MultiThreadChecker(5);
         checker.check(new TestCallback(o, m.createOntology()));
         String trace = checker.getTrace();
-        System.out.println(trace);
+        checker.p.println(trace);
     }
 
     static class MultiThreadChecker {
@@ -279,7 +280,7 @@ public class OwlOntologyMultipleThreadsTest extends TestBase {
         }
 
         public MultiThreadChecker() {
-            p = new PrintStream(out);
+            p = LOGGER.isDebugEnabled() ? new PrintStream(out) : ReadWriteUtils.NULL_OUT;
         }
 
         public void check(Runnable cb) {

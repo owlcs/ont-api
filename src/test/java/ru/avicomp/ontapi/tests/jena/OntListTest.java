@@ -56,7 +56,7 @@ public class OntListTest {
         OntList<OntOPE> list = p2.createPropertyChain(Collections.emptyList());
         Assert.assertTrue(list.canAs(RDFList.class));
         RDFList r_list = list.as(RDFList.class);
-        System.out.println(r_list.isEmpty() + " " + r_list.isValid());
+        LOGGER.debug("{} & {}", r_list.isEmpty(), r_list.isValid());
         Assert.assertEquals(3, list.add(p3).add(p3).add(p1).members().count());
         Assert.assertEquals(3, list.members().count());
         Assert.assertEquals(3, list.as(RDFList.class).size());
