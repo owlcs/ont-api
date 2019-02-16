@@ -18,6 +18,7 @@ import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 
 import java.util.EnumMap;
+import java.util.Objects;
 
 /**
  * A container with various configuration settings
@@ -87,9 +88,9 @@ public interface InternalConfig {
     /**
      * Gets a fixed state of this config as immutable instance.
      *
-     * @return {@link InternalConfig}
+     * @return immutable {@link InternalConfig}
      */
-    default InternalConfig snapshot() {
+    default Snapshot snapshot() {
         return new Snapshot(this);
     }
 
@@ -100,6 +101,7 @@ public interface InternalConfig {
         private final EnumMap<Snapshot.Key, Boolean> map = new EnumMap<>(Snapshot.Key.class);
 
         Snapshot(InternalConfig delegate) {
+            Objects.requireNonNull(delegate, "Null config");
             map.put(Snapshot.Key.LOAD_ANNOTATIONS, delegate.isLoadAnnotationAxioms());
             map.put(Snapshot.Key.ALLOW_DECLARATION_BULK_ANNOTATIONS, delegate.isAllowBulkAnnotationAssertions());
             map.put(Snapshot.Key.IGNORE_ANNOTATION_OVERLAPS, delegate.isIgnoreAnnotationAxiomOverlaps());
@@ -139,7 +141,7 @@ public interface InternalConfig {
         }
 
         @Override
-        public InternalConfig snapshot() {
+        public Snapshot snapshot() {
             return this;
         }
 

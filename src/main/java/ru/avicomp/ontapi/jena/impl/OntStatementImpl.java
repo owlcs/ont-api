@@ -88,7 +88,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * Creates an OntStatement impl with the given SPO.
+     * Creates an OntStatement-impl with the given SPO.
      *
      * @param s {@link Resource} subject
      * @param p {@link Property} predicate
@@ -185,36 +185,6 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     @Override
     public OntObject getSubject() {
         return subject instanceof OntObject ? (OntObject) subject : subject.as(OntObject.class);
-    }
-
-    @Override
-    public boolean isDeclaration() {
-        return RDF.type.equals(getPredicate());
-    }
-
-    @Override
-    public boolean isAnnotation() {
-        return isPredicateOf(OntNAP.class);
-    }
-
-    @Override
-    public boolean isObject() {
-        return isPredicateOf(OntNOP.class);
-    }
-
-    @Override
-    public boolean isData() {
-        return isPredicateOf(OntNDP.class);
-    }
-
-    /**
-     * Answers {@code true} if the predicate of this SPO is of the given type.
-     *
-     * @param type {@code Class}-type
-     * @return boolean
-     */
-    protected boolean isPredicateOf(Class<? extends OntProperty> type) {
-        return getModel().canWrapAs(getPredicate(), type);
     }
 
     public Node getSubjectNode() {

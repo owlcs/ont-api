@@ -38,19 +38,25 @@ import java.util.Set;
  * Note: the graph may change during working with instance of this class.
  * <p>
  * Created by @szuev on 13.03.2018.
+ *
  * @see CachedAnnotationImpl
  */
 @SuppressWarnings("WeakerAccess")
 public class CachedStatementImpl extends OntStatementImpl {
 
+    private final boolean isRoot;
     private Resource annotationResourceType;
     private List<OntAnnotation> annotationResources;
     private Set<OntStatement> assertionStatements;
-    private final boolean isRoot;
+    private Boolean isBulk, isData, isAnnotation, isObject;
 
     public CachedStatementImpl(Statement delegate) {
         super(delegate);
         this.isRoot = delegate instanceof OntStatementImpl && ((OntStatementImpl) delegate).isRootStatement();
+    }
+
+    private static boolean isNotEmpty(Collection<?> list) {
+        return list != null && !list.isEmpty();
     }
 
     @Override
@@ -60,8 +66,14 @@ public class CachedStatementImpl extends OntStatementImpl {
 
     @Override
     public OntStatement asRootStatement() {
-        if (isRootStatement()) return this;
-        throw new OntJenaException.Unsupported("Currently #asRoot transformation is not supported for " + Models.toString(this));
+        if (isRootStatement()) {
+            return this;
+        }
+        CachedStatementImpl res = createCachedOntStatementImpl(super.asRootStatement());
+        if (annotationResources != null) {
+            res.annotationResources = annotationResources;
+        }
+        return res;
     }
 
     @Override
@@ -106,10 +118,6 @@ public class CachedStatementImpl extends OntStatementImpl {
         return !listAnnotations().toSet().isEmpty();
     }
 
-    private static boolean isNotEmpty(Collection<?> list) {
-        return list != null && !list.isEmpty();
-    }
-
     @Override
     protected Resource getAnnotationResourceType() {
         if (annotationResourceType != null) {
@@ -130,6 +138,38 @@ public class CachedStatementImpl extends OntStatementImpl {
 
     protected <R> R noModify() {
         throw new OntJenaException.Unsupported(Models.toString(this) + ": modifying is not allowed.");
+    }
+
+    @Override
+    public boolean isBulkAnnotation() {
+        if (isBulk != null) {
+            return isBulk;
+        }
+        return isBulk = super.isBulkAnnotation();
+    }
+
+    @Override
+    public boolean isData() {
+        if (isData != null) {
+            return isData;
+        }
+        return isData = super.isData();
+    }
+
+    @Override
+    public boolean isObject() {
+        if (isObject != null) {
+            return isObject;
+        }
+        return isObject = super.isObject();
+    }
+
+    @Override
+    public boolean isAnnotation() {
+        if (isAnnotation != null) {
+            return isAnnotation;
+        }
+        return isAnnotation = super.isAnnotation();
     }
 
     @Override

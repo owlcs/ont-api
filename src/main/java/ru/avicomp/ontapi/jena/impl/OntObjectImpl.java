@@ -89,8 +89,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return Optional.of(subject.getModel().createStatement(subject, RDF.type, type).asRootStatement());
     }
 
-    static String viewAsString(Class<? extends RDFNode> view) {
-        return view.getName().replace(OntObject.class.getPackage().getName() + ".", "");
+    /**
+     * Answers a short form of a given class-type.
+     *
+     * @param type {@code Class}-type, not {@code null}
+     * @return String
+     */
+    public static String viewAsString(Class<? extends RDFNode> type) {
+        return type.getName().replace(OntObject.class.getPackage().getName() + ".", "");
     }
 
     public static Node checkNamed(Node res) {

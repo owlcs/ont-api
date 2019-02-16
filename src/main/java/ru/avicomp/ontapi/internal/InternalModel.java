@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -117,6 +117,29 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         this.config = Objects.requireNonNull(config);
         this.cacheDataFactory = Objects.requireNonNull(factory);
         getGraph().getEventManager().register(new DirectListener());
+    }
+
+    /**
+     * Creates an {@link OntGraphModelImpl} version with search optimizations.
+     * The return model must be used only to collect OWL-API stuff:
+     * {@link OWLAxiom OWL Axiom}s and {@link OWLObject OWL Objects}.
+     * Retrieving jena {@link OntObject Ont Object}s and {@link OntStatement Ont Statements} must be performed
+     * through the main ({@link InternalModel this}) interface.
+     *
+     * @param conf {@link InternalConfig.Snapshot}, not {@code null}
+     * @return {@link OntGraphModelImpl} with search optimizations.
+     */
+    public OntGraphModelImpl getSearchModel(InternalConfig.Snapshot conf) {
+        return new SearchModel(getGraph(), getOntPersonality(), conf);
+    }
+
+    @Override
+    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> type) {
+        try {
+            return super.fetchNodeAs(node, type);
+        } catch (OntJenaException e) {
+            return SearchModel.handleFetchNodeAsException(e, node, type, this, getConfig());
+        }
     }
 
     /**
@@ -391,16 +414,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return Stream of {@link OWLDeclarationAxiom}s
      */
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
-        InternalConfig conf = getConfig().snapshot();
+        InternalConfig.Snapshot conf = getConfig().snapshot();
         if (!conf.isAllowReadDeclarations()) return Stream.empty();
         // even there are no changes in OWLDeclarationAxioms, they can be affected by some other user-defined axiom,
         // so need check whole cache:
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
+        OntGraphModelImpl m = getSearchModel(conf);
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
         DeclarationTranslator t = (DeclarationTranslator) AxiomParserProvider.get(OWLDeclarationAxiom.class);
-        OntEntity res = findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityView(e));
+        OntEntity res = m.findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityView(e));
         if (res == null) return Stream.empty();
         OntStatement s = res.getRoot();
         return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, cacheDataFactory, conf).getObject());
@@ -415,13 +439,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return Stream of {@link OWLAnnotationAssertionAxiom}s
      */
     public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
-        InternalConfig conf = getConfig().snapshot();
+        InternalConfig.Snapshot conf = getConfig().snapshot();
         if (!conf.isLoadAnnotationAxioms()) return Stream.empty();
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
+        OntGraphModelImpl m = getSearchModel(conf);
         AxiomTranslator<OWLAnnotationAssertionAxiom> t = AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
-        ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(s), null, null)
+        ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, conf));
         return Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject));
     }
@@ -437,10 +462,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
+        InternalConfig.Snapshot conf = getConfig().snapshot();
+        OntGraphModelImpl m = getSearchModel(conf);
         SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
-        ExtendedIterator<OntStatement> res = listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
+        ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
-        InternalConfig conf = getConfig().snapshot();
         return Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject));
     }
 
@@ -456,11 +482,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
         }
+        InternalConfig.Snapshot conf = getConfig().snapshot();
+        OntGraphModelImpl m = getSearchModel(conf);
         EquivalentClassesTranslator t = (EquivalentClassesTranslator) AxiomParserProvider.get(OWLEquivalentClassesAxiom.class);
         Resource r = WriteHelper.toResource(c);
-        InternalConfig conf = getConfig().snapshot();
-        ExtendedIterator<OntStatement> res = listLocalStatements(r, OWL.equivalentClass, null)
-                .andThen(listLocalStatements(null, OWL.equivalentClass, r))
+        ExtendedIterator<OntStatement> res = m.listLocalStatements(r, OWL.equivalentClass, null)
+                .andThen(m.listLocalStatements(null, OWL.equivalentClass, r))
                 .filterKeep(s -> t.testStatement(s, conf));
         return Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject));
     }
@@ -613,19 +640,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         return res;
     }
 
-    @Override
-    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> view) {
-        try {
-            return super.fetchNodeAs(node, view);
-        } catch (OntJenaException e) {
-            if (!getConfig().isIgnoreAxiomsReadErrors()) {
-                throw new OntApiException(e);
-            }
-            LOGGER.warn("Found a problem inside ontology <{}>: {}", getID(), e.getMessage());
-            return null;
-        }
-    }
-
     /**
      * Reads the axioms of the specified class-type and their associated triples from the encapsulated graph in the form of
      * {@link ObjectTriplesMap iternal object-triple map} (i.e. cache bucket).
@@ -635,8 +649,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@link ObjectTriplesMap cache bucket} of {@link OWLAxiom}s of the given class-type
      */
     protected <A extends OWLAxiom> ObjectTriplesMap<A> readAxiomTriples(Class<A> type) {
+        InternalConfig.Snapshot conf = getConfig().snapshot();
         return ObjectTriplesMap.create(type, Iter.asStream(AxiomParserProvider.get(type)
-                .listAxioms(InternalModel.this, cacheDataFactory, getConfig().snapshot())));
+                .listAxioms(getSearchModel(conf), cacheDataFactory, conf)));
     }
 
     /**

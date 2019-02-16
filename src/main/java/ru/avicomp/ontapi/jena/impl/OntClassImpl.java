@@ -127,6 +127,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
      */
     public static Set<OntClass> getBuiltinClasses(OntGraphModelImpl m) {
         Set<OntClass> res = new HashSet<>();
+        // todo: check if res already contains all possible builtins and stop.
 
         // UnionOf and IntersectionOf class expressions (owl:unionOf,  owl:intersectionOf)
         filterBuiltin(OntClass.class, Iter.flatMap(Iter.of(OWL.unionOf, OWL.intersectionOf),
