@@ -40,6 +40,14 @@ public abstract class BaseFactoryImpl extends Implementation implements ObjectFa
         return null;
     }
 
+    protected static EnhNode safeWrap(Node n, EnhGraph g, ObjectFactory... factories) {
+        for (ObjectFactory f : factories) {
+            EnhNode r = safeWrap(n, g, f);
+            if (r != null) return r;
+        }
+        return null;
+    }
+
     protected static EnhNode safeWrap(Node n, EnhGraph g, ObjectFactory f) {
         try {
             return f.wrap(n, g);

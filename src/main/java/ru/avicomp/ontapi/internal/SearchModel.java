@@ -38,6 +38,8 @@ import java.util.Objects;
  * TODO: add description.
  * <p>
  * Created by @ssz on 16.02.2019.
+ *
+ * @since 1.4.0
  */
 @SuppressWarnings("WeakerAccess")
 public class SearchModel extends OntGraphModelImpl {

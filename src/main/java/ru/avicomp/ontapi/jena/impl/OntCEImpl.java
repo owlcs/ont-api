@@ -1045,6 +1045,18 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             return new ClassExpressionFactory();
         }
 
+        private static boolean isCardinalityRestriction(Graph g, Node n) {
+            return g.contains(n, CARDINALITY, ANY) || g.contains(n, QUALIFIED_CARDINALITY, ANY);
+        }
+
+        private static boolean isMinCardinalityRestriction(Graph g, Node n) {
+            return g.contains(n, MIN_CARDINALITY, ANY) || g.contains(n, MIN_QUALIFIED_CARDINALITY, ANY);
+        }
+
+        private static boolean isMaxCardinalityRestriction(Graph g, Node n) {
+            return g.contains(n, MAX_CARDINALITY, ANY) || g.contains(n, MAX_QUALIFIED_CARDINALITY, ANY);
+        }
+
         @Override
         public ExtendedIterator<EnhNode> iterator(EnhGraph g) {
             return g.asGraph().find(Node.ANY, RDF.Nodes.type, CLASS)
@@ -1063,10 +1075,35 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 return safeWrap(node, eg, named);
             }
             if (!node.isBlank()) return null;
-            if (eg.asGraph().contains(node, RDF.Nodes.type, CLASS)) {
+            Graph g = eg.asGraph();
+            if (g.contains(node, TYPE, RESTRICTION)) {
+                if (!g.contains(node, ON_PROPERTY, ANY)) {
+                    return safeWrap(node, eg, dNDAFRestriction, dNDSFRestriction);
+                }
+                if (g.contains(node, SOME_VALUES_OF, ANY)) {
+                    return safeWrap(node, eg, oSVFRestriction, dSVFRestriction);
+                }
+                if (g.contains(node, ALL_VALUES_OF, ANY)) {
+                    return safeWrap(node, eg, oAVFRestriction, dAVFRestriction);
+                }
+                if (g.contains(node, HAS_VALUE, ANY)) {
+                    return safeWrap(node, eg, oHVRestriction, dHVRestriction);
+                }
+                if (isCardinalityRestriction(g, node)) {
+                    return safeWrap(node, eg, oCRestriction, dCRestriction);
+                }
+                if (isMinCardinalityRestriction(g, node)) {
+                    return safeWrap(node, eg, oMiCRestriction, dMiCRestriction);
+                }
+                if (isMaxCardinalityRestriction(g, node)) {
+                    return safeWrap(node, eg, oMaCRestriction, dMaCRestriction);
+                }
+                return safeWrap(node, eg, oHSRestriction);
+            }
+            if (g.contains(node, TYPE, CLASS)) {
                 return safeWrap(node, eg, anonymous);
             }
-            return safeWrap(node, eg, restrictions);
+            return null;
         }
 
         @Override
@@ -1089,13 +1126,13 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 if (g.contains(node, HAS_VALUE, ANY)) {
                     return canWrap(node, eg, oHVRestriction, dHVRestriction);
                 }
-                if (g.contains(node, CARDINALITY, ANY) || g.contains(node, QUALIFIED_CARDINALITY, ANY)) {
+                if (isCardinalityRestriction(g, node)) {
                     return canWrap(node, eg, oCRestriction, dCRestriction);
                 }
-                if (g.contains(node, MIN_CARDINALITY, ANY) || g.contains(node, MIN_QUALIFIED_CARDINALITY, ANY)) {
+                if (isMinCardinalityRestriction(g, node)) {
                     return canWrap(node, eg, oMiCRestriction, dMiCRestriction);
                 }
-                if (g.contains(node, MAX_CARDINALITY, ANY) || g.contains(node, MAX_QUALIFIED_CARDINALITY, ANY)) {
+                if (isMaxCardinalityRestriction(g, node)) {
                     return canWrap(node, eg, oMaCRestriction, dMaCRestriction);
                 }
                 return oHSRestriction.canWrap(node, eg);
@@ -1128,13 +1165,13 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 if (g.contains(node, HAS_VALUE, ANY)) {
                     return wrap(node, eg, ex, oHVRestriction, dHVRestriction);
                 }
-                if (g.contains(node, CARDINALITY, ANY) || g.contains(node, QUALIFIED_CARDINALITY, ANY)) {
+                if (isCardinalityRestriction(g, node)) {
                     return wrap(node, eg, ex, oCRestriction, dCRestriction);
                 }
-                if (g.contains(node, MIN_CARDINALITY, ANY) || g.contains(node, MIN_QUALIFIED_CARDINALITY, ANY)) {
+                if (isMinCardinalityRestriction(g, node)) {
                     return wrap(node, eg, ex, oMiCRestriction, dMiCRestriction);
                 }
-                if (g.contains(node, MAX_CARDINALITY, ANY) || g.contains(node, MAX_QUALIFIED_CARDINALITY, ANY)) {
+                if (isMaxCardinalityRestriction(g, node)) {
                     return wrap(node, eg, ex, oMaCRestriction, dMaCRestriction);
                 }
                 return wrap(node, eg, ex, oHSRestriction);

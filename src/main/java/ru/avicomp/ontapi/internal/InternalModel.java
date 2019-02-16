@@ -127,7 +127,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * through the main ({@link InternalModel this}) interface.
      *
      * @param conf {@link InternalConfig.Snapshot}, not {@code null}
-     * @return {@link OntGraphModelImpl} with search optimizations.
+     * @return {@link OntGraphModelImpl} with search optimizations
+     * @since 1.4.0
      */
     public OntGraphModelImpl getSearchModel(InternalConfig.Snapshot conf) {
         return new SearchModel(getGraph(), getOntPersonality(), conf);
@@ -138,7 +139,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         try {
             return super.fetchNodeAs(node, type);
         } catch (OntJenaException e) {
-            return SearchModel.handleFetchNodeAsException(e, node, type, this, getConfig());
+            return SearchModel.handleFetchNodeAsException(e, node, type, this, config);
         }
     }
 
