@@ -48,7 +48,7 @@ public class CachedStatementImpl extends OntStatementImpl {
     private Resource annotationResourceType;
     private List<OntAnnotation> annotationResources;
     private Set<OntStatement> assertionStatements;
-    private Boolean isBulk, isData, isAnnotation, isObject;
+    private Boolean isBulk, isData, isAnnotation, isObject, belongsToOWLAxiom, belongsToOWLAnnotation;
 
     public CachedStatementImpl(Statement delegate) {
         super(delegate);
@@ -123,7 +123,7 @@ public class CachedStatementImpl extends OntStatementImpl {
         if (annotationResourceType != null) {
             return annotationResourceType;
         }
-        return annotationResourceType = detectAnnotationRootType(subject);
+        return annotationResourceType = getAnnotationRootType(subject);
     }
 
     @Override
@@ -170,6 +170,22 @@ public class CachedStatementImpl extends OntStatementImpl {
             return isAnnotation;
         }
         return isAnnotation = super.isAnnotation();
+    }
+
+    @Override
+    public boolean belongsToOWLAnnotation() {
+        if (belongsToOWLAnnotation != null) {
+            return belongsToOWLAnnotation;
+        }
+        return belongsToOWLAnnotation = super.belongsToOWLAnnotation();
+    }
+
+    @Override
+    public boolean belongsToOWLAxiom() {
+        if (belongsToOWLAxiom != null) {
+            return belongsToOWLAxiom;
+        }
+        return belongsToOWLAxiom = super.belongsToOWLAxiom();
     }
 
     @Override

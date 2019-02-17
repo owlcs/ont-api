@@ -276,7 +276,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         if (!listType.isURIResource()) throw new IllegalArgumentException("List type must have URI");
     }
 
-    private static ExtendedIterator<Resource> listAnnotations(Model m,
+    private static ExtendedIterator<Resource> listAnnotations(OntGraphModelImpl m,
                                                               Resource subject,
                                                               Property predicate,
                                                               RDFNode obj) {

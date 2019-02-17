@@ -510,6 +510,18 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
+     * Answers an {@link OntStatementImpl} in this {@link OntGraphModelImpl model}
+     * which encodes the same {@link Triple} as in the specified {@link Statement}.
+     *
+     * @param s any {@link Statement}, not {@code null}
+     * @return {@link OntStatementImpl}
+     */
+    public OntStatementImpl asOntStatement(Statement s) {
+        if (s instanceof OntStatementImpl && s.getModel() == this) return (OntStatementImpl) s;
+        return asStatement(s.asTriple());
+    }
+
+    /**
      * Deletes the specified {@code OntList} including its annotations.
      *
      * @param subject   {@link OntObject} the subject of the OntList root statement

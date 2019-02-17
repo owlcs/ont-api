@@ -148,6 +148,60 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         };
     }
 
+    /**
+     * Lists all (bulk) annotation anonymous resources form the specified model and for the given statement (SPO).
+     *
+     * @param m {@link OntGraphModelImpl}, not {@code null}
+     * @param s {@link OntStatementImpl}, not {@code null}
+     * @return {@link ExtendedIterator} of annotation {@link Resource resource}s
+     */
+    public static ExtendedIterator<Resource> listAnnotationResources(OntGraphModelImpl m, OntStatementImpl s) {
+        return listAnnotationResources(m, s.getAnnotationResourceType(), s.subject, s.predicate, s.object);
+    }
+
+    /**
+     * Lists all (bulk) annotation anonymous resources form the specified model, type and SPO.
+     *
+     * @param m {@link OntGraphModelImpl}
+     * @param t {@link Resource} either {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}
+     * @param s {@link Resource} subject
+     * @param p {@link Property} predicate
+     * @param o {@link RDFNode} object
+     * @return {@link ExtendedIterator} of annotation {@link Resource resource}s
+     */
+    static ExtendedIterator<Resource> listAnnotationResources(OntGraphModelImpl m,
+                                                              Resource t,
+                                                              Resource s,
+                                                              Property p,
+                                                              RDFNode o) {
+        boolean isOWLAxiom = OWL.Axiom == t;
+        return m.listStatements(null, OWL.annotatedSource, s)
+                .filterKeep(x -> {
+                    OntStatementImpl st = m.asOntStatement(x);
+                    if (isOWLAxiom ? st.belongsToOWLAxiom() : st.belongsToOWLAnnotation()) {
+                        return st.hasAnnotatedProperty(p) && st.hasAnnotatedTarget(o);
+                    }
+                    return false;
+                })
+                .mapWith(Statement::getSubject);
+    }
+
+    /**
+     * Determines the annotation type.
+     * Root annotations (including some anon-axioms bodies) go with the type owl:Axiom {@link OWL#Axiom},
+     * sub-annotations have type owl:Annotation.
+     *
+     * @param s {@link Resource} the subject resource to test
+     * @return {@link OWL#Axiom} or {@link OWL#Annotation}
+     */
+    protected static Resource getAnnotationRootType(Resource s) {
+        Model m = s.getModel();
+        if (s.isAnon() && OntAnnotationImpl.ROOT_TYPES.stream().anyMatch(t -> m.contains(s, RDF.type, t))) {
+            return OWL.Annotation;
+        }
+        return OWL.Axiom;
+    }
+
     @Override
     public OntGraphModelImpl getModel() {
         return (OntGraphModelImpl) super.getModel();
@@ -300,17 +354,6 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     /**
-     * Returns the iterator of annotation objects attached to this statement.
-     *
-     * @return {@link ExtendedIterator} of {@link OntAnnotation}s
-     * @see #annotationResources()
-     */
-    public ExtendedIterator<OntAnnotation> listAnnotationResources() {
-        return listAnnotationResources(getModel(), getAnnotationResourceType(), this)
-                .mapWith(this::wrapAsOntAnnotation);
-    }
-
-    /**
      * Returns the {@code List} of annotations sorted by the some internal order.
      *
      * @return List of {@link OntAnnotation}s
@@ -334,66 +377,33 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return {@link OWL#Axiom {@code owl:Axiom}} or {@link OWL#Annotation {@code owl:Annotation}}
      */
     protected Resource getAnnotationResourceType() {
-        return detectAnnotationRootType(subject);
+        return getAnnotationRootType(subject);
     }
 
     /**
-     * Returns annotation objects corresponding to the given statement and rdf-type.
-     * For internal usage.
+     * Returns the iterator of annotation objects attached to this statement.
      *
-     * @param m {@link Model}
-     * @param t {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}
-     * @param s {@link Statement}, the base statement
      * @return {@link ExtendedIterator} of {@link OntAnnotation}s
+     * @see #annotationResources()
      */
-    public static ExtendedIterator<Resource> listAnnotationResources(Model m, Resource t, Statement s) {
-        return listAnnotationResources(m, t, s.getSubject(), s.getPredicate(), s.getObject());
+    public ExtendedIterator<OntAnnotation> listAnnotationResources() {
+        return listAnnotationResources(getModel(), this).mapWith(this::wrapAsOntAnnotation);
     }
 
-    /**
-     * Lists all (bulk) annotation anonymous resources form the specified model, type and SPO.
-     *
-     * @param m {@link Model}
-     * @param t {@link Resource} either {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}
-     * @param s {@link Resource} subject
-     * @param p {@link Property} predicate
-     * @param o {@link RDFNode} object
-     * @return {@link ExtendedIterator} of {@link Resource}s
-     */
-    public static ExtendedIterator<Resource> listAnnotationResources(Model m,
-                                                                     Resource t,
-                                                                     Resource s,
-                                                                     Property p,
-                                                                     RDFNode o) {
-        return m.listStatements(null, OWL.annotatedSource, s)
-                .filterKeep(x -> hasSpecProperties(x, t, p, o))
-                .mapWith(Statement::getSubject);
+    public boolean belongsToOWLAnnotation() {
+        return subject.hasProperty(RDF.type, OWL.Annotation);
     }
 
-    private static boolean hasSpecProperties(Statement s, Resource t, Property p, RDFNode o) {
-        return hasSpecProperties(s.getSubject(), t, p, o);
+    public boolean belongsToOWLAxiom() {
+        return subject.hasProperty(RDF.type, OWL.Axiom);
     }
 
-    private static boolean hasSpecProperties(Resource r, Resource t, Property p, RDFNode o) {
-        return r.hasProperty(RDF.type, t)
-                && r.hasProperty(OWL.annotatedProperty, p)
-                && r.hasProperty(OWL.annotatedTarget, o);
+    public boolean hasAnnotatedProperty(Property property) {
+        return subject.hasProperty(OWL.annotatedProperty, property);
     }
 
-    /**
-     * Determines the annotation type.
-     * Root annotations (including some anon-axioms bodies) go with the type owl:Axiom {@link OWL#Axiom},
-     * sub-annotations have type owl:Annotation.
-     *
-     * @param s {@link Resource} the subject resource to test
-     * @return {@link OWL#Axiom} or {@link OWL#Annotation}
-     */
-    protected static Resource detectAnnotationRootType(Resource s) {
-        Model m = s.getModel();
-        if (s.isAnon() && OntAnnotationImpl.ROOT_TYPES.stream().anyMatch(t -> m.contains(s, RDF.type, t))) {
-            return OWL.Annotation;
-        }
-        return OWL.Axiom;
+    public boolean hasAnnotatedTarget(RDFNode object) {
+        return subject.hasProperty(OWL.annotatedTarget, object);
     }
 
     /**
