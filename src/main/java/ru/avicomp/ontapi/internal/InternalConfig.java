@@ -145,6 +145,18 @@ public interface InternalConfig {
             return this;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            return map.equals(((Snapshot) o).map);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(map);
+        }
+
         private enum Key {
             LOAD_ANNOTATIONS,
             ALLOW_DECLARATION_BULK_ANNOTATIONS,

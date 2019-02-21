@@ -14,24 +14,28 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.CachedStatementImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
-import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
+import ru.avicomp.ontapi.jena.impl.conf.BaseFactoryImpl;
+import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
+import ru.avicomp.ontapi.jena.impl.conf.PersonalityBuilder;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.OntObject;
+import ru.avicomp.ontapi.jena.model.OntSWRL;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -44,43 +48,41 @@ import java.util.Objects;
 @SuppressWarnings("WeakerAccess")
 public class SearchModel extends OntGraphModelImpl {
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchModel.class);
+    /**
+     * Average {@link Node} (uri and blank) size is 160 bytes (internal string ~ 150byte),
+     * Experiments show that for the limit = 100_000, the sum of all cache sizes is not more than 190_000
+     * (for teleost and galen),
+     * This means about 30 MB.
+     * Tested ontologies:
+     * <ul>
+     * <li>teleost(59mb, 336_291 axioms, 650_339 triples)</li>
+     * <li>hp(38mb, 143_855 axioms, 367_315 triples)</li>
+     * <li>galen(33mb, 96_463 axioms, 281_492 triples)</li>
+     * <li>psychology(4mb, 38_872 axioms, 38_873 triples)</li>
+     * <li>family(0.2mb, 2_845 axioms)</li>
+     * <li>pizza(0.1mb, 945 axioms)</li>
+     * </ul>
+     * todo: move to config
+     */
+    private static int limit = 50_000;
 
     protected final InternalConfig.Snapshot conf;
+    /**
+     * Original personality.
+     */
+    protected final OntPersonality personality;
 
     public SearchModel(Graph graph, OntPersonality personality, InternalConfig.Snapshot conf) {
-        super(graph, personality);
+        this(graph, personality, conf, true);
+    }
+
+    protected SearchModel(Graph graph,
+                          OntPersonality personality,
+                          InternalConfig.Snapshot conf,
+                          boolean withCache) {
+        super(graph, withCache ? cachedPersonality(personality) : personality);
         this.conf = Objects.requireNonNull(conf);
-    }
-
-    @Override
-    public SearchModel getTopModel() {
-        if (independent()) {
-            return this;
-        }
-        return new SearchModel(getBaseGraph(), getOntPersonality(), conf);
-    }
-
-    @Override
-    public OntStatementImpl createStatement(Resource s, Property p, RDFNode o) {
-        return wrap(super.createStatement(s, p, o));
-    }
-
-    @Override
-    public OntStatementImpl asStatement(Triple triple) {
-        return wrap(super.asStatement(triple));
-    }
-
-    protected OntStatementImpl wrap(OntStatement s) {
-        return CachedStatementImpl.createCachedOntStatementImpl(s);
-    }
-
-    @Override
-    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> type) {
-        try {
-            return super.fetchNodeAs(node, type);
-        } catch (OntJenaException e) {
-            return handleFetchNodeAsException(e, node, type, this, conf);
-        }
+        this.personality = personality;
     }
 
     static <X> X handleFetchNodeAsException(OntJenaException error,
@@ -94,5 +96,101 @@ public class SearchModel extends OntGraphModelImpl {
         LOGGER.warn("Can't wrap node <{}> as {}: found a problem inside <{}>: '{}'",
                 node, OntObjectImpl.viewAsString(type), m.getID(), error.getMessage());
         return null;
+    }
+
+    public static OntPersonality cachedPersonality(OntPersonality from) {
+        PersonalityBuilder res = PersonalityBuilder.from(from);
+        from.types(OntObject.class)
+                // do not cache SWRL.DArg (and, therefore, SWRL.Arg) since an instance of this type
+                // can be Literal with unpredictable length
+                .filter(x -> x != OntSWRL.DArg.class && x != OntSWRL.Arg.class)
+                .forEach(x -> CachedFactory.cache(res, from, x));
+        return res.build();
+    }
+
+    /**
+     * Creates a {@code Map} with fixed length.
+     *
+     * @param size        int, positive
+     * @param accessOrder the ordering mode: {@code true} for access-order, {@code false} for insertion-order
+     * @param <K>         the type of keys maintained by the return map
+     * @param <V>         the type of mapped values
+     * @return Map
+     */
+    public static <K, V> Map<K, V> createLinkedHashMap(int size, boolean accessOrder) {
+        return new LinkedHashMap<K, V>(size, 0.75f, accessOrder) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+                return size() > size;
+            }
+        };
+    }
+
+    @Override
+    public OntGraphModelImpl getTopModel() {
+        if (independent()) {
+            return this;
+        }
+        // do not cache, since the top model is used only to list local objects,
+        // and, also, because these objects may differ from those retrieved from the full model,
+        // (for example sub model may contain declaration '<a> a owl:Class',
+        // while in the local graph there is '<a> a rdfs:Datatype' - i.e. a punning for the same entity <a>).
+        // A shared cache for this case will lead to wrong result,
+        // and a separated cache will not give a performance gain
+        return new SearchModel(getBaseGraph(), personality, conf, false);
+    }
+
+    @Override
+    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> type) {
+        try {
+            return super.fetchNodeAs(node, type);
+        } catch (OntJenaException e) {
+            return handleFetchNodeAsException(e, node, type, this, conf);
+        }
+    }
+
+    /**
+     * todo: description
+     */
+    public static class CachedFactory extends BaseFactoryImpl {
+        private final ObjectFactory from;
+        private final Class<? extends OntObject> type;
+        private final InternalCache<Node, Boolean> canWrapCache;
+
+        public CachedFactory(Class<? extends OntObject> type, ObjectFactory from) {
+            this.type = Objects.requireNonNull(type);
+            this.from = Objects.requireNonNull(from);
+            // todo: caffeine in case of parallel
+            this.canWrapCache = InternalCache.fromMap(createLinkedHashMap(limit, true));
+        }
+
+        private static CachedFactory create(Class<? extends OntObject> type, ObjectFactory from) {
+            return new CachedFactory(type, from instanceof CachedFactory ? ((CachedFactory) from).from : from);
+        }
+
+        static void cache(PersonalityBuilder res, OntPersonality from, Class<? extends OntObject> type) {
+            res.add(type, create(type, from.getObjectFactory(type)));
+        }
+
+        @Override
+        public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
+            return from.iterator(eg);
+        }
+
+        @Override
+        public boolean canWrap(Node node, EnhGraph eg) {
+            if (node.isLiteral()) return from.canWrap(node, eg);
+            return canWrapCache.get(node, () -> from.canWrap(node, eg));
+        }
+
+        @Override
+        public EnhNode createInstance(Node node, EnhGraph eg) {
+            return from.createInstance(node, eg);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("CachedFactory[%s]", OntObjectImpl.viewAsString(type));
+        }
     }
 }

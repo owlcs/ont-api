@@ -44,6 +44,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import javax.annotation.Nonnull;
+import java.lang.ref.SoftReference;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -84,23 +85,42 @@ import java.util.stream.Stream;
 public class InternalModel extends OntGraphModelImpl implements OntGraphModel, HasOntologyID {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
-    // working with sorted axiom types list should be a little bit faster:
-    // the first are the declarations and widely used axioms, it is good for the data-factory cache
+    /**
+     * A collection of all axioms type as a sorted list.
+     * working with sorted axiom types list should be a little bit faster:
+     * the first are the declarations and widely used axioms, it is good for the data-factory cache.
+     */
     public static final List<AxiomType<? extends OWLAxiom>> AXIOM_TYPES = AxiomType.AXIOM_TYPES.stream().sorted()
             .collect(Iter.toUnmodifiableList());
-    // Configuration settings
+    /**
+     * Configuration settings to control behaviour.
+     */
     private final InternalConfig config;
-    // The main axioms & header annotations cache.
-    // Used to work through OWL-API interfaces. The use of jena model methods must clear this cache.
+    /**
+     * The main axioms and header annotations cache.
+     * Used to work through OWL-API interfaces. The use of jena model methods which modify graph must clear this cache.
+     */
     protected LoadingCache<Class<? extends OWLObject>, ObjectTriplesMap<? extends OWLObject>> components =
             Caffeine.newBuilder().softValues().build(this::readObjectTriples);
 
-    // Temporary cache for the collecting axioms, should be reset after axioms getting.
+    /**
+     * A temporary cache that is used while collecting axioms, should be reset after axioms getting to release memory.
+     * Any change in the base graph must also reset this cache.
+     */
     protected final InternalDataFactory cacheDataFactory;
-    // OWL objects store to improve performance (working with OWL-API 'signature' methods)
-    // Any change in the graph must reset these caches.
+    /**
+     * OWL objects cache-store to improve performance (working with OWL-API 'signature' methods).
+     * Any change in the graph must reset this cache.
+     */
     protected LoadingCache<Class<? extends OWLObject>, Set<? extends OWLObject>> objects =
             Caffeine.newBuilder().softValues().build(this::readOWLObjects);
+    /**
+     * A cache model for axioms/objects search optimizations.
+     */
+    protected SoftReference<SearchModel> cacheModel;
+    /**
+     * Ontology ID cache.
+     */
     protected OntologyID cachedID;
 
     /**
@@ -120,7 +140,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Creates an {@link OntGraphModelImpl} version with search optimizations.
+     * Returns an {@link OntGraphModelImpl} version with search optimizations.
      * The return model must be used only to collect OWL-API stuff:
      * {@link OWLAxiom OWL Axiom}s and {@link OWLObject OWL Objects}.
      * Retrieving jena {@link OntObject Ont Object}s and {@link OntStatement Ont Statements} must be performed
@@ -128,10 +148,16 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @param conf {@link InternalConfig.Snapshot}, not {@code null}
      * @return {@link OntGraphModelImpl} with search optimizations
-     * @since 1.4.0
      */
-    public OntGraphModelImpl getSearchModel(InternalConfig.Snapshot conf) {
-        return new SearchModel(getGraph(), getOntPersonality(), conf);
+    protected OntGraphModelImpl getSearchModel(InternalConfig.Snapshot conf) {
+        // todo: must be configurable -> no cache if specified in config
+        SearchModel res;
+        if (cacheModel != null && (res = cacheModel.get()) != null && Objects.equals(conf, res.conf)) {
+            return res;
+        }
+        res = new SearchModel(getGraph(), getOntPersonality(), conf);
+        this.cacheModel = new SoftReference<>(res);
+        return res;
     }
 
     @Override
@@ -815,12 +841,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Invalidates {@link #objects} and {@link #cacheDataFactory} caches.
+     * Invalidates {@link #objects}, {@link #cacheDataFactory} and {@link #cacheModel} caches.
      * Auxiliary method.
      */
     protected void clearObjectsCaches() {
         objects.invalidateAll();
         cacheDataFactory.clear();
+        cacheModel = null;
     }
 
     /**

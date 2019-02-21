@@ -199,7 +199,6 @@ public enum Entities {
             return true;
         };
 
-
         OntFilter builtInEntity = (n, g) -> builtInURIs(g).contains(n);
         OntFilter modelEntity = new OntFilter.HasType(resourceType).and(illegalPunningsFilter);
 

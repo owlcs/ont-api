@@ -352,7 +352,7 @@ public abstract class GraphTransformers {
          * @return Stream of {@link Transform}s.
          */
         protected Stream<Transform> actions(Graph graph) {
-            return filter.test(graph) ? makers().map(f -> f.create(graph)).filter(Transform::test) : Stream.empty();
+            return getFilter().test(graph) ? makers().map(f -> f.create(graph)).filter(Transform::test) : Stream.empty();
         }
 
         /**
