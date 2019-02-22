@@ -171,19 +171,6 @@ public enum Entities {
     }
 
     /**
-     * Answers {@code true} if a builtin URI must has more priority then RDF declaration.
-     * It's a minor optimization:
-     * It is expected that in ordinary ontologies,
-     * the majority of entities of a certain type are most likely have RDF declarations,
-     * while for entities of a different type the opposite can be true: they are most likely built-in.
-     *
-     * @return boolean
-     */
-    private boolean builtinsInPriority() {
-        return ANNOTATION_PROPERTY == this || DATATYPE == this;
-    }
-
-    /**
      * Creates a factory for the entity.
      *
      * @return {@link ObjectFactory}
@@ -202,7 +189,7 @@ public enum Entities {
         OntFilter builtInEntity = (n, g) -> builtInURIs(g).contains(n);
         OntFilter modelEntity = new OntFilter.HasType(resourceType).and(illegalPunningsFilter);
 
-        OntFilter entity = builtinsInPriority() ? builtInEntity.or(modelEntity) : modelEntity.or(builtInEntity);
+        OntFilter entity = modelEntity.or(builtInEntity);
 
         OntFilter filter = OntFilter.URI.and(entity);
         OntMaker maker = new OntMaker.WithType(impl, resourceType).restrict(illegalPunningsFilter);

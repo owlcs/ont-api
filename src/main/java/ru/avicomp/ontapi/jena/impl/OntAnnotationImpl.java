@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -50,8 +49,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static final Set<Property> REQUIRED_PROPERTIES = Stream.of(OWL.annotatedSource
             , OWL.annotatedProperty
             , OWL.annotatedTarget).collect(Iter.toUnmodifiableSet());
-    private static final List<Node> REQUIRED_PROPERTY_NODES = REQUIRED_PROPERTIES.stream()
-            .map(FrontsNode::asNode).collect(Iter.toUnmodifiableList());
+    private static final Set<Node> REQUIRED_PROPERTY_NODES = Iter.asUnmodifiableNodeSet(REQUIRED_PROPERTIES);
     private static final Node AXIOM = OWL.Axiom.asNode();
     private static final Node ANNOTATION = OWL.Annotation.asNode();
     public static final Set<Property> SPEC = Stream.concat(Stream.of(RDF.type), REQUIRED_PROPERTIES.stream())
@@ -195,10 +193,8 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
                 Node t = types.next();
                 if (AXIOM.equals(t) || ANNOTATION.equals(t)) {
                     // test spec
-                    for (Node r : REQUIRED_PROPERTY_NODES) {
-                        if (!graph.contains(node, r, Node.ANY)) return false;
-                    }
-                    return true;
+                    Set<Node> props = graph.find(node, Node.ANY, Node.ANY).mapWith(Triple::getPredicate).toSet();
+                    return props.containsAll(REQUIRED_PROPERTY_NODES);
                 }
                 // special cases: owl:AllDisjointClasses, owl:AllDisjointProperties,
                 // owl:AllDifferent or owl:NegativePropertyAssertion

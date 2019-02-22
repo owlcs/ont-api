@@ -258,7 +258,8 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      */
     @Override
     public boolean isBulkAnnotation() {
-        return subject.isAnon() && getModel().findNodeAs(subject.asNode(), OntAnnotation.class) != null;
+        //return subject.isAnon() && getModel().findNodeAs(subject.asNode(), OntAnnotation.class) != null;
+        return subject.canAs(OntAnnotation.class);
     }
 
     @Override
