@@ -64,7 +64,7 @@ public class SearchModel extends OntGraphModelImpl {
      * </ul>
      * todo: move to config
      */
-    private static int limit = 50_000;
+    private static final int CACHE_SIZE = 50_000;
 
     protected final InternalConfig.Snapshot conf;
     /**
@@ -80,7 +80,7 @@ public class SearchModel extends OntGraphModelImpl {
                           OntPersonality personality,
                           InternalConfig.Snapshot conf,
                           boolean withCache) {
-        super(graph, withCache ? cachedPersonality(personality) : personality);
+        super(graph, withCache ? cachedPersonality(personality, conf) : personality);
         this.conf = Objects.requireNonNull(conf);
         this.personality = personality;
     }
@@ -98,13 +98,13 @@ public class SearchModel extends OntGraphModelImpl {
         return null;
     }
 
-    public static OntPersonality cachedPersonality(OntPersonality from) {
+    public static OntPersonality cachedPersonality(OntPersonality from, InternalConfig conf) {
         PersonalityBuilder res = PersonalityBuilder.from(from);
         from.types(OntObject.class)
                 // do not cache SWRL.DArg (and, therefore, SWRL.Arg) since an instance of this type
                 // can be Literal with unpredictable length
                 .filter(x -> x != OntSWRL.DArg.class && x != OntSWRL.Arg.class)
-                .forEach(x -> CachedFactory.cache(res, from, x));
+                .forEach(x -> CachedFactory.cache(res, from, x, CACHE_SIZE, conf.parallel()));
         return res.build();
     }
 
@@ -157,19 +157,28 @@ public class SearchModel extends OntGraphModelImpl {
         private final Class<? extends OntObject> type;
         private final InternalCache<Node, Boolean> canWrapCache;
 
-        public CachedFactory(Class<? extends OntObject> type, ObjectFactory from) {
+        public CachedFactory(Class<? extends OntObject> type, ObjectFactory from, int limit, boolean parallel) {
             this.type = Objects.requireNonNull(type);
             this.from = Objects.requireNonNull(from);
-            // todo: caffeine in case of parallel
-            this.canWrapCache = InternalCache.fromMap(createLinkedHashMap(limit, true));
+            this.canWrapCache = InternalCache.createBounded(parallel, limit);
         }
 
-        private static CachedFactory create(Class<? extends OntObject> type, ObjectFactory from) {
-            return new CachedFactory(type, from instanceof CachedFactory ? ((CachedFactory) from).from : from);
+        private static CachedFactory create(Class<? extends OntObject> type,
+                                            ObjectFactory from,
+                                            int limit,
+                                            boolean parallel) {
+            return new CachedFactory(type,
+                    from instanceof CachedFactory ? ((CachedFactory) from).from : from,
+                    limit,
+                    parallel);
         }
 
-        static void cache(PersonalityBuilder res, OntPersonality from, Class<? extends OntObject> type) {
-            res.add(type, create(type, from.getObjectFactory(type)));
+        static void cache(PersonalityBuilder res,
+                          OntPersonality from,
+                          Class<? extends OntObject> type,
+                          int limit,
+                          boolean parallel) {
+            res.add(type, create(type, from.getObjectFactory(type), limit, parallel));
         }
 
         @Override
@@ -180,7 +189,7 @@ public class SearchModel extends OntGraphModelImpl {
         @Override
         public boolean canWrap(Node node, EnhGraph eg) {
             if (node.isLiteral()) return from.canWrap(node, eg);
-            return canWrapCache.get(node, () -> from.canWrap(node, eg));
+            return canWrapCache.get(node, n -> from.canWrap(n, eg));
         }
 
         @Override

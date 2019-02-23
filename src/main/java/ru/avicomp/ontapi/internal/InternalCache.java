@@ -14,12 +14,27 @@
 
 package ru.avicomp.ontapi.internal;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * The simplest common cache-adapter interface.
+ * <p>
+ * This interface is also used as a factory and as the only place to access to a particular caches.
+ * Currently, it includes two implementations: a LRU {@code LinkedHashMap} based cache,
+ * which has the best performance in a single tread environment,
+ * and a {@link java.util.concurrent.ConcurrentHashMap} based {@link Cache Caffeine Cache},
+ * which has good benchmarks both in multi-thread and single-thread environments.
+ * <p>
+ * In general, this cache-wrapper is not thread-safe.
+ * But the upper-system uses R/W lock for any accessors,
+ * and, therefore, the data on which this cache relies does not change in the process of reading,
+ * whatever single- or multi- thread environment is used it.
  * <p>
  * Created by @ssz on 18.02.2019.
  *
@@ -49,33 +64,86 @@ public interface InternalCache<K, V> {
     V get(K key);
 
     /**
-     * Returns the current size of cache.
+     * Returns the current number of cached keys.
      *
      * @return long, the number of keys in this cache (not necessary key-value pairs)
      */
     long size();
 
     /**
-     * Returns the value associated with the {@code key} in this cache, obtaining that value from the
-     * {@code mappingFunction} if necessary. This method provides a simple substitute for the
-     * conventional "if cached, return; otherwise create, cache and return" pattern.
+     * Discards all entries in the cache.
+     */
+    void clear();
+
+    /**
+     * Returns the value associated with the {@code key} in this cache,
+     * obtaining that value from the {@code mappingFunction} if necessary.
+     * This method provides a simple substitute for the conventional
+     * "if cached, return; otherwise create, cache and return" pattern.
      *
      * @param key             the key with which the specified value is to be associated
      * @param mappingFunction the function to compute a value
-     * @return the current (existing or computed) value associated with the specified key, or null if
-     * the computed value is null
+     * @return the current (existing or computed) value associated with the specified key,
+     * or {@code null} if the computed value is {@code null}
      */
-    default V get(K key, Supplier<? extends V> mappingFunction) {
+    default V get(K key, Function<? super K, ? extends V> mappingFunction) {
         Objects.requireNonNull(mappingFunction);
         V res;
         if ((res = get(key)) != null) {
             return res;
         }
-        if ((res = mappingFunction.get()) != null) {
+        if ((res = mappingFunction.apply(key)) != null) {
             put(key, res);
             return res;
         }
         return res;
+    }
+
+    /**
+     * Represents this cache as {@link Loading Loading Cache}.
+     *
+     * @param loader  {@link Function} the function to compute a value if it absence in the cache
+     * @param <Key>   the type of keys maintained by the return cache
+     * @param <Value> the type of mapped values
+     * @return {@link Loading}
+     */
+    default <Key extends K, Value extends V> Loading<Key, Value> asLoading(Function<? super Key, ? extends Value> loader) {
+        Objects.requireNonNull(loader);
+        @SuppressWarnings("unchecked")
+        InternalCache<Key, Value> self = (InternalCache<Key, Value>) this;
+        return new Loading<Key, Value>() {
+            @Override
+            public Value get(Key key) {
+                return self.get(key, loader);
+            }
+
+            @Override
+            public InternalCache<Key, Value> asCache() {
+                return self;
+            }
+        };
+    }
+
+    /**
+     * Creates a bounded LRU cache,
+     * that wraps either {@link Cache Caffeine} or simple {@link LinkedHashMap} based cache.
+     *
+     * @param parallel boolean factor, if {@code true} a caffeine cache will be created, otherwise - LHM based cache
+     * @param size     int the maximum size of the cache
+     * @param <K>      the type of keys maintained by the return cache
+     * @param <V>      the type of mapped values
+     * @return {@link InternalCache}
+     */
+    static <K, V> InternalCache<K, V> createBounded(boolean parallel, long size) {
+        if (parallel) {
+            return fromCaffeine(Caffeine.newBuilder().maximumSize(size).build());
+        }
+        return fromMap(new LinkedHashMap<K, V>((int) size, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+                return size() > size;
+            }
+        });
     }
 
     /**
@@ -103,8 +171,72 @@ public interface InternalCache<K, V> {
             public long size() {
                 return map.size();
             }
+
+            @Override
+            public void clear() {
+                map.clear();
+            }
         };
     }
 
+    /**
+     * Wraps the given Caffeine {@code Cache} as {@code InternalCache}.
+     * Note: the impl does not override {@link Cache#get(Object, Function)} method for performance reasons.
+     *
+     * @param cache {@link Cache}
+     * @param <K>   the type of keys maintained by the return cache
+     * @param <V>   the type of mapped values
+     * @return {@link InternalCache}
+     */
+    static <K, V> InternalCache<K, V> fromCaffeine(Cache<K, V> cache) {
+        Objects.requireNonNull(cache);
+        return new InternalCache<K, V>() {
+            @Override
+            public void put(K key, V value) {
+                cache.put(key, value);
+            }
+
+            @Override
+            public V get(K key) {
+                return cache.getIfPresent(key);
+            }
+
+            @Override
+            public long size() {
+                return cache.asMap().size();
+            }
+
+            @Override
+            public void clear() {
+                cache.invalidateAll();
+            }
+        };
+    }
+
+    /**
+     * Loading cache.
+     * Values are automatically loaded by the cache,
+     * and are stored in the cache until either evicted or manually invalidated.
+     *
+     * @param <K> the type of keys maintained by this cache
+     * @param <V> the type of mapped values
+     */
+    interface Loading<K, V> {
+        /**
+         * Returns the value associated with the {@code key} in this cache, obtaining that value from internal factory.
+         *
+         * @param key {@link K} key with which the specified value is to be associated
+         * @return {@link V} the current (existing or computed) value associated with the specified key,
+         * or {@code null} if the computed value is {@code null}
+         */
+        V get(K key);
+
+        /**
+         * Answers a {@link InternalCache} view of this cache.
+         *
+         * @return {@link InternalCache}
+         */
+        InternalCache<K, V> asCache();
+    }
 
 }

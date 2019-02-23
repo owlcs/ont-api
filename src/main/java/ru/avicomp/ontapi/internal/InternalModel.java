@@ -99,6 +99,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * The main axioms and header annotations cache.
      * Used to work through OWL-API interfaces. The use of jena model methods which modify graph must clear this cache.
+     * todo: replace with InternalCache
      */
     protected LoadingCache<Class<? extends OWLObject>, ObjectTriplesMap<? extends OWLObject>> components =
             Caffeine.newBuilder().softValues().build(this::readObjectTriples);
@@ -111,6 +112,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * OWL objects cache-store to improve performance (working with OWL-API 'signature' methods).
      * Any change in the graph must reset this cache.
+     * todo: replace with InternalCache
      */
     protected LoadingCache<Class<? extends OWLObject>, Set<? extends OWLObject>> objects =
             Caffeine.newBuilder().softValues().build(this::readOWLObjects);

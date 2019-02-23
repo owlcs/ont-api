@@ -14,7 +14,6 @@
 
 package ru.avicomp.ontapi;
 
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.impl.WrappedGraph;
@@ -31,10 +30,7 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
-import ru.avicomp.ontapi.internal.CacheDataFactory;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalDataFactory;
-import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -72,11 +68,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected OntConfig configProvider;
     protected transient OntLoaderConfiguration loaderConfig;
     protected transient OntWriterConfiguration writerConfig;
-    // Loading Cache for IRIs, that is shared between this manager ontologies,
-    // the magic number '2048' is taken from OWL-API impl
+    // Loading Cache for IRIs, that is shared between ontologies that belong to this manager.
+    // The magic number '2048' is taken from OWL-API impl
     // (see uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl, v5)
     private static final int IRI_CACHE_SIZE = 2048;
-    protected transient LoadingCache<String, IRI> iris = CacheDataFactory.build(IRI_CACHE_SIZE, IRI::create);
+    protected transient InternalCache.Loading<String, IRI> iris;
     // OntologyFactory collection:
     protected final RWLockedCollection<OWLOntologyFactory> ontologyFactories;
     // IRI mappers
@@ -131,8 +127,13 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         };
         this.parserFactories = new RWLockedCollection<>(this.lock, _sorting);
         this.ontologyStorers = new RWLockedCollection<>(this.lock, _sorting);
-        this.configProvider = new ConcurrentConfig(this.lock);
+        this.configProvider = NoOpReadWriteLock.isConcurrent(lock) ? new ConcurrentConfig(this.lock) : new OntConfig();
         this.content = new OntologyCollectionImpl<>(this.lock);
+        this.iris = createIRICache();
+    }
+
+    private InternalCache.Loading<String, IRI> createIRICache() { // todo: cache size must be configurable
+        return InternalCache.createBounded(NoOpReadWriteLock.isConcurrent(lock), IRI_CACHE_SIZE).asLoading(IRI::create);
     }
 
     /**
@@ -200,7 +201,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             boolean hasChanges = ModelConfig.hasChanges(was, config);
             content.values()
                     .filter(i -> i.getModelConfig().hasLoaderConfig() ? i.getModelConfig().hasChanges(config) : hasChanges)
-                    .map(OntInfo::get) // todo: no need clear whole cache
+                    .map(OntInfo::get) // todo: it is no need to clear a whole cache
                     .forEach(OntologyModel::clearCache);
             this.loaderConfig = config;
         } finally {
@@ -1751,7 +1752,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         in.defaultReadObject();
         loaderConfig = (OntLoaderConfiguration) in.readObject();
         writerConfig = (OntWriterConfiguration) in.readObject();
-        iris = CacheDataFactory.build(IRI_CACHE_SIZE, IRI::create);
+        iris = createIRICache();
         content.values().forEach(info -> {
             ModelConfig conf = info.getModelConfig();
             InternalModelHolder m = (InternalModelHolder) info.get();
@@ -2188,7 +2189,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
 
         public InternalDataFactory getDataFactory() {
-            return new CacheDataFactory(manager.getOWLDataFactory(), manager.iris, CacheDataFactory.CACHE_SIZE);
+            return new CacheDataFactory(manager.getOWLDataFactory()
+                    , () -> InternalCache.createBounded(manager.isConcurrent(), CacheDataFactory.CACHE_SIZE)
+                    , manager.iris) {
+            };
         }
 
         public OntPersonality getPersonality() {
