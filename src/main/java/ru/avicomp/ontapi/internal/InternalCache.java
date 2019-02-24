@@ -17,24 +17,26 @@ package ru.avicomp.ontapi.internal;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.ref.SoftReference;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
- * The simplest common cache-adapter interface.
+ * The simplest common Cache Adapter interface for internal use.
  * <p>
- * This interface is also used as a factory and as the only place to access to a particular caches.
- * Currently, it includes two implementations: a LRU {@code LinkedHashMap} based cache,
+ * This interface is also used as a factory and as the only place to access to a particular cache implementations.
+ * Currently, it includes two kind of implementations: a LRU {@code LinkedHashMap} based cache,
  * which has the best performance in a single tread environment,
  * and a {@link java.util.concurrent.ConcurrentHashMap} based {@link Cache Caffeine Cache},
  * which has good benchmarks both in multi-thread and single-thread environments.
  * <p>
  * In general, this cache-wrapper is not thread-safe.
  * But the upper-system uses R/W lock for any accessors,
- * and, therefore, the data on which this cache relies does not change in the process of reading,
+ * and, therefore, the data on which this cache should rely does not change in the process of reading,
  * whatever single- or multi- thread environment is used it.
+ * This fact allows to make some read operations to be simpler and faster,
+ * then it would be with direct use particular caches.
  * <p>
  * Created by @ssz on 18.02.2019.
  *
@@ -64,16 +66,49 @@ public interface InternalCache<K, V> {
     V get(K key);
 
     /**
-     * Returns the current number of cached keys.
+     * Discards any cached value for the {@code key}.
      *
-     * @return long, the number of keys in this cache (not necessary key-value pairs)
+     * @param key {@link K}
      */
-    long size();
+    void remove(K key);
 
     /**
      * Discards all entries in the cache.
      */
     void clear();
+
+    /**
+     * Lists all keys.
+     *
+     * @return Stream of {@link K}s
+     */
+    Stream<K> keys();
+
+    /**
+     * Lists all cached values.
+     *
+     * @return Stream of {@link V}s
+     */
+    Stream<V> values();
+
+    /**
+     * Answers {@code true} if for the given {@code key} there is a cached value.
+     *
+     * @param key {@link K}
+     * @return boolean
+     */
+    default boolean contains(K key) {
+        return get(key) != null;
+    }
+
+    /**
+     * Returns the current number of cached keys.
+     *
+     * @return long, the number of keys in this cache (not necessary key-value pairs)
+     */
+    default long size() {
+        return keys().count();
+    }
 
     /**
      * Returns the value associated with the {@code key} in this cache,
@@ -94,7 +129,6 @@ public interface InternalCache<K, V> {
         }
         if ((res = mappingFunction.apply(key)) != null) {
             put(key, res);
-            return res;
         }
         return res;
     }
@@ -147,6 +181,73 @@ public interface InternalCache<K, V> {
     }
 
     /**
+     * Creates an unbounded LRU cache with soft reference values,
+     * that wraps either {@link Cache Caffeine} or simple {@link LinkedHashMap} based cache.
+     *
+     * @param parallel boolean factor, if {@code true} a caffeine cache will be created, otherwise - LHM based cache
+     * @param <K>      the type of keys maintained by the return cache
+     * @param <V>      the type of mapped values
+     * @return {@link InternalCache}
+     */
+    static <K, V> InternalCache<K, V> createSoft(boolean parallel) {
+        if (parallel) {
+            return fromCaffeine(Caffeine.newBuilder().softValues().build());
+        }
+        // using of non-concurrent LHM without is dangerous in multi-thread environment:
+        return new InternalCache<K, V>() {
+            private final Map<K, SoftReference<V>> map = new LinkedHashMap<>(128, 0.75f, true);
+
+            @Override
+            public void put(K key, V value) {
+                map.put(key, new SoftReference<>(value));
+            }
+
+            @Override
+            public V get(K key) {
+                SoftReference<V> res = map.get(key);
+                return res == null ? null : res.get();
+            }
+
+            @Override
+            public void clear() {
+                map.clear();
+            }
+
+            @Override
+            public void remove(K key) {
+                map.remove(key);
+            }
+
+            @Override
+            public Stream<K> keys() {
+                return map.keySet().stream();
+            }
+
+            @Override
+            public Stream<V> values() {
+                // For unclear reasons the following commented out code in multithreading
+                // leads to a dramatic performance degradation that is similar to livelock.
+                // This demonstrates that the LHM must not be used in parallel.
+                /*return map.values().stream()
+                        .map(v -> v == null ? null : v.get())
+                        .filter(Objects::nonNull);*/
+                ArrayList<V> res = new ArrayList<>(map.size());
+                for (SoftReference<V> s : map.values()) {
+                    if (res.size() > map.size()) {
+                        throw new ConcurrentModificationException("Allowed size exceeded: " + map.size());
+                    }
+                    if (s == null) continue;
+                    V v = s.get();
+                    if (v == null) continue;
+                    res.add(v);
+                }
+                res.trimToSize();
+                return res.stream();
+            }
+        };
+    }
+
+    /**
      * Wraps the given {@code Map} as {@code InternalCache}.
      *
      * @param map {@link Map}
@@ -168,13 +269,28 @@ public interface InternalCache<K, V> {
             }
 
             @Override
-            public long size() {
-                return map.size();
+            public void clear() {
+                map.clear();
             }
 
             @Override
-            public void clear() {
-                map.clear();
+            public void remove(K key) {
+                map.remove(key);
+            }
+
+            @Override
+            public Stream<K> keys() {
+                return map.keySet().stream();
+            }
+
+            @Override
+            public Stream<V> values() {
+                return map.values().stream();
+            }
+
+            @Override
+            public boolean contains(K key) {
+                return map.get(key) != null;
             }
         };
     }
@@ -202,13 +318,23 @@ public interface InternalCache<K, V> {
             }
 
             @Override
-            public long size() {
-                return cache.asMap().size();
+            public void clear() {
+                cache.invalidateAll();
             }
 
             @Override
-            public void clear() {
-                cache.invalidateAll();
+            public void remove(K key) {
+                cache.invalidate(key);
+            }
+
+            @Override
+            public Stream<K> keys() {
+                return cache.asMap().keySet().stream();
+            }
+
+            @Override
+            public Stream<V> values() {
+                return cache.asMap().values().stream();
             }
         };
     }
@@ -222,8 +348,10 @@ public interface InternalCache<K, V> {
      * @param <V> the type of mapped values
      */
     interface Loading<K, V> {
+
         /**
-         * Returns the value associated with the {@code key} in this cache, obtaining that value from internal factory.
+         * Returns the value associated with the {@code key} in this cache,
+         * obtaining that value from internal factory if necessary.
          *
          * @param key {@link K} key with which the specified value is to be associated
          * @return {@link V} the current (existing or computed) value associated with the specified key,

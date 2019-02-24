@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -41,45 +41,20 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected static final Set<OWLAnnotation> NO_ANNOTATIONS = Collections.emptySet();
 
-    // The cache is disabled since we have our own cache inside ru.avicomp.ontapi.internal.InternalModel,
-    // which should make sure that internal objects are not be duplicated in different object containers collected for the same ontology graph.
-/*
-    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, Set<OWLEntity>> signatures = build(key -> key.addSignatureEntitiesToSet(new TreeSet<>()));
-    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, Set<OWLAnonymousIndividual>> anonCaches = build(key -> key.addAnonymousIndividualsToSet(new TreeSet<>()));
-    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLClass>> classesSignatures = build(key -> cacheSig(key, OWLEntity::isOWLClass, OWLEntity::asOWLClass));
-    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLDataProperty>> dataPropertySignatures = build(key -> cacheSig(key, OWLEntity::isOWLDataProperty, OWLEntity::asOWLDataProperty));
-    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLObjectProperty>> objectPropertySignatures = build(key -> cacheSig(key, OWLEntity::isOWLObjectProperty, OWLEntity::asOWLObjectProperty));
-    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLDatatype>> datatypeSignatures = build(key -> cacheSig(key, OWLEntity::isOWLDatatype, OWLEntity::asOWLDatatype));
-    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLNamedIndividual>> individualSignatures = build(key -> cacheSig(key, OWLEntity::isOWLNamedIndividual, OWLEntity::asOWLNamedIndividual));
-    protected static com.github.benmanes.caffeine.cache.LoadingCache<OWLObjectImpl, List<OWLAnnotationProperty>> annotationPropertiesSignatures = build(key -> cacheSig(key, OWLEntity::isOWLAnnotationProperty, OWLEntity::asOWLAnnotationProperty));
-
-
-    static <Q, T> com.github.benmanes.caffeine.cache.LoadingCache<Q, T> build(com.github.benmanes.caffeine.cache.CacheLoader<Q, T> c) {
-        return com.github.benmanes.caffeine.cache.Caffeine.newBuilder().weakKeys().softValues().build(c);
-    }
-
-    static <T> List<T> cacheSig(OWLObject o, Predicate<OWLEntity> p, Function<OWLEntity, T> f) {
-        return o.signature().filter(p).map(f).collect(Collectors.toList());
-    }
-*/
-
     protected int hashCode = 0;
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
         return addAnonymousIndividualsToSet(new TreeSet<>()).stream();
         //return anonCaches.get(this).stream();
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public Stream<OWLEntity> signature() {
         return addSignatureEntitiesToSet(new TreeSet<>()).stream();
         //return signatures.get(this).stream();
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public boolean containsEntityInSignature(OWLEntity owlEntity) {
         return signature().anyMatch(o -> Objects.equals(o, owlEntity));

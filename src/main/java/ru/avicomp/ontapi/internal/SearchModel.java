@@ -49,9 +49,9 @@ import java.util.Objects;
 public class SearchModel extends OntGraphModelImpl {
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchModel.class);
     /**
-     * Average {@link Node} (uri and blank) size is 160 bytes (internal string ~ 150byte),
+     * Average {@link Node} (uri and blank) size is about 160 bytes (internal string ~ 150byte),
      * Experiments show that for the limit = 100_000, the sum of all cache sizes is not more than 190_000
-     * (for teleost and galen),
+     * (it is for teleost and galen, significantly less for the rest it),
      * This means about 30 MB.
      * Tested ontologies:
      * <ul>

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -85,7 +85,11 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * (packages {@code owlapi-rio}, {@code owlapi-oboformat}).
      * More about format-syntaxes can be found in {@link OntFormat} class.
      * <p>
-     * Note: this is the primary factory method to produce {@link OntologyManager}s
+     * The returned manager is not thread-safe:
+     * safety of a manager's ontology, that is shared between threads,
+     * is not guaranteed even if there is no write operations.
+     * <p>
+     * This is the primary factory method to produce {@link OntologyManager}s
      * that should be used when there is no reason to use any other method to create manager's instances.
      * In other words, if you have doubt what method to use, choose this one.
      *
@@ -98,7 +102,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
     /**
      * Creates a ready to use ONT-API ontology manager with a default configuration
      * and locking to work in a concurrent environment.
-     * The returned manager itself and any its component (i.e. ontologies) can be safely shared between different threads.
+     * The returned manager itself and any its component (i.e. ontologies) are thread-safe,
+     * i.e. can be safely shared between different threads.
      *
      * @return {@link OntologyManager} a fresh ONT-API manager instance with concurrency
      */

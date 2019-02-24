@@ -15,7 +15,6 @@ package ru.avicomp.owlapi.tests.api.multithread;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.owlapi.tests.api.baseclasses.TestBase;
 
 import javax.annotation.Nonnull;
@@ -261,7 +260,7 @@ public class OwlOntologyMultipleThreadsTest extends TestBase {
         MultiThreadChecker checker = new MultiThreadChecker(5);
         checker.check(new TestCallback(o, m.createOntology()));
         String trace = checker.getTrace();
-        checker.p.println(trace);
+        LOGGER.debug(trace);
     }
 
     static class MultiThreadChecker {
@@ -280,7 +279,7 @@ public class OwlOntologyMultipleThreadsTest extends TestBase {
         }
 
         public MultiThreadChecker() {
-            p = LOGGER.isDebugEnabled() ? new PrintStream(out) : ReadWriteUtils.NULL_OUT;
+            p = new PrintStream(out);
         }
 
         public void check(Runnable cb) {
