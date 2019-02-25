@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,6 +20,8 @@ import ru.avicomp.ontapi.internal.InternalDataFactory;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
+
+import java.util.function.Supplier;
 
 /**
  * A technical interface-helper that serves as a bridge between {@link ru.avicomp.ontapi.jena.model.OntGraphModel Jena RDF model} and
@@ -60,22 +62,22 @@ public interface InternalModelHolder {
     static InternalModel createInternalModel(Graph graph) {
         return createInternalModel(graph,
                 OntModelConfig.getPersonality(),
-                InternalDataFactory.DEFAULT,
+                () -> InternalDataFactory.DEFAULT,
                 InternalConfig.DEFAULT);
     }
 
     /**
-     * A factory method to create {@link InternalModel}.
+     * A primary factory method to create fresh {@link InternalModel}.
      *
      * @param graph       {@link Graph}, not {@code null}
      * @param personality {@link OntPersonality}, not {@code null}
-     * @param factory     {@link ru.avicomp.ontapi.internal.InternalDataFactory}, not {@code null}
+     * @param factory     a {@code Supplier} to produce new {@link InternalDataFactory}, not {@code null}
      * @param config      {@link InternalConfig}, not {@code null}
      * @return {@link InternalModel}
      */
     static InternalModel createInternalModel(Graph graph,
                                              OntPersonality personality,
-                                             InternalDataFactory factory,
+                                             Supplier<InternalDataFactory> factory,
                                              InternalConfig config) {
         return new InternalModel(OntApiException.notNull(graph, "Null graph."),
                 OntApiException.notNull(personality, "Null personality."),

@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.config;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.NoOpReadWriteLock;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -26,6 +27,7 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Stream;
 
 /**
@@ -64,6 +66,18 @@ public class OntConfig extends OntologyConfigurator {
     // WARNING: OntPersonality is not serializable!
     protected transient OntPersonality personality;
     protected GraphTransformers.Store transformers;
+
+    /**
+     * Creates a new config instance.
+     * All its settings are taken from {@code ./resources/ontapi.properties} file.
+     * The returned instance is mutable.
+     *
+     * @param lock {@link ReadWriteLock} or {@code null} for non-concurrent version
+     * @return {@link OntConfig}
+     */
+    public static OntConfig createConfig(ReadWriteLock lock) {
+        return NoOpReadWriteLock.isConcurrent(lock) ? new Concurrent(lock) : new OntConfig();
+    }
 
     protected Object get(OptionSetting key) {
         return key.fromMap(map);
@@ -959,6 +973,122 @@ public class OntConfig extends OntologyConfigurator {
                 return res;
             }
             return getDefaultValue();
+        }
+    }
+
+    /**
+     * An {@link OntConfig} with {@link ReadWriteLock} access.
+     * Created by @szuev on 05.07.2018.
+     */
+    public static class Concurrent extends OntConfig {
+        private static final long serialVersionUID = 5910609264963651991L;
+        protected final ReadWriteLock lock;
+
+        public Concurrent(ReadWriteLock lock) {
+            this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
+        }
+
+        @Override
+        protected Object get(OptionSetting key) {
+            lock.readLock().lock();
+            try {
+                return super.get(key);
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        protected Concurrent put(OptionSetting key, Object value) {
+            lock.writeLock().lock();
+            try {
+                super.put(key, value);
+                return this;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        @Override
+        public Concurrent setPersonality(OntPersonality p) {
+            lock.writeLock().lock();
+            try {
+                super.setPersonality(p);
+                return this;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        @Override
+        public OntPersonality getPersonality() {
+            lock.readLock().lock();
+            try {
+                return super.getPersonality();
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public Concurrent setGraphTransformers(GraphTransformers.Store t) {
+            lock.writeLock().lock();
+            try {
+                super.setGraphTransformers(t);
+                return this;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        @Override
+        public GraphTransformers.Store getGraphTransformers() {
+            lock.readLock().lock();
+            try {
+                return super.getGraphTransformers();
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public OntLoaderConfiguration buildLoaderConfiguration() {
+            lock.readLock().lock();
+            try {
+                return super.buildLoaderConfiguration();
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public OntWriterConfiguration buildWriterConfiguration() {
+            lock.readLock().lock();
+            try {
+                return super.buildWriterConfiguration();
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            lock.readLock().lock();
+            try {
+                return super.equals(o);
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            lock.readLock().lock();
+            try {
+                return super.hashCode();
+            } finally {
+                lock.readLock().unlock();
+            }
         }
     }
 }

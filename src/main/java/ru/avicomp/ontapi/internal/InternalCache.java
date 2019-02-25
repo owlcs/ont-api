@@ -159,6 +159,53 @@ public interface InternalCache<K, V> {
     }
 
     /**
+     * Creates a fake empty {@code InternalCache}, that does not contain anything.
+     * Can be used to debug and to disable caching according to configuration settings.
+     *
+     * @param <K> the type of keys maintained by the return cache
+     * @param <V> the type of mapped values
+     * @return {@link InternalCache}
+     */
+    static <K, V> InternalCache<K, V> createEmpty() {
+        return new InternalCache<K, V>() {
+            @Override
+            public void put(K key, V value) {
+                // nothing
+            }
+
+            @Override
+            public V get(K key) {
+                return null;
+            }
+
+            @Override
+            public void remove(K key) {
+                // nothing
+            }
+
+            @Override
+            public void clear() {
+                // nothing
+            }
+
+            @Override
+            public Stream<K> keys() {
+                return Stream.empty();
+            }
+
+            @Override
+            public Stream<V> values() {
+                return Stream.empty();
+            }
+
+            @Override
+            public V get(K key, Function<? super K, ? extends V> mappingFunction) {
+                return Objects.requireNonNull(mappingFunction).apply(key);
+            }
+        };
+    }
+
+    /**
      * Creates a bounded LRU cache,
      * that wraps either {@link Cache Caffeine} or simple {@link LinkedHashMap} based cache.
      *
@@ -193,7 +240,6 @@ public interface InternalCache<K, V> {
         if (parallel) {
             return fromCaffeine(Caffeine.newBuilder().softValues().build());
         }
-        // using of non-concurrent LHM without is dangerous in multi-thread environment:
         return new InternalCache<K, V>() {
             private final Map<K, SoftReference<V>> map = new LinkedHashMap<>(128, 0.75f, true);
 

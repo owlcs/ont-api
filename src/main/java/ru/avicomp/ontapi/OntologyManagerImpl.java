@@ -35,7 +35,6 @@ import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
-import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,6 +46,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -127,7 +127,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         };
         this.parserFactories = new RWLockedCollection<>(this.lock, _sorting);
         this.ontologyStorers = new RWLockedCollection<>(this.lock, _sorting);
-        this.configProvider = NoOpReadWriteLock.isConcurrent(lock) ? new ConcurrentConfig(this.lock) : new OntConfig();
+        this.configProvider = OntConfig.createConfig(this.lock);
         this.content = new OntologyCollectionImpl<>(this.lock);
         this.iris = createIRICache();
     }
@@ -2188,8 +2188,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
         }
 
-        public InternalDataFactory getDataFactory() {
-            return new CacheDataFactory(manager.getOWLDataFactory()
+        public Supplier<InternalDataFactory> getDataFactory() {
+            return () -> new CacheDataFactory(manager.getOWLDataFactory()
                     , () -> InternalCache.createBounded(manager.isConcurrent(), CacheDataFactory.CACHE_SIZE)
                     , manager.iris) {
             };
@@ -2257,122 +2257,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             if (left.isSplitAxiomAnnotations() != right.isSplitAxiomAnnotations()) return true;
             return left.isIgnoreAxiomsReadErrors() != right.isIgnoreAxiomsReadErrors();
         }
-
     }
 
-    /**
-     * An {@link OntConfig} with {@link ReadWriteLock} access.
-     * Created by @szuev on 05.07.2018.
-     */
-    public static class ConcurrentConfig extends OntConfig {
-        private static final long serialVersionUID = 5910609264963651991L;
-        protected final ReadWriteLock lock;
-
-        public ConcurrentConfig(ReadWriteLock lock) {
-            this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
-        }
-
-        @Override
-        protected Object get(OptionSetting key) {
-            lock.readLock().lock();
-            try {
-                return super.get(key);
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-
-        @Override
-        protected ConcurrentConfig put(OptionSetting key, Object value) {
-            lock.writeLock().lock();
-            try {
-                super.put(key, value);
-                return this;
-            } finally {
-                lock.writeLock().unlock();
-            }
-        }
-
-        @Override
-        public ConcurrentConfig setPersonality(OntPersonality p) {
-            lock.writeLock().lock();
-            try {
-                super.setPersonality(p);
-                return this;
-            } finally {
-                lock.writeLock().unlock();
-            }
-        }
-
-        @Override
-        public OntPersonality getPersonality() {
-            lock.readLock().lock();
-            try {
-                return super.getPersonality();
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-
-        @Override
-        public ConcurrentConfig setGraphTransformers(GraphTransformers.Store t) {
-            lock.writeLock().lock();
-            try {
-                super.setGraphTransformers(t);
-                return this;
-            } finally {
-                lock.writeLock().unlock();
-            }
-        }
-
-        @Override
-        public GraphTransformers.Store getGraphTransformers() {
-            lock.readLock().lock();
-            try {
-                return super.getGraphTransformers();
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-
-        @Override
-        public OntLoaderConfiguration buildLoaderConfiguration() {
-            lock.readLock().lock();
-            try {
-                return super.buildLoaderConfiguration();
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-
-        @Override
-        public OntWriterConfiguration buildWriterConfiguration() {
-            lock.readLock().lock();
-            try {
-                return super.buildWriterConfiguration();
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            lock.readLock().lock();
-            try {
-                return super.equals(o);
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            lock.readLock().lock();
-            try {
-                return super.hashCode();
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-    }
 }

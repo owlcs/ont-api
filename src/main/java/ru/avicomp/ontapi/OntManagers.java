@@ -86,8 +86,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * More about format-syntaxes can be found in {@link OntFormat} class.
      * <p>
      * The returned manager is not thread-safe:
-     * safety of a manager's ontology, that is shared between threads,
-     * is not guaranteed even if there is no write operations.
+     * concurrent edition of a manager's ontology will cause {@link java.util.ConcurrentModificationException}.
      * <p>
      * This is the primary factory method to produce {@link OntologyManager}s
      * that should be used when there is no reason to use any other method to create manager's instances.

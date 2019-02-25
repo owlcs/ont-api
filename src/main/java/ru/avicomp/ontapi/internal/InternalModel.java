@@ -49,6 +49,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,12 +107,21 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected final InternalCache.Loading<Class<? extends OWLObject>, Set<? extends OWLObject>> objects;
     /**
+     * A factory to produce {@link InternalDataFactory} object on demand.
+     */
+    protected final Supplier<InternalDataFactory> dataFactoryFactory;
+    /**
      * A temporary cache that is used while collecting axioms, should be reset after axioms getting to release memory.
      * Any change in the base graph must also reset this cache.
+     * Designed as a {@link SoftReference}
+     * since it is need only to optimize reading operations and may contain huge amount of objects.
      */
-    protected final InternalDataFactory cacheDataFactory;
+    protected SoftReference<InternalDataFactory> cacheFactory;
     /**
-     * A cache model for axioms/objects search optimizations.
+     * A model for axioms/objects search optimizations containing {@link Node node}s cache.
+     * Any change in the base graph must also reset this cache.
+     * Designed as a {@link SoftReference}
+     * since it is need only to optimize reading operations and may contain huge amount of objects.
      */
     protected SoftReference<SearchModel> cacheModel;
     /**
@@ -125,13 +135,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @param base        {@link Graph}
      * @param personality {@link OntPersonality}
-     * @param factory     {@link InternalDataFactory}
+     * @param factory     {@link Supplier} to create {@link InternalDataFactory} instances
      * @param config      {@link InternalConfig}
      */
-    public InternalModel(Graph base, OntPersonality personality, InternalDataFactory factory, InternalConfig config) {
+    public InternalModel(Graph base,
+                         OntPersonality personality,
+                         Supplier<InternalDataFactory> factory,
+                         InternalConfig config) {
         super(base, personality);
         this.config = Objects.requireNonNull(config);
-        this.cacheDataFactory = Objects.requireNonNull(factory);
+        this.dataFactoryFactory = Objects.requireNonNull(factory);
+        // for caches use parallel mode to ensure thread-safety fon read operations even for non-concurrent model
         this.components = InternalCache.createSoft(true).asLoading(this::readObjectTriples);
         this.objects = InternalCache.createSoft(true).asLoading(this::readOWLObjects);
         getGraph().getEventManager().register(new DirectListener());
@@ -193,7 +207,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@link InternalDataFactory}
      */
     public InternalDataFactory getDataFactory() {
-        return cacheDataFactory;
+        // todo: must be configurable -> no cache if specified in config
+        InternalDataFactory res;
+        if (cacheFactory != null && (res = cacheFactory.get()) != null) {
+            return res;
+        }
+        this.cacheFactory = new SoftReference<>(res = dataFactoryFactory.get());
+        return res;
     }
 
     /**
@@ -265,8 +285,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return Stream of {@link OWLImportsDeclaration}s
      */
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
-        return getID().imports().map(cacheDataFactory::toIRI)
-                .map(i -> cacheDataFactory.getOWLDataFactory().getOWLImportsDeclaration(i));
+        InternalDataFactory df = getDataFactory();
+        return getID().imports().map(df::toIRI).map(i -> df.getOWLDataFactory().getOWLImportsDeclaration(i));
     }
 
     /**
@@ -289,23 +309,24 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (iri == null) return Stream.empty();
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
         List<ONTObject<? extends OWLEntity>> res = new ArrayList<>();
+        InternalDataFactory df = getDataFactory();
         if (e.canAs(OntClass.class)) {
-            res.add(cacheDataFactory.get(e.as(OntClass.class)));
+            res.add(df.get(e.as(OntClass.class)));
         }
         if (e.canAs(OntDT.class)) {
-            res.add(cacheDataFactory.get(e.as(OntDT.class)));
+            res.add(df.get(e.as(OntDT.class)));
         }
         if (e.canAs(OntNAP.class)) {
-            res.add(cacheDataFactory.get(e.as(OntNAP.class)));
+            res.add(df.get(e.as(OntNAP.class)));
         }
         if (e.canAs(OntNDP.class)) {
-            res.add(cacheDataFactory.get(e.as(OntNDP.class)));
+            res.add(df.get(e.as(OntNDP.class)));
         }
         if (e.canAs(OntNOP.class)) {
-            res.add(cacheDataFactory.get(e.as(OntNOP.class)));
+            res.add(df.get(e.as(OntNOP.class)));
         }
         if (e.canAs(OntIndividual.Named.class)) {
-            res.add(cacheDataFactory.get(e.as(OntIndividual.Named.class)));
+            res.add(df.get(e.as(OntIndividual.Named.class)));
         }
         return res.stream().map(ONTObject::getObject);
     }
@@ -451,8 +472,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         DeclarationTranslator t = (DeclarationTranslator) AxiomParserProvider.get(OWLDeclarationAxiom.class);
         OntEntity res = m.findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityView(e));
         if (res == null) return Stream.empty();
+        InternalDataFactory df = getDataFactory();
         OntStatement s = res.getRoot();
-        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, cacheDataFactory, conf).getObject());
+        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, df, conf).getObject());
     }
 
     /**
@@ -470,10 +492,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
         OntGraphModelImpl m = getSearchModel(conf);
+        InternalDataFactory df = getDataFactory();
         AxiomTranslator<OWLAnnotationAssertionAxiom> t = AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, conf));
-        return Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject));
+        return Iter.asStream(t.translate(res, df, conf).mapWith(ONTObject::getObject));
     }
 
     /**
@@ -489,10 +512,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         }
         InternalConfig.Snapshot conf = getConfig().snapshot();
         OntGraphModelImpl m = getSearchModel(conf);
+        InternalDataFactory df = getDataFactory();
         SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
-        return Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject));
+        return Iter.asStream(t.translate(res, df, conf).mapWith(ONTObject::getObject));
     }
 
     /**
@@ -508,13 +532,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             return listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
         }
         InternalConfig.Snapshot conf = getConfig().snapshot();
+        InternalDataFactory df = getDataFactory();
         OntGraphModelImpl m = getSearchModel(conf);
         EquivalentClassesTranslator t = (EquivalentClassesTranslator) AxiomParserProvider.get(OWLEquivalentClassesAxiom.class);
         Resource r = WriteHelper.toResource(c);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(m.listLocalStatements(null, OWL.equivalentClass, r))
                 .filterKeep(s -> t.testStatement(s, conf));
-        return Iter.asStream(t.translate(res, cacheDataFactory, conf).mapWith(ONTObject::getObject));
+        return Iter.asStream(t.translate(res, df, conf).mapWith(ONTObject::getObject));
     }
 
     /**
@@ -675,8 +700,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected <A extends OWLAxiom> ObjectTriplesMap<A> readAxiomTriples(Class<A> type) {
         InternalConfig.Snapshot conf = getConfig().snapshot();
+        InternalDataFactory df = getDataFactory();
         return ObjectTriplesMap.create(type, Iter.asStream(AxiomParserProvider.get(type)
-                .listAxioms(getSearchModel(conf), cacheDataFactory, conf)), conf.parallel());
+                .listAxioms(getSearchModel(conf), df, conf)), conf.parallel());
     }
 
     /**
@@ -685,8 +711,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@link ObjectTriplesMap cache bucket} of ontology {@link OWLAnnotation annotation}s
      */
     protected ObjectTriplesMap<OWLAnnotation> readAnnotationTriples() {
-        return ObjectTriplesMap.create(OWLAnnotation.class, ReadHelper.objectAnnotations(getID(), cacheDataFactory),
-                getConfig().parallel());
+        InternalDataFactory df = getDataFactory();
+        return ObjectTriplesMap.create(OWLAnnotation.class
+                , ReadHelper.objectAnnotations(getID(), df)
+                , getConfig().parallel());
     }
 
     /**
@@ -833,12 +861,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Invalidates {@link #objects}, {@link #cacheDataFactory} and {@link #cacheModel} caches.
+     * Invalidates {@link #objects}, {@link #cacheFactory} and {@link #cacheModel} caches.
      * Auxiliary method.
      */
     protected void clearObjectsCaches() {
         objects.asCache().clear();
-        cacheDataFactory.clear();
+        cacheFactory = null;
         cacheModel = null;
     }
 
