@@ -179,9 +179,9 @@ public class OWLCommonTransform extends Transform {
      * There are two possible issues:
      * <ul><li>OWL1 does not support Qualified Cardinality restrictions.
      * Note that {@link org.apache.jena.vocabulary.OWL Jena OWL vocabulary}
-     * does not contain {@code owl:onClass} and {@code owl:onDataRange}.</li></ul>
+     * does not contain {@code owl:onClass} and {@code owl:onDataRange}.</li>
      * <li>A literal from the right side of the cardinality statement
-     * must have {@code xsd:nonNegativeInteger}, but sometimes there is {@code xsd:int}</li>
+     * must have {@code xsd:nonNegativeInteger}, but sometimes there is {@code xsd:int}</li></ul>
      *
      * @param r {@link Resource} in model
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Minimum_Cardinality'>8.3.1 Minimum Cardinality</a>
