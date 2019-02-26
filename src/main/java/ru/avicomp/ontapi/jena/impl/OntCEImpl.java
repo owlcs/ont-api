@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -27,6 +28,7 @@ import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -228,7 +230,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
     protected static Literal createNonNegativeIntegerLiteral(int n) {
         if (n < 0) throw new IllegalArgumentException("Can't accept negative value.");
-        return ResourceFactory.createTypedLiteral(String.valueOf(n), XSDDatatype.XSDnonNegativeInteger);
+        return ResourceFactory.createTypedLiteral(String.valueOf(n), CardinalityType.NON_NEGATIVE_INTEGER);
     }
 
     protected static Resource createOnPropertyRestriction(OntGraphModelImpl model, OntPE onProperty) {
@@ -418,6 +420,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         EXACTLY(OWL.qualifiedCardinality, OWL.cardinality),
         MAX(OWL.maxQualifiedCardinality, OWL.maxCardinality),
         MIN(OWL.minQualifiedCardinality, OWL.minCardinality);
+        static final RDFDatatype NON_NEGATIVE_INTEGER = XSDDatatype.XSDnonNegativeInteger;
+
         protected final Property qualifiedPredicate, predicate;
 
         CardinalityType(Property qualifiedPredicate, Property predicate) {
@@ -426,12 +430,20 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         public OntFilter getFilter() {
-            return (n, g) -> g.asGraph().contains(n, qualifiedPredicate.asNode(), Node.ANY)
-                    || g.asGraph().contains(n, predicate.asNode(), Node.ANY);
+            return (n, g) -> hasCardinality(n, qualifiedPredicate, g) || hasCardinality(n, predicate, g);
         }
 
         public Property getPredicate(boolean isQualified) {
             return isQualified ? qualifiedPredicate : predicate;
+        }
+
+        private boolean hasCardinality(Node s, Property p, EnhGraph g) {
+            return Iter.findFirst(g.asGraph().find(s, p.asNode(), Node.ANY)
+                    .filterKeep(t -> isNonNegativeInteger(t.getObject()))).isPresent();
+        }
+
+        public static boolean isNonNegativeInteger(Node n) {
+            return n.isLiteral() && NON_NEGATIVE_INTEGER.equals(n.getLiteralDatatype());
         }
     }
 

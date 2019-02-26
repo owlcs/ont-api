@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,16 +14,17 @@
 
 package ru.avicomp.ontapi.transforms;
 
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.transforms.vocabulary.WRONG_OWL;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -35,7 +36,12 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OWLCommonTransform extends Transform {
     protected static final boolean PROCESS_INDIVIDUALS_DEFAULT = false;
-    private static final Map<Property, Property> CARDINALITY_PREDICATES = Collections.unmodifiableMap(new HashMap<Property, Property>() {
+
+    private static final RDFDatatype NON_NEGATIVE_INTEGER = XSDDatatype.XSDnonNegativeInteger;
+    private static Set<Property> CARDINALITY_PREDICATES = Stream.of(OWL.cardinality, OWL.qualifiedCardinality,
+            OWL.maxCardinality, OWL.maxQualifiedCardinality,
+            OWL.minCardinality, OWL.minQualifiedCardinality).collect(Iter.toUnmodifiableSet());
+    private static final Map<Property, Property> QUALIFIED_CARDINALITY_REPLACEMENT = Collections.unmodifiableMap(new HashMap<Property, Property>() {
         {
             put(OWL.cardinality, OWL.qualifiedCardinality);
             put(OWL.maxCardinality, OWL.maxQualifiedCardinality);
@@ -56,24 +62,21 @@ public class OWLCommonTransform extends Transform {
     @Override
     public void perform() {
         // table 5:
-        Stream.of(OWL.DataRange, RDFS.Datatype, OWL.Restriction, OWL.Class)
-                .map(p -> statements(null, RDF.type, p))
-                .flatMap(Function.identity())
-                .forEach(s -> undeclare(s.getSubject(), RDFS.Class));
+        Iter.flatMap(Iter.of(OWL.DataRange, RDFS.Datatype, OWL.Restriction, OWL.Class),
+                p -> listStatements(null, RDF.type, p))
+                .forEachRemaining(s -> undeclare(s.getSubject(), RDFS.Class));
 
         // table 5:
-        Stream.of(OWL.ObjectProperty, OWL.FunctionalProperty, OWL.InverseFunctionalProperty,
-                OWL.TransitiveProperty, OWL.DatatypeProperty, OWL.AnnotationProperty, OWL.OntologyProperty)
-                .map(p -> statements(null, RDF.type, p))
-                .flatMap(Function.identity())
-                .forEach(s -> undeclare(s.getSubject(), RDF.Property));
+        Iter.flatMap(Iter.of(OWL.ObjectProperty, OWL.FunctionalProperty, OWL.InverseFunctionalProperty,
+                OWL.TransitiveProperty, OWL.DatatypeProperty, OWL.AnnotationProperty, OWL.OntologyProperty),
+                p -> listStatements(null, RDF.type, p))
+                .forEachRemaining(s -> undeclare(s.getSubject(), RDF.Property));
 
         // definitely ObjectProperty (table 6, supplemented by owl:AsymmetricProperty, owl:ReflexiveProperty, owl:IrreflexiveProperty):
-        Stream.of(OWL.InverseFunctionalProperty, OWL.TransitiveProperty, OWL.SymmetricProperty,
-                OWL.AsymmetricProperty, OWL.ReflexiveProperty, OWL.IrreflexiveProperty)
-                .map(p -> statements(null, RDF.type, p))
-                .flatMap(Function.identity())
-                .forEach(s -> declare(s.getSubject(), OWL.ObjectProperty));
+        Iter.flatMap(Iter.of(OWL.InverseFunctionalProperty, OWL.TransitiveProperty, OWL.SymmetricProperty,
+                OWL.AsymmetricProperty, OWL.ReflexiveProperty, OWL.IrreflexiveProperty),
+                p -> listStatements(null, RDF.type, p))
+                .forEachRemaining(s -> declare(s.getSubject(), OWL.ObjectProperty));
 
         // replace owl:OntologyProperty with owl:AnnotationProperty (table 6)
         changeType(OWL.OntologyProperty, OWL.AnnotationProperty);
@@ -100,20 +103,15 @@ public class OWLCommonTransform extends Transform {
      * @see WRONG_OWL
      */
     public void fixInvalidURIs() {
-        Set<Statement> propertyChains = statements(null, WRONG_OWL.propertyChain, null).collect(Collectors.toSet());
-        propertyChains.forEach(s -> {
-            getBaseModel().remove(s);
-            getBaseModel().add(s.getSubject(), OWL.propertyChainAxiom, s.getObject());
-        });
-        Set<Statement> dataProperties = statements(null, org.apache.jena.vocabulary.RDF.type, WRONG_OWL.DataProperty).collect(Collectors.toSet());
-        dataProperties.forEach(s -> {
-            getBaseModel().remove(s);
-            getBaseModel().add(s.getSubject(), org.apache.jena.vocabulary.RDF.type, OWL.DatatypeProperty);
-        });
+        Model m = getBaseModel();
+        listStatements(null, WRONG_OWL.propertyChain, null).toList()
+                .forEach(s -> m.remove(s).add(s.getSubject(), OWL.propertyChainAxiom, s.getObject()));
+        listStatements(null, RDF.type, WRONG_OWL.DataProperty).toList()
+                .forEach(s -> m.remove(s).add(s.getSubject(), RDF.type, OWL.DatatypeProperty));
     }
 
     /**
-     * As shown by OWL-API-contract SubPropertyChainOfAxiom could be expressed in the following form:
+     * As shown by tests from OWL-API-contract, SubPropertyChainOfAxiom could also be expressed in the following form:
      * <pre>{@code
      * [    rdfs:subPropertyOf  :r ;
      *      owl:propertyChain   ( :p :q )
@@ -123,19 +121,21 @@ public class OWLCommonTransform extends Transform {
      * but I believe that this is an example of some rudimental OWL dialect, so it must be fixed here.
      */
     public void fixPropertyChains() {
-        Set<Resource> anons = statements(null, OWL.propertyChainAxiom, null)
-                .map(Statement::getSubject)
-                .filter(RDFNode::isAnon)
-                .filter(s -> s.hasProperty(RDFS.subPropertyOf) && s.getPropertyResourceValue(RDFS.subPropertyOf).isURIResource())
-                .filter(s -> s.getPropertyResourceValue(OWL.propertyChainAxiom).canAs(RDFList.class))
-                .collect(Collectors.toSet());
-        anons.forEach(a -> {
-            Resource subj = a.getRequiredProperty(RDFS.subPropertyOf).getObject().asResource();
-            Resource obj = a.getRequiredProperty(OWL.propertyChainAxiom).getObject().asResource();
-            getBaseModel().add(subj, OWL.propertyChainAxiom, obj)
-                    .removeAll(a, RDFS.subPropertyOf, null)
-                    .removeAll(a, OWL.propertyChainAxiom, null);
-        });
+        Model m = getBaseModel();
+        listStatements(null, OWL.propertyChainAxiom, null)
+                .mapWith(Statement::getSubject)
+                .filterKeep(RDFNode::isAnon)
+                .filterKeep(s -> s.hasProperty(RDFS.subPropertyOf)
+                        && s.getPropertyResourceValue(RDFS.subPropertyOf).isURIResource())
+                .filterKeep(s -> s.getPropertyResourceValue(OWL.propertyChainAxiom).canAs(RDFList.class))
+                .toSet()
+                .forEach(a -> {
+                    Resource s = a.getRequiredProperty(RDFS.subPropertyOf).getResource();
+                    Resource o = a.getRequiredProperty(OWL.propertyChainAxiom).getResource();
+                    m.add(s, OWL.propertyChainAxiom, o)
+                            .removeAll(a, RDFS.subPropertyOf, null)
+                            .removeAll(a, OWL.propertyChainAxiom, null);
+                });
     }
 
     /**
@@ -147,52 +147,76 @@ public class OWLCommonTransform extends Transform {
      */
     protected void fixClassExpressions() {
         Stream.of(OWL.complementOf, OWL.unionOf, OWL.intersectionOf, OWL.oneOf)
-                .forEach(property -> {
-                    Set<Resource> classes = statements(null, property, null)
-                            .map(Statement::getSubject)
-                            .filter(RDFNode::isURIResource)
-                            .collect(Collectors.toSet());
-                    classes.forEach(c -> moveToEquivalentClass(c, property));
-                });
-        fixCardinalityRestrictions();
+                .forEach(property -> listStatements(null, property, null)
+                        .mapWith(Statement::getSubject)
+                        .filterKeep(RDFNode::isURIResource)
+                        .toSet()
+                        .forEach(c -> moveToEquivalentClass(c, property)));
+        fixRestrictions();
     }
 
     protected void moveToEquivalentClass(Resource subject, Property predicate) {
-        List<Statement> statements = statements(subject, predicate, null).collect(Collectors.toList());
         Model m = getBaseModel();
-        Resource newRoot = m.createResource();
-        newRoot.addProperty(RDF.type, OWL.Class);
+        List<Statement> statements = listStatements(subject, predicate, null).toList();
+        Resource newRoot = m.createResource().addProperty(RDF.type, OWL.Class);
         m.add(subject, OWL.equivalentClass, newRoot);
         statements.forEach(s -> newRoot.addProperty(s.getPredicate(), s.getObject()));
         m.remove(statements);
     }
 
+    protected void fixRestrictions() {
+        listStatements(null, RDF.type, OWL.Restriction)
+                .mapWith(Statement::getSubject)
+                .forEachRemaining(this::fixRestriction);
+    }
+
+    protected void fixRestriction(Resource r) {
+        fixCardinalityRestriction(r);
+    }
+
     /**
-     * OWL1 does not support Qualified Cardinality restrictions.
-     * Note that {@link org.apache.jena.vocabulary.OWL Jena OWL vocabulary} does not contain {@code owl:onClass} and {@code owl:onDataRange}.
-     * Bug? or there is also a difference between OWL1 and OWL1.1? Anyway it should be fixed here.
+     * Fixes cardinality restriction.
+     * There are two possible issues:
+     * <ul><li>OWL1 does not support Qualified Cardinality restrictions.
+     * Note that {@link org.apache.jena.vocabulary.OWL Jena OWL vocabulary}
+     * does not contain {@code owl:onClass} and {@code owl:onDataRange}.</li></ul>
+     * <li>A literal from the right side of the cardinality statement
+     * must have {@code xsd:nonNegativeInteger}, but sometimes there is {@code xsd:int}</li>
      *
-     * @see OWL OWL2 vocabulary
+     * @param r {@link Resource} in model
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Minimum_Cardinality'>8.3.1 Minimum Cardinality</a>
      */
-    protected void fixCardinalityRestrictions() {
-        Stream.concat(statements(null, OWL.onClass, null).filter(s -> !OWL.Thing.equals(s.getObject())),
-                statements(null, OWL.onDataRange, null).filter(s -> !RDFS.Literal.equals(s.getObject())))
-                .map(Statement::getSubject)
-                .filter(s -> s.hasProperty(RDF.type, OWL.Restriction))
-                .forEach(r -> CARDINALITY_PREDICATES.forEach((a, b) -> {
-                    Statement del = r.getProperty(a, null);
-                    if (del == null) return;
-                    r.addProperty(b, del.getObject());
-                    r.getModel().remove(del);
-                }));
+    protected void fixCardinalityRestriction(Resource r) {
+        Model m = getBaseModel();
+        // xsd^^int -> xsd:nonNegativeInteger
+        CARDINALITY_PREDICATES.forEach(property -> r.listProperties(property)
+                .filterKeep(s -> s.getObject().isLiteral())
+                .filterDrop(s -> NON_NEGATIVE_INTEGER.equals(s.getObject().asLiteral().getDatatype()))
+                .toList()
+                .forEach(s -> m.remove(s)
+                        .add(s.getSubject(), s.getPredicate(), asNonNegativeIntegerLiteral(s.getObject()))));
+        if (isQualified(r)) {
+            QUALIFIED_CARDINALITY_REPLACEMENT
+                    .forEach((a, b) -> r.listProperties(a).toList().forEach(s -> m.remove(s).add(r, b, s.getObject())));
+        }
+    }
+
+    protected static boolean isQualified(Resource r) {
+        return r.hasProperty(OWL.onClass) || r.hasProperty(OWL.onDataRange);
+    }
+
+    private static Literal asNonNegativeIntegerLiteral(RDFNode n) {
+        return n.getModel().createTypedLiteral(n.asLiteral().getLexicalForm(), NON_NEGATIVE_INTEGER);
     }
 
     protected void fixNamedIndividuals() {
-        Set<Statement> statements = statements(null, RDF.type, null)
-                .filter(s -> s.getSubject().isURIResource())
-                .filter(s -> s.getObject().isResource())
-                .filter(s -> !builtIn.reservedResources().contains(s.getObject().asResource())).collect(Collectors.toSet());
-        statements.forEach(s -> declare(s.getSubject(), OWL.NamedIndividual));
+        Set<Resource> forbidden = builtIn.reservedResources();
+        listStatements(null, RDF.type, null)
+                .filterKeep(s -> s.getSubject().isURIResource())
+                .filterKeep(s -> s.getObject().isResource())
+                .filterDrop(s -> forbidden.contains(s.getObject().asResource()))
+                .toList()
+                .forEach(s -> declare(s.getSubject(), OWL.NamedIndividual));
     }
 
 }

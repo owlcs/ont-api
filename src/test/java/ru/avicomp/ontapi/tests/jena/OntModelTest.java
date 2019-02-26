@@ -189,6 +189,10 @@ public class OntModelTest {
 
     @Test
     public void testKoalaCommon() throws IOException {
+        // koala has 4 cardinality restrictions with wrong 'xsd:int' instead of 'xsd:nonNegativeInteger'
+        // see issue #56
+        long numClasses = 32;
+
         OntGraphModel m = OntModelFactory.createModel();
         try (InputStream in = OntModelTest.class.getResourceAsStream("/owlapi/koala.owl")) {
             m.read(in, null, Lang.RDFXML.getName());
@@ -203,7 +207,7 @@ public class OntModelTest {
                         .addAll(x.properties().collect(Collectors.toSet())));
         props.forEach((c, ps) -> LOGGER.debug("{} => {}", c, ps));
 
-        Assert.assertEquals(36, props.keySet().size());
+        Assert.assertEquals(numClasses, props.keySet().size());
         Assert.assertEquals(5, props.values().stream().mapToLong(Collection::size).sum());
 
         String ns = m.getID().getURI() + "#";
@@ -225,7 +229,7 @@ public class OntModelTest {
         ReadWriteUtils.print(m);
 
         Assert.assertEquals(5, person.listHasKeys().findFirst().orElseThrow(AssertionError::new).members().count());
-        Assert.assertEquals(36, m.ontObjects(OntCE.class).distinct().count());
+        Assert.assertEquals(numClasses, m.ontObjects(OntCE.class).distinct().count());
         Assert.assertEquals(statementsCount + 16, m.statements().count());
         statement.deleteAnnotation(m.getRDFSComment());
 
