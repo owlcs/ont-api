@@ -78,19 +78,19 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             RestrictionType.DATA, ObjectRestrictionType.LITERAL, OWL.hasValue);
 
     public static ObjectFactory dataMinCardinalityCEFactory = createRestrictionFactory(DataMinCardinalityImpl.class,
-            RestrictionType.DATA, CardinalityType.MIN);
+            RestrictionType.DATA, ObjectRestrictionType.DATA_RANGE, CardinalityType.MIN);
     public static ObjectFactory objectMinCardinalityCEFactory = createRestrictionFactory(ObjectMinCardinalityImpl.class,
-            RestrictionType.OBJECT, CardinalityType.MIN);
+            RestrictionType.OBJECT, ObjectRestrictionType.CLASS, CardinalityType.MIN);
 
     public static ObjectFactory dataMaxCardinalityCEFactory = createRestrictionFactory(DataMaxCardinalityImpl.class,
-            RestrictionType.DATA, CardinalityType.MAX);
+            RestrictionType.DATA, ObjectRestrictionType.DATA_RANGE, CardinalityType.MAX);
     public static ObjectFactory objectMaxCardinalityCEFactory = createRestrictionFactory(ObjectMaxCardinalityImpl.class,
-            RestrictionType.OBJECT, CardinalityType.MAX);
+            RestrictionType.OBJECT, ObjectRestrictionType.CLASS, CardinalityType.MAX);
 
     public static ObjectFactory dataCardinalityCEFactory = createRestrictionFactory(DataCardinalityImpl.class,
-            RestrictionType.DATA, CardinalityType.EXACTLY);
+            RestrictionType.DATA, ObjectRestrictionType.DATA_RANGE, CardinalityType.EXACTLY);
     public static ObjectFactory objectCardinalityCEFactory = createRestrictionFactory(ObjectCardinalityImpl.class,
-            RestrictionType.OBJECT, CardinalityType.EXACTLY);
+            RestrictionType.OBJECT, ObjectRestrictionType.CLASS, CardinalityType.EXACTLY);
 
     public static ObjectFactory hasSelfCEFactory = Factories.createCommon(new HasSelfMaker(),
             RESTRICTION_FINDER, OntFilter.BLANK.and(new HasSelfFilter()));
@@ -186,10 +186,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
     protected static ObjectFactory createRestrictionFactory(Class<? extends CardinalityRestrictionCEImpl> impl,
                                                             RestrictionType restrictionType,
+                                                            ObjectRestrictionType objectType,
                                                             CardinalityType cardinalityType) {
         OntMaker maker = new OntMaker.WithType(impl, OWL.Restriction);
         OntFilter filter = RESTRICTION_FILTER
-                .and(cardinalityType.getFilter())
+                .and(cardinalityType.getFilter(objectType.view()))
                 .and(restrictionType.getFilter());
         return Factories.createCommon(maker, RESTRICTION_FINDER, filter);
     }
@@ -423,23 +424,47 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         static final RDFDatatype NON_NEGATIVE_INTEGER = XSDDatatype.XSDnonNegativeInteger;
 
         protected final Property qualifiedPredicate, predicate;
+        protected static final Node CLASS_REFERENCE = OWL.onClass.asNode();
+        protected static final Node RANGE_REFERENCE = OWL.onDataRange.asNode();
 
         CardinalityType(Property qualifiedPredicate, Property predicate) {
             this.qualifiedPredicate = qualifiedPredicate;
             this.predicate = predicate;
         }
 
-        public OntFilter getFilter() {
-            return (n, g) -> hasCardinality(n, qualifiedPredicate, g) || hasCardinality(n, predicate, g);
+        public OntFilter getFilter(Class<? extends RDFNode> objectType) {
+            return (n, g) -> isNonQualified(n, g) || isQualified(n, g, objectType);
         }
 
         public Property getPredicate(boolean isQualified) {
             return isQualified ? qualifiedPredicate : predicate;
         }
 
+        private boolean isQualified(Node s, EnhGraph g, Class<? extends RDFNode> objectType) {
+            if (!hasCardinality(s, qualifiedPredicate, g)) return false;
+            Node p;
+            if (objectType == OntCE.class) {
+                p = CLASS_REFERENCE;
+            } else if (objectType == OntDR.class) {
+                p = RANGE_REFERENCE;
+            } else {
+                return false;
+            }
+            return Iter.findFirst(g.asGraph().find(s, p, Node.ANY)
+                    .filterKeep(t -> isObjectOfType(g, t.getObject(), objectType))).isPresent();
+        }
+
+        private boolean isNonQualified(Node s, EnhGraph g) {
+            return hasCardinality(s, predicate, g);
+        }
+
         private boolean hasCardinality(Node s, Property p, EnhGraph g) {
             return Iter.findFirst(g.asGraph().find(s, p.asNode(), Node.ANY)
                     .filterKeep(t -> isNonNegativeInteger(t.getObject()))).isPresent();
+        }
+
+        private static boolean isObjectOfType(EnhGraph g, Node n, Class<? extends RDFNode> type) {
+            return PersonalityModel.canAs(type, n, g);
         }
 
         public static boolean isNonNegativeInteger(Node n) {
@@ -903,19 +928,18 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             return getCardinalityPredicate(isQualified());
         }
 
-        protected Property getCardinalityPredicate(boolean q) {
+        private Property getCardinalityPredicate(boolean q) {
             return cardinalityType.getPredicate(q);
         }
 
         @Override
         public boolean isQualified() {
-            return isQualified(getValue());
+            return isQualified(getValue()) && hasProperty(cardinalityType.getPredicate(true));
         }
-
     }
 
     /**
-     * TODO: currently it is a read-only object, no way to modify, since I don't know how to check input parameters
+     * TODO: implement possibility to modify (issue https://github.com/avicomp/ont-api/issues/52)
      */
     protected static abstract class NaryRestrictionCEImpl<O extends OntObject, P extends OntDOP>
             extends OntCEImpl implements NaryRestrictionCE<O, P> {
