@@ -336,10 +336,13 @@ public class BuiltIn {
      */
     @SuppressWarnings("WeakerAccess")
     public static class MultiVocabulary extends BaseVocabulary implements Vocabulary {
-        protected final Set<Vocabulary> vocabularies;
+        protected final Collection<Vocabulary> vocabularies;
 
-        protected MultiVocabulary(Set<Vocabulary> vocabularies) {
-            this.vocabularies = Objects.requireNonNull(vocabularies);
+        protected MultiVocabulary(Collection<Vocabulary> vocabularies) {
+            if (Objects.requireNonNull(vocabularies).contains(null)) {
+                throw new IllegalArgumentException();
+            }
+            this.vocabularies = vocabularies;
         }
 
         public static MultiVocabulary create(Vocabulary... vocabularies) {
@@ -391,14 +394,38 @@ public class BuiltIn {
             return reservedProperties == null ?
                     reservedProperties = merge(Vocabulary::reservedProperties) : reservedProperties;
         }
+
+        @Override
+        public Set<Property> properties() {
+            return properties == null ?
+                    properties = Stream.of(annotationProperties(), datatypeProperties(), objectProperties())
+                            .flatMap(Collection::stream).collect(Iter.toUnmodifiableSet()) : properties;
+        }
+
+        @Override
+        public Set<Resource> entities() {
+            return entities == null ?
+                    entities = Stream.of(classes(), datatypes(), properties())
+                            .flatMap(Collection::stream).collect(Iter.toUnmodifiableSet()) : entities;
+        }
+
+        @Override
+        public Set<Resource> reserved() {
+            return reserved == null ?
+                    reserved = Stream.of(reservedProperties(), reservedResources())
+                            .flatMap(Collection::stream).collect(Iter.toUnmodifiableSet()) : reserved;
+        }
     }
 
     static abstract class BaseVocabulary {
         protected Set<Property> annotationProperties;
         protected Set<Property> datatypeProperties;
         protected Set<Property> objectProperties;
+        protected Set<Property> properties;
         protected Set<Resource> datatypes;
         protected Set<Resource> classes;
+        protected Set<Resource> entities;
+        protected Set<Resource> reserved;
 
         protected Set<Resource> reservedResources;
         protected Set<Property> reservedProperties;

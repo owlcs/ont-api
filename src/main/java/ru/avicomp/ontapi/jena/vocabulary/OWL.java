@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -27,6 +27,7 @@ public class OWL extends org.apache.jena.vocabulary.OWL2 {
 
     /**
      * The {@code owl:real} datatype does not directly provide any lexical forms.
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Real_Numbers.2C_Decimal_Numbers.2C_and_Integers'>4.1 Real Numbers, Decimal Numbers, and Integers</a>
      */
     public final static Resource real = resource("real");
 
@@ -35,6 +36,7 @@ public class OWL extends org.apache.jena.vocabulary.OWL2 {
      * (whitespace within the grammar MUST be ignored and MUST NOT be included in the lexical forms of owl:rational,
      * and single quotes are used to introduce terminal symbols):
      * numerator '/' denominator
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Real_Numbers.2C_Decimal_Numbers.2C_and_Integers'>4.1 Real Numbers, Decimal Numbers, and Integers</a>
      */
     public final static Resource rational = resource("rational");
 
