@@ -21,7 +21,6 @@ import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -420,9 +419,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         }
         if (isRootStatement()) {
             OntStatement first = createRootStatement(res.remove(0));
-            return Iter.of(first).andThen(WrappedIterator.create(res.iterator()).mapWith(OntAnnotation::getBase));
+            return Iter.of(first).andThen(Iter.create(res).mapWith(OntAnnotation::getBase));
         }
-        return WrappedIterator.create(res.iterator()).mapWith(OntAnnotation::getBase);
+        return Iter.create(res).mapWith(OntAnnotation::getBase);
     }
 
     protected OntStatementImpl createRootStatement(OntAnnotation resource) {

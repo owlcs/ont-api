@@ -219,6 +219,7 @@ public class Iter {
      * @throws NullPointerException if the element selected is {@code null}
      */
     public static <X> Optional<X> findFirst(ClosableIterator<X> iterator) {
+        if (iterator instanceof NullIterator) return Optional.empty();
         try {
             return iterator.hasNext() ? Optional.of(iterator.next()) : Optional.empty();
         } finally {
@@ -227,7 +228,7 @@ public class Iter {
     }
 
     /**
-     * Creates a new {@link ExtendedIterator Extended Iterator}} containing the specified elements
+     * Creates a new {@link ExtendedIterator Extended Iterator}} containing the specified elements.
      *
      * @param members Array of elements of the type {@link X}
      * @param <X>     the element type of the new iterator
@@ -235,6 +236,18 @@ public class Iter {
      */
     @SafeVarargs // Creating an iterator from an array is safe
     public static <X> ExtendedIterator<X> of(X... members) {
-        return WrappedIterator.create(Arrays.asList(members).iterator());
+        return create(Arrays.asList(members));
     }
+
+    /**
+     * Creates a new {@link ExtendedIterator Extended Iterator}} over all elements of the specified collection.
+     *
+     * @param members {@code Collection} of elements of the type {@link X}
+     * @param <X>     the element type of the new iterator
+     * @return a fresh {@link ExtendedIterator} instance
+     */
+    public static <X> ExtendedIterator<X> create(Collection<X> members) {
+        return members.isEmpty() ? NullIterator.instance() : WrappedIterator.create(members.iterator());
+    }
+
 }

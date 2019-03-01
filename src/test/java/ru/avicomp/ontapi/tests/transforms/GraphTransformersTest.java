@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -65,8 +65,8 @@ public class GraphTransformersTest {
 
     @Test
     public void testLoadSpinLibraryWithTransformation() throws Exception {
-        int axiomsCountSPINMAPL = 856;
-        int axiomsCountTotal = 7625;
+        int axiomsCountSPINMAPL = 902;//856;
+        int axiomsCountTotal = 7796; //7625;
 
         OntologyManager m = OntManagers.createONT();
         // Setup spin manager:
@@ -263,7 +263,7 @@ public class GraphTransformersTest {
         GraphTransformers.Maker maker = GraphTransformers.Maker.create("a", g -> new Transform(g) {
             @Override
             public void perform() throws TransformException {
-                getModel().createResource("some", RDFS.Datatype);
+                getQueryModel().createResource("some", RDFS.Datatype);
             }
 
             @Override

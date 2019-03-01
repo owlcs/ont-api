@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,11 +22,11 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Set;
 
@@ -56,7 +56,7 @@ public class CachedAnnotationImpl extends OntAnnotationImpl {
         if (assertions == null) {
             assertions = super.listAssertions().mapWith(s -> (OntStatement) new CachedStatementImpl(s)).toSet();
         }
-        return WrappedIterator.create(assertions.iterator());
+        return Iter.create(assertions);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class CachedAnnotationImpl extends OntAnnotationImpl {
             descendants = super.listAnnotatedSources()
                     .mapWith(s -> (OntAnnotation) new CachedAnnotationImpl(((OntStatementImpl) s).getSubjectNode(), m)).toSet();
         }
-        return WrappedIterator.create(descendants.iterator());
+        return Iter.create(descendants);
     }
 
     @Override

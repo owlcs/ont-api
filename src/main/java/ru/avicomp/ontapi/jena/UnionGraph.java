@@ -22,8 +22,6 @@ import org.apache.jena.graph.impl.SimpleEventManager;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.CollectionFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.NullIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
@@ -207,7 +205,7 @@ public class UnionGraph extends CompositionBase {
      * @return {@link ExtendedIterator} of {@link Graph}s
      */
     public ExtendedIterator<Graph> listBaseGraphs() {
-        return WrappedIterator.create((graphs == null ? graphs = collectBaseGraphs() : graphs).iterator());
+        return Iter.create(graphs == null ? graphs = collectBaseGraphs() : graphs);
     }
 
     /**
@@ -216,7 +214,7 @@ public class UnionGraph extends CompositionBase {
      * @return {@link ExtendedIterator} of {@link UnionGraph}s
      */
     public ExtendedIterator<UnionGraph> listUnionGraphs() {
-        return WrappedIterator.create(collectUnionGraphs().iterator());
+        return Iter.create(collectUnionGraphs());
     }
 
     /**
@@ -429,7 +427,7 @@ public class UnionGraph extends CompositionBase {
          * @return {@link ExtendedIterator} of sub-{@link Graph graph}s
          */
         public ExtendedIterator<Graph> listGraphs() {
-            return graphs.isEmpty() ? NullIterator.instance() : WrappedIterator.create(graphs.iterator());
+            return Iter.create(graphs);
         }
 
         /**

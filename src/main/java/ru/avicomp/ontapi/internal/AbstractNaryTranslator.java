@@ -17,12 +17,12 @@ package ru.avicomp.ontapi.internal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.*;
@@ -95,6 +95,6 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         Map<Axiom, ONTObject<Axiom>> res = new HashMap<>(); // memory!
         super.listAxioms(model, factory, config)
                 .forEachRemaining(c -> res.compute(c.getObject(), (a, w) -> w == null ? c : w.append(c)));
-        return WrappedIterator.create(res.values().iterator());
+        return Iter.create(res.values());
     }
 }

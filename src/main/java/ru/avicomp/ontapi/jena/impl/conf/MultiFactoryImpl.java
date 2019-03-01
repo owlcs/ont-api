@@ -19,7 +19,6 @@ import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
@@ -104,7 +103,7 @@ public class MultiFactoryImpl extends BaseFactoryImpl {
      * @return {@link ExtendedIterator} of {@link ObjectFactory}
      */
     public ExtendedIterator<? extends ObjectFactory> listFactories() {
-        return WrappedIterator.create(factories.iterator());
+        return Iter.create(factories);
     }
 
 }

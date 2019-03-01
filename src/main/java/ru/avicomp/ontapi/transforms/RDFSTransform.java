@@ -15,11 +15,11 @@
 package ru.avicomp.ontapi.transforms;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
+import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -52,8 +52,17 @@ import java.util.stream.Collectors;
 @SuppressWarnings("WeakerAccess")
 public class RDFSTransform extends Transform {
 
+    protected final boolean useAnnotationPropertyInUnclearCase;
+
     public RDFSTransform(Graph graph) {
-        super(graph);
+        this(graph, BuiltIn.get(), true);
+    }
+
+    public RDFSTransform(Graph graph,
+                         BuiltIn.Vocabulary vocabulary,
+                         boolean useAnnotationProperty) {
+        super(graph, vocabulary);
+        this.useAnnotationPropertyInUnclearCase = useAnnotationProperty;
     }
 
     @Override
@@ -63,22 +72,32 @@ public class RDFSTransform extends Transform {
     }
 
     public void parseClasses() {
-        statements(null, RDF.type, RDFS.Class).map(Statement::getSubject).forEach(this::processRDFSClass);
+        listStatements(null, RDF.type, RDFS.Class)
+                .mapWith(Statement::getSubject)
+                .forEachRemaining(this::processRDFSClass);
+    }
+
+    protected void processRDFSClass(Resource resource) {
+        if (hasType(resource, RDFS.Datatype)) return;
+        declare(resource, OWL.Class);
     }
 
     public void parseProperties() {
         // only uri-resources:
-        List<Resource> rest1 = statements(null, RDF.type, RDF.Property)
-                .map(Statement::getSubject)
-                .filter(RDFNode::isURIResource)
-                .map(this::processRDFProperty)
-                .filter(Objects::nonNull).collect(Collectors.toList());
+        List<Resource> rest1 = listStatements(null, RDF.type, RDF.Property)
+                .mapWith(Statement::getSubject)
+                .filterKeep(RDFNode::isURIResource)
+                .mapWith(this::processRDFProperty)
+                .filterKeep(Objects::nonNull)
+                .toList();
         // parse the rest resources again:
         List<Resource> rest2 = rest1.stream()
                 .map(this::processRDFProperty)
                 .filter(Objects::nonNull).collect(Collectors.toList());
-        // declare all remaining resources as annotation properties:
-        rest2.forEach(r -> declare(r, OWL.AnnotationProperty));
+        if (useAnnotationPropertyInUnclearCase) {
+            // declare all remaining resources as annotation properties:
+            rest2.forEach(r -> declare(r, OWL.AnnotationProperty));
+        }
     }
 
     protected Resource processRDFProperty(Resource property) {
@@ -86,7 +105,7 @@ public class RDFSTransform extends Transform {
         Resource domain = property.getPropertyResourceValue(RDFS.domain);
         Resource superProperty = property.getPropertyResourceValue(RDFS.subPropertyOf);
         // if no rdfs:domain, rdfs:range and rdfs:subPropertyOf => owl:AnnotationProperty
-        if (range == null && domain == null && superProperty == null) {
+        if (useAnnotationPropertyInUnclearCase && range == null && domain == null && superProperty == null) {
             declare(property, OWL.AnnotationProperty);
             return null;
         }
@@ -113,32 +132,27 @@ public class RDFSTransform extends Transform {
         return property;
     }
 
+    @SuppressWarnings("SuspiciousMethodCalls")
     public boolean isObjectProperty(Resource candidate) {
-        return builtIn.objectProperties().contains(candidate.as(Property.class))
-                || hasType(candidate, OWL.ObjectProperty);
+        return builtins.objectProperties().contains(candidate) || hasType(candidate, OWL.ObjectProperty);
     }
 
+    @SuppressWarnings("SuspiciousMethodCalls")
     public boolean isDataProperty(Resource candidate) {
-        return builtIn.datatypeProperties().contains(candidate.as(Property.class))
-                || hasType(candidate, OWL.DatatypeProperty);
+        return builtins.datatypeProperties().contains(candidate) || hasType(candidate, OWL.DatatypeProperty);
     }
 
+    @SuppressWarnings("SuspiciousMethodCalls")
     public boolean isAnnotationProperty(Resource candidate) {
-        return builtIn.annotationProperties().contains(candidate.as(Property.class))
-                || hasType(candidate, OWL.AnnotationProperty);
+        return builtins.annotationProperties().contains(candidate) || hasType(candidate, OWL.AnnotationProperty);
     }
 
     protected boolean isDataRange(Resource candidate) {
-        return builtIn.datatypes().contains(candidate) || hasType(candidate, RDFS.Datatype);
+        return builtins.datatypes().contains(candidate) || hasType(candidate, RDFS.Datatype);
     }
 
     protected boolean isClass(Resource candidate) {
-        return builtIn.classes().contains(candidate) || hasType(candidate, OWL.Class);
-    }
-
-    protected void processRDFSClass(Resource resource) {
-        if (hasType(resource, RDFS.Datatype)) return;
-        declare(resource, OWL.Class);
+        return builtins.classes().contains(candidate) || hasType(candidate, OWL.Class);
     }
 
     /**

@@ -18,7 +18,6 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntNAP;
@@ -78,12 +77,12 @@ public class CachedStatementImpl extends OntStatementImpl {
 
     @Override
     protected ExtendedIterator<OntStatement> listSubjectAssertions() {
-        return WrappedIterator.create(getAssertionStatementsAsSet().iterator());
+        return Iter.create(getAssertionStatementsAsSet());
     }
 
     @Override
     public ExtendedIterator<OntAnnotation> listAnnotationResources() {
-        return WrappedIterator.create(getAnnotationList().iterator());
+        return Iter.create(getAnnotationList());
     }
 
     @Override

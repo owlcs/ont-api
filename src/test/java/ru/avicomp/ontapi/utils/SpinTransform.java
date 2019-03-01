@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -72,10 +72,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 21.04.2017.
  */
-@SuppressWarnings("WeakerAccess")
 public class SpinTransform extends Transform {
-    private Model model;
-    private Model base;
 
     public SpinTransform(Graph graph) {
         super(graph);
@@ -84,7 +81,7 @@ public class SpinTransform extends Transform {
     @Override
     public void perform() {
         List<Query> queries = queries().collect(Collectors.toList());
-        String name = Graphs.getName(getBaseGraph());
+        String name = Graphs.getName(getQueryModel().getGraph());
         if (!queries.isEmpty() && LOGGER.isDebugEnabled()) {
             LOGGER.debug("[{}] queries count: {}", name, queries.size());
         }
@@ -98,8 +95,8 @@ public class SpinTransform extends Transform {
             Set<Statement> remove = Models.getAssociatedStatements(query);
             remove.stream()
                     .filter(s -> !(RDF.type.equals(s.getPredicate()) && type.equals(s.getObject())))
-                    .forEach(statement -> getBaseModel().remove(statement));
-            getBaseModel().add(query, SP.text, literal);
+                    .forEach(statement -> getWorkModel().remove(statement));
+            getWorkModel().add(query, SP.text, literal);
         });
     }
 
@@ -110,13 +107,8 @@ public class SpinTransform extends Transform {
     }
 
     @Override
-    public Model getModel() {
-        return this.model == null ? (this.model = SP.createModel(this.getGraph())) : this.model;
-    }
-
-    @Override
-    public Model getBaseModel() {
-        return this.base == null ? (this.base = SP.createModel(this.getBaseGraph())) : this.base;
+    public Model createModel(Graph graph) {
+        return SP.createModel(graph);
     }
 
     public Stream<Query> queries() {

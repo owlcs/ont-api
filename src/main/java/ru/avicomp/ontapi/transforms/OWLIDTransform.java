@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,15 +19,14 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.utils.Graphs;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Class to perform ontology id transformation.
@@ -43,18 +42,16 @@ public class OWLIDTransform extends Transform {
 
     @Override
     public void perform() {
-        Model m = getBaseModel();
+        Model m = getWorkModel();
         // choose or create the new one:
-        Resource ontology = Graphs.ontologyNode(getBaseGraph())
+        Resource ontology = Graphs.ontologyNode(getQueryModel().getGraph())
                 .map(m::getRDFNode).map(RDFNode::asResource)
-                .orElseGet(() -> m.createResource().addProperty(RDF.type, OWL.Ontology));
+                .orElseGet(() -> m.createResource(OWL.Ontology));
         // move all content from other ontologies to the selected one
-        Stream<Resource> other = statements(null, RDF.type, OWL.Ontology)
-                .map(Statement::getSubject)
-                .filter(s -> !ontology.equals(s));
-        List<Statement> rest = other
-                .map(o -> statements(o, null, null))
-                .flatMap(Function.identity()).collect(Collectors.toList());
+        ExtendedIterator<Resource> other = listStatements(null, RDF.type, OWL.Ontology)
+                .mapWith(Statement::getSubject)
+                .filterDrop(ontology::equals);
+        List<Statement> rest = Iter.flatMap(other, o -> listStatements(o, null, null)).toList();
         rest.forEach(s -> ontology.addProperty(s.getPredicate(), s.getObject()));
         // remove all other ontologies
         m.remove(rest);

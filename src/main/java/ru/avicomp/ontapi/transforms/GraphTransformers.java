@@ -14,9 +14,7 @@
 
 package ru.avicomp.ontapi.transforms;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphEventManager;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.*;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.slf4j.Logger;
@@ -36,9 +34,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Class to perform some transformation action on the specified graph.
- * Currently it is to convert the OWL and RDFS ontological graphs to the OWL2-DL graph and to fix missed declarations.
- * Can be used to fix "mistaken" ontologies in accordance with OWL2 specification after loading from io-stream
+ * A manager to perform transformations on a {@link Graph}.
+ * Intended to transform OWL and RDFS ontological graphs, possibly with missed declarations and different RDF garbage,
+ * into a strictly valid OWL2-DL graph, but may be used for any transformation purposes.
+ * Used to fix "mistaken" ontologies in accordance with OWL2 specification after loading from io-stream
  * but before using common (ONT-)API.
  * <p>
  * Created by szuev on 28.10.2016.
@@ -78,14 +77,27 @@ public abstract class GraphTransformers {
     }
 
     /**
-     * A helper method to perform {@link Graph graph} transformation using global settings.
-     * Note: it returns the same graph, not a fixed copy.
+     * Converts the given {@code Graph} to a new one using global transformation settings.
+     * No changes is made on the input graph.
      *
      * @param graph input graph
-     * @return output graph
+     * @return output graph, <b>new</b> instance
      * @throws TransformException in case something wrong while processing
      */
     public static Graph convert(Graph graph) throws TransformException {
+        Graph res = Factory.createGraphMem();
+        GraphUtil.addInto(res, graph);
+        return transform(res);
+    }
+
+    /**
+     * Transforms the {@code Graph} according system-wide settings.
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @return the same graph
+     * @throws TransformException in case something is wrong while processing
+     */
+    public static Graph transform(Graph graph) throws TransformException {
         getTransformers().transform(graph);
         return graph;
     }
@@ -406,12 +418,12 @@ public abstract class GraphTransformers {
         }
 
         /**
-         * Recursively performs graph transformation.
+         * Recursively performs all graph transformations operations.
          *
-         * @param graph     {@link Graph}, in most cases it is {@link UnionGraph} with sub-graphs, which will be processed first
-         * @param skip Set of {@link Graph}s to exclude from transformations,
-         *             it is used to avoid processing transformation multiple times on the same graph
-         *             and therefore it should be modifiable
+         * @param graph {@link Graph}, in most cases it is {@link UnionGraph} with sub-graphs, which will be processed first
+         * @param skip  Set of {@link Graph}s to exclude from transformations,
+         *              it is used to avoid processing transformation multiple times on the same graph
+         *              and therefore it should be modifiable
          * @return {@link Stats} a container with result
          * @throws TransformException if something is wrong
          * @see Transform
@@ -434,7 +446,7 @@ public abstract class GraphTransformers {
                     LOGGER.debug(String.format("Process <%s> on <%s>", action.name(), Graphs.getName(base)));
                 }
                 GraphEventManager events = base.getEventManager();
-                TransformListener listener = new TransformListener();
+                TransformListener listener = createTrackListener();
                 try {
                     events.register(listener);
                     action.perform();
@@ -444,13 +456,17 @@ public abstract class GraphTransformers {
                     events.unregister(listener);
                 }
                 res.putTriples(action,
-                        listener.added,
-                        listener.deleted,
+                        listener.getAdded(),
+                        listener.getDeleted(),
                         action.uncertainTriples()
                                 .collect(Collectors.toSet()));
             }
             skip.add(base);
             return res;
+        }
+
+        protected TransformListener createTrackListener() {
+            return new TransformListener();
         }
 
         @Override
@@ -479,7 +495,10 @@ public abstract class GraphTransformers {
             this.graph = Objects.requireNonNull(graph);
         }
 
-        protected void putTriples(Transform transform, Set<Triple> added, Set<Triple> deleted, Set<Triple> unparsed) {
+        protected void putTriples(Transform transform,
+                                  Set<Triple> added,
+                                  Set<Triple> deleted,
+                                  Set<Triple> unparsed) {
             String name = transform.name();
             put(Type.ADDED, name, added);
             put(Type.DELETED, name, deleted);
@@ -487,7 +506,7 @@ public abstract class GraphTransformers {
         }
 
         protected void put(Type type, String name, Set<Triple> triples) {
-            map(type).put(name, triples);
+            map(type).computeIfAbsent(name, s -> new HashSet<>()).addAll(triples);
         }
 
         protected void putStats(Stats other) {
@@ -554,13 +573,15 @@ public abstract class GraphTransformers {
 
     /**
      * Listener to control graph changes while transformations.
+     * Note: it keeps any tracked (added and removed) {@code Triple} in memory.
+     * This may be inappropriate for a huge graphs containing a lot of missed declarations.
      * <p>
      * Created by @szuev on 27.06.2018.
      */
     public static class TransformListener extends GraphListenerBase {
 
-        protected Set<Triple> added = new HashSet<>();
-        protected Set<Triple> deleted = new HashSet<>();
+        private final Set<Triple> added = new HashSet<>();
+        private final Set<Triple> deleted = new HashSet<>();
 
         @Override
         protected void addEvent(Triple t) {
@@ -582,6 +603,14 @@ public abstract class GraphTransformers {
         @Override
         public void notifyDeleteGraph(Graph g, Graph other) {
             other.find(Triple.ANY).forEachRemaining(this::deleteEvent);
+        }
+
+        public Set<Triple> getAdded() {
+            return Collections.unmodifiableSet(added);
+        }
+
+        public Set<Triple> getDeleted() {
+            return Collections.unmodifiableSet(deleted);
         }
     }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasoner;
 import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.vocab.OWLFacet;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.owlapi.OWLFunctionalSyntaxFactory;
 import ru.avicomp.owlapi.OWLManager;
 import ru.avicomp.owlapi.tests.api.baseclasses.TestBase;
@@ -329,33 +330,10 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         Assert.assertEquals(supCls, ax.getSuperClass());
     }
 
-    /**
-     * There is the following RDF snippet:
-     * <pre>
-     * <http://www.semanticweb.org/owlapi/test#A>
-     *      a               owl:Class ;
-     *      rdfs:subClassOf [ a                     owl:Restriction ;
-     *                        owl:onProperty        <http://www.semanticweb.org/owlapi/test#P> ;
-     *                        owl:someValuesFrom    <http://www.semanticweb.org/owlapi/test#C>
-     *                      ] .
-     * </pre>
-     * OWL-API treats it as object property restriction (existential).
-     * But really there is nothing in the graph to make such a conclusion, it could be data property restriction as well.
-     * ONT-API leaves untouched such implicit constructions.
-     * In order to make test passed there is a hack: we add explicit declaration to one of the entities before loading.
-     */
     @Test
     public void testParsedAxiomsSubClassOfUntypedSomeValuesFrom() throws Exception {
         OWLOntology ontology = ontologyFromClasspathFile("SubClassOfUntypedSomeValuesFrom.rdf");
-        OWLOntologyManager m = ontology.getOWLOntologyManager();
-        ru.avicomp.ontapi.utils.ReadWriteUtils.print(ontology);
-        if (!OWLManager.DEBUG_USE_OWL) {
-            ((ru.avicomp.ontapi.OntologyModel) ontology).asGraphModel()
-                    .createResource("http://www.semanticweb.org/owlapi/test#P")
-                    .addProperty(org.apache.jena.vocabulary.RDF.type, ru.avicomp.ontapi.jena.vocabulary.OWL.ObjectProperty);
-            ontology = m.loadOntologyFromOntologyDocument(ru.avicomp.ontapi.utils.ReadWriteUtils.toInputStream(ontology, ru.avicomp.ontapi.OntFormat.TURTLE));
-            Assert.assertEquals("Expected two ontologies", 2, m.ontologies().count());
-        }
+        ReadWriteUtils.print(ontology);
         List<OWLSubClassOfAxiom> axioms = ontology.axioms(AxiomType.SUBCLASS_OF).collect(Collectors.toList());
         Assert.assertEquals(1, axioms.size());
         OWLSubClassOfAxiom ax = axioms.iterator().next();

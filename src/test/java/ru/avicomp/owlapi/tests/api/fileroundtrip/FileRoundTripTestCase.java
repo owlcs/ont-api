@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -86,6 +86,7 @@ public class FileRoundTripTestCase extends AbstractFileRoundTrippingTestCase {
                 // OWL-API decides that it is object property for some reasons.
                 // ONT-API would throw an exception in such case.
                 // To make test passed I changed initial TestParser07.rdf by adding declaration for <http://example.org#z> as Datatype.
+                // UPDATE: currently ONT-API(1.4.0) also chooses ObjectProperty in ambiguous situations.
                 "TestParser07.rdf",
                 "TestParser10.rdf",
                 // WARNING: data modified. Replace '\r\n' -> '\n'.

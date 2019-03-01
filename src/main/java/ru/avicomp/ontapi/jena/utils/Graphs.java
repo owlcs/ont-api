@@ -180,6 +180,19 @@ public class Graphs {
     }
 
     /**
+     * Creates a new {@code UnionGraph} with a given base {@code Graph}
+     * and the same structure and settings as in the specified {@code UnionGraph}.
+     *
+     * @param base  {@link Graph} new base, not {@code null}
+     * @param union {@link UnionGraph} to inherit settings and hierarchy, not {@code null}
+     * @return {@link UnionGraph}
+     * @since 1.4.0
+     */
+    public static UnionGraph withBase(Graph base, UnionGraph union) {
+        return new UnionGraph(base, union.getUnderlying(), union.getEventManager(), union.isDistinct());
+    }
+
+    /**
      * Gets Ontology URI from the base graph or returns {@code null}
      * if there is no {@code owl:Ontology} or it is anonymous ontology.
      *

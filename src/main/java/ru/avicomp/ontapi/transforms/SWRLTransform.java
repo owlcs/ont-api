@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,7 +22,6 @@ import org.apache.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -51,13 +50,14 @@ public class SWRLTransform extends Transform {
     }
 
     protected void fixEmptyList(Property predicate) {
-        Model m = getBaseModel();
-        statements(getModel(), null, predicate, null)
-                .filter(s -> s.getObject().isAnon())
-                .filter(s -> s.getResource().hasProperty(RDF.type, SWRL.AtomList))
-                .filter(s -> s.getResource().listProperties().toList().size() == 1)
-                .collect(Collectors.toSet())
-                .forEach(s -> m.removeAll(s.getResource(), null, null).remove(s).add(s.getSubject(), s.getPredicate(), RDF.nil));
+        Model m = getWorkModel();
+        listStatements(null, predicate, null)
+                .filterKeep(s -> s.getObject().isAnon()
+                        && s.getResource().hasProperty(RDF.type, SWRL.AtomList)
+                        && s.getResource().listProperties().toList().size() == 1)
+                .toSet()
+                .forEach(s -> m.removeAll(s.getResource(), null, null)
+                        .remove(s).add(s.getSubject(), s.getPredicate(), RDF.nil));
     }
 
     @Override

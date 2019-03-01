@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,6 +19,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.Assert;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
+import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import ru.avicomp.ontapi.OntologyModel;
 
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
@@ -288,6 +291,16 @@ public class ReadWriteUtils {
     public static OntologyModel convertJenaToONT(OntologyManager manager, Model model) {
         if (manager == null) manager = OntManagers.createONT();
         return (OntologyModel) convertJenaToOWL(manager, model, OntFormat.TURTLE);
+    }
+
+    public static OWLOntologyDocumentSource getDocumentSource(String file, OntFormat format) {
+        Path path;
+        try {
+            path = Paths.get(ReadWriteUtils.class.getResource(file).toURI()).toRealPath();
+        } catch (IOException | URISyntaxException e) {
+            throw new AssertionError(e);
+        }
+        return new FileDocumentSource(path.toFile(), format.createOwlFormat());
     }
 
     private static class TemporaryResourcesHolder {
