@@ -39,6 +39,7 @@ public class DEPRECATED {
 
         public static final Property propertyChain = property("propertyChain");
         public static final Property declaredAs = property("declaredAs");
+        // used in annotations and negative assertions:
         public static final Property subject = property("subject");
         public static final Property object = property("object");
         public static final Property predicate = property("predicate");
@@ -86,6 +87,7 @@ public class DEPRECATED {
     public static class RDF {
         public final static String NS = ru.avicomp.ontapi.jena.vocabulary.RDF.getURI();
 
+        // used in negative assertions:
         public static final Property subject = property("subject");
         public static final Property object = property("object");
         public static final Property predicate = property("predicate");

@@ -47,12 +47,14 @@ public class OWLCommonTransform extends Transform {
                     put(OWL.minCardinality, OWL.minQualifiedCardinality);
                 }
             });
-    private static final Set<Property> DEPRECATED_OWL_FACET = Stream.of(DEPRECATED.OWL.maxExclusive,
+    private static final Set<Property> DEPRECATED_OWL_FACETS = Stream.of(DEPRECATED.OWL.maxExclusive,
             DEPRECATED.OWL.maxInclusive,
             DEPRECATED.OWL.minExclusive, DEPRECATED.OWL.minInclusive).collect(Iter.toUnmodifiableSet());
     private static Set<Property> CARDINALITY_PREDICATES = Stream.of(OWL.cardinality, OWL.qualifiedCardinality,
             OWL.maxCardinality, OWL.maxQualifiedCardinality,
             OWL.minCardinality, OWL.minQualifiedCardinality).collect(Iter.toUnmodifiableSet());
+    private static List<Resource> ANNOTATION_TYPES = Stream.of(OWL.Axiom, OWL.Annotation)
+            .collect(Iter.toUnmodifiableList());
     private boolean processIndividuals;
 
     public OWLCommonTransform(Graph graph) {
@@ -74,14 +76,20 @@ public class OWLCommonTransform extends Transform {
 
     @Override
     public void perform() {
+        fixEntities();
         fixProperties();
         fixPropertyChains();
+        fixNegativeAssertionsAndAnnotations();
         fixExpressions();
         fixClassExpressions();
         fixDataRanges();
         if (processIndividuals) {
             fixNamedIndividuals();
         }
+    }
+
+    protected void fixEntities() {
+        replacePredicates(RDF.type, DEPRECATED.OWL.declaredAs);
     }
 
     protected void fixProperties() {
@@ -111,6 +119,70 @@ public class OWLCommonTransform extends Transform {
 
         replacePredicates(OWL.propertyDisjointWith, DEPRECATED.OWL.disjointObjectProperties, DEPRECATED.OWL.disjointDataProperties);
         replacePredicates(OWL.equivalentProperty, DEPRECATED.OWL.equivalentObjectProperty, DEPRECATED.OWL.equivalentDataProperty);
+
+        replacePredicates(RDFS.domain, DEPRECATED.OWL.objectPropertyDomain, DEPRECATED.OWL.dataPropertyDomain);
+        replacePredicates(RDFS.range, DEPRECATED.OWL.objectPropertyRange, DEPRECATED.OWL.dataPropertyRange);
+        replacePredicates(RDFS.subPropertyOf, DEPRECATED.OWL.subObjectPropertyOf, DEPRECATED.OWL.subDataPropertyOf);
+
+        // negative assertions:
+        changeType(DEPRECATED.OWL.NegativeDataPropertyAssertion, OWL.NegativePropertyAssertion);
+        changeType(DEPRECATED.OWL.NegativeObjectPropertyAssertion, OWL.NegativePropertyAssertion);
+    }
+
+    protected void fixNegativeAssertionsAndAnnotations() {
+        Model m = getWorkModel();
+        Iter.flatMap(Iter.of(DEPRECATED.RDF.subject, DEPRECATED.OWL.subject), p -> listStatements(null, p, null))
+                .toList()
+                .forEach(s -> {
+                    Resource r = s.getSubject();
+                    Property p = getSourceReplacement(r);
+                    if (p == null) return;
+                    m.remove(s).add(r, p, s.getObject());
+                });
+        Iter.flatMap(Iter.of(DEPRECATED.RDF.predicate, DEPRECATED.OWL.predicate), p -> listStatements(null, p, null))
+                .toList()
+                .forEach(s -> {
+                    Resource r = s.getSubject();
+                    Property p = getPredicateReplacement(r);
+                    m.remove(s).add(r, p, s.getObject());
+                });
+        Iter.flatMap(Iter.of(DEPRECATED.RDF.object, DEPRECATED.OWL.object), p -> listStatements(null, p, null))
+                .toList()
+                .forEach(s -> {
+                    Resource r = s.getSubject();
+                    Property p = getObjectReplacement(r, s.getObject());
+                    m.remove(s).add(r, p, s.getObject());
+                });
+    }
+
+    private Property getSourceReplacement(Resource r) {
+        if (hasType(r, OWL.NegativePropertyAssertion)) {
+            return OWL.sourceIndividual;
+        }
+        if (hasAnyType(r, ANNOTATION_TYPES)) {
+            return OWL.annotatedSource;
+        }
+        return null;
+    }
+
+    private Property getPredicateReplacement(Resource r) {
+        if (hasType(r, OWL.NegativePropertyAssertion)) {
+            return OWL.assertionProperty;
+        }
+        if (hasAnyType(r, ANNOTATION_TYPES)) {
+            return OWL.annotatedProperty;
+        }
+        return null;
+    }
+
+    private Property getObjectReplacement(Resource r, RDFNode o) {
+        if (hasType(r, OWL.NegativePropertyAssertion)) {
+            return o.isLiteral() ? OWL.targetValue : OWL.targetIndividual;
+        }
+        if (hasAnyType(r, ANNOTATION_TYPES)) {
+            return OWL.annotatedTarget;
+        }
+        return null;
     }
 
     protected void fixDataRanges() {
@@ -171,7 +243,7 @@ public class OWLCommonTransform extends Transform {
         if (r.isURIResource()) {
             List<Statement> list = r.listProperties()
                     .filterKeep(s -> s.getPredicate().equals(OWL.onDatatype) ||
-                            DEPRECATED_OWL_FACET.contains(s.getPredicate()))
+                            DEPRECATED_OWL_FACETS.contains(s.getPredicate()))
                     .toList();
             if (list.isEmpty()) return;
             anon = m.createResource(RDFS.Datatype);
@@ -182,7 +254,7 @@ public class OWLCommonTransform extends Transform {
         } else {
             return;
         }
-        Iter.flatMap(Iter.create(DEPRECATED_OWL_FACET), anon::listProperties)
+        Iter.flatMap(Iter.create(DEPRECATED_OWL_FACETS), anon::listProperties)
                 .toList().forEach(s -> {
             Property p = m.getProperty(XSD.NS + s.getPredicate().getLocalName());
             Resource f = m.createResource().addProperty(p, s.getObject());
@@ -192,8 +264,7 @@ public class OWLCommonTransform extends Transform {
 
     private void replacePredicates(Property newPredicate, Property... oldPredicates) {
         Model m = getWorkModel();
-        Iter.flatMap(Iter.of(oldPredicates),
-                p -> listStatements(null, p, null)).toList()
+        Iter.flatMap(Iter.of(oldPredicates), p -> listStatements(null, p, null)).toList()
                 .forEach(s -> m.remove(s).add(s.getSubject(), newPredicate, s.getObject()));
     }
 

@@ -19,6 +19,7 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
@@ -36,9 +37,11 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.Transform;
 import ru.avicomp.ontapi.transforms.TransformException;
+import ru.avicomp.ontapi.transforms.vocabulary.DEPRECATED;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 
@@ -130,6 +133,35 @@ public class OWLTransformTest {
         ReadWriteUtils.print(o);
         Assert.assertEquals(3, o.axioms(AxiomType.DECLARATION).peek(x -> LOGGER.debug("DE: {}", x)).count());
         Assert.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).peek(x -> LOGGER.debug("EC: {}", x)).count());
+    }
+
+    @Test
+    public void testTransformDeprecatedOWLIRIs() {
+        Model m = ModelFactory.createDefaultModel().setNsPrefixes(OntModelFactory.STANDARD);
+        Resource c = m.createResource("C1").addProperty(DEPRECATED.OWL.declaredAs, OWL.Class);
+        Resource i = m.createResource("I1", c);
+        Resource p = m.createResource("P")
+                .addProperty(DEPRECATED.OWL.declaredAs, DEPRECATED.OWL.DataProperty)
+                .addProperty(DEPRECATED.OWL.dataPropertyRange, XSD.xstring)
+                .addProperty(DEPRECATED.OWL.dataPropertyDomain, c)
+                .addProperty(DEPRECATED.OWL.equivalentDataProperty, OWL.bottomDataProperty);
+
+        m.createResource(DEPRECATED.OWL.NegativeDataPropertyAssertion)
+                .addProperty(DEPRECATED.RDF.subject, i)
+                .addProperty(DEPRECATED.RDF.predicate, p)
+                .addProperty(DEPRECATED.RDF.object, "v");
+        ReadWriteUtils.print(m);
+
+        OntologyManager manager = OntManagers.createONT();
+        OntologyModel o = manager.addOntology(m.getGraph(), manager.getOntologyLoaderConfiguration());
+        ReadWriteUtils.print(o);
+        assertAxiom(o, AxiomType.DECLARATION, 3);
+        assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
+        assertAxiom(o, AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, 1);
+        assertAxiom(o, AxiomType.DATA_PROPERTY_DOMAIN, 1);
+        assertAxiom(o, AxiomType.DATA_PROPERTY_RANGE, 1);
+        assertAxiom(o, AxiomType.EQUIVALENT_DATA_PROPERTIES, 1);
+        Assert.assertEquals(8, o.axioms().count());
     }
 
     private static void assertAxiom(OWLOntology o, AxiomType<?> t, long expected) {
