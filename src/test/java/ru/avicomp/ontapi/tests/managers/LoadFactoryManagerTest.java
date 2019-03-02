@@ -38,6 +38,8 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.OWLRecursiveTransform;
+import ru.avicomp.ontapi.transforms.Transform;
+import ru.avicomp.ontapi.transforms.TransformException;
 import ru.avicomp.ontapi.utils.*;
 
 import java.io.InputStream;
@@ -298,6 +300,19 @@ public class LoadFactoryManagerTest {
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
         Assert.assertEquals("Wrong axioms count", 5, o.getAxiomCount());
         Assert.assertEquals(1, o.axioms(AxiomType.SUBCLASS_OF).count());
+    }
+
+    @Test
+    public void testNoTransformsForNativeOWLAPIFormats() throws Exception {
+        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/owlapi/primer.owlxml.xml", OntFormat.OWL_XML);
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().setGraphTransformers(new GraphTransformers.Store().add(g -> new Transform(g) {
+            @Override
+            public void perform() throws TransformException {
+                Assert.fail("No transforms are expected.");
+            }
+        }));
+        Assert.assertNotNull(m.loadOntologyFromOntologyDocument(src));
     }
 
     /**
