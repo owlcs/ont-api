@@ -396,27 +396,38 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 return Literal.class;
             }
 
+            @Override
+            public boolean testObject(Node node, EnhGraph graph) {
+                return node.isLiteral();
+            }
         },
         ;
     }
 
     protected enum RestrictionType implements PredicateFilterProvider {
-        DATA {
-            @Override
-            public Class<OntNDP> view() {
-                return OntNDP.class;
-            }
-        },
-        OBJECT {
-            @Override
-            public Class<OntOPE> view() {
-                return OntOPE.class;
-            }
-        },
+        DATA(OntNDP.class),
+        OBJECT(OntOPE.class),
         ;
+        private final Class<? extends OntPE> type;
+        private final ObjectFactory propertyFactory;
+
+        RestrictionType(Class<? extends OntPE> type) {
+            this.type = type;
+            this.propertyFactory = of(type);
+        }
+
+        @Override
+        public Class<? extends OntPE> view() {
+            return type;
+        }
 
         public OntFilter getFilter() {
             return getFilter(OWL.onProperty);
+        }
+
+        @Override
+        public boolean testObject(Node node, EnhGraph graph) {
+            return propertyFactory.canWrap(node, graph);
         }
     }
 
@@ -487,16 +498,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         default boolean testObjects(Property predicate, Node node, EnhGraph graph) {
-            Class<? extends RDFNode> v = view();
-            ExtendedIterator<Triple> res = graph.asGraph().find(node, predicate.asNode(), Node.ANY);
-            try {
-                while (res.hasNext()) {
-                    if (PersonalityModel.canAs(v, res.next().getObject(), graph)) return true;
-                }
-            } finally {
-                res.close();
-            }
-            return false;
+            return Iter.anyMatch(graph.asGraph().find(node, predicate.asNode(), Node.ANY),
+                    t -> testObject(t.getObject(), graph));
+        }
+
+        default boolean testObject(Node node, EnhGraph graph) {
+            return PersonalityModel.canAs(view(), node, graph);
         }
     }
 
@@ -1052,6 +1059,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         private static final String NON_NEGATIVE_INTEGER_URI = XSD.nonNegativeInteger.getURI();
 
         protected static final Implementation LIST_FACTORY = RDFListImpl.factory;
+        protected final ObjectFactory objectPropertyFactory = of(OntOPE.class);
+        protected final ObjectFactory dataPropertyFactory = of(OntNDP.class);
 
         public static ObjectFactory createFactory() {
             return new ClassExpressionFactory();
@@ -1153,7 +1162,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 try {
                     while (props.hasNext()) {
                         Node p = props.next();
-                        if (hasType(p, eg, OntOPE.class)) {
+                        if (objectPropertyFactory.canWrap(p, eg)) {
                             // ObjectSomeValuesFrom, ObjectAllValuesFrom
                             if (isObjectOfType(n, eg, SOME_VALUES_FROM, OntCE.class)) {
                                 return Factory.OBJECT_SOME_VALUES_FROM;
@@ -1181,7 +1190,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                                 return Factory.OBJECT_HAS_SELF;
                             }
                         }
-                        if (hasType(p, eg, OntNDP.class)) {
+                        if (dataPropertyFactory.canWrap(p, eg)) {
                             // DataSomeValuesFrom, DataAllValuesFrom
                             if (isObjectOfType(n, eg, SOME_VALUES_FROM, OntDR.class)) {
                                 return Factory.DATA_SOME_VALUES_FROM;

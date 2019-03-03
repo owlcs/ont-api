@@ -61,6 +61,18 @@ public interface PersonalityModel {
     <N extends RDFNode> N getNodeAs(Node node, Class<N> view);
 
     /**
+     * Answers an enhanced node that wraps the given {@link Node node} and conforms to the given interface type.
+     * Works silently: no exception is thrown, instead returns {@code null}.
+     *
+     * @param node {@link Node}
+     * @param type {@link Class}-type
+     * @param <N>  any subtype of {@link RDFNode}
+     * @return {@link RDFNode} or {@code null}
+     * @see PersonalityModel#getNodeAs(Node, Class)
+     */
+    <N extends RDFNode> N findNodeAs(Node node, Class<N> type);
+
+    /**
      * Answers an enhanced node that wraps the given {@link Node node} and conforms to the given interface type,
      * taking into account possible graph recursions.
      *
@@ -74,22 +86,7 @@ public interface PersonalityModel {
     <N extends RDFNode> N fetchNodeAs(Node node, Class<N> view);
 
     /**
-     * Checks if the given {@link Node node} can be viewed as the given type.
-     * This method caches the enhanced node, if possible, in the model,
-     * and, opposite to the method {@link UnionModel#findNodeAs(Node, Class)},
-     * takes care about possible graph recursions.
-     *
-     * @param view  Class-type
-     * @param node  {@link Node}
-     * @param graph {@link EnhGraph}, assumed to be {@link OntGraphModelImpl}
-     * @return {@code true} if the node can be safely casted to the specified type
-     */
-    static boolean canAs(Class<? extends RDFNode> view, Node node, EnhGraph graph) {
-        return asPersonalityModel(graph).fetchNodeAs(node, view) != null;
-    }
-
-    /**
-     * Represents the given {@code EnhGraph} a {@link PersonalityModel}.
+     * Represents the given {@code EnhGraph} as a {@link PersonalityModel}.
      *
      * @param graph {@link EnhGraph enhanced graph},
      *              that is assumed to be {@link ru.avicomp.ontapi.jena.model.OntGraphModel}, not {@code null}
@@ -103,4 +100,20 @@ public interface PersonalityModel {
         }
         throw new OntJenaException.IllegalArgument("The given EnhGraph is not a PersonalityModel: " + graph);
     }
+
+    /**
+     * Checks if the given {@link Node node} can be viewed as the given type.
+     * This method caches the enhanced node, if possible, in the model,
+     * and, opposite to the method {@link PersonalityModel#findNodeAs(Node, Class)},
+     * takes care about possible graph recursions.
+     *
+     * @param view  Class-type
+     * @param node  {@link Node}
+     * @param graph {@link EnhGraph}, assumed to be {@link OntGraphModelImpl}
+     * @return {@code true} if the node can be safely casted to the specified type
+     */
+    static boolean canAs(Class<? extends RDFNode> view, Node node, EnhGraph graph) {
+        return asPersonalityModel(graph).fetchNodeAs(node, view) != null;
+    }
+
 }

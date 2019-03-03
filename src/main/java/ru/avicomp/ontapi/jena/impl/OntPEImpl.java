@@ -26,7 +26,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.BaseFactoryImpl;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
-import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
 import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -37,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static ru.avicomp.ontapi.jena.impl.WrappedFactoryImpl.of;
+
 /**
  * Property Expression base impl-class.
  * No functionality, just a collection of factories related to all OWL property-expressions.
@@ -46,24 +47,10 @@ import java.util.Objects;
 @SuppressWarnings("WeakerAccess")
 public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
 
-    private static final Node OWL_INVERSE_OF = OWL.inverseOf.asNode();
-    public static final OntFilter INVERSE_OF_FILTER = (n, g) -> {
-        if (!n.isBlank()) return false;
-        ExtendedIterator<Triple> res = g.asGraph().find(n, OWL_INVERSE_OF, Node.ANY);
-        try {
-            while (res.hasNext()) {
-                if (PersonalityModel.canAs(OntNOP.class, res.next().getObject(), g)) return true;
-            }
-        } finally {
-            res.close();
-        }
-        return false;
-    };
     public static final OntFinder NAMED_PROPERTY_FINDER = Factories.createFinder(OWL.AnnotationProperty
             , OWL.ObjectProperty, OWL.DatatypeProperty);
 
-    public static ObjectFactory inversePropertyFactory = Factories.createCommon(OntOPEImpl.InversePropertyImpl.class,
-            new OntFinder.ByPredicate(OWL.inverseOf), INVERSE_OF_FILTER);
+    public static ObjectFactory inversePropertyFactory = createAnonymousObjectPropertyFactory();
     public static ObjectFactory abstractNamedPropertyFactory = Factories.createFrom(NAMED_PROPERTY_FINDER
             , OntNOP.class, OntNDP.class, OntNAP.class);
 
@@ -80,37 +67,37 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         super(n, m);
     }
 
-    private static ObjectFactory createObjectPropertyExpressionFactory() {
-        return new WithInverseObjectPropertyFactory() {
-            final ObjectFactory namedObjectProperty = new WrappedFactoryImpl(OntNOP.class);
-
+    public static ObjectFactory createObjectPropertyExpressionFactory() {
+        return new HasAnonymous() {
+            private final ObjectFactory named = of(OntNOP.class);
             @Override
             public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
                 ExtendedIterator<EnhNode> res = eg.asGraph().find(Node.ANY, RDF.Nodes.type, OWL.ObjectProperty.asNode())
-                        .mapWith(t -> safeWrap(t.getSubject(), eg, namedObjectProperty));
-                return Iter.concat(res, super.iterator(eg)).filterDrop(Objects::isNull);
+                        .filterKeep(t -> t.getSubject().isURI())
+                        .mapWith(t -> named.createInstance(t.getSubject(), eg));
+                return Iter.concat(res, anonymous.iterator(eg));
             }
 
             @Override
             public boolean canWrap(Node node, EnhGraph eg) {
                 if (node.isURI()) {
-                    return namedObjectProperty.canWrap(node, eg);
+                    return named.canWrap(node, eg);
                 }
-                return super.canWrap(node, eg);
+                return anonymous.canWrap(node, eg);
             }
 
             @Override
             public EnhNode createInstance(Node node, EnhGraph eg) {
                 if (node.isURI()) {
-                    return safeWrap(node, eg, namedObjectProperty);
+                    return named.createInstance(node, eg);
                 }
-                return super.createInstance(node, eg);
+                return anonymous.createInstance(node, eg);
             }
 
             @Override
             public EnhNode wrap(Node node, EnhGraph eg) {
                 if (node.isURI())
-                    return namedObjectProperty.wrap(node, eg);
+                    return named.wrap(node, eg);
                 if (node.isBlank())
                     return anonymous.wrap(node, eg);
                 throw new ConversionException("Can't convert node " + node + " to Object Property Expression.");
@@ -118,17 +105,21 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         };
     }
 
-    private static ObjectFactory createDataOrObjectPropertyFactory() {
+    public static ObjectFactory createDataOrObjectPropertyFactory() {
         return new PropertiesFactory()
                 .add(OWL.ObjectProperty, OntNOP.class)
                 .add(OWL.DatatypeProperty, OntNDP.class);
     }
 
-    private static ObjectFactory createPropertyExpressionFactory() {
+    public static ObjectFactory createPropertyExpressionFactory() {
         return new PropertiesFactory()
                 .add(OWL.ObjectProperty, OntNOP.class)
                 .add(OWL.DatatypeProperty, OntNDP.class)
                 .add(OWL.AnnotationProperty, OntNAP.class);
+    }
+
+    public static ObjectFactory createAnonymousObjectPropertyFactory() {
+        return new AnonymousObjectPropertyFactory();
     }
 
     @Override
@@ -137,7 +128,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         return as(Property.class);
     }
 
-    private static class PropertiesFactory extends WithInverseObjectPropertyFactory {
+    protected static class PropertiesFactory extends HasAnonymous {
         final List<Factory> factories = new ArrayList<>();
 
         PropertiesFactory add(Resource declaration, Class<? extends OntPE> type) {
@@ -150,13 +141,13 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
             Graph g = eg.asGraph();
             ExtendedIterator<EnhNode> res = Iter.distinct(Iter.flatMap(Iter.create(factories),
                     f -> g.find(Node.ANY, RDF.Nodes.type, f.nt).mapWith(t -> safeWrap(t.getSubject(), eg, f.f))));
-            return Iter.concat(res, super.iterator(eg)).filterDrop(Objects::isNull);
+            return Iter.concat(res, anonymous.iterator(eg)).filterDrop(Objects::isNull);
         }
 
         @Override
         public boolean canWrap(Node node, EnhGraph eg) {
             if (!node.isURI()) {
-                return super.canWrap(node, eg);
+                return anonymous.canWrap(node, eg);
             }
             for (Factory f : factories) {
                 if (f.f.canWrap(node, eg)) return true;
@@ -167,7 +158,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         @Override
         public EnhNode createInstance(Node node, EnhGraph eg) {
             if (!node.isURI()) {
-                return super.createInstance(node, eg);
+                return anonymous.createInstance(node, eg);
             }
             for (Factory f : factories) {
                 EnhNode res = safeWrap(node, eg, f.f);
@@ -197,36 +188,41 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
             private final Node nt;
             private final ObjectFactory f;
 
-            private Factory(Node nt, Class<? extends OntPE> ct) {
-                this.nt = Objects.requireNonNull(nt);
-                this.f = new WrappedFactoryImpl(Objects.requireNonNull(ct));
+            private Factory(Node nodeType, Class<? extends OntPE> classType) {
+                this.nt = Objects.requireNonNull(nodeType);
+                this.f = of(classType);
             }
         }
     }
 
-    private static abstract class WithInverseObjectPropertyFactory extends BaseFactoryImpl {
-        final ObjectFactory anonymous = new WrappedFactoryImpl(OntOPE.Inverse.class);
+    protected static abstract class HasAnonymous extends BaseFactoryImpl {
+        protected final ObjectFactory anonymous = of(OntOPE.Inverse.class);
+    }
+
+    public static class AnonymousObjectPropertyFactory extends BaseFactoryImpl {
+        private static final Node OWL_INVERSE_OF = OWL.inverseOf.asNode();
+        protected final ObjectFactory named = of(OntNOP.class);
 
         @Override
         public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
-            return Iter.distinct(eg.asGraph().find(Node.ANY, OWL_INVERSE_OF, Node.ANY)
-                    .mapWith(t -> safeWrap(t.getSubject(), eg, anonymous)));
+            return triples(Node.ANY, eg)
+                    .filterKeep(x -> x.getSubject().isBlank())
+                    .mapWith(x -> createInstance(x.getSubject(), eg));
         }
 
         @Override
         public boolean canWrap(Node node, EnhGraph eg) {
-            if (node.isBlank()) {
-                return anonymous.canWrap(node, eg);
-            }
-            return false;
+            return node.isBlank() && Iter.findFirst(triples(node, eg)).isPresent();
         }
 
         @Override
         public EnhNode createInstance(Node node, EnhGraph eg) {
-            if (node.isBlank()) {
-                return safeWrap(node, eg, anonymous);
-            }
-            return null;
+            return new OntOPEImpl.InversePropertyImpl(node, eg);
+        }
+
+        private ExtendedIterator<Triple> triples(Node node, EnhGraph eg) {
+            // "_:x owl:inverseOf PN":
+            return eg.asGraph().find(node, OWL_INVERSE_OF, Node.ANY).filterKeep(x -> named.canWrap(x.getObject(), eg));
         }
     }
 }
