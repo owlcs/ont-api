@@ -280,7 +280,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                               Resource subject,
                                                               Property predicate,
                                                               RDFNode obj) {
-        return OntStatementImpl.listAnnotationResources(m, OWL.Axiom, subject, predicate, obj);
+        return m.listAnnotations(OWL.Axiom, subject, predicate, obj);
     }
 
     /**

@@ -18,8 +18,11 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
@@ -33,13 +36,15 @@ import ru.avicomp.ontapi.jena.impl.conf.PersonalityBuilder;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Objects;
 
 /**
- * TODO: add description.
+ * Model with optimizations including nodes cache.
+ * It is used in various operations of collecting axioms, each of them must be isolated by R/W lock,
+ * which guarantees that underlying graph is not changed.
  * <p>
  * Created by @ssz on 16.02.2019.
  *
@@ -71,6 +76,8 @@ public class SearchModel extends OntGraphModelImpl {
      * Original personality.
      */
     protected final OntPersonality personality;
+    private Boolean hasAnnotations;
+    private Boolean hasSubAnnotations;
 
     public SearchModel(Graph graph, OntPersonality personality, InternalConfig.Snapshot conf) {
         this(graph, personality, conf, true);
@@ -108,24 +115,6 @@ public class SearchModel extends OntGraphModelImpl {
         return res.build();
     }
 
-    /**
-     * Creates a {@code Map} with fixed length.
-     *
-     * @param size        int, positive
-     * @param accessOrder the ordering mode: {@code true} for access-order, {@code false} for insertion-order
-     * @param <K>         the type of keys maintained by the return map
-     * @param <V>         the type of mapped values
-     * @return Map
-     */
-    public static <K, V> Map<K, V> createLinkedHashMap(int size, boolean accessOrder) {
-        return new LinkedHashMap<K, V>(size, 0.75f, accessOrder) {
-            @Override
-            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-                return size() > size;
-            }
-        };
-    }
-
     @Override
     public OntGraphModelImpl getTopModel() {
         if (independent()) {
@@ -140,6 +129,37 @@ public class SearchModel extends OntGraphModelImpl {
         return new SearchModel(getBaseGraph(), personality, conf, false);
     }
 
+    /**
+     * Answers {@code true} if model contains any annotations.
+     *
+     * @return {@code true} if model contains predicate {@link OWL#annotatedSource owl:annotatedSource}
+     */
+    public boolean hasAnnotations() {
+        return hasAnnotations == null ?
+                hasAnnotations = contains(null, OWL.annotatedSource, (RDFNode) null) :
+                hasAnnotations;
+    }
+
+    /**
+     * Answers {@code true} if model contains any sub-annotations.
+     *
+     * @return {@code true} if model contains sub-annotations ({@code rdf:type} = {@link OWL#Annotation owl:Annotation}
+     */
+    public boolean hasSubAnnotations() {
+        return hasSubAnnotations == null ?
+                hasSubAnnotations = contains(null, RDF.type, OWL.Annotation) :
+                hasSubAnnotations;
+    }
+
+    @Override
+    public ExtendedIterator<Resource> listAnnotations(Resource t, Resource s, Property p, RDFNode o) {
+        if (!hasAnnotations()) return NullIterator.instance();
+        if (OWL.Annotation == t && !hasSubAnnotations()) {
+            return NullIterator.instance();
+        }
+        return super.listAnnotations(t, s, p, o);
+    }
+
     @Override
     public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> type) {
         try {
@@ -150,7 +170,7 @@ public class SearchModel extends OntGraphModelImpl {
     }
 
     /**
-     * todo: description
+     * A {@link ObjectFactory} impl with nodes cache.
      */
     public static class CachedFactory extends BaseFactoryImpl {
         private final ObjectFactory from;

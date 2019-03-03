@@ -522,6 +522,27 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
+     * Lists all (bulk) annotation anonymous resources for the given {@code rdf:type} and SPO.
+     *
+     * @param t {@link Resource} either {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}
+     * @param s {@link Resource} subject
+     * @param p {@link Property} predicate
+     * @param o {@link RDFNode} object
+     * @return {@link ExtendedIterator} of annotation {@link Resource resource}s
+     */
+    public ExtendedIterator<Resource> listAnnotations(Resource t, Resource s, Property p, RDFNode o) {
+        return listStatements(null, OWL.annotatedSource, s)
+                .filterKeep(x -> { // ensure that a resource instance has correct structure:
+                    OntStatementImpl st = asOntStatement(x);
+                    if (OWL.Axiom == t ? st.belongsToOWLAxiom() : st.belongsToOWLAnnotation()) {
+                        return st.hasAnnotatedProperty(p) && st.hasAnnotatedTarget(o);
+                    }
+                    return false;
+                })
+                .mapWith(Statement::getSubject);
+    }
+
+    /**
      * Deletes the specified {@code OntList} including its annotations.
      *
      * @param subject   {@link OntObject} the subject of the OntList root statement

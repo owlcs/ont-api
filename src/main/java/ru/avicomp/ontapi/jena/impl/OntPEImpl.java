@@ -140,8 +140,9 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
             Graph g = eg.asGraph();
             ExtendedIterator<EnhNode> res = Iter.distinct(Iter.flatMap(Iter.create(factories),
-                    f -> g.find(Node.ANY, RDF.Nodes.type, f.nt).mapWith(t -> safeWrap(t.getSubject(), eg, f.f))));
-            return Iter.concat(res, anonymous.iterator(eg)).filterDrop(Objects::isNull);
+                    f -> g.find(Node.ANY, RDF.Nodes.type, f.nt)
+                            .mapWith(t -> safeWrap(t.getSubject(), eg, f.f)).filterDrop(Objects::isNull)));
+            return Iter.concat(res, anonymous.iterator(eg));
         }
 
         @Override

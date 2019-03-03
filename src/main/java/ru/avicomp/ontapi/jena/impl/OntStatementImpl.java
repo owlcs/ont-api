@@ -155,34 +155,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return {@link ExtendedIterator} of annotation {@link Resource resource}s
      */
     public static ExtendedIterator<Resource> listAnnotationResources(OntGraphModelImpl m, OntStatementImpl s) {
-        return listAnnotationResources(m, s.getAnnotationResourceType(), s.subject, s.predicate, s.object);
-    }
-
-    /**
-     * Lists all (bulk) annotation anonymous resources form the specified model, type and SPO.
-     *
-     * @param m {@link OntGraphModelImpl}
-     * @param t {@link Resource} either {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}
-     * @param s {@link Resource} subject
-     * @param p {@link Property} predicate
-     * @param o {@link RDFNode} object
-     * @return {@link ExtendedIterator} of annotation {@link Resource resource}s
-     */
-    static ExtendedIterator<Resource> listAnnotationResources(OntGraphModelImpl m,
-                                                              Resource t,
-                                                              Resource s,
-                                                              Property p,
-                                                              RDFNode o) {
-        boolean isOWLAxiom = OWL.Axiom == t;
-        return m.listStatements(null, OWL.annotatedSource, s)
-                .filterKeep(x -> {
-                    OntStatementImpl st = m.asOntStatement(x);
-                    if (isOWLAxiom ? st.belongsToOWLAxiom() : st.belongsToOWLAnnotation()) {
-                        return st.hasAnnotatedProperty(p) && st.hasAnnotatedTarget(o);
-                    }
-                    return false;
-                })
-                .mapWith(Statement::getSubject);
+        return m.listAnnotations(s.getAnnotationResourceType(), s.subject, s.predicate, s.object);
     }
 
     /**
