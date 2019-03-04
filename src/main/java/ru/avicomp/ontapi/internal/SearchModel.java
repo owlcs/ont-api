@@ -130,9 +130,9 @@ public class SearchModel extends OntGraphModelImpl {
     }
 
     /**
-     * Answers {@code true} if model contains any annotations.
+     * Answers {@code true} if the model contains bulk annotations.
      *
-     * @return {@code true} if model contains predicate {@link OWL#annotatedSource owl:annotatedSource}
+     * @return {@code true} if the model contains predicate {@link OWL#annotatedSource owl:annotatedSource}
      */
     public boolean hasAnnotations() {
         return hasAnnotations == null ?
@@ -141,9 +141,10 @@ public class SearchModel extends OntGraphModelImpl {
     }
 
     /**
-     * Answers {@code true} if model contains any sub-annotations.
+     * Answers {@code true} if the model contains bulk sub-annotations
+     * (i.e. {@code rdf:type} = {@link OWL#Annotation owl:Annotation}).
      *
-     * @return {@code true} if model contains sub-annotations ({@code rdf:type} = {@link OWL#Annotation owl:Annotation}
+     * @return {@code true} if the model contains sub-annotations
      */
     public boolean hasSubAnnotations() {
         return hasSubAnnotations == null ?

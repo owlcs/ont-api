@@ -70,8 +70,18 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
         return new OntLoaderConfiguration(owl);
     }
 
-    protected Object get(OntConfig.OptionSetting key) {
-        return key.fromMap(map);
+    @SuppressWarnings("unchecked")
+    protected <X> X get(OntConfig.OptionSetting key) {
+        return (X) key.fromMap(map);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <X> X getOrCompute(OntConfig.OptionSetting key) {
+        return (X) map.computeIfAbsent(key, x -> key.getDefaultValue());
+    }
+
+    protected OntLoaderConfiguration setPositive(OntConfig.OptionSetting k, int v) {
+        return set(k, OntConfig.requirePositive(v, k));
     }
 
     protected OntLoaderConfiguration set(OntConfig.OptionSetting key, Object o) {
@@ -124,7 +134,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @see #setGraphTransformers(GraphTransformers.Store)
      */
     public boolean isPerformTransformation() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS);
+        return get(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS);
     }
 
     /**
@@ -194,9 +204,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      *
      * @return Set of {@link OntConfig.Scheme}
      */
-    @SuppressWarnings("unchecked")
     public List<OntConfig.Scheme> getSupportedSchemes() {
-        return (List<OntConfig.Scheme>) get(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES);
+        return get(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES);
     }
 
     /**
@@ -233,7 +242,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @see #isLoadAnnotationAxioms()
      */
     public boolean isAllowBulkAnnotationAssertions() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS);
+        return get(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS);
     }
 
     /**
@@ -285,7 +294,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @return {@code true} if declarations are allowed in the structural view
      */
     public boolean isAllowReadDeclarations() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS);
+        return get(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS);
     }
 
     /**
@@ -312,7 +321,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @return {@code true} if possible ambiguities with annotation axioms should be ignored.
      */
     public boolean isIgnoreAnnotationAxiomOverlaps() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS);
+        return get(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS);
     }
 
     /**
@@ -343,7 +352,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * (i.e. the loading is done through the OWL-API mechanisms by one axiom at a time).
      */
     public boolean isUseOWLParsersToLoad() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD);
+        return get(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD);
     }
 
     /**
@@ -371,7 +380,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @since 1.1.0
      */
     public boolean isIgnoreAxiomsReadErrors() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS);
+        return get(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS);
     }
 
     /**
@@ -396,7 +405,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      * @since 1.3.0
      */
     public boolean isSplitAxiomAnnotations() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS);
+        return get(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS);
     }
 
     /**
@@ -422,7 +431,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public boolean isLoadAnnotationAxioms() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS);
+        return get(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS);
     }
 
     /**
@@ -440,9 +449,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     /**
      * @return List of IRIs (Strings)
      */
-    @SuppressWarnings("unchecked")
     protected List<String> getIgnoredImports() {
-        return (List<String>) map.computeIfAbsent(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, OntConfig.OptionSetting::getDefaultValue);
+        return getOrCompute(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS);
     }
 
     /**
@@ -497,7 +505,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public PriorityCollectionSorting getPriorityCollectionSorting() {
-        return (PriorityCollectionSorting) get(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING);
+        return get(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING);
     }
 
     /**
@@ -513,7 +521,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public int getConnectionTimeout() {
-        return (int) get(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT);
+        return get(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT);
     }
 
     /**
@@ -521,7 +529,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public OntLoaderConfiguration setConnectionTimeout(int time) {
-        return set(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, time);
+        return setPositive(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, time);
     }
 
     /**
@@ -561,7 +569,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public int getRetriesToAttempt() {
-        return (int) get(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT);
+        return get(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT);
     }
 
     /**
@@ -569,7 +577,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public OntLoaderConfiguration setRetriesToAttempt(int retries) {
-        return set(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, retries);
+        return setPositive(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, retries);
     }
 
     /**
@@ -577,7 +585,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public boolean isAcceptingHTTPCompression() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION);
+        return get(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION);
     }
 
     /**
@@ -593,7 +601,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public boolean isFollowRedirects() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS);
+        return get(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS);
     }
 
     /**
@@ -609,7 +617,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public boolean isReportStackTrace() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES);
+        return get(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES);
     }
 
     /**
@@ -625,7 +633,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public boolean isStrict() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION);
+        return get(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION);
     }
 
     /**
@@ -641,7 +649,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public boolean isTreatDublinCoreAsBuiltIn() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN);
+        return get(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN);
     }
 
     /**
@@ -657,7 +665,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public String getBannedParsers() {
-        return (String) get(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS);
+        return get(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS);
     }
 
     /**
@@ -673,7 +681,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public String getEntityExpansionLimit() {
-        return (String) get(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT);
+        return get(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT);
     }
 
     /**
@@ -694,7 +702,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
      */
     @Override
     public String getAuthorizationValue() {
-        return (String) get(OntSettings.OWL_API_AUTHORIZATION_VALUE);
+        return get(OntSettings.OWL_API_AUTHORIZATION_VALUE);
     }
 
     /**

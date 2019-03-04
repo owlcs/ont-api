@@ -37,6 +37,7 @@ import java.util.stream.Stream;
  * Note: this configuration is mutable, while load and write configs are not.
  * Additional (new) ONT-API methods:
  * <ul>
+ * <li>{@link #getManagerIRICacheSize()} (<b>since 1.4.0</b>)</li>
  * <li>{@link #getPersonality()} and {@link #setPersonality(OntPersonality)}</li>
  * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers.Store)}</li>
  * <li>{@link #isPerformTransformation()} and {@link #setPerformTransformation(boolean)}</li>
@@ -68,24 +69,177 @@ public class OntConfig extends OntologyConfigurator {
     protected GraphTransformers.Store transformers;
 
     /**
+     * Creates a new config with the given R/W lock ans IRI cache size.
+     *
+     * @param lock         {@link ReadWriteLock}
+     * @param iriCacheSize int, possible non-positive for disabling cache
+     * @return {@link OntConfig}
+     * @see #setManagerIRICacheSize(int)
+     * @since 1.4.0
+     */
+    public static OntConfig createConfig(ReadWriteLock lock, int iriCacheSize) {
+        return createConfig(lock).setManagerIRICacheSize(iriCacheSize);
+    }
+
+    /**
      * Creates a new config instance.
-     * All its settings are taken from {@code ./resources/ontapi.properties} file.
+     * All its settings are taken from {@code ./resources/ontapi.properties} file
+     * or default, if missed in the file.
      * The returned instance is mutable.
      *
      * @param lock {@link ReadWriteLock} or {@code null} for non-concurrent version
      * @return {@link OntConfig}
+     * @since 1.4.0
      */
     public static OntConfig createConfig(ReadWriteLock lock) {
-        return NoOpReadWriteLock.isConcurrent(lock) ? new Concurrent(lock) : new OntConfig();
+        return withLock(new OntConfig(), lock);
     }
 
-    protected Object get(OptionSetting key) {
-        return key.fromMap(map);
+    /**
+     * Makes a concurrent version of the specified config with the given R/W lock if needed,
+     * otherwise returns the same config.
+     * A concurrent config is backed by the given and vice versa.
+     *
+     * @param conf {@link OntConfig}, not {@code null}
+     * @param lock {@link ReadWriteLock}, possible {@code null}
+     * @return an instance with lock
+     * @since 1.4.0
+     */
+    public static OntConfig withLock(OntConfig conf, ReadWriteLock lock) {
+        if (conf instanceof Concurrent) {
+            conf = ((Concurrent) conf).delegate;
+        }
+        if (NoOpReadWriteLock.isConcurrent(lock)) {
+            return conf;
+        }
+        return new Concurrent(conf, lock);
+    }
+
+    /**
+     * Copies all settings from the given {@link OntologyConfigurator} to a new instance.
+     *
+     * @param from {@link OntologyConfigurator} or {@code null} to create config with default settings.
+     * @return {@link OntConfig} new instance
+     */
+    public static OntConfig copy(OntologyConfigurator from) {
+        return copy(from, new OntConfig());
+    }
+
+    /**
+     * Copies configuration from one config to another.
+     *
+     * @param from {@link OntologyConfigurator}, the source, can be {@code null}
+     * @param to   {@link OntConfig}, the destination, not {@code null}
+     * @return {@link OntConfig}, the same {@code to}-config
+     * @since 1.4.0
+     */
+    public static OntConfig copy(OntologyConfigurator from, OntConfig to) {
+        Objects.requireNonNull(to);
+        if (from == null || from == to) return to;
+        if (from instanceof OntConfig) {
+            to.asMap().putAll(((OntConfig) from).asMap());
+            to.setPersonality(((OntConfig) from).getPersonality());
+            to.setGraphTransformers(((OntConfig) from).getGraphTransformers());
+            return to;
+        }
+        Map<OptionSetting, Object> map = to.asMap();
+        map.put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, new ArrayList<>(ignoredImports(from)));
+        map.put(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION, from.shouldAcceptHTTPCompression());
+        map.put(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, from.getConnectionTimeout());
+        map.put(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS, from.shouldFollowRedirects());
+        map.put(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS, from.shouldLoadAnnotations());
+        map.put(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY, from.getMissingImportHandlingStrategy());
+        map.put(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY, from.getMissingOntologyHeaderStrategy());
+        map.put(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES, from.shouldReportStackTraces());
+        map.put(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, from.getRetriesToAttempt());
+        map.put(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION, from.shouldParseWithStrictConfiguration());
+        map.put(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN, from.shouldTreatDublinCoreAsBuiltin());
+        map.put(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, from.getPriorityCollectionSorting());
+        map.put(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS, from.getBannedParsers());
+        // NOTE: there is no ConfigurationOption.ENTITY_EXPANSION_LIMIT inside original (OWL-API, ver 5.0.5) class.
+
+        map.put(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS, from.shouldSaveIds());
+        map.put(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS, from.shouldRemapIds());
+        map.put(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES, from.shouldUseNamespaceEntities());
+        map.put(OntSettings.OWL_API_WRITE_CONF_INDENTING, from.shouldIndent());
+        map.put(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER, from.shouldUseLabelsAsBanner());
+        map.put(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED, from.shouldUseBanners());
+        map.put(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, from.getIndentSize());
+
+        return to;
+    }
+
+    static <N extends Integer> N requirePositive(N n, Object message) {
+        if (n.intValue() > 0) return n;
+        throw new IllegalArgumentException(message + " must be positive: " + n);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected static Set<IRI> ignoredImports(OntologyConfigurator owl) {
+        try {
+            Field field = owl.getClass().getDeclaredField("ignoredImports");
+            field.setAccessible(true);
+            return (Set<IRI>) field.get(owl);
+        } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
+            throw new OntApiException("Can't get OntologyConfigurator#ignoredImports.", e);
+        }
+    }
+
+    public static OntPersonality getDefaultPersonality() {
+        OntModelConfig.StdMode mode = (OntModelConfig.StdMode) OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE.getDefaultValue();
+        switch (mode) {
+            case LAX:
+                return OntModelConfig.ONT_PERSONALITY_LAX;
+            case MEDIUM:
+                return OntModelConfig.ONT_PERSONALITY_MEDIUM;
+            case STRICT:
+                return OntModelConfig.ONT_PERSONALITY_STRICT;
+            default:
+                throw new OntApiException.Unsupported("Unsupported personality mode " + mode);
+        }
+    }
+
+    protected Map<OptionSetting, Object> asMap() {
+        return map;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static GraphTransformers.Store getDefaultTransformers() {
+        List<Class> transformers = (List<Class>) OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS.getDefaultValue();
+        GraphTransformers.Store res = new GraphTransformers.Store();
+        for (Class c : transformers) {
+            res = res.add(new GraphTransformers.DefaultMaker(c));
+        }
+        return res;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <X> X get(OptionSetting key) {
+        return (X) key.fromMap(map);
+    }
+
+    @SuppressWarnings({"unchecked", "SameParameterValue"})
+    protected <X> X getOrCompute(OptionSetting key) {
+        return (X) map.computeIfAbsent(key, x -> key.getDefaultValue());
     }
 
     protected OntConfig put(OptionSetting key, Object value) {
         map.put(key, value);
         return this;
+    }
+
+    protected OntConfig putPositive(OntSettings k, int v) {
+        return put(k, requirePositive(v, k));
+    }
+
+    /**
+     * ONT-API manager load config getter.
+     *
+     * @return {@link OntPersonality}
+     * @see OntLoaderConfiguration#getPersonality()
+     */
+    public OntPersonality getPersonality() {
+        return personality == null ? personality = getDefaultPersonality() : personality;
     }
 
     /**
@@ -103,11 +257,11 @@ public class OntConfig extends OntologyConfigurator {
     /**
      * ONT-API manager load config getter.
      *
-     * @return {@link OntPersonality}
-     * @see OntLoaderConfiguration#getPersonality()
+     * @return {@link ru.avicomp.ontapi.transforms.GraphTransformers.Store}
+     * @see OntLoaderConfiguration#getGraphTransformers()
      */
-    public OntPersonality getPersonality() {
-        return personality == null ? personality = getDefaultPersonality() : personality;
+    public GraphTransformers.Store getGraphTransformers() {
+        return transformers == null ? transformers = getDefaultTransformers() : transformers;
     }
 
     /**
@@ -123,13 +277,31 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * ONT-API manager load config getter.
+     * ONT-API manager load config setter.
+     * Sets a new IRI cache size.
+     * Protected, since this is a manager's initialization setting,
+     * which must not be changed during manager's lifetime.
      *
-     * @return {@link ru.avicomp.ontapi.transforms.GraphTransformers.Store}
-     * @see OntLoaderConfiguration#getGraphTransformers()
+     * @param size int, possible negative
+     * @return this instance
      */
-    public GraphTransformers.Store getGraphTransformers() {
-        return transformers == null ? transformers = getDefaultTransformers() : transformers;
+    protected OntConfig setManagerIRICacheSize(int size) {
+        return put(OntSettings.ONT_API_CONF_MANAGER_CACHE_IRI, size);
+    }
+
+    /**
+     * ONT-API manager load config getter.
+     * Returns the IRI cache size, that is used inside a manager to share IRIs between ontologies.
+     * The default size is {@code 2048}, it is a magic number which is taken from OWL-API impl
+     * (see uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl, v5)
+     * A negative or zero number means that IRIs cache is disabled.
+     *
+     * @return int, possible non-positive to disable IRIs caching
+     * @since 1.4.0
+     */
+    public int getManagerIRICacheSize() {
+        Integer res = get(OntSettings.ONT_API_CONF_MANAGER_CACHE_IRI);
+        return res != null ? res : -1;
     }
 
     /**
@@ -138,9 +310,8 @@ public class OntConfig extends OntologyConfigurator {
      * @return List of supported {@link Scheme schemes}
      * @see OntLoaderConfiguration#getSupportedSchemes()
      */
-    @SuppressWarnings("unchecked")
     public List<OntConfig.Scheme> getSupportedSchemes() {
-        return (List<OntConfig.Scheme>) get(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES);
+        return get(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES);
     }
 
     /**
@@ -173,7 +344,7 @@ public class OntConfig extends OntologyConfigurator {
      * @see ru.avicomp.ontapi.transforms.Transform
      */
     public boolean isPerformTransformation() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS);
+        return get(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS);
     }
 
     /**
@@ -194,7 +365,7 @@ public class OntConfig extends OntologyConfigurator {
      * @see OntLoaderConfiguration#isAllowBulkAnnotationAssertions()
      */
     public boolean isAllowBulkAnnotationAssertions() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS);
+        return get(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS);
     }
 
     /**
@@ -215,7 +386,7 @@ public class OntConfig extends OntologyConfigurator {
      * @see OntLoaderConfiguration#isAllowReadDeclarations()
      */
     public boolean isAllowReadDeclarations() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS);
+        return get(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS);
     }
 
     /**
@@ -236,7 +407,7 @@ public class OntConfig extends OntologyConfigurator {
      * @see OntLoaderConfiguration#isIgnoreAnnotationAxiomOverlaps()
      */
     public boolean isIgnoreAnnotationAxiomOverlaps() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS);
+        return get(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS);
     }
 
     /**
@@ -257,7 +428,7 @@ public class OntConfig extends OntologyConfigurator {
      * @see OntLoaderConfiguration#isUseOWLParsersToLoad()
      */
     public boolean isUseOWLParsersToLoad() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD);
+        return get(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD);
     }
 
     /**
@@ -290,7 +461,7 @@ public class OntConfig extends OntologyConfigurator {
      * @since 1.1.0
      */
     public boolean isIgnoreAxiomsReadErrors() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS);
+        return get(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS);
     }
 
     /**
@@ -343,7 +514,7 @@ public class OntConfig extends OntologyConfigurator {
      * @since 1.3.0
      */
     public boolean isSplitAxiomAnnotations() {
-        return (boolean) get(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS);
+        return get(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS);
     }
 
     /**
@@ -367,7 +538,7 @@ public class OntConfig extends OntologyConfigurator {
      * @see OntWriterConfiguration#isControlImports()
      */
     public boolean isControlImports() {
-        return (boolean) get(OntSettings.ONT_API_WRITE_CONF_CONTROL_IMPORTS);
+        return get(OntSettings.ONT_API_WRITE_CONF_CONTROL_IMPORTS);
     }
 
     /**
@@ -407,13 +578,14 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldLoadAnnotations() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS);
+        return get(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS);
     }
 
     /**
      * OWL-API(NEW) manager load config setter.
      * This is NOT override method:
-     * there is NO such method in the original general OWL-API config ({@link OntologyConfigurator}), but it present in load-config.
+     * there is NO such method in the original general OWL-API config ({@link OntologyConfigurator}),
+     * but it present in load-config.
      *
      * @param s String
      * @return this instance
@@ -434,9 +606,8 @@ public class OntConfig extends OntologyConfigurator {
      * @see OntLoaderConfiguration#getEntityExpansionLimit()
      */
     public String getEntityExpansionLimit() {
-        return (String) get(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT);
+        return get(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT);
     }
-
 
     /**
      * @see OntologyConfigurator#withBannedParsers(String)
@@ -451,7 +622,15 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public String getBannedParsers() {
-        return (String) get(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS);
+        return get(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS);
+    }
+
+    /**
+     * @see OntologyConfigurator#getPriorityCollectionSorting()
+     */
+    @Override
+    public PriorityCollectionSorting getPriorityCollectionSorting() {
+        return get(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING);
     }
 
     /**
@@ -462,17 +641,8 @@ public class OntConfig extends OntologyConfigurator {
         return put(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, sorting);
     }
 
-    /**
-     * @see OntologyConfigurator#getPriorityCollectionSorting()
-     */
-    @Override
-    public PriorityCollectionSorting getPriorityCollectionSorting() {
-        return (PriorityCollectionSorting) get(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING);
-    }
-
-    @SuppressWarnings("unchecked")
     protected List<String> getIgnoredImports() {
-        return (List<String>) map.computeIfAbsent(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, OntConfig.OptionSetting::getDefaultValue);
+        return getOrCompute(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS);
     }
 
     /**
@@ -480,8 +650,9 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public OntConfig addIgnoredImport(@Nonnull IRI iri) {
-        if (!getIgnoredImports().contains(iri.getIRIString())) {
-            getIgnoredImports().add(iri.getIRIString());
+        List<String> list = getIgnoredImports();
+        if (!list.contains(iri.getIRIString())) {
+            list.add(iri.getIRIString());
         }
         return this;
     }
@@ -517,15 +688,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldAcceptHTTPCompression() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION);
-    }
-
-    /**
-     * @see OntologyConfigurator#setConnectionTimeout(int)
-     */
-    @Override
-    public OntConfig setConnectionTimeout(int t) {
-        return put(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, t);
+        return get(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION);
     }
 
     /**
@@ -533,7 +696,15 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public int getConnectionTimeout() {
-        return (int) get(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT);
+        return get(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT);
+    }
+
+    /**
+     * @see OntologyConfigurator#setConnectionTimeout(int)
+     */
+    @Override
+    public OntConfig setConnectionTimeout(int t) {
+        return putPositive(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, t);
     }
 
     /**
@@ -549,7 +720,15 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldFollowRedirects() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS);
+        return get(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS);
+    }
+
+    /**
+     * @see OntologyConfigurator#getMissingImportHandlingStrategy()
+     */
+    @Override
+    public MissingImportHandlingStrategy getMissingImportHandlingStrategy() {
+        return get(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY);
     }
 
     /**
@@ -561,11 +740,11 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * @see OntologyConfigurator#getMissingImportHandlingStrategy()
+     * @see OntologyConfigurator#getMissingOntologyHeaderStrategy()
      */
     @Override
-    public MissingImportHandlingStrategy getMissingImportHandlingStrategy() {
-        return (MissingImportHandlingStrategy) get(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY);
+    public MissingOntologyHeaderStrategy getMissingOntologyHeaderStrategy() {
+        return get(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY);
     }
 
     /**
@@ -574,14 +753,6 @@ public class OntConfig extends OntologyConfigurator {
     @Override
     public OntConfig setMissingOntologyHeaderStrategy(@Nonnull MissingOntologyHeaderStrategy strategy) {
         return put(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY, strategy);
-    }
-
-    /**
-     * @see OntologyConfigurator#getMissingOntologyHeaderStrategy()
-     */
-    @Override
-    public MissingOntologyHeaderStrategy getMissingOntologyHeaderStrategy() {
-        return (MissingOntologyHeaderStrategy) get(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY);
     }
 
     /**
@@ -597,15 +768,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldReportStackTraces() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES);
-    }
-
-    /**
-     * @see OntologyConfigurator#setRetriesToAttempt(int)
-     */
-    @Override
-    public OntConfig setRetriesToAttempt(int retries) {
-        return put(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, retries);
+        return get(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES);
     }
 
     /**
@@ -613,7 +776,15 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public int getRetriesToAttempt() {
-        return (int) get(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT);
+        return get(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT);
+    }
+
+    /**
+     * @see OntologyConfigurator#setRetriesToAttempt(int)
+     */
+    @Override
+    public OntConfig setRetriesToAttempt(int retries) {
+        return putPositive(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, retries);
     }
 
     /**
@@ -629,7 +800,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldParseWithStrictConfiguration() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION);
+        return get(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION);
     }
 
     /**
@@ -645,7 +816,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldTreatDublinCoreAsBuiltin() {
-        return (boolean) get(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN);
+        return get(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN);
     }
 
     /**
@@ -661,7 +832,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldSaveIds() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS);
+        return get(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS);
     }
 
     /**
@@ -677,7 +848,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldRemapIds() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS);
+        return get(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS);
     }
 
     /**
@@ -693,7 +864,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldUseNamespaceEntities() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES);
+        return get(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES);
     }
 
     /**
@@ -709,7 +880,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldIndent() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_INDENTING);
+        return get(OntSettings.OWL_API_WRITE_CONF_INDENTING);
     }
 
     /**
@@ -717,7 +888,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public OntConfig withIndentSize(int indent) {
-        return put(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, indent);
+        return putPositive(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, indent);
     }
 
     /**
@@ -725,7 +896,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public int getIndentSize() {
-        return (int) get(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE);
+        return get(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE);
     }
 
     /**
@@ -741,7 +912,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldUseLabelsAsBanner() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER);
+        return get(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER);
     }
 
     /**
@@ -757,7 +928,7 @@ public class OntConfig extends OntologyConfigurator {
      */
     @Override
     public boolean shouldUseBanners() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED);
+        return get(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED);
     }
 
     /**
@@ -834,77 +1005,6 @@ public class OntConfig extends OntologyConfigurator {
         return Objects.hash(this.getPersonality(), this.getGraphTransformers(), this.map);
     }
 
-    public static OntConfig copy(OntologyConfigurator from) {
-        OntConfig res = new OntConfig();
-        if (from == null) return res;
-        if (from instanceof OntConfig) {
-            res.map.putAll(((OntConfig) from).map);
-            res.setPersonality(((OntConfig) from).getPersonality());
-            res.setGraphTransformers(((OntConfig) from).getGraphTransformers());
-            return res;
-        }
-
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, new ArrayList<>(ignoredImports(from)));
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION, from.shouldAcceptHTTPCompression());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, from.getConnectionTimeout());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS, from.shouldFollowRedirects());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS, from.shouldLoadAnnotations());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY, from.getMissingImportHandlingStrategy());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY, from.getMissingOntologyHeaderStrategy());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES, from.shouldReportStackTraces());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, from.getRetriesToAttempt());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION, from.shouldParseWithStrictConfiguration());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN, from.shouldTreatDublinCoreAsBuiltin());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, from.getPriorityCollectionSorting());
-        res.map.put(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS, from.getBannedParsers());
-        // NOTE: there is no ConfigurationOption.ENTITY_EXPANSION_LIMIT inside original (OWL-API, ver 5.0.5) class.
-
-        res.map.put(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS, from.shouldSaveIds());
-        res.map.put(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS, from.shouldRemapIds());
-        res.map.put(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES, from.shouldUseNamespaceEntities());
-        res.map.put(OntSettings.OWL_API_WRITE_CONF_INDENTING, from.shouldIndent());
-        res.map.put(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER, from.shouldUseLabelsAsBanner());
-        res.map.put(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED, from.shouldUseBanners());
-        res.map.put(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, from.getIndentSize());
-
-        return res;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected static Set<IRI> ignoredImports(OntologyConfigurator owl) {
-        try {
-            Field field = owl.getClass().getDeclaredField("ignoredImports");
-            field.setAccessible(true);
-            return (Set<IRI>) field.get(owl);
-        } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-            throw new OntApiException("Can't get OntologyConfigurator#ignoredImports.", e);
-        }
-    }
-
-    public static OntPersonality getDefaultPersonality() {
-        OntModelConfig.StdMode mode = (OntModelConfig.StdMode) OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE.getDefaultValue();
-        switch (mode) {
-            case LAX:
-                return OntModelConfig.ONT_PERSONALITY_LAX;
-            case MEDIUM:
-                return OntModelConfig.ONT_PERSONALITY_MEDIUM;
-            case STRICT:
-                return OntModelConfig.ONT_PERSONALITY_STRICT;
-            default:
-                throw new OntApiException.Unsupported("Unsupported personality mode " + mode);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static GraphTransformers.Store getDefaultTransformers() {
-        List<Class> transformers = (List<Class>) OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS.getDefaultValue();
-        GraphTransformers.Store res = new GraphTransformers.Store();
-        for (Class c : transformers) {
-            res = res.add(new GraphTransformers.DefaultMaker(c));
-        }
-        return res;
-    }
-
     public enum DefaultScheme implements Scheme {
         HTTP,
         HTTPS,
@@ -912,13 +1012,13 @@ public class OntConfig extends OntologyConfigurator {
         FILE,
         ;
 
+        public static Stream<DefaultScheme> all() {
+            return Stream.of(values());
+        }
+
         @Override
         public String key() {
             return name().toLowerCase();
-        }
-
-        public static Stream<DefaultScheme> all() {
-            return Stream.of(values());
         }
     }
 
@@ -961,8 +1061,10 @@ public class OntConfig extends OntologyConfigurator {
         Serializable getDefaultValue();
 
         /**
-         * Gets a value from map.
-         * It is a functional equivalent of the expression {@code map.getOrDefault(key, key.getDefaultValue()}.
+         * Gets a value from the map.
+         * It is a functional equivalent of the expression {@code map.getOrDefault(key, key.getDefaultValue()},
+         * but the calling {@link #getDefaultValue()} is postponed.
+         * The given {@code Map} is not modified in any case.
          *
          * @param map {@link Map} where {@link OptionSetting} is a key, any object is a value
          * @return Object, value
@@ -977,22 +1079,40 @@ public class OntConfig extends OntologyConfigurator {
     }
 
     /**
-     * An {@link OntConfig} with {@link ReadWriteLock} access.
+     * A {@link OntConfig config}-wrapper with {@link ReadWriteLock R/W}-locked access.
+     * <p>
      * Created by @szuev on 05.07.2018.
      */
     public static class Concurrent extends OntConfig {
         private static final long serialVersionUID = 5910609264963651991L;
         protected final ReadWriteLock lock;
+        protected final OntConfig delegate;
 
-        public Concurrent(ReadWriteLock lock) {
+        protected Concurrent(OntConfig from, ReadWriteLock lock) {
+            this.delegate = Objects.requireNonNull(from);
             this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
         }
 
         @Override
-        protected Object get(OptionSetting key) {
+        protected Map<OptionSetting, Object> asMap() {
+            return delegate.asMap();
+        }
+
+        @Override
+        protected <X> X get(OptionSetting key) {
             lock.readLock().lock();
             try {
-                return super.get(key);
+                return delegate.get(key);
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        protected <X> X getOrCompute(OptionSetting key) {
+            lock.readLock().lock();
+            try {
+                return delegate.getOrCompute(key);
             } finally {
                 lock.readLock().unlock();
             }
@@ -1002,18 +1122,7 @@ public class OntConfig extends OntologyConfigurator {
         protected Concurrent put(OptionSetting key, Object value) {
             lock.writeLock().lock();
             try {
-                super.put(key, value);
-                return this;
-            } finally {
-                lock.writeLock().unlock();
-            }
-        }
-
-        @Override
-        public Concurrent setPersonality(OntPersonality p) {
-            lock.writeLock().lock();
-            try {
-                super.setPersonality(p);
+                delegate.put(key, value);
                 return this;
             } finally {
                 lock.writeLock().unlock();
@@ -1024,17 +1133,17 @@ public class OntConfig extends OntologyConfigurator {
         public OntPersonality getPersonality() {
             lock.readLock().lock();
             try {
-                return super.getPersonality();
+                return delegate.getPersonality();
             } finally {
                 lock.readLock().unlock();
             }
         }
 
         @Override
-        public Concurrent setGraphTransformers(GraphTransformers.Store t) {
+        public Concurrent setPersonality(OntPersonality p) {
             lock.writeLock().lock();
             try {
-                super.setGraphTransformers(t);
+                delegate.setPersonality(p);
                 return this;
             } finally {
                 lock.writeLock().unlock();
@@ -1045,9 +1154,20 @@ public class OntConfig extends OntologyConfigurator {
         public GraphTransformers.Store getGraphTransformers() {
             lock.readLock().lock();
             try {
-                return super.getGraphTransformers();
+                return delegate.getGraphTransformers();
             } finally {
                 lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public Concurrent setGraphTransformers(GraphTransformers.Store t) {
+            lock.writeLock().lock();
+            try {
+                delegate.setGraphTransformers(t);
+                return this;
+            } finally {
+                lock.writeLock().unlock();
             }
         }
 
@@ -1055,7 +1175,7 @@ public class OntConfig extends OntologyConfigurator {
         public OntLoaderConfiguration buildLoaderConfiguration() {
             lock.readLock().lock();
             try {
-                return super.buildLoaderConfiguration();
+                return delegate.buildLoaderConfiguration();
             } finally {
                 lock.readLock().unlock();
             }
@@ -1065,9 +1185,45 @@ public class OntConfig extends OntologyConfigurator {
         public OntWriterConfiguration buildWriterConfiguration() {
             lock.readLock().lock();
             try {
-                return super.buildWriterConfiguration();
+                return delegate.buildWriterConfiguration();
             } finally {
                 lock.readLock().unlock();
+            }
+        }
+
+        @Override
+        public OntConfig addIgnoredImport(@Nonnull IRI iri) {
+            lock.writeLock().lock();
+            try {
+                delegate.addIgnoredImport(iri);
+                return this;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        @Override
+        public OntConfig clearIgnoredImports() {
+            lock.writeLock().lock();
+            try {
+                delegate.clearIgnoredImports();
+                return this;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        /**
+         * @see OntologyConfigurator#removeIgnoredImport(IRI)
+         */
+        @Override
+        public OntConfig removeIgnoredImport(@Nonnull IRI iri) {
+            lock.writeLock().lock();
+            try {
+                delegate.removeIgnoredImport(iri);
+                return this;
+            } finally {
+                lock.writeLock().unlock();
             }
         }
 
@@ -1075,7 +1231,10 @@ public class OntConfig extends OntologyConfigurator {
         public boolean equals(Object o) {
             lock.readLock().lock();
             try {
-                return super.equals(o);
+                if (o instanceof Concurrent) {
+                    o = ((Concurrent) o).delegate;
+                }
+                return delegate.equals(o);
             } finally {
                 lock.readLock().unlock();
             }
@@ -1085,7 +1244,7 @@ public class OntConfig extends OntologyConfigurator {
         public int hashCode() {
             lock.readLock().lock();
             try {
-                return super.hashCode();
+                return delegate.hashCode();
             } finally {
                 lock.readLock().unlock();
             }

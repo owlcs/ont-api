@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,7 +20,10 @@ import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
-import ru.avicomp.ontapi.transforms.*;
+import ru.avicomp.ontapi.transforms.OWLCommonTransform;
+import ru.avicomp.ontapi.transforms.OWLDeclarationTransform;
+import ru.avicomp.ontapi.transforms.OWLIDTransform;
+import ru.avicomp.ontapi.transforms.RDFSTransform;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,8 +45,7 @@ import java.util.stream.Stream;
 public enum OntSettings implements OntConfig.OptionSetting {
     OWL_API_LOAD_CONF_IGNORED_IMPORTS(new ArrayList<String>()),
 
-    ONT_API_LOAD_CONF_TRANSFORMERS(Stream.of(OWLIDTransform.class, OWLRecursiveTransform.class,
-            RDFSTransform.class, OWLCommonTransform.class, OWLDeclarationTransform.class)
+    ONT_API_LOAD_CONF_TRANSFORMERS(Stream.of(OWLIDTransform.class, RDFSTransform.class, OWLCommonTransform.class, OWLDeclarationTransform.class)
             .collect(Collectors.toCollection(ArrayList::new))),
     ONT_API_LOAD_CONF_SUPPORTED_SCHEMES(OntConfig.DefaultScheme.all().collect(Collectors.toCollection(ArrayList::new))),
     ONT_API_LOAD_CONF_PERSONALITY_MODE(OntModelConfig.StdMode.MEDIUM),
@@ -54,6 +56,9 @@ public enum OntSettings implements OntConfig.OptionSetting {
     ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD(false),
     ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS(false),
     ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS(false),
+
+    // ont.api.conf.manager.cache.iri.integer, since 1.4.0
+    ONT_API_CONF_MANAGER_CACHE_IRI(2048),
 
     OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION(true),
     OWL_API_LOAD_CONF_CONNECTION_TIMEOUT(20000),
@@ -80,7 +85,7 @@ public enum OntSettings implements OntConfig.OptionSetting {
     OWL_API_WRITE_CONF_BANNERS_ENABLED(true),
     OWL_API_WRITE_CONF_INDENT_SIZE(4),;
 
-    protected static final ExtendedProperties PROPERTIES = loadProperties();
+    public static final ExtendedProperties PROPERTIES = loadProperties();
 
     protected final Serializable secondary;
 
@@ -131,9 +136,10 @@ public enum OntSettings implements OntConfig.OptionSetting {
         return name().toLowerCase().replace("_", ".");
     }
 
-    protected static ExtendedProperties loadProperties() {
+    private static ExtendedProperties loadProperties() {
         ExtendedProperties res = new ExtendedProperties();
-        try (InputStream io = OntApiException.notNull(OntSettings.class.getResourceAsStream("/ontapi.properties"), "Null properties")) {
+        try (InputStream io = OntApiException.notNull(OntSettings.class.getResourceAsStream("/ontapi.properties"),
+                "Null properties")) {
             res.load(io);
         } catch (IOException e) {
             throw new OntApiException("No properties", e);

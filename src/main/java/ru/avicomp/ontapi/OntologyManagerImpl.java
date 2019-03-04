@@ -65,13 +65,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     // listeners:
     protected final ListenersHolder listeners = new ListenersHolder();
     // configs:
-    protected OntConfig configProvider;
+    protected OntConfig config;
     protected transient OntLoaderConfiguration loaderConfig;
     protected transient OntWriterConfiguration writerConfig;
     // Loading Cache for IRIs, that is shared between ontologies that belong to this manager.
-    // The magic number '2048' is taken from OWL-API impl
-    // (see uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl, v5)
-    private static final int IRI_CACHE_SIZE = 2048;
     protected transient InternalCache.Loading<String, IRI> iris;
     // OntologyFactory collection:
     protected final RWLockedCollection<OWLOntologyFactory> ontologyFactories;
@@ -93,9 +90,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * Constructs a manager instance which is ready to use.
      * OntologyFactory as parameter since a manager without it is useless.
      *
-     * @param dataFactory     {@link DataFactory} - a factory to provide OWL Axioms and other OWL objects, not null
-     * @param ontologyFactory {@link OntologyFactory} - a factory to create and load ontologies, not null
-     * @param readWriteLock   {@link ReadWriteLock} - lock to synchronize multithreading behaviour, can be null for a single-thread applications
+     * @param dataFactory     {@link DataFactory} - a factory to provide OWL Axioms and other OWL objects,
+     *                        not {@code null}
+     * @param ontologyFactory {@link OntologyFactory} - a factory to create and load ontologies, not {@code null}
+     * @param readWriteLock   {@link ReadWriteLock} - lock to synchronize multithreading behaviour,
+     *                        can be not {@code null} for a single-thread applications
      */
     public OntologyManagerImpl(DataFactory dataFactory, OntologyFactory ontologyFactory, ReadWriteLock readWriteLock) {
         this(dataFactory, readWriteLock, PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
@@ -103,15 +102,17 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Constructs an empty manager.
-     * Notice: the manager instance is not ready to use: there are no any OntologyFactory inside to produce new ontologies.
+     * Constructs an empty manager instance with the given settings.
+     * Notice: the returned instance is not ready to use:
+     * there is no any OntologyFactory inside to produce new ontologies.
      *
-     * @param dataFactory {@link OWLDataFactory}, not null
+     * @param dataFactory {@link OWLDataFactory}, not not {@code null}
      * @param lock        {@link ReadWriteLock} or {@code null} for non-concurrent instance
-     * @param sorting     {@link PriorityCollectionSorting} OWL-API enum, can be null.
+     * @param sorting     {@link PriorityCollectionSorting} OWL-API enum, can be not {@code null};
      *                    Can't avoid using this parameter that is actually useless in ONT-API
      */
-    protected OntologyManagerImpl(DataFactory dataFactory, ReadWriteLock lock, PriorityCollectionSorting sorting) {
+    public OntologyManagerImpl(DataFactory dataFactory,
+                               ReadWriteLock lock, PriorityCollectionSorting sorting) {
         this.dataFactory = Objects.requireNonNull(dataFactory, "Null Data Factory");
         this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
         PriorityCollectionSorting _sorting = sorting == null ? PriorityCollectionSorting.NEVER : sorting;
@@ -127,13 +128,24 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         };
         this.parserFactories = new RWLockedCollection<>(this.lock, _sorting);
         this.ontologyStorers = new RWLockedCollection<>(this.lock, _sorting);
-        this.configProvider = OntConfig.createConfig(this.lock);
+        this.config = OntConfig.createConfig(this.lock);
         this.content = new OntologyCollectionImpl<>(this.lock);
         this.iris = createIRICache();
     }
 
-    private InternalCache.Loading<String, IRI> createIRICache() { // todo: cache size must be configurable
-        return InternalCache.createBounded(NoOpReadWriteLock.isConcurrent(lock), IRI_CACHE_SIZE).asLoading(IRI::create);
+    /**
+     * Creates a fresh {@link IRI} cache instance depending on this manager settings.
+     * Note if caching is disabled ({@link OntConfig#getManagerIRICacheSize()} is not positive),
+     * a fake empty cache is returned.
+     *
+     * @return {@link InternalCache.Loading}
+     */
+    protected InternalCache.Loading<String, IRI> createIRICache() {
+        int size = this.config.getManagerIRICacheSize();
+        if (size < 0) {
+            return InternalCache.createEmpty().asLoading(IRI::create);
+        }
+        return InternalCache.createBounded(NoOpReadWriteLock.isConcurrent(lock), size).asLoading(IRI::create);
     }
 
     /**
@@ -167,7 +179,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntConfig getOntologyConfigurator() {
         getLock().readLock().lock();
         try {
-            return configProvider;
+            return this.config;
         } finally {
             getLock().readLock().unlock();
         }
@@ -180,7 +192,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyConfigurator(OntologyConfigurator conf) {
         getLock().writeLock().lock();
         try {
-            configProvider = OWLAdapter.get().asONT(conf);
+            int size = this.config.getManagerIRICacheSize();
+            this.config = OntConfig.withLock(OWLAdapter.get().asONT(conf), lock);
+            if (size != this.config.getManagerIRICacheSize()) { // reset cache:
+                this.iris = createIRICache();
+            }
         } finally {
             getLock().writeLock().unlock();
         }
@@ -216,7 +232,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntLoaderConfiguration getOntologyLoaderConfiguration() {
         getLock().readLock().lock();
         try {
-            return loaderConfig == null ? loaderConfig = configProvider.buildLoaderConfiguration() : loaderConfig;
+            return loaderConfig == null ? loaderConfig = config.buildLoaderConfiguration() : loaderConfig;
         } finally {
             getLock().readLock().unlock();
         }
@@ -246,7 +262,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntWriterConfiguration getOntologyWriterConfiguration() {
         getLock().readLock().lock();
         try {
-            return writerConfig == null ? writerConfig = configProvider.buildWriterConfiguration() : writerConfig;
+            return writerConfig == null ? writerConfig = this.config.buildWriterConfiguration() : writerConfig;
         } finally {
             getLock().readLock().unlock();
         }
@@ -1750,15 +1766,15 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     @SuppressWarnings("JavadocReference")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        loaderConfig = (OntLoaderConfiguration) in.readObject();
-        writerConfig = (OntWriterConfiguration) in.readObject();
-        iris = createIRICache();
-        content.values().forEach(info -> {
+        this.loaderConfig = (OntLoaderConfiguration) in.readObject();
+        this.writerConfig = (OntWriterConfiguration) in.readObject();
+        this.iris = createIRICache();
+        this.content.values().forEach(info -> {
             ModelConfig conf = info.getModelConfig();
             InternalModelHolder m = (InternalModelHolder) info.get();
             UnionGraph baseGraph = m.getBase().getGraph();
             Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
-                    .map(s -> content.values().map(OntInfo::get).map(InternalModelHolder.class::cast)
+                    .map(s -> this.content.values().map(OntInfo::get).map(InternalModelHolder.class::cast)
                             .map(InternalModelHolder::getBase).map(OntGraphModelImpl::getGraph)
                             .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,6 +25,7 @@ import java.util.Objects;
  * Currently there is only one ONT-API (new) options,
  * all other content is mostly modified copy-paste from the original OWL-API class.
  * Note: this config is immutable.
+ *
  * @see OntConfig
  */
 @SuppressWarnings("WeakerAccess")
@@ -48,8 +49,14 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
         return new OntWriterConfiguration(owl);
     }
 
-    protected Object get(OntConfig.OptionSetting key) {
-        return key.fromMap(map);
+    @SuppressWarnings("unchecked")
+    protected <X> X get(OntConfig.OptionSetting key) {
+        return (X) key.fromMap(map);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected OntWriterConfiguration setPositive(OntSettings k, int v) {
+        return set(k, OntConfig.requirePositive(v, k));
     }
 
     protected OntWriterConfiguration set(OntSettings key, Object o) {
@@ -67,7 +74,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
      * @see #setControlImports(boolean)
      */
     public boolean isControlImports() {
-        return (boolean) get(OntSettings.ONT_API_WRITE_CONF_CONTROL_IMPORTS);
+        return get(OntSettings.ONT_API_WRITE_CONF_CONTROL_IMPORTS);
     }
 
     /**
@@ -92,7 +99,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
      */
     @Override
     public boolean shouldUseBanners() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED);
+        return get(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED);
     }
 
     /**
@@ -110,7 +117,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
      */
     @Override
     public boolean isLabelsAsBanner() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER);
+        return get(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER);
     }
 
     /**
@@ -126,7 +133,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
      */
     @Override
     public boolean shouldSaveIdsForAllAnonymousIndividuals() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS);
+        return get(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS);
     }
 
     /**
@@ -142,7 +149,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
      */
     @Override
     public boolean shouldRemapAllAnonymousIndividualsIds() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS);
+        return get(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS);
     }
 
     /**
@@ -158,7 +165,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
      */
     @Override
     public boolean isUseNamespaceEntities() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES);
+        return get(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES);
     }
 
     /**
@@ -174,7 +181,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
      */
     @Override
     public boolean isIndenting() {
-        return (boolean) get(OntSettings.OWL_API_WRITE_CONF_INDENTING);
+        return get(OntSettings.OWL_API_WRITE_CONF_INDENTING);
     }
 
     /**
@@ -190,7 +197,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
      */
     @Override
     public int getIndentSize() {
-        return (int) get(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE);
+        return get(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE);
     }
 
     /**
@@ -198,7 +205,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
      */
     @Override
     public OntWriterConfiguration withIndentSize(int indent) {
-        return set(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, indent);
+        return setPositive(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, indent);
     }
 
     @Override
