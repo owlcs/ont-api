@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -71,7 +71,7 @@ public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObject
     }
 
     @Override
-    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalDataFactory reader, InternalConfig config) {
+    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
         ONTObject<? extends OWLIndividual> subject = reader.get(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLObjectPropertyExpression> property = reader.get(statement.getPredicate().as(OntOPE.class));
         ONTObject<? extends OWLIndividual> object = reader.get(statement.getObject().as(OntIndividual.class));

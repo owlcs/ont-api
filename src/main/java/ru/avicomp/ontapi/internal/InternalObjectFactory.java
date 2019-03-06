@@ -34,9 +34,9 @@ import java.util.Collection;
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternals.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals</a>
  * @see ONTObject
  */
-public interface InternalDataFactory {
+public interface InternalObjectFactory {
 
-    InternalDataFactory DEFAULT = new NoCacheDataFactory(OntManagers.getDataFactory());
+    InternalObjectFactory DEFAULT = new NoCacheObjectFactory(OntManagers.getDataFactory());
 
     void clear();
 

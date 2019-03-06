@@ -90,7 +90,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
     @Override
     public ExtendedIterator<ONTObject<Axiom>> listAxioms(OntGraphModel model,
-                                                         InternalDataFactory factory,
+                                                         InternalObjectFactory factory,
                                                          InternalConfig config) {
         Map<Axiom, ONTObject<Axiom>> res = new HashMap<>(); // memory!
         super.listAxioms(model, factory, config)

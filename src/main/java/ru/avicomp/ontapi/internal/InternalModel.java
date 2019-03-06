@@ -107,16 +107,16 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected final InternalCache.Loading<Class<? extends OWLObject>, Set<? extends OWLObject>> objects;
     /**
-     * A factory to produce {@link InternalDataFactory} object on demand.
+     * A factory to produce {@link InternalObjectFactory} object on demand.
      */
-    protected final Supplier<InternalDataFactory> dataFactoryFactory;
+    protected final Supplier<InternalObjectFactory> dataFactoryFactory;
     /**
      * A temporary cache that is used while collecting axioms, should be reset after axioms getting to release memory.
      * Any change in the base graph must also reset this cache.
      * Designed as a {@link SoftReference}
      * since it is need only to optimize reading operations and may contain huge amount of objects.
      */
-    protected SoftReference<InternalDataFactory> cacheFactory;
+    protected SoftReference<InternalObjectFactory> cacheFactory;
     /**
      * A model for axioms/objects search optimizations containing {@link Node node}s cache.
      * Any change in the base graph must also reset this cache.
@@ -135,12 +135,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @param base        {@link Graph}
      * @param personality {@link OntPersonality}
-     * @param factory     {@link Supplier} to create {@link InternalDataFactory} instances
+     * @param factory     {@link Supplier} to create {@link InternalObjectFactory} instances
      * @param config      {@link InternalConfig}
      */
     public InternalModel(Graph base,
                          OntPersonality personality,
-                         Supplier<InternalDataFactory> factory,
+                         Supplier<InternalObjectFactory> factory,
                          InternalConfig config) {
         super(base, personality);
         this.config = Objects.requireNonNull(config);
@@ -204,11 +204,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Returns the {@code InternalDataFactory}, a helper to read OWL-API objects.
      *
-     * @return {@link InternalDataFactory}
+     * @return {@link InternalObjectFactory}
      */
-    public InternalDataFactory getDataFactory() {
+    public InternalObjectFactory getObjectFactory() {
         // todo: must be configurable -> no cache if specified in config
-        InternalDataFactory res;
+        InternalObjectFactory res;
         if (cacheFactory != null && (res = cacheFactory.get()) != null) {
             return res;
         }
@@ -285,7 +285,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return Stream of {@link OWLImportsDeclaration}s
      */
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
-        InternalDataFactory df = getDataFactory();
+        InternalObjectFactory df = getObjectFactory();
         return getID().imports().map(df::toIRI).map(i -> df.getOWLDataFactory().getOWLImportsDeclaration(i));
     }
 
@@ -309,7 +309,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (iri == null) return Stream.empty();
         OntEntity e = getOntEntity(OntEntity.class, iri.getIRIString());
         List<ONTObject<? extends OWLEntity>> res = new ArrayList<>();
-        InternalDataFactory df = getDataFactory();
+        InternalObjectFactory df = getObjectFactory();
         if (e.canAs(OntClass.class)) {
             res.add(df.get(e.as(OntClass.class)));
         }
@@ -477,7 +477,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         DeclarationTranslator t = (DeclarationTranslator) AxiomParserProvider.get(OWLDeclarationAxiom.class);
         OntEntity res = m.findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityView(e));
         if (res == null) return Stream.empty();
-        InternalDataFactory df = getDataFactory();
+        InternalObjectFactory df = getObjectFactory();
         OntStatement s = res.getRoot();
         return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, df, conf).getObject());
     }
@@ -497,7 +497,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
         OntGraphModelImpl m = getSearchModel(conf);
-        InternalDataFactory df = getDataFactory();
+        InternalObjectFactory df = getObjectFactory();
         AxiomTranslator<OWLAnnotationAssertionAxiom> t = AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, conf));
@@ -517,7 +517,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         }
         InternalConfig.Snapshot conf = getConfig().snapshot();
         OntGraphModelImpl m = getSearchModel(conf);
-        InternalDataFactory df = getDataFactory();
+        InternalObjectFactory df = getObjectFactory();
         SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
@@ -537,7 +537,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             return listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
         }
         InternalConfig.Snapshot conf = getConfig().snapshot();
-        InternalDataFactory df = getDataFactory();
+        InternalObjectFactory df = getObjectFactory();
         OntGraphModelImpl m = getSearchModel(conf);
         EquivalentClassesTranslator t = (EquivalentClassesTranslator) AxiomParserProvider.get(OWLEquivalentClassesAxiom.class);
         Resource r = WriteHelper.toResource(c);
@@ -705,7 +705,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected <A extends OWLAxiom> ObjectTriplesMap<A> readAxiomTriples(Class<A> type) {
         InternalConfig.Snapshot conf = getConfig().snapshot();
-        InternalDataFactory df = getDataFactory();
+        InternalObjectFactory df = getObjectFactory();
         return ObjectTriplesMap.createFromIterator(type, AxiomParserProvider.get(type)
                 .listAxioms(getSearchModel(conf), df, conf), conf.parallel());
     }
@@ -716,7 +716,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@link ObjectTriplesMap cache bucket} of ontology {@link OWLAnnotation annotation}s
      */
     protected ObjectTriplesMap<OWLAnnotation> readAnnotationTriples() {
-        InternalDataFactory df = getDataFactory();
+        InternalObjectFactory df = getObjectFactory();
         return ObjectTriplesMap.createFromIterator(OWLAnnotation.class
                 , ReadHelper.listOWLAnnotations(getID(), df)
                 , getConfig().parallel());

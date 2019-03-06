@@ -2204,9 +2204,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
         }
 
-        public Supplier<InternalDataFactory> getDataFactory() {
-            return () -> new CacheDataFactory(manager.getOWLDataFactory()
-                    , () -> InternalCache.createBounded(manager.isConcurrent(), CacheDataFactory.CACHE_SIZE)
+        public Supplier<InternalObjectFactory> getObjectFactory() {
+            return () -> new CacheObjectFactory(manager.getOWLDataFactory()
+                    , () -> InternalCache.createBounded(manager.isConcurrent(), CacheObjectFactory.CACHE_SIZE)
                     , manager.iris) {
             };
         }

@@ -28,7 +28,7 @@ import java.util.function.Supplier;
  * Created by @ssz on 09.09.2018.
  */
 @SuppressWarnings("WeakerAccess")
-public class CacheDataFactory extends NoCacheDataFactory {
+public class CacheObjectFactory extends NoCacheObjectFactory {
     /**
      * This magic '2048' is taken from OWL-API DataFactory impl:
      *
@@ -43,7 +43,7 @@ public class CacheDataFactory extends NoCacheDataFactory {
     protected final InternalCache<OntIndividual.Named, ONTObject<OWLNamedIndividual>> individuals;
     protected final InternalCache.Loading<String, IRI> iris;
 
-    public CacheDataFactory(DataFactory factory) {
+    public CacheObjectFactory(DataFactory factory) {
         this(factory, InternalCache.createBounded(true, CACHE_SIZE).asLoading(IRI::create), CACHE_SIZE);
     }
 
@@ -54,7 +54,7 @@ public class CacheDataFactory extends NoCacheDataFactory {
      * @param iris    {@link InternalCache.Loading} for {@link IRI}s
      * @param size    int, caches size, negative for unlimited
      */
-    public CacheDataFactory(DataFactory factory, InternalCache.Loading<String, IRI> iris, int size) {
+    public CacheObjectFactory(DataFactory factory, InternalCache.Loading<String, IRI> iris, int size) {
         this(factory, () -> InternalCache.createBounded(true, size), iris);
     }
 
@@ -66,9 +66,9 @@ public class CacheDataFactory extends NoCacheDataFactory {
      * @param iris         {@link InternalCache.Loading} for {@link IRI}s
      */
     @SuppressWarnings("unchecked")
-    protected CacheDataFactory(DataFactory dataFactory,
-                               Supplier<InternalCache<?, ?>> cacheFactory,
-                               InternalCache.Loading<String, IRI> iris) {
+    protected CacheObjectFactory(DataFactory dataFactory,
+                                 Supplier<InternalCache<?, ?>> cacheFactory,
+                                 InternalCache.Loading<String, IRI> iris) {
         super(dataFactory);
         this.iris = Objects.requireNonNull(iris);
         this.classes = (InternalCache<OntClass, ONTObject<OWLClass>>) cacheFactory.get();

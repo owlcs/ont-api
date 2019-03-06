@@ -108,12 +108,12 @@ public class ReadHelper {
      *
      * @param statement {@link OntStatement}
      * @param conf      {@link InternalConfig}
-     * @param df        {@link InternalDataFactory}
+     * @param df        {@link InternalObjectFactory}
      * @return a set of wraps {@link ONTObject} around {@link OWLAnnotation}
      */
     public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement,
                                                                InternalConfig conf,
-                                                               InternalDataFactory df) {
+                                                               InternalObjectFactory df) {
         ExtendedIterator<OntStatement> res = listAnnotations(statement);
         if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
@@ -127,10 +127,10 @@ public class ReadHelper {
      * Lists all annotations related to the object (including assertions).
      *
      * @param obj {@link OntObject}
-     * @param df  {@link InternalDataFactory}
+     * @param df  {@link InternalObjectFactory}
      * @return Stream of {@link ONTObject}s of {@link OWLAnnotation}
      */
-    public static Stream<ONTObject<OWLAnnotation>> objectAnnotations(OntObject obj, InternalDataFactory df) {
+    public static Stream<ONTObject<OWLAnnotation>> objectAnnotations(OntObject obj, InternalObjectFactory df) {
         return Iter.asStream(listOWLAnnotations(obj, df));
     }
 
@@ -138,10 +138,10 @@ public class ReadHelper {
      * Lists all annotations related to the object (including assertions).
      *
      * @param obj {@link OntObject}
-     * @param df  {@link InternalDataFactory}
+     * @param df  {@link InternalObjectFactory}
      * @return {@link ExtendedIterator} of {@link ONTObject}s of {@link OWLAnnotation}
      */
-    public static ExtendedIterator<ONTObject<OWLAnnotation>> listOWLAnnotations(OntObject obj, InternalDataFactory df) {
+    public static ExtendedIterator<ONTObject<OWLAnnotation>> listOWLAnnotations(OntObject obj, InternalObjectFactory df) {
         return listAnnotations(obj).mapWith(a -> getAnnotation(a, df));
     }
 
@@ -149,21 +149,21 @@ public class ReadHelper {
      * Translates {@link OntStatement} to {@link ONTObject} encapsulated {@link OWLAnnotation}.
      *
      * @param ann {@link OntStatement}
-     * @param df  {@link InternalDataFactory}
+     * @param df  {@link InternalObjectFactory}
      * @return {@link ONTObject} around {@link OWLAnnotation}
      */
-    public static ONTObject<OWLAnnotation> getAnnotation(OntStatement ann, InternalDataFactory df) {
+    public static ONTObject<OWLAnnotation> getAnnotation(OntStatement ann, InternalObjectFactory df) {
         return ann.hasAnnotations() ? getHierarchicalAnnotations(ann, df) : getPlainAnnotation(ann, df);
     }
 
-    private static ONTObject<OWLAnnotation> getPlainAnnotation(OntStatement ann, InternalDataFactory df) {
+    private static ONTObject<OWLAnnotation> getPlainAnnotation(OntStatement ann, InternalObjectFactory df) {
         ONTObject<OWLAnnotationProperty> p = df.get(ann.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = df.get(ann.getObject());
         OWLAnnotation res = df.getOWLDataFactory().getOWLAnnotation(p.getObject(), v.getObject(), Stream.empty());
         return ONTObject.create(res, ann).append(p).append(v);
     }
 
-    private static ONTObject<OWLAnnotation> getHierarchicalAnnotations(OntStatement root, InternalDataFactory df) {
+    private static ONTObject<OWLAnnotation> getHierarchicalAnnotations(OntStatement root, InternalObjectFactory df) {
         Resource subject = root.getSubject();
         ONTObject<OWLAnnotationProperty> p = df.get(root.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = df.get(root.getObject());
@@ -182,15 +182,15 @@ public class ReadHelper {
      * Maps {@link OntFR} =&gt; {@link OWLFacetRestriction}.
      *
      * @param fr {@link OntFR}
-     * @param df {@link InternalDataFactory}
+     * @param df {@link InternalObjectFactory}
      * @return {@link ONTObject} around {@link OWLFacetRestriction}
      */
-    public static ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr, InternalDataFactory df) {
+    public static ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr, InternalObjectFactory df) {
         OWLFacetRestriction res = calcOWLFacetRestriction(fr, df);
         return ONTObject.create(res, fr);
     }
 
-    public static OWLFacetRestriction calcOWLFacetRestriction(OntFR fr, InternalDataFactory df) {
+    public static OWLFacetRestriction calcOWLFacetRestriction(OntFR fr, InternalObjectFactory df) {
         OWLLiteral literal = df.get(OntApiException.notNull(fr, "Null facet restriction.").getValue()).getObject();
         Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) fr).getActualClass(),
                 "Can't determine view of facet restriction " + fr);
@@ -224,14 +224,14 @@ public class ReadHelper {
      * Note: this method is recursive.
      *
      * @param dr                  {@link OntDR Ontology Data Range} to map
-     * @param internalDataFactory {@link InternalDataFactory}
+     * @param internalDataFactory {@link InternalObjectFactory}
      * @param seen                Set of {@link Resource}
      * @return {@link ONTObject} around {@link OWLDataRange}
      * @throws OntApiException if something is wrong.
      */
     @SuppressWarnings("unchecked")
     public static ONTObject<? extends OWLDataRange> calcDataRange(OntDR dr,
-                                                                  InternalDataFactory internalDataFactory,
+                                                                  InternalObjectFactory internalDataFactory,
                                                                   Set<Resource> seen) {
         if (OntApiException.notNull(dr, "Null data range").isURIResource()) {
             return internalDataFactory.get(dr.as(OntDT.class));
@@ -278,7 +278,7 @@ public class ReadHelper {
      * Note: this method is recursive.
      *
      * @param ce                  {@link OntCE Ontology Class Expression} to map
-     * @param internalDataFactory {@link InternalDataFactory}
+     * @param internalDataFactory {@link InternalObjectFactory}
      * @param seen                Set of {@link Resource},
      *                            a subsidiary collection to prevent possible graph recursions (e.g. {@code _:b0 owl:complementOf _:b0})
      * @return {@link ONTObject} around {@link OWLClassExpression}
@@ -286,7 +286,7 @@ public class ReadHelper {
      */
     @SuppressWarnings("unchecked")
     public static ONTObject<? extends OWLClassExpression> calcClassExpression(OntCE ce,
-                                                                              InternalDataFactory internalDataFactory,
+                                                                              InternalObjectFactory internalDataFactory,
                                                                               Set<Resource> seen) {
         if (OntApiException.notNull(ce, "Null class expression").isURIResource()) {
             return internalDataFactory.get(ce.as(OntClass.class));
@@ -402,10 +402,10 @@ public class ReadHelper {
 
     /**
      * @param var {@link OntSWRL.Variable}
-     * @param df  {@link InternalDataFactory}
+     * @param df  {@link InternalObjectFactory}
      * @return {@link ONTObject} around {@link SWRLVariable}
      */
-    public static ONTObject<SWRLVariable> getSWRLVariable(OntSWRL.Variable var, InternalDataFactory df) {
+    public static ONTObject<SWRLVariable> getSWRLVariable(OntSWRL.Variable var, InternalObjectFactory df) {
         if (!OntApiException.notNull(var, "Null swrl var").isURIResource()) {
             throw new OntApiException("Anonymous swrl var " + var);
         }
@@ -414,10 +414,10 @@ public class ReadHelper {
 
     /**
      * @param arg {@link OntSWRL.DArg}
-     * @param df  {@link InternalDataFactory}
+     * @param df  {@link InternalObjectFactory}
      * @return {@link ONTObject} around {@link SWRLDArgument}
      */
-    public static ONTObject<? extends SWRLDArgument> getSWRLLiteralArg(OntSWRL.DArg arg, InternalDataFactory df) {
+    public static ONTObject<? extends SWRLDArgument> getSWRLLiteralArg(OntSWRL.DArg arg, InternalObjectFactory df) {
         if (OntApiException.notNull(arg, "Null SWRL-D arg").isLiteral()) {
             return ONTObject.create(df.getOWLDataFactory()
                     .getSWRLLiteralArgument(df.get(arg.asLiteral()).getObject()), arg);
@@ -430,10 +430,10 @@ public class ReadHelper {
 
     /**
      * @param arg {@link OntSWRL.IArg}
-     * @param df  {@link InternalDataFactory}
+     * @param df  {@link InternalObjectFactory}
      * @return {@link ONTObject} around {@link SWRLIArgument}
      */
-    public static ONTObject<? extends SWRLIArgument> getSWRLIndividualArg(OntSWRL.IArg arg, InternalDataFactory df) {
+    public static ONTObject<? extends SWRLIArgument> getSWRLIndividualArg(OntSWRL.IArg arg, InternalObjectFactory df) {
         if (OntApiException.notNull(arg, "Null SWRL-I arg").canAs(OntIndividual.class)) {
             return ONTObject.create(df.getOWLDataFactory()
                     .getSWRLIndividualArgument(df.get(arg.as(OntIndividual.class)).getObject()), arg);
@@ -446,10 +446,10 @@ public class ReadHelper {
 
     /**
      * @param atom {@link OntSWRL.Atom}
-     * @param df   {@link InternalDataFactory}
+     * @param df   {@link InternalObjectFactory}
      * @return {@link ONTObject} around {@link SWRLAtom}
      */
-    public static ONTObject<? extends SWRLAtom> calcSWRLAtom(OntSWRL.Atom atom, InternalDataFactory df) {
+    public static ONTObject<? extends SWRLAtom> calcSWRLAtom(OntSWRL.Atom atom, InternalObjectFactory df) {
         if (atom instanceof OntSWRL.Atom.BuiltIn) {
             OntSWRL.Atom.BuiltIn _atom = (OntSWRL.Atom.BuiltIn) atom;
             IRI iri = df.toIRI(_atom.getPredicate().getURI());

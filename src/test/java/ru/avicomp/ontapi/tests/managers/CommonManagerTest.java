@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.internal.AxiomTranslator;
-import ru.avicomp.ontapi.internal.InternalDataFactory;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.RWLockedGraph;
@@ -405,7 +405,7 @@ public class CommonManagerTest {
         newClasses.forEach(c -> Assert.assertFalse("Found " + c + " inside original ontology", o1.containsResource(c)));
         OntologyModel ont = copy.getOntology(IRI.create(uri));
         Assert.assertNotNull(ont);
-        InternalDataFactory df = AxiomTranslator.getDataFactory(o2);
+        InternalObjectFactory df = AxiomTranslator.getObjectFactory(o2);
         List<OWLClass> newOWLClasses = newClasses.stream()
                 .map(df::get)
                 .map(ONTObject::getObject)
