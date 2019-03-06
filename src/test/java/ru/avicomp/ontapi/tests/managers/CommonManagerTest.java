@@ -147,7 +147,7 @@ public class CommonManagerTest {
         Assert.assertEquals(managerLock, ((RWLockedGraph) ((OntologyModel) o2).asGraphModel().getBaseGraph()).lock());
 
         o1.axioms().forEach(a -> LOGGER.debug("{}", a));
-        ((OntologyModel) o1).asGraphModel().createOntEntity(OntClass.class, "urn:c1").createIndividual("urn:i");
+        ((OntologyModel) o1).asGraphModel().createOntClass("urn:c1").createIndividual("urn:i");
         OWLDataFactory df = m.getOWLDataFactory();
         o1.add(df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(IRI.create("urn:ap")),
                 IRI.create("urn:c1"), df.getOWLLiteral("test", "e")));
@@ -388,16 +388,16 @@ public class CommonManagerTest {
 
         List<OntClass> classes1 = o1.listClasses().collect(Collectors.toList());
         // create two new classes inside original manager (in two models).
-        o1.createOntEntity(OntClass.class, "http://some/new#Class1");
-        origin.getGraphModel("urn:iri.com#3").createOntEntity(OntClass.class, "http://some/new#Class2");
+        o1.createOntClass("http://some/new#Class1");
+        origin.getGraphModel("urn:iri.com#3").createOntClass("http://some/new#Class2");
         List<OntClass> classes2 = o2.listClasses().collect(Collectors.toList());
         // check that in the second (copied) manager there is no changes:
         Assert.assertEquals("incorrect classes", classes1, classes2);
 
         // create two new classes inside copied manager.
         Set<OntClass> classes3 = o2.listClasses().collect(Collectors.toSet());
-        OntClass cl3 = o2.createOntEntity(OntClass.class, "http://some/new#Class3");
-        OntClass cl4 = copy.getGraphModel("urn:iri.com#3").createOntEntity(OntClass.class, "http://some/new#Class4");
+        OntClass cl3 = o2.createOntClass("http://some/new#Class3");
+        OntClass cl4 = copy.getGraphModel("urn:iri.com#3").createOntClass("http://some/new#Class4");
         List<OntClass> newClasses = Arrays.asList(cl3, cl4);
         classes3.addAll(newClasses);
         Set<OntClass> classes4 = o2.listClasses().collect(Collectors.toSet());

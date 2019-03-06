@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -29,7 +29,6 @@ import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
@@ -107,7 +106,7 @@ public class MiscOntologyTest {
         model.setID("http://test.com/ont").setVersionIRI("http://test.com/ver/1.0");
         LOGGER.debug("{} has been created", model);
         model.setNsPrefix(prefName, model.getID().getURI() + "#");
-        String clazz = model.createOntEntity(OntClass.class, model.getNsPrefixURI("argh") + "TheClass").getURI();
+        String clazz = model.createOntClass(model.getNsPrefixURI("argh") + "TheClass").getURI();
         LOGGER.debug("Class {} has been added", clazz);
         LOGGER.debug("\n{}", ReadWriteUtils.toString(model, OntFormat.TURTLE));
 

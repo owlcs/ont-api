@@ -538,6 +538,78 @@ public interface OntGraphModel extends Model {
      * ===================================
      */
 
+    default OntClass createOntClass(String uri) {
+        return createOntEntity(OntClass.class, uri);
+    }
+
+    default OntDT createDatatype(String uri) {
+        return createOntEntity(OntDT.class, uri);
+    }
+
+    default OntIndividual.Named createIndividual(String uri) {
+        return createOntEntity(OntIndividual.Named.class, uri);
+    }
+
+    default OntNAP createAnnotationProperty(String uri) {
+        return createOntEntity(OntNAP.class, uri);
+    }
+
+    default OntNDP createDataProperty(String uri) {
+        return createOntEntity(OntNDP.class, uri);
+    }
+
+    default OntNOP createObjectProperty(String uri) {
+        return createOntEntity(OntNOP.class, uri);
+    }
+
+    default OntClass getOntClass(String uri) {
+        return getOntEntity(OntClass.class, uri);
+    }
+
+    default OntDT getDatatype(String uri) {
+        return getOntEntity(OntDT.class, uri);
+    }
+
+    default OntIndividual.Named getIndividual(String uri) {
+        return getOntEntity(OntIndividual.Named.class, uri);
+    }
+
+    default OntNAP getAnnotationProperty(String uri) {
+        return getOntEntity(OntNAP.class, uri);
+    }
+
+    default OntNDP getDataProperty(String uri) {
+        return getOntEntity(OntNDP.class, uri);
+    }
+
+    default OntNOP getObjectProperty(String uri) {
+        return getOntEntity(OntNOP.class, uri);
+    }
+
+    default OntClass getOntClass(Resource uri) {
+        return getOntClass(uri.getURI());
+    }
+
+    default OntDT getDatatype(Resource uri) {
+        return getDatatype(uri.getURI());
+    }
+
+    default OntIndividual.Named getIndividual(Resource uri) {
+        return getIndividual(uri.getURI());
+    }
+
+    default OntNAP getAnnotationProperty(Resource uri) {
+        return getAnnotationProperty(uri.getURI());
+    }
+
+    default OntNDP getDataProperty(Resource uri) {
+        return getDataProperty(uri.getURI());
+    }
+
+    default OntNOP getObjectProperty(Resource uri) {
+        return getObjectProperty(uri.getURI());
+    }
+
     default Stream<OntStatement> localStatements() {
         return localStatements(null, null, null);
     }
@@ -581,10 +653,6 @@ public interface OntGraphModel extends Model {
 
     default <E extends OntEntity> E getOntEntity(Class<E> type, Resource uri) {
         return getOntEntity(type, uri.getURI());
-    }
-
-    default OntNAP getAnnotationProperty(Resource uri) {
-        return getOntEntity(OntNAP.class, uri);
     }
 
     /*

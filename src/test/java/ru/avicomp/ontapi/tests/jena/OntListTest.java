@@ -47,9 +47,9 @@ public class OntListTest {
     @Test
     public void testCommonFunctionality1() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNOP p3 = m.createObjectProperty("p3");
         p1.addSuperPropertyOf();
         check(m, 1, OntNOP.class);
 
@@ -90,10 +90,10 @@ public class OntListTest {
     @Test
     public void testCommonFunctionality2() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNOP p3 = m.createObjectProperty("p3");
+        OntNOP p4 = m.createObjectProperty("p4");
         p1.createPropertyChain(Collections.singletonList(p2)).add(p3);
         check(m, 1, OntOPE.class);
 
@@ -139,10 +139,10 @@ public class OntListTest {
     @Test
     public void testGetAndClear1() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNOP p3 = m.createObjectProperty("p3");
+        OntNOP p4 = m.createObjectProperty("p4");
 
         OntList<OntOPE> list = p1.createPropertyChain(Arrays.asList(p2, p3)).add(p4);
         check(m, 1, OntOPE.class);
@@ -166,10 +166,10 @@ public class OntListTest {
     @Test
     public void testGetAndClear2() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNOP p3 = m.createObjectProperty("p3");
+        OntNOP p4 = m.createObjectProperty("p4");
 
         OntList<OntOPE> list = p1.createPropertyChain(Collections.emptyList()).add(p2).add(p3).add(p4);
         check(m, 1, OntOPE.class);
@@ -190,10 +190,10 @@ public class OntListTest {
     @Test
     public void testMixedList() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNOP p3 = m.createObjectProperty("p3");
+        OntNOP p4 = m.createObjectProperty("p4");
         OntList<OntOPE> list = p1.createPropertyChain(Arrays.asList(p4, p3, p2));
         list.get(1).as(RDFList.class).replace(0, m.createTypedLiteral("Not a property"));
         check(m, 1, RDFNode.class);
@@ -217,11 +217,11 @@ public class OntListTest {
     @Test
     public void testListAnnotations() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
-        OntNAP p5 = m.createOntEntity(OntNAP.class, "p5");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNOP p3 = m.createObjectProperty("p3");
+        OntNOP p4 = m.createObjectProperty("p4");
+        OntNAP p5 = m.createAnnotationProperty("p5");
         Literal literal_x = m.createLiteral("x");
         Literal literal_y = m.createLiteral("y", "y");
         Literal literal_z = m.createTypedLiteral(2.2);
@@ -276,10 +276,10 @@ public class OntListTest {
     @Test
     public void testListSpec() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNOP p3 = m.createObjectProperty("p3");
+        OntNOP p4 = m.createObjectProperty("p4");
         OntList<OntOPE> list = p1.createPropertyChain(Collections.emptyList());
         debug(m);
         Assert.assertEquals(0, list.spec().count());
@@ -376,10 +376,10 @@ public class OntListTest {
     @Test
     public void testPropertyChain() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNOP p3 = m.createObjectProperty("p3");
+        OntNOP p4 = m.createObjectProperty("p4");
         p1.addSuperPropertyOf(p2, p3);
         p1.addSuperPropertyOf(p3, p3, p4);
         p1.addSuperPropertyOf(p4, p4);
@@ -411,10 +411,10 @@ public class OntListTest {
     @Test
     public void testDisjointUnion() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntEntity(OntClass.class, "c");
+        OntClass clazz = m.createOntClass("c");
         OntCE ce1, ce3, ce4;
-        OntCE ce2 = m.createComplementOf(ce1 = m.createOntEntity(OntClass.class, "c1"));
-        OntCE ce5 = m.createUnionOf(Arrays.asList(ce3 = m.createOntEntity(OntClass.class, "c3"), ce4 = m.createOntEntity(OntClass.class, "c4")));
+        OntCE ce2 = m.createComplementOf(ce1 = m.createOntClass("c1"));
+        OntCE ce5 = m.createUnionOf(Arrays.asList(ce3 = m.createOntClass("c3"), ce4 = m.createOntClass("c4")));
         Assert.assertEquals(2, clazz.addDisjointUnionOf(ce2, ce3).getObject().as(RDFList.class).size());
         Assert.assertEquals(2, clazz.addDisjointUnionOf(ce3, ce3, ce4).getObject().as(RDFList.class).size());
         Assert.assertEquals(3, clazz.addDisjointUnionOf(ce4, ce4, ce5, ce1, ce1).getObject().as(RDFList.class).size());
@@ -455,12 +455,12 @@ public class OntListTest {
     @Test
     public void testHasKey() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntEntity(OntClass.class, "c");
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNDP p3 = m.createOntEntity(OntNDP.class, "p3");
-        OntNDP p4 = m.createOntEntity(OntNDP.class, "p4");
-        OntOPE p5 = m.createOntEntity(OntNOP.class, "p5").createInverse();
+        OntClass clazz = m.createOntClass("c");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNDP p3 = m.createDataProperty("p3");
+        OntNDP p4 = m.createDataProperty("p4");
+        OntOPE p5 = m.createObjectProperty("p5").createInverse();
 
         Assert.assertEquals(2, clazz.addHasKey(p2, p3).getObject().as(RDFList.class).size());
         Assert.assertEquals(2, clazz.addHasKey(p3, p3, p4).getObject().as(RDFList.class).size());
@@ -502,14 +502,14 @@ public class OntListTest {
     @Test
     public void testDisjointPropertiesOntList() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createOntEntity(OntNOP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
-        OntNOP p3 = m.createOntEntity(OntNOP.class, "p3");
-        OntNOP p4 = m.createOntEntity(OntNOP.class, "p4");
+        OntNOP p1 = m.createObjectProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
+        OntNOP p3 = m.createObjectProperty("p3");
+        OntNOP p4 = m.createObjectProperty("p4");
 
-        OntNDP p5 = m.createOntEntity(OntNDP.class, "p5");
-        OntNDP p6 = m.createOntEntity(OntNDP.class, "p6");
-        OntNDP p7 = m.createOntEntity(OntNDP.class, "p7");
+        OntNDP p5 = m.createDataProperty("p5");
+        OntNDP p6 = m.createDataProperty("p6");
+        OntNDP p7 = m.createDataProperty("p7");
 
         OntDisjoint.ObjectProperties d1 = m.createDisjointObjectProperties(Arrays.asList(p1, p2));
         OntDisjoint.DataProperties d2 = m.createDisjointDataProperties(Arrays.asList(p5, p7));
@@ -528,9 +528,9 @@ public class OntListTest {
     public void testDisjointClassIndividualsOntList() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
-        OntCE ce1 = m.createOntEntity(OntClass.class, "c1");
-        OntCE ce3 = m.createHasSelf(m.createOntEntity(OntNOP.class, "p1"));
-        OntCE ce2 = m.createDataHasValue(m.createOntEntity(OntNDP.class, "p2"), m.createLiteral("2"));
+        OntCE ce1 = m.createOntClass("c1");
+        OntCE ce3 = m.createHasSelf(m.createObjectProperty("p1"));
+        OntCE ce2 = m.createDataHasValue(m.createDataProperty("p2"), m.createLiteral("2"));
 
         OntDisjoint.Classes d1 = m.createDisjointClasses(Arrays.asList(m.getOWLNothing(), ce1, ce3));
         OntDisjoint.Individuals d2 = m.createDifferentIndividuals(Arrays.asList(ce2.createIndividual(), ce3.createIndividual("I")));

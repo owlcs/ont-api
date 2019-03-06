@@ -31,7 +31,6 @@ import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -452,8 +451,8 @@ public class LoadFactoryManagerTest {
         OntologyManager m = OntManagers.createONT();
         OntologyModel a = m.createOntology(IRI.create("urn:a"));
         OntologyModel b = m.createOntology(IRI.create("urn:b"));
-        a.asGraphModel().createOntEntity(OntClass.class, "A");
-        b.asGraphModel().createOntEntity(OntClass.class, "B");
+        a.asGraphModel().createOntClass("A");
+        b.asGraphModel().createOntClass("B");
         b.asGraphModel().addImport(a.asGraphModel());
         // check data:
         checkForMissedImportsTest(b);
@@ -493,8 +492,8 @@ public class LoadFactoryManagerTest {
         OntGraphModel b = OntModelFactory.createModel();
         b.setID(b_uri);
         b.setNsPrefixes(OntModelFactory.STANDARD);
-        a.createOntEntity(OntClass.class, "urn:a#A");
-        b.createOntEntity(OntClass.class, "urn:b#B");
+        a.createOntClass("urn:a#A");
+        b.createOntClass("urn:b#B");
         b.addImport(a);
         Map<String, String> data = new HashMap<>();
         data.put("store://a", ReadWriteUtils.toString(a, OntFormat.TURTLE));

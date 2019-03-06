@@ -37,7 +37,9 @@ import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
-import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.model.OntCE;
+import ru.avicomp.ontapi.jena.model.OntEntity;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -241,10 +243,10 @@ public class GraphTransformersTest {
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
 
-        Assert.assertNull("rdfs:Literal should not be class", o.asGraphModel().getOntEntity(OntClass.class, RDFS.Literal));
+        Assert.assertNull("rdfs:Literal should not be class", o.asGraphModel().getOntClass(RDFS.Literal));
         Assert.assertEquals("Should be DataAllValuesFrom", 1, o.asGraphModel().ontObjects(OntCE.DataAllValuesFrom.class).count());
-        Assert.assertNotNull(SWRL.argument2 + " should be data property", o.asGraphModel().getOntEntity(OntNDP.class, SWRL.argument2));
-        Assert.assertNotNull(SWRL.argument2 + " should be object property", o.asGraphModel().getOntEntity(OntNOP.class, SWRL.argument2));
+        Assert.assertNotNull(SWRL.argument2 + " should be data property", o.asGraphModel().getDataProperty(SWRL.argument2));
+        Assert.assertNotNull(SWRL.argument2 + " should be object property", o.asGraphModel().getObjectProperty(SWRL.argument2));
     }
 
     @Test

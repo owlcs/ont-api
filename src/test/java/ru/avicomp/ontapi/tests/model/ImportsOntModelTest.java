@@ -27,7 +27,6 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.UnionModel;
-import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -64,17 +63,17 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(2, b.imports().count());
         Assert.assertEquals(0, c.imports().count());
 
-        a.createOntEntity(OntClass.class, "A");
+        a.createOntClass("A");
         Assert.assertEquals(1, a.ontEntities().count());
         Assert.assertEquals(1, b.ontEntities().count());
         Assert.assertEquals(0, c.ontEntities().count());
 
-        b.createOntEntity(OntClass.class, "B");
+        b.createOntClass("B");
         Assert.assertEquals(2, a.ontEntities().count());
         Assert.assertEquals(2, b.ontEntities().count());
         Assert.assertEquals(0, c.ontEntities().count());
 
-        c.createOntEntity(OntClass.class, "C");
+        c.createOntClass("C");
         Assert.assertEquals(3, a.ontEntities().peek(x -> LOGGER.debug("Entity: {}", x)).count());
         Assert.assertEquals(3, b.ontEntities().count());
         Assert.assertEquals(1, c.ontEntities().count());
@@ -124,7 +123,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
     private static Graph createGraph(String ontologyURI, String importURI, String classURI) {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.setID(ontologyURI).addImport(importURI);
-        m.createOntEntity(OntClass.class, classURI);
+        m.createOntClass(classURI);
         return m.getBaseGraph();
     }
 
@@ -157,35 +156,35 @@ public class ImportsOntModelTest extends OntModelTestBase {
         OntologyModel a = m.createOntology(IRI.create(a_uri));
         OntologyModel b = m.createOntology(IRI.create(b_uri));
         OntologyModel c = m.createOntology(IRI.create(c_uri));
-        c.asGraphModel().createOntEntity(OntClass.class, c_uri + "#c-1");
+        c.asGraphModel().createOntClass(c_uri + "#c-1");
 
         a.add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(a_uri + "#a-1"))));
         Assert.assertEquals(1, a.axioms().count());
 
-        a.asGraphModel().createOntEntity(OntClass.class, a_uri + "#a-2");
+        a.asGraphModel().createOntClass(a_uri + "#a-2");
         Assert.assertEquals(2, a.axioms().count());
 
         a.asGraphModel().addImport(b.asGraphModel());
         b.add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-1"))));
-        b.asGraphModel().createOntEntity(OntClass.class, b_uri + "#b-2");
+        b.asGraphModel().createOntClass(b_uri + "#b-2");
         Assert.assertEquals(4, a.axioms(Imports.INCLUDED).count());
         Assert.assertEquals(4, a.asGraphModel().listClasses().count());
 
         a.asGraphModel().imports().findFirst().orElseThrow(AssertionError::new)
-                .createOntEntity(OntClass.class, b_uri + "#b-3");
+                .createOntClass(b_uri + "#b-3");
         a.imports().findFirst().orElseThrow(AssertionError::new)
                 .add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-4"))));
         Assert.assertEquals(6, a.axioms(Imports.INCLUDED).count());
         Assert.assertEquals(6, a.asGraphModel().listClasses().count());
 
-        OntModelFactory.createModel(a.asGraphModel().getGraph()).createOntEntity(OntClass.class, a_uri + "#a-3");
+        OntModelFactory.createModel(a.asGraphModel().getGraph()).createOntClass(a_uri + "#a-3");
         OntModelFactory.createModel(a.asGraphModel().imports().findFirst()
-                .orElseThrow(AssertionError::new).getGraph()).createOntEntity(OntClass.class, b_uri + "#b-5");
+                .orElseThrow(AssertionError::new).getGraph()).createOntClass(b_uri + "#b-5");
         Assert.assertEquals(8, a.axioms(Imports.INCLUDED).count());
         Assert.assertEquals(8, a.asGraphModel().listClasses().count());
 
         Optional.ofNullable(m.getOntology(IRI.create("http://b")))
-                .orElseThrow(AssertionError::new).asGraphModel().createOntEntity(OntClass.class, b_uri + "#b-6");
+                .orElseThrow(AssertionError::new).asGraphModel().createOntClass(b_uri + "#b-6");
         Optional.ofNullable(m.getOntology(IRI.create("http://b")))
                 .orElseThrow(AssertionError::new)
                 .add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-7"))));
@@ -506,7 +505,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertTrue(a_owl.imports().anyMatch(o -> Objects.equals(o, b_owl)));
 
         LOGGER.debug("Add class and associated individual");
-        OntIndividual i = b.createOntEntity(OntClass.class, "class").createIndividual("individual");
+        OntIndividual i = b.createOntClass("class").createIndividual("individual");
         b_owl.axioms().forEach(x -> LOGGER.debug("{}", x));
 
         Set<OWLAxiom> b_axioms_1 = b_owl.axioms().collect(Collectors.toSet());
@@ -536,8 +535,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(0, b.imports().count());
         Assert.assertEquals(1, a.asGraphModel().imports().count());
         Assert.assertEquals(0, b.asGraphModel().imports().count());
-        a.asGraphModel().createOntEntity(OntClass.class, "A-C");
-        b.asGraphModel().createOntEntity(OntClass.class, "B-C");
+        a.asGraphModel().createOntClass("A-C");
+        b.asGraphModel().createOntClass("B-C");
         Assert.assertEquals(2, a.signature(Imports.INCLUDED).count());
         Assert.assertEquals(2, a.asGraphModel().listClasses().count());
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -48,13 +48,13 @@ public class ModelUtilsTest {
         m.read(ModelUtilsTest.class.getResourceAsStream("/ontapi/recursive-graph.ttl"), null, "ttl");
         String ns = m.getID().getURI() + "#";
         OntObject d = m.createDisjointClasses(Arrays.asList(
-                m.createOntEntity(OntClass.class, ns + "CL1"),
-                m.createOntEntity(OntClass.class, ns + "CL2"),
+                m.createOntClass(ns + "CL1"),
+                m.createOntClass(ns + "CL2"),
                 m.createUnionOf(Arrays.asList(
-                        m.createOntEntity(OntClass.class, ns + "CL4"),
-                        m.createOntEntity(OntClass.class, ns + "CL5"),
-                        m.createOntEntity(OntClass.class, ns + "CL6"))),
-                m.createOntEntity(OntClass.class, ns + "CL3")));
+                        m.createOntClass(ns + "CL4"),
+                        m.createOntClass(ns + "CL5"),
+                        m.createOntClass(ns + "CL6"))),
+                m.createOntClass(ns + "CL3")));
 
         ReadWriteUtils.print(m);
         Assert.assertEquals(40, m.localStatements().count());
@@ -105,8 +105,8 @@ public class ModelUtilsTest {
     public void testInsertModel() {
         OntGraphModel a1 = OntModelFactory.createModel().setID("http://a").getModel();
         OntGraphModel a2 = OntModelFactory.createModel().setID("http://a").getModel();
-        OntClass c1 = a1.createOntEntity(OntClass.class, "http://a#Class-a1");
-        OntClass c2 = a2.createOntEntity(OntClass.class, "http://a#Class-a2");
+        OntClass c1 = a1.createOntClass("http://a#Class-a1");
+        OntClass c2 = a2.createOntClass("http://a#Class-a2");
 
         // collection depending on a1
         OntGraphModel m1 = OntModelFactory.createModel().setID("http://m1").getModel().addImport(a1);

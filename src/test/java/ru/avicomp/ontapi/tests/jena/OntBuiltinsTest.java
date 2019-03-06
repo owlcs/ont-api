@@ -57,29 +57,29 @@ public class OntBuiltinsTest {
         OntPersonality personality = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_LAX).setBuiltins(test).build();
         OntGraphModel m1 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
                 .setNsPrefixes(OntModelFactory.STANDARD).setID("m1").getModel();
-        OntClass c = m1.createOntEntity(OntClass.class, "b");
-        c.addSubClassOf(m1.getOntEntity(OntClass.class, "B"));
-        c.addDisjointUnionOf(m1.getOntEntity(OntClass.class, "D"));
+        OntClass c = m1.createOntClass("b");
+        c.addSubClassOf(m1.getOntClass("B"));
+        c.addDisjointUnionOf(m1.getOntClass("D"));
         ReadWriteUtils.print(m1);
         OntGraphModel m2 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
                 .setNsPrefixes(OntModelFactory.STANDARD).setID("m2").getModel().addImport(m1);
-        m2.getOntEntity(OntClass.class, "b").addEquivalentClass(m2.getOntEntity(OntClass.class, "C"));
+        m2.getOntClass("b").addEquivalentClass(m2.getOntClass("C"));
         ReadWriteUtils.print(m2);
 
         Assert.assertEquals(3, m2.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("1) Builtin: {}", x)).count());
         Assert.assertEquals(2, m1.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("2) Builtin: {}", x)).count());
         Assert.assertEquals(1, m2.ontBuiltins(OntClass.class, true).peek(x -> LOGGER.debug("3) Builtin: {}", x)).count());
-        Assert.assertNotNull(m1.getOntEntity(OntClass.class, "A"));
-        Assert.assertNotNull(m2.getOntEntity(OntClass.class, "A"));
-        Assert.assertNull(m1.getOntEntity(OntClass.class, "X"));
+        Assert.assertNotNull(m1.getOntClass("A"));
+        Assert.assertNotNull(m2.getOntClass("A"));
+        Assert.assertNull(m1.getOntClass("X"));
         Assert.assertNull(m2.getOWLThing());
 
         OntGraphModel m3 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
                 .setNsPrefixes(OntModelFactory.STANDARD).addImport(m2);
         Assert.assertEquals(0, m3.ontBuiltins(OntClass.class, true).count());
-        m3.createDisjointClasses(Arrays.asList(m1.getOntEntity(OntClass.class, "B"),
-                m1.getOntEntity(OntClass.class, "E")));
-        m3.createObjectMaxCardinality(m3.createOntEntity(OntNOP.class, "p"), 12, m2.getOntEntity(OntClass.class, "F"));
+        m3.createDisjointClasses(Arrays.asList(m1.getOntClass("B"),
+                m1.getOntClass("E")));
+        m3.createObjectMaxCardinality(m3.createObjectProperty("p"), 12, m2.getOntClass("F"));
         ReadWriteUtils.print(m3);
         Assert.assertEquals(5, m3.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("4) Builtin: {}", x)).count());
     }
@@ -88,7 +88,7 @@ public class OntBuiltinsTest {
     public void testBuiltinClassesStandardPersonality() {
         OntGraphModel m1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         Assert.assertNotNull(m1.getOWLThing());
-        OntNOP p = m1.createOntEntity(OntNOP.class, "p");
+        OntNOP p = m1.createObjectProperty("p");
         Assert.assertEquals(0, m1.ontBuiltins(OntClass.class).count());
         // unqualified personality
         m1.createObjectCardinality(p, 21, null);

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -60,7 +60,7 @@ public class OntAnnotationsTest {
                 .peek(a -> LOGGER.debug("Annotation: '{}'", a)).count());
 
         LOGGER.debug("2) Create class with two labels.");
-        OntClass cl = m.createOntEntity(OntClass.class, ns + "ClassN1");
+        OntClass cl = m.createOntClass(ns + "ClassN1");
         cl.addLabel("some label");
         OntStatement label2 = cl.addLabel("another label", "de");
         ReadWriteUtils.print(m);
@@ -80,7 +80,7 @@ public class OntAnnotationsTest {
         Assert.assertFalse("There is owl:Annotation section.", m.contains(null, RDF.type, OWL.Annotation));
 
         LOGGER.debug("4) Create annotation property and annotate {} and {}", seeAlsoForLabel2, labelForLabel2);
-        OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "annotation-prop-1");
+        OntNAP nap1 = m.createAnnotationProperty(ns + "annotation-prop-1");
         seeAlsoForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see also"));
         OntStatement annotationForLabelForLabel2 = labelForLabel2.addAnnotation(nap1,
                 ResourceFactory.createPlainLiteral("comment to see label"));
@@ -153,10 +153,10 @@ public class OntAnnotationsTest {
                 .setID(uri)
                 .getModel();
 
-        OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
-        OntClass cl2 = m.createOntEntity(OntClass.class, ns + "Class2");
-        OntClass cl3 = m.createOntEntity(OntClass.class, ns + "Class3");
-        OntNAP nap1 = m.createOntEntity(OntNAP.class, ns + "AnnotationProperty1");
+        OntClass cl1 = m.createOntClass(ns + "Class1");
+        OntClass cl2 = m.createOntClass(ns + "Class2");
+        OntClass cl3 = m.createOntClass(ns + "Class3");
+        OntNAP nap1 = m.createAnnotationProperty(ns + "AnnotationProperty1");
 
         OntDisjoint.Classes disjointClasses = m.createDisjointClasses(Arrays.asList(cl1, cl2, cl3));
         Assert.assertEquals("Incorrect owl:AllDisjointClasses number", 1,
@@ -176,7 +176,7 @@ public class OntAnnotationsTest {
         Assert.assertEquals("Should be single owl:Annotation", 1,
                 m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
 
-        OntNOP nop1 = m.createOntEntity(OntNOP.class, ns + "ObjectProperty1");
+        OntNOP nop1 = m.createObjectProperty(ns + "ObjectProperty1");
         OntIndividual.Named ind1 = cl1.createIndividual(ns + "Individual1");
         OntIndividual.Anonymous ind2 = cl2.createIndividual();
         ind2.addComment("anonymous individual", "ru");
@@ -208,9 +208,9 @@ public class OntAnnotationsTest {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.getID().addAnnotation(m.getAnnotationProperty(OWL.versionInfo), "anonymous ontology", "en");
 
-        OntNDP p = m.createOntEntity(OntNDP.class, "x");
-        OntClass c = m.createOntEntity(OntClass.class, "c");
-        OntDT dt = m.getOntEntity(OntDT.class, RDFS.Literal);
+        OntNDP p = m.createDataProperty("x");
+        OntClass c = m.createOntClass("c");
+        OntDT dt = m.getDatatype(RDFS.Literal);
         p.addRange(dt).addAnnotation(m.getRDFSComment(), "This is a range", null);
         p.addDomain(c).addAnnotation(m.getRDFSLabel(), "This is a domain", null)
                 .addAnnotation(m.getRDFSLabel(), "label", "hg");
@@ -276,7 +276,7 @@ public class OntAnnotationsTest {
     @Test
     public void testListObjectAnnotations() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntEntity(OntClass.class, "C");
+        OntClass clazz = m.createOntClass("C");
         clazz.addComment("xxx");
         Assert.assertEquals("xxx", clazz.getComment());
         ReadWriteUtils.print(m);
@@ -312,7 +312,7 @@ public class OntAnnotationsTest {
     @Test
     public void testClearAnnotations() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNAP nap = m.createOntEntity(OntNAP.class, "nap");
+        OntNAP nap = m.createAnnotationProperty("nap");
         nap.addComment("test1").addAnnotation(nap, "sub-test1");
         m.asStatement(nap.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "test2")
                 .addAnnotation(m.getRDFSLabel(), "sub-test2");
@@ -345,7 +345,7 @@ public class OntAnnotationsTest {
     public void testRemoveAnnotatedObject() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
-        OntCE class1 = m.createOntEntity(OntClass.class, "C-1");
+        OntCE class1 = m.createOntClass("C-1");
         m.asStatement(class1.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "Class1::1")
                 .getSubject(OntAnnotation.class).getBase()
                 .getSubject(OntClass.class)
@@ -495,7 +495,7 @@ public class OntAnnotationsTest {
     @Test
     public void testAnnotationSplitting() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntEntity(OntClass.class, "A");
+        OntClass clazz = m.createOntClass("A");
         OntStatement subClassOf = clazz.addSubClassOf(m.getOWLThing());
 
         Assert.assertEquals(0, subClassOf.annotations().count());
@@ -569,7 +569,7 @@ public class OntAnnotationsTest {
     @Test
     public void testCachedAnnotations() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntEntity(OntClass.class, "A");
+        OntClass clazz = m.createOntClass("A");
         clazz.getRoot().addAnnotation(m.getRDFSLabel(), "X");
         clazz.getRoot().addAnnotation(m.getRDFSLabel(), "Y");
         m.createResource(null, OWL.Axiom)
@@ -651,7 +651,7 @@ public class OntAnnotationsTest {
     @Test
     public void testListAnnotationValues() {
         OntGraphModel m = OntModelFactory.createModel();
-        OntClass c = m.createOntEntity(OntClass.class, "http://clazz");
+        OntClass c = m.createOntClass("http://clazz");
         c.addComment("c1", "en");
         c.addComment("c2", "EN-GB");
         c.addComment("c3", "pt");

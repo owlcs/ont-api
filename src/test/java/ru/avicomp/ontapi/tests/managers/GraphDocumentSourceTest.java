@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
@@ -170,7 +169,7 @@ public class GraphDocumentSourceTest {
     public void testAddCompositeGraph() {
         OntGraphModel m1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m1.setID("http://xxxxxx");
-        m1.createOntEntity(OntClass.class, "x");
+        m1.createOntClass("x");
 
         Model m2 = ModelFactory.createDefaultModel();
         m2.createResource().addProperty(RDFS.comment, "XXX");

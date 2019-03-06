@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -31,7 +31,10 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.model.OntClass;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.SP;
@@ -177,11 +180,11 @@ public class SpinMappingTest {
         String uri = "http://source.avicomp.ru";
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = res.createOntEntity(OntClass.class, ns + "ClassSource");
-        OntNDP prop1 = res.createOntEntity(OntNDP.class, ns + "prop1");
-        OntNDP prop2 = res.createOntEntity(OntNDP.class, ns + "prop2");
-        prop1.addRange(res.getOntEntity(OntDT.class, XSD.xstring));
-        prop2.addRange(res.getOntEntity(OntDT.class, XSD.integer));
+        OntClass clazz = res.createOntClass(ns + "ClassSource");
+        OntNDP prop1 = res.createDataProperty(ns + "prop1");
+        OntNDP prop2 = res.createDataProperty(ns + "prop2");
+        prop1.addRange(res.getDatatype(XSD.xstring));
+        prop2.addRange(res.getDatatype(XSD.integer));
         prop1.addDomain(clazz);
         prop2.addDomain(clazz);
         OntIndividual i1 = clazz.createIndividual(ns + "Inst1");
@@ -208,9 +211,9 @@ public class SpinMappingTest {
         String uri = "http://target.avicomp.ru";
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = res.createOntEntity(OntClass.class, ns + "ClassTarget");
-        OntNDP prop = res.createOntEntity(OntNDP.class, ns + "targetProperty");
-        prop.addRange(res.getOntEntity(OntDT.class, XSD.xstring));
+        OntClass clazz = res.createOntClass(ns + "ClassTarget");
+        OntNDP prop = res.createDataProperty(ns + "targetProperty");
+        prop.addRange(res.getDatatype(XSD.xstring));
         prop.addDomain(clazz);
         OntologyModel o = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, o);

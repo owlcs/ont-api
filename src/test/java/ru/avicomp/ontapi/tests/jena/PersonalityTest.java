@@ -69,9 +69,9 @@ public class PersonalityTest {
                 .setBuiltins(OntModelConfig.createBuiltinsVocabulary(BuiltIn.OWL_VOCABULARY)).build();
         OntGraphModel m1 = OntModelFactory.createModel(g.getGraph(), p1);
         Assert.assertEquals(1, m1.listClasses().peek(x -> LOGGER.debug("Class::{}", x)).count());
-        Assert.assertNull(m1.getOntEntity(OntClass.class, agent));
-        Assert.assertNull(m1.getOntEntity(OntClass.class, document));
-        Assert.assertEquals(0, m1.getOntEntity(OntClass.class, clazz).subClassOf().count());
+        Assert.assertNull(m1.getOntClass(agent));
+        Assert.assertNull(m1.getOntClass(document));
+        Assert.assertEquals(0, m1.getOntClass(clazz).subClassOf().count());
 
         BuiltIn.Vocabulary SIMPLE_FOAF_VOC = new BuiltIn.Empty() {
             @Override
@@ -86,9 +86,9 @@ public class PersonalityTest {
 
         // listClasses only works with explicit owl-classes, it does not take into account builtins
         Assert.assertEquals(1, m2.listClasses().peek(x -> LOGGER.debug("Class::{}", x)).count());
-        Assert.assertNotNull(m2.getOntEntity(OntClass.class, agent));
-        Assert.assertNotNull(m2.getOntEntity(OntClass.class, document));
-        Assert.assertEquals(1, m2.getOntEntity(OntClass.class, clazz).subClassOf()
+        Assert.assertNotNull(m2.getOntClass(agent));
+        Assert.assertNotNull(m2.getOntClass(document));
+        Assert.assertEquals(1, m2.getOntClass(clazz).subClassOf()
                 .peek(x -> LOGGER.debug("SuperClass::{}", x)).count());
     }
 
@@ -126,13 +126,13 @@ public class PersonalityTest {
         OntGraphModel m1 = OntModelFactory.createModel(Factory.createGraphMem(), OntModelConfig.ONT_PERSONALITY_STRICT)
                 .setNsPrefixes(OntModelFactory.STANDARD)
                 .setNsPrefix("x", ns);
-        OntClass c1 = m1.createOntEntity(OntClass.class, ns + "C1");
-        OntClass c2 = m1.createOntEntity(OntClass.class, ns + "C2");
+        OntClass c1 = m1.createOntClass(ns + "C1");
+        OntClass c2 = m1.createOntClass(ns + "C2");
         OntIndividual i1 = c1.createIndividual(ns + "I1");
         OntIndividual i2 = c2.createIndividual(ns + "I2");
         c1.createIndividual(ns + "I3");
-        m1.createOntEntity(OntDT.class, i2.getURI());
-        m1.createOntEntity(OntClass.class, i1.getURI());
+        m1.createDatatype(i2.getURI());
+        m1.createOntClass(i1.getURI());
         ReadWriteUtils.print(m1);
         Assert.assertEquals(3, m1.listClasses().peek(x -> LOGGER.debug("1)Class: {}", x)).count());
         Assert.assertEquals(3, m1.classAssertions().peek(x -> LOGGER.debug("1)Individual: {}", x)).count());
@@ -172,8 +172,8 @@ public class PersonalityTest {
         String ns = "http://ex.com#";
         OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX)
                 .setNsPrefixes(OntModelFactory.STANDARD);
-        OntCE c1 = m.createOntEntity(OntClass.class, ns + "class1");
-        OntCE c2 = m.createOntEntity(OntClass.class, ns + "class2");
+        OntCE c1 = m.createOntClass(ns + "class1");
+        OntCE c2 = m.createOntClass(ns + "class2");
         OntIndividual i1 = c1.createIndividual(ns + "indi1");
         OntIndividual i2 = m.createComplementOf(c1).createIndividual(ns + "indi2");
         OntIndividual i3 = c2.createIndividual(ns + "indi3");
@@ -186,11 +186,11 @@ public class PersonalityTest {
         LOGGER.debug("===================");
 
         // add punn:
-        m.createOntEntity(OntDT.class, ns + "class1");
+        m.createDatatype(ns + "class1");
         OntGraphModel m2 = OntModelFactory.createModel(m.getBaseGraph(), OntModelConfig.ONT_PERSONALITY_STRICT);
 
         try {
-            m2.createOntEntity(OntDT.class, ns + "class2");
+            m2.createDatatype(ns + "class2");
             Assert.fail("Possible to add punn");
         } catch (OntJenaException e) {
             LOGGER.debug(e.getMessage());
@@ -216,9 +216,9 @@ public class PersonalityTest {
         String ns = "http://ex.com#";
         OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX)
                 .setNsPrefixes(OntModelFactory.STANDARD);
-        OntCE c1 = m.createOntEntity(OntClass.class, ns + "class1");
-        OntNOP p1 = m.createOntEntity(OntNOP.class, ns + "prop1");
-        OntOPE p2 = m.createOntEntity(OntNOP.class, ns + "prop2").createInverse();
+        OntCE c1 = m.createOntClass(ns + "class1");
+        OntNOP p1 = m.createObjectProperty(ns + "prop1");
+        OntOPE p2 = m.createObjectProperty(ns + "prop2").createInverse();
 
         OntIndividual i1 = c1.createIndividual(ns + "indi1");
         OntIndividual i2 = m.createComplementOf(c1).createIndividual(ns + "indi2");
@@ -235,12 +235,12 @@ public class PersonalityTest {
         LOGGER.debug("===================");
 
         // add punns:
-        m.createOntEntity(OntNDP.class, ns + "prop1");
-        m.createOntEntity(OntNAP.class, ns + "prop2");
+        m.createDataProperty(ns + "prop1");
+        m.createAnnotationProperty(ns + "prop2");
         OntGraphModel m2 = OntModelFactory.createModel(m.getBaseGraph(), OntModelConfig.ONT_PERSONALITY_STRICT);
 
         try {
-            m2.createOntEntity(OntNDP.class, ns + "prop2");
+            m2.createDataProperty(ns + "prop2");
             Assert.fail("Possible to add punn");
         } catch (OntJenaException e) {
             LOGGER.debug(e.getMessage());
@@ -270,9 +270,9 @@ public class PersonalityTest {
         String ns = "http://ex.com#";
         OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX)
                 .setNsPrefixes(OntModelFactory.STANDARD);
-        OntCE c1 = m.createOntEntity(OntClass.class, ns + "class1");
-        OntNDP p1 = m.createOntEntity(OntNDP.class, ns + "prop1");
-        OntDT d1 = m.createOntEntity(OntDT.class, ns + "dt1");
+        OntCE c1 = m.createOntClass(ns + "class1");
+        OntNDP p1 = m.createDataProperty(ns + "prop1");
+        OntDT d1 = m.createDatatype(ns + "dt1");
         c1.createIndividual();
         c1.createIndividual(ns + "indi1");
         OntCE c2 = m.createDataAllValuesFrom(p1, d1);

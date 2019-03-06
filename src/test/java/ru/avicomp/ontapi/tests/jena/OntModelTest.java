@@ -211,14 +211,14 @@ public class OntModelTest {
         Assert.assertEquals(5, props.values().stream().mapToLong(Collection::size).sum());
 
         String ns = m.getID().getURI() + "#";
-        OntClass animal = m.getOntEntity(OntClass.class, ns + "Animal");
+        OntClass animal = m.getOntClass(ns + "Animal");
         Assert.assertNotNull(animal);
         Assert.assertEquals("Wrong #Animal attached properties count", 3, animal.properties().count());
-        OntClass person = m.getOntEntity(OntClass.class, ns + "Person");
+        OntClass person = m.getOntClass(ns + "Person");
         Assert.assertNotNull(person);
         Assert.assertEquals("Wrong #Person attached properties count", 2, person.properties().count());
 
-        OntNDP isHardWorking = m.getOntEntity(OntNDP.class, ns + "isHardWorking");
+        OntNDP isHardWorking = m.getDataProperty(ns + "isHardWorking");
         Assert.assertNotNull(isHardWorking);
         Set<OntOPE> objProperties = m.ontObjects(OntNOP.class).collect(Collectors.toSet());
         Assert.assertEquals(4, objProperties.size());
@@ -237,7 +237,7 @@ public class OntModelTest {
         person.clearHasKeys();
         Assert.assertEquals(statementsCount, m.statements().count());
 
-        OntClass marsupials = m.getOntEntity(OntClass.class, ns + "Marsupials");
+        OntClass marsupials = m.getOntClass(ns + "Marsupials");
         Assert.assertNotNull(marsupials);
         Assert.assertEquals(marsupials, person.disjointWith().findFirst().orElse(null));
         Assert.assertEquals(person, marsupials.disjointWith().findAny().orElse(null));
@@ -281,16 +281,16 @@ public class OntModelTest {
         String ns = "http://test.com/graph/7#";
 
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("test", ns);
-        OntNAP a1 = m.createOntEntity(OntNAP.class, ns + "a-p-1");
-        OntNAP a2 = m.createOntEntity(OntNAP.class, ns + "a-p-2");
-        m.createOntEntity(OntNOP.class, ns + "o-p-1");
-        m.createOntEntity(OntNOP.class, ns + "o-p-2").createInverse();
-        m.createOntEntity(OntNOP.class, ns + "o-p-3").createInverse().addComment("Anonymous property expression");
-        m.createOntEntity(OntNOP.class, ns + "o-p-4")
-                .addInverseOf(m.createOntEntity(OntNOP.class, ns + "o-p-5"))
+        OntNAP a1 = m.createAnnotationProperty(ns + "a-p-1");
+        OntNAP a2 = m.createAnnotationProperty(ns + "a-p-2");
+        m.createObjectProperty(ns + "o-p-1");
+        m.createObjectProperty(ns + "o-p-2").createInverse();
+        m.createObjectProperty(ns + "o-p-3").createInverse().addComment("Anonymous property expression");
+        m.createObjectProperty(ns + "o-p-4")
+                .addInverseOf(m.createObjectProperty(ns + "o-p-5"))
                 .addAnnotation(a1, m.createLiteral("inverse statement, not inverse-property"));
-        m.createOntEntity(OntNDP.class, ns + "d-p-1");
-        m.createOntEntity(OntNDP.class, ns + "d-p-2").addAnnotation(a2, m.createLiteral("data-property"));
+        m.createDataProperty(ns + "d-p-1");
+        m.createDataProperty(ns + "d-p-2").addAnnotation(a2, m.createLiteral("data-property"));
 
         ReadWriteUtils.print(m);
         simplePropertiesValidation(m);
@@ -310,9 +310,9 @@ public class OntModelTest {
                 .setID(uri)
                 .getModel();
 
-        OntNDP ndp1 = m.createOntEntity(OntNDP.class, ns + "dataProperty1");
+        OntNDP ndp1 = m.createDataProperty(ns + "dataProperty1");
         OntDT dt1 = m.createOntEntity(OntDT.class, ns + "dataType1");
-        dt1.addEquivalentClass(m.getOntEntity(OntDT.class, XSD.dateTime));
+        dt1.addEquivalentClass(m.getDatatype(XSD.dateTime));
 
         OntDT dt2 = m.createOntEntity(OntDT.class, ns + "dataType2");
 
@@ -327,7 +327,7 @@ public class OntModelTest {
         OntIndividual i1 = ce1.createIndividual(ns + "individual1");
         OntCE ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
         i1.attachClass(ce2);
-        i1.attachClass(m.createOntEntity(OntClass.class, ns + "Class1"));
+        i1.attachClass(m.createOntClass(ns + "Class1"));
 
         OntIndividual i2 = ce2.createIndividual();
         i2.addStatement(ndp1, ResourceFactory.createPlainLiteral("individual value"));
@@ -356,8 +356,8 @@ public class OntModelTest {
                 .setNsPrefix("SWRL", SWRL.NS)
                 .setNsPrefixes(OntModelFactory.STANDARD);
 
-        OntClass cl1 = m.createOntEntity(OntClass.class, ns + "Class1");
-        OntClass cl2 = m.createOntEntity(OntClass.class, ns + "Class2");
+        OntClass cl1 = m.createOntClass(ns + "Class1");
+        OntClass cl2 = m.createOntClass(ns + "Class2");
         OntIndividual i1 = cl1.createIndividual(ns + "Individual1");
 
         OntCE.UnionOf cl3 = m.createUnionOf(Arrays.asList(cl1, cl2));
@@ -402,14 +402,14 @@ public class OntModelTest {
         String baseNS = baseURI + "#";
         OntGraphModel base = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(baseURI).getModel();
-        OntClass cl1 = base.createOntEntity(OntClass.class, baseNS + "Class1");
-        OntClass cl2 = base.createOntEntity(OntClass.class, baseNS + "Class2");
+        OntClass cl1 = base.createOntClass(baseNS + "Class1");
+        OntClass cl2 = base.createOntClass(baseNS + "Class2");
 
         String childURI = "http://test.com/graph/6";
         String childNS = childURI + "#";
         OntGraphModel child = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(childURI).getModel().addImport(base);
-        OntClass cl3 = child.createOntEntity(OntClass.class, childNS + "Class3");
+        OntClass cl3 = child.createOntClass(childNS + "Class3");
         cl3.addSubClassOf(child.createIntersectionOf(Arrays.asList(cl1, cl2)));
         cl3.createIndividual(childNS + "Individual1");
 
@@ -436,13 +436,13 @@ public class OntModelTest {
         String dataNS = m.getID().getURI() + "/data#";
         m.setNsPrefix("schema", schemaNS).setNsPrefix("data", dataNS);
 
-        OntDT email = m.createOntEntity(OntDT.class, schemaNS + "email");
-        OntDT phone = m.createOntEntity(OntDT.class, schemaNS + "phone");
-        OntDT skype = m.createOntEntity(OntDT.class, schemaNS + "skype");
-        OntNDP contactInfo = m.createOntEntity(OntNDP.class, schemaNS + "info");
-        OntClass contact = m.createOntEntity(OntClass.class, schemaNS + "Contact");
-        OntClass person = m.createOntEntity(OntClass.class, schemaNS + "Person");
-        OntNOP hasContact = m.createOntEntity(OntNOP.class, schemaNS + "contact");
+        OntDT email = m.createDatatype(schemaNS + "email");
+        OntDT phone = m.createDatatype(schemaNS + "phone");
+        OntDT skype = m.createDatatype(schemaNS + "skype");
+        OntNDP contactInfo = m.createDataProperty(schemaNS + "info");
+        OntClass contact = m.createOntClass(schemaNS + "Contact");
+        OntClass person = m.createOntClass(schemaNS + "Person");
+        OntNOP hasContact = m.createObjectProperty(schemaNS + "contact");
 
         hasContact.addDomain(person).getSubject(OntNOP.class).addRange(contact);
 
@@ -511,15 +511,15 @@ public class OntModelTest {
     public void testObjectsContent() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         // properties:
-        OntNDP p1 = m.createOntEntity(OntNDP.class, "p1");
-        OntNOP p2 = m.createOntEntity(OntNOP.class, "p2");
+        OntNDP p1 = m.createDataProperty("p1");
+        OntNOP p2 = m.createObjectProperty("p2");
         // classes:
-        OntClass class1 = m.createOntEntity(OntClass.class, "c");
-        OntCE.UnionOf class2 = m.createUnionOf(Arrays.asList(m.createOntEntity(OntClass.class, "c1"),
-                m.createOntEntity(OntClass.class, "c2")));
+        OntClass class1 = m.createOntClass("c");
+        OntCE.UnionOf class2 = m.createUnionOf(Arrays.asList(m.createOntClass("c1"),
+                m.createOntClass("c2")));
         OntCE.DataHasValue class3 = m.createDataHasValue(p1, m.createLiteral("2"));
         OntCE.DataMinCardinality class4 = m.createDataMinCardinality(p1, 2,
-                m.getOntEntity(OntDT.class, XSD.xdouble));
+                m.getDatatype(XSD.xdouble));
         OntClass class5 = m.getOWLThing();
         OntCE.ObjectCardinality class6 = m.createObjectCardinality(p2, 1234, class5);
         OntCE.HasSelf class7 = m.createHasSelf(p2);
@@ -529,9 +529,9 @@ public class OntModelTest {
         class2.addSubClassOf(m.createComplementOf(class5));
         class5.addEquivalentClass(m.getOWLNothing());
         // data-ranges:
-        OntDT dr1 = m.getOntEntity(OntDT.class, XSD.xint);
+        OntDT dr1 = m.getDatatype(XSD.xint);
         OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(Arrays.asList(dr1,
-                m.getOntEntity(OntDT.class, XSD.xdouble)));
+                m.getDatatype(XSD.xdouble)));
         OntDR.ComplementOf dr3 = m.createComplementOfDataRange(dr2);
         dr3.addComment("Data range: complement of intersection int and double");
         // individuals:
@@ -612,10 +612,10 @@ public class OntModelTest {
     public void testRemoveObjects() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
-        OntCE class1 = m.createOntEntity(OntClass.class, "C-1");
-        OntCE class2 = m.createOntEntity(OntClass.class, "C-2");
-        OntCE class3 = m.createOntEntity(OntClass.class, "C-3");
-        OntOPE p = m.createOntEntity(OntNOP.class, "P");
+        OntCE class1 = m.createOntClass("C-1");
+        OntCE class2 = m.createOntClass("C-2");
+        OntCE class3 = m.createOntClass("C-3");
+        OntOPE p = m.createObjectProperty("P");
         OntCE class4 = m.createComplementOf(class3);
         OntCE class5 = m.createObjectSomeValuesFrom(p, class4);
         OntCE class6 = m.createIntersectionOf(Arrays.asList(m.getOWLThing(), class2, class4, class5));
@@ -641,7 +641,7 @@ public class OntModelTest {
         OntFR f2 = m.createFacetRestriction(OntFR.Pattern.class, m.createTypedLiteral("\\d+"));
         OntFR f3 = m.createFacetRestriction(OntFR.LangRange.class, m.createTypedLiteral("^r.*"));
 
-        OntDT d1 = m.getOntEntity(OntDT.class, XSD.xstring);
+        OntDT d1 = m.getDatatype(XSD.xstring);
         OntDR d2 = m.createComplementOfDataRange(d1);
         OntDR d3 = m.createRestrictionDataRange(d1, Arrays.asList(f1, f2, f3));
 
@@ -752,9 +752,9 @@ public class OntModelTest {
         OntGraphModel a = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntGraphModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntGraphModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        a.createOntEntity(OntClass.class, "A");
-        b.createOntEntity(OntClass.class, "B");
-        c.createOntEntity(OntClass.class, "C");
+        a.createOntClass("A");
+        b.createOntClass("B");
+        c.createOntClass("C");
         a.setID("a");
         b.setID("b");
         c.setID("c");
@@ -785,8 +785,8 @@ public class OntModelTest {
         Assert.assertEquals(3, c.ontEntities().count());
 
         // add more entities:
-        a.createOntEntity(OntClass.class, "B");
-        b.createOntEntity(OntClass.class, "X");
+        a.createOntClass("B");
+        b.createOntClass("X");
         Assert.assertEquals(4, a.ontEntities().count());
         Assert.assertEquals(4, b.ontEntities().count());
         Assert.assertEquals(4, c.ontEntities().count());

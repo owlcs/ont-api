@@ -39,10 +39,10 @@ public class ONTObjectsTest {
     @Test
     public void testDisjoint() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass c1 = m.createOntEntity(OntClass.class, "C1");
+        OntClass c1 = m.createOntClass("C1");
         OntDisjoint.Classes c = m.createDisjointClasses(Arrays.asList(c1,
-                m.createOntEntity(OntClass.class, "C2"),
-                m.createUnionOf(Arrays.asList(m.createOntEntity(OntClass.class, "C3"), m.getOWLThing()))));
+                m.createOntClass("C2"),
+                m.createUnionOf(Arrays.asList(m.createOntClass("C3"), m.getOWLThing()))));
 
         ReadWriteUtils.print(m);
         ONTObject<OWLDisjointClassesAxiom> ax =
@@ -50,7 +50,7 @@ public class ONTObjectsTest {
 
         Assert.assertEquals(8, ax.triples().peek(x -> LOGGER.debug("{}", x)).count());
         LOGGER.debug("---");
-        c.getList().addFirst(m.createOntEntity(OntClass.class, "C3"));
+        c.getList().addFirst(m.createOntClass("C3"));
         Assert.assertEquals(10, ax.triples().peek(x -> LOGGER.debug("{}", x)).count());
     }
 }

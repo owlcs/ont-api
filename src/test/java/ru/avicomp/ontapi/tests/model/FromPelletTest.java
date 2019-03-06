@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -154,7 +153,7 @@ public class FromPelletTest {
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect count of property chains axioms", 4, o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF).count());
-        OntOPE p = o.asGraphModel().getOntEntity(OntNOP.class, "http://www.example.org/test#s");
+        OntOPE p = o.asGraphModel().getObjectProperty("http://www.example.org/test#s");
         Assert.assertEquals("Incorrect count of property chains", 3, p.listPropertyChains().count());
     }
 

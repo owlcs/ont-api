@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -81,12 +81,12 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         OWLClass owlSimple2 = factory.getOWLClass(iri.addFragment("Simple2"));
         OWLClass owlComplex1 = factory.getOWLClass(iri.addFragment("Complex1"));
         OWLClass owlComplex2 = factory.getOWLClass(iri.addFragment("Complex2"));
-        OntClass ontSimple1 = jena.createOntEntity(OntClass.class, owlSimple1.getIRI().getIRIString());
-        OntClass ontSimple2 = jena.createOntEntity(OntClass.class, owlSimple2.getIRI().getIRIString());
-        OntClass ontComplex1 = jena.createOntEntity(OntClass.class, owlComplex1.getIRI().getIRIString());
-        OntClass ontComplex2 = jena.createOntEntity(OntClass.class, owlComplex2.getIRI().getIRIString());
+        OntClass ontSimple1 = jena.createOntClass(owlSimple1.getIRI().getIRIString());
+        OntClass ontSimple2 = jena.createOntClass(owlSimple2.getIRI().getIRIString());
+        OntClass ontComplex1 = jena.createOntClass(owlComplex1.getIRI().getIRIString());
+        OntClass ontComplex2 = jena.createOntClass(owlComplex2.getIRI().getIRIString());
 
-        OntNOP property = jena.createOntEntity(OntNOP.class, iri.addFragment("hasSimple1").getIRIString());
+        OntNOP property = jena.createObjectProperty(iri.addFragment("hasSimple1").getIRIString());
         property.setFunctional(true);
         property.addRange(ontSimple1);
         OntCE.ObjectSomeValuesFrom restriction = jena.createObjectSomeValuesFrom(property, ontSimple2);
