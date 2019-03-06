@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.jena.model.*;
 import java.util.Collection;
 
 /**
- * Internal Data Factory to map {@link OntObject} =&gt; {@link OWLObject}.
+ * Internal Object Factory to map {@link OntObject} =&gt; {@link OWLObject}.
  * Used by the {@link InternalModel} while read objects from the graph.
  * It is a functional analogue of {@code uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals}.
  * <p>

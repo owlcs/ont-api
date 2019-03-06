@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -18,14 +18,11 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.internal.axioms.*;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Axiom Graph Translator accessor.
@@ -60,7 +57,7 @@ public abstract class AxiomParserProvider {
      */
     @SuppressWarnings("unchecked")
     public static <A extends OWLAxiom> AxiomTranslator<A> get(A axiom) {
-        return (AxiomTranslator<A>) get(OntApiException.notNull(axiom, "Null axiom.").getAxiomType());
+        return (AxiomTranslator<A>) get(Objects.requireNonNull(axiom, "Null axiom.").getAxiomType());
     }
 
     /**
@@ -72,7 +69,8 @@ public abstract class AxiomParserProvider {
      */
     @SuppressWarnings("unchecked")
     public static <A extends OWLAxiom> AxiomTranslator<A> get(AxiomType<A> type) {
-        return OntApiException.notNull((AxiomTranslator<A>) getParsers().get(OntApiException.notNull(type, "Null axiom type")),
+        return Objects.requireNonNull((AxiomTranslator<A>) getParsers()
+                        .get(Objects.requireNonNull(type, "Null axiom type")),
                 "Can't find parser for axiom " + type.getActualClass());
     }
 
@@ -85,45 +83,45 @@ public abstract class AxiomParserProvider {
 
         // 39 axiom types:
         private static final List<Class<? extends AxiomTranslator>> TRANSLATORS = Arrays.asList(
-                ru.avicomp.ontapi.internal.DataPropertyDomainTranslator.class,
-                ru.avicomp.ontapi.internal.SameIndividualTranslator.class,
-                ru.avicomp.ontapi.internal.SubObjectPropertyOfTranslator.class,
-                ru.avicomp.ontapi.internal.AsymmetricObjectPropertyTranslator.class,
-                ru.avicomp.ontapi.internal.FunctionalObjectPropertyTranslator.class,
-                ru.avicomp.ontapi.internal.AnnotationAssertionTranslator.class,
-                ru.avicomp.ontapi.internal.DisjointUnionTranslator.class,
-                ru.avicomp.ontapi.internal.SWRLRuleTranslator.class,
-                ru.avicomp.ontapi.internal.EquivalentClassesTranslator.class,
-                ru.avicomp.ontapi.internal.AnnotationPropertyRangeTranslator.class,
-                ru.avicomp.ontapi.internal.DatatypeDefinitionTranslator.class,
-                ru.avicomp.ontapi.internal.DisjointObjectPropertiesTranslator.class,
-                ru.avicomp.ontapi.internal.InverseFunctionalObjectPropertyTranslator.class,
-                ru.avicomp.ontapi.internal.DataPropertyAssertionTranslator.class,
-                ru.avicomp.ontapi.internal.InverseObjectPropertiesTranslator.class,
-                ru.avicomp.ontapi.internal.ReflexiveObjectPropertyTranslator.class,
-                ru.avicomp.ontapi.internal.DifferentIndividualsTranslator.class,
-                ru.avicomp.ontapi.internal.FunctionalDataPropertyTranslator.class,
-                ru.avicomp.ontapi.internal.DataPropertyRangeTranslator.class,
-                ru.avicomp.ontapi.internal.EquivalentObjectPropertiesTranslator.class,
-                ru.avicomp.ontapi.internal.ObjectPropertyRangeTranslator.class,
-                ru.avicomp.ontapi.internal.NegativeDataPropertyAssertionTranslator.class,
-                ru.avicomp.ontapi.internal.SubPropertyChainOfTranslator.class,
-                ru.avicomp.ontapi.internal.AnnotationPropertyDomainTranslator.class,
-                ru.avicomp.ontapi.internal.TransitiveObjectPropertyTranslator.class,
-                ru.avicomp.ontapi.internal.EquivalentDataPropertiesTranslator.class,
-                ru.avicomp.ontapi.internal.DisjointDataPropertiesTranslator.class,
-                ru.avicomp.ontapi.internal.ObjectPropertyDomainTranslator.class,
-                ru.avicomp.ontapi.internal.SubAnnotationPropertyOfTranslator.class,
-                ru.avicomp.ontapi.internal.SubClassOfTranslator.class,
-                ru.avicomp.ontapi.internal.DisjointClassesTranslator.class,
-                ru.avicomp.ontapi.internal.SymmetricObjectPropertyTranslator.class,
-                ru.avicomp.ontapi.internal.SubDataPropertyOfTranslator.class,
-                ru.avicomp.ontapi.internal.DeclarationTranslator.class,
-                ru.avicomp.ontapi.internal.ObjectPropertyAssertionTranslator.class,
-                ru.avicomp.ontapi.internal.ClassAssertionTranslator.class,
-                ru.avicomp.ontapi.internal.HasKeyTranslator.class,
-                ru.avicomp.ontapi.internal.IrreflexiveObjectPropertyTranslator.class,
-                ru.avicomp.ontapi.internal.NegativeObjectPropertyAssertionTranslator.class
+                DataPropertyDomainTranslator.class,
+                SameIndividualTranslator.class,
+                SubObjectPropertyOfTranslator.class,
+                AsymmetricObjectPropertyTranslator.class,
+                FunctionalObjectPropertyTranslator.class,
+                AnnotationAssertionTranslator.class,
+                DisjointUnionTranslator.class,
+                SWRLRuleTranslator.class,
+                EquivalentClassesTranslator.class,
+                AnnotationPropertyRangeTranslator.class,
+                DatatypeDefinitionTranslator.class,
+                DisjointObjectPropertiesTranslator.class,
+                InverseFunctionalObjectPropertyTranslator.class,
+                DataPropertyAssertionTranslator.class,
+                InverseObjectPropertiesTranslator.class,
+                ReflexiveObjectPropertyTranslator.class,
+                DifferentIndividualsTranslator.class,
+                FunctionalDataPropertyTranslator.class,
+                DataPropertyRangeTranslator.class,
+                EquivalentObjectPropertiesTranslator.class,
+                ObjectPropertyRangeTranslator.class,
+                NegativeDataPropertyAssertionTranslator.class,
+                SubPropertyChainOfTranslator.class,
+                AnnotationPropertyDomainTranslator.class,
+                TransitiveObjectPropertyTranslator.class,
+                EquivalentDataPropertiesTranslator.class,
+                DisjointDataPropertiesTranslator.class,
+                ObjectPropertyDomainTranslator.class,
+                SubAnnotationPropertyOfTranslator.class,
+                SubClassOfTranslator.class,
+                DisjointClassesTranslator.class,
+                SymmetricObjectPropertyTranslator.class,
+                SubDataPropertyOfTranslator.class,
+                DeclarationTranslator.class,
+                ObjectPropertyAssertionTranslator.class,
+                ClassAssertionTranslator.class,
+                HasKeyTranslator.class,
+                IrreflexiveObjectPropertyTranslator.class,
+                NegativeObjectPropertyAssertionTranslator.class
         );
         private static final Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> PARSERS = init();
 
@@ -143,7 +141,7 @@ public abstract class AxiomParserProvider {
                 try {
                     res.put(type, parserClass.newInstance());
                 } catch (InstantiationException | IllegalAccessException e) {
-                    throw new OntApiException("Can't instance parser for type: " + type, e);
+                    throw new IllegalStateException("Can't instance parser for type: " + type, e);
                 }
             });
             return res;
@@ -153,7 +151,7 @@ public abstract class AxiomParserProvider {
             return ParserHolder.TRANSLATORS.stream()
                     .filter(p -> isRelatedToAxiom(p, type.getActualClass()))
                     .findFirst()
-                    .orElseThrow(() -> new OntApiException("Can't find parser class for type '" + type + "'"));
+                    .orElseThrow(() -> new IllegalStateException("Can't find parser class for type '" + type + "'"));
         }
 
         private static boolean isRelatedToAxiom(Class<? extends AxiomTranslator> parserClass,

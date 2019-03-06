@@ -114,7 +114,7 @@ public abstract class ONTObject<O extends OWLObject> {
         return create(o, root.asTriple());
     }
 
-    static <O extends OWLObject> ONTObject<O> create(O o, Triple root) {
+    public static <O extends OWLObject> ONTObject<O> create(O o, Triple root) {
         return new ONTObject<O>(o) {
             @Override
             public Stream<Triple> triples() {
@@ -144,7 +144,7 @@ public abstract class ONTObject<O extends OWLObject> {
         return append(() -> others.stream().flatMap(ONTObject::triples));
     }
 
-    <B extends OWLObject> ONTObject<O> appendWildcards(Collection<ONTObject<? extends B>> others) {
+    public <B extends OWLObject> ONTObject<O> appendWildcards(Collection<ONTObject<? extends B>> others) {
         return append(() -> others.stream().flatMap(ONTObject::triples));
     }
 
@@ -195,16 +195,17 @@ public abstract class ONTObject<O extends OWLObject> {
                 .findAny();
     }
 
-    public static <O extends OWLObject> Stream<O> objects(Collection<ONTObject<O>> wraps) {
-        return wraps.stream().map(ONTObject::getObject);
-    }
-
     public static <O extends OWLObject> Set<O> extract(Collection<ONTObject<O>> wraps) {
         return objects(wraps).collect(Collectors.toSet());
     }
 
-    static <R extends OWLObject> Set<R> extractWildcards(Collection<ONTObject<? extends R>> wraps) {
+    public static <R extends OWLObject> Set<R> extractWildcards(Collection<ONTObject<? extends R>> wraps) {
         return wraps.stream().map(ONTObject::getObject).collect(Collectors.toSet());
     }
+
+    public static <O extends OWLObject> Stream<O> objects(Collection<ONTObject<O>> wraps) {
+        return wraps.stream().map(ONTObject::getObject);
+    }
+
 
 }
