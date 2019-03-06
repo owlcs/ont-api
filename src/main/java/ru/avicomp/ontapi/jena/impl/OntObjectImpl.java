@@ -282,12 +282,12 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
-    public Stream<OntStatement> statements(Property property) {
+    public final Stream<OntStatement> statements(Property property) {
         return Iter.asStream(listStatements(property));
     }
 
     @Override
-    public Stream<OntStatement> statements() {
+    public final Stream<OntStatement> statements() {
         return Iter.asStream(listStatements());
     }
 
@@ -367,7 +367,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @see #listAnnotations()
      */
     @Override
-    public Stream<OntStatement> annotations() {
+    public final Stream<OntStatement> annotations() {
         return Iter.asStream(listAnnotations());
     }
 
@@ -394,7 +394,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link OntStatement}s
      * @see #listAssertions()
      */
-    public Stream<OntStatement> assertions() {
+    public final Stream<OntStatement> assertions() {
         return Iter.asStream(listAssertions());
     }
 
@@ -525,7 +525,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link RDFNode node}s of the {@link O} type
      */
     @Override
-    public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type) {
+    public final <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type) {
         return Iter.asStream(listObjects(predicate, type));
     }
 
@@ -553,7 +553,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link RDFNode}s
      * @see #listObjects(Property)
      */
-    public Stream<RDFNode> objects(Property predicate) {
+    public final Stream<RDFNode> objects(Property predicate) {
         return Iter.asStream(listObjects(predicate));
     }
 

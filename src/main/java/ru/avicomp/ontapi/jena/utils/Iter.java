@@ -28,9 +28,7 @@ import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,10 +51,10 @@ public class Iter {
      * It seems it should be called for such operations as {@link Stream#findFirst()}, {@link Stream#findAny()}, {@link Stream#anyMatch(Predicate)} etc.
      *
      * @param iterator {@link ClosableIterator}
-     * @param <T>      the class-type of iterator
+     * @param <X>      the class-type of iterator
      * @return Stream
      */
-    public static <T> Stream<T> asStream(ClosableIterator<T> iterator) {
+    public static <X> Stream<X> asStream(ClosableIterator<X> iterator) {
         return org.apache.jena.atlas.iterator.Iter.asStream(iterator).onClose(iterator::close);
     }
 
@@ -86,22 +84,22 @@ public class Iter {
     /**
      * Returns a {@code Collector} that accumulates the input elements into a new unmodifiable {@code Set}.
      *
-     * @param <T> The type of input elements for the new collector
+     * @param <X> The type of input elements for the new collector
      * @return a {@link Collector} which collects all the input elements into a unmodifiable {@code Set}
      * @see Collectors#toSet()
      */
-    public static <T> Collector<T, ?, Set<T>> toUnmodifiableSet() {
+    public static <X> Collector<X, ?, Set<X>> toUnmodifiableSet() {
         return Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet);
     }
 
     /**
      * Returns a {@code Collector} that accumulates the input elements into a new unmodifiable {@code List}.
      *
-     * @param <T> the type of the input elements
+     * @param <X> the type of the input elements
      * @return a {@code Collector} which collects all the input elements into a unmodifiable {@code List}, in encounter order
      * @see Collectors#toList()
      */
-    public static <T> Collector<T, ?, List<T>> toUnmodifiableList() {
+    public static <X> Collector<X, ?, List<X>> toUnmodifiableList() {
         return Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList);
     }
 
@@ -131,12 +129,12 @@ public class Iter {
      *
      * @param a   the first iterator
      * @param b   the second iterator
-     * @param <T> the type of iterator elements
+     * @param <X> the type of iterator elements
      * @return the concatenation of the two input iterators
      */
     @SuppressWarnings("unchecked")
-    public static <T> ExtendedIterator<T> concat(ExtendedIterator<? extends T> a, ExtendedIterator<? extends T> b) {
-        return ((ExtendedIterator<T>) a).andThen(b);
+    public static <X> ExtendedIterator<X> concat(ExtendedIterator<? extends X> a, ExtendedIterator<? extends X> b) {
+        return ((ExtendedIterator<X>) a).andThen(b);
     }
 
     /**
@@ -226,6 +224,43 @@ public class Iter {
             iterator.close();
         }
     }
+
+    /**
+     * Returns a {@code Map} (of the type of {@link M})
+     * whose keys and values are the result of applying the providedmapping functions to the input elements.
+     * A functional equivalent of {@code stream.collect(Collectors.toMap(...))}, but for plain {@link Iterator}s.
+     * This method makes no guarantees about synchronization or atomicity properties of it.
+     *
+     * @param iterator      input elements in the form of {@link Iterator}
+     * @param keyMapper     a mapping function to produce keys
+     * @param valueMapper   a mapping function to produce values
+     * @param mergeFunction a merge function, used to resolve collisions between values associated with the same key,
+     *                      as supplied to {@link Map#merge(Object, Object, BiFunction)}
+     * @param mapSupplier   a function which returns a new, empty {@code Map} into which the results will be inserted
+     * @param <X>           the type of the input elements
+     * @param <K>           the output type of the key mapping function
+     * @param <V>           the output type of the value mapping function
+     * @param <M>           the type of the resulting {@code Map}
+     * @return a {@code Map} whose keys are the result of applying a key mapping function to the input elements,
+     * and whose values are the result of applying a value mapping function to all input elements
+     * equal to the key and combining them using the merge function
+     * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
+     */
+    public static <X, K, V, M extends Map<K, V>> M toMap(Iterator<X> iterator,
+                                                         Function<? super X, ? extends K> keyMapper,
+                                                         Function<? super X, ? extends V> valueMapper,
+                                                         BinaryOperator<V> mergeFunction,
+                                                         Supplier<M> mapSupplier) {
+        M res = mapSupplier.get();
+        while (iterator.hasNext()) {
+            X x = iterator.next();
+            K k = keyMapper.apply(x);
+            V v = valueMapper.apply(x);
+            res.merge(k, v, mergeFunction);
+        }
+        return res;
+    }
+
 
     /**
      * Creates a new {@link ExtendedIterator Extended Iterator}} containing the specified elements.

@@ -462,8 +462,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
         InternalConfig.Snapshot conf = getConfig().snapshot();
         if (!conf.isAllowReadDeclarations()) return Stream.empty();
-        // even there are no changes in OWLDeclarationAxioms, they can be affected by some other user-defined axiom,
-        // so need check whole cache:
+        // Even there are no changes in OWLDeclarationAxioms,
+        // they can be affected by some other user-defined axiom.
+        // A direct graph reading returns uniformed axioms,
+        // and a just added axiom may be absent in that list,
+        // since there a lot of ways how to write the same bulk of information via axioms.
+        // This differs from OWL-API expectations, so need to perform traversing over whole cache
+        // to get an axiom in the same form as it has been specified manually:
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
@@ -701,8 +706,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected <A extends OWLAxiom> ObjectTriplesMap<A> readAxiomTriples(Class<A> type) {
         InternalConfig.Snapshot conf = getConfig().snapshot();
         InternalDataFactory df = getDataFactory();
-        return ObjectTriplesMap.create(type, Iter.asStream(AxiomParserProvider.get(type)
-                .listAxioms(getSearchModel(conf), df, conf)), conf.parallel());
+        return ObjectTriplesMap.createFromIterator(type, AxiomParserProvider.get(type)
+                .listAxioms(getSearchModel(conf), df, conf), conf.parallel());
     }
 
     /**
@@ -712,8 +717,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected ObjectTriplesMap<OWLAnnotation> readAnnotationTriples() {
         InternalDataFactory df = getDataFactory();
-        return ObjectTriplesMap.create(OWLAnnotation.class
-                , ReadHelper.objectAnnotations(getID(), df)
+        return ObjectTriplesMap.createFromIterator(OWLAnnotation.class
+                , ReadHelper.listOWLAnnotations(getID(), df)
                 , getConfig().parallel());
     }
 
@@ -742,7 +747,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         UnionGraph.OntEventManager evm = getGraph().getEventManager();
         try {
             evm.register(listener);
-            store.manual = true;
+            store.manualAdded = true;
             writer.accept(object);
         } catch (Exception e) {
             throw new OntApiException(String.format("OWLObject: %s, message: %s", object, e.getMessage()), e);
@@ -857,7 +862,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return boolean
      */
     public boolean hasManuallyAddedAxioms() {
-        return components().anyMatch(m -> m.manual);
+        return components().anyMatch(m -> m.manualAdded);
     }
 
     /**
@@ -885,7 +890,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * An auxiliary class-container to provide a common way for working with {@link OWLObject}s and {@link Triple}s all together.
+     * An auxiliary class-container to provide
+     * a common way for working with {@link OWLObject}s and {@link Triple}s all together.
      * It is logically based on the {@link ONTObject} container,
      * which is a wrapper around {@link OWLObject OWLObject} with the reference to get all associated {@link Triple RDF triple}s.
      * This class is used by the {@link InternalModel internal model} cache as indivisible bucket.
@@ -897,11 +903,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         protected final Map<O, ONTObject<O>> map;
         protected final InternalCache.Loading<O, Set<Triple>> triples;
         // a state flag that responds whether some axioms have been manually added to this map
-        protected boolean manual;
+        // the dangerous of manual added axioms is that the same information can be represented in different ways.
+        protected boolean manualAdded;
 
+        /**
+         * @param type     {@code Class}
+         * @param map      {@code Map}
+         * @param parallel boolean to control internal triples cache
+         */
         public ObjectTriplesMap(Class<O> type, Map<O, ONTObject<O>> map, boolean parallel) {
-            this.type = type;
-            this.map = map;
+            this.type = Objects.requireNonNull(type);
+            this.map = Objects.requireNonNull(map);
             this.triples = InternalCache.createSoft(parallel).asLoading(this::loadTripleSet);
         }
 
@@ -909,26 +921,25 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
          * Creates an {@link ObjectTriplesMap} instance.
          *
          * @param type     Class-type
-         * @param stream   Stream of {@link ONTObject}s that contain {@link OWLObject}s and a way to get {@link Triple}s
+         * @param objects  {@link Iterator} of {@link ONTObject}s that contain {@link OWLObject}s and
+         *                 a way to get all associated {@link Triple}s
          * @param parallel if {@code true} use parallel cache, otherwise - LHM-based
          * @param <R>      any {@link OWLObject} subtype
          * @return {@link ObjectTriplesMap} instance for the given type
          */
-        protected static <R extends OWLObject> ObjectTriplesMap<R> create(Class<R> type,
-                                                                          Stream<ONTObject<R>> stream,
-                                                                          boolean parallel) {
-            return new ObjectTriplesMap<>(type, stream.collect(Collectors.toMap(ONTObject::getObject
-                    , Function.identity()
-                    , ONTObject::append
-                    , HashMap::new)), parallel);
+        protected static <R extends OWLObject> ObjectTriplesMap<R> createFromIterator(Class<R> type,
+                                                                                      Iterator<ONTObject<R>> objects,
+                                                                                      boolean parallel) {
+            Map<R, ONTObject<R>> map = Iter.toMap(objects,
+                    ONTObject::getObject,
+                    Function.identity(),
+                    ONTObject::append,
+                    HashMap::new);
+            return new ObjectTriplesMap<>(type, map, parallel);
         }
 
         public Class<O> type() {
             return type;
-        }
-
-        private Optional<ONTObject<O>> find(O key) {
-            return Optional.ofNullable(map.get(key));
         }
 
         @Nonnull
@@ -974,6 +985,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
 
         protected Optional<Set<Triple>> fromCache(O key) {
             return Optional.ofNullable(get(key));
+        }
+
+        private Optional<ONTObject<O>> find(O key) {
+            return Optional.ofNullable(map.get(key));
         }
 
         public Set<Triple> getTripleSet(O key) {

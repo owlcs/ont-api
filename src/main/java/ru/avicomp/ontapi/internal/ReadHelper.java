@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -27,6 +27,7 @@ import ru.avicomp.ontapi.jena.impl.OntListImpl;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.List;
 import java.util.Set;
@@ -130,7 +131,18 @@ public class ReadHelper {
      * @return Stream of {@link ONTObject}s of {@link OWLAnnotation}
      */
     public static Stream<ONTObject<OWLAnnotation>> objectAnnotations(OntObject obj, InternalDataFactory df) {
-        return obj.annotations().map(a -> getAnnotation(a, df));
+        return Iter.asStream(listOWLAnnotations(obj, df));
+    }
+
+    /**
+     * Lists all annotations related to the object (including assertions).
+     *
+     * @param obj {@link OntObject}
+     * @param df  {@link InternalDataFactory}
+     * @return {@link ExtendedIterator} of {@link ONTObject}s of {@link OWLAnnotation}
+     */
+    public static ExtendedIterator<ONTObject<OWLAnnotation>> listOWLAnnotations(OntObject obj, InternalDataFactory df) {
+        return listAnnotations(obj).mapWith(a -> getAnnotation(a, df));
     }
 
     /**
@@ -515,6 +527,13 @@ public class ReadHelper {
             return ((OntStatementImpl) s).listAnnotations();
         }
         return WrappedIterator.create(s.annotations().iterator());
+    }
+
+    public static ExtendedIterator<OntStatement> listAnnotations(OntObject o) {
+        if (o instanceof OntObjectImpl) {
+            return ((OntObjectImpl) o).listAnnotations();
+        }
+        return WrappedIterator.create(o.annotations().iterator());
     }
 
     /**
