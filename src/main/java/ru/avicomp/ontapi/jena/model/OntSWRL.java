@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -34,7 +34,8 @@ public interface OntSWRL extends OntObject {
 
         /**
          * Gets the head ONT-List.
-         * The list <b>is</b> typed: each list item has the type {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#AtomList swrl:AtomList}.
+         * The list <b>is</b> typed:
+         * each of its items has the type {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#AtomList swrl:AtomList}.
          *
          * @return {@link OntList} of {@link Atom}
          * @since 1.3.0
@@ -43,7 +44,8 @@ public interface OntSWRL extends OntObject {
 
         /**
          * Gets the body ONT-List.
-         * The list <b>is</b> typed: each list item has the type {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#AtomList swrl:AtomList}.
+         * The list <b>is</b> typed:
+         * each of its items has the type {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#AtomList swrl:AtomList}.
          *
          * @return {@link OntList} of {@link Atom}
          * @since 1.3.0
@@ -91,6 +93,13 @@ public interface OntSWRL extends OntObject {
          */
         P getPredicate();
 
+        /**
+         * Lists all arguments from this {@code Atom}.
+         *
+         * @return Stream of {@link Arg}s
+         */
+        Stream<? extends Arg> arguments();
+
         interface BuiltIn extends Atom<Resource> {
             /**
              * Gets the arguments typed ONT-List, the list <b>is not</b> typed,
@@ -101,6 +110,7 @@ public interface OntSWRL extends OntObject {
              */
             OntList<DArg> getArgList();
 
+            @Override
             default Stream<DArg> arguments() {
                 return getArgList().members();
             }
@@ -128,10 +138,20 @@ public interface OntSWRL extends OntObject {
             F getFirstArg();
 
             S getSecondArg();
+
+            @Override
+            default Stream<Arg> arguments() {
+                return Stream.of(getFirstArg(), getSecondArg());
+            }
         }
 
         interface Unary<P extends Resource, A extends Arg> extends Atom<P> {
             A getArg();
+
+            @Override
+            default Stream<A> arguments() {
+                return Stream.of(getArg());
+            }
         }
 
     }

@@ -129,6 +129,17 @@ public class Models {
     }
 
     /**
+     * Answers a set of all of the RDF statements whose subject is one of the cells of the given list.
+     *
+     * @param list []-list, not {@code null}
+     * @return Set of {@link Statement}s
+     * @since 1.4.0
+     */
+    public static Set<Statement> getListStatements(RDFList list) {
+        return ((RDFListImpl) list).collectStatements();
+    }
+
+    /**
      * Converts rdf-node to anonymous individual.
      * The result anonymous individual could be "true" (instance of some owl class) or "fake"
      * (any blank node can be represented as it).
@@ -220,11 +231,11 @@ public class Models {
 
     private static void calcAssociatedStatements(Resource root, Set<Statement> res) {
         if (root.canAs(RDFList.class)) {
-            RDFListImpl list = (RDFListImpl) root.as(RDFList.class);
+            RDFList list = root.as(RDFList.class);
             if (list.isEmpty()) return;
-            list.collectStatements().forEach(statement -> {
+            getListStatements(list).forEach(statement -> {
                 res.add(statement);
-                if (!list.listFirst().equals(statement.getPredicate())) return;
+                if (!RDF.first.equals(statement.getPredicate())) return;
                 RDFNode obj = statement.getObject();
                 if (obj.isAnon())
                     calcAssociatedStatements(obj.asResource(), res);

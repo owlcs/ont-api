@@ -165,6 +165,7 @@ public class FromPelletTest {
         OWLOntology o = m.loadOntology(iri);
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        Assert.assertEquals("Incorrect data properties count", 7, o.dataPropertiesInSignature().count());
+        Assert.assertEquals("Incorrect data properties count", 7,
+                o.dataPropertiesInSignature().peek(x -> LOGGER.debug("DP: {}", x)).count());
     }
 }

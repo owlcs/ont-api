@@ -15,15 +15,16 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.EnhNode;
+import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
+import org.apache.jena.rdf.model.impl.RDFListImpl;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
-import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
-import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
-import ru.avicomp.ontapi.jena.impl.conf.OntMaker;
+import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -88,8 +89,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
             , Atom.DifferentIndividuals.class
             , Atom.SameIndividuals.class);
 
-    public static ObjectFactory impSWRLFactory = Factories.createCommon(ImpImpl.class,
-            new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
+    public static ObjectFactory impSWRLFactory = new SWRLImplFactory();
+    //Factories.createCommon(ImpImpl.class, new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
 
     public static ObjectFactory abstractSWRLFactory = Factories.createFrom(OntFinder.TYPED
             , Atom.BuiltIn.class
@@ -286,10 +287,11 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         public Stream<OntStatement> predicateStatements() {
-            OntStatement b = getRequiredProperty(SWRL.builtin);
-            OntStatement a = b.getSubject().statement(RDF.type, SWRL.Builtin)
-                    .orElseThrow(() -> new OntJenaException.IllegalState("Can't find rdf:type SWRL:Builtin for " + b));
-            return Stream.of(a, b);
+            OntStatement s = getRequiredProperty(SWRL.builtin);
+            OntStatement a = getModel().statements(s.getResource(), RDF.type, SWRL.Builtin)
+                    .findFirst()
+                    .orElseThrow(() -> new OntJenaException.IllegalState("Can't find rdf:type SWRL:Builtin for " + s));
+            return Stream.of(a, s);
         }
 
         @Override
@@ -495,8 +497,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         protected OntList<Atom> getList(Property predicate) {
-            return OntListImpl.asOntList(getRequiredObject(predicate, RDFList.class),
-                    getModel(), this, predicate, SWRL.AtomList, Atom.class);
+            RDFList list = getRequiredObject(predicate, RDFList.class);
+            return OntListImpl.asOntList(list, getModel(), this, predicate, SWRL.AtomList, Atom.class);
         }
 
         @Override
@@ -513,6 +515,45 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         @Override
         public Class<? extends OntObject> getActualClass() {
             return Imp.class;
+        }
+    }
+
+    public static class SWRLImplFactory extends BaseFactoryImpl {
+        private static final Node IMP = SWRL.Imp.asNode();
+        private static final Node BODY = SWRL.body.asNode();
+        private static final Node HEAD = SWRL.head.asNode();
+        private static final Node LIST = SWRL.AtomList.asNode();
+
+        private static final Implementation LIST_FACTORY = RDFListImpl.factory;
+
+        @Override
+        public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
+            return eg.asGraph().find(Node.ANY, RDF.Nodes.type, IMP)
+                    .filterKeep(t -> hasAtomList(HEAD, t.getSubject(), eg) && hasAtomList(BODY, t.getSubject(), eg))
+                    .mapWith(t -> createInstance(t.getSubject(), eg));
+        }
+
+        @Override
+        public boolean canWrap(Node node, EnhGraph eg) {
+            return eg.asGraph().contains(node, RDF.Nodes.type, IMP)
+                    && hasAtomList(HEAD, node, eg)
+                    && hasAtomList(BODY, node, eg);
+        }
+
+        @Override
+        public EnhNode createInstance(Node node, EnhGraph eg) {
+            return new ImpImpl(node, eg);
+        }
+
+        private boolean hasAtomList(Node p, Node node, EnhGraph eg) {
+            return Iter.findFirst(eg.asGraph().find(node, p, Node.ANY)
+                    .filterKeep(t -> isAtomList(t.getObject(), eg)))
+                    .isPresent();
+        }
+
+        private boolean isAtomList(Node n, EnhGraph eg) {
+            if (RDF.Nodes.nil.equals(n)) return true;
+            return eg.asGraph().contains(n, RDF.Nodes.type, LIST) && LIST_FACTORY.canWrap(n, eg);
         }
     }
 }

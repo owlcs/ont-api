@@ -14,22 +14,31 @@
 
 package ru.avicomp.ontapi.transforms;
 
+import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
+import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
  * Class for performing transformations that fix known syntax errors in graphs containing SWRL.
+ *
  * Created by @szuev on 09.08.2018.
+ * @see SWRL
  */
 @SuppressWarnings("WeakerAccess")
 public class SWRLTransform extends Transform {
+
+    protected Set<Statement> unparsed = new HashSet<>();
 
     public SWRLTransform(Graph graph) {
         super(graph, BuiltIn.get());
@@ -37,31 +46,61 @@ public class SWRLTransform extends Transform {
 
     @Override
     public void perform() throws TransformException {
-        fixEmptyLists();
+        fixAtomLists();
     }
 
     /**
      * Fixes wrong {@link SWRL#AtomList swrl:AtomicList} resources.
      * According to some OWL-API-contract tests,
-     * it is possible to have {@code [ a swrl:AtomicList ]} instead of just {@code rdf:nil} in case of empty list.
+     * it is possible to have {@code [ a swrl:AtomicList ]} instead of just {@code rdf:nil},
+     * which, it seems, means an empty []-list.
+     * Also, sometimes there is no {@code swrl:AtomicList} declaration at all in case of non-empty []-list.
      */
-    protected void fixEmptyLists() {
-        Stream.of(SWRL.body, SWRL.head).forEach(this::fixEmptyList);
+    protected void fixAtomLists() {
+        fixList(SWRL.body);
+        fixList(SWRL.head);
     }
 
-    protected void fixEmptyList(Property predicate) {
+    protected void fixList(Property predicate) {
         Model m = getWorkModel();
         listStatements(null, predicate, null)
-                .filterKeep(s -> s.getObject().isAnon()
-                        && s.getResource().hasProperty(RDF.type, SWRL.AtomList)
-                        && s.getResource().listProperties().toList().size() == 1)
-                .toSet()
-                .forEach(s -> m.removeAll(s.getResource(), null, null)
-                        .remove(s).add(s.getSubject(), s.getPredicate(), RDF.nil));
+                .toList()
+                .forEach(s -> {
+                    if (!s.getObject().isAnon()) {
+                        unparsed.add(s);
+                        return;
+                    }
+                    Resource o = s.getResource();
+                    if (isEmptyList(o)) {
+                        m.removeAll(o, null, null)
+                                .remove(s).add(s.getSubject(), s.getPredicate(), RDF.nil);
+                        return;
+                    }
+                    if (!o.canAs(RDFList.class)) {
+                        unparsed.add(s);
+                        return;
+                    }
+                    if (o.hasProperty(RDF.type, SWRL.AtomList)) return;
+                    Iter.create(Models.getListStatements(o.as(RDFList.class)))
+                            .mapWith(Statement::getSubject)
+                            .toSet()
+                            .forEach(x -> declare(x, SWRL.AtomList));
+                });
+    }
+
+    private boolean isEmptyList(RDFNode r) {
+        return r.isAnon()
+                && r.asResource().hasProperty(RDF.type, SWRL.AtomList)
+                && r.asResource().listProperties().toList().size() == 1;
     }
 
     @Override
     public boolean test() {
         return graph.contains(Node.ANY, RDF.type.asNode(), SWRL.Imp.asNode());
+    }
+
+    @Override
+    public Stream<Triple> uncertainTriples() {
+        return unparsed.stream().map(FrontsTriple::asTriple);
     }
 }

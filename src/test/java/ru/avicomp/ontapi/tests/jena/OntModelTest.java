@@ -346,7 +346,7 @@ public class OntModelTest {
     }
 
     @Test
-    public void testCreateSWRL() {
+    public void testCreateAndListSWRLObjects() {
         String uri = "http://test.com/graph/4";
         String ns = uri + "#";
 
@@ -364,10 +364,10 @@ public class OntModelTest {
         OntIndividual i2 = cl3.createIndividual();
 
         OntSWRL.Variable var1 = m.createSWRLVariable(ns + "Variable1");
-        OntSWRL.DArg dArg1 = ResourceFactory.createTypedLiteral(12).inModel(m).as(OntSWRL.DArg.class);
+        OntSWRL.DArg dArg1 = m.createTypedLiteral(12).inModel(m).as(OntSWRL.DArg.class);
         OntSWRL.DArg dArg2 = var1.as(OntSWRL.DArg.class);
 
-        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(ResourceFactory.createResource(ns + "AtomPredicate1"),
+        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(m.createResource(ns + "AtomPredicate1"),
                 Arrays.asList(dArg1, dArg2));
         OntSWRL.Atom.OntClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
         OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class),
@@ -376,18 +376,31 @@ public class OntModelTest {
         imp.addComment("This is SWRL Imp").addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
 
         ReadWriteUtils.print(m);
-        LOGGER.debug("All D-Args");
-        m.ontObjects(OntSWRL.DArg.class).map(String::valueOf).forEach(LOGGER::debug);
-        LOGGER.debug("All I-Args");
-        m.ontObjects(OntSWRL.IArg.class).map(String::valueOf).forEach(LOGGER::debug);
+
+        Assert.assertEquals(2, atom1.arguments().count());
+        Assert.assertEquals(1, atom2.arguments().count());
+        Assert.assertEquals(2, atom3.arguments().count());
+
+        Assert.assertEquals(12, imp.spec().peek(x -> LOGGER.debug("Impl Spec: {}", x)).count());
+        Assert.assertEquals(8, atom1.spec().peek(x -> LOGGER.debug("BuiltIn Spec: {}", x)).count());
+        Assert.assertEquals(3, atom2.spec().peek(x -> LOGGER.debug("Classes Spec: {}", x)).count());
+        // TODO: the following check demonstrates bug https://github.com/avicomp/ont-api/issues/60
+        //  it will be fixed separately
+        //Assert.assertEquals(2333333, atom3.spec().peek(x -> LOGGER.debug("Individuals Spec: {}", x)).count());
+
+        // literals(2) and variables(1):
+        LOGGER.debug("All D-Args:");
+        Assert.assertEquals("Incorrect count of SWRL D-Arg", 3,
+                m.ontObjects(OntSWRL.DArg.class).map(String::valueOf).peek(LOGGER::debug).count());
+        // individuals(2 anonymous, 1 named) and variables(1):
+        LOGGER.debug("All I-Args:");
+        Assert.assertEquals("Incorrect count of SWRL I-Arg", 4,
+                m.ontObjects(OntSWRL.IArg.class).map(String::valueOf).peek(LOGGER::debug).count());
+
         Assert.assertEquals("Incorrect count of atoms", 3, m.ontObjects(OntSWRL.Atom.class).count());
         Assert.assertEquals("Incorrect count of variables", 1, m.ontObjects(OntSWRL.Variable.class).count());
         Assert.assertEquals("Incorrect count of SWRL:Imp", 1, m.ontObjects(OntSWRL.Imp.class).count());
         Assert.assertEquals("Incorrect count of SWRL Objects", 5, m.ontObjects(OntSWRL.class).count());
-        // literals(2) and variables(1):
-        Assert.assertEquals("Incorrect count of SWRL D-Arg", 3, m.ontObjects(OntSWRL.DArg.class).count());
-        // individuals(2 anonymous, 1 named) and variables(1):
-        Assert.assertEquals("Incorrect count of SWRL I-Arg", 4, m.ontObjects(OntSWRL.IArg.class).count());
 
         Assert.assertEquals(3, m.statements(null, RDF.type, SWRL.AtomList)
                 .map(OntStatement::getSubject)

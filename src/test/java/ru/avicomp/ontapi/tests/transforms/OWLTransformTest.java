@@ -44,6 +44,7 @@ import ru.avicomp.ontapi.transforms.TransformException;
 import ru.avicomp.ontapi.transforms.vocabulary.DEPRECATED;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
+import ru.avicomp.ontapi.utils.TestUtils;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -65,24 +66,24 @@ public class OWLTransformTest {
 
         ReadWriteUtils.print(o);
 
-        assertAxiom(o, AxiomType.DECLARATION, 43);
-        assertAxiom(o, AxiomType.EQUIVALENT_CLASSES, 11);
-        assertAxiom(o, AxiomType.SUBCLASS_OF, 8);
-        assertAxiom(o, AxiomType.DISJOINT_UNION, 1);
-        assertAxiom(o, AxiomType.CLASS_ASSERTION, 13);
-        assertAxiom(o, AxiomType.OBJECT_PROPERTY_ASSERTION, 13);
-        assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 5);
-        assertAxiom(o, AxiomType.SUB_OBJECT_PROPERTY, 7);
-        assertAxiom(o, AxiomType.INVERSE_OBJECT_PROPERTIES, 3);
-        assertAxiom(o, AxiomType.SYMMETRIC_OBJECT_PROPERTY, 1);
-        assertAxiom(o, AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, 2);
-        assertAxiom(o, AxiomType.FUNCTIONAL_OBJECT_PROPERTY, 2);
-        assertAxiom(o, AxiomType.OBJECT_PROPERTY_DOMAIN, 2);
-        assertAxiom(o, AxiomType.OBJECT_PROPERTY_RANGE, 9);
-        assertAxiom(o, AxiomType.FUNCTIONAL_DATA_PROPERTY, 1);
-        assertAxiom(o, AxiomType.DATA_PROPERTY_RANGE, 1);
-        assertAxiom(o, AxiomType.ANNOTATION_ASSERTION, 0);
-        assertAxiom(o, AxiomType.SUB_PROPERTY_CHAIN_OF, 2);
+        TestUtils.assertAxiom(o, AxiomType.DECLARATION, 43);
+        TestUtils.assertAxiom(o, AxiomType.EQUIVALENT_CLASSES, 11);
+        TestUtils.assertAxiom(o, AxiomType.SUBCLASS_OF, 8);
+        TestUtils.assertAxiom(o, AxiomType.DISJOINT_UNION, 1);
+        TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 13);
+        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_ASSERTION, 13);
+        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 5);
+        TestUtils.assertAxiom(o, AxiomType.SUB_OBJECT_PROPERTY, 7);
+        TestUtils.assertAxiom(o, AxiomType.INVERSE_OBJECT_PROPERTIES, 3);
+        TestUtils.assertAxiom(o, AxiomType.SYMMETRIC_OBJECT_PROPERTY, 1);
+        TestUtils.assertAxiom(o, AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, 2);
+        TestUtils.assertAxiom(o, AxiomType.FUNCTIONAL_OBJECT_PROPERTY, 2);
+        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_DOMAIN, 2);
+        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_RANGE, 9);
+        TestUtils.assertAxiom(o, AxiomType.FUNCTIONAL_DATA_PROPERTY, 1);
+        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_RANGE, 1);
+        TestUtils.assertAxiom(o, AxiomType.ANNOTATION_ASSERTION, 0);
+        TestUtils.assertAxiom(o, AxiomType.SUB_PROPERTY_CHAIN_OF, 2);
 
         Assert.assertEquals(132, o.getAxiomCount());
     }
@@ -98,24 +99,24 @@ public class OWLTransformTest {
 
         ReadWriteUtils.print(o);
 
-        assertAxiom(o, AxiomType.DECLARATION, 29);
-        assertAxiom(o, AxiomType.EQUIVALENT_CLASSES, 5);
-        assertAxiom(o, AxiomType.SUBCLASS_OF, 2);
-        assertAxiom(o, AxiomType.DISJOINT_UNION, 1);
-        assertAxiom(o, AxiomType.CLASS_ASSERTION, 0);
-        assertAxiom(o, AxiomType.OBJECT_PROPERTY_ASSERTION, 0);
-        assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 0);
-        assertAxiom(o, AxiomType.SUB_OBJECT_PROPERTY, 7);
-        assertAxiom(o, AxiomType.INVERSE_OBJECT_PROPERTIES, 3);
-        assertAxiom(o, AxiomType.SYMMETRIC_OBJECT_PROPERTY, 1);
-        assertAxiom(o, AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, 2);
-        assertAxiom(o, AxiomType.FUNCTIONAL_OBJECT_PROPERTY, 2);
-        assertAxiom(o, AxiomType.OBJECT_PROPERTY_DOMAIN, 2);
-        assertAxiom(o, AxiomType.OBJECT_PROPERTY_RANGE, 9);
-        assertAxiom(o, AxiomType.FUNCTIONAL_DATA_PROPERTY, 1);
-        assertAxiom(o, AxiomType.DATA_PROPERTY_RANGE, 1);
-        assertAxiom(o, AxiomType.ANNOTATION_ASSERTION, 0);
-        assertAxiom(o, AxiomType.SUB_PROPERTY_CHAIN_OF, 0);
+        TestUtils.assertAxiom(o, AxiomType.DECLARATION, 29);
+        TestUtils.assertAxiom(o, AxiomType.EQUIVALENT_CLASSES, 5);
+        TestUtils.assertAxiom(o, AxiomType.SUBCLASS_OF, 2);
+        TestUtils.assertAxiom(o, AxiomType.DISJOINT_UNION, 1);
+        TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 0);
+        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_ASSERTION, 0);
+        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 0);
+        TestUtils.assertAxiom(o, AxiomType.SUB_OBJECT_PROPERTY, 7);
+        TestUtils.assertAxiom(o, AxiomType.INVERSE_OBJECT_PROPERTIES, 3);
+        TestUtils.assertAxiom(o, AxiomType.SYMMETRIC_OBJECT_PROPERTY, 1);
+        TestUtils.assertAxiom(o, AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, 2);
+        TestUtils.assertAxiom(o, AxiomType.FUNCTIONAL_OBJECT_PROPERTY, 2);
+        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_DOMAIN, 2);
+        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_RANGE, 9);
+        TestUtils.assertAxiom(o, AxiomType.FUNCTIONAL_DATA_PROPERTY, 1);
+        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_RANGE, 1);
+        TestUtils.assertAxiom(o, AxiomType.ANNOTATION_ASSERTION, 0);
+        TestUtils.assertAxiom(o, AxiomType.SUB_PROPERTY_CHAIN_OF, 0);
 
         Assert.assertEquals(65, o.getAxiomCount());
     }
@@ -155,22 +156,13 @@ public class OWLTransformTest {
         OntologyManager manager = OntManagers.createONT();
         OntologyModel o = manager.addOntology(m.getGraph(), manager.getOntologyLoaderConfiguration());
         ReadWriteUtils.print(o);
-        assertAxiom(o, AxiomType.DECLARATION, 3);
-        assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
-        assertAxiom(o, AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, 1);
-        assertAxiom(o, AxiomType.DATA_PROPERTY_DOMAIN, 1);
-        assertAxiom(o, AxiomType.DATA_PROPERTY_RANGE, 1);
-        assertAxiom(o, AxiomType.EQUIVALENT_DATA_PROPERTIES, 1);
+        TestUtils.assertAxiom(o, AxiomType.DECLARATION, 3);
+        TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
+        TestUtils.assertAxiom(o, AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, 1);
+        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_DOMAIN, 1);
+        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_RANGE, 1);
+        TestUtils.assertAxiom(o, AxiomType.EQUIVALENT_DATA_PROPERTIES, 1);
         Assert.assertEquals(8, o.axioms().count());
-    }
-
-    private static void assertAxiom(OWLOntology o, AxiomType<?> t, long expected) {
-        long actual = o.axioms(t).count();
-        LOGGER.debug("AXIOM:{}::::{}", t, actual);
-        if (expected != actual) {
-            o.axioms(t).forEach(x -> LOGGER.error("{}", x));
-        }
-        Assert.assertEquals("Wrong axioms for " + t, expected, actual);
     }
 
     @Test
