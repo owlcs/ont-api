@@ -128,10 +128,10 @@ public interface OntSWRL extends OntObject {
         interface ObjectProperty extends Binary<OntOPE, IArg, IArg> {
         }
 
-        interface DifferentIndividuals extends Binary<Property, IArg, IArg> {
+        interface DifferentIndividuals extends Binary<OntNOP, IArg, IArg> {
         }
 
-        interface SameIndividuals extends Binary<Property, IArg, IArg> {
+        interface SameIndividuals extends Binary<OntNOP, IArg, IArg> {
         }
 
         interface Binary<P extends Resource, F extends Arg, S extends Arg> extends Atom<P> {

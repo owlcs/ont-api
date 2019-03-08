@@ -183,6 +183,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         Resource res = model.createResource(SWRL.DifferentIndividualsAtom)
                 .addProperty(SWRL.argument1, firstArg)
                 .addProperty(SWRL.argument2, secondArg);
+        model.fetchOntEntity(OntNOP.class, OWL.differentFrom.getURI());
         return model.getNodeAs(res.asNode(), Atom.DifferentIndividuals.class);
     }
 
@@ -194,6 +195,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         Resource res = model.createResource(SWRL.SameIndividualAtom)
                 .addProperty(SWRL.argument1, firstArg)
                 .addProperty(SWRL.argument2, secondArg);
+        model.fetchOntEntity(OntNOP.class, OWL.sameAs.getURI());
         return model.getNodeAs(res.asNode(), Atom.SameIndividuals.class);
     }
 
@@ -401,13 +403,25 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), required(predicate, SWRL.argument1, SWRL.argument2));
+            return Stream.of(super.spec(), predicateSpec(), required(SWRL.argument1, SWRL.argument2))
+                    .flatMap(Function.identity());
+        }
+
+        protected Stream<OntStatement> predicateSpec() {
+            return required(predicate);
         }
     }
 
-    public static class DataPropertyAtomImpl extends BinaryImpl<OntNDP, IArg, DArg> implements Atom.DataProperty {
+    public static abstract class PropertyAtomImpl<P extends OntPE, A extends Arg> extends BinaryImpl<P, IArg, A> {
+
+        PropertyAtomImpl(Node n, EnhGraph m, Class<P> objectType, Class<A> secondArgType) {
+            super(n, m, SWRL.propertyPredicate, objectType, IArg.class, secondArgType);
+        }
+    }
+
+    public static class DataPropertyAtomImpl extends PropertyAtomImpl<OntNDP, DArg> implements Atom.DataProperty {
         public DataPropertyAtomImpl(Node n, EnhGraph m) {
-            super(n, m, SWRL.propertyPredicate, OntNDP.class, IArg.class, DArg.class);
+            super(n, m, OntNDP.class, DArg.class);
         }
 
         @Override
@@ -421,9 +435,9 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
     }
 
-    public static class ObjectPropertyAtomImpl extends BinaryImpl<OntOPE, IArg, IArg> implements Atom.ObjectProperty {
+    public static class ObjectPropertyAtomImpl extends PropertyAtomImpl<OntOPE, IArg> implements Atom.ObjectProperty {
         public ObjectPropertyAtomImpl(Node n, EnhGraph m) {
-            super(n, m, SWRL.propertyPredicate, OntOPE.class, IArg.class, IArg.class);
+            super(n, m, OntOPE.class, IArg.class);
         }
 
         @Override
@@ -437,14 +451,20 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
     }
 
-    public static abstract class IndividualsAtomImpl extends BinaryImpl<Property, IArg, IArg> {
-        IndividualsAtomImpl(Node n, EnhGraph m, Property predicate) {
-            super(n, m, predicate, Property.class, IArg.class, IArg.class);
+    public static abstract class IndividualsAtomImpl extends BinaryImpl<OntNOP, IArg, IArg> {
+        public IndividualsAtomImpl(Node n, EnhGraph m, Property predicate) {
+            super(n, m, predicate, OntNOP.class, IArg.class, IArg.class);
         }
 
         @Override
-        public Property getPredicate() {
-            return predicate;
+        public OntNOP getPredicate() {
+            return getModel().fetchOntEntity(OntNOP.class, predicate.getURI());
+        }
+
+        @Override
+        protected Stream<OntStatement> predicateSpec() {
+            OntStatement s = getPredicate().getRoot();
+            return s == null ? Stream.empty() : Stream.of(s);
         }
     }
 

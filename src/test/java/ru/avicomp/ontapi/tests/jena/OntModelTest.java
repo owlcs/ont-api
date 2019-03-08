@@ -358,6 +358,7 @@ public class OntModelTest {
 
         OntClass cl1 = m.createOntClass(ns + "Class1");
         OntClass cl2 = m.createOntClass(ns + "Class2");
+        OntNDP p = m.createDataProperty(ns + "DP");
         OntIndividual i1 = cl1.createIndividual(ns + "Individual1");
 
         OntCE.UnionOf cl3 = m.createUnionOf(Arrays.asList(cl1, cl2));
@@ -372,7 +373,9 @@ public class OntModelTest {
         OntSWRL.Atom.OntClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
         OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class),
                 var1.as(OntSWRL.IArg.class));
-        OntSWRL.Imp imp = m.createSWRLImp(Collections.singletonList(atom1), Arrays.asList(atom2, atom3));
+        OntSWRL.Atom.DataProperty atom4 = m.createDataPropertySWRLAtom(p, i2.as(OntSWRL.IArg.class), dArg2);
+
+        OntSWRL.Imp imp = m.createSWRLImp(Collections.singletonList(atom1), Arrays.asList(atom2, atom3, atom4));
         imp.addComment("This is SWRL Imp").addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
 
         ReadWriteUtils.print(m);
@@ -380,13 +383,13 @@ public class OntModelTest {
         Assert.assertEquals(2, atom1.arguments().count());
         Assert.assertEquals(1, atom2.arguments().count());
         Assert.assertEquals(2, atom3.arguments().count());
+        Assert.assertEquals(2, atom4.arguments().count());
 
-        Assert.assertEquals(12, imp.spec().peek(x -> LOGGER.debug("Impl Spec: {}", x)).count());
+        Assert.assertEquals(15, imp.spec().peek(x -> LOGGER.debug("Imp Spec: {}", x)).count());
         Assert.assertEquals(8, atom1.spec().peek(x -> LOGGER.debug("BuiltIn Spec: {}", x)).count());
         Assert.assertEquals(3, atom2.spec().peek(x -> LOGGER.debug("Classes Spec: {}", x)).count());
-        // TODO: the following check demonstrates bug https://github.com/avicomp/ont-api/issues/60
-        //  it will be fixed separately
-        //Assert.assertEquals(2333333, atom3.spec().peek(x -> LOGGER.debug("Individuals Spec: {}", x)).count());
+        Assert.assertEquals(4, atom3.spec().peek(x -> LOGGER.debug("Individuals Spec: {}", x)).count());
+        Assert.assertEquals(4, atom4.spec().peek(x -> LOGGER.debug("DataProperies Spec: {}", x)).count());
 
         // literals(2) and variables(1):
         LOGGER.debug("All D-Args:");
@@ -397,12 +400,13 @@ public class OntModelTest {
         Assert.assertEquals("Incorrect count of SWRL I-Arg", 4,
                 m.ontObjects(OntSWRL.IArg.class).map(String::valueOf).peek(LOGGER::debug).count());
 
-        Assert.assertEquals("Incorrect count of atoms", 3, m.ontObjects(OntSWRL.Atom.class).count());
+        Assert.assertEquals("Incorrect count of atoms", 4, m.ontObjects(OntSWRL.Atom.class).count());
         Assert.assertEquals("Incorrect count of variables", 1, m.ontObjects(OntSWRL.Variable.class).count());
         Assert.assertEquals("Incorrect count of SWRL:Imp", 1, m.ontObjects(OntSWRL.Imp.class).count());
-        Assert.assertEquals("Incorrect count of SWRL Objects", 5, m.ontObjects(OntSWRL.class).count());
+        Assert.assertEquals("Incorrect count of SWRL Objects", 6,
+                m.ontObjects(OntSWRL.class).peek(x -> LOGGER.debug("SWRL Obj: {}", x)).count());
 
-        Assert.assertEquals(3, m.statements(null, RDF.type, SWRL.AtomList)
+        Assert.assertEquals(4, m.statements(null, RDF.type, SWRL.AtomList)
                 .map(OntStatement::getSubject)
                 .map(s -> s.as(RDFList.class))
                 .peek(s -> LOGGER.debug("SWRL-List: {}", s.asJavaList()))
