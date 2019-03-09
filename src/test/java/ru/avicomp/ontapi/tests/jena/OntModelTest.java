@@ -35,7 +35,6 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -343,74 +342,6 @@ public class OntModelTest {
         Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFR.class).count());
         Assert.assertEquals("Incorrect count of data ranges", 4, m.ontObjects(OntDR.class).count());
         Assert.assertEquals("Incorrect count of entities", 5, m.ontObjects(OntEntity.class).count());
-    }
-
-    @Test
-    public void testCreateAndListSWRLObjects() {
-        String uri = "http://test.com/graph/4";
-        String ns = uri + "#";
-
-        OntGraphModel m = OntModelFactory.createModel()
-                .setID(uri).getModel()
-                .setNsPrefix("test", ns)
-                .setNsPrefix("SWRL", SWRL.NS)
-                .setNsPrefixes(OntModelFactory.STANDARD);
-
-        OntClass cl1 = m.createOntClass(ns + "Class1");
-        OntClass cl2 = m.createOntClass(ns + "Class2");
-        OntNDP p = m.createDataProperty(ns + "DP");
-        OntIndividual i1 = cl1.createIndividual(ns + "Individual1");
-
-        OntCE.UnionOf cl3 = m.createUnionOf(Arrays.asList(cl1, cl2));
-        OntIndividual i2 = cl3.createIndividual();
-
-        OntSWRL.Variable var1 = m.createSWRLVariable(ns + "Variable1");
-        OntSWRL.DArg dArg1 = m.createTypedLiteral(12).inModel(m).as(OntSWRL.DArg.class);
-        OntSWRL.DArg dArg2 = var1.as(OntSWRL.DArg.class);
-
-        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(m.createResource(ns + "AtomPredicate1"),
-                Arrays.asList(dArg1, dArg2));
-        OntSWRL.Atom.OntClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
-        OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class),
-                var1.as(OntSWRL.IArg.class));
-        OntSWRL.Atom.DataProperty atom4 = m.createDataPropertySWRLAtom(p, i2.as(OntSWRL.IArg.class), dArg2);
-
-        OntSWRL.Imp imp = m.createSWRLImp(Collections.singletonList(atom1), Arrays.asList(atom2, atom3, atom4));
-        imp.addComment("This is SWRL Imp").addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
-
-        ReadWriteUtils.print(m);
-
-        Assert.assertEquals(2, atom1.arguments().count());
-        Assert.assertEquals(1, atom2.arguments().count());
-        Assert.assertEquals(2, atom3.arguments().count());
-        Assert.assertEquals(2, atom4.arguments().count());
-
-        Assert.assertEquals(15, imp.spec().peek(x -> LOGGER.debug("Imp Spec: {}", x)).count());
-        Assert.assertEquals(8, atom1.spec().peek(x -> LOGGER.debug("BuiltIn Spec: {}", x)).count());
-        Assert.assertEquals(3, atom2.spec().peek(x -> LOGGER.debug("Classes Spec: {}", x)).count());
-        Assert.assertEquals(4, atom3.spec().peek(x -> LOGGER.debug("Individuals Spec: {}", x)).count());
-        Assert.assertEquals(4, atom4.spec().peek(x -> LOGGER.debug("DataProperies Spec: {}", x)).count());
-
-        // literals(2) and variables(1):
-        LOGGER.debug("All D-Args:");
-        Assert.assertEquals("Incorrect count of SWRL D-Arg", 3,
-                m.ontObjects(OntSWRL.DArg.class).map(String::valueOf).peek(LOGGER::debug).count());
-        // individuals(2 anonymous, 1 named) and variables(1):
-        LOGGER.debug("All I-Args:");
-        Assert.assertEquals("Incorrect count of SWRL I-Arg", 4,
-                m.ontObjects(OntSWRL.IArg.class).map(String::valueOf).peek(LOGGER::debug).count());
-
-        Assert.assertEquals("Incorrect count of atoms", 4, m.ontObjects(OntSWRL.Atom.class).count());
-        Assert.assertEquals("Incorrect count of variables", 1, m.ontObjects(OntSWRL.Variable.class).count());
-        Assert.assertEquals("Incorrect count of SWRL:Imp", 1, m.ontObjects(OntSWRL.Imp.class).count());
-        Assert.assertEquals("Incorrect count of SWRL Objects", 6,
-                m.ontObjects(OntSWRL.class).peek(x -> LOGGER.debug("SWRL Obj: {}", x)).count());
-
-        Assert.assertEquals(4, m.statements(null, RDF.type, SWRL.AtomList)
-                .map(OntStatement::getSubject)
-                .map(s -> s.as(RDFList.class))
-                .peek(s -> LOGGER.debug("SWRL-List: {}", s.asJavaList()))
-                .count());
     }
 
     @Test

@@ -65,8 +65,9 @@ public interface OntSWRL extends OntObject {
     }
 
     /**
-     * It is not SWRL Object, but just a plain {@link OntObject}.
-     * An interface that represents either {@link org.apache.jena.rdf.model.Literal}, {@link Variable} or {@link OntIndividual}.
+     * It is not a SWRL Object, but just a plain {@link OntObject}.
+     * An interface that represents either {@link org.apache.jena.rdf.model.Literal},
+     * {@link Variable} or {@link OntIndividual}.
      */
     interface Arg extends OntObject {
     }
@@ -102,8 +103,10 @@ public interface OntSWRL extends OntObject {
 
         interface BuiltIn extends Atom<Resource> {
             /**
-             * Gets the arguments typed ONT-List, the list <b>is not</b> typed,
-             * i.e. there are no {@code _:x rdf:type rdf:List} for list items.
+             * Gets the argument's ONT-List.
+             * Note that the returned list is <b>not</b> expected to be typed,
+             * i.e. there is neither {@code _:x rdf:type rdf:List}
+             * or {@code _:x rdf:type swrl:AtomList} statements for each its items.
              *
              * @return {@link OntList} of {@link DArg}
              * @since 1.3.0

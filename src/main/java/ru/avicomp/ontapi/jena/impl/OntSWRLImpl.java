@@ -126,6 +126,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     }
 
     public static Property createBuiltinProperty(OntGraphModelImpl model, Resource predicate) {
+        // todo: no declaration is needed in case of core builtin (see issue https://github.com/avicomp/ont-api/issues/61)
         return checkNamed(predicate).inModel(model).addProperty(RDF.type, SWRL.Builtin).as(Property.class);
     }
 
@@ -290,10 +291,10 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         public Stream<OntStatement> predicateStatements() {
             OntStatement s = getRequiredProperty(SWRL.builtin);
-            OntStatement a = getModel().statements(s.getResource(), RDF.type, SWRL.Builtin)
-                    .findFirst()
-                    .orElseThrow(() -> new OntJenaException.IllegalState("Can't find rdf:type SWRL:Builtin for " + s));
-            return Stream.of(a, s);
+            // todo: it may absent (see issue https://github.com/avicomp/ont-api/issues/61)
+            Optional<OntStatement> a = getModel().statements(s.getResource(), RDF.type, SWRL.Builtin)
+                    .findFirst();
+            return a.map(x -> Stream.of(x, s)).orElseGet(() -> Stream.of(s));
         }
 
         @Override

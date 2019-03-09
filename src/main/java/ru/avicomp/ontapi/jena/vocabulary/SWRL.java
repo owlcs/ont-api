@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,10 +21,10 @@ import org.apache.jena.rdf.model.ResourceFactory;
 /**
  * Vocabulary definition for the
  * <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>.
- * See <a href='https://www.w3.org/Submission/SWRL/swrl.rdf'>schema</a>
- * See also {@link org.semanticweb.owlapi.vocab.SWRLVocabulary}
  * <p>
  * Created by szuev on 20.10.2016.
+ * @see <a href='https://www.w3.org/Submission/SWRL/swrl.rdf'>SWRL schema</a>
+ * @see org.semanticweb.owlapi.vocab.SWRLVocabulary
  */
 public class SWRL {
     public final static String URI = "http://www.w3.org/2003/11/swrl";

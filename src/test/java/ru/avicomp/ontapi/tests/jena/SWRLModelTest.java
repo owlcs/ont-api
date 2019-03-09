@@ -1,0 +1,105 @@
+/*
+ * This file is part of the ONT API.
+ * The contents of this file are subject to the LGPL License, Version 3.0.
+ * Copyright (c) 2019, Avicomp Services, AO
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with this program.  If not, see http://www.gnu.org/licenses/.
+ *
+ * Alternatively, the contents of this file may be used under the terms of the Apache License, Version 2.0 in which case, the provisions of the Apache License Version 2.0 are applicable instead of those above.
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ */
+
+package ru.avicomp.ontapi.tests.jena;
+
+import org.apache.jena.rdf.model.RDFList;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.SWRL;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+/**
+ * Created by @ssz on 09.03.2019.
+ */
+public class SWRLModelTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SWRLModelTest.class);
+
+    @Test
+    public void testCreateAndListSWRLObjects() {
+        String uri = "http://test.com/swrl";
+        String ns = uri + "#";
+
+        OntGraphModel m = OntModelFactory.createModel()
+                .setID(uri).getModel()
+                .setNsPrefix("test", ns)
+                .setNsPrefix("SWRL", SWRL.NS)
+                .setNsPrefixes(OntModelFactory.STANDARD);
+
+        OntClass cl1 = m.createOntClass(ns + "Class1");
+        OntClass cl2 = m.createOntClass(ns + "Class2");
+        OntNDP p = m.createDataProperty(ns + "DP");
+        OntIndividual i1 = cl1.createIndividual(ns + "Individual1");
+
+        OntCE.UnionOf cl3 = m.createUnionOf(Arrays.asList(cl1, cl2));
+        OntIndividual i2 = cl3.createIndividual();
+
+        OntSWRL.Variable var1 = m.createSWRLVariable(ns + "Variable1");
+        OntSWRL.DArg dArg1 = m.createTypedLiteral(12).inModel(m).as(OntSWRL.DArg.class);
+        OntSWRL.DArg dArg2 = var1.as(OntSWRL.DArg.class);
+
+        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(m.createResource(ns + "AtomPredicate1"),
+                Arrays.asList(dArg1, dArg2));
+        OntSWRL.Atom.OntClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
+        OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class),
+                var1.as(OntSWRL.IArg.class));
+        OntSWRL.Atom.DataProperty atom4 = m.createDataPropertySWRLAtom(p, i2.as(OntSWRL.IArg.class), dArg2);
+
+        OntSWRL.Imp imp = m.createSWRLImp(Collections.singletonList(atom1), Arrays.asList(atom2, atom3, atom4));
+        imp.addComment("This is SWRL Imp").addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
+
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(2, atom1.arguments().count());
+        Assert.assertEquals(1, atom2.arguments().count());
+        Assert.assertEquals(2, atom3.arguments().count());
+        Assert.assertEquals(2, atom4.arguments().count());
+
+        Assert.assertEquals(15, imp.spec().peek(x -> LOGGER.debug("Imp Spec: {}", x)).count());
+        Assert.assertEquals(8, atom1.spec().peek(x -> LOGGER.debug("BuiltIn Spec: {}", x)).count());
+        Assert.assertEquals(3, atom2.spec().peek(x -> LOGGER.debug("Classes Spec: {}", x)).count());
+        Assert.assertEquals(4, atom3.spec().peek(x -> LOGGER.debug("Individuals Spec: {}", x)).count());
+        Assert.assertEquals(4, atom4.spec().peek(x -> LOGGER.debug("DataProperies Spec: {}", x)).count());
+
+        // literals(2) and variables(1):
+        LOGGER.debug("All D-Args:");
+        Assert.assertEquals("Incorrect count of SWRL D-Arg", 3,
+                m.ontObjects(OntSWRL.DArg.class).map(String::valueOf).peek(LOGGER::debug).count());
+        // individuals(2 anonymous, 1 named) and variables(1):
+        LOGGER.debug("All I-Args:");
+        Assert.assertEquals("Incorrect count of SWRL I-Arg", 4,
+                m.ontObjects(OntSWRL.IArg.class).map(String::valueOf).peek(LOGGER::debug).count());
+
+        Assert.assertEquals("Incorrect count of atoms", 4, m.ontObjects(OntSWRL.Atom.class).count());
+        Assert.assertEquals("Incorrect count of variables", 1, m.ontObjects(OntSWRL.Variable.class).count());
+        Assert.assertEquals("Incorrect count of SWRL:Imp", 1, m.ontObjects(OntSWRL.Imp.class).count());
+        Assert.assertEquals("Incorrect count of SWRL Objects", 6,
+                m.ontObjects(OntSWRL.class).peek(x -> LOGGER.debug("SWRL Obj: {}", x)).count());
+
+        Assert.assertEquals(4, m.statements(null, RDF.type, SWRL.AtomList)
+                .map(OntStatement::getSubject)
+                .map(s -> s.as(RDFList.class))
+                .peek(s -> LOGGER.debug("SWRL-List: {}", s.asJavaList()))
+                .count());
+    }
+
+}
