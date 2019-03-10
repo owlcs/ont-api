@@ -145,7 +145,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         if (size < 0) {
             return InternalCache.createEmpty().asLoading(IRI::create);
         }
-        return InternalCache.createBounded(NoOpReadWriteLock.isConcurrent(lock), size).asLoading(IRI::create);
+        return InternalCache.createBounded(IRI::create, NoOpReadWriteLock.isConcurrent(lock), size);
     }
 
     /**
@@ -215,11 +215,12 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             OntLoaderConfiguration was = this.loaderConfig;
             if (Objects.equals(was, config)) return;
             boolean hasChanges = ModelConfig.hasChanges(was, config);
+            this.loaderConfig = config;
             content.values()
-                    .filter(i -> i.getModelConfig().hasLoaderConfig() ? i.getModelConfig().hasChanges(config) : hasChanges)
+                    .filter(i -> i.getModelConfig().hasPersonalLoaderConfig() ?
+                            i.getModelConfig().hasChanges(config) : hasChanges)
                     .map(OntInfo::get) // todo: it is no need to clear a whole cache
                     .forEach(OntologyModel::clearCache);
-            this.loaderConfig = config;
         } finally {
             getLock().writeLock().unlock();
         }
@@ -2175,7 +2176,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             return res;
         }
 
-        public boolean hasLoaderConfig() {
+        public boolean hasPersonalLoaderConfig() {
             return modelLoaderConf != null;
         }
 

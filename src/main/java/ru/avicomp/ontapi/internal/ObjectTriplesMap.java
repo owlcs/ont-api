@@ -21,33 +21,146 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * An object that maps {@link OWLObject}s, considered as keys, to {@link Triple}s.
+ * A map cannot contain duplicate or {@code null} keys.
+ * It is a loading map: it may contain both manually added pairs or loaded by an internal process,
+ * which relies on a {@link org.apache.jena.graph.Graph}.
+ * <p>
  * Created by @ssz on 07.03.2019.
+ *
+ * @param <O> any {@link OWLObject}
  */
 public interface ObjectTriplesMap<O extends OWLObject> {
 
-    Class<O> type();
-
+    /**
+     * Answers {@code true}
+     * if any of the encapsulated object-triples pair
+     * has been added manually using the method {@link #register(OWLObject, Triple)},
+     * not just loaded by the internal loader.
+     * This flag is for optimization.
+     *
+     * @return boolean
+     */
     boolean hasNew();
 
-    boolean contains(O o);
+    /**
+     * Answers {@code true} if this map is loaded, i.e. contains all object-triple pairs in memory.
+     *
+     * @return boolean
+     */
+    boolean isLoaded();
 
+    /**
+     * Loads a map using internal loader.
+     * No-op in case of {@link #hasNew()} or {@link #isLoaded()} is {@code true}.
+     */
+    void load();
+
+    /**
+     * Lists all {@code OWLObjects}s encapsulated by this map.
+     *
+     * @return {@code Stream} of {@link O}s
+     */
     Stream<O> objects();
 
-    Set<Triple> get(O o);
+    /**
+     * Lists all {@code Triple}s associated with the object-key.
+     *
+     * @param key {@link O} key-object, not {@code null}
+     * @return {@code Stream} of {@link Triple}s
+     * @throws RuntimeException in case object's triple-structure is broken
+     * @see #register(OWLObject, Triple)
+     * @see #unregister(OWLObject, Triple)
+     */
+    Stream<Triple> triples(O key) throws RuntimeException;
 
-    void add(O key, Triple triple);
+    /**
+     * Registers the given object-triple pair into the map.
+     * To use by the {@link Listener} only!
+     * Note that each object, in general, is associated with many triples, not just one.
+     * If a set of associated triples is incomplete the method {@link #triples(OWLObject)} may throw a runtime exception.
+     *
+     * @param key    {@link O} key-object, not {@code null}
+     * @param triple {@link Triple}, not {@code null}
+     */
+    void register(O key, Triple triple);
 
-    void remove(O key, Triple triple);
+    /**
+     * Unregisters the given object-triple pair from this map.
+     * To use by the {@link Listener} only!
+     * Both the object and the triple may still be present in the map after this operation.
+     * Impl note: an {@link InternalModel} uses this method only while <b>adding</b> an object.
+     * For deleting the method {@link #delete(OWLObject)} is used.
+     *
+     * @param key    {@link O} key-object, not {@code null}
+     * @param triple {@link Triple}, not {@code null}
+     */
+    void unregister(O key, Triple triple);
 
-    void remove(O key);
+    /**
+     * Deletes the given object and all its associated triples.
+     *
+     * @param key {@link O} key-object, not {@code null}
+     */
+    void delete(O key);
 
-    long size();
+    /**
+     * Clears the whole map-cache.
+     */
+    void clear();
 
+    /**
+     * List all {@code Triple}s encapsulated by this map.
+     *
+     * @return Stream of {@link Triple}s
+     */
+    default Stream<Triple> triples() {
+        return objects().flatMap(this::triples);
+    }
+
+    /**
+     * Answers {@code true} is the map contains the object.
+     *
+     * @param key {@link O} key-object, not {@code null}
+     * @return boolean
+     */
+    default boolean contains(O key) {
+        return objects().anyMatch(key::equals);
+    }
+
+    /**
+     * Answers {@code true} if the given object-triple pair is present into the map.
+     *
+     * @param key    {@link O} key-object, not {@code null}
+     * @param triple {@link Triple}, not {@code null}
+     * @return boolean
+     */
+    default boolean contains(O key, Triple triple) {
+        return triples(key).anyMatch(triple::equals);
+    }
+
+    /**
+     * Answers {@code true} if the given {@link Triple} is present into the map.
+     *
+     * @param triple {@link Triple}, not {@code null}
+     * @return boolean
+     */
     default boolean contains(Triple triple) {
-        return objects().anyMatch(o -> get(o).contains(triple));
+        return objects().anyMatch(o -> contains(o, triple));
+    }
+
+    /**
+     * Answers a {@code Set} of {@code Triple}s associated with the specified object.
+     *
+     * @param key {@link O} key-object, not {@code null}
+     * @return {@code Set} of {@link Triple}s
+     */
+    default Set<Triple> getTripleSet(O key) {
+        return triples(key).collect(Collectors.toSet());
     }
 
     /**
@@ -57,16 +170,17 @@ public interface ObjectTriplesMap<O extends OWLObject> {
      * @param map {@link ObjectTriplesMap}
      * @param obj {@link OWLObject}
      * @param <X> either {@link OWLAnnotation} or {@link OWLAxiom}
-     * @return {@link Listener} new instance
+     * @return {@link Listener}, a new instance
      */
     static <X extends OWLObject> Listener<X> createListener(ObjectTriplesMap<X> map, X obj) {
         return new Listener<>(map, obj);
     }
 
     /**
-     * The listener that monitors the addition and deletion of axioms and header annotations.
+     * A {@link GraphListenerBase Graph Listener} implementation
+     * that monitors the triples addition and deletion for the specified {@link O object}.
      *
-     * @param <O> {@link OWLAxiom} in our case.
+     * @param <O> a subtype of {@link OWLObject}
      */
     class Listener<O extends OWLObject> extends GraphListenerBase {
         private final ObjectTriplesMap<O> store;
@@ -79,12 +193,12 @@ public interface ObjectTriplesMap<O extends OWLObject> {
 
         @Override
         protected void addEvent(Triple t) {
-            store.add(object, t);
+            store.register(object, t);
         }
 
         @Override
         protected void deleteEvent(Triple t) {
-            store.remove(object, t);
+            store.unregister(object, t);
         }
     }
 }

@@ -71,7 +71,7 @@ public class SearchModel extends OntGraphModelImpl {
      */
     private static final int CACHE_SIZE = 50_000;
 
-    protected final InternalConfig.Snapshot conf;
+    protected final InternalConfig conf;
     /**
      * Original personality.
      */
@@ -79,13 +79,13 @@ public class SearchModel extends OntGraphModelImpl {
     private Boolean hasAnnotations;
     private Boolean hasSubAnnotations;
 
-    public SearchModel(Graph graph, OntPersonality personality, InternalConfig.Snapshot conf) {
+    public SearchModel(Graph graph, OntPersonality personality, InternalConfig conf) {
         this(graph, personality, conf, true);
     }
 
     protected SearchModel(Graph graph,
                           OntPersonality personality,
-                          InternalConfig.Snapshot conf,
+                          InternalConfig conf,
                           boolean withCache) {
         super(graph, withCache ? cachedPersonality(personality, conf) : personality);
         this.conf = Objects.requireNonNull(conf);

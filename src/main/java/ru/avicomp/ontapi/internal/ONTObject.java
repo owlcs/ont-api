@@ -53,18 +53,18 @@ public abstract class ONTObject<O extends OWLObject> {
     }
 
     /**
-     * Gets {@link Triple}s associated with encapsulated {@link OWLObject}
+     * Gets {@link Triple}s associated with encapsulated {@link OWLObject}.
      *
      * @return Stream of triples, may be no distinct.
      */
     public abstract Stream<Triple> triples();
 
     /**
-     * Answers if there are definitely no associated triples.
+     * Answers {@code true} if there are definitely no associated triples.
      *
      * @return boolean
      */
-    protected boolean isEmpty() {
+    protected boolean isDefinitelyEmpty() {
         return false;
     }
 
@@ -104,7 +104,7 @@ public abstract class ONTObject<O extends OWLObject> {
             }
 
             @Override
-            public boolean isEmpty() {
+            public boolean isDefinitelyEmpty() {
                 return true;
             }
         };
@@ -158,7 +158,7 @@ public abstract class ONTObject<O extends OWLObject> {
     }
 
     private Stream<Triple> concat(Stream<Triple> other) {
-        return isEmpty() ? other : Stream.concat(this.triples(), other);
+        return isDefinitelyEmpty() ? other : Stream.concat(this.triples(), other);
     }
 
     public ONTObject<O> add(Triple triple) {
@@ -166,7 +166,7 @@ public abstract class ONTObject<O extends OWLObject> {
     }
 
     public ONTObject<O> delete(Triple triple) {
-        if (isEmpty()) return this;
+        if (isDefinitelyEmpty()) return this;
         return new ONTObject<O>(object) {
             @Override
             public Stream<Triple> triples() {

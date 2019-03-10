@@ -15,127 +15,233 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.graph.Triple;
+import org.apache.jena.shared.JenaException;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
  * An auxiliary class-container to provide
  * a common way for working with {@link OWLObject}s and {@link Triple}s all together.
  * It is logically based on the {@link ONTObject} container,
- * which is a wrapper around {@link OWLObject OWLObject} with the reference to get all associated {@link Triple RDF triple}s.
- * This class is used by the {@link InternalModel internal model} cache as indivisible bucket.
+ * which is a wrapper around {@link OWLObject OWLObject}
+ * with the reference to get all associated {@link Triple RDF triple}s.
+ * This class is used by the {@link InternalModel Internal Model} cache as indivisible bucket.
+ * <p>
+ * Created by @ssz on 09.03.2019.
  *
- * @param <O> Component type: a subtype of {@link OWLAxiom} or {@link OWLAnnotation}
+ * @param <X> any subtype of {@link OWLObject} (in system either {@link OWLAxiom} or {@link OWLAnnotation})
  */
 @SuppressWarnings("WeakerAccess")
-public class ObjectTriplesMapImpl<O extends OWLObject> implements ObjectTriplesMap<O> {
-    protected final Class<O> type;
-    protected final Map<O, ONTObject<O>> map;
-    protected final InternalCache.Loading<O, Set<Triple>> triples;
+public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesMap<X> {
+
+    // objects provider:
+    private final Supplier<Iterator<ONTObject<X>>> loader;
+    // soft reference:
+    private final InternalCache.Loading<ObjectTriplesMapImpl<X>, CachedMap> map;
 
     // a state flag that responds whether some axioms have been manually added to this map
     // the dangerous of manual added axioms is that the same information can be represented in different ways.
-    protected boolean manualAdded;
+    private volatile boolean hasNew;
 
-    /**
-     * @param type     {@code Class}
-     * @param map      {@code Map}
-     * @param parallel boolean to control internal triples cache
-     */
-    public ObjectTriplesMapImpl(Class<O> type, Map<O, ONTObject<O>> map, boolean parallel) {
-        this.type = Objects.requireNonNull(type);
-        this.map = Objects.requireNonNull(map);
-        this.triples = InternalCache.createSoft(parallel).asLoading(this::loadTripleSet);
+    public ObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader) {
+        this.loader = Objects.requireNonNull(loader);
+        this.map = InternalCache.createSoft(ObjectTriplesMapImpl::loadMap, true);
+    }
+
+    protected CachedMap loadMap() {
+        this.hasNew = false;
+        Iterator<ONTObject<X>> it = loader.get();
+        Map<X, ONTObject<X>> res = new HashMap<>();
+        while (it.hasNext()) {
+            ONTObject<X> v = it.next();
+            res.merge(v.getObject(), v, ONTObject::append);
+        }
+        return new CachedMap(res, null);
+    }
+
+    public CachedMap getMap() {
+        return map.get(this);
+    }
+
+    public boolean isLoaded() {
+        return !map.asCache().isEmpty();
     }
 
     @Override
-    public Class<O> type() {
-        return type;
-    }
-
-    @Nonnull
-    private Set<Triple> loadTripleSet(O key) {
-        return find(key).map(s -> s.triples()
-                .collect(Collectors.toSet())).orElse(Collections.emptySet());
-    }
-
-    /**
-     * Adds the object-triple pair to this map.
-     * If there is no triple-container for the specified object, or it is empty, or it is in-memory,
-     * then a triple will be added to the inner set, otherwise appended to existing stream.
-     *
-     * @param key    OWLObject (axiom or annotation)
-     * @param triple {@link Triple}
-     */
-    @Override
-    public void add(O key, Triple triple) {
-        ONTObject<O> res = find(key).map(o -> o.isEmpty() ? new TripleSet<>(o) : o).orElseGet(() -> new TripleSet<>(key));
-        map.put(key, res.add(triple));
-        fromCache(key).ifPresent(set -> set.add(triple));
-        this.manualAdded = true;
-    }
-
-    /**
-     * Removes the object-triple pair from the map.
-     *
-     * @param key    OWLObject (axiom or annotation)
-     * @param triple {@link Triple}
-     */
-    @Override
-    public void remove(O key, Triple triple) {
-        find(key).ifPresent(o -> map.put(o.getObject(), o.delete(triple)));
-        fromCache(key).ifPresent(set -> set.remove(triple));
-    }
-
-    /**
-     * Removes the given object and all associated triples.
-     *
-     * @param key OWLObject (axiom or annotation)
-     */
-    @Override
-    public void remove(O key) {
-        triples.asCache().remove(key);
-        map.remove(key);
-    }
-
-    protected Optional<Set<Triple>> fromCache(O key) {
-        return Optional.ofNullable(get(key));
-    }
-
-    private Optional<ONTObject<O>> find(O key) {
-        return Optional.ofNullable(map.get(key));
-    }
-
-    @Override
-    public Set<Triple> get(O key) {
-        return triples.get(key);
-    }
-
-    @Override
-    public boolean contains(O o) {
-        return map.containsKey(o);
-    }
-
-    @Override
-    public Stream<O> objects() {
-        return map.keySet().stream();
-    }
-
-    @Override
-    public long size() {
-        return map.size();
+    public void load() {
+        getMap();
     }
 
     @Override
     public boolean hasNew() {
-        return manualAdded;
+        return isLoaded() && hasNew;
     }
+
+    @Override
+    public Stream<X> objects() {
+        return getMap().getObjects().keySet().stream();
+    }
+
+    @Override
+    public Stream<Triple> triples() {
+        return getMap().getTriples().keySet().stream();
+    }
+
+    @Override
+    public Stream<Triple> triples(X o) throws JenaException {
+        return getMap().getObjects().get(o).triples();
+    }
+
+    @Override
+    public boolean contains(X o) {
+        return getMap().getObjects().containsKey(o);
+    }
+
+    @Override
+    public boolean contains(X o, Triple t) {
+        CachedMap m;
+        if (isLoaded() && (m = getMap()).hasTriplesMap()) {
+            Set<X> res = m.getTriples().get(t);
+            return res != null && res.contains(o);
+        }
+        return triples(o).anyMatch(t::equals);
+    }
+
+    @Override
+    public boolean contains(Triple triple) {
+        return getMap().getTriples().containsKey(triple);
+    }
+
+    /**
+     * Adds the object-triple pair to this map.
+     * If there is no triple-container for the specified object or it is in-memory,
+     * then a triple will be added to the inner set, otherwise appended to existing stream.
+     * <p>
+     * WARNING: Must be called only from listener.
+     *
+     * @param key    {@link X} (axiom or annotation)
+     * @param triple {@link Triple}
+     */
+    @Override
+    public void register(X key, Triple triple) {
+        this.hasNew = true;
+        CachedMap map = getMap();
+        map.getObjects().merge(key, new TripleSet<>(key, triple), (a, b) -> {
+            if (a.isDefinitelyEmpty()) return b;
+            return a.append(b);
+        });
+        map.getTriples().computeIfAbsent(triple, t -> new HashSet<>()).add(key);
+    }
+
+    /**
+     * Removes the object-triple pair from the map.
+     * <p>
+     * WARNING: Must be called only from listener.
+     * Note (1): the operation may broke structure and, therefore,
+     * the method {@link #triples(OWLObject)} may throw {@link JenaException} in this case.
+     * Note (2): seems now this method is unused by the system.
+     *
+     * @param key    OWLObject (axiom or annotation)
+     * @param triple {@link Triple}
+     */
+    @Override
+    public void unregister(X key, Triple triple) {
+        if (!isLoaded()) return;
+        CachedMap map = getMap();
+        Map<X, ONTObject<X>> objectsCache = map.getObjects();
+        Optional.ofNullable(objectsCache.get(key)).ifPresent(v -> {
+            ONTObject<X> x = v.delete(triple);
+            objectsCache.put(x.getObject(), x);
+            try {
+                if (x.isDefinitelyEmpty() || x.triples().count() == 0) {
+                    objectsCache.remove(x.getObject());
+                }
+            } catch (JenaException e) {
+                // incomplete object
+            }
+        });
+        if (!map.hasTriplesMap()) return;
+        Map<Triple, Set<X>> triplesCache = map.getTriples();
+        Optional.ofNullable(triplesCache.get(triple)).ifPresent(set -> {
+            set.remove(key);
+            if (set.isEmpty()) {
+                triplesCache.remove(triple);
+            }
+        });
+    }
+
+    /**
+     * Deletes the given object and all its associated triples.
+     *
+     * @param key {@link X} (axiom or annotation)
+     */
+    @Override
+    public void delete(X key) {
+        if (!isLoaded()) return;
+        CachedMap map = getMap();
+        ONTObject<X> res = map.getObjects().remove(key);
+        if (!map.hasTriplesMap()) return;
+        Map<Triple, Set<X>> triplesCache = map.getTriples();
+        res.triples().forEach(t -> Optional.ofNullable(triplesCache.get(t)).ifPresent(set -> {
+            set.remove(res.getObject());
+            if (set.isEmpty()) {
+                triplesCache.remove(t);
+            }
+        }));
+    }
+
+    @Override
+    public void clear() {
+        map.asCache().clear();
+    }
+
+    protected class CachedMap {
+        private final Map<X, ONTObject<X>> objectsCache;
+        private final InternalCache.Loading<CachedMap, Map<Triple, Set<X>>> triplesCache;
+
+        CachedMap(Map<X, ONTObject<X>> objectsCache, Map<Triple, Set<X>> triplesCache) {
+            this.objectsCache = Objects.requireNonNull(objectsCache);
+            this.triplesCache = InternalCache.createSoft(CachedMap::loadMap, true);
+            if (triplesCache != null) {
+                this.triplesCache.asCache().put(this, triplesCache);
+            }
+        }
+
+        long size() {
+            return objectsCache.size();
+        }
+
+        Map<X, ONTObject<X>> getObjects() {
+            return objectsCache;
+        }
+
+        boolean hasTriplesMap() {
+            return !triplesCache.asCache().isEmpty();
+        }
+
+        Map<Triple, Set<X>> getTriples() {
+            return triplesCache.get(this);
+        }
+
+        private Map<Triple, Set<X>> loadMap() {
+            Map<Triple, Set<X>> res = new HashMap<>();
+            for (ONTObject<X> v : objectsCache.values()) {
+                try {
+                    v.triples().forEach(t -> res.computeIfAbsent(t, x -> new HashSet<>()).add(v.getObject()));
+                } catch (JenaException ex) {
+                    // object has wrong state: it is being registered or unregistered
+                    // ignore exception
+                }
+            }
+            return res;
+        }
+    }
+
 
     /**
      * An {@link ONTObject} which holds triples in memory.
@@ -144,15 +250,16 @@ public class ObjectTriplesMapImpl<O extends OWLObject> implements ObjectTriplesM
      *
      * @param <V>
      */
-    private class TripleSet<V extends O> extends ONTObject<V> {
+    private class TripleSet<V extends X> extends ONTObject<V> {
         private final Set<Triple> triples;
 
-        protected TripleSet(V object) { // empty
-            this(object, new HashSet<>());
+        TripleSet(V object, Triple t) {
+            this(object);
+            this.triples.add(t);
         }
 
-        protected TripleSet(ONTObject<V> object) {
-            this(object.getObject(), object.triples().collect(Collectors.toCollection(HashSet::new)));
+        TripleSet(V object) { // empty
+            this(object, new HashSet<>());
         }
 
         private TripleSet(V object, Set<Triple> triples) {
@@ -166,7 +273,7 @@ public class ObjectTriplesMapImpl<O extends OWLObject> implements ObjectTriplesM
         }
 
         @Override
-        protected boolean isEmpty() {
+        protected boolean isDefinitelyEmpty() {
             return triples.isEmpty();
         }
 
@@ -182,4 +289,5 @@ public class ObjectTriplesMapImpl<O extends OWLObject> implements ObjectTriplesM
             return this;
         }
     }
+
 }

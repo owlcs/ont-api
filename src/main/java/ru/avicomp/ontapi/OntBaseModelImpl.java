@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
+import ru.avicomp.ontapi.internal.AxiomKey;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -41,7 +42,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * An abstract {@link OWLOntology OWL-API Ontology} implementation with methods to read information
@@ -593,9 +593,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> Stream<T> axioms(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key) {
-        return (Stream<T>) base.listOWLAxioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)
-                .map(type -> (AxiomType<T>) type)
-                .collect(Collectors.toSet())).filter(a -> filter.pass(a, key));
+        return base.listOWLAxioms(filter.getAxiomTypes()).filter(a -> filter.pass(a, key)).map(x -> (T) x);
     }
 
     @Override
@@ -722,8 +720,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
 
     @Override
     public Stream<OWLLogicalAxiom> logicalAxioms() {
-        return base.listOWLAxioms(InternalModel.AXIOM_TYPES.stream()
-                .filter(AxiomType::isLogical).collect(Collectors.toList())).map(OWLLogicalAxiom.class::cast);
+        return base.listOWLAxioms(AxiomKey.LOGICAL).map(OWLLogicalAxiom.class::cast);
     }
 
     @Override
@@ -822,12 +819,9 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
         return containsAxiom(axiom) || axioms(axiom.getAxiomType()).anyMatch(ax -> ax.equalsIgnoreAnnotations(axiom));
     }
 
-    @SuppressWarnings("RedundantStreamOptionalCall") // java8 compile bug on map
     @Override
     public boolean contains(@Nonnull OWLAxiomSearchFilter filter, @Nonnull Object key) {
-        return base.listOWLAxioms(StreamSupport.stream(filter.getAxiomTypes().spliterator(), false)
-                .map(type -> type)
-                .collect(Collectors.toList())).anyMatch(a -> filter.pass(a, key));
+        return base.listOWLAxioms(filter.getAxiomTypes()).anyMatch(a -> filter.pass(a, key));
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLRuntimeException;
  * <p>
  * Created by @szuev on 27.09.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class OntApiException extends OWLRuntimeException {
     public OntApiException(String message, Throwable cause) {
         super(message, cause);
@@ -50,6 +51,16 @@ public class OntApiException extends OWLRuntimeException {
         return notNull(obj, null);
     }
 
+    public static <T> T mustNotBeNull(T obj) {
+        return mustNotBeNull(obj, null);
+    }
+
+    public static <T> T mustNotBeNull(T obj, String message) {
+        if (obj == null)
+            throw message == null ? new IllegalState() : new IllegalState(message);
+        return obj;
+    }
+
     /**
      * A {@code RuntimeException} for unsupported things.
      * Created by @szuev on 29.09.2016.
@@ -73,6 +84,19 @@ public class OntApiException extends OWLRuntimeException {
         }
 
         public IllegalArgument(String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * Todo
+     */
+    public static class IllegalState extends OntApiException {
+        public IllegalState() {
+            super();
+        }
+
+        public IllegalState(String message) {
             super(message);
         }
     }
