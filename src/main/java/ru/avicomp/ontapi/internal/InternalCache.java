@@ -27,14 +27,13 @@ import java.util.stream.Stream;
  * The simplest common Cache Adapter interface for internal use.
  * <p>
  * Also, it is a factory to produce various {@link InternalCache} implementations,
- * that is expected to be the only place in system to access to a particular external cache implementations.
+ * and is expected to be the only place in system to access to a particular external caches.
  * Currently it includes only two kind of implementations: a LRU {@code LinkedHashMap} based cache,
  * which has the best performance in a single tread environment,
  * and a {@link java.util.concurrent.ConcurrentHashMap} based {@link Cache Caffeine Cache},
  * which has good benchmarks both in multi-thread and single-thread environments.
- *
  * <p>
- * In general, this cache-wrapper is not thread-safe.
+ * In general case, an implementation of this cache-adapter may not guarantee thread safety.
  * But the upper-system uses R/W lock for any accessors,
  * and, therefore, the data on which this cache should rely does not change in the process of reading,
  * whatever single- or multi- thread environment is used it.
@@ -502,6 +501,11 @@ public interface InternalCache<K, V> {
         @Override
         public boolean isEmpty() {
             return cache.asMap().isEmpty();
+        }
+
+        @Override
+        public V get(K key, Function<? super K, ? extends V> mappingFunction) {
+            return cache.get(key, mappingFunction);
         }
 
         @Override

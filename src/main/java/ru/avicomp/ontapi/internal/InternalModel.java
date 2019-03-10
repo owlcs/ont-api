@@ -121,7 +121,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Ontology header {@link OWLAnnotation}s cache.
      */
     protected ObjectTriplesMap<OWLAnnotation> header;
-
+    /**
+     * A {@link InternalConfig} snapshot, should be used while any r/w operations,
+     * and should be reset to new state on {@link #clearCache()}.
+     */
     protected InternalConfig.Snapshot snapshot;
 
     /**
@@ -149,17 +152,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         this.axioms = createAxiomsCacheMap();
         this.header = createHeaderTriplesMap();
         getGraph().getEventManager().register(new DirectListener());
-    }
-
-    protected static <O extends OWLObject> Stream<O> findObjectsToInvalidate(ObjectTriplesMap<O> map, Triple t) {
-        return map.objects().filter(o -> {
-            try {
-                return map.contains(o, t);
-            } catch (JenaException j) {
-                // may occur in case a previous operation (unregister) breaks the object structure
-                return true;
-            }
-        });
     }
 
     /**
@@ -711,7 +703,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * The overridden base method.
+     * The overridden jena method.
      * Makes this ontology empty given its caches.
      *
      * @return {@link Model}
@@ -737,6 +729,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
                 .forEach(ObjectTriplesMap::clear);
         // todo: there is no need to invalidate *whole* objects cache
         clearObjectsCaches();
+    }
+
+    protected <O extends OWLObject> Stream<O> findObjectsToInvalidate(ObjectTriplesMap<O> map, Triple t) {
+        return map.objects().filter(o -> {
+            try {
+                return map.contains(o, t);
+            } catch (JenaException j) {
+                // may occur in case a previous operation
+                // (ObjectTriplesMap#unregister() or direct working through jena interface)
+                // breaks the object structure
+                return true;
+            }
+        });
     }
 
     /**
