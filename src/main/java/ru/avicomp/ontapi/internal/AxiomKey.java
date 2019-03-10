@@ -85,11 +85,8 @@ public enum AxiomKey {
      * @param type {@link AxiomType}, not {@code null}
      * @return {@link AxiomKey}, not {@code null}
      */
-    public static AxiomKey get(AxiomType<?> type) {
-        for (AxiomKey t : values()) {
-            if (type == t.type) return t;
-        }
-        throw new OntApiException.IllegalState();
+    public static AxiomKey get(AxiomType<?> type) throws IndexOutOfBoundsException {
+        return values()[type.getIndex()];
     }
 
     /**
