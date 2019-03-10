@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -30,6 +30,29 @@ import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
  * Created by @szuev on 20.07.2018.
  */
 public class MiscOntModelTest extends OntModelTestBase {
+
+    @Test
+    public void testDeleteAxiomWithSharedEntity() {
+        OntologyManager m = OntManagers.createONT();
+        DataFactory df = m.getOWLDataFactory();
+        OntologyModel o = m.createOntology();
+        OWLClass c = df.getOWLClass("X");
+        OWLAxiom a1 = df.getOWLSubClassOfAxiom(c, df.getOWLObjectUnionOf(df.getOWLThing(), df.getOWLNothing()));
+        OWLAxiom a2 = df.getOWLDisjointClassesAxiom(c, df.getOWLThing(), df.getOWLNothing());
+        OWLAxiom a3 = df.getOWLHasKeyAxiom(c, df.getOWLObjectProperty("p1"), df.getOWLObjectProperty("p2"));
+        o.add(a1);
+        o.add(a2);
+        o.add(a3);
+        ReadWriteUtils.print(o);
+        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("1) Axiom: {}", x)).count());
+
+        o.remove(a1);
+        ReadWriteUtils.print(o);
+        Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("2) Axiom: {}", x)).count());
+
+        o.clearCache();
+        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("3) Axiom: {}", x)).count());
+    }
 
     @Test
     public void testLoadDisjointUnion() throws OWLOntologyCreationException {

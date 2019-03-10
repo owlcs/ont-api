@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -213,31 +213,31 @@ public class WriteHelper {
 
     public static OntNAP addAnnotationProperty(OntGraphModel model, OWLEntity entity) {
         String uri = entity.getIRI().getIRIString();
-        return model.fetchOntEntity(OntNAP.class, uri);
+        return fetchOntEntity(model, OntNAP.class, uri);
     }
 
     public static OntOPE addObjectProperty(OntGraphModel model, OWLObjectPropertyExpression ope) {
         if (!ope.isOWLObjectProperty()) {
             return addInverseOf(model, (OWLObjectInverseOf) ope);
         }
-        return model.fetchOntEntity(OntNOP.class, ope.getNamedProperty().getIRI().getIRIString());
+        return fetchOntEntity(model, OntNOP.class, ope.getNamedProperty().getIRI().getIRIString());
     }
 
     public static OntNDP addDataProperty(OntGraphModel model, OWLDataPropertyExpression dpe) {
         if (!dpe.isOWLDataProperty()) throw new OntApiException("Unsupported " + dpe);
         String uri = dpe.asOWLDataProperty().getIRI().getIRIString();
-        return model.fetchOntEntity(OntNDP.class, uri);
+        return fetchOntEntity(model, OntNDP.class, uri);
     }
 
     public static OntEntity addOntEntity(OntGraphModel model, OWLEntity entity) {
         Class<? extends OntEntity> view = getEntityView(entity);
         String uri = entity.getIRI().getIRIString();
-        return model.fetchOntEntity(view, uri);
+        return fetchOntEntity(model, view, uri);
     }
 
     public static OntOPE.Inverse addInverseOf(OntGraphModel model, OWLObjectInverseOf io) {
         String uri = io.getInverseProperty().getNamedProperty().getIRI().getIRIString();
-        return model.fetchOntEntity(OntNOP.class, uri).createInverse();
+        return fetchOntEntity(model, OntNOP.class, uri).createInverse();
     }
 
     public static OntFR addFacetRestriction(OntGraphModel model, OWLFacetRestriction fr) {
@@ -274,7 +274,15 @@ public class WriteHelper {
     public static OntIndividual addIndividual(OntGraphModel model, OWLIndividual i) {
         if (i.isAnonymous()) return getAnonymousIndividual(model, i.asOWLAnonymousIndividual());
         String uri = i.asOWLNamedIndividual().getIRI().getIRIString();
-        return model.fetchOntEntity(OntIndividual.Named.class, uri);
+        return fetchOntEntity(model, OntIndividual.Named.class, uri);
+    }
+
+    public static <E extends OntEntity> E fetchOntEntity(OntGraphModel model, Class<E> type, String uri) {
+        E res = model.getOntEntity(type, uri);
+        if (res == null || !res.isBuiltIn()) {
+            res = model.createOntEntity(type, uri);
+        }
+        return res;
     }
 
     /**
