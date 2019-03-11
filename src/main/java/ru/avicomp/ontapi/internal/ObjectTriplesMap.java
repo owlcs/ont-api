@@ -14,10 +14,8 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.util.graph.GraphListenerBase;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.Set;
@@ -39,7 +37,7 @@ public interface ObjectTriplesMap<O extends OWLObject> {
     /**
      * Answers {@code true}
      * if any of the encapsulated object-triples pair
-     * has been added manually using the method {@link #register(OWLObject, Triple)},
+     * has been added manually through the method {@link #addListener(OWLObject)},
      * not just loaded by the internal loader.
      * This flag is for optimization.
      *
@@ -73,33 +71,16 @@ public interface ObjectTriplesMap<O extends OWLObject> {
      * @param key {@link O} key-object, not {@code null}
      * @return {@code Stream} of {@link Triple}s
      * @throws RuntimeException in case object's triple-structure is broken
-     * @see #register(OWLObject, Triple)
-     * @see #unregister(OWLObject, Triple)
      */
     Stream<Triple> triples(O key) throws RuntimeException;
 
     /**
-     * Registers the given object-triple pair into the map.
-     * To use by the {@link Listener} only!
-     * Note that each object, in general, is associated with many triples, not just one.
-     * If a set of associated triples is incomplete the method {@link #triples(OWLObject)} may throw a runtime exception.
+     * Creates a graph listener that handles adding {@link O OWLObject} while changing a {@code Graph}.
      *
-     * @param key    {@link O} key-object, not {@code null}
-     * @param triple {@link Triple}, not {@code null}
+     * @param key {@link O} key-object, not {@code null}
+     * @return {@link GraphListener}
      */
-    void register(O key, Triple triple);
-
-    /**
-     * Unregisters the given object-triple pair from this map.
-     * To use by the {@link Listener} only!
-     * Both the object and the triple may still be present in the map after this operation.
-     * Impl note: an {@link InternalModel} uses this method only while <b>adding</b> an object.
-     * For deleting the method {@link #delete(OWLObject)} is used.
-     *
-     * @param key    {@link O} key-object, not {@code null}
-     * @param triple {@link Triple}, not {@code null}
-     */
-    void unregister(O key, Triple triple);
+    GraphListener addListener(O key);
 
     /**
      * Deletes the given object and all its associated triples.
@@ -163,42 +144,4 @@ public interface ObjectTriplesMap<O extends OWLObject> {
         return triples(key).collect(Collectors.toSet());
     }
 
-    /**
-     * Creates a graph listener that handles adding/removing axioms and header annotations
-     * through top-level OWL-API {@link org.semanticweb.owlapi.model.OWLOntology} interface.
-     *
-     * @param map {@link ObjectTriplesMap}
-     * @param obj {@link OWLObject}
-     * @param <X> either {@link OWLAnnotation} or {@link OWLAxiom}
-     * @return {@link Listener}, a new instance
-     */
-    static <X extends OWLObject> Listener<X> createListener(ObjectTriplesMap<X> map, X obj) {
-        return new Listener<>(map, obj);
-    }
-
-    /**
-     * A {@link GraphListenerBase Graph Listener} implementation
-     * that monitors the triples addition and deletion for the specified {@link O object}.
-     *
-     * @param <O> a subtype of {@link OWLObject}
-     */
-    class Listener<O extends OWLObject> extends GraphListenerBase {
-        private final ObjectTriplesMap<O> store;
-        private final O object;
-
-        Listener(ObjectTriplesMap<O> store, O object) {
-            this.store = store;
-            this.object = object;
-        }
-
-        @Override
-        protected void addEvent(Triple t) {
-            store.register(object, t);
-        }
-
-        @Override
-        protected void deleteEvent(Triple t) {
-            store.unregister(object, t);
-        }
-    }
 }

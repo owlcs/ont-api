@@ -14,8 +14,10 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
+import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -118,16 +120,15 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
     }
 
     /**
-     * Adds the object-triple pair to this map.
-     * If there is no triple-container for the specified object or it is in-memory,
-     * then a triple will be added to the inner set, otherwise appended to existing stream.
-     * <p>
-     * WARNING: Must be called only from listener.
+     * Registers the given object-triple pair into the map.
+     * Note that each object, in general, is associated with many triples, not just one.
+     * If a set of associated triples is incomplete the method {@link #triples(OWLObject)}
+     * may throw a {@link JenaException jena exception}.
+     * WARNING: Must be called only from the {@link Listener listener}.
      *
      * @param key    {@link X} (axiom or annotation)
      * @param triple {@link Triple}
      */
-    @Override
     public void register(X key, Triple triple) {
         this.hasNew = true;
         CachedMap map = getMap();
@@ -139,17 +140,19 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
     }
 
     /**
-     * Removes the object-triple pair from the map.
-     * <p>
-     * WARNING: Must be called only from listener.
-     * Note (1): the operation may broke structure and, therefore,
-     * the method {@link #triples(OWLObject)} may throw {@link JenaException} in this case.
-     * Note (2): seems now this method is unused by the system.
-     *
+     * Unregisters the given object-triple pair from this map.
+     * Both the object and the triple may still be present in the map after this operation.
+     * Impl note: an {@link InternalModel} uses this method only while <b>adding</b> an object.
+     * It seems now this method is almost unused by the system, although such a situation,
+     * when removing triple happens on adding object may still exist,
+     * it depends on Jena and other ONT-API places.
+     * For deleting the method {@link #delete(OWLObject)} is used.
+     * The operation may broke structure and, therefore,
+     * the method {@link #triples(OWLObject)} may throw {@link JenaException Jena Exception} in this case.
+     * WARNING: Must be called only the {@link Listener listener}.
      * @param key    OWLObject (axiom or annotation)
      * @param triple {@link Triple}
      */
-    @Override
     public void unregister(X key, Triple triple) {
         if (!isLoaded()) return;
         CachedMap map = getMap();
@@ -173,6 +176,11 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
                 triplesCache.remove(triple);
             }
         });
+    }
+
+    @Override
+    public GraphListener addListener(X key) {
+        return new Listener<>(this, key);
     }
 
     /**
@@ -200,11 +208,16 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
         map.asCache().clear();
     }
 
+    /**
+     * An internal object-collection
+     * that holds {@code Map} with {@link X OWLObject}-keys and {@code Map} with {@link Triple}-keys,
+     * the last one as {@link java.lang.ref.SoftReference}.
+     */
     protected class CachedMap {
         private final Map<X, ONTObject<X>> objectsCache;
         private final InternalCache.Loading<CachedMap, Map<Triple, Set<X>>> triplesCache;
 
-        CachedMap(Map<X, ONTObject<X>> objectsCache, Map<Triple, Set<X>> triplesCache) {
+        protected CachedMap(Map<X, ONTObject<X>> objectsCache, Map<Triple, Set<X>> triplesCache) {
             this.objectsCache = Objects.requireNonNull(objectsCache);
             this.triplesCache = InternalCache.createSoft(CachedMap::loadMap, true);
             if (triplesCache != null) {
@@ -212,23 +225,23 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
             }
         }
 
-        long size() {
+        protected long size() {
             return objectsCache.size();
         }
 
-        Map<X, ONTObject<X>> getObjects() {
+        protected Map<X, ONTObject<X>> getObjects() {
             return objectsCache;
         }
 
-        boolean hasTriplesMap() {
+        protected boolean hasTriplesMap() {
             return !triplesCache.asCache().isEmpty();
         }
 
-        Map<Triple, Set<X>> getTriples() {
+        protected Map<Triple, Set<X>> getTriples() {
             return triplesCache.get(this);
         }
 
-        private Map<Triple, Set<X>> loadMap() {
+        protected Map<Triple, Set<X>> loadMap() {
             Map<Triple, Set<X>> res = new HashMap<>();
             for (ONTObject<X> v : objectsCache.values()) {
                 try {
@@ -287,6 +300,32 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
         public ONTObject<V> delete(Triple triple) {
             triples.remove(triple);
             return this;
+        }
+    }
+
+    /**
+     * A {@link GraphListenerBase Graph Listener} implementation
+     * that monitors the triples addition and deletion for the specified {@link O object}.
+     *
+     * @param <O> a subtype of {@link OWLObject}
+     */
+    public static class Listener<O extends OWLObject> extends GraphListenerBase {
+        private final ObjectTriplesMapImpl<O> store;
+        private final O object;
+
+        Listener(ObjectTriplesMapImpl<O> store, O object) {
+            this.store = Objects.requireNonNull(store);
+            this.object = Objects.requireNonNull(object);
+        }
+
+        @Override
+        protected void addEvent(Triple t) {
+            store.register(object, t);
+        }
+
+        @Override
+        protected void deleteEvent(Triple t) {
+            store.unregister(object, t);
         }
     }
 

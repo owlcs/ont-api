@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.internal;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
@@ -628,7 +629,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param <O>    type of owl-object
      */
     protected <O extends OWLObject> void add(O object, ObjectTriplesMap<O> store, Consumer<O> writer) {
-        ObjectTriplesMap.Listener<O> listener = ObjectTriplesMap.createListener(store, object);
+        GraphListener listener = store.addListener(object);
         clearObjectsCaches();
         UnionGraph.OntEventManager evm = getGraph().getEventManager();
         try {
@@ -886,7 +887,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     public class DirectListener extends GraphListenerBase {
         private boolean hasObjectListener() {
-            return getGraph().getEventManager().hasListeners(ObjectTriplesMap.Listener.class);
+            return getGraph().getEventManager().hasListeners(ObjectTriplesMapImpl.Listener.class);
         }
 
         private void invalidate() {
@@ -895,7 +896,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         }
 
         /**
-         * If at the moment there is an {@link ObjectTriplesMap.Listener}
+         * If at the moment there is an {@link ObjectTriplesMapImpl.Listener}
          * then it's called from {@link InternalModel#add(OWLAxiom)} =&gt; don't clear cache;
          * otherwise it is direct call and cache must be reset to have correct list of axioms.
          *
