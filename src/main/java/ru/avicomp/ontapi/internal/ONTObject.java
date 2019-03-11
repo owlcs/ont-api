@@ -19,7 +19,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.CollectionGraph;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -35,6 +34,8 @@ import java.util.stream.Stream;
  * An unmodifiable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple triple}s.
  * <p>
  * Created by @szuev on 27.11.2016.
+ *
+ * @param <O> any subtype of {@link OWLObject}
  */
 public abstract class ONTObject<O extends OWLObject> {
     private final O object;
@@ -185,12 +186,8 @@ public abstract class ONTObject<O extends OWLObject> {
      * @see ru.avicomp.ontapi.owlapi.OWLObjectImpl#equals(Object)
      */
     public static <O extends OWLObject> Optional<ONTObject<O>> find(Collection<ONTObject<O>> set, O key) {
-        int h = OntApiException.notNull(key, "null key").hashCode();
-        int t = key.typeIndex();
         return set.stream()
                 .filter(Objects::nonNull)
-                .filter(o -> o.object.typeIndex() == t)
-                .filter(o -> o.hashCode() == h)
                 .filter(o -> key.equals(o.object))
                 .findAny();
     }

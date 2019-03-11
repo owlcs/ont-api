@@ -19,25 +19,26 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
 import java.lang.ref.SoftReference;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * The simplest common Cache Adapter interface for internal use.
  * <p>
  * Also, it is a factory to produce various {@link InternalCache} implementations,
- * and is expected to be the only place in system to access to a particular external caches.
+ * and the only place in system to access to a particular external caches.
  * Currently it includes only two kind of implementations: a LRU {@code LinkedHashMap} based cache,
- * which has the best performance in a single tread environment,
+ * which has the best performance in a single thread environment,
  * and a {@link java.util.concurrent.ConcurrentHashMap} based {@link Cache Caffeine Cache},
  * which has good benchmarks both in multi-thread and single-thread environments.
  * <p>
- * In general case, an implementation of this cache-adapter may not guarantee thread safety.
- * But the upper-system uses R/W lock for any accessors,
- * and, therefore, the data on which this cache should rely does not change in the process of reading,
+ * In general case, an implementation of this cache-adapter may not guarantee full thread safety.
+ * This is optimization for conditions in which this cache is used: the upper-system uses R/W lock for any accessors,
+ * and, therefore, the data on which the cache should rely does not change in the process of reading,
  * whatever single- or multi- thread environment is used it.
- * This fact allows to make some read operations to be simpler and faster,
+ * This fact allows to make some read operations to be simpler and a little bit faster,
  * then it would be with direct use particular caches.
  * <p>
  * Created by @ssz on 18.02.2019.
@@ -80,46 +81,11 @@ public interface InternalCache<K, V> {
     void clear();
 
     /**
-     * Lists all keys.
-     *
-     * @return Stream of {@link K}s
-     */
-    Stream<K> keys();
-
-    /**
-     * Lists all cached values.
-     *
-     * @return Stream of {@link V}s
-     */
-    Stream<V> values();
-
-    /**
-     * Answers {@code true} if for the given {@code key} there is a cached value.
-     *
-     * @param key {@link K}
-     * @return boolean
-     */
-    default boolean contains(K key) {
-        return get(key) != null;
-    }
-
-    /**
-     * Returns the current number of cached keys.
-     *
-     * @return long, the number of keys in this cache (not necessary key-value pairs)
-     */
-    default long size() {
-        return keys().count();
-    }
-
-    /**
      * Answers {@code true} if the cache is empty.
      *
      * @return boolean
      */
-    default boolean isEmpty() {
-        return size() == 0;
-    }
+    boolean isEmpty();
 
     /**
      * Returns the value associated with the {@code key} in this cache,
@@ -200,13 +166,9 @@ public interface InternalCache<K, V> {
             }
 
             @Override
-            public Stream<K> keys() {
-                return Stream.empty();
-            }
-
-            @Override
-            public Stream<V> values() {
-                return Stream.empty();
+            public boolean isEmpty() {
+                // contains everything:
+                return false;
             }
 
             @Override
@@ -221,7 +183,7 @@ public interface InternalCache<K, V> {
      * that wraps either {@link Cache Caffeine} or simple {@link LinkedHashMap} based cache.
      *
      * @param caffeine boolean factor, if {@code true} a caffeine cache will be created,
-     *                 otherwise - a non-thread-safe LHM based cache
+     *                 otherwise - a LHM based cache
      * @param size     int the maximum size of the cache
      * @param <K>      the type of keys maintained by the return cache
      * @param <V>      the type of mapped values
@@ -245,7 +207,7 @@ public interface InternalCache<K, V> {
      *
      * @param loader   a {@link Function}-loaded to obtain a value if it absence in the cache
      * @param caffeine boolean factor, if {@code true} a caffeine cache will be created,
-     *                 otherwise - a non-thread-safe LHM based cache
+     *                 otherwise - a LHM based cache
      * @param size     int the maximum size of the cache
      * @param <K>      the type of keys maintained by the return cache
      * @param <V>      the type of mapped values
@@ -270,7 +232,7 @@ public interface InternalCache<K, V> {
      * that wraps either {@link Cache Caffeine} or simple {@link LinkedHashMap} based cache.
      *
      * @param caffeine boolean factor, if {@code true} a caffeine cache will be created,
-     *                 otherwise - non-thread-safe LHM based cache
+     *                 otherwise - a LHM based cache
      * @param <K>      the type of keys maintained by the return cache
      * @param <V>      the type of mapped values
      * @return {@link InternalCache}
@@ -288,7 +250,7 @@ public interface InternalCache<K, V> {
      *
      * @param loader   a {@link Function}-loaded to obtain a value if it absence in the cache
      * @param caffeine boolean factor, if {@code true} a caffeine cache will be created,
-     *                 otherwise - a non-thread-safe LHM based cache
+     *                 otherwise - a LHM based cache
      * @param <K>      the type of keys maintained by the return cache
      * @param <V>      the type of mapped values
      * @return {@link Loading}
@@ -331,6 +293,7 @@ public interface InternalCache<K, V> {
 
     /**
      * A {@code InternalCache} implementation that wraps a {@code Map} with {@link SoftReference} values.
+     * It is partially synchronized: only read operations are not thread safe.
      *
      * @param <K> the type of keys maintained by this cache
      * @param <V> the type of mapped values
@@ -345,7 +308,9 @@ public interface InternalCache<K, V> {
 
         @Override
         public void put(K key, V value) {
-            map.put(key, new SoftReference<>(value));
+            synchronized (map) {
+                map.put(key, new SoftReference<>(value));
+            }
         }
 
         @Override
@@ -355,45 +320,53 @@ public interface InternalCache<K, V> {
         }
 
         @Override
-        public void clear() {
-            map.clear();
-        }
-
-        @Override
         public void remove(K key) {
-            map.remove(key);
-        }
-
-        @Override
-        public Stream<K> keys() {
-            return map.keySet().stream();
-        }
-
-        @Override
-        public Stream<V> values() {
-            // For unclear reasons the following commented out code in multithreading
-            // leads to a dramatic performance degradation that is similar to livelock.
-            // This demonstrates that the LHM must not be used in parallel.
-                /*return map.values().stream()
-                        .map(v -> v == null ? null : v.get())
-                        .filter(Objects::nonNull);*/
-            ArrayList<V> res = new ArrayList<>(map.size());
-            for (SoftReference<V> s : map.values()) {
-                if (res.size() > map.size()) {
-                    throw new ConcurrentModificationException("Allowed size exceeded: " + map.size());
-                }
-                if (s == null) continue;
-                V v = s.get();
-                if (v == null) continue;
-                res.add(v);
+            synchronized (map) {
+                map.remove(key);
             }
-            res.trimToSize();
-            return res.stream();
+        }
+
+        @Override
+        public void clear() {
+            synchronized (map) {
+                map.clear();
+            }
+        }
+
+        @Override
+        public boolean isEmpty() {
+            if (map.isEmpty()) return true;
+            synchronized (map) {
+                if (map.isEmpty()) return true;
+                for (K k : map.keySet()) {
+                    if (get(k) != null) return false;
+                }
+                return true;
+            }
+        }
+
+        @Override
+        public V get(K key, Function<? super K, ? extends V> mappingFunction) {
+            Objects.requireNonNull(mappingFunction);
+            V res;
+            if ((res = get(key)) != null) {
+                return res;
+            }
+            synchronized (map) {
+                if ((res = get(key)) != null) {
+                    return res;
+                }
+                if ((res = mappingFunction.apply(key)) != null) {
+                    put(key, res);
+                }
+            }
+            return res;
         }
     }
 
     /**
      * A {@code InternalCache} implementations that wraps the standard {@code Map}.
+     * It is partially synchronized: only read operations are not safe.
      *
      * @param <K> the type of keys maintained by this cache
      * @param <V> the type of mapped values
@@ -408,7 +381,9 @@ public interface InternalCache<K, V> {
 
         @Override
         public void put(K key, V value) {
-            map.put(key, value);
+            synchronized (map) {
+                map.put(key, value);
+            }
         }
 
         @Override
@@ -417,28 +392,40 @@ public interface InternalCache<K, V> {
         }
 
         @Override
-        public void clear() {
-            map.clear();
-        }
-
-        @Override
         public void remove(K key) {
-            map.remove(key);
+            synchronized (map) {
+                map.remove(key);
+            }
         }
 
         @Override
-        public Stream<K> keys() {
-            return map.keySet().stream();
+        public void clear() {
+            synchronized (map) {
+                map.clear();
+            }
         }
 
         @Override
-        public Stream<V> values() {
-            return map.values().stream();
+        public boolean isEmpty() {
+            return map.isEmpty();
         }
 
         @Override
-        public boolean contains(K key) {
-            return map.get(key) != null;
+        public V get(K key, Function<? super K, ? extends V> mappingFunction) {
+            Objects.requireNonNull(mappingFunction);
+            V res;
+            if ((res = get(key)) != null) {
+                return res;
+            }
+            synchronized (map) {
+                if ((res = get(key)) != null) {
+                    return res;
+                }
+                if ((res = mappingFunction.apply(key)) != null) {
+                    put(key, res);
+                }
+            }
+            return res;
         }
     }
 
@@ -474,28 +461,13 @@ public interface InternalCache<K, V> {
         }
 
         @Override
-        public void clear() {
-            cache.invalidateAll();
-        }
-
-        @Override
         public void remove(K key) {
             cache.invalidate(key);
         }
 
         @Override
-        public Stream<K> keys() {
-            return cache.asMap().keySet().stream();
-        }
-
-        @Override
-        public Stream<V> values() {
-            return cache.asMap().values().stream();
-        }
-
-        @Override
-        public long size() {
-            return cache.asMap().size();
+        public void clear() {
+            cache.invalidateAll();
         }
 
         @Override

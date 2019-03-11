@@ -113,7 +113,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Ontology ID cache.
      */
     protected OntologyID cachedID;
-
     /**
      * The {@link OWLAxiom}'s cache as immutable {@code Map}.
      */
@@ -146,8 +145,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         // initialization order is important:
         this.config = Objects.requireNonNull(config);
         this.snapshot = config.snapshot();
-        this.cacheFactory = InternalCache.createSoft(x -> factory.get(), true);
-        this.cacheModel = InternalCache.createSoft(x -> createSearchModel(), true);
+        this.cacheFactory = InternalCache.createSoft(x -> factory.get(), config.parallel());
+        this.cacheModel = InternalCache.createSoft(x -> createSearchModel(), config.parallel());
         // for caches use parallel mode to ensure thread-safety fon read operations even for non-concurrent model
         this.objects = InternalCache.createSoft(config.parallel()).asLoading(this::readOWLObjects);
         this.axioms = createAxiomsCacheMap();
@@ -859,10 +858,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected <O extends OWLObject> ObjectTriplesMap<O> createObjectTriplesMap(Class<O> type,
                                                                                Supplier<Iterator<ONTObject<O>>> loader) {
         if (!LOGGER.isDebugEnabled()) {
-            return new ObjectTriplesMapImpl<>(loader);
+            return new ObjectTriplesMapImpl<>(loader, config.parallel());
         }
         OntID id = getID();
-        return new ObjectTriplesMapImpl<O>(loader) {
+        return new ObjectTriplesMapImpl<O>(loader, config.parallel()) {
             @Override
             protected CachedMap loadMap() {
                 Instant start = Instant.now();

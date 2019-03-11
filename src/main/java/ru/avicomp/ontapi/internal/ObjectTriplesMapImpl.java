@@ -50,15 +50,21 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
     // the dangerous of manual added axioms is that the same information can be represented in different ways.
     private volatile boolean hasNew;
 
-    public ObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader) {
+    /**
+     * Constructs a bucket instance.
+     *
+     * @param loader   a {@code Supplier} to load object-triples pairs, not {@code null}
+     * @param parallel if {@code true} use caffeine cache, otherwise LHM based cache
+     */
+    public ObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader, boolean parallel) {
         this.loader = Objects.requireNonNull(loader);
-        this.map = InternalCache.createSoft(ObjectTriplesMapImpl::loadMap, true);
+        this.map = InternalCache.createSoft(ObjectTriplesMapImpl::loadMap, parallel);
     }
 
     protected CachedMap loadMap() {
         this.hasNew = false;
         Iterator<ONTObject<X>> it = loader.get();
-        Map<X, ONTObject<X>> res = new HashMap<>();
+        Map<X, ONTObject<X>> res = createMap();
         while (it.hasNext()) {
             ONTObject<X> v = it.next();
             res.merge(v.getObject(), v, ONTObject::append);
@@ -66,10 +72,26 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
         return new CachedMap(res, null);
     }
 
+    /**
+     * Creates a fresh {@code Map} that is used in caches.
+     *
+     * @param <K> key type
+     * @param <V> value type
+     * @return {@link Map}
+     */
+    protected <K, V> Map<K, V> createMap() {
+        // Iteration over LHM is a little bit faster than iteration over HashMap.
+        // On the other hand LHM requires more memory -
+        // but we don't care about memory since all important things contains in the very Graph
+        // and this is just a temporary storage which is always free for GC.
+        return new LinkedHashMap<>();
+    }
+
     public CachedMap getMap() {
         return map.get(this);
     }
 
+    @Override
     public boolean isLoaded() {
         return !map.asCache().isEmpty();
     }
@@ -214,8 +236,8 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
      * the last one as {@link java.lang.ref.SoftReference}.
      */
     protected class CachedMap {
-        private final Map<X, ONTObject<X>> objectsCache;
-        private final InternalCache.Loading<CachedMap, Map<Triple, Set<X>>> triplesCache;
+        protected final Map<X, ONTObject<X>> objectsCache;
+        protected final InternalCache.Loading<CachedMap, Map<Triple, Set<X>>> triplesCache;
 
         protected CachedMap(Map<X, ONTObject<X>> objectsCache, Map<Triple, Set<X>> triplesCache) {
             this.objectsCache = Objects.requireNonNull(objectsCache);
@@ -242,7 +264,7 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
         }
 
         protected Map<Triple, Set<X>> loadMap() {
-            Map<Triple, Set<X>> res = new HashMap<>();
+            Map<Triple, Set<X>> res = createMap();
             for (ONTObject<X> v : objectsCache.values()) {
                 try {
                     v.triples().forEach(t -> res.computeIfAbsent(t, x -> new HashSet<>()).add(v.getObject()));
@@ -255,27 +277,26 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
         }
     }
 
-
     /**
      * An {@link ONTObject} which holds triples in memory.
      * Used in caches.
      * Note: it is mutable object while the base is immutable.
      *
-     * @param <V>
+     * @param <V> any subtype of {@link OWLObject}
      */
-    private class TripleSet<V extends X> extends ONTObject<V> {
-        private final Set<Triple> triples;
+    protected static class TripleSet<V extends OWLObject> extends ONTObject<V> {
+        protected final Set<Triple> triples;
 
-        TripleSet(V object, Triple t) {
+        protected TripleSet(V object, Triple t) {
             this(object);
             this.triples.add(t);
         }
 
-        TripleSet(V object) { // empty
+        protected TripleSet(V object) { // empty
             this(object, new HashSet<>());
         }
 
-        private TripleSet(V object, Set<Triple> triples) {
+        protected TripleSet(V object, Set<Triple> triples) {
             super(object);
             this.triples = triples;
         }
@@ -310,10 +331,10 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
      * @param <O> a subtype of {@link OWLObject}
      */
     public static class Listener<O extends OWLObject> extends GraphListenerBase {
-        private final ObjectTriplesMapImpl<O> store;
-        private final O object;
+        protected final ObjectTriplesMapImpl<O> store;
+        protected final O object;
 
-        Listener(ObjectTriplesMapImpl<O> store, O object) {
+        protected Listener(ObjectTriplesMapImpl<O> store, O object) {
             this.store = Objects.requireNonNull(store);
             this.object = Objects.requireNonNull(object);
         }
