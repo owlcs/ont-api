@@ -98,13 +98,17 @@ public enum AxiomKey {
      */
     public static AxiomKey get(Class<? extends OWLAxiom> type) {
         for (AxiomKey t : values()) {
-            if (type == t.getAxiomType()) return t;
+            if (type == t.getAxiomClass()) return t;
         }
         throw new OntApiException.IllegalState();
     }
 
+    public AxiomType<? extends OWLAxiom> getAxiomType() {
+        return type;
+    }
+
     @SuppressWarnings("unchecked")
-    public Class<OWLAxiom> getAxiomType() {
+    Class<OWLAxiom> getAxiomClass() {
         return (Class<OWLAxiom>) type.getActualClass();
     }
 

@@ -284,7 +284,7 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
      *
      * @param <V> any subtype of {@link OWLObject}
      */
-    protected static class TripleSet<V extends OWLObject> extends ONTObject<V> {
+    public static class TripleSet<V extends OWLObject> extends ONTObject<V> {
         protected final Set<Triple> triples;
 
         protected TripleSet(V object, Triple t) {

@@ -819,7 +819,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> createAxiomsCacheMap() {
         Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> res = new EnumMap<>(AxiomKey.class);
         for (AxiomKey t : AxiomKey.values()) {
-            res.put(t, createAxiomTriplesMap(t.getAxiomType()));
+            res.put(t, createAxiomTriplesMap(t.getAxiomClass()));
         }
         return Collections.unmodifiableMap(res);
     }
