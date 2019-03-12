@@ -14,15 +14,19 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
+import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.vocabulary.XSD;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
+import ru.avicomp.ontapi.jena.vocabulary.SWRLB;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
@@ -34,9 +38,14 @@ import java.util.Collections;
 public class SWRLModelTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(SWRLModelTest.class);
 
+    private static OntSWRL.Variable getVariable(OntGraphModel m, String localName) {
+        return m.ontObjects(OntSWRL.Variable.class)
+                .filter(r -> localName.equals(r.getLocalName())).findFirst().orElseThrow(AssertionError::new);
+    }
+
     @Test
-    public void testCreateAndListSWRLObjects() {
-        String uri = "http://test.com/swrl";
+    public void testSWRLObjectsOnFreshOntology() {
+        String uri = "http://test.com/swrl-1";
         String ns = uri + "#";
 
         OntGraphModel m = OntModelFactory.createModel()
@@ -89,10 +98,14 @@ public class SWRLModelTest {
         Assert.assertEquals("Incorrect count of SWRL I-Arg", 4,
                 m.ontObjects(OntSWRL.IArg.class).map(String::valueOf).peek(LOGGER::debug).count());
 
+        Assert.assertEquals(1, m.ontObjects(OntSWRL.Builtin.class).peek(x -> LOGGER.debug("Builtin: {}", x)).count());
+
         Assert.assertEquals("Incorrect count of atoms", 4, m.ontObjects(OntSWRL.Atom.class).count());
+        Assert.assertEquals("Incorrect count of unary atoms", 1, m.ontObjects(OntSWRL.Atom.Unary.class).count());
+        Assert.assertEquals("Incorrect count of binary atoms", 2, m.ontObjects(OntSWRL.Atom.Binary.class).count());
         Assert.assertEquals("Incorrect count of variables", 1, m.ontObjects(OntSWRL.Variable.class).count());
         Assert.assertEquals("Incorrect count of SWRL:Imp", 1, m.ontObjects(OntSWRL.Imp.class).count());
-        Assert.assertEquals("Incorrect count of SWRL Objects", 6,
+        Assert.assertEquals("Incorrect count of SWRL Objects", 7,
                 m.ontObjects(OntSWRL.class).peek(x -> LOGGER.debug("SWRL Obj: {}", x)).count());
 
         Assert.assertEquals(4, m.statements(null, RDF.type, SWRL.AtomList)
@@ -102,4 +115,91 @@ public class SWRLModelTest {
                 .count());
     }
 
+    @Test
+    public void testSWRLObjectsOnLoadOntology() {
+        Graph g = ReadWriteUtils.loadResourceAsModel("/owlapi/owlapi/SWRLTest.owl", OntFormat.RDF_XML).getGraph();
+        OntGraphModel m = OntModelFactory.createModel(g);
+
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(1, m.ontObjects(OntSWRL.Imp.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.ObjectProperty.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.DifferentIndividuals.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.DataRange.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.BuiltIn.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.Unary.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.Binary.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Variable.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.IArg.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.DArg.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Arg.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Builtin.class).count());
+        Assert.assertEquals(7, m.ontObjects(OntSWRL.class).count());
+
+        OntSWRL.Imp imp = m.ontObjects(OntSWRL.Imp.class).findFirst().orElseThrow(AssertionError::new);
+        Assert.assertEquals(2, imp.getBodyList().members().count());
+        Assert.assertEquals(1, imp.getHeadList().members().count());
+
+        OntSWRL.Variable x = getVariable(m, "x");
+        OntSWRL.Variable y = getVariable(m, "y");
+        OntSWRL.Variable z = getVariable(m, "z");
+
+        // modify:
+        imp.getBodyList().addFirst(m.createDifferentIndividualsSWRLAtom(x, y));
+        m.createSWRLImp(Collections.emptyList(),
+                Collections.singletonList(m.createDataRangeSWRLAtom(XSD.xdouble.inModel(m).as(OntDT.class), z)));
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(2, m.ontObjects(OntSWRL.Imp.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.ObjectProperty.class).count());
+        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.DifferentIndividuals.class).count());
+        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.DataRange.class).count());
+        Assert.assertEquals(5, m.ontObjects(OntSWRL.Atom.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.BuiltIn.class).count());
+        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.Unary.class).count());
+        Assert.assertEquals(4, m.ontObjects(OntSWRL.Atom.Binary.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Variable.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.IArg.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.DArg.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Arg.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Builtin.class).count());
+        Assert.assertEquals(10, m.ontObjects(OntSWRL.class).count());
+    }
+
+
+    @Test
+    public void testCoreSWRLBuiltins() {
+        String uri = "http://test.com/swrl-2";
+        String ns = uri + "#";
+
+        OntGraphModel m = OntModelFactory.createModel()
+                .setID(uri).getModel()
+                .setNsPrefix("test", ns)
+                .setNsPrefix("swrl", SWRL.NS)
+                .setNsPrefix("swrlb", SWRLB.NS)
+                .setNsPrefixes(OntModelFactory.STANDARD);
+
+        OntSWRL.Variable var1 = m.createSWRLVariable("v1");
+        OntSWRL.Variable var2 = m.createSWRLVariable("v2");
+        OntSWRL.Atom a = m.createBuiltInSWRLAtom(SWRLB.equal,
+                Arrays.asList(m.createTypedLiteral(1d).as(OntSWRL.DArg.class), var1));
+        OntSWRL.Atom b = m.createBuiltInSWRLAtom(SWRLB.add,
+                Arrays.asList(var1, m.createTypedLiteral(2d).as(OntSWRL.DArg.class), var2));
+        OntSWRL.Atom c = m.createBuiltInSWRLAtom(m.getResource(ns + "del"),
+                Arrays.asList(var2, m.createTypedLiteral(2d).as(OntSWRL.DArg.class)));
+
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.BuiltIn.class).count());
+        Assert.assertEquals(1, m.ontObjects(OntSWRL.Builtin.class).count());
+
+        Assert.assertEquals(7, a.spec().peek(x -> LOGGER.debug("1)Spec: {}", x)).count());
+        Assert.assertEquals(9, b.spec().peek(x -> LOGGER.debug("2)Spec: {}", x)).count());
+        Assert.assertEquals(8, c.spec().peek(x -> LOGGER.debug("3)Spec: {}", x)).count());
+
+        Assert.assertEquals(0, a.getPredicate().spec().count());
+        Assert.assertEquals(0, b.getPredicate().spec().count());
+        Assert.assertEquals(1, c.getPredicate().spec().count());
+    }
 }

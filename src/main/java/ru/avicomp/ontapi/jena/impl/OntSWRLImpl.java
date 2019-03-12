@@ -19,7 +19,11 @@ import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -32,6 +36,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -43,17 +48,30 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
-    private static final OntFilter VAR_SWRL_FILTER = OntFilter.URI.and(new OntFilter.HasType(SWRL.Variable));
+    private static final OntFilter VARIABLE_FILTER = OntFilter.URI.and(new OntFilter.HasType(SWRL.Variable));
+    private static final OntFilter BUILTIN_FILTER = (n, g) -> {
+        if (!n.isURI())
+            return false;
+        OntPersonality p = PersonalityModel.asPersonalityModel(g).getOntPersonality();
+        if (p.getBuiltins().get(Builtin.class).contains(n)) {
+            return true;
+        }
+        return Iter.findFirst(g.asGraph().find(n, RDF.Nodes.type, SWRL.Builtin.asNode())).isPresent();
+    };
 
     public static ObjectFactory variableSWRLFactory = Factories.createCommon(
             new OntMaker.WithType(VariableImpl.class, SWRL.Variable),
-            new OntFinder.ByType(SWRL.Variable), VAR_SWRL_FILTER);
+            new OntFinder.ByType(SWRL.Variable), VARIABLE_FILTER);
+
+    public static ObjectFactory builtinWRLFactory = Factories.createCommon(
+            new OntMaker.WithType(BuiltinImpl.class, SWRL.Builtin),
+            new OntFinder.ByType(SWRL.Builtin), BUILTIN_FILTER);
 
     public static ObjectFactory dArgSWRLFactory = Factories.createCommon(DArgImpl.class,
-            OntFinder.ANY_SUBJECT_AND_OBJECT, VAR_SWRL_FILTER.or(LiteralImpl.factory::canWrap));
+            OntFinder.ANY_SUBJECT_AND_OBJECT, VARIABLE_FILTER.or(LiteralImpl.factory::canWrap));
 
     public static ObjectFactory iArgSWRLFactory = Factories.createCommon(IArgImpl.class,
-            OntFinder.ANY_SUBJECT, VAR_SWRL_FILTER.or((n, g) -> PersonalityModel.canAs(OntIndividual.class, n, g)));
+            OntFinder.ANY_SUBJECT, VARIABLE_FILTER.or((n, g) -> PersonalityModel.canAs(OntIndividual.class, n, g)));
 
     public static ObjectFactory abstractArgSWRLFactory = Factories.createFrom(OntFinder.ANY_SUBJECT_AND_OBJECT
             , DArg.class
@@ -89,9 +107,14 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
             , Atom.DifferentIndividuals.class
             , Atom.SameIndividuals.class);
 
-    public static ObjectFactory impSWRLFactory = new SWRLImplFactory();
-    //Factories.createCommon(ImpImpl.class, new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
-
+    public static ObjectFactory abstractBinarySWRLFactory = Factories.createFrom(OntFinder.TYPED
+            , Atom.DataProperty.class
+            , Atom.ObjectProperty.class
+            , Atom.DifferentIndividuals.class
+            , Atom.SameIndividuals.class);
+    public static ObjectFactory abstractUnarySWRLFactory = Factories.createFrom(OntFinder.TYPED
+            , Atom.OntClass.class
+            , Atom.DataRange.class);
     public static ObjectFactory abstractSWRLFactory = Factories.createFrom(OntFinder.TYPED
             , Atom.BuiltIn.class
             , Atom.OntClass.class
@@ -100,8 +123,12 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
             , Atom.ObjectProperty.class
             , Atom.DifferentIndividuals.class
             , Atom.SameIndividuals.class
+            , Builtin.class
             , Variable.class
             , Imp.class);
+
+    public static ObjectFactory impSWRLFactory = new SWRLImplFactory();
+    //Factories.createCommon(ImpImpl.class, new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
 
     private static ObjectFactory makeAtomFactory(Class<? extends AtomImpl> view, Resource type) {
         return Factories.createCommon(new OntMaker.Default(view),
@@ -112,6 +139,18 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         super(n, m);
     }
 
+    public static Builtin fetchBuiltinEntity(OntGraphModelImpl model, String uri) {
+        Builtin res = model.findNodeAs(NodeFactory.createURI(OntJenaException.notNull(uri, "Null uri.")), Builtin.class);
+        if (res == null) {
+            res = createBuiltinEntity(model, uri);
+        }
+        return res;
+    }
+
+    public static Builtin createBuiltinEntity(OntGraphModelImpl model, String uri) {
+        return model.createOntObject(Builtin.class, Objects.requireNonNull(uri));
+    }
+
     public static Variable createVariable(OntGraphModelImpl model, String uri) {
         return model.createOntObject(Variable.class, uri);
     }
@@ -119,15 +158,10 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     public static Atom.BuiltIn createBuiltInAtom(OntGraphModelImpl model,
                                                  Resource predicate,
                                                  Collection<DArg> arguments) {
-        Property property = createBuiltinProperty(model, predicate);
+        Builtin property = fetchBuiltinEntity(model, predicate.getURI());
         OntObject res = model.createResource(SWRL.BuiltinAtom).addProperty(SWRL.builtin, property).as(OntObject.class);
         OntListImpl.create(model, res, SWRL.arguments, null, DArg.class, Iter.create(arguments));
         return model.getNodeAs(res.asNode(), Atom.BuiltIn.class);
-    }
-
-    public static Property createBuiltinProperty(OntGraphModelImpl model, Resource predicate) {
-        // todo: no declaration is needed in case of core builtin (see issue https://github.com/avicomp/ont-api/issues/61)
-        return checkNamed(predicate).inModel(model).addProperty(RDF.type, SWRL.Builtin).as(Property.class);
     }
 
     public static Atom.OntClass createClassAtom(OntGraphModelImpl model, OntCE clazz, IArg arg) {
@@ -211,6 +245,17 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         return model.getNodeAs(res.asNode(), Imp.class);
     }
 
+    public static class BuiltinImpl extends OntSWRLImpl implements Builtin {
+        public BuiltinImpl(Node n, EnhGraph m) {
+            super(n, m);
+        }
+
+        @Override
+        public Class<? extends OntObject> getActualClass() {
+            return Builtin.class;
+        }
+    }
+
     public static class VariableImpl extends OntSWRLImpl implements Variable {
         public VariableImpl(Node n, EnhGraph m) {
             super(n, m);
@@ -255,7 +300,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
     }
 
-    public static abstract class AtomImpl<P extends RDFNode> extends OntSWRLImpl implements Atom<P> {
+    public static abstract class AtomImpl<P extends OntObject> extends OntSWRLImpl implements Atom<P> {
         public AtomImpl(Node n, EnhGraph m) {
             super(n, m);
         }
@@ -268,7 +313,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         public abstract Resource getResourceType();
     }
 
-    public static class BuiltInAtomImpl extends AtomImpl<Resource> implements Atom.BuiltIn {
+    public static class BuiltInAtomImpl extends AtomImpl<Builtin> implements Atom.BuiltIn {
         public BuiltInAtomImpl(Node n, EnhGraph m) {
             super(n, m);
         }
@@ -279,8 +324,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public Resource getPredicate() { // should be uri
-            return getRequiredObject(SWRL.builtin, Resource.class);
+        public Builtin getPredicate() {
+            return getRequiredObject(SWRL.builtin, Builtin.class);
         }
 
         @Override
@@ -290,11 +335,9 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         public Stream<OntStatement> predicateStatements() {
-            OntStatement s = getRequiredProperty(SWRL.builtin);
-            // todo: it may absent (see issue https://github.com/avicomp/ont-api/issues/61)
-            Optional<OntStatement> a = getModel().statements(s.getResource(), RDF.type, SWRL.Builtin)
-                    .findFirst();
-            return a.map(x -> Stream.of(x, s)).orElseGet(() -> Stream.of(s));
+            OntStatement p = getRequiredProperty(SWRL.builtin);
+            OntStatement b = getPredicate().getRoot();
+            return b == null ? Stream.of(p) : Stream.of(p, b);
         }
 
         @Override
@@ -368,7 +411,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
     }
 
-    public static abstract class BinaryImpl<O extends Resource, F extends Arg, S extends Arg> extends AtomImpl<O> implements Atom.Binary<O, F, S> {
+    public static abstract class BinaryImpl<O extends OntObject, F extends Arg, S extends Arg> extends AtomImpl<O> implements Atom.Binary<O, F, S> {
         protected final Property predicate;
         private final Class<O> objectType;
         private final Class<F> firstArgType;

@@ -51,7 +51,7 @@ interface Vocabulary<T extends Resource> {
      *
      * @see OntEntity#types()
      */
-    interface Entities extends Vocabulary<OntEntity> {
+    interface Entities extends Vocabulary<OntObject> {
 
         default Set<Node> getClasses() {
             return get(OntClass.class);

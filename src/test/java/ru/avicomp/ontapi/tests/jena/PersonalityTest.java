@@ -142,7 +142,7 @@ public class PersonalityTest {
             OntPersonality.Punnings base = OntModelConfig.ONT_PERSONALITY_STRICT.getPunnings();
 
             @Override
-            public Set<Node> get(Class<? extends OntEntity> type) throws OntJenaException {
+            public Set<Node> get(Class<? extends OntObject> type) throws OntJenaException {
                 if (OntIndividual.Named.class.equals(type)) {
                     return expand(type, OWL.Class, RDFS.Datatype);
                 }
@@ -152,7 +152,7 @@ public class PersonalityTest {
                 return base.get(type);
             }
 
-            private Set<Node> expand(Class<? extends OntEntity> type, Resource... additional) {
+            private Set<Node> expand(Class<? extends OntObject> type, Resource... additional) {
                 Set<Node> res = new HashSet<>(base.get(type));
                 Arrays.stream(additional).forEach(t -> res.add(t.asNode()));
                 return Collections.unmodifiableSet(res);
@@ -313,10 +313,10 @@ public class PersonalityTest {
         OntPersonality res = PersonalityBuilder.from(from)
                 .add(OntIndividual.Named.class, factory)
                 .build();
-        Assert.assertEquals(93, res.types().count());
+        Assert.assertEquals(96, res.types().count());
         List<Class<? extends OntObject>> objects = res.types(OntObject.class).collect(Collectors.toList());
         List<Class<? extends OntEntity>> entities = res.types(OntEntity.class).collect(Collectors.toList());
-        Assert.assertEquals(83, objects.size());
+        Assert.assertEquals(86, objects.size());
         Assert.assertEquals(8, entities.size());
         return res;
     }

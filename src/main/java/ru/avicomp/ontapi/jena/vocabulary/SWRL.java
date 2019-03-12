@@ -25,6 +25,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
  * Created by szuev on 20.10.2016.
  * @see <a href='https://www.w3.org/Submission/SWRL/swrl.rdf'>SWRL schema</a>
  * @see org.semanticweb.owlapi.vocab.SWRLVocabulary
+ * @see SWRLB
  */
 public class SWRL {
     public final static String URI = "http://www.w3.org/2003/11/swrl";
@@ -59,4 +60,5 @@ public class SWRL {
     protected static Property property(String local) {
         return ResourceFactory.createProperty(NS + local);
     }
+
 }

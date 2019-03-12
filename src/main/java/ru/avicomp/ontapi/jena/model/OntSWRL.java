@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 
 import java.util.stream.Stream;
@@ -61,7 +60,20 @@ public interface OntSWRL extends OntObject {
         }
     }
 
-    interface Variable extends OntSWRL {
+    /**
+     * Represents {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#Builtin} entity.
+     * Must be an URI {@link Resource}.
+     * Do not confuse with {@link Atom.BuiltIn BuiltIn Atom}!
+     *
+     * @since 1.4.0
+     */
+    interface Builtin extends OntSWRL {
+    }
+
+    /**
+     * Represents {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#Variable} entity.
+     */
+    interface Variable extends OntSWRL, DArg, IArg {
     }
 
     /**
@@ -84,7 +96,7 @@ public interface OntSWRL extends OntObject {
     interface IArg extends Arg {
     }
 
-    interface Atom<P extends RDFNode> extends OntSWRL {
+    interface Atom<P extends OntObject> extends OntSWRL {
 
         /**
          * Returns the atom predicate, which can be one of the following:
@@ -101,7 +113,7 @@ public interface OntSWRL extends OntObject {
          */
         Stream<? extends Arg> arguments();
 
-        interface BuiltIn extends Atom<Resource> {
+        interface BuiltIn extends Atom<Builtin> {
             /**
              * Gets the argument's ONT-List.
              * Note that the returned list is <b>not</b> expected to be typed,
@@ -137,7 +149,7 @@ public interface OntSWRL extends OntObject {
         interface SameIndividuals extends Binary<OntNOP, IArg, IArg> {
         }
 
-        interface Binary<P extends Resource, F extends Arg, S extends Arg> extends Atom<P> {
+        interface Binary<P extends OntObject, F extends Arg, S extends Arg> extends Atom<P> {
             F getFirstArg();
 
             S getSecondArg();
@@ -148,7 +160,7 @@ public interface OntSWRL extends OntObject {
             }
         }
 
-        interface Unary<P extends Resource, A extends Arg> extends Atom<P> {
+        interface Unary<P extends OntObject, A extends Arg> extends Atom<P> {
             A getArg();
 
             @Override

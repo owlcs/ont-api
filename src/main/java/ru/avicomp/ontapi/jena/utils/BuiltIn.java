@@ -24,10 +24,7 @@ import org.apache.jena.vocabulary.DC;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.SKOS;
 import ru.avicomp.ontapi.jena.OntJenaException;
-import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import ru.avicomp.ontapi.jena.vocabulary.SWRL;
-import ru.avicomp.ontapi.jena.vocabulary.XSD;
+import ru.avicomp.ontapi.jena.vocabulary.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -49,15 +46,26 @@ public class BuiltIn {
     public static final Vocabulary OWL_VOCABULARY = new OWLVocabulary();
     public static final Vocabulary DC_VOCABULARY = new DCVocabulary();
     public static final Vocabulary SKOS_VOCABULARY = new SKOSVocabulary();
+    public static final Vocabulary SWRL_VOCABULARY = new SWRLVocabulary();
     public static final Vocabulary OWL_SKOS_DC_VOCABULARY = MultiVocabulary.create(OWL_VOCABULARY,
-            DC_VOCABULARY, SKOS_VOCABULARY);
+            DC_VOCABULARY, SKOS_VOCABULARY, SWRL_VOCABULARY);
 
     protected static Vocabulary defaultVocabulary = OWL_SKOS_DC_VOCABULARY;
 
+    /**
+     * Gets a system-wide vocabulary.
+     *
+     * @return {@link Vocabulary}
+     */
     public static Vocabulary get() {
         return defaultVocabulary;
     }
 
+    /**
+     * Sets a new system-wide vocabulary.
+     * @param vocabulary {@link Vocabulary}, not {@code null}
+     * @return {@link Vocabulary}
+     */
     public static Vocabulary set(Vocabulary vocabulary) {
         Vocabulary prev = get();
         defaultVocabulary = OntJenaException.notNull(vocabulary, "Null vocabulary specified.");
@@ -88,30 +96,81 @@ public class BuiltIn {
         }
     }
 
-    protected static <T> Set<T> getConstants(Class<T> type, Class... vocabularies) {
+    protected static <T> Set<T> getConstants(Class<? extends T> type, Class... vocabularies) {
         return Arrays.stream(vocabularies)
                 .map(voc -> constants(voc, type)).flatMap(Function.identity()).collect(Iter.toUnmodifiableSet());
     }
 
     /**
      * The point to access to the built-in resources and properties.
+     * All methods must return unmodifiable collections.
      * <p>
      * Created by @szuev on 04.04.2017.
      */
     public interface Vocabulary {
 
+        /**
+         * Returns a collection of all built-in properties
+         * with implicit {@code rdf:type} equal to {@link OWL#AnnotationProperty owl:AnnotationProperty}.
+         *
+         * @return {@code Set} of {@link Property Properties}
+         */
         Set<Property> annotationProperties();
 
+        /**
+         * Returns a collection of all built-in properties
+         * with implicit {@code rdf:type} equal to {@link OWL#DatatypeProperty owl:DatatypeProperty}.
+         *
+         * @return {@code Set} of {@link Property Properties}
+         */
         Set<Property> datatypeProperties();
 
+        /**
+         * Returns a collection of all built-in properties
+         * with implicit {@code rdf:type} equal to {@link OWL#ObjectProperty owl:ObjectProperty}.
+         *
+         * @return {@code Set} of {@link Property Properties}
+         */
         Set<Property> objectProperties();
 
+        /**
+         * Returns a collection of all built-in uri-resources
+         * with implicit {@code rdf:type} equal to {@link RDFS#Datatype rdfs:Datatype}.
+         *
+         * @return {@code Set} of {@link Resource Resources}
+         */
         Set<Resource> datatypes();
 
+        /**
+         * Returns a collection of all built-in uri resources
+         * with implicit {@code rdf:type} equal to {@link OWL#Class owl:Class}.
+         *
+         * @return {@code Set} of {@link Resource Resources}
+         */
         Set<Resource> classes();
 
+        /**
+         * Returns a collection of all built-in uri resources
+         * with implicit {@code rdf:type} equal to {@link SWRL#Builtin swrl:Builtin}.
+         *
+         * @return {@code Set} of {@link Resource Resources}
+         */
+        default Set<Resource> swrlBuiltins() {
+            return Collections.emptySet();
+        }
+
+        /**
+         * Returns all reserved resources:
+         * OWL entities can not have an uri belonging to the return collection.
+         * @return {@code Set} of {@link Resource Resources}
+         */
         Set<Resource> reservedResources();
 
+        /**
+         * Returns all reserved properties:
+         * OWL2 ontology can not contain assertion with predicate belonging to the return collection.
+         * @return {@code Set} of {@link Property Properties}
+         */
         Set<Property> reservedProperties();
 
         default Set<Resource> reserved() {
@@ -131,11 +190,52 @@ public class BuiltIn {
     }
 
     /**
+     * Empty Vocabulary.
+     */
+    public static class Empty implements Vocabulary {
+
+        @Override
+        public Set<Property> annotationProperties() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Property> datatypeProperties() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Property> objectProperties() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Resource> datatypes() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Resource> classes() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Resource> reservedResources() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Property> reservedProperties() {
+            return Collections.emptySet();
+        }
+    }
+
+    /**
      * Access to the {@link OWL OWL2} vocabulary.
      */
     @SuppressWarnings("WeakerAccess")
     public static class OWLVocabulary implements Vocabulary {
-        private static final Class[] VOCABULARIES = new Class[]{XSD.class, RDF.class, RDFS.class, OWL.class, SWRL.class};
+        private static final Class[] VOCABULARIES = new Class[]{XSD.class, RDF.class, RDFS.class, OWL.class};
         public static final Set<Property> ALL_PROPERTIES = getConstants(Property.class, VOCABULARIES);
         public static final Set<Resource> ALL_RESOURCES = getConstants(Resource.class, VOCABULARIES);
         /**
@@ -230,47 +330,6 @@ public class BuiltIn {
     }
 
     /**
-     * Empty Vocabulary.
-     */
-    public static class Empty implements Vocabulary {
-
-        @Override
-        public Set<Property> annotationProperties() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Property> datatypeProperties() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Property> objectProperties() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Resource> datatypes() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Resource> classes() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Resource> reservedResources() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Property> reservedProperties() {
-            return Collections.emptySet();
-        }
-    }
-
-    /**
      * Access to {@link SKOS} vocabulary.
      */
     @SuppressWarnings("WeakerAccess")
@@ -332,6 +391,34 @@ public class BuiltIn {
     }
 
     /**
+     * For SWRL modeling.
+     *
+     * @see SWRL
+     * @see SWRLB
+     */
+    public static class SWRLVocabulary extends Empty implements Vocabulary {
+        private static final Class[] VOCABULARIES = new Class[]{SWRL.class, SWRLB.class};
+        public static final Set<Property> ALL_PROPERTIES = getConstants(Property.class, VOCABULARIES);
+        public static final Set<Resource> ALL_RESOURCES = getConstants(Resource.class, VOCABULARIES);
+        public static final Set<Resource> BUILTINS = getConstants(Property.class, SWRLB.class);
+
+        @Override
+        public Set<Resource> swrlBuiltins() {
+            return BUILTINS;
+        }
+
+        @Override
+        public Set<Resource> reservedResources() {
+            return ALL_RESOURCES;
+        }
+
+        @Override
+        public Set<Property> reservedProperties() {
+            return ALL_PROPERTIES;
+        }
+    }
+
+    /**
      * The union vocabulary which consists from several other vocabularies.
      */
     @SuppressWarnings("WeakerAccess")
@@ -353,6 +440,10 @@ public class BuiltIn {
 
         protected <R extends Resource> Set<R> merge(Function<Vocabulary, Set<R>> map) {
             return vocabularies.stream().map(map).flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
+        }
+
+        public boolean contains(Vocabulary voc) {
+            return vocabularies.contains(voc);
         }
 
         @Override
@@ -381,6 +472,11 @@ public class BuiltIn {
         @Override
         public Set<Resource> classes() {
             return classes == null ? classes = merge(Vocabulary::classes) : classes;
+        }
+
+        @Override
+        public Set<Resource> swrlBuiltins() {
+            return swrlBuiltins == null ? swrlBuiltins = merge(Vocabulary::swrlBuiltins) : swrlBuiltins;
         }
 
         @Override
@@ -421,12 +517,15 @@ public class BuiltIn {
         protected Set<Property> annotationProperties;
         protected Set<Property> datatypeProperties;
         protected Set<Property> objectProperties;
-        protected Set<Property> properties;
         protected Set<Resource> datatypes;
         protected Set<Resource> classes;
-        protected Set<Resource> entities;
-        protected Set<Resource> reserved;
 
+        protected Set<Resource> swrlBuiltins;
+
+        protected Set<Property> properties;
+        protected Set<Resource> entities;
+
+        protected Set<Resource> reserved;
         protected Set<Resource> reservedResources;
         protected Set<Property> reservedProperties;
     }

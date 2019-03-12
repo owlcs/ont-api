@@ -120,7 +120,11 @@ public class ReadWriteUtils {
     }
 
     public static Model loadResourceTTLFile(String file) {
-        return load(getResourceURI(file), null);
+        return loadResourceAsModel(file, null);
+    }
+
+    public static Model loadResourceAsModel(String file, OntFormat f) {
+        return load(getResourceURI(file), f);
     }
 
     public static Model loadOutTTLFile(String file) {

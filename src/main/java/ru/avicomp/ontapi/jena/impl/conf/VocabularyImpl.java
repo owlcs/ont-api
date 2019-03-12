@@ -53,7 +53,7 @@ abstract class VocabularyImpl<T extends Resource> implements Vocabulary<T> {
         return res;
     }
 
-    static class EntitiesImpl extends VocabularyImpl<OntEntity> implements OntPersonality.Builtins, OntPersonality.Punnings {
+    static class EntitiesImpl extends VocabularyImpl<OntObject> implements OntPersonality.Builtins, OntPersonality.Punnings {
         private Set<Node> classes;
         private Set<Node> datatypes;
         private Set<Node> objectProperties;
@@ -62,7 +62,7 @@ abstract class VocabularyImpl<T extends Resource> implements Vocabulary<T> {
         private Set<Node> allProperties;
         private Set<Node> individuals;
 
-        EntitiesImpl(Map<Class<? extends OntEntity>, Set<Node>> map) {
+        EntitiesImpl(Map<Class<? extends OntObject>, Set<Node>> map) {
             super(map);
         }
 

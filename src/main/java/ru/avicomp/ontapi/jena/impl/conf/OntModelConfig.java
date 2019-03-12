@@ -164,6 +164,7 @@ public class OntModelConfig {
 
             // SWRL objects:
             .add(OntSWRL.Variable.class, OntSWRLImpl.variableSWRLFactory)
+            .add(OntSWRL.Builtin.class, OntSWRLImpl.builtinWRLFactory)
             .add(OntSWRL.IArg.class, OntSWRLImpl.iArgSWRLFactory)
             .add(OntSWRL.DArg.class, OntSWRLImpl.dArgSWRLFactory)
             .add(OntSWRL.Arg.class, OntSWRLImpl.abstractArgSWRLFactory)
@@ -174,9 +175,11 @@ public class OntModelConfig {
             .add(OntSWRL.Atom.DataProperty.class, OntSWRLImpl.dataValuedAtomSWRLFactory)
             .add(OntSWRL.Atom.DifferentIndividuals.class, OntSWRLImpl.differentIndividualsAtomSWRLFactory)
             .add(OntSWRL.Atom.SameIndividuals.class, OntSWRLImpl.sameIndividualsAtomSWRLFactory)
+            .add(OntSWRL.Atom.Unary.class, OntSWRLImpl.abstractUnarySWRLFactory)
+            .add(OntSWRL.Atom.Binary.class, OntSWRLImpl.abstractBinarySWRLFactory)
             .add(OntSWRL.Atom.class, OntSWRLImpl.abstractAtomSWRLFactory)
-            .add(OntSWRL.Imp.class, OntSWRLImpl.impSWRLFactory)
-            .add(OntSWRL.class, OntSWRLImpl.abstractSWRLFactory);
+            .add(OntSWRL.class, OntSWRLImpl.abstractSWRLFactory)
+            .add(OntSWRL.Imp.class, OntSWRLImpl.impSWRLFactory);
 
     /**
      * Returns the standard jena {@link Personality} as modifiable copy.
@@ -192,7 +195,7 @@ public class OntModelConfig {
 
     /**
      * Returns a fresh copy of {@link PersonalityBuilder} with {@code 93} resource factories inside
-     * ({@code 10} standard + {@code 83} ontological).
+     * ({@code 10} standard + {@code 86} ontological).
      * The returned instance contains everything needed, and can be modified to build a new {@link OntPersonality}.
      *
      * @return {@link PersonalityBuilder}
@@ -289,12 +292,13 @@ public class OntModelConfig {
      */
     public static OntPersonality.Builtins createBuiltinsVocabulary(BuiltIn.Vocabulary voc) {
         Objects.requireNonNull(voc);
-        Map<Class<? extends OntEntity>, Set<Node>> res = new HashMap<>();
+        Map<Class<? extends OntObject>, Set<Node>> res = new HashMap<>();
         res.put(OntNAP.class, Iter.asUnmodifiableNodeSet(voc.annotationProperties()));
         res.put(OntNDP.class, Iter.asUnmodifiableNodeSet(voc.datatypeProperties()));
         res.put(OntNOP.class, Iter.asUnmodifiableNodeSet(voc.objectProperties()));
         res.put(OntDT.class, Iter.asUnmodifiableNodeSet(voc.datatypes()));
         res.put(OntClass.class, Iter.asUnmodifiableNodeSet(voc.classes()));
+        res.put(OntSWRL.Builtin.class, Iter.asUnmodifiableNodeSet(voc.swrlBuiltins()));
         res.put(OntIndividual.Named.class, Collections.emptySet());
         return new VocabularyImpl.EntitiesImpl(res);
     }
@@ -321,7 +325,7 @@ public class OntModelConfig {
      * @return {@link OntPersonality.Punnings}
      */
     private static OntPersonality.Punnings createPunningsVocabulary(OntModelConfig.StdMode mode) {
-        Map<Class<? extends OntEntity>, Set<Node>> res = new HashMap<>();
+        Map<Class<? extends OntObject>, Set<Node>> res = new HashMap<>();
         if (!StdMode.LAX.equals(mode)) {
             toMap(res, OntClass.class, RDFS.Datatype);
             toMap(res, OntDT.class, OWL.Class);
