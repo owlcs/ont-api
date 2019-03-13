@@ -164,7 +164,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link InternalConfig}
      */
     public static InternalConfig getConfig(OntGraphModel model) {
-        return model instanceof InternalModel ? ((InternalModel) model).getInternalConfig() : InternalConfig.DEFAULT;
+        return model instanceof InternalModel ? ((InternalModel) model).getSnapshotConfig() : InternalConfig.DEFAULT;
     }
 
     /**

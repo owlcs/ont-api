@@ -30,10 +30,12 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
-import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.InternalCache;
+import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
-import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 
 import javax.annotation.Nonnull;
@@ -46,7 +48,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -66,8 +67,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     protected final ListenersHolder listeners = new ListenersHolder();
     // configs:
     protected OntConfig config;
-    protected transient OntLoaderConfiguration loaderConfig;
-    protected transient OntWriterConfiguration writerConfig;
+    protected OntLoaderConfiguration loaderConfig;
+    protected OntWriterConfiguration writerConfig;
     // Loading Cache for IRIs, that is shared between ontologies that belong to this manager.
     protected transient InternalCache.Loading<String, IRI> iris;
     // OntologyFactory collection:
@@ -173,6 +174,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * Gets a manager's configuration.
      * @return {@link OntConfig}
      */
     @Override
@@ -186,6 +188,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * Sets a manager's configuration.
      * @param conf {@link OntologyConfigurator}
      */
     @Override
@@ -212,21 +215,18 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().writeLock().lock();
         try {
             OntLoaderConfiguration config = OWLAdapter.get().asONT(conf);
-            OntLoaderConfiguration was = this.loaderConfig;
-            if (Objects.equals(was, config)) return;
-            boolean hasChanges = ModelConfig.hasChanges(was, config);
-            this.loaderConfig = config;
             content.values()
-                    .filter(i -> i.getModelConfig().hasPersonalLoaderConfig() ?
-                            i.getModelConfig().hasChanges(config) : hasChanges)
-                    .map(OntInfo::get) // todo: it is no need to clear a whole cache
+                    .filter(x -> x.getModelConfig().hasChanges(config))
+                    .map(OntInfo::get)
                     .forEach(OntologyModel::clearCache);
+            this.loaderConfig = config;
         } finally {
             getLock().writeLock().unlock();
         }
     }
 
     /**
+     * Gets a manager's loader configuration.
      * @return {@link OntLoaderConfiguration}
      */
     @Override
@@ -240,7 +240,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Sets {@link OWLOntologyWriterConfiguration} config to the manager and also passes it inside interior models.
+     * Sets {@link OWLOntologyWriterConfiguration writer config} to the manager and also passes it inside interior models.
      *
      * @param conf {@link OWLOntologyWriterConfiguration}
      */
@@ -256,6 +256,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * Gets a manager's writer configuration.
      * @return {@link OntWriterConfiguration}
      */
     @Override
@@ -1767,8 +1768,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     @SuppressWarnings("JavadocReference")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        this.loaderConfig = (OntLoaderConfiguration) in.readObject();
-        this.writerConfig = (OntWriterConfiguration) in.readObject();
         this.iris = createIRICache();
         this.content.values().forEach(info -> {
             ModelConfig conf = info.getModelConfig();
@@ -1780,21 +1779,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                             .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);
             imports.forEach(baseGraph::addGraph);
-            InternalModel baseModel = InternalModelHolder.createInternalModel(baseGraph, conf);
+            InternalModel baseModel = conf.createInternalModel(baseGraph);
             m.setBase(baseModel);
         });
-    }
-
-    /**
-     * A companion for {@link #readObject(ObjectInputStream)}.
-     *
-     * @param out {@link ObjectInputStream}
-     * @throws IOException exception
-     */
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeObject(getOntologyLoaderConfiguration());
-        out.writeObject(getOntologyWriterConfiguration());
     }
 
     /**
@@ -2146,133 +2133,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
                 return OntologyManagerImpl.this.content.keys().filter(i -> i.matchOntology(iri)).count() == 1;
             }
             return Objects.equals(declaration, this.documentIRI);
-        }
-    }
-
-    /**
-     * The implementation of {@link InternalConfig} that has a reference to the manager inside.
-     * This is need in order to provide access to the manager's settings.
-     *
-     * @see OWLOntologyLoaderConfiguration
-     * @see OWLOntologyWriterConfiguration
-     */
-    public static class ModelConfig implements InternalConfig, Serializable {
-        private static final long serialVersionUID = 3681978037818003272L;
-        protected OntLoaderConfiguration modelLoaderConf;
-        protected OntWriterConfiguration modelWriterConf;
-        protected OntologyManagerImpl manager;
-
-        public ModelConfig(OntologyManagerImpl m) {
-            this.manager = Objects.requireNonNull(m);
-        }
-
-        public OntologyManagerImpl getManager() {
-            return manager;
-        }
-
-        public OntologyManagerImpl setManager(OntologyManagerImpl other) {
-            OntologyManagerImpl res = this.manager;
-            this.manager = other;
-            return res;
-        }
-
-        public boolean hasPersonalLoaderConfig() {
-            return modelLoaderConf != null;
-        }
-
-        public void setLoaderConf(OntLoaderConfiguration conf) {
-            if (Objects.equals(getLoaderConfig(), conf)) return;
-            this.modelLoaderConf = conf;
-        }
-
-        /**
-         * Returns loader-configuration settings,
-         * which can be global (belong to the manager) or specific to the ontology instance.
-         *
-         * @return {@link OntLoaderConfiguration}, not {@code null}
-         */
-        public OntLoaderConfiguration getLoaderConfig() {
-            return this.modelLoaderConf == null ? manager.getOntologyLoaderConfiguration() : this.modelLoaderConf;
-        }
-
-        /**
-         * Returns writer-configuration settings,
-         * which can be global (belong to the manager) or specific to the ontology instance.
-         *
-         * @return {@link OntWriterConfiguration}, not {@code null}
-         */
-        public OntWriterConfiguration getWriterConfig() {
-            return this.modelWriterConf == null ? manager.getOntologyWriterConfiguration() : this.modelWriterConf;
-        }
-
-        public Supplier<InternalObjectFactory> getObjectFactory() {
-            return () -> new CacheObjectFactory(manager.getOWLDataFactory()
-                    , () -> InternalCache.createBounded(manager.isConcurrent(), CacheObjectFactory.CACHE_SIZE)
-                    , manager.iris) {
-            };
-        }
-
-        public OntPersonality getPersonality() {
-            return getLoaderConfig().getPersonality();
-        }
-
-        @Override
-        public boolean isLoadAnnotationAxioms() {
-            return getLoaderConfig().isLoadAnnotationAxioms();
-        }
-
-        @Override
-        public boolean isAllowBulkAnnotationAssertions() {
-            return getLoaderConfig().isAllowBulkAnnotationAssertions();
-        }
-
-        @Override
-        public boolean isIgnoreAnnotationAxiomOverlaps() {
-            return getLoaderConfig().isIgnoreAnnotationAxiomOverlaps();
-        }
-
-        @Override
-        public boolean isAllowReadDeclarations() {
-            return getLoaderConfig().isAllowReadDeclarations();
-        }
-
-        @Override
-        public boolean isSplitAxiomAnnotations() {
-            return getLoaderConfig().isSplitAxiomAnnotations();
-        }
-
-        @Override
-        public boolean isIgnoreAxiomsReadErrors() {
-            return getLoaderConfig().isIgnoreAxiomsReadErrors();
-        }
-
-        @Override
-        public boolean parallel() {
-            return manager.isConcurrent();
-        }
-
-        public boolean hasChanges(OntLoaderConfiguration other) {
-            return hasChanges(getLoaderConfig(), other);
-        }
-
-        /**
-         * Answers whether the specified configs are different in the settings concerning axioms reading.
-         *
-         * @param left  {@link OntLoaderConfiguration}, can be {@code null}
-         * @param right {@link OntLoaderConfiguration}, can be {@code null}
-         * @return {@code true} if configs have equivalent axioms settings
-         */
-        public static boolean hasChanges(OntLoaderConfiguration left, OntLoaderConfiguration right) {
-            if (left == null && right != null) return true;
-            if (left != null && right == null) return true;
-            if (left == right)
-                return false;
-            if (left.isLoadAnnotationAxioms() != right.isLoadAnnotationAxioms()) return true;
-            if (left.isAllowBulkAnnotationAssertions() != right.isAllowBulkAnnotationAssertions()) return true;
-            if (left.isIgnoreAnnotationAxiomOverlaps() != right.isIgnoreAnnotationAxiomOverlaps()) return true;
-            if (left.isAllowReadDeclarations() != right.isAllowReadDeclarations()) return true;
-            if (left.isSplitAxiomAnnotations() != right.isSplitAxiomAnnotations()) return true;
-            return left.isIgnoreAxiomsReadErrors() != right.isIgnoreAxiomsReadErrors();
         }
     }
 

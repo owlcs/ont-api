@@ -61,8 +61,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
 
     protected int hashCode;
 
-    protected OntBaseModelImpl(Graph graph, OntologyManagerImpl.ModelConfig conf) {
-        this.base = InternalModelHolder.createInternalModel(graph, conf);
+    protected OntBaseModelImpl(Graph graph, ModelConfig conf) {
+        this.base = conf.createInternalModel(graph);
     }
 
     @Override
@@ -75,8 +75,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
         base = Objects.requireNonNull(m);
     }
 
-    public OntologyManagerImpl.ModelConfig getConfig() {
-        return (OntologyManagerImpl.ModelConfig) base.getConfig();
+    public ModelConfig getConfig() {
+        return (ModelConfig) base.getConfig();
     }
 
     @Override

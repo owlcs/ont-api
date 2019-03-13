@@ -15,8 +15,8 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.graph.Graph;
+import ru.avicomp.ontapi.ModelConfig;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OntologyManagerImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  * A technical interface-helper that serves as a bridge between {@link ru.avicomp.ontapi.jena.model.OntGraphModel Jena RDF model} and
  * {@link org.semanticweb.owlapi.model.OWLOntology OWLAPI ontology} through the {@link InternalModel} on the one hand,
  * and between all these things and {@link org.semanticweb.owlapi.model.OWLOntologyManager OWLAPI manager}
- * through the {@link ru.avicomp.ontapi.OntologyManagerImpl.ModelConfig} on the other hand.
+ * through the {@link ModelConfig} on the other hand.
  * Also, it is a collection of factory-methods to produce various {@link InternalModel} instances.
  * Note: this is an internal mechanism that can be changed at any time.
  * <p>
@@ -37,20 +37,6 @@ public interface InternalModelHolder {
     InternalModel getBase();
 
     void setBase(InternalModel m);
-
-    /**
-     * A factory method to create {@link InternalModel} instance based on {@link OntologyManagerImpl.ModelConfig} settings.
-     *
-     * @param graph {@link Graph}, not {@code null}
-     * @param conf  {@link OntologyManagerImpl.ModelConfig}, not {@code null}
-     * @return {@link InternalModel}
-     */
-    static InternalModel createInternalModel(Graph graph, OntologyManagerImpl.ModelConfig conf) {
-        return createInternalModel(graph,
-                OntApiException.notNull(conf, "Null conf.").getPersonality(),
-                conf.getObjectFactory(),
-                conf);
-    }
 
     /**
      * A factory method to create {@link InternalModel} instance with default settings.

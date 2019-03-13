@@ -58,9 +58,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      * To construct an ontology based on the given graph.
      *
      * @param graph  {@link Graph}
-     * @param config {@link OntologyManagerImpl.ModelConfig}
+     * @param config {@link ModelConfig}
      */
-    protected OntologyModelImpl(Graph graph, OntologyManagerImpl.ModelConfig config) {
+    protected OntologyModelImpl(Graph graph, ModelConfig config) {
         super(graph, config);
     }
 
