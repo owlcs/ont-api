@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An object that maps {@link OWLObject}s, considered as keys, to {@link Triple}s.
+ * An object that maps {@link OWLObject}s, considered as keys, to {@link Triple}s collection.
  * A map cannot contain duplicate or {@code null} keys.
  * It is a loading map: it may contain both manually added pairs or loaded by an internal process,
  * which relies on a {@link org.apache.jena.graph.Graph}.

@@ -27,12 +27,12 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * An auxiliary class-container to provide
+ * An auxiliary class-container (bucket) to provide
  * a common way for working with {@link OWLObject}s and {@link Triple}s all together.
  * It is logically based on the {@link ONTObject} container,
- * which is a wrapper around {@link OWLObject OWLObject}
- * with the reference to get all associated {@link Triple RDF triple}s.
- * This class is used by the {@link InternalModel Internal Model} cache as indivisible bucket.
+ * that is a wrapper around classic {@link OWLObject OWLObject}
+ * but with a possibility to get all associated {@link Triple RDF triple}s.
+ * This class is used by the {@link InternalModel Internal Model} cache as indivisible bucket per axiom/object type.
  * <p>
  * Created by @ssz on 09.03.2019.
  *
@@ -158,7 +158,10 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
             if (a.isDefinitelyEmpty()) return b;
             return a.append(b);
         });
-        map.getTriples().computeIfAbsent(triple, t -> new HashSet<>()).add(key);
+        // operation 'Add' must be as quick as possible - it is used while reading documents in native OWL-API formats
+        if (map.hasTriplesMap()) {
+            map.getTriples().computeIfAbsent(triple, t -> new HashSet<>()).add(key);
+        }
     }
 
     /**
@@ -172,6 +175,7 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
      * The operation may broke structure and, therefore,
      * the method {@link #triples(OWLObject)} may throw {@link JenaException Jena Exception} in this case.
      * WARNING: Must be called only the {@link Listener listener}.
+     *
      * @param key    OWLObject (axiom or annotation)
      * @param triple {@link Triple}
      */
