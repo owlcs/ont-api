@@ -66,9 +66,9 @@ public class CacheObjectFactory extends NoCacheObjectFactory {
      * @param iris         {@link InternalCache.Loading} for {@link IRI}s
      */
     @SuppressWarnings("unchecked")
-    protected CacheObjectFactory(DataFactory dataFactory,
-                                 Supplier<InternalCache<?, ?>> cacheFactory,
-                                 InternalCache.Loading<String, IRI> iris) {
+    public CacheObjectFactory(DataFactory dataFactory,
+                              Supplier<InternalCache<?, ?>> cacheFactory,
+                              InternalCache.Loading<String, IRI> iris) {
         super(dataFactory);
         this.iris = Objects.requireNonNull(iris);
         this.classes = (InternalCache<OntClass, ONTObject<OWLClass>>) cacheFactory.get();

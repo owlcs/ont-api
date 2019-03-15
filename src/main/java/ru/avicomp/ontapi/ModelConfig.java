@@ -24,6 +24,8 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * An implementation of {@link InternalConfig} with a reference to a manager,
@@ -101,13 +103,21 @@ public class ModelConfig implements InternalConfig, Serializable {
         return this.writerConf == null ? manager.getOntologyWriterConfiguration() : this.writerConf;
     }
 
-    protected <K, V> InternalCache<K, V> createCache() {
-        return InternalCache.createBounded(manager.isConcurrent(), CacheObjectFactory.CACHE_SIZE);
+    /**
+     * Creates a fresh {@link InternalObjectFactory} instance,
+     * that can be cached and contain some caches from manager side.
+     *
+     * @return {@link InternalObjectFactory}
+     */
+    public InternalObjectFactory createObjectFactory() {
+        if (!useLoadObjectsCache()) {
+            return new NoCacheObjectFactory(manager.dataFactory);
+        }
+        return new CacheObjectFactory(manager.dataFactory, this::createCache, manager.iris);
     }
 
-    public InternalObjectFactory createObjectFactory() {
-        return new CacheObjectFactory(manager.dataFactory, this::createCache, manager.iris) {
-        };
+    protected <K, V> InternalCache<K, V> createCache() {
+        return InternalCache.createBounded(manager.isConcurrent(), CacheObjectFactory.CACHE_SIZE);
     }
 
     public OntPersonality getPersonality() {
@@ -145,6 +155,16 @@ public class ModelConfig implements InternalConfig, Serializable {
     }
 
     @Override
+    public int getLoadNodesCacheSize() {
+        return getLoaderConfig().getLoadNodesCacheSize();
+    }
+
+    @Override
+    public int getLoadObjectsCacheSize() {
+        return getLoaderConfig().getLoadObjectsCacheSize();
+    }
+
+    @Override
     public boolean parallel() {
         return manager.isConcurrent();
     }
@@ -160,7 +180,7 @@ public class ModelConfig implements InternalConfig, Serializable {
     }
 
     /**
-     * Answers whether the specified configs are different in the settings concerning axioms reading.
+     * Answers whether the specified configs are different in the settings concerning axioms reading or caching.
      *
      * @param left  {@link OntLoaderConfiguration}, can be {@code null}
      * @param right {@link OntLoaderConfiguration}, can be {@code null}
@@ -171,11 +191,17 @@ public class ModelConfig implements InternalConfig, Serializable {
         if (left != null && right == null) return true;
         if (left == right)
             return false;
-        if (left.isLoadAnnotationAxioms() != right.isLoadAnnotationAxioms()) return true;
-        if (left.isAllowBulkAnnotationAssertions() != right.isAllowBulkAnnotationAssertions()) return true;
-        if (left.isIgnoreAnnotationAxiomOverlaps() != right.isIgnoreAnnotationAxiomOverlaps()) return true;
-        if (left.isAllowReadDeclarations() != right.isAllowReadDeclarations()) return true;
-        if (left.isSplitAxiomAnnotations() != right.isSplitAxiomAnnotations()) return true;
-        return left.isIgnoreAxiomsReadErrors() != right.isIgnoreAxiomsReadErrors();
+        Stream<Function<OntLoaderConfiguration, Object>> fields = Stream.of(
+                OntLoaderConfiguration::isLoadAnnotationAxioms
+                , OntLoaderConfiguration::isAllowBulkAnnotationAssertions
+                , OntLoaderConfiguration::isIgnoreAnnotationAxiomOverlaps
+                , OntLoaderConfiguration::isAllowReadDeclarations
+                , OntLoaderConfiguration::isSplitAxiomAnnotations
+                , OntLoaderConfiguration::isIgnoreAxiomsReadErrors
+                , OntLoaderConfiguration::getLoadNodesCacheSize
+                , OntLoaderConfiguration::getLoadObjectsCacheSize
+        );
+        return fields.anyMatch(c -> c.apply(left) != c.apply(right));
     }
+
 }

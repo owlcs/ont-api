@@ -136,13 +136,13 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * Creates a fresh {@link IRI} cache instance depending on this manager settings.
-     * Note if caching is disabled ({@link OntConfig#getManagerIRICacheSize()} is not positive),
+     * Note if caching is disabled ({@link OntConfig#getManagerIRIsCacheSize()} is not positive),
      * a fake empty cache is returned.
      *
-     * @return {@link InternalCache.Loading}
+     * @return {@link InternalCache.Loading} for {@link IRI}s
      */
     protected InternalCache.Loading<String, IRI> createIRICache() {
-        int size = this.config.getManagerIRICacheSize();
+        int size = this.config.getManagerIRIsCacheSize();
         if (size < 0) {
             return InternalCache.createEmpty().asLoading(IRI::create);
         }
@@ -195,9 +195,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyConfigurator(OntologyConfigurator conf) {
         getLock().writeLock().lock();
         try {
-            int size = this.config.getManagerIRICacheSize();
+            int size = this.config.getManagerIRIsCacheSize();
             this.config = OntConfig.withLock(OWLAdapter.get().asONT(conf), lock);
-            if (size != this.config.getManagerIRICacheSize()) { // reset cache:
+            if (size != this.config.getManagerIRIsCacheSize()) {
+                // reset cache:
                 this.iris = createIRICache();
             }
         } finally {

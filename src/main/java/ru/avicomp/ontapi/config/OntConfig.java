@@ -37,11 +37,13 @@ import java.util.stream.Stream;
  * Note: this configuration is mutable, while load and write configs are not.
  * Additional (new) ONT-API methods:
  * <ul>
- * <li>{@link #getManagerIRICacheSize()} (<b>since 1.4.0</b>)</li>
+ * <li>{@link #getManagerIRIsCacheSize()} (<b>since 1.4.0</b>)</li>
+ * <li>{@link #getLoadNodesCacheSize()} (<b>since 1.4.0</b>)</li>
+ * <li>{@link #getLoadObjectsCacheSize()}  (<b>since 1.4.0</b>)</li>
  * <li>{@link #getPersonality()} and {@link #setPersonality(OntPersonality)}</li>
  * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers.Store)}</li>
  * <li>{@link #isPerformTransformation()} and {@link #setPerformTransformation(boolean)}</li>
- * <li>{@link #getSupportedSchemes()} and {@link #setSupportedSchemes(List)}</li>
+ * <li>{@link #getSupportedSchemes()} and {@link #setSupportedSchemes(Collection)}</li>
  * <li>{@link #disableWebAccess()} (<b>since 1.1.0</b>)</li>
  * <li>{@link #isAllowReadDeclarations()} and {@link #setAllowReadDeclarations(boolean)}</li>
  * <li>{@link #isAllowBulkAnnotationAssertions()} and {@link #setAllowBulkAnnotationAssertions(boolean)}</li>
@@ -59,7 +61,7 @@ import java.util.stream.Stream;
  * @see OntWriterConfiguration
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class OntConfig extends OntologyConfigurator {
+public class OntConfig extends OntologyConfigurator implements CacheControl<OntConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntConfig.class);
     private static final long serialVersionUID = 656765031127374396L;
 
@@ -74,11 +76,11 @@ public class OntConfig extends OntologyConfigurator {
      * @param lock         {@link ReadWriteLock}
      * @param iriCacheSize int, possible non-positive for disabling cache
      * @return {@link OntConfig}
-     * @see #setManagerIRICacheSize(int)
+     * @see #setManagerIRIsCacheSize(int)
      * @since 1.4.0
      */
     public static OntConfig createConfig(ReadWriteLock lock, int iriCacheSize) {
-        return createConfig(lock).setManagerIRICacheSize(iriCacheSize);
+        return createConfig(lock).setManagerIRIsCacheSize(iriCacheSize);
     }
 
     /**
@@ -278,15 +280,17 @@ public class OntConfig extends OntologyConfigurator {
 
     /**
      * ONT-API manager load config setter.
-     * Sets a new IRI cache size.
+     * Sets a new IRIs cache size.
      * Protected, since this is a manager's initialization setting,
      * which must not be changed during manager's lifetime.
+     * To change IRIs cache use {@link ru.avicomp.ontapi.OntologyManager#setOntologyConfigurator(OntologyConfigurator)}
+     * and {@link #createConfig(ReadWriteLock, int)} methods.
      *
      * @param size int, possible negative
      * @return this instance
      */
-    protected OntConfig setManagerIRICacheSize(int size) {
-        return put(OntSettings.ONT_API_CONF_MANAGER_CACHE_IRI, size);
+    protected OntConfig setManagerIRIsCacheSize(int size) {
+        return put(OntSettings.ONT_API_MANAGER_CACHE_IRIS, size);
     }
 
     /**
@@ -299,9 +303,50 @@ public class OntConfig extends OntologyConfigurator {
      * @return int, possible non-positive to disable IRIs caching
      * @since 1.4.0
      */
-    public int getManagerIRICacheSize() {
-        Integer res = get(OntSettings.ONT_API_CONF_MANAGER_CACHE_IRI);
-        return res != null ? res : -1;
+    public int getManagerIRIsCacheSize() {
+        return get(OntSettings.ONT_API_MANAGER_CACHE_IRIS);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param size int
+     * @return this instance
+     */
+    @Override
+    public OntConfig setLoadNodesCacheSize(int size) {
+        return put(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES, size);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return int
+     */
+    @Override
+    public int getLoadNodesCacheSize() {
+        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param size int
+     * @return this instance
+     */
+    @Override
+    public OntConfig setLoadObjectsCacheSize(int size) {
+        return put(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS, size);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return int
+     */
+    @Override
+    public int getLoadObjectsCacheSize() {
+        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS);
     }
 
     /**
@@ -321,15 +366,16 @@ public class OntConfig extends OntologyConfigurator {
      * @return this instance
      * @see OntLoaderConfiguration#setSupportedSchemes(List)
      */
-    public OntConfig setSupportedSchemes(List<OntConfig.Scheme> schemes) {
-        return put(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, schemes instanceof Serializable ? schemes : new ArrayList<>(schemes));
+    public OntConfig setSupportedSchemes(Collection<Scheme> schemes) {
+        return put(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES,
+                schemes instanceof Serializable ? schemes : new ArrayList<>(schemes));
     }
 
     /**
      * Disables all schemes with except 'file://' to prevent internet diving.
      *
      * @return this manager
-     * @see OntConfig#setSupportedSchemes(List)
+     * @see OntConfig#setSupportedSchemes(Collection)
      * @since 1.1.0
      */
     public OntConfig disableWebAccess() {

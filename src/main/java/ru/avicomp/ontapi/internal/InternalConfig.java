@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import ru.avicomp.ontapi.config.CacheSettings;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 
@@ -26,7 +27,7 @@ import java.util.Objects;
  * <p>
  * Created by @szuev on 05.04.2017.
  */
-public interface InternalConfig {
+public interface InternalConfig extends CacheSettings {
 
     InternalConfig DEFAULT = createFrom(new OntConfig().buildLoaderConfiguration());
 
@@ -98,46 +99,63 @@ public interface InternalConfig {
      * Snapshot config implementation.
      */
     class Snapshot implements InternalConfig {
-        private final EnumMap<Snapshot.Key, Boolean> map = new EnumMap<>(Snapshot.Key.class);
+        private final EnumMap<Key, Object> map = new EnumMap<>(Key.class);
 
         Snapshot(InternalConfig delegate) {
             Objects.requireNonNull(delegate, "Null config");
-            map.put(Snapshot.Key.LOAD_ANNOTATIONS, delegate.isLoadAnnotationAxioms());
-            map.put(Snapshot.Key.ALLOW_DECLARATION_BULK_ANNOTATIONS, delegate.isAllowBulkAnnotationAssertions());
-            map.put(Snapshot.Key.IGNORE_ANNOTATION_OVERLAPS, delegate.isIgnoreAnnotationAxiomOverlaps());
-            map.put(Snapshot.Key.ALLOW_DECLARATIONS, delegate.isAllowReadDeclarations());
-            map.put(Snapshot.Key.SPLIT_AXIOM_ANNOTATIONS, delegate.isSplitAxiomAnnotations());
-            map.put(Snapshot.Key.IGNORE_READ_ERRORS, delegate.isIgnoreAxiomsReadErrors());
+            map.put(Key.LOAD_ANNOTATIONS, delegate.isLoadAnnotationAxioms());
+            map.put(Key.ALLOW_DECLARATION_BULK_ANNOTATIONS, delegate.isAllowBulkAnnotationAssertions());
+            map.put(Key.IGNORE_ANNOTATION_OVERLAPS, delegate.isIgnoreAnnotationAxiomOverlaps());
+            map.put(Key.ALLOW_DECLARATIONS, delegate.isAllowReadDeclarations());
+            map.put(Key.SPLIT_AXIOM_ANNOTATIONS, delegate.isSplitAxiomAnnotations());
+            map.put(Key.IGNORE_READ_ERRORS, delegate.isIgnoreAxiomsReadErrors());
+            map.put(Key.CACHE_NODES_SIZE, delegate.getLoadNodesCacheSize());
+            map.put(Key.CACHE_OBJECTS_SIZE, delegate.getLoadObjectsCacheSize());
+        }
+
+        @SuppressWarnings("unchecked")
+        private <X> X get(Key k) {
+            return (X) map.get(k);
         }
 
         @Override
         public boolean isLoadAnnotationAxioms() {
-            return map.get(Snapshot.Key.LOAD_ANNOTATIONS);
+            return get(Key.LOAD_ANNOTATIONS);
         }
 
         @Override
         public boolean isAllowBulkAnnotationAssertions() {
-            return map.get(Snapshot.Key.ALLOW_DECLARATION_BULK_ANNOTATIONS);
+            return get(Key.ALLOW_DECLARATION_BULK_ANNOTATIONS);
         }
 
         @Override
         public boolean isIgnoreAnnotationAxiomOverlaps() {
-            return map.get(Snapshot.Key.IGNORE_ANNOTATION_OVERLAPS);
+            return get(Key.IGNORE_ANNOTATION_OVERLAPS);
         }
 
         @Override
         public boolean isAllowReadDeclarations() {
-            return map.get(Snapshot.Key.ALLOW_DECLARATIONS);
+            return get(Key.ALLOW_DECLARATIONS);
         }
 
         @Override
         public boolean isSplitAxiomAnnotations() {
-            return map.get(Snapshot.Key.SPLIT_AXIOM_ANNOTATIONS);
+            return get(Key.SPLIT_AXIOM_ANNOTATIONS);
         }
 
         @Override
         public boolean isIgnoreAxiomsReadErrors() {
-            return map.get(Snapshot.Key.IGNORE_READ_ERRORS);
+            return get(Key.IGNORE_READ_ERRORS);
+        }
+
+        @Override
+        public int getLoadNodesCacheSize() {
+            return get(Key.CACHE_NODES_SIZE);
+        }
+
+        @Override
+        public int getLoadObjectsCacheSize() {
+            return get(Key.CACHE_OBJECTS_SIZE);
         }
 
         @Override
@@ -164,6 +182,8 @@ public interface InternalConfig {
             ALLOW_DECLARATIONS,
             SPLIT_AXIOM_ANNOTATIONS,
             IGNORE_READ_ERRORS,
+            CACHE_NODES_SIZE,
+            CACHE_OBJECTS_SIZE,
         }
     }
 
@@ -204,6 +224,17 @@ public interface InternalConfig {
             public boolean isIgnoreAxiomsReadErrors() {
                 return conf.isIgnoreAxiomsReadErrors();
             }
+
+            @Override
+            public int getLoadNodesCacheSize() {
+                return conf.getLoadNodesCacheSize();
+            }
+
+            @Override
+            public int getLoadObjectsCacheSize() {
+                return conf.getLoadObjectsCacheSize();
+            }
+
         };
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 14.04.2017.
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class ExtendedProperties extends Properties {
 
     public ExtendedProperties() {
@@ -164,6 +164,12 @@ public class ExtendedProperties extends Properties {
         }
     }
 
+    /**
+     * Gets a {@code List} if objects corresponding the given {@code key}.
+     *
+     * @param key String, not {@code null}
+     * @return {@link List} with uncertain generic type
+     */
     public List<?> getListProperty(String key) {
         for (MapType map : MapType.values()) {
             if (!containsKey(map.toListKey(key, 0))) continue;
@@ -172,30 +178,65 @@ public class ExtendedProperties extends Properties {
         return null;
     }
 
+    /**
+     * Gets a {@code List} if strings corresponding the given {@code key}.
+     * @param key String, not {@code null}
+     * @return {@code List} of {@code String}s
+     */
     public List<String> getStringListProperty(String key) {
         return getListProperty(key, String.class);
     }
 
+    /**
+     * Gets a {@code Class} that corresponds the property record with the given {@code key}.
+     * @param key String, not {@code null}
+     * @return {@code Class}
+     */
     public Class getClassProperty(String key) {
         return getTypedProperty(key, Class.class);
     }
 
+    /**
+     * Gets a {@code Enum} that corresponds the property record with the given {@code key}.
+     * @param key String, not {@code null}
+     * @return {@code Enum}
+     */
     public Enum getEnumProperty(String key) {
         return getTypedProperty(key, Enum.class);
     }
 
+    /**
+     * Gets a {@code Boolean} that corresponds the property record with the given {@code key}.
+     * @param key String, not {@code null}
+     * @return boolean
+     */
     public Boolean getBooleanProperty(String key) {
         return getTypedProperty(key, Boolean.class);
     }
 
+    /**
+     * Gets a {@code Integer} that corresponds the property record with the given {@code key}.
+     * @param key String, not {@code null}
+     * @return int
+     */
     public Integer getIntegerProperty(String key) {
         return getTypedProperty(key, Integer.class);
     }
 
+    /**
+     * Gets a {@code Lomg} that corresponds the property record with the given {@code key}.
+     * @param key String, not {@code null}
+     * @return long
+     */
     public Long getLongProperty(String key) {
         return getTypedProperty(key, Long.class);
     }
 
+    /**
+     * Gets a {@code Double} that corresponds the property record with the given {@code key}.
+     * @param key String, not {@code null}
+     * @return double
+     */
     public Double getDoubleProperty(String key) {
         return getTypedProperty(key, Double.class);
     }

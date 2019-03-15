@@ -53,29 +53,13 @@ import java.util.Objects;
 @SuppressWarnings("WeakerAccess")
 public class SearchModel extends OntGraphModelImpl {
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchModel.class);
-    /**
-     * Average {@link Node} (uri and blank) size is about 160 bytes (internal string ~ 150byte),
-     * Experiments show that for the limit = 100_000, the sum of all cache sizes is not more than 190_000
-     * (it is for teleost and galen, significantly less for the rest it),
-     * This means about 30 MB.
-     * Tested ontologies:
-     * <ul>
-     * <li>teleost(59mb, 336_291 axioms, 650_339 triples)</li>
-     * <li>hp(38mb, 143_855 axioms, 367_315 triples)</li>
-     * <li>galen(33mb, 96_463 axioms, 281_492 triples)</li>
-     * <li>psychology(4mb, 38_872 axioms, 38_873 triples)</li>
-     * <li>family(0.2mb, 2_845 axioms)</li>
-     * <li>pizza(0.1mb, 945 axioms)</li>
-     * </ul>
-     * todo: move to config
-     */
-    private static final int CACHE_SIZE = 50_000;
 
+    // to control searching process
     protected final InternalConfig conf;
-    /**
-     * Original personality.
-     */
+    // the original personality.
     protected final OntPersonality personality;
+
+    // optimization flags for annotations:
     private Boolean hasAnnotations;
     private Boolean hasSubAnnotations;
 
@@ -105,13 +89,26 @@ public class SearchModel extends OntGraphModelImpl {
         return null;
     }
 
+    /**
+     * Creates a {@link OntPersonality} with nodes cache inside.
+     * Each cached {@link Node} can be either URI or blank,
+     * and never literal, since size of literals is unpredictable.
+     *
+     * @param from {@link OntPersonality} to inherit all settings
+     * @param conf {@link InternalConfig} to get all control options
+     * @return {@link OntPersonality}
+     */
     public static OntPersonality cachedPersonality(OntPersonality from, InternalConfig conf) {
+        if (!conf.useLoadNodesCache()) {
+            throw new IllegalArgumentException("Negative cache size is specified");
+        }
+        int size = conf.getLoadNodesCacheSize();
         PersonalityBuilder res = PersonalityBuilder.from(from);
         from.types(OntObject.class)
                 // do not cache SWRL.DArg (and, therefore, SWRL.Arg) since an instance of this type
                 // can be Literal with unpredictable length
                 .filter(x -> x != OntSWRL.DArg.class && x != OntSWRL.Arg.class)
-                .forEach(x -> CachedFactory.cache(res, from, x, CACHE_SIZE, conf.parallel()));
+                .forEach(x -> CachedFactory.cache(res, from, x, size, conf.parallel()));
         return res.build();
     }
 

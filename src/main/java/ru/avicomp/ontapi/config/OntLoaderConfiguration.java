@@ -40,7 +40,7 @@ import java.util.*;
  * @see OntConfig
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue", "unused"})
-public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
+public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration implements CacheControl<OntLoaderConfiguration> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntLoaderConfiguration.class);
     private static final long serialVersionUID = 1599596390911768315L;
 
@@ -197,6 +197,26 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
         OntLoaderConfiguration res = copy(this);
         res.personality = p;
         return res;
+    }
+
+    @Override
+    public OntLoaderConfiguration setLoadNodesCacheSize(int size) {
+        return set(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES, size);
+    }
+
+    @Override
+    public int getLoadNodesCacheSize() {
+        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES);
+    }
+
+    @Override
+    public OntLoaderConfiguration setLoadObjectsCacheSize(int size) {
+        return set(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS, size);
+    }
+
+    @Override
+    public int getLoadObjectsCacheSize() {
+        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS);
     }
 
     /**
@@ -787,4 +807,5 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration {
     public int hashCode() {
         return Objects.hash(this.getPersonality(), this.getGraphTransformers(), this.map);
     }
+
 }

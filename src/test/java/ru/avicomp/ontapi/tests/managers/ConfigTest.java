@@ -16,10 +16,18 @@ package ru.avicomp.ontapi.tests.managers;
 
 import org.junit.Assert;
 import org.junit.Test;
+import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
+import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.config.OntConfig;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntSettings;
+import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
+import java.util.Objects;
 
 /**
  * Created by @ssz on 04.03.2019.
@@ -33,20 +41,63 @@ public class ConfigTest {
     }
 
     private static void testConfigureIRICacheSize(OntologyManager m) {
-        int def = Integer.parseInt(Prop.ONT_API_CONF_MANAGER_CACHE_IRI.get());
+        int def = Prop.IRI_CACHE_SIZE.getInt();
         OntConfig c1 = m.getOntologyConfigurator();
         Assert.assertNotNull(c1);
-        Assert.assertEquals(def, c1.getManagerIRICacheSize());
-        Assert.assertEquals(def, m.getOntologyConfigurator().getManagerIRICacheSize());
+        Assert.assertEquals(def, c1.getManagerIRIsCacheSize());
+        Assert.assertEquals(def, m.getOntologyConfigurator().getManagerIRIsCacheSize());
 
         OntConfig c2 = OntConfig.createConfig(null, 1);
-        Assert.assertEquals(1, c2.getManagerIRICacheSize());
+        Assert.assertEquals(1, c2.getManagerIRIsCacheSize());
         m.setOntologyConfigurator(c2);
-        Assert.assertEquals(1, m.getOntologyConfigurator().getManagerIRICacheSize());
+        Assert.assertEquals(1, m.getOntologyConfigurator().getManagerIRIsCacheSize());
+    }
+
+    @Test
+    public void testNodesCacheSize() throws Exception {
+        Assert.assertEquals(Prop.NODES_CACHE_SIZE.getInt(), new OntConfig().getLoadNodesCacheSize());
+        OntologyManager m = OntManagers.createONT();
+        Assert.assertNotNull(m.getOntologyConfigurator().setLoadNodesCacheSize(-123));
+        Assert.assertEquals(-123, m.getOntologyLoaderConfiguration().getLoadNodesCacheSize());
+        // cache is disabled, try to load model
+        OntologyModel o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getDocumentSource("/ontapi/pizza.ttl",
+                OntFormat.TURTLE));
+        Assert.assertNotNull(o);
+        Assert.assertEquals(945, o.axioms().count());
+
+        OntGraphModelImpl m1 = ((InternalModelHolder) o).getBase().getSearchModel();
+        Assert.assertTrue(m1 instanceof InternalModel);
+
+        m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadNodesCacheSize(10_000));
+        OntGraphModelImpl m2 = ((InternalModelHolder) o).getBase().getSearchModel();
+        Assert.assertTrue(m2 instanceof SearchModel);
+    }
+
+    @Test
+    public void testObjectsCacheSize() throws Exception {
+        OntologyManager m = OntManagers.createONT();
+        Assert.assertEquals(Prop.OBJECTS_CACHE_SIZE.getInt(), m.getOntologyConfigurator().getLoadObjectsCacheSize());
+        OntLoaderConfiguration conf = new OntConfig().buildLoaderConfiguration().setLoadObjectsCacheSize(-1);
+        Assert.assertEquals(-1, conf.getLoadObjectsCacheSize());
+        m.setOntologyLoaderConfiguration(conf);
+        OntologyModel o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getDocumentSource("/ontapi/pizza.ttl",
+                OntFormat.TURTLE));
+        Assert.assertNotNull(o);
+        Assert.assertEquals(945, o.axioms().count());
+        InternalObjectFactory of1 = ((InternalModelHolder) o).getBase().getObjectFactory();
+        Assert.assertTrue(of1 instanceof NoCacheObjectFactory);
+        Assert.assertFalse(of1 instanceof CacheObjectFactory);
+
+        m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(10_000));
+        Assert.assertEquals(945, o.axioms().count());
+        InternalObjectFactory of2 = ((InternalModelHolder) o).getBase().getObjectFactory();
+        Assert.assertTrue(of2 instanceof CacheObjectFactory);
     }
 
     enum Prop {
-        ONT_API_CONF_MANAGER_CACHE_IRI("ont.api.conf.manager.cache.iri.integer"),
+        IRI_CACHE_SIZE(OntSettings.ONT_API_MANAGER_CACHE_IRIS.key() + ".integer"),
+        NODES_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES.key() + ".integer"),
+        OBJECTS_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS.key() + ".integer"),
         ;
         private final String key;
 
@@ -54,8 +105,13 @@ public class ConfigTest {
             this.key = key;
         }
 
-        public String get() {
-            return OntSettings.PROPERTIES.getProperty(key);
+        public int getInt() {
+            return Integer.parseInt(get());
         }
+
+        public String get() {
+            return Objects.requireNonNull(OntSettings.PROPERTIES.getProperty(key), "Null " + key);
+        }
+
     }
 }
