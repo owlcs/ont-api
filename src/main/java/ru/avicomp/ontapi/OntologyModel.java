@@ -42,6 +42,8 @@ public interface OntologyModel extends OWLOntology {
      * do not affect the axiomatic view of this model.
      * If such an uncommon situation arose and the data is shared between different external views of unknown nature,
      * then the method {@link #clearCache()} may help.
+     * Also note: any changes in the RDF-view will reset the internal cache,
+     * that means next attempt to retrieve data from axiomatic view (i.e. list axioms) will take the same time as the very first one.
      *
      * @return {@link OntGraphModel Ontology RDF Graph Model}, not {@code null}
      * @see org.apache.jena.graph.Graph
@@ -54,7 +56,7 @@ public interface OntologyModel extends OWLOntology {
      * The cache lazily restores itself
      * when invoking almost any method described in the {@link OWLOntology} superinterface, e.g. {@link #axioms()}.
      * Clearing the cache is necessary to obtain a fixed list of axioms that uniquely corresponds to the RDF graph,
-     * since OWL-API allows a wide ambiguity in the axioms definition.
+     * since OWL-API interface allows a wide ambiguity in the axioms definition.
      * In the structural (axiomatic) view there can be composite and bulky axioms specified,
      * which can be replaced by various other sets of axioms without loss any information.
      * This method brings the structural representation to the deterministic form,
@@ -64,7 +66,7 @@ public interface OntologyModel extends OWLOntology {
      * after calling the {@code clearCache()} method will respond with a list that also includes each entity declaration:
      * {@code Declaration(AnnotationProperty(<P>))}, {@code Declaration(Class(<A>))} and {@code Declaration(Class(<B>))}.
      * In general, a complete list of axioms is configurable and depends on various settings,
-     * for more details see {@link ru.avicomp.ontapi.config.OntLoaderConfiguration} and {@link ru.avicomp.ontapi.config.OntConfig}.
+     * for more details see {@link ru.avicomp.ontapi.config.AxiomSettings}.
      */
     void clearCache();
 

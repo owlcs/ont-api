@@ -40,7 +40,8 @@ import java.util.*;
  * @see OntConfig
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue", "unused"})
-public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration implements CacheControl<OntLoaderConfiguration> {
+public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
+        implements CacheControl<OntLoaderConfiguration>, AxiomsControl<OntLoaderConfiguration> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntLoaderConfiguration.class);
     private static final long serialVersionUID = 1599596390911768315L;
 
@@ -252,48 +253,21 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * ONT-API config method.
-     * The additional to the {@link #isLoadAnnotationAxioms()} optional setting to manage behaviour of annotation axioms.
-     * By default annotated annotation assertions are allowed.
-     * See the example in the description of {@link #setAllowBulkAnnotationAssertions(boolean)}
+     * {@inheritDoc}
      *
-     * @return {@code true} if annotation assertions could be annotated.
+     * @return {@code true} if annotation assertions could be annotated
      * @see #setAllowBulkAnnotationAssertions(boolean)
      * @see #setLoadAnnotationAxioms(boolean)
      * @see #isLoadAnnotationAxioms()
      */
+    @Override
     public boolean isAllowBulkAnnotationAssertions() {
         return get(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS);
     }
 
     /**
      * ONT-API config setter.
-     * This option manages annotation assertion axioms in conjunction with declaration axioms.
-     * In depends of parameter specified bulk annotations fall either into declaration or annotation assertion.
-     * Consider the following example:
-     * <pre>{@code
-     * <http://class>   a                       owl:Class ;
-     *                  rdfs:comment            "plain assertion" ;
-     *                  rdfs:label              "bulk assertion" .
-     * [                a                       owl:Axiom ;
-     *                  rdfs:comment            "the child" ;
-     *                  owl:annotatedProperty   rdfs:label ;
-     *                  owl:annotatedSource     <http://class> ;
-     *                  owl:annotatedTarget     "bulk assertion"
-     * ] .
-     * }</pre>
-     * In case {@link #isAllowBulkAnnotationAssertions()} equals {@code true} this slice of graph corresponds to the following list of axioms:
-     * <ul>
-     * <li>AnnotationAssertion(rdfs:comment &lt;http://class&gt; "plain assertion"^^xsd:string)</li>
-     * <li>AnnotationAssertion(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label &lt;http://class&gt; "bulk assertion"^^xsd:string)</li>
-     * <li>Declaration(Class(&lt;http://class&gt;))</li>
-     * </ul>
-     * In case {@link #isAllowBulkAnnotationAssertions()} equals {@code false} there would be following axioms:
-     * <ul>
-     * <li>Declaration(Annotation(Annotation(rdfs:comment "the child"^^xsd:string) rdfs:label "bulk assertion"^^xsd:string) Class(&lt;http://class&gt;))</li>
-     * <li>AnnotationAssertion(rdfs:comment &lt;http://class&gt; "plain assertion"^^xsd:string)</li>
-     * </ul>
-     * Note: the {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} does NOT work correctly
-     * in the second case (to test try to reload ontology in manchester syntax. The loss of annotations is expected).
+     * {@inheritDoc}
      *
      * @param b if false only plain annotation assertions axioms expected.
      * @return {@link OntLoaderConfiguration}
@@ -302,64 +276,54 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * @see #isLoadAnnotationAxioms()
      * @see OntFormat#MANCHESTER_SYNTAX
      */
+    @Override
     public OntLoaderConfiguration setAllowBulkAnnotationAssertions(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS, b);
     }
 
     /**
      * ONT-API config method.
-     * By default it is {@code true}.
-     * See description of {@link #setAllowReadDeclarations(boolean)}.
+     * {@inheritDoc}
      *
      * @return {@code true} if declarations are allowed in the structural view
      */
+    @Override
     public boolean isAllowReadDeclarations() {
         return get(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS);
     }
 
     /**
      * ONT-API config setter.
-     * This method is invited to match OWL-API behaviour.
-     * Some of the true-OWL-API parsers skips declarations on loading.
-     * It seems to me incorrect.
-     * You never can know whether there are declarations in the structural form or not
-     * if you have the same ontology but different formats.
-     * Using this method you can change global behaviour.
+     * {@inheritDoc}
      *
      * @param b {@code true} to skip declarations while reading graph
      * @return new or the same instance of config.
      */
+    @Override
     public OntLoaderConfiguration setAllowReadDeclarations(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS, b);
     }
 
     /**
      * ONT-API config method.
-     * By default it is {@code true}.
-     * See description of {@link #setIgnoreAnnotationAxiomOverlaps(boolean)}.
+     * {@inheritDoc}
      *
-     * @return {@code true} if possible ambiguities with annotation axioms should be ignored.
+     * @return {@code true} if possible ambiguities with annotation axioms should be ignored
      */
+    @Override
     public boolean isIgnoreAnnotationAxiomOverlaps() {
         return get(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS);
     }
 
     /**
      * ONT-API config setter.
-     * Determines the behavior while reading annotation axioms
-     * if there is a 'punning' entity as subject in the root statement.
-     * There are three types of annotation axioms with following defining statements:
-     * <ul>
-     * <li>{@code A rdfs:subPropertyOf Aj}</li>
-     * <li>{@code A rdfs:domain U}</li>
-     * <li>{@code A rdfs:range U}</li>
-     * </ul>
-     * and in case 'A' is also object property ('P') or data property ('R')
-     * then these statements define also corresponded object or data property axioms.
+     * {@inheritDoc}
      *
-     * @param b if true all such axioms will be skipped in favour of data or/and object property axioms
-     * @return this or new config.
+     * @param b if {@code false} all overlapping annotation axioms
+     *          will be skipped in favour of data or/and object property axioms
+     * @return this or new config
      */
+    @Override
     public OntLoaderConfiguration setIgnoreAnnotationAxiomOverlaps(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS, b);
     }
@@ -391,61 +355,63 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * ONT-API config getter.
-     * Answers whether there should be an exception in case unable to read axioms of some type from a graph,
-     * or silently ignore that buggy situation.
-     * Note: it manages behaviour of a whole axiom type, not a single axiom instance.
+     * {@inheritDoc}
      *
      * @return {@code true} if errors while axioms reading must be ignored
      * @see OntConfig#isIgnoreAxiomsReadErrors()
      * @since 1.1.0
      */
+    @Override
     public boolean isIgnoreAxiomsReadErrors() {
         return get(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS);
     }
 
     /**
      * ONT-API config setter.
-     * Changes 'ont.api.load.conf.ignore.axioms.read.errors' config parameter.
+     * {@inheritDoc}
      *
      * @param b {@code true} to ignore errors while reading axioms of some type from a graph, false to trow exception
      * @return this or new config
      * @see OntConfig#setIgnoreAxiomsReadErrors(boolean)
      * @since 1.1.0
      */
+    @Override
     public OntLoaderConfiguration setIgnoreAxiomsReadErrors(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS, b);
     }
 
     /**
      * ONT-API config getter.
-     * Answers {@code true} if the axiom-annotations-split functionality is enabled in this configuration.
+     * {@inheritDoc}
      *
      * @return {@code true} if this setting is enabled
      * @see OntConfig#isSplitAxiomAnnotations()
      * @since 1.3.0
      */
+    @Override
     public boolean isSplitAxiomAnnotations() {
         return get(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS);
     }
 
     /**
      * ONT-API config setter.
-     * Changes the axiom-annotations-split setting to the given state.
+     * {@inheritDoc}
      *
      * @param b boolean {@code true} to enable 'ont.api.load.conf.split.axiom.annotations' setting
      * @return this or new config
      * @see OntConfig#setSplitAxiomAnnotations(boolean)
      * @since 1.3.0
      */
+    @Override
     public OntLoaderConfiguration setSplitAxiomAnnotations(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS, b);
     }
 
     /**
-     * Determines whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded.
-     * By default the loading of annotation axioms is enabled.
+     * Determines whether annotation axioms should be read.
+     * {@inheritDoc}
      *
-     * @return if {@code false} all annotation axioms (assertion, range and domain) will be discarded on loading.
+     * @return if {@code false} all annotation axioms (assertion, range and domain) will be discarded on loading
      * @see OWLOntologyLoaderConfiguration#isLoadAnnotationAxioms()
      * @see OntConfig#shouldLoadAnnotations()
      */
@@ -455,7 +421,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     }
 
     /**
-     * see description for {@link #isLoadAnnotationAxioms()}
+     * {@inheritDoc}
      *
      * @param b {@code true} to enable reading and writing annotation axioms
      * @return instance of new config.

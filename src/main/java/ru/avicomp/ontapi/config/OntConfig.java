@@ -61,7 +61,7 @@ import java.util.stream.Stream;
  * @see OntWriterConfiguration
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class OntConfig extends OntologyConfigurator implements CacheControl<OntConfig> {
+public class OntConfig extends OntologyConfigurator implements CacheControl<OntConfig>, AxiomsControl<OntConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntConfig.class);
     private static final long serialVersionUID = 656765031127374396L;
 
@@ -406,16 +406,19 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
 
     /**
      * ONT-API manager load config getter.
+     * {@inheritDoc}
      *
-     * @return {@code true} if bulk annotations are allowed (it is by default)
+     * @return {@code true} if bulk annotations are allowed (that is by default)
      * @see OntLoaderConfiguration#isAllowBulkAnnotationAssertions()
      */
+    @Override
     public boolean isAllowBulkAnnotationAssertions() {
         return get(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS);
     }
 
     /**
      * ONT-API manager load config setter.
+     * {@inheritDoc}
      *
      * @param b {@code true} to enable bulk annotations
      * @return this instance
@@ -427,42 +430,50 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
 
     /**
      * ONT-API manager load config getter.
+     * {@inheritDoc}
      *
      * @return {@code true} if declarations are enabled (default)
      * @see OntLoaderConfiguration#isAllowReadDeclarations()
      */
+    @Override
     public boolean isAllowReadDeclarations() {
         return get(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS);
     }
 
     /**
      * ONT-API manager load config setter.
+     * {@inheritDoc}
      *
      * @param b boolean enable/disable declarations
      * @return this instance
      * @see OntLoaderConfiguration#setAllowReadDeclarations(boolean)
      */
+    @Override
     public OntConfig setAllowReadDeclarations(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS, b);
     }
 
     /**
      * ONT-API manager load config getter.
+     * {@inheritDoc}
      *
      * @return {@code true} if annotation axiom overlaps are ignored (default)
      * @see OntLoaderConfiguration#isIgnoreAnnotationAxiomOverlaps()
      */
+    @Override
     public boolean isIgnoreAnnotationAxiomOverlaps() {
         return get(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS);
     }
 
     /**
      * ONT-API manager load config setter.
+     * {@inheritDoc}
      *
      * @param b boolean to enable/disable this config parameter
      * @return this instance
      * @see OntLoaderConfiguration#setIgnoreAnnotationAxiomOverlaps(boolean)
      */
+    @Override
     public OntConfig setIgnoreAnnotationAxiomOverlaps(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS, b);
     }
@@ -500,72 +511,47 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
 
     /**
      * ONT-API manager load config getter.
-     * See {@link #setUseOWLParsersToLoad(boolean)} description.
+     * {@inheritDoc}
      *
-     * @return {@code true} if any errors while reading axioms are ignored (by default false)
+     * @return {@code true} if any errors while reading axioms are ignored (by default it is {@code false})
      * @see OntLoaderConfiguration#isIgnoreAxiomsReadErrors()
      * @since 1.1.0
      */
+    @Override
     public boolean isIgnoreAxiomsReadErrors() {
         return get(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS);
     }
 
     /**
      * ONT-API manager load config setter.
+     * {@inheritDoc}
      *
      * @param b boolean to enable/disable ignoring axioms reading errors
      * @return this instance
      * @see OntLoaderConfiguration#setIgnoreAxiomsReadErrors(boolean)
      * @since 1.1.0
      */
+    @Override
     public OntConfig setIgnoreAxiomsReadErrors(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS, b);
     }
 
     /**
      * ONT-API manager load config getter.
-     * Answers {@code true} if the axiom-annotations-split functionality is enabled in the config.
-     * If this parameter is set to {@code true}, each bulk annotation will generate a separated axiom.
-     * Otherwise, all bulk-annotations go together with the main triple as a single axiom.
-     * Consider the following ontology snippet:
-     * <pre>{@code
-     * <A>     a                owl:Class ;
-     *         rdfs:subClassOf  owl:Thing .
-     * [ a                      owl:Axiom ;
-     *   rdfs:comment           "X" ;
-     *   rdfs:label             "Z" ;
-     *   owl:annotatedProperty  rdfs:subClassOf ;
-     *   owl:annotatedSource    <A> ;
-     *   owl:annotatedTarget    owl:Thing
-     * ] .
-     * [ a                      owl:Axiom ;
-     *   rdfs:comment           "W" ;
-     *   owl:annotatedProperty  rdfs:subClassOf ;
-     *   owl:annotatedSource    <A> ;
-     *   owl:annotatedTarget    owl:Thing
-     * ] .
-     * }</pre>
-     * If {@code isSplitAxiomAnnotations()} equals {@code true} the ontology above gives the two following axioms:
-     * <pre>{@code
-     * SubClassOf(Annotation(rdfs:comment "W"^^xsd:string) <A> owl:Thing)
-     * SubClassOf(Annotation(rdfs:comment "X"^^xsd:string) Annotation(rdfs:label "Z"^^xsd:string) <A> owl:Thing)
-     * }</pre>
-     * If {@code isSplitAxiomAnnotations()} equals {@code false}, there is only single {@code SubClassOf} axiom:
-     * <pre>{@code
-     * SubClassOf(Annotation(rdfs:comment "W"^^xsd:string) Annotation(rdfs:comment "X"^^xsd:string) Annotation(rdfs:label "Z"^^xsd:string) <string:A> owl:Thing)
-     * }</pre>
+     * {@inheritDoc}
      *
      * @return boolean
      * @see OntLoaderConfiguration#isSplitAxiomAnnotations()
      * @since 1.3.0
      */
+    @Override
     public boolean isSplitAxiomAnnotations() {
         return get(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS);
     }
 
     /**
      * ONT-API manager load config setter.
-     * Changes the axiom-annotations-split setting to the given state.
+     * {@inheritDoc}
      *
      * @param b boolean
      * @return this instance
@@ -620,10 +606,24 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * The same as {@link #isLoadAnnotationAxioms()}
+     *
+     * @return boolean
      * @see OntologyConfigurator#shouldLoadAnnotations()
      */
     @Override
     public boolean shouldLoadAnnotations() {
+        return isLoadAnnotationAxioms();
+    }
+
+    /**
+     * OWL-API(NEW) manager load config getter.
+     * {@inheritDoc}
+     *
+     * @return boolean
+     */
+    @Override
+    public boolean isLoadAnnotationAxioms() {
         return get(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS);
     }
 

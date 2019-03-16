@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import ru.avicomp.ontapi.config.AxiomSettings;
 import ru.avicomp.ontapi.config.CacheSettings;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
@@ -27,55 +28,9 @@ import java.util.Objects;
  * <p>
  * Created by @szuev on 05.04.2017.
  */
-public interface InternalConfig extends CacheSettings {
+public interface InternalConfig extends CacheSettings, AxiomSettings {
 
     InternalConfig DEFAULT = createFrom(new OntConfig().buildLoaderConfiguration());
-
-    /**
-     * Answers whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded.
-     * If {@code true} Annotation Property Domain, Property Range, Assertion and SubAnnotationPropertyOf axioms are skipped.
-     *
-     * @return boolean
-     */
-    boolean isLoadAnnotationAxioms();
-
-    /**
-     * Answers whether bulk-annotations is allowed in declaration axioms or
-     * they should go separately as annotation assertion axioms.
-     *
-     * @return boolean
-     */
-    boolean isAllowBulkAnnotationAssertions();
-
-    /**
-     * Answers whether the Range, Domain and SubClassOf axioms should be separated
-     * in case there is a punning with annotation property and some other property (data or object).
-     *
-     * @return boolean
-     */
-    boolean isIgnoreAnnotationAxiomOverlaps();
-
-    /**
-     * Answers whether the declaration axioms should be allowed.
-     * In OWL-API declarations are not always mandatory.
-     *
-     * @return boolean
-     */
-    boolean isAllowReadDeclarations();
-
-    /**
-     * Answers whether the different bulk annotations for the same axiom should go as different axioms.
-     *
-     * @return boolean
-     */
-    boolean isSplitAxiomAnnotations();
-
-    /**
-     * Answers whether errors that arise when parsing axioms from a graph should be ignored.
-     *
-     * @return boolean
-     */
-    boolean isIgnoreAxiomsReadErrors();
 
     /**
      * Answers whether the behaviour should be concurrent oriented.

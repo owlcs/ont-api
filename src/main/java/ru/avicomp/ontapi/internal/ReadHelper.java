@@ -59,14 +59,14 @@ public class ReadHelper {
      * @param conf      {@link InternalConfig}
      * @param o         {@link AxiomType#SUB_OBJECT_PROPERTY} or {@link AxiomType#OBJECT_PROPERTY_DOMAIN} or {@link AxiomType#OBJECT_PROPERTY_RANGE}
      * @param d         {@link AxiomType#SUB_DATA_PROPERTY} or {@link AxiomType#DATA_PROPERTY_DOMAIN} or {@link AxiomType#DATA_PROPERTY_RANGE}
-     * @return true if the statement is good to be represented in the form of annotation axiom.
+     * @return {@code true} if the statement is good to be represented in the form of annotation axiom
      */
     public static boolean testAnnotationAxiomOverlaps(OntStatement statement,
                                                       InternalConfig conf,
                                                       AxiomType<? extends OWLObjectPropertyAxiom> o,
                                                       AxiomType<? extends OWLDataPropertyAxiom> d) {
         return !conf.isIgnoreAnnotationAxiomOverlaps() ||
-                Stream.of(d, o).map(AxiomParserProvider::get).noneMatch(a -> a.testStatement(statement, conf));
+                Stream.of(o, d).map(AxiomParserProvider::get).noneMatch(a -> a.testStatement(statement, conf));
     }
 
     /**
