@@ -65,6 +65,28 @@ public interface CacheSettings {
     int getLoadObjectsCacheSize();
 
     /**
+     * Answers whether an internal model content cache is enabled, that is {@code true} by default.
+     * An internal model content cache speedups axiom listing and controls add/remove components behaviour.
+     * In case it is turned off,
+     * then the direct graph traversal is used for retrieving axioms and ontology header (annotations).
+     * Warning: in that case the adding and removing axioms is disabled in the model level.
+     * But this concerns only the top-level {@link ru.avicomp.ontapi.OntologyModel OWL Model} interface.
+     * A graph is editable, if it is not restricted in some other place.
+     * So it is possible to modify model using {@link ru.avicomp.ontapi.jena.model.OntGraphModel} interface
+     * (see the method {@link ru.avicomp.ontapi.OntologyModel#asGraphModel()}).
+     * Also, to add axiom a {@link ru.avicomp.ontapi.internal.AxiomTranslator} mechanism can be used,
+     * e.g. to add the axiom {@code A} into the RDF Model {@code m},
+     * the expression {@code AxiomParserProvider.get(A).writeAxiom(A, m)} can be used.
+     * Disabling internal content cache may be useful in case the ontology is too large to fit in memory.
+     * In the normal case, it is better not to turn off this cache.
+     *
+     * @return boolean
+     * @see OntSettings#ONT_API_LOAD_CONF_CACHE_CONTENT
+     * @see CacheControl#setUseContentCache(boolean)
+     */
+    boolean isContentCacheEnabled();
+
+    /**
      * Answers {@code true} if nodes cache is enabled.
      *
      * @return boolean

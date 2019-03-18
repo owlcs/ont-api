@@ -84,6 +84,17 @@ public class ModelConfig implements InternalConfig, Serializable {
     }
 
     /**
+     * Answers {@code true}
+     * if this config has not a personal {@link OntLoaderConfiguration Loader Configuration} and,
+     * therefore, uses manager's config.
+     *
+     * @return boolean
+     */
+    public boolean useManagerConfig() {
+        return readConf == null;
+    }
+
+    /**
      * Returns loader-configuration settings,
      * which can be global (belong to the manager) or specific to the ontology instance.
      *
@@ -165,6 +176,11 @@ public class ModelConfig implements InternalConfig, Serializable {
     }
 
     @Override
+    public boolean isContentCacheEnabled() {
+        return getLoaderConfig().isContentCacheEnabled();
+    }
+
+    @Override
     public boolean parallel() {
         return manager.isConcurrent();
     }
@@ -200,6 +216,7 @@ public class ModelConfig implements InternalConfig, Serializable {
                 , OntLoaderConfiguration::isIgnoreAxiomsReadErrors
                 , OntLoaderConfiguration::getLoadNodesCacheSize
                 , OntLoaderConfiguration::getLoadObjectsCacheSize
+                , OntLoaderConfiguration::isContentCacheEnabled
         );
         return fields.anyMatch(c -> c.apply(left) != c.apply(right));
     }

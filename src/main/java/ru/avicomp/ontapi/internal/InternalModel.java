@@ -80,7 +80,7 @@ import java.util.stream.Stream;
  * (see {@link AxiomParserProvider#get(AxiomType)}).
  * <p>
  * TODO: Should it return {@link ONTObject}s, not just naked {@link OWLObject}s?
- *  It seems it would be more convenient and could make this class useful not only as part of inner implementation.
+ * It seems it would be more convenient and could make this class useful not only as part of inner implementation.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
@@ -282,7 +282,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         try {
             return super.fetchNodeAs(node, type);
         } catch (OntJenaException e) {
-            return SearchModel.handleFetchNodeAsException(e, node, type, this, config);
+            return SearchModel.handleFetchNodeAsException(e, node, type, this, getSnapshotConfig());
         }
     }
 
@@ -662,17 +662,20 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Adds the OWL object to the model.
      *
      * @param object either {@link OWLAxiom} or {@link OWLAnnotation}
-     * @param map  {@link ObjectTriplesMap}
+     * @param map    {@link ObjectTriplesMap}
      * @param writer {@link Consumer} to process writing.
      * @param <O>    type of owl-object
      */
     protected <O extends OWLObject> void add(O object, ObjectTriplesMap<O> map, Consumer<O> writer) {
         GraphListener listener = map.addListener(object);
+        // todo: there is no need to invalidate *whole* objects cache
         clearObjectsCaches();
         UnionGraph.OntEventManager evm = getGraph().getEventManager();
         try {
             evm.register(listener);
             writer.accept(object);
+        } catch (OntApiException e) {
+            throw e;
         } catch (Exception e) {
             throw new OntApiException(String.format("OWLObject: %s, message: %s", object, e.getMessage()), e);
         } finally {
@@ -896,11 +899,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected <O extends OWLObject> ObjectTriplesMap<O> createObjectTriplesMap(Class<O> type,
                                                                                Supplier<Iterator<ONTObject<O>>> loader) {
+        InternalConfig conf = getSnapshotConfig();
+        if (!conf.isContentCacheEnabled())
+            return new DirectObjectTripleMapImpl<>(loader);
         if (!LOGGER.isDebugEnabled()) {
-            return new ObjectTriplesMapImpl<>(loader, config.parallel());
+            return new CacheObjectTriplesMapImpl<>(loader, conf.parallel());
         }
         OntID id = getID();
-        return new ObjectTriplesMapImpl<O>(loader, config.parallel()) {
+        return new CacheObjectTriplesMapImpl<O>(loader, conf.parallel()) {
             @Override
             protected CachedMap loadMap() {
                 Instant start = Instant.now();
@@ -925,7 +931,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     public class DirectListener extends GraphListenerBase {
         private boolean hasObjectListener() {
-            return getGraph().getEventManager().hasListeners(ObjectTriplesMapImpl.Listener.class);
+            return getGraph().getEventManager().hasListeners(CacheObjectTriplesMapImpl.Listener.class);
         }
 
         private void invalidate() {
@@ -934,7 +940,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         }
 
         /**
-         * If at the moment there is an {@link ObjectTriplesMapImpl.Listener}
+         * If at the moment there is an {@link CacheObjectTriplesMapImpl.Listener}
          * then it's called from {@link InternalModel#add(OWLAxiom)} =&gt; don't clear cache;
          * otherwise it is direct call and cache must be reset to have correct list of axioms.
          *

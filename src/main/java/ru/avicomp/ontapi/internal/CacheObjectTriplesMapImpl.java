@@ -39,12 +39,12 @@ import java.util.stream.Stream;
  * @param <X> any subtype of {@link OWLObject} (in system either {@link OWLAxiom} or {@link OWLAnnotation})
  */
 @SuppressWarnings("WeakerAccess")
-public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesMap<X> {
+public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesMap<X> {
 
     // objects provider:
     private final Supplier<Iterator<ONTObject<X>>> loader;
     // soft reference:
-    private final InternalCache.Loading<ObjectTriplesMapImpl<X>, CachedMap> map;
+    private final InternalCache.Loading<CacheObjectTriplesMapImpl<X>, CachedMap> map;
 
     // a state flag that responds whether some axioms have been manually added to this map
     // the dangerous of manual added axioms is that the same information can be represented in different ways.
@@ -60,9 +60,9 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
      * @param loader   a {@code Supplier} to load object-triples pairs, not {@code null}
      * @param parallel if {@code true} use caffeine cache, otherwise LHM based cache
      */
-    public ObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader, boolean parallel) {
+    public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader, boolean parallel) {
         this.loader = Objects.requireNonNull(loader);
-        this.map = InternalCache.createSoft(ObjectTriplesMapImpl::loadMap, this.parallel = parallel);
+        this.map = InternalCache.createSoft(CacheObjectTriplesMapImpl::loadMap, this.parallel = parallel);
     }
 
     protected CachedMap loadMap() {
@@ -382,10 +382,10 @@ public class ObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesM
      * @param <O> a subtype of {@link OWLObject}
      */
     public static class Listener<O extends OWLObject> extends GraphListenerBase {
-        protected final ObjectTriplesMapImpl<O> store;
+        protected final CacheObjectTriplesMapImpl<O> store;
         protected final O object;
 
-        protected Listener(ObjectTriplesMapImpl<O> store, O object) {
+        protected Listener(CacheObjectTriplesMapImpl<O> store, O object) {
             this.store = Objects.requireNonNull(store);
             this.object = Objects.requireNonNull(object);
         }

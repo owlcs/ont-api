@@ -57,11 +57,10 @@ public enum OntSettings implements OntConfig.OptionSetting {
     ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS(false),
     ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS(false),
 
-    // ont.api.load.conf.cache.objects.integer, since 1.4.0
+    // cache options since 1.4.0
+    ONT_API_LOAD_CONF_CACHE_CONTENT(true),
     ONT_API_LOAD_CONF_CACHE_OBJECTS(2048),
-    // ont.api.load.conf.cache.nodes.integer, since 1.4.0
     ONT_API_LOAD_CONF_CACHE_NODES(50_000),
-    // ont.api.manager.cache.iris.integer, since 1.4.0
     ONT_API_MANAGER_CACHE_IRIS(2048),
 
     OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION(true),

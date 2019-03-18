@@ -175,6 +175,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * Gets a manager's configuration.
+     *
      * @return {@link OntConfig}
      */
     @Override
@@ -189,6 +190,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
     /**
      * Sets a manager's configuration.
+     *
      * @param conf {@link OntologyConfigurator}
      */
     @Override
@@ -216,8 +218,9 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().writeLock().lock();
         try {
             OntLoaderConfiguration config = OWLAdapter.get().asONT(conf);
+            boolean hasChanges = ModelConfig.hasChanges(getOntLoaderConfiguration(), config);
             content.values()
-                    .filter(x -> x.getModelConfig().hasChanges(config))
+                    .filter(x -> x.getModelConfig().useManagerConfig() ? hasChanges : x.getModelConfig().hasChanges(config))
                     .map(OntInfo::get)
                     .forEach(OntologyModel::clearCache);
             this.loaderConfig = config;
@@ -227,17 +230,22 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Gets a manager's loader configuration.
+     * Gets the manager's loader configuration.
+     *
      * @return {@link OntLoaderConfiguration}
      */
     @Override
     public OntLoaderConfiguration getOntologyLoaderConfiguration() {
         getLock().readLock().lock();
         try {
-            return loaderConfig == null ? loaderConfig = config.buildLoaderConfiguration() : loaderConfig;
+            return getOntLoaderConfiguration();
         } finally {
             getLock().readLock().unlock();
         }
+    }
+
+    protected OntLoaderConfiguration getOntLoaderConfiguration() {
+        return loaderConfig == null ? loaderConfig = config.buildLoaderConfiguration() : loaderConfig;
     }
 
     /**
@@ -257,7 +265,8 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
-     * Gets a manager's writer configuration.
+     * Gets the manager's writer configuration.
+     *
      * @return {@link OntWriterConfiguration}
      */
     @Override

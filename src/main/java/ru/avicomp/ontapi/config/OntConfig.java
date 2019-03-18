@@ -350,6 +350,27 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
+     *
+     * @param b boolean
+     * @return this instance
+     */
+    @Override
+    public OntConfig setUseContentCache(boolean b) {
+        return put(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT, b);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return boolean
+     */
+    @Override
+    public boolean isContentCacheEnabled() {
+        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT);
+    }
+
+    /**
      * ONT-API manager load config getter.
      *
      * @return List of supported {@link Scheme schemes}

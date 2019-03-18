@@ -249,6 +249,7 @@ public interface OntGraphModel extends Model {
      *
      * @return Stream of {@link OntIndividual}s
      * @see OntGraphModel#listNamedIndividuals()
+     * @since 1.3.0
      */
     Stream<OntIndividual> classAssertions();
 

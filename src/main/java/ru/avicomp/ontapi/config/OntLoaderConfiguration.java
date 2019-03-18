@@ -200,24 +200,67 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
         return res;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param size int
+     * @return this or copied instance
+     */
     @Override
     public OntLoaderConfiguration setLoadNodesCacheSize(int size) {
         return set(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES, size);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return int
+     */
     @Override
     public int getLoadNodesCacheSize() {
         return get(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param size int
+     * @return this or copied instance
+     */
     @Override
     public OntLoaderConfiguration setLoadObjectsCacheSize(int size) {
         return set(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS, size);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return int
+     */
     @Override
     public int getLoadObjectsCacheSize() {
         return get(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param b boolean
+     * @return this or copied instance
+     */
+    @Override
+    public OntLoaderConfiguration setUseContentCache(boolean b) {
+        return set(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT, b);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return boolean
+     */
+    @Override
+    public boolean isContentCacheEnabled() {
+        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT);
     }
 
     /**

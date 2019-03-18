@@ -14,12 +14,17 @@
 
 package ru.avicomp.ontapi.tests.managers;
 
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.WrappedGraph;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.Assert;
 import org.junit.Test;
-import ru.avicomp.ontapi.OntFormat;
-import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.OntologyModel;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntSettings;
@@ -27,12 +32,15 @@ import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
  * Created by @ssz on 04.03.2019.
  */
-public class ConfigTest {
+public class CacheConfigTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CacheConfigTest.class);
 
     @Test
     public void testConfigureManagerIRICacheSize() {
@@ -94,10 +102,94 @@ public class ConfigTest {
         Assert.assertTrue(of2 instanceof CacheObjectFactory);
     }
 
+    @Test
+    public void testContentCacheOption() {
+        Graph g = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph();
+
+        long axioms1 = 945;
+        OntologyManager m1 = OntManagers.createONT();
+        DataFactory df = m1.getOWLDataFactory();
+        Assert.assertTrue(Prop.CONTENT_CACHE.getBoolean());
+        Assert.assertTrue(m1.getOntologyConfigurator().isContentCacheEnabled());
+        LogFindGraph g1 = new LogFindGraph(g);
+        OntologyModel o1 = m1.addOntology(g1);
+        Assert.assertEquals(axioms1, o1.axioms().count());
+        int count1 = g1.getFindPatterns().size();
+        LOGGER.debug("1) Find invocation count: {}", count1);
+        // cached:
+        Assert.assertEquals(axioms1, o1.axioms().count());
+        Assert.assertEquals(count1, g1.getFindPatterns().size());
+        OWLAxiom axiom = df.getOWLSubClassOfAxiom(df.getOWLClass("A"), df.getOWLClass("B"));
+        o1.add(axiom);
+
+        // no cache model:
+        long axioms2 = 948;
+        OntologyManager m2 = OntManagers.createONT();
+        OntLoaderConfiguration conf = m2.getOntologyLoaderConfiguration().setUseContentCache(false);
+        Assert.assertFalse(conf.isContentCacheEnabled());
+        m2.setOntologyLoaderConfiguration(conf);
+        LogFindGraph g2 = new LogFindGraph(g);
+        OntologyModel o2 = m2.addOntology(g2);
+        Assert.assertEquals(axioms2, o2.axioms().count());
+        int count2_1 = g2.getFindPatterns().size();
+        LOGGER.debug("2) Find invocation count: {}", count2_1);
+
+        Assert.assertEquals(axioms2, o2.axioms().count());
+        int count2_2 = g2.getFindPatterns().size();
+        Assert.assertTrue(count2_2 > count2_1);
+
+        Assert.assertEquals(axioms2, o2.axioms().count());
+        Assert.assertEquals(2 * count2_2 - count2_1, g2.getFindPatterns().size());
+
+        int size = g.size();
+        try {
+            o2.add(df.getOWLSubClassOfAxiom(df.getOWLClass("C"), df.getOWLClass("D")));
+            Assert.fail("Possible to add axiom");
+        } catch (DirectObjectTripleMapImpl.ModificationDeniedException e) {
+            LOGGER.debug("Expected: '{}'", e.getMessage());
+        }
+        Assert.assertEquals(size, g.size());
+
+        try {
+            o2.remove(axiom);
+            Assert.fail("Possible to delete axiom");
+        } catch (DirectObjectTripleMapImpl.ModificationDeniedException e) {
+            LOGGER.debug("Expected: '{}'", e.getMessage());
+        }
+        Assert.assertEquals(size, g.size());
+
+    }
+
+    private static class LogFindGraph extends WrappedGraph {
+        private final List<Triple> track = new ArrayList<>();
+
+        LogFindGraph(Graph base) {
+            super(Objects.requireNonNull(base));
+        }
+
+        @Override
+        public ExtendedIterator<Triple> find(Triple m) {
+            track.add(m);
+            return super.find(m);
+        }
+
+        @Override
+        public ExtendedIterator<Triple> find(Node s, Node p, Node o) {
+            track.add(Triple.createMatch(s, p, o));
+            return super.find(s, p, o);
+        }
+
+        public List<Triple> getFindPatterns() {
+            return track;
+        }
+
+    }
+
     enum Prop {
         IRI_CACHE_SIZE(OntSettings.ONT_API_MANAGER_CACHE_IRIS.key() + ".integer"),
         NODES_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES.key() + ".integer"),
         OBJECTS_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS.key() + ".integer"),
+        CONTENT_CACHE(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT.key() + ".boolean")
         ;
         private final String key;
 
@@ -105,11 +197,15 @@ public class ConfigTest {
             this.key = key;
         }
 
-        public int getInt() {
+        int getInt() {
             return Integer.parseInt(get());
         }
 
-        public String get() {
+        boolean getBoolean() {
+            return Boolean.parseBoolean(get());
+        }
+
+        private String get() {
             return Objects.requireNonNull(OntSettings.PROPERTIES.getProperty(key), "Null " + key);
         }
 
